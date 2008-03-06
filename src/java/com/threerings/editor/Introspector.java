@@ -1,0 +1,169 @@
+//
+// $Id$
+
+package com.threerings.editor;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+
+import com.samskivert.util.ArrayUtil;
+import com.samskivert.util.ListUtil;
+
+import static com.threerings.editor.Log.*;
+
+/**
+ * Provides access to the editable properties of objects.
+ */
+public class Introspector
+{
+    /**
+     * Returns an array containing the categories to which the supplied class's properties are
+     * assigned.
+     */
+    public static String[] getCategories (Class clazz)
+    {
+        String[] categories = _categories.get(clazz);
+        if (categories == null) {
+            categories = new String[0];
+            for (Property prop : getProperties(clazz)) {
+                String category = prop.getAnnotation().category();
+                if (!ListUtil.contains(categories, category)) {
+                    categories = ArrayUtil.append(categories, category);
+                }
+            }
+            _categories.put(clazz, categories);
+        }
+        return categories;
+    }
+
+    /**
+     * Returns an array containing the editable properties of the supplied class.
+     */
+    public static Property[] getProperties (Class clazz)
+    {
+        Property[] properties = _properties.get(clazz);
+        if (properties == null) {
+            _properties.put(clazz, properties = createProperties(clazz));
+        }
+        return properties;
+    }
+
+    /**
+     * Creates and returns the list of properties for the supplied class.
+     */
+    protected static Property[] createProperties (Class<?> clazz)
+    {
+        // get the list of properties
+        ArrayList<Property> properties = new ArrayList<Property>();
+        createProperties(clazz, properties);
+
+        // sort the properties by weight
+        Collections.sort(properties, WEIGHT_COMP);
+
+        // if the class has a property order attribute, move the listed properties
+        // to the beginning in the desired order
+        PropertyOrder order = clazz.getAnnotation(PropertyOrder.class);
+        if (order != null) {
+            int index = 0;
+            for (String name : order.value()) {
+                int oindex = index;
+                for (int ii = index, nn = properties.size(); ii < nn; ii++) {
+                    Property property = properties.get(ii);
+                    if (property.getName().equals(name)) {
+                        properties.remove(ii);
+                        properties.add(index++, property);
+                        break;
+                    }
+                }
+                if (index == oindex) {
+                    log.warning("Missing property in order annotation [class=" +
+                        clazz.getName() + ", property=" + name + "].");
+                }
+            }
+        }
+
+        // return an array with the results
+        return properties.toArray(new Property[properties.size()]);
+    }
+
+    /**
+     * Retrieves all {@link Editable} properties of the specified class.
+     */
+    protected static void createProperties (Class clazz, ArrayList<Property> properties)
+    {
+        // prepend the superclass properties
+        Class sclazz = clazz.getSuperclass();
+        if (sclazz != null) {
+            Collections.addAll(properties, getProperties(sclazz));
+        }
+
+        // find the getters and setters
+        HashMap<String, Method> unpaired = new HashMap<String, Method>();
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (!method.isAnnotationPresent(Editable.class)) {
+                continue;
+            }
+            String name = method.getName();
+            boolean getter;
+            if (name.startsWith("set")) {
+                name = name.substring(3);
+                getter = false;
+            } else {
+                if (name.startsWith("get")) {
+                    name = name.substring(3);
+                } else if (name.startsWith("is")) {
+                    name = name.substring(2);
+                } else {
+                    log.warning("Invalid method name for editable property [class=" + clazz +
+                        ", name=" + name + "].");
+                    continue;
+                }
+                getter = true;
+            }
+            Method omethod = unpaired.remove(name);
+            if (omethod != null) {
+                Method gmethod = getter ? method : omethod;
+                Method smethod = getter ? omethod : method;
+                Class rtype = gmethod.getReturnType();
+                Class[] ptypes = smethod.getParameterTypes();
+                if (ptypes.length != 1 || ptypes[0] != rtype) {
+                    log.warning("Mismatched types on getter/setter [class=" + clazz +
+                        ", getter=" + gmethod + ", setter=" + smethod + "].");
+                    continue;
+                }
+                properties.add(new MethodProperty(gmethod, smethod));
+            } else {
+                unpaired.put(name, method);
+            }
+        }
+        if (!unpaired.isEmpty()) {
+            log.warning("Found unmatched getters/setters [class=" + clazz + ", methods=" +
+                unpaired.values() + "].");
+        }
+
+        // add all editable fields
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Editable.class)) {
+                properties.add(new FieldProperty(field));
+            }
+        }
+    }
+
+    /** Cached category lists. */
+    protected static HashMap<Class, String[]> _categories = new HashMap<Class, String[]>();
+
+    /** Cached property lists. */
+    protected static HashMap<Class, Property[]> _properties = new HashMap<Class, Property[]>();
+
+    /** Sorts properties by increasing weight. */
+    protected static final Comparator<Property> WEIGHT_COMP = new Comparator<Property>() {
+        public int compare (Property p1, Property p2) {
+            return Double.compare(p1.getAnnotation().weight(), p2.getAnnotation().weight());
+        }
+    };
+}

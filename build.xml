@@ -1,0 +1,145 @@
+<?xml version="1.0" standalone="yes"?>
+<!-- build configuration -->
+<project name="clyde" default="compile" basedir=".">
+
+  <!-- import overriding properties -->
+  <property file="build.properties"/>
+
+  <!-- configuration parameters -->
+  <property name="lib.name"    value="clyde"/>
+  <property name="deploy.dir"  value="dist"/>
+  <property name="savedoc.dir" value="docs"/>
+
+  <!-- derived properties -->
+  <property name="javadoc.dir" value="${deploy.dir}/docs"/>
+  <property name="classes.dir"  value="${deploy.dir}/classes"/>
+
+  <!-- import some targets to enumerate library dependencies -->
+  <property name="libs.dir" value="lib"/>
+  <import file="etc/libs-incl.xml"/>
+
+  <!-- declare our classpath business -->
+  <path id="classpath">
+    <pathelement location="${classes.dir}"/>
+    <fileset dir="${deploy.dir}/lib" includes="**/*.jar"/>
+  </path>
+
+  <!-- generates additional methods for distributed object classes -->
+  <target name="gendobj" depends="prepare">
+    <taskdef name="dobj" classpathref="classpath"
+             classname="com.threerings.presents.tools.GenDObjectTask"/>
+    <!-- make sure the dobject class files are all compiled -->
+    <javac srcdir="src/java" destdir="${classes.dir}" includeAntRuntime="false"
+           debug="on" optimize="${build.optimize}" deprecation="on"
+           source="1.5" target="1.5">
+      <classpath refid="classpath"/>
+      <include name="**/*Object.java"/>
+    </javac>
+    <!-- now generate the associated files -->
+    <dobj classpathref="classpath">
+      <fileset dir="src/java" includes="**/*Object.java"/>
+    </dobj>
+  </target>
+
+  <!-- generates marshaller and dispatcher classes for all invocation -->
+  <!-- service declarations -->
+  <target name="genservice">
+    <taskdef name="service" classpathref="classpath"
+             classname="com.threerings.presents.tools.GenServiceTask"/>
+    <!-- make sure the service class files are all compiled -->
+    <javac srcdir="src/java" destdir="${classes.dir}" includeAntRuntime="false"
+           debug="on" optimize="${build.optimize}" deprecation="on"
+           source="1.5" target="1.5">
+      <classpath refid="classpath"/>
+      <include name="**/*Service.java"/>
+    </javac>
+    <!-- now generate the associated files -->
+    <service header="lib/SOURCE_HEADER" classpathref="classpath">
+      <fileset dir="src/java" includes="**/*Service.java"/>
+    </service>
+  </target>
+
+  <!-- prepares the application directories -->
+  <target name="prepare">
+    <mkdir dir="${deploy.dir}"/>
+    <mkdir dir="${deploy.dir}/lib"/>
+    <mkdir dir="${classes.dir}"/>
+    <mkdir dir="${classes.dir}/rsrc"/>
+    <mkdir dir="${javadoc.dir}"/>
+    <copy todir="${classes.dir}/rsrc">
+      <fileset dir="rsrc" includes="**/*"/>
+    </copy>
+    <copy todir="${deploy.dir}/lib" flatten="true">
+      <fileset refid="${lib.name}.libs"/>
+    </copy>
+  </target>
+
+  <!-- cleans out the intermediate build files -->
+  <target name="clean" depends="common-clean">
+    <delete dir="${deploy.dir}/classes"/>
+    <delete dir="${deploy.dir}/docs"/>
+    <delete failonerror="false"><fileset dir="${deploy.dir}" includes="*.jar"/></delete>
+  </target>
+
+  <!-- wipes the entire build directory clean -->
+  <target name="distclean" depends="common-clean">
+    <delete dir="${deploy.dir}"/>
+  </target>
+
+  <!-- common clean tasks -->
+  <target name="common-clean">
+    <ant dir="tests" target="clean"/>
+  </target>
+
+  <!-- build the java class files -->
+  <target name="compile" depends="prepare">
+    <javac srcdir="src/java" destdir="${classes.dir}" includeAntRuntime="false"
+           debug="on" optimize="${build.optimize}" deprecation="on"
+           source="1.5" target="1.5">
+      <classpath refid="classpath"/>
+      <compilerarg value="-Xlint"/>
+      <compilerarg value="-Xlint:-serial"/>
+    </javac>
+  </target>
+
+  <!-- builds the javadoc documentation -->
+  <target name="javadoc" depends="prepare">
+    <javadoc sourcepath="src/java" packagenames="com.threerings.*"
+             destdir="${javadoc.dir}" stylesheetfile="docs/stylesheet.css"
+             additionalparam="-breakiterator">
+      <classpath refid="classpath"/>
+      <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
+      <!-- ant documentation is not available online, sorry kids -->
+      <link href="file:///usr/share/doc/ant-doc/javadocs"/>
+      <link href="http://samskivert.com/code/samskivert/samskivert/docs/api"/>
+      <link href="http://www.threerings.net/code/narya/docs/api"/>
+      <link href="http://www.threerings.net/code/nenya/docs/api"/>
+    </javadoc>
+  </target>
+
+  <!-- builds the javadocs and stuffs them in a directory where they -->
+  <!-- won't be blown away when we do "clean" next time -->
+  <target name="savedoc" depends="javadoc">
+    <delete dir="${savedoc.dir}/api"/>
+    <copy todir="${savedoc.dir}/api">
+      <fileset dir="${javadoc.dir}" includes="**/*"/>
+    </copy>
+  </target>
+
+  <!-- builds the various tests -->
+  <target name="tests">
+    <ant dir="tests" target="compile"/>
+  </target>
+
+  <!-- a target for rebuilding everything -->
+  <target name="all" depends="clean,prepare,compile,javadoc,tests,dist"/>
+
+  <!-- builds our distribution files (war and jar) -->
+  <target name="dist" depends="prepare,compile,tests">
+    <jar destfile="${deploy.dir}/${lib.name}.jar">
+      <fileset dir="${classes.dir}" includes="com/**"/>
+      <fileset dir="${classes.dir}" includes="rsrc/**"/>
+    </jar>
+  </target>
+
+</project>

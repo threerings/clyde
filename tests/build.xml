@@ -1,0 +1,53 @@
+<!-- build configuration -->
+<project name="clyde tests" default="compile" basedir=".">
+
+  <!-- things you may want to change -->
+  <property name="junit.fork"     value="true"/>
+
+  <!-- things you probably don't want to change -->
+  <property name="test.dir"   value="."/>
+  <property name="src.dir"    value="src/java"/>
+  <property name="deploy.dir" value="dist"/>
+
+  <!-- declare our classpath -->
+  <property name="classes.dir" value="${deploy.dir}/classes"/>
+  <property name="clyde.classes.dir" value="../${deploy.dir}/classes"/>
+  <path id="classpath">
+    <pathelement location="${classes.dir}"/>
+    <pathelement location="${clyde.classes.dir}"/>
+    <fileset dir="../${deploy.dir}/lib" includes="**/*.jar"/>
+  </path>
+
+  <!-- prepares the application directories -->
+  <target name="prepare">
+    <mkdir dir="${deploy.dir}"/>
+    <mkdir dir="${classes.dir}"/>
+  </target>
+
+  <!-- cleans out the installed application -->
+  <target name="clean">
+    <delete dir="${deploy.dir}"/>
+  </target>
+
+  <!-- build the java class files -->
+  <target name="compile" depends="prepare">
+    <javac srcdir="${src.dir}" destdir="${classes.dir}"
+      debug="on" optimize="off" deprecation="on">
+      <classpath refid="classpath"/>
+    </javac>
+  </target>
+
+  <!-- run the tests -->
+  <target name="test" depends="compile" description="Run the tests.">
+    <junit printsummary="no" haltonfailure="yes" fork="${junit.fork}">
+      <classpath refid="classpath"/>
+      <sysproperty key="test_dir" value="${test.dir}"/>
+      <formatter type="brief" usefile="false"/>
+      <batchtest>
+        <fileset dir="${src.dir}">
+          <include name="**/*Test.java"/>
+        </fileset>
+      </batchtest>
+    </junit>
+  </target>
+</project>
