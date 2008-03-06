@@ -63,7 +63,7 @@ public class Renderer
      *
      * @param drawable the drawable surface with which this renderer will be used.
      * @param width the initial viewport width.
-     * @param width the initial viewport height.
+     * @param height the initial viewport height.
      */
     public Renderer (Drawable drawable, int width, int height)
     {

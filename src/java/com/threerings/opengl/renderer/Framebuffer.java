@@ -85,7 +85,7 @@ public class Framebuffer
      * Attaches a texture to the depth target of this frame buffer.
      *
      * @param level the mipmap level.
-     * @param for depth textures, the z offset; for cube map textures, the face index.
+     * @param param for depth textures, the z offset; for cube map textures, the face index.
      */
     public void setDepthAttachment (Texture texture, int level, int param)
     {
@@ -120,7 +120,7 @@ public class Framebuffer
      * Attaches a texture to the stencil target of this frame buffer.
      *
      * @param level the mipmap level.
-     * @param for depth textures, the z offset; for cube map textures, the face index.
+     * @param param for depth textures, the z offset; for cube map textures, the face index.
      */
     public void setStencilAttachment (Texture texture, int level, int param)
     {

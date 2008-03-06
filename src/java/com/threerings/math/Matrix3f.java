@@ -355,7 +355,7 @@ public final class Matrix3f
     /**
      * Copies the contents of another matrix.
      *
-     * @reutrn a reference to this matrix, for chaining.
+     * @return a reference to this matrix, for chaining.
      */
     public Matrix3f set (Matrix3f other)
     {

@@ -38,7 +38,7 @@ public abstract class SimpleRenderable
      *
      * @param transparent if true, render the object in the transparent queue.
      * @param modifiesColorState if true, invalidate the color state after calling the
-     * {@link draw} method.
+     * {@link #draw} method.
      * @param primitiveCount the primitive count to report to the renderer.
      */
     public SimpleRenderable (

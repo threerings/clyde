@@ -18,8 +18,6 @@ public abstract class Material
 {
     /**
      * Creates a material from the specified properties.
-     *
-     * @param path the root path of the material (used to resolve relative resource paths).
      */
     public static Material createMaterial (GlContext ctx, Properties props)
     {

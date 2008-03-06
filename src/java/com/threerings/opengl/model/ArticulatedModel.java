@@ -997,9 +997,7 @@ public class ArticulatedModel extends Model
     /**
      * Attaches a model to the specified attachment point, replacing any existing attachment(s).
      *
-     * @param point the name of the point to which the model should be attached, or
-     * <code>null</code> to attach to the root node.
-     * @param replace if true, replace any existing attachments at the point.
+     * @param point the name of the point to which the model should be attached.
      */
     public void attach (String point, Model model)
     {
@@ -1127,8 +1125,6 @@ public class ArticulatedModel extends Model
 
     /**
      * Stops all animations.
-     *
-     * @return the number of animations stopped.
      */
     public void stopAnimation ()
     {

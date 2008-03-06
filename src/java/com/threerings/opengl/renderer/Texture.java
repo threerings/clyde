@@ -252,7 +252,7 @@ public abstract class Texture
     }
 
     /**
-     * Returns the format of the data to be returned by {@link getData} for the specified image.
+     * Returns the format of the data to be returned by {@link #getData} for the specified image.
      */
     protected static int getFormat (BufferedImage image)
     {

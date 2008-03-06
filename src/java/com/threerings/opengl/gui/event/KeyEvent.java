@@ -65,7 +65,7 @@ public class KeyEvent extends InputEvent
     /**
      * Returns the numeric identifier associated with the key.
      *
-     * @see KeyInput
+     * @see Keyboard
      */
     public int getKeyCode ()
     {

@@ -688,7 +688,7 @@ public final class Matrix4f
     /**
      * Copies the contents of another matrix.
      *
-     * @reutrn a reference to this matrix, for chaining.
+     * @return a reference to this matrix, for chaining.
      */
     public Matrix4f set (Matrix4f other)
     {

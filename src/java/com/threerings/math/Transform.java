@@ -464,7 +464,7 @@ public final class Transform
      * matrix is {@link #IDENTITY} and <code>type</code> is {@link #RIGID}, then the translation
      * and rotation fields are set to zero and the identity quaternion, respectively.
      *
-     * @param type the desired type, which must be greater than or equal to the type of this
+     * @param utype the desired type, which must be greater than or equal to the type of this
      * transform.
      * @return a reference to this transform, for chaining.
      */

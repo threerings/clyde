@@ -3,8 +3,12 @@
 <project name="library-dependencies">
   <fileset dir="${libs.dir}" id="clyde.libs">
     <include name="ant.jar"/>
+    <include name="commons-collections.jar"/>
     <include name="commons-digester.jar"/>
+    <include name="commons-io.jar"/>
     <include name="google-collect.jar"/>
+    <include name="junit4.jar"/>
+    <include name="velocity-1.5-dev.jar"/>
     <include name="lwjgl.jar"/>
     <include name="lwjgl_util.jar"/>
     <include name="samskivert.jar"/>

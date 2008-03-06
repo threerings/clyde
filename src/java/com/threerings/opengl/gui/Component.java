@@ -503,7 +503,7 @@ public class Component
     /**
      * Configures the tooltip text for this component. If the text starts with &lt;html&gt; then
      * the tooltip will be displayed with an @{link HTMLView} otherwise it will be displayed with a
-     * {@link BLabel}.
+     * {@link Label}.
      */
     public void setTooltipText (String text)
     {

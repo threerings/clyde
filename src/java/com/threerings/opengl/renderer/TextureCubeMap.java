@@ -52,7 +52,7 @@ public class TextureCubeMap extends Texture
     }
 
     /**
-     * Returns the size (width and height) of each face (only valid after {@link #setImage} is
+     * Returns the size (width and height) of each face (only valid after {@link #setImages} is
      * called).
      */
     public int getSize ()

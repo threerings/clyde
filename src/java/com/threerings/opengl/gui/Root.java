@@ -536,8 +536,8 @@ public abstract class Root
     }
 
     /**
-     * Registers a {@link BGeomView} with the root node. This is called automatically from {@link
-     * BGeomView#wasAdded}.
+     * Registers a {@link GeomView} with the root node. This is called automatically from {@link
+     * GeomView#wasAdded}.
      */
     protected void registerGeomView (GeomView nview)
     {
@@ -546,7 +546,7 @@ public abstract class Root
 
     /**
      * Clears out a node view registration. This is called automatically from {@link
-     * BGeomView#wasRemoved}.
+     * GeomView#wasRemoved}.
      */
     protected void unregisterGeomView (GeomView nview)
     {

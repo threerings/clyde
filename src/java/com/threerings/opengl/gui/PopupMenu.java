@@ -130,7 +130,7 @@ public class PopupMenu extends PopupWindow
     }
 
     /**
-     * Called by any child {@link BMenuItem}s when they are selected.
+     * Called by any child {@link MenuItem}s when they are selected.
      */
     protected void itemSelected (MenuItem item, long when, int modifiers)
     {
