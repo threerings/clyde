@@ -310,9 +310,19 @@ public class FloatMath
     }
 
     /**
+     * Returns an angle in the range [0, 2pi].
+     */
+    public static float normalizeAnglePositive (float a)
+    {
+        while (a < 0f) a += FloatMath.TWO_PI;
+        while (a > FloatMath.TWO_PI) a -= FloatMath.TWO_PI;
+        return a;
+    }
+
+    /**
      * Returns the mirror angle of the specified angle (assumed to be in [-pi, +pi]).
      */
-    protected static float mirrorAngle (float a)
+    public static float mirrorAngle (float a)
     {
         return (a > 0f ? PI : -PI) - a;
     }

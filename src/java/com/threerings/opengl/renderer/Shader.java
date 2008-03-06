@@ -37,6 +37,10 @@ public class Shader extends ShaderObject
         // convert the source to an ASCII buffer
         ByteBuffer buf = ASCII_CHARSET.encode(source);
 
+        // and copy that to a direct buffer
+        buf = BufferUtils.createByteBuffer(buf.remaining()).put(buf);
+        buf.rewind();
+
         // load the source and compile
         ARBShaderObjects.glShaderSourceARB(_id, buf);
         ARBShaderObjects.glCompileShaderARB(_id);
