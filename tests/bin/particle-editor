@@ -1,3 +1,0 @@
-#!/bin/sh
-
-`dirname $0`/runjava com.threerings.opengl.effect.tools.ParticleEditor $*
