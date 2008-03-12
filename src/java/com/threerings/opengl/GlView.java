@@ -3,10 +3,13 @@
 
 package com.threerings.opengl;
 
+import com.threerings.opengl.util.Renderable;
+
 /**
  * A simple base class for OpenGL views.
  */
 public abstract class GlView
+    implements Renderable
 {
     /**
      * Notifies the view that it is going to be rendered.
@@ -25,14 +28,12 @@ public abstract class GlView
     /**
      * Performs any per-frame updates that are necessary even when not rendering.
      */
-    public void update ()
+    public void tick (float elapsed)
     {
     }
 
-    /**
-     * Renders the view.
-     */
-    public void render ()
+    // documentation inherited from interface Renderable
+    public void enqueue ()
     {
     }
 }

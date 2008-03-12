@@ -21,6 +21,8 @@ import com.threerings.media.ManagedJFrame;
 
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.gui.CanvasRoot;
+import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
 
 import static com.threerings.opengl.Log.*;
@@ -90,6 +92,12 @@ public abstract class GlCanvasApp extends GlApp
     public boolean isDispatchThread ()
     {
         return EventQueue.isDispatchThread();
+    }
+
+    @Override // documentation inherited
+    public Root createRoot ()
+    {
+        return new CanvasRoot(this, _canvas);
     }
 
     /**

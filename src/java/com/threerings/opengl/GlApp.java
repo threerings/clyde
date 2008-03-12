@@ -9,6 +9,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
 import com.threerings.opengl.camera.CameraHandler;
+import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.MaterialCache;
@@ -32,6 +33,11 @@ public abstract class GlApp
         _matcache = new MaterialCache(this);
         _modcache = new ModelCache(this);
     }
+
+    /**
+     * Creates a user interface root appropriate for this application.
+     */
+    public abstract Root createRoot ();
 
     /**
      * Returns a reference to the application's camera handler.

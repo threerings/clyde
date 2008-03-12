@@ -18,14 +18,14 @@ public class TimerUtil
      */
     public static MediaTimer createTimer ()
     {
-        // first try the performance timer
-        try {
-            return new PerfTimer();
-        } catch (Throwable t) { }
-
-        // then the nano timer
+        // first try the nano timer
         try {
             return new NanoTimer();
+        } catch (Throwable t) { }
+
+        // then the performance timer
+        try {
+            return new PerfTimer();
         } catch (Throwable t) { }
 
         // finally, fall back on the millisecond timer
