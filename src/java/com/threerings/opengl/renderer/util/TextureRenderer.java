@@ -84,7 +84,9 @@ public class TextureRenderer
             }
             try {
                 _pbuffer = new Pbuffer(width, height, pformat, rtex, renderer.getDrawable());
-                _renderer = new Renderer(_pbuffer, width, height);
+                _renderer = new Renderer();
+                _renderer.init(_pbuffer, width, height);
+
             } catch (LWJGLException e) {
                 log.log(Level.WARNING, "Failed to create pbuffer.", e);
             }

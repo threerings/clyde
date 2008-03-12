@@ -34,7 +34,7 @@ public abstract class GlCanvasApp extends GlApp
     {
         _frame = new JFrame();
         _frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        _frame.setSize(800, 600);
+        _frame.setSize(1024, 768);
         SwingUtil.centerWindow(_frame);
 
         try {
@@ -56,6 +56,22 @@ public abstract class GlCanvasApp extends GlApp
     }
 
     /**
+     * Returns a reference to the containing frame.
+     */
+    public JFrame getFrame ()
+    {
+        return _frame;
+    }
+
+    /**
+     * Returns a reference to the canvas.
+     */
+    public GlCanvas getCanvas ()
+    {
+        return _canvas;
+    }
+
+    /**
      * Starts up the application.
      */
     public void start ()
@@ -63,12 +79,25 @@ public abstract class GlCanvasApp extends GlApp
         _frame.setVisible(true);
     }
 
+    // documentation inherited from interface RunQueue
+    public void postRunnable (Runnable run)
+    {
+        // queue it on up on the awt thread
+        EventQueue.invokeLater(run);
+    }
+
+    // documentation inherited from interface RunQueue
+    public boolean isDispatchThread ()
+    {
+        return EventQueue.isDispatchThread();
+    }
+
     /**
      * Initializes the application once the OpenGL context is available.
      */
     protected void initRenderer ()
     {
-        _renderer = new Renderer(_canvas, _canvas.getWidth(), _canvas.getHeight());
+        _renderer.init(_canvas, _canvas.getWidth(), _canvas.getHeight());
         _camhand = createCameraHandler();
         _camhand.updatePerspective();
 

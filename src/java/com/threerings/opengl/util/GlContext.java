@@ -4,6 +4,7 @@
 package com.threerings.opengl.util;
 
 import com.threerings.resource.ResourceManager;
+import com.threerings.util.MessageManager;
 
 import com.threerings.opengl.renderer.Renderer;
 
@@ -22,6 +23,11 @@ public interface GlContext
      * Returns a reference to the resource manager.
      */
     public ResourceManager getResourceManager ();
+
+    /**
+     * Returns a reference to the message manager.
+     */
+    public MessageManager getMessageManager ();
 
     /**
      * Returns a reference to the texture cache.

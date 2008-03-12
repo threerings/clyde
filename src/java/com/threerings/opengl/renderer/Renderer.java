@@ -65,7 +65,7 @@ public class Renderer
      * @param width the initial viewport width.
      * @param height the initial viewport height.
      */
-    public Renderer (Drawable drawable, int width, int height)
+    public void init (Drawable drawable, int width, int height)
     {
         _drawable = drawable;
 
