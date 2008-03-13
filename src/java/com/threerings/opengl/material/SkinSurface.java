@@ -43,7 +43,7 @@ public class SkinSurface extends DefaultSurface
         TextureUnit unit = (tstate == null) ? null : tstate.getUnit(0);
 
         Program program;
-        if (unit.genModeS == GL11.GL_SPHERE_MAP) {
+        if (unit != null && unit.genModeS == GL11.GL_SPHERE_MAP) {
             if ((program = material.getSkinProgram(true)) != null) {
                 unit.genModeS = unit.genModeT = -1; // the shader will handle texture generation
             }

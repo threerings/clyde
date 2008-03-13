@@ -43,7 +43,6 @@ public class DefaultMaterial extends Material
         // load the diffuse texture
         TextureUnit[] units = null;
         String diffuse = _props.getProperty("diffuse");
-        boolean sphereMap = false;
         if (diffuse != null) {
             Texture dtex = _ctx.getTextureCache().getTexture(diffuse);
             if (dtex != null) {
@@ -57,7 +56,6 @@ public class DefaultMaterial extends Material
                 }
                 if (Boolean.parseBoolean(_props.getProperty("sphere_map"))) {
                     units[0].genModeS = units[0].genModeT = GL11.GL_SPHERE_MAP;
-                    sphereMap = true;
                 }
             }
         }
