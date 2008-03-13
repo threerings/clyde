@@ -1296,12 +1296,14 @@ public class Renderer
             if (urec.genEnabledS != Boolean.valueOf(genEnabledS)) {
                 setActiveUnit(ii);
                 setCapability(GL11.GL_TEXTURE_GEN_S, urec.genEnabledS = genEnabledS);
+                System.out.println(ii + " " + genEnabledS);
             }
             if (genEnabledS) {
                 if (urec.genModeS != unit.genModeS) {
                     setActiveUnit(ii);
                     GL11.glTexGeni(
                         GL11.GL_S, GL11.GL_TEXTURE_GEN_MODE, urec.genModeS = unit.genModeS);
+                    System.out.println(ii + " " + unit.genModeS);
                 }
                 if (unit.genModeS == GL11.GL_OBJECT_LINEAR) {
                     if (!urec.genPlaneS.equals(unit.genPlaneS)) {

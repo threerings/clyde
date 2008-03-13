@@ -6,6 +6,7 @@ package com.threerings.opengl.material;
 import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.StringUtil;
 
@@ -19,9 +20,11 @@ import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.Program.UniformMatrix4f;
 import com.threerings.opengl.renderer.SimpleBatch;
+import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.ArrayState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.ShaderState;
+import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -34,8 +37,21 @@ public class SkinSurface extends DefaultSurface
         super(ctx, material, mesh);
         _bones = mesh.getBones();
 
+        // determine whether we're using a sphere map
+        RenderState[] states = _bbatch.getStates();
+        TextureState tstate = (TextureState)states[RenderState.TEXTURE_STATE];
+        TextureUnit unit = (tstate == null) ? null : tstate.getUnit(0);
+
+        Program program;
+        if (unit.genModeS == GL11.GL_SPHERE_MAP) {
+            if ((program = material.getSkinProgram(true)) != null) {
+                unit.genModeS = unit.genModeT = -1; // the shader will handle texture generation
+            }
+        } else {
+            program = material.getSkinProgram(false);
+        }
+
         // create the shader state if we're using one
-        Program program = material.getSkinProgram();
         if (program != null) {
             Uniform[] uniforms = new Uniform[_bones.length];
             for (int ii = 0; ii < _bones.length; ii++) {
@@ -160,7 +176,7 @@ public class SkinSurface extends DefaultSurface
     protected SimpleBatch createBaseBatch (Geometry geom)
     {
         // if we're using a shader, we can create a nondeformable batch
-        if (_material.getSkinProgram() != null) {
+        if (_material.hasSkinPrograms()) {
             return super.createBaseBatch(geom);
         }
 

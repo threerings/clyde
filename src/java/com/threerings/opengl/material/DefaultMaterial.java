@@ -43,6 +43,7 @@ public class DefaultMaterial extends Material
         // load the diffuse texture
         TextureUnit[] units = null;
         String diffuse = _props.getProperty("diffuse");
+        boolean sphereMap = false;
         if (diffuse != null) {
             Texture dtex = _ctx.getTextureCache().getTexture(diffuse);
             if (dtex != null) {
@@ -53,6 +54,10 @@ public class DefaultMaterial extends Material
                         Float.parseFloat(_props.getProperty("alpha_threshold", "0.5"));
                     _sstates[RenderState.ALPHA_STATE] =
                         AlphaState.getTestInstance(_alphaThreshold);
+                }
+                if (Boolean.parseBoolean(_props.getProperty("sphere_map"))) {
+                    units[0].genModeS = units[0].genModeT = GL11.GL_SPHERE_MAP;
+                    sphereMap = true;
                 }
             }
         }
@@ -70,6 +75,7 @@ public class DefaultMaterial extends Material
                 _disableShaders = true;
                 return;
             }
+
             Program program = _ctx.getShaderCache().getProgram(vert, null);
             if (program == null) { // linkage error
                 _disableShaders = true;
@@ -79,6 +85,14 @@ public class DefaultMaterial extends Material
             _skinProgram.setAttribLocation("boneIndices", SkinMesh.BONE_INDEX_ATTRIB);
             _skinProgram.setAttribLocation("boneWeights", SkinMesh.BONE_WEIGHT_ATTRIB);
             _skinProgram.relink();
+
+            vert = _ctx.getShaderCache().getShader(
+                "skin.vert", "MAX_BONE_COUNT " + SkinMesh.MAX_BONE_COUNT, "SPHERE_MAP");
+            program = _ctx.getShaderCache().getProgram(vert, null);
+            _skinProgramSphere = program;
+            _skinProgramSphere.setAttribLocation("boneIndices", SkinMesh.BONE_INDEX_ATTRIB);
+            _skinProgramSphere.setAttribLocation("boneWeights", SkinMesh.BONE_WEIGHT_ATTRIB);
+            _skinProgramSphere.relink();
         }
     }
 
@@ -119,11 +133,19 @@ public class DefaultMaterial extends Material
     }
 
     /**
+     * Determines whether the skin programs have successfully loaded.
+     */
+    public boolean hasSkinPrograms ()
+    {
+        return _skinProgram != null && _skinProgramSphere != null;
+    }
+
+    /**
      * Returns a reference to the shader program to use for skinned meshes (if any).
      */
-    public Program getSkinProgram ()
+    public Program getSkinProgram (boolean sphereMap)
     {
-        return _skinProgram;
+        return sphereMap ? _skinProgramSphere : _skinProgram;
     }
 
     /** The states shared between all surfaces. */
@@ -137,6 +159,9 @@ public class DefaultMaterial extends Material
 
     /** The skin program. */
     protected static Program _skinProgram;
+
+    /** The skin program with sphere mapping enabled. */
+    protected static Program _skinProgramSphere;
 
     /** If true, shaders are disabled because of a compilation/linkage error. */
     protected static boolean _disableShaders;

@@ -30,6 +30,14 @@ public class TextureState extends RenderState
         return _units;
     }
 
+    /**
+     * Returns the unit at the specified index, if any.
+     */
+    public TextureUnit getUnit (int idx)
+    {
+        return (_units == null || _units.length <= idx) ? null : _units[idx];
+    }
+
     @Override // documentation inherited
     public int getType ()
     {
