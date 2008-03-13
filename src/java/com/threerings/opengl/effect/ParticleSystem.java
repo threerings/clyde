@@ -482,6 +482,14 @@ public class ParticleSystem extends Model
             }
         }
 
+        /**
+         * Returns whether this layer has no particles alive or yet to be spawned.
+         */
+        public boolean isComplete ()
+        {
+            return _living == 0 && _preliving == 0 && !respawnDeadParticles;
+        }
+
         // documentation inherited from interface SurfaceHost
         public Transform getModelview ()
         {
@@ -753,6 +761,19 @@ public class ParticleSystem extends Model
     public ArrayList<Layer> getLayers ()
     {
         return _layers;
+    }
+
+    /**
+     * Returns whether this system has no particles alive or yet to be spawned.
+     */
+    public boolean isComplete ()
+    {
+        for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
+            if (!_layers.get(ii).isComplete()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // documentation inherited from interface SurfaceHost
