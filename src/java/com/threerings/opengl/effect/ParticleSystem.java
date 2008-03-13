@@ -180,7 +180,6 @@ public class ParticleSystem extends Model
         public Layer (String name)
         {
             this.name = name;
-            init();
         }
 
         public Layer ()
@@ -576,6 +575,7 @@ public class ParticleSystem extends Model
             olayer.textureDivisionsT = textureDivisionsT;
             olayer.alphaMode = alphaMode;
             olayer.depthSort = depthSort;
+            olayer.priorityMode = priorityMode;
             olayer.color = color;
             olayer.size = size;
             olayer.length = length;
@@ -607,9 +607,9 @@ public class ParticleSystem extends Model
             olayer._preliving = _count;
             olayer._geom = _geom;
             olayer._gradius = _gradius;
+            olayer._tstate = new TransformState(); // have to set this before calling setHost
             olayer._surface = (Surface)_surface.clone();
             olayer._surface.setHost(olayer);
-            olayer._tstate = new TransformState();
             return olayer;
         }
 

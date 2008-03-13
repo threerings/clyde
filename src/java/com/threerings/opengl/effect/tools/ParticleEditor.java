@@ -726,6 +726,7 @@ public class ParticleEditor extends GlCanvasApp
             }
             int idx = layers.size();
             Layer layer = _particles.createLayer(prefix + " " + (max + 1));
+            layer.init();
             layers.add(layer);
             fireTableRowsInserted(idx, idx);
             _ltable.changeSelection(idx, 0, false, false);
