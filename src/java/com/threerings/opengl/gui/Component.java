@@ -672,7 +672,7 @@ public class Component
                 stateDidChange();
             }
             if (processed && changeCursor()) {
-                updateCursor(_cursor);
+                updateCursor(_hover ? _cursor : null);
             }
         }
 
@@ -851,7 +851,7 @@ public class Component
      */
     protected boolean changeCursor ()
     {
-        return _enabled && _visible && _hover;
+        return _enabled && _visible;
     }
 
     /**
@@ -859,9 +859,7 @@ public class Component
      */
     protected void updateCursor (Cursor cursor)
     {
-        if (cursor != null) {
-            cursor.show();
-        }
+        getWindow().getRoot().setCursor(cursor);
     }
 
     /**

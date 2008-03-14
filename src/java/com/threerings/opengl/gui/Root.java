@@ -310,6 +310,11 @@ public abstract class Root
     public abstract int getDisplayHeight ();
 
     /**
+     * Sets the cursor to display (or <code>null</code> to use the default cursor).
+     */
+    public abstract void setCursor (Cursor cursor);
+
+    /**
      * Generates a string representation of this instance.
      */
     public String toString ()

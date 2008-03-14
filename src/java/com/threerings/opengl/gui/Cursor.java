@@ -3,6 +3,10 @@
 
 package com.threerings.opengl.gui;
 
+import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -18,70 +22,39 @@ import org.lwjgl.opengl.Display;
 public class Cursor
 {
     /**
-     * Create a cursor from a BufferedImage.
+     * Creates a new cursor.
      */
-    public static org.lwjgl.input.Cursor createCursor (BufferedImage image, int hx, int hy)
-    {
-        int ww = image.getWidth();
-        int hh = image.getHeight();
-        IntBuffer data = ByteBuffer.allocateDirect(ww*hh*4).asIntBuffer();
-        for (int yy = hh - 1; yy >= 0; yy--) {
-            for (int xx = 0; xx < ww; xx++) {
-                data.put(image.getRGB(xx, yy));
-            }
-        }
-        data.flip();
-        try {
-            return new org.lwjgl.input.Cursor(ww, hh, hx, hh - hy - 1, 1, data, null);
-        } catch (LWJGLException e) {
-            System.err.println("Unable to create cursor: " + e);
-            return null;
-        }
-    }
-
-    public Cursor (org.lwjgl.input.Cursor cursor)
-    {
-        setCursor(cursor);
-    }
-
     public Cursor (BufferedImage image, int hx, int hy)
     {
-        setCursor(image, hx, hy);
+        _image = image;
+        _hx = hx;
+        _hy = hy;
     }
 
     /**
-     * Set the cursor to the specified value.
+     * Retrieve the lazily-initialized LWJGL cursor.
      */
-    public void setCursor (org.lwjgl.input.Cursor cursor)
+    public org.lwjgl.input.Cursor getLWJGLCursor ()
     {
-        _cursor = cursor;
-        _image = null;
-    }
-
-    /**
-     * Create a cursor from the image with the supplied hotspot and use it.
-     */
-    public void setCursor (BufferedImage image, int hx, int hy)
-    {
-        if (Mouse.isCreated()) {
-            setCursor(createCursor(image, hx, hy));
-        } else {
-            _image = image;
-            _hx = hx;
-            _hy = hy;
+        if (_lwjglCursor == null) {
+            _lwjglCursor = createLWJGLCursor();
         }
+        return _lwjglCursor;
     }
 
     /**
-     * Retrieve the cursor.
+     * Retrieves the lazily-initialized AWT cursor using the supplied toolkit.
      */
-    public org.lwjgl.input.Cursor getCursor ()
+    public java.awt.Cursor getAWTCursor (Toolkit toolkit)
     {
-        return _cursor;
+        if (_awtCursor == null) {
+            _awtCursor = createAWTCursor(toolkit);
+        }
+        return _awtCursor;
     }
 
     /**
-     * Display this cursor.
+     * Display the LWJGL cursor.
      */
     public void show ()
     {
@@ -96,20 +69,59 @@ public class Cursor
                 return;
             }
         }
-        if (_image != null) {
-            setCursor(_image, _hx, _hy);
-        }
-        if (Mouse.getNativeCursor() != _cursor) {
+        org.lwjgl.input.Cursor cursor = getLWJGLCursor();
+        if (Mouse.getNativeCursor() != cursor) {
             try {
-                Mouse.setNativeCursor(_cursor);
+                Mouse.setNativeCursor(cursor);
             } catch (Throwable t) {
                 Log.log.log(Level.WARNING, "Problem updating mouse cursor: ", t);
             }
         }
     }
 
-    protected org.lwjgl.input.Cursor _cursor;
+    /**
+     * Creates an LWJGL cursor from the configured image and hotspot.
+     */
+    protected org.lwjgl.input.Cursor createLWJGLCursor ()
+    {
+        int ww = _image.getWidth();
+        int hh = _image.getHeight();
+        IntBuffer data = ByteBuffer.allocateDirect(ww*hh*4).asIntBuffer();
+        for (int yy = hh - 1; yy >= 0; yy--) {
+            for (int xx = 0; xx < ww; xx++) {
+                data.put(_image.getRGB(xx, yy));
+            }
+        }
+        data.flip();
+        try {
+            return new org.lwjgl.input.Cursor(ww, hh, _hx, hh - _hy - 1, 1, data, null);
+        } catch (LWJGLException e) {
+            System.err.println("Unable to create cursor: " + e);
+            return null;
+        }
+    }
+
+    /**
+     * Creates an AWT cursor from the configured image and hotspot.
+     */
+    protected java.awt.Cursor createAWTCursor (Toolkit toolkit)
+    {
+        int width = _image.getWidth(), height = _image.getHeight();
+        Dimension size = toolkit.getBestCursorSize(width, height);
+        Image image = _image;
+        int hx = _hx, hy = _hy;
+        if (size.width != width || size.height != height) {
+            // resize the image and adjust the hotspot
+            image = _image.getScaledInstance(size.width, size.height, Image.SCALE_SMOOTH);
+            hx = (_hx * size.width) / width;
+            hy = (_hy * size.height) / height;
+        }
+        return toolkit.createCustomCursor(image, new Point(hx, hy), "cursor");
+    }
 
     protected BufferedImage _image;
     protected int _hx, _hy;
+
+    protected org.lwjgl.input.Cursor _lwjglCursor;
+    protected java.awt.Cursor _awtCursor;
 }

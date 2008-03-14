@@ -46,6 +46,12 @@ public class CanvasRoot extends Root
         return _canvas.getHeight();
     }
 
+    @Override // documentation inherited
+    public void setCursor (Cursor cursor)
+    {
+        _canvas.setCursor(cursor == null ? null : cursor.getAWTCursor(_canvas.getToolkit()));
+    }
+
     // documentation inherited from interface MouseListener
     public void mouseClicked (java.awt.event.MouseEvent e) {
         // N/A
