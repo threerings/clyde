@@ -1012,7 +1012,7 @@ public class ArticulatedModel extends Model
      */
     public void attach (String point, Model model, boolean replace)
     {
-        Node node = getAttachmentNode(point);
+        Node node = (point == null) ? _root : getAttachmentNode(point);
         if (node == null) {
             return;
         }
