@@ -66,7 +66,7 @@ public class CanvasRoot extends Root
     {
         updateState(e);
 
-        _ccomponent = getTargetComponent();
+        setFocus(_ccomponent = getTargetComponent());
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_PRESSED,
             convertButton(e), _mouseX, _mouseY);
@@ -127,7 +127,7 @@ public class CanvasRoot extends Root
         KeyEvent event = new KeyEvent(
             this, e.getWhen(), _modifiers, KeyEvent.KEY_PRESSED,
             e.getKeyChar(), convertKeyCode(e));
-        dispatchEvent(getTargetComponent(), event);
+        dispatchEvent(getFocus(), event);
     }
 
     // documentation inherited from interface KeyListener
@@ -139,7 +139,7 @@ public class CanvasRoot extends Root
         KeyEvent event = new KeyEvent(
             this, e.getWhen(), _modifiers, KeyEvent.KEY_RELEASED,
             e.getKeyChar(), convertKeyCode(e));
-        dispatchEvent(getTargetComponent(), event);
+        dispatchEvent(getFocus(), event);
     }
 
     // documentation inherited from interface KeyListener

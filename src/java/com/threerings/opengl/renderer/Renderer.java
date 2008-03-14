@@ -103,6 +103,9 @@ public class Renderer
             _maxVertexAttribs = 0;
         }
 
+        // to make things easier for texture loading, we just keep this at one (default is four)
+        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+
         // create the default camera
         setCamera(new Camera(width, height));
 

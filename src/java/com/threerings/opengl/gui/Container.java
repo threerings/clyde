@@ -340,20 +340,22 @@ public class Container extends Component
      */
     protected Component getNextFocus (Component current)
     {
-        boolean foundCurrent = (current == null);
-        for (int ii = 0, ll = getComponentCount(); ii < ll; ii++) {
-            Component child = getComponent(ii);
-            if (!foundCurrent) {
-                if (child == current) {
-                    foundCurrent = true;
-                }
-                continue;
-            }
-            if (child.acceptsFocus()) {
-                return child;
+        int idx = getComponentIndex(current);
+        Component focus;
+        for (int ii = idx + 1, nn = getComponentCount(); ii < nn; ii++) {
+            if ((focus = getComponent(ii).getFirstDescendantFocus()) != null) {
+                return focus;
             }
         }
-        return getNextFocus();
+        if ((focus = getNextFocus()) != null) {
+            return focus;
+        }
+        for (int ii = 0; ii < idx; ii++) {
+            if ((focus = getComponent(ii).getFirstDescendantFocus()) != null) {
+                return focus;
+            }
+        }
+        return null;
     }
 
     /**
@@ -364,20 +366,49 @@ public class Container extends Component
      */
     protected Component getPreviousFocus (Component current)
     {
-        boolean foundCurrent = (current == null);
-        for (int ii = getComponentCount()-1; ii >= 0; ii--) {
-            Component child = getComponent(ii);
-            if (!foundCurrent) {
-                if (child == current) {
-                    foundCurrent = true;
-                }
-                continue;
-            }
-            if (child.acceptsFocus()) {
-                return child;
+        int idx = getComponentIndex(current);
+        Component focus;
+        for (int ii = idx - 1; ii >= 0; ii--) {
+            if ((focus = getComponent(ii).getLastDescendantFocus()) != null) {
+                return focus;
             }
         }
-        return getPreviousFocus();
+        if ((focus = getPreviousFocus()) != null) {
+            return focus;
+        }
+        for (int ii = getComponentCount() - 1; ii > idx; ii--) {
+            if ((focus = getComponent(ii).getLastDescendantFocus()) != null) {
+                return focus;
+            }
+        }
+        return null;
+    }
+
+    @Override // documentation inherited
+    protected Component getFirstDescendantFocus ()
+    {
+        if (acceptsFocus()) {
+            return this;
+        }
+        for (int ii = 0, nn = getComponentCount(); ii < nn; ii++) {
+            Component desc = getComponent(ii).getFirstDescendantFocus();
+            if (desc != null) {
+                return desc;
+            }
+        }
+        return null;
+    }
+
+    @Override // documentation inherited
+    protected Component getLastDescendantFocus ()
+    {
+        for (int ii = getComponentCount() - 1; ii >= 0; ii--) {
+            Component desc = getComponent(ii).getLastDescendantFocus();
+            if (desc != null) {
+                return desc;
+            }
+        }
+        return super.getLastDescendantFocus();
     }
 
     /**

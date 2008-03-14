@@ -221,9 +221,9 @@ public class TextField extends TextComponent
                 default:
                     // insert printable and shifted printable characters
                     char c = kev.getKeyChar();
-                    if ((modifiers & ~KeyEvent.SHIFT_DOWN_MASK) == 0 &&
-                        !Character.isISOControl(c)) {
-                        String text = String.valueOf(kev.getKeyChar());
+                    if ((modifiers & ~KeyEvent.SHIFT_DOWN_MASK) == 0 && Character.isDefined(c) &&
+                            !Character.isISOControl(c)) {
+                        String text = String.valueOf(c);
                         if (_text.insert(_cursp, text)) {
                             setCursorPos(_cursp + 1);
                         }

@@ -912,6 +912,24 @@ public class Component
     }
 
     /**
+     * Returns the first descendant of this component that accepts the keyboard focus
+     * (including the component itself), or <code>null</code> if no descendants accept it.
+     */
+    protected Component getFirstDescendantFocus ()
+    {
+        return acceptsFocus() ? this : null;
+    }
+
+    /**
+     * Returns the last descendant of this component that accepts the keyboard focus
+     * (including the component itself), or <code>null</code> if no descendants accept it.
+     */
+    protected Component getLastDescendantFocus ()
+    {
+        return acceptsFocus() ? this : null;
+    }
+
+    /**
      * Dispatches an event emitted by this component. The event is given to the root node for
      * processing though in general it will result in an immediate call to {@link #dispatchEvent}
      * with the event.
