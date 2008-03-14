@@ -883,13 +883,7 @@ public class Component
      */
     protected Component getNextFocus ()
     {
-        if (_parent instanceof Container) {
-            return _parent.getNextFocus(this);
-        } else if (acceptsFocus()) {
-            return this;
-        } else {
-            return null;
-        }
+        return (_parent == null) ? getFirstDescendantFocus() : _parent.getNextFocus(this);
     }
 
     /**
@@ -900,13 +894,7 @@ public class Component
      */
     protected Component getPreviousFocus ()
     {
-        if (_parent instanceof Container) {
-            return _parent.getPreviousFocus(this);
-        } else if (acceptsFocus()) {
-            return this;
-        } else {
-            return null;
-        }
+        return (_parent == null) ? getLastDescendantFocus() : _parent.getPreviousFocus(this);
     }
 
     /**
