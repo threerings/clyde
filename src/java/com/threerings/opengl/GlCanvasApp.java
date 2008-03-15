@@ -81,6 +81,14 @@ public abstract class GlCanvasApp extends GlApp
         _frame.setVisible(true);
     }
 
+    /**
+     * Stops the application.
+     */
+    public void stop ()
+    {
+        System.exit(0);
+    }
+
     // documentation inherited from interface RunQueue
     public void postRunnable (Runnable run)
     {
