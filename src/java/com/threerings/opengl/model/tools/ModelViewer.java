@@ -268,6 +268,9 @@ public class ModelViewer extends GlCanvasApp
     @Override // documentation inherited
     protected void renderScene ()
     {
+        // clear the previous frame
+        _renderer.clearFrame();
+        
         // queue up the grid
         _grid.enqueue();
 

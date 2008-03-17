@@ -509,6 +509,9 @@ public class ParticleEditor extends GlCanvasApp
     @Override // documentation inherited
     protected void renderScene ()
     {
+        // clear the previous frame
+        _renderer.clearFrame();
+
         // queue up the ground
         if (_ground != null) {
             _ground.enqueue();
