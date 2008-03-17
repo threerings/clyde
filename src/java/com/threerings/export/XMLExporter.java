@@ -140,6 +140,23 @@ public class XMLExporter extends Exporter
         append(name, value, clazz);
     }
 
+    @Override // documentation inherited
+    public void close ()
+        throws IOException
+    {
+        // create the output object
+        DOMImplementationLS impl = (DOMImplementationLS)_document.getImplementation();
+        LSOutput lsout = impl.createLSOutput();
+        lsout.setByteStream(_out);
+
+        // write out the document
+        LSSerializer serializer = impl.createLSSerializer();
+        serializer.write(_document, lsout);
+
+        // close the stream
+        _out.close();
+    }
+
     /**
      * Appends a new element with the supplied object.
      */
@@ -289,23 +306,6 @@ public class XMLExporter extends Exporter
         _element.appendChild(child);
         child.appendChild(_document.createTextNode(value));
         appendln();
-    }
-
-    @Override // documentation inherited
-    public void close ()
-        throws IOException
-    {
-        // create the output object
-        DOMImplementationLS impl = (DOMImplementationLS)_document.getImplementation();
-        LSOutput lsout = impl.createLSOutput();
-        lsout.setByteStream(_out);
-
-        // write out the document
-        LSSerializer serializer = impl.createLSSerializer();
-        serializer.write(_document, lsout);
-
-        // close the stream
-        _out.close();
     }
 
     /**
