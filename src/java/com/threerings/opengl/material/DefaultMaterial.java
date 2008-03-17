@@ -23,6 +23,8 @@ import com.threerings.opengl.renderer.state.ShaderState;
 import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.GlUtil;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * The default material class.
  */
@@ -44,9 +46,14 @@ public class DefaultMaterial extends Material
         TextureUnit[] units = null;
         String diffuse = _props.getProperty("diffuse");
         if (diffuse != null) {
-            Texture dtex = _ctx.getTextureCache().getTexture(diffuse);
+            int minFilter = parseMinFilter(
+                _props.getProperty("min_filter", "linear_mipmap_linear"));
+            int magFilter = parseMagFilter(
+                _props.getProperty("mag_filter", "linear"));
+            Texture dtex = _ctx.getTextureCache().getTexture(
+                diffuse, null, true, isMipmappedFilter(minFilter), true);
             if (dtex != null) {
-                dtex.setMinFilter(GL11.GL_LINEAR_MIPMAP_LINEAR);
+                dtex.setFilters(minFilter, magFilter);
                 units = new TextureUnit[] { new TextureUnit(dtex) };
                 if (dtex.hasAlpha()) {
                     _alphaThreshold =
@@ -144,6 +151,52 @@ public class DefaultMaterial extends Material
     public Program getSkinProgram (boolean sphereMap)
     {
         return sphereMap ? _skinProgramSphere : _skinProgram;
+    }
+
+    /**
+     * Parses and returns a minification filter constant.
+     */
+    protected static int parseMinFilter (String filter)
+    {
+        if (filter.equals("nearest")) {
+            return GL11.GL_NEAREST;
+        } else if (filter.equals("linear")) {
+            return GL11.GL_LINEAR;
+        } else if (filter.equals("nearest_mipmap_nearest")) {
+            return GL11.GL_NEAREST_MIPMAP_NEAREST;
+        } else if (filter.equals("linear_mipmap_nearest")) {
+            return GL11.GL_LINEAR_MIPMAP_NEAREST;
+        } else if (filter.equals("nearest_mipmap_linear")) {
+            return GL11.GL_NEAREST_MIPMAP_LINEAR;
+        } else if (filter.equals("linear_mipmap_linear")) {
+            return GL11.GL_LINEAR_MIPMAP_LINEAR;
+        } else {
+            log.warning("Invalid minification filter [name=" + filter + "].");
+            return GL11.GL_NEAREST_MIPMAP_LINEAR;
+        }
+    }
+
+    /**
+     * Determines whether the identified minification filter requires mipmaps.
+     */
+    protected static boolean isMipmappedFilter (int minFilter)
+    {
+        return minFilter != GL11.GL_NEAREST && minFilter != GL11.GL_LINEAR;
+    }
+
+    /**
+     * Parses and returns a magnification filter constant.
+     */
+    protected static int parseMagFilter (String filter)
+    {
+        if (filter.equals("nearest")) {
+            return GL11.GL_NEAREST;
+        } else if (filter.equals("linear")) {
+            return GL11.GL_LINEAR;
+        } else {
+            log.warning("Invalid magnification filter [name=" + filter + "].");
+            return GL11.GL_LINEAR;
+        }
     }
 
     /** The states shared between all surfaces. */

@@ -77,7 +77,7 @@ public abstract class Texture
     /**
      * Convenience method to set both the filters at once.
      */
-    public void setFilter (int min, int mag)
+    public void setFilters (int min, int mag)
     {
         setMinFilter(min);
         setMagFilter(mag);
