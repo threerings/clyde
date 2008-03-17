@@ -9,6 +9,8 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.logging.Level;
 import javax.swing.JFrame;
 
@@ -35,9 +37,15 @@ public abstract class GlCanvasApp extends GlApp
     public GlCanvasApp ()
     {
         _frame = new JFrame();
-        _frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         _frame.setSize(1024, 768);
         SwingUtil.centerWindow(_frame);
+
+        // shutdown the application when the window is closed
+        _frame.addWindowListener(new WindowAdapter() {
+            public void windowClosing (WindowEvent event) {
+                shutdown();
+            }
+        });
 
         try {
             _frame.add(_canvas = new GlCanvas(new PixelFormat(0, 8, 0)) {
@@ -82,10 +90,11 @@ public abstract class GlCanvasApp extends GlApp
     }
 
     /**
-     * Stops the application.
+     * Shuts down the application.
      */
-    public void stop ()
+    public void shutdown ()
     {
+        willShutdown();
         System.exit(0);
     }
 
@@ -140,6 +149,13 @@ public abstract class GlCanvasApp extends GlApp
      * Override to perform custom initialization after the render context is valid.
      */
     protected void didInit ()
+    {
+    }
+
+    /**
+     * Override to perform cleanup before the application exits.
+     */
+    protected void willShutdown ()
     {
     }
 
