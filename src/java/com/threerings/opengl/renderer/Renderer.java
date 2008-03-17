@@ -225,15 +225,20 @@ public class Renderer
     }
 
     /**
-     * Renders the contents of the queues.
+     * Clears the frame.
      */
-    public void renderFrame ()
+    public void clearFrame ()
     {
-        // clear the frame
         setState(ColorMaskState.ALL);
         setState(DepthState.TEST_WRITE);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+    }
 
+    /**
+     * Renders a single frame.
+     */
+    public void renderFrame ()
+    {
         // update the stats
         long interval = _timer.getElapsedMillis();
         _frameCount++;
@@ -252,6 +257,18 @@ public class Renderer
         _textureCount = 0;
         _primitiveCount = 0;
 
+        // do the actual rendering
+        renderQueues();
+
+        // delete any finalized objects
+        deleteFinalizedObjects();
+    }
+
+    /**
+     * Renders the contents of the queues.
+     */
+    public void renderQueues ()
+    {
         // sort the opaque queue by state and render
         QuickSort.sort(_opaque, BY_KEY);
         render(_opaque);
@@ -279,9 +296,6 @@ public class Renderer
         _opaque.clear();
         _transparent.clear();
         _ortho.clear();
-
-        // delete any finalized objects
-        deleteFinalizedObjects();
     }
 
     /**

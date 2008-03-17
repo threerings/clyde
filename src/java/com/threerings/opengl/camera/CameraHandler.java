@@ -53,7 +53,7 @@ public abstract class CameraHandler
     protected float _fovy = FloatMath.PI / 3f;
 
     /** The distance to the near clip plane. */
-    protected float _near = 1f;
+    protected float _near = 0.01f;
 
     /** The distance to the far clip plane. */
     protected float _far = 100f;
