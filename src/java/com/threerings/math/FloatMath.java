@@ -169,7 +169,7 @@ public class FloatMath
      */
     public static float abs (float v)
     {
-        return (float)Math.abs(v);
+        return Math.abs(v);
     }
 
     /**

@@ -57,7 +57,7 @@ public class ReflectionUtil
             for (int ii = 0, nn = params.length; ii < nn; ii++) {
                 pclass[ii] = params[ii].getClass();
             }
-            Class clazz = Class.forName(classname);
+            Class<?> clazz = Class.forName(classname);
             Constructor ctor = clazz.getConstructor(pclass);
             return ctor.newInstance(params);
         } catch (Exception e) {

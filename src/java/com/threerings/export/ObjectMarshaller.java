@@ -84,7 +84,7 @@ public class ObjectMarshaller
     /**
      * Creates a marshaller for objects of the specified class.
      */
-    protected ObjectMarshaller (Class clazz)
+    protected ObjectMarshaller (Class<?> clazz)
     {
         // look for custom read/write methods
         try {
@@ -112,7 +112,7 @@ public class ObjectMarshaller
 
         // create the prototype
         try {
-            Class eclazz = clazz.getEnclosingClass();
+            Class<?> eclazz = clazz.getEnclosingClass();
             if (eclazz == null || Modifier.isStatic(clazz.getModifiers())) {
                 // static classes can use the no-arg constructor
                 _prototype = clazz.newInstance();

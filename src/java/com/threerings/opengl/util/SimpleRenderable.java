@@ -87,7 +87,7 @@ public abstract class SimpleRenderable
      */
     protected RenderState[] createStates ()
     {
-        RenderState[] states = (RenderState[])RenderState.DEFAULTS.clone();
+        RenderState[] states = RenderState.DEFAULTS.clone();
         states[RenderState.DEPTH_STATE] = DepthState.TEST_WRITE;
         states[RenderState.TRANSFORM_STATE] = new TransformState();
         return states;

@@ -270,7 +270,7 @@ public class ModelViewer extends GlCanvasApp
     {
         // clear the previous frame
         _renderer.clearFrame();
-        
+
         // queue up the grid
         _grid.enqueue();
 
@@ -383,7 +383,7 @@ public class ModelViewer extends GlCanvasApp
                 animData.add(data);
             }
         }
-        _animData = (AnimationData[])animData.toArray(new AnimationData[animData.size()]);
+        _animData = animData.toArray(new AnimationData[animData.size()]);
 
         // initialize the existing track panels
         for (int ii = 0, nn = _tpanels.size(); ii < nn; ii++) {

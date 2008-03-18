@@ -292,7 +292,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (boolean[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (boolean[] o1, boolean[] o2)
@@ -312,7 +312,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (byte[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (byte[] o1, byte[] o2)
@@ -332,7 +332,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (char[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (char[] o1, char[] o2)
@@ -352,7 +352,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (double[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (double[] o1, double[] o2)
@@ -372,7 +372,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (float[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (float[] o1, float[] o2)
@@ -392,7 +392,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (int[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (int[] o1, int[] o2)
@@ -412,7 +412,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (long[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (long[] o1, long[] o2)
@@ -432,7 +432,7 @@ public class DeepUtil
                     System.arraycopy(source, 0, dest, 0, source.length);
                     return dest;
                 } else {
-                    return (short[])source.clone();
+                    return source.clone();
                 }
             }
             public boolean equals (short[] o1, short[] o2)

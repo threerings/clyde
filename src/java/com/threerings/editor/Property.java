@@ -117,7 +117,7 @@ public abstract class Property
     /**
      * Returns the label for subtypes of the specified type.
      */
-    protected String getTypeLabel (Class type)
+    protected String getTypeLabel (Class<?> type)
     {
         // look for a static method in the class
         try {
@@ -139,7 +139,7 @@ public abstract class Property
      * Returns an array containing the available subtypes of the specified type, first looking to
      * subtypes listed in the annotation, then attempting to find a method using reflection.
      */
-    protected Class[] getSubtypes (Class type)
+    protected Class[] getSubtypes (Class<?> type)
     {
         // first look for subtypes specified in the annotation
         Editable annotation = getAnnotation();

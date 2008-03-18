@@ -43,7 +43,7 @@ public abstract class Batch
     {
         try {
             Batch cbatch = (Batch)super.clone();
-            cbatch.key = (key == null) ? null : (int[])key.clone();
+            cbatch.key = (key == null) ? null : key.clone();
             return cbatch;
         } catch (CloneNotSupportedException e) {
             return null; // should never happen

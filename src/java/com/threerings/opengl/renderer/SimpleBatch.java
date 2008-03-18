@@ -433,7 +433,7 @@ public class SimpleBatch extends Batch
     {
         // make a shallow clone of the states
         SimpleBatch obatch = (SimpleBatch)super.clone();
-        obatch._states = (RenderState[])_states.clone();
+        obatch._states = _states.clone();
         return obatch;
     }
 
