@@ -162,7 +162,8 @@ public abstract class Influence extends DeepObject
             // compute the delta amount
             _delta = strength * elapsed;
 
-            // transform the axis into layer space
+            // transform the origin and axis into layer space
+            layer.pointToLayer(_torigin.set(Vector3f.ZERO), true);
             layer.vectorToLayer(_taxis.set(axis), rotateWithEmitter);
 
             // find divergence rotation
@@ -172,8 +173,8 @@ public abstract class Influence extends DeepObject
         @Override // documentation inherited
         public void apply (Particle particle)
         {
-            // cross product of vortex axis and particle position is direction
-            _taxis.cross(particle.getPosition(), _vector);
+            // cross product of vortex axis and relative position is direction
+            _taxis.cross(particle.getPosition().subtract(_torigin, _vector), _vector);
             float length = _vector.length();
             if (length < FloatMath.EPSILON) {
                 return; // particle is on the axis
@@ -185,6 +186,9 @@ public abstract class Influence extends DeepObject
 
         /** Acceleration times elapsed time. */
         protected transient float _delta;
+
+        /** The origin in layer space. */
+        protected transient Vector3f _torigin = new Vector3f();
 
         /** The axis in layer space. */
         protected transient Vector3f _taxis = new Vector3f();
@@ -231,7 +235,8 @@ public abstract class Influence extends DeepObject
             // compute the delta amount
             _delta = strength * elapsed;
 
-            // transform the axis into layer space
+            // transform the origin and axis into layer space
+            layer.pointToLayer(_torigin.set(Vector3f.ZERO), true);
             layer.vectorToLayer(_taxis.set(axis), rotateWithEmitter);
         }
 
@@ -239,8 +244,8 @@ public abstract class Influence extends DeepObject
         public void apply (Particle particle)
         {
             // cross product of ring axis and particle position is tangent
-            Vector3f position = particle.getPosition();
-            _taxis.cross(position, _tangent);
+            particle.getPosition().subtract(_torigin, _position);
+            _taxis.cross(_position, _tangent);
             float length = _tangent.length();
             if (length < FloatMath.EPSILON) {
                 return; // particle is on the axis
@@ -251,7 +256,7 @@ public abstract class Influence extends DeepObject
             _tangent.cross(_taxis, _vector);
 
             // find vector from closest point on ring to position
-            _vector.multLocal(radius).addScaledLocal(_taxis, height).subtractLocal(position);
+            _vector.multLocal(radius).addScaledLocal(_taxis, height).subtractLocal(_position);
             length = _vector.length();
             if (length < FloatMath.EPSILON) {
                 return; // particle is on the ring
@@ -269,8 +274,14 @@ public abstract class Influence extends DeepObject
         /** Acceleration times elapsed time. */
         protected transient float _delta;
 
+        /** The origin in layer space. */
+        protected transient Vector3f _torigin = new Vector3f();
+
         /** The axis in layer space. */
         protected transient Vector3f _taxis = new Vector3f();
+
+        /** Holds the relative position. */
+        protected transient Vector3f _position = new Vector3f();
 
         /** Holds the tangent vector. */
         protected transient Vector3f _tangent = new Vector3f();
