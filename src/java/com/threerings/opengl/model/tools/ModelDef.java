@@ -81,7 +81,7 @@ public class ModelDef
         public Model createModel (HashMap<String, SpatialDef> spatials, Properties props)
         {
             // read the global scale value
-            float gscale = Float.parseFloat(props.getProperty("scale", "0.05"));
+            float gscale = Float.parseFloat(props.getProperty("scale", "0.01"));
             clearTransform(gscale);
 
             // if the "ignore root transforms" flag is set, clear child transforms
@@ -133,7 +133,7 @@ public class ModelDef
             // create the transformation hierarchy
             ArticulatedModel model = new ArticulatedModel(props);
             boolean haveCollisionMesh = containsCollisionMesh();
-            Node root = createNode(model, haveCollisionMesh);
+            Node root = createNode(model, scale[0], haveCollisionMesh);
 
             // create the skin meshes
             ArrayList<SkinMesh> smeshes = new ArrayList<SkinMesh>();
@@ -193,16 +193,18 @@ public class ModelDef
         /**
          * Creates an articulation node.
          */
-        public abstract Node createNode (ArticulatedModel model, boolean haveCollisionMesh);
+        public abstract Node createNode (
+            ArticulatedModel model, float gscale, boolean haveCollisionMesh);
 
         /**
          * Creates nodes for the children of this one.
          */
-        public Node[] createChildNodes (ArticulatedModel model, boolean haveCollisionMesh)
+        public Node[] createChildNodes (
+            ArticulatedModel model, float gscale, boolean haveCollisionMesh)
         {
             ArrayList<Node> children = new ArrayList<Node>();
             for (SpatialDef childDef : childDefs) {
-                Node child = childDef.createNode(model, haveCollisionMesh);
+                Node child = childDef.createNode(model, gscale, haveCollisionMesh);
                 if (child != null) {
                     children.add(child);
                 }
@@ -315,12 +317,13 @@ public class ModelDef
     public static class NodeDef extends SpatialDef
     {
         @Override // documentation inherited
-        public Node createNode (ArticulatedModel model, boolean haveCollisionMesh)
+        public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
         {
-            Node[] children = createChildNodes(model, haveCollisionMesh);
-            return (children.length == 0 && !(bone || point)) ? null :
-                model.createNode(
-                    name, bone, createTransform(translation, rotation, scale), children);
+            Node[] children = createChildNodes(model, gscale, haveCollisionMesh);
+            Transform transform = (parentDef == null) ?
+                new Transform() : createTransform(translation, rotation, scale, gscale);
+            return (children.length == 0 && !(bone || point)) ?
+                null : model.createNode(name, bone, transform, children);
         }
     }
 
@@ -364,18 +367,19 @@ public class ModelDef
         }
 
         @Override // documentation inherited
-        public Node createNode (ArticulatedModel model, boolean haveCollisionMesh)
+        public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
         {
             // transform by offset matrix
-            transformVertices(createMatrix(offsetTranslation, offsetRotation, offsetScale));
+            transformVertices(
+                createMatrix(offsetTranslation, offsetRotation, offsetScale, gscale));
 
             // create the node with the appropriate meshes
             boolean isCollisionMesh = name.contains("collision");
             return model.createNode(
                 name,
                 bone,
-                createTransform(translation, rotation, scale),
-                createChildNodes(model, haveCollisionMesh),
+                createTransform(translation, rotation, scale, gscale),
+                createChildNodes(model, gscale, haveCollisionMesh),
                 isCollisionMesh ? null : createVisibleMesh(),
                 (haveCollisionMesh && !isCollisionMesh) ? null : createCollisionMesh());
         }
@@ -664,12 +668,12 @@ public class ModelDef
         }
 
         @Override // documentation inherited
-        public Node createNode (ArticulatedModel model, boolean haveCollisionMesh)
+        public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
         {
-            Node[] children = createChildNodes(model, haveCollisionMesh);
+            Node[] children = createChildNodes(model, gscale, haveCollisionMesh);
             return (children.length == 0 && !bone) ? null :
                 model.createNode(
-                    name, bone, createTransform(translation, rotation, scale), children);
+                    name, bone, createTransform(translation, rotation, scale, gscale), children);
         }
 
         /**
@@ -926,9 +930,10 @@ public class ModelDef
     /**
      * Creates a {@link Transform} object from the supplied arrays.
      */
-    public static Transform createTransform (float[] translation, float[] rotation, float[] scale)
+    public static Transform createTransform (
+        float[] translation, float[] rotation, float[] scale, float gscale)
     {
-        Vector3f trans = new Vector3f(translation);
+        Vector3f trans = new Vector3f(translation).multLocal(gscale);
         Quaternion rot = new Quaternion(rotation);
         if (scale[0] != scale[1] || scale[1] != scale[2]) {
             return new Transform(trans, rot, new Vector3f(scale));
@@ -1023,9 +1028,19 @@ public class ModelDef
     protected static Matrix4f createMatrix (
         float[] translation, float[] rotation, float[] scale)
     {
+        return createMatrix(translation, rotation, scale, 1f);
+    }
+
+    /**
+     * Creates and returns a matrix containing the described transform.
+     */
+    protected static Matrix4f createMatrix (
+        float[] translation, float[] rotation, float[] scale, float gscale)
+    {
         Matrix4f matrix = new Matrix4f();
         return matrix.setToTransform(
-            new Vector3f(translation), new Quaternion(rotation), new Vector3f(scale));
+            new Vector3f(translation).multLocal(gscale), new Quaternion(rotation),
+            new Vector3f(scale).multLocal(gscale));
     }
 
     /**

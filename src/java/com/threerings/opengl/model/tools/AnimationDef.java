@@ -42,12 +42,12 @@ public class AnimationDef
         /**
          * Builds a {@link Frame} from this definition for the identified targets.
          */
-        public Frame createFrame (String[] targets)
+        public Frame createFrame (String[] targets, float gscale)
         {
             Transform[] xforms = new Transform[targets.length];
             for (int ii = 0; ii < targets.length; ii++) {
                 TransformDef tdef = transforms.get(targets[ii]);
-                xforms[ii] = (tdef == null) ? new Transform() : tdef.createTransform();
+                xforms[ii] = (tdef == null) ? new Transform() : tdef.createTransform(gscale);
             }
             return new Frame(xforms);
         }
@@ -69,9 +69,9 @@ public class AnimationDef
         /**
          * Builds a {@link Transform} from this definition.
          */
-        public Transform createTransform ()
+        public Transform createTransform (float gscale)
         {
-            return ModelDef.createTransform(translation, rotation, scale);
+            return ModelDef.createTransform(translation, rotation, scale, gscale);
         }
     }
 
@@ -104,10 +104,13 @@ public class AnimationDef
         boolean looping = Boolean.parseBoolean(props.getProperty("looping"));
         boolean skipLastFrame = Boolean.parseBoolean(props.getProperty("skip_last_frame", "true"));
 
+        // read the global scale value
+        float gscale = Float.parseFloat(props.getProperty("scale", "0.01"));
+
         // build the list of frames
         Frame[] aframes = new Frame[frames.size() - (looping && skipLastFrame ? 1 : 0)];
         for (int ii = 0; ii < aframes.length; ii++) {
-            aframes[ii] = frames.get(ii).createFrame(targets);
+            aframes[ii] = frames.get(ii).createFrame(targets, gscale);
         }
 
         // create and return the animation
