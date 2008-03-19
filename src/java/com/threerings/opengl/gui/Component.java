@@ -859,7 +859,9 @@ public class Component
      */
     protected void updateCursor (Cursor cursor)
     {
-        getWindow().getRoot().setCursor(cursor);
+        if (isAdded()) {
+            getWindow().getRoot().setCursor(cursor);
+        }
     }
 
     /**
