@@ -51,7 +51,8 @@ public class DefaultMaterial extends Material
             int magFilter = parseMagFilter(
                 _props.getProperty("mag_filter", "linear"));
             Texture dtex = _ctx.getTextureCache().getTexture(
-                diffuse, null, true, isMipmappedFilter(minFilter), true);
+                diffuse, null, true, isMipmappedFilter(minFilter),
+                Boolean.parseBoolean(_props.getProperty("compress", "true")));
             if (dtex != null) {
                 dtex.setFilters(minFilter, magFilter);
                 units = new TextureUnit[] { new TextureUnit(dtex) };
