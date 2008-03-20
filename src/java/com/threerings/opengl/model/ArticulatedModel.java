@@ -498,7 +498,7 @@ public class ArticulatedModel extends Model
          */
         public void play (int transitionFrames)
         {
-            play((float)transitionFrames / _anim.getFrameRate(), 1f, 0f, 0f, false);
+            play(transitionFrames / _anim.getFrameRate(), 1f, 0f, 0f, false);
         }
 
         /**
@@ -564,7 +564,7 @@ public class ArticulatedModel extends Model
          */
         public void loop (int transitionFrames)
         {
-            play((float)transitionFrames / _anim.getFrameRate(), 1f, 0f, 0f, true);
+            play(transitionFrames / _anim.getFrameRate(), 1f, 0f, 0f, true);
         }
 
         /**

@@ -45,7 +45,7 @@ public class Animation
     /**
      * Creates a new animation.
      */
-    public Animation (Properties props, int frameRate, String[] targets, Frame[] frames)
+    public Animation (Properties props, float frameRate, String[] targets, Frame[] frames)
     {
         _props = props;
         _frameRate = frameRate;
@@ -79,7 +79,7 @@ public class Animation
     /**
      * Returns the base frame rate of the animation (frames per second).
      */
-    public int getFrameRate ()
+    public float getFrameRate ()
     {
         return _frameRate;
     }
@@ -112,7 +112,7 @@ public class Animation
     protected Properties _props;
 
     /** The base frame rate of the animation (in frames per second). */
-    protected int _frameRate;
+    protected float _frameRate;
 
     /** The names of the animated nodes. */
     protected String[] _targets;

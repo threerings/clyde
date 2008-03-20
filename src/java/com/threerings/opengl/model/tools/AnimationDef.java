@@ -21,7 +21,7 @@ import com.threerings.opengl.model.Animation.Frame;
 public class AnimationDef
 {
     /** The rate of the animation in frames per second. */
-    public int frameRate;
+    public float frameRate;
 
     /**
      * A single frame of the animation.
