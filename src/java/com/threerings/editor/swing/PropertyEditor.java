@@ -866,7 +866,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             JPanel bpanel = new JPanel();
             bpanel.setBackground(null);
             add(bpanel);
-            bpanel.add(_addButton = new JButton(_msgs.get("m.new")));
+            bpanel.add(_addButton = new JButton(_msgs.get("m.add")));
             _addButton.addActionListener(this);
         }
 

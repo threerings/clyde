@@ -1012,7 +1012,7 @@ public class ArticulatedModel extends Model
      */
     public void attach (String point, Model model, boolean replace)
     {
-        Node node = (point == null) ? _root : getAttachmentNode(point);
+        Node node = getAttachmentNode(point);
         if (node == null) {
             return;
         }
@@ -1413,7 +1413,7 @@ public class ArticulatedModel extends Model
      */
     protected Node getAttachmentNode (String point)
     {
-        Node node = _nodes.get(point);
+        Node node = (point != null) ? _nodes.get(point) : _root;
         if (node == null) {
             log.warning("Invalid attachment point [name=" + point + "].");
         }
