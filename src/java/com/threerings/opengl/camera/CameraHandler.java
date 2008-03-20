@@ -32,6 +32,30 @@ public abstract class CameraHandler
     }
 
     /**
+     * Returns the camera's field of view in radians.
+     */
+    public float getFieldOfView ()
+    {
+        return _fovy;
+    }
+
+    /**
+     * Returns the distance to the near clip plane.
+     */
+    public float getNear ()
+    {
+        return _near;
+    }
+
+    /**
+     * Returns the distance to the far clip plane.
+     */
+    public float getFar ()
+    {
+        return _far;
+    }
+
+    /**
      * Updates the camera perspective parameters.
      */
     public void updatePerspective ()
@@ -53,7 +77,7 @@ public abstract class CameraHandler
     protected float _fovy = FloatMath.PI / 3f;
 
     /** The distance to the near clip plane. */
-    protected float _near = 0.01f;
+    protected float _near = 1f;
 
     /** The distance to the far clip plane. */
     protected float _far = 100f;
