@@ -222,6 +222,6 @@ public class ModelCache
 
     /** An empty animation to return on error. */
     protected static final Animation ERROR_ANIM = new Animation(
-        new Properties(), 1, new String[0],
+        new Properties(), 1f, new String[0],
         new Frame[] { new Frame(new Transform[0]), new Frame(new Transform[0]) });
 }
