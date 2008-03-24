@@ -278,6 +278,8 @@ public class ArticulatedModel extends Model
             if (_vmesh == null) {
                 return;
             }
+            // update the local bounds
+            _localBounds.addLocal(_vmesh.getBounds().transform(_modelview));
             // create the transform state
             _tstate = new TransformState();
             _modelview = _tstate.getModelview();
@@ -1331,6 +1333,7 @@ public class ArticulatedModel extends Model
     protected void initTransientFields ()
     {
         _modelview = new Transform();
+        _localBounds = new Box();
         _nodes = new HashMap<String, Node>();
         _animobs = new ObserverList<AnimationObserver>(ObserverList.FAST_UNSAFE_NOTIFY);
         _trackarray = new AnimationTrack[0];
@@ -1384,7 +1387,6 @@ public class ArticulatedModel extends Model
      */
     protected void updateLocalBounds ()
     {
-        _localBounds = new Box(Vector3f.MAX_VALUE, Vector3f.MIN_VALUE);
         for (SkinMesh mesh : _smeshes) {
             _localBounds.addLocal(mesh.getBounds());
         }
