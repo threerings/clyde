@@ -162,6 +162,9 @@ public class ModelViewer extends GlCanvasApp
         _apanel.add(bpanel, BorderLayout.EAST);
         bpanel.add(_atrack = new JButton(_msgs.get("m.add_track")));
         _atrack.addActionListener(this);
+
+        // create the compass
+        _compass = new Compass(this);
     }
 
     // documentation inherited from interface ActionListener

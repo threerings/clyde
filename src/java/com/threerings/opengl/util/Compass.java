@@ -34,8 +34,8 @@ public class Compass
         // create the axis labels
         CharacterTextFactory factory = CharacterTextFactory.getInstance(
             new Font("Dialog", Font.PLAIN, 12), true);
-        _x = factory.createText("x", Color4f.RED);
-        _y = factory.createText("y", Color4f.GREEN);
+        _x = factory.createText("x", new Color4f(0.75f, 0f, 0f, 1f));
+        _y = factory.createText("y", new Color4f(0f, 0.75f, 0f, 1f));
         _z = factory.createText("z", Color4f.BLUE);
 
         _batch = new Batch() {
