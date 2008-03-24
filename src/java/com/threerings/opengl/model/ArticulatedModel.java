@@ -1333,7 +1333,6 @@ public class ArticulatedModel extends Model
     protected void initTransientFields ()
     {
         _modelview = new Transform();
-        _localBounds = new Box();
         _nodes = new HashMap<String, Node>();
         _animobs = new ObserverList<AnimationObserver>(ObserverList.FAST_UNSAFE_NOTIFY);
         _trackarray = new AnimationTrack[0];

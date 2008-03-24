@@ -62,6 +62,7 @@ public abstract class Model
         _ctx = ctx;
         _path = path;
         _transform = new Transform(Transform.UNIFORM);
+        _localBounds = new Box();
         _worldBounds = new Box();
         _cstate = new ColorState();
         _fstate = FogState.DISABLED;
@@ -252,6 +253,7 @@ public abstract class Model
             return null; // should never happen
         }
         omodel._transform = new Transform(_transform);
+        omodel._localBounds = new Box(_localBounds);
         omodel._worldBounds = new Box(_worldBounds);
         omodel._cstate = new ColorState(_cstate.getColor());
         omodel._mstate = new MaterialState(
