@@ -36,6 +36,15 @@ public final class Color4f
     /** An opaque blue color object. */
     public static final Color4f BLUE = new Color4f(0f, 0f, 1f, 1f);
 
+    /** An opaque cyan color object. */
+    public static final Color4f CYAN = new Color4f(0f, 1f, 1f, 1f);
+
+    /** An opaque magenta color object. */
+    public static final Color4f MAGENTA = new Color4f(1f, 0f, 1f, 1f);
+
+    /** An opaque yellor color object. */
+    public static final Color4f YELLOW = new Color4f(1f, 1f, 0f, 1f);
+
     /** The components of the color. */
     public float r, g, b, a;
 
