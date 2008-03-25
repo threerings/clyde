@@ -332,6 +332,11 @@ public class Component
         if (visible != _visible) {
             _visible = visible;
             invalidate();
+
+            // make sure we no longer have the input focus
+            if (!visible && hasFocus()) {
+                getWindow().getRoot().requestFocus(null);
+            }
         }
     }
 
