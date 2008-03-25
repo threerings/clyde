@@ -10,7 +10,6 @@ import org.lwjgl.input.Keyboard;
 
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
@@ -77,7 +76,7 @@ public class CanvasRoot extends Root
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_PRESSED,
             convertButton(e), _mouseX, _mouseY);
-        dispatchEvent(e, _ccomponent, event);
+        dispatchEvent(_ccomponent, event);
     }
 
     // documentation inherited from interface MouseListener
@@ -88,7 +87,7 @@ public class CanvasRoot extends Root
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_RELEASED,
             convertButton(e), _mouseX, _mouseY);
-        dispatchEvent(e, getTargetComponent(), event);
+        dispatchEvent(getTargetComponent(), event);
         _ccomponent = null;
     }
 
@@ -110,7 +109,7 @@ public class CanvasRoot extends Root
                 MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED;
             MouseEvent event = new MouseEvent(
                 this, e.getWhen(), _modifiers, type, _mouseX, _mouseY);
-            dispatchEvent(e, tcomponent, event);
+            dispatchEvent(tcomponent, event);
         }
     }
 
@@ -122,7 +121,7 @@ public class CanvasRoot extends Root
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_WHEELED,
             convertButton(e), _mouseX, _mouseY, e.getWheelRotation());
-        dispatchEvent(e, getTargetComponent(), event);
+        dispatchEvent(getTargetComponent(), event);
     }
 
     // documentation inherited from interface KeyListener
@@ -134,7 +133,7 @@ public class CanvasRoot extends Root
         KeyEvent event = new KeyEvent(
             this, e.getWhen(), _modifiers, KeyEvent.KEY_PRESSED,
             e.getKeyChar(), convertKeyCode(e));
-        dispatchEvent(e, getFocus(), event);
+        dispatchEvent(getFocus(), event);
     }
 
     // documentation inherited from interface KeyListener
@@ -146,7 +145,7 @@ public class CanvasRoot extends Root
         KeyEvent event = new KeyEvent(
             this, e.getWhen(), _modifiers, KeyEvent.KEY_RELEASED,
             e.getKeyChar(), convertKeyCode(e));
-        dispatchEvent(e, getFocus(), event);
+        dispatchEvent(getFocus(), event);
     }
 
     // documentation inherited from interface KeyListener
@@ -167,20 +166,6 @@ public class CanvasRoot extends Root
             return true;
         }
 
-        return false;
-    }
-
-    /**
-     * Dispatches an event converted from an AWT event.
-     */
-    protected boolean dispatchEvent (
-        java.awt.event.InputEvent e, Component target, Event event)
-    {
-        // consume the AWT event if we process it
-        if (dispatchEvent(target, event)) {
-            e.consume();
-            return true;
-        }
         return false;
     }
 
