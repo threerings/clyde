@@ -3,6 +3,7 @@
 
 package com.threerings.opengl.gui.text;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -28,6 +29,7 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.renderer.TextureUnit;
 
+import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Rectangle;
 
@@ -36,6 +38,7 @@ import com.threerings.opengl.gui.util.Rectangle;
  * {@link Text} instances that render groups of quads, one for each character.
  */
 public class CharacterTextFactory extends TextFactory
+    implements UIConstants
 {
     /**
      * Returns a shared factory instance.
@@ -63,11 +66,11 @@ public class CharacterTextFactory extends TextFactory
         _metrics = _graphics.getFontMetrics(font);
 
         // now that we have the metrics, we can recreate the image in the biggest size we'll
-        // need
+        // need (we'll allow up to 50% for effects)
         Rectangle2D bounds = _metrics.getMaxCharBounds(_graphics);
         _scratch = new BufferedImage(
-            (int)Math.ceil(bounds.getWidth()),
-            (int)Math.ceil(bounds.getHeight()),
+            (int)Math.ceil(bounds.getWidth() * 1.5),
+            (int)Math.ceil(bounds.getHeight() * 1.5),
             BufferedImage.TYPE_INT_ARGB);
         _graphics.dispose();
         _graphics = _scratch.createGraphics();
@@ -96,8 +99,9 @@ public class CharacterTextFactory extends TextFactory
     }
 
     @Override // documentation inherited
-    public Text createText (final String text, final Color4f color, int effect, int effectSize,
-                            Color4f effectColor, boolean useAdvance)
+    public Text createText (
+        final String text, final Color4f color, int effect,
+        final int effectSize, final Color4f effectColor, boolean useAdvance)
     {
         // get/create glyphs
         final Glyph[] glyphs = new Glyph[text.length()];
@@ -107,6 +111,14 @@ public class CharacterTextFactory extends TextFactory
             width += glyphs[ii].width;
         }
         final Dimension size = new Dimension(width, _metrics.getHeight());
+
+        // and outlines, if necessary
+        final Glyph[] outlines = (effect == OUTLINE) ? new Glyph[text.length()] : null;
+        if (effect == OUTLINE) {
+            for (int ii = 0; ii < outlines.length; ii++) {
+                outlines[ii] = getGlyph(text.charAt(ii), OUTLINE, effectSize);
+            }
+        }
 
         return new Text() {
             public int getLength () {
@@ -133,9 +145,26 @@ public class CharacterTextFactory extends TextFactory
                 return x;
             }
             public void render (Renderer renderer, int x, int y, float alpha) {
+                // add the descent above the baseline
+                y += _metrics.getDescent();
+
+                // multi-pixel outlines go below the character
+                if (outlines != null && effectSize > 1) {
+                    renderGlyphs(renderer, outlines, effectColor, x, y, alpha);
+                }
+
+                // now draw the characters
+                renderGlyphs(renderer, glyphs, color, x, y, alpha);
+
+                // single-pixel outlines go on top of the character
+                if (outlines != null && effectSize == 1) {
+                    renderGlyphs(renderer, outlines, effectColor, x, y, alpha);
+                }
+            }
+            protected void renderGlyphs (
+                Renderer renderer, Glyph[] glyphs, Color4f color, int x, int y, float alpha) {
                 float a = color.a * alpha;
                 renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
-                y += _metrics.getDescent();
                 for (Glyph glyph : glyphs) {
                     glyph.render(renderer, x, y);
                     x += glyph.width;
@@ -184,13 +213,23 @@ public class CharacterTextFactory extends TextFactory
     }
 
     /**
-     * Returns the glyph for the given character.
+     * Returns the normal glyph for the given character.
      */
     protected Glyph getGlyph (char c)
     {
-        Glyph glyph = _glyphs.get(c);
+        return getGlyph(c, NORMAL, 0);
+    }
+
+    /**
+     * Returns the glyph for the given character with the given effect and effect size.
+     */
+    protected Glyph getGlyph (char c, int effect, int size)
+    {
+        // the key combines the character with the effect and size
+        int key = (size << 20) | (effect << 16) | c;
+        Glyph glyph = _glyphs.get(key);
         if (glyph == null) {
-            _glyphs.put(c, glyph = new Glyph(c));
+            _glyphs.put(key, glyph = new Glyph(c, effect, size));
         }
         return glyph;
     }
@@ -235,17 +274,22 @@ public class CharacterTextFactory extends TextFactory
         /** The advance width of this glyph. */
         public int width;
 
-        public Glyph (char c)
+        public Glyph (char c, int effect, int size)
         {
             width = _metrics.charWidth(_c = c);
+            _effect = effect;
+            _size = size;
             FontRenderContext ctx = _graphics.getFontRenderContext();
-            GlyphVector vector = _font.createGlyphVector(ctx, Character.toString(c));
-            java.awt.Rectangle bounds = vector.getPixelBounds(ctx, 0f, 0f);
+            _vector = _font.createGlyphVector(ctx, Character.toString(c));
+            java.awt.Rectangle bounds = _vector.getPixelBounds(ctx, 0f, 0f);
             _bounds = (bounds.width == 0 || bounds.height == 0) ? null : new Rectangle(
                 (int)Math.round(bounds.getX()),
                 (int)Math.round(-(bounds.getY() + bounds.getHeight())),
                 (int)Math.round(bounds.getWidth()),
                 (int)Math.round(bounds.getHeight()));
+            if (_effect == OUTLINE && _bounds != null) {
+                _bounds.grow((int)Math.ceil(size/2.0), (int)Math.ceil(size/2.0));
+            }
         }
 
         /**
@@ -259,14 +303,20 @@ public class CharacterTextFactory extends TextFactory
                 }
                 // render the glyph to the scratch image
                 _graphics.clearRect(0, 0, _scratch.getWidth(), _scratch.getHeight());
-                _graphics.drawString(
-                    Character.toString(_c), -_bounds.x, _bounds.y + _bounds.height);
+                if (_effect == OUTLINE) {
+                    _graphics.setStroke(new BasicStroke(
+                        _size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    _graphics.draw(_vector.getOutline(-_bounds.x, _bounds.y + _bounds.height));
+                } else {
+                    _graphics.drawGlyphVector(_vector, -_bounds.x, _bounds.y + _bounds.height);
+                }
                 float[] tcoords = new float[4];
                 _units = addGlyphToTexture(renderer, _bounds.width, _bounds.height, tcoords);
                 _s1 = tcoords[0];
                 _t1 = tcoords[1];
                 _s2 = tcoords[2];
                 _t2 = tcoords[3];
+                _vector = null;
             }
             int lx = x + _bounds.x;
             int ly = y + _bounds.y;
@@ -288,6 +338,12 @@ public class CharacterTextFactory extends TextFactory
 
         /** The glyph character. */
         protected char _c;
+
+        /** The effect and effect size. */
+        protected int _effect, _size;
+
+        /** Stores the glyph vector. */
+        protected GlyphVector _vector;
 
         /** The glyph bounds. */
         protected Rectangle _bounds;
@@ -379,5 +435,5 @@ public class CharacterTextFactory extends TextFactory
         Maps.newHashMap();
 
     /** The width/height of the glyph textures. */
-    protected static final int TEXTURE_SIZE = 512;
+    protected static final int TEXTURE_SIZE = 256;
 }

@@ -115,6 +115,18 @@ public final class Rectangle
         this.height = fy-this.y;
     }
 
+    /**
+     * Increases the size of this rectangle by the specified amounts in the horizontal and vertical
+     * dimensions.
+     */
+    public void grow (int h, int v)
+    {
+        x -= h;
+        y -= v;
+        width += h*2;
+        height += v*2;
+    }
+
     // documentation inherited
     public boolean equals (Object other)
     {
