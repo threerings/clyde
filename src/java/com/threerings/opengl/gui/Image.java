@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.renderer.TextureUnit;
@@ -64,6 +65,14 @@ public class Image
     }
 
     /**
+     * Renders this image at the specified coordinates in the specified color.
+     */
+    public void render (Renderer renderer, int tx, int ty, Color4f color, float alpha)
+    {
+        render(renderer, 0, 0, _width, _height, tx, ty, _width, _height, color, alpha);
+    }
+
+    /**
      * Renders this image at the specified coordinates, scaled to the specified size.
      */
     public void render (Renderer renderer, int tx, int ty, int twidth, int theight, float alpha)
@@ -86,6 +95,17 @@ public class Image
     public void render (Renderer renderer, int sx, int sy, int swidth, int sheight,
                         int tx, int ty, int twidth, int theight, float alpha)
     {
+        render(renderer, sx, sy, swidth, sheight, tx, ty, twidth, theight, Color4f.WHITE, alpha);
+    }
+
+    /**
+     * Renders a region of this image at the specified coordinates, scaled to the specified size,
+     * in the specified color.
+     */
+    public void render (
+        Renderer renderer, int sx, int sy, int swidth, int sheight,
+        int tx, int ty, int twidth, int theight, Color4f color, float alpha)
+    {
         // initialize the texture units if necessary
         if (_units == null) {
             Texture2D texture = new Texture2D(renderer);
@@ -100,7 +120,8 @@ public class Image
         float ux = (sx+swidth) / (float)_twidth;
         float uy = (sy+sheight) / (float)_theight;
 
-        renderer.setColorState(alpha, alpha, alpha, alpha);
+        float a = color.a * alpha;
+        renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
         renderer.setTextureState(_units);
         GL11.glBegin(GL11.GL_QUADS);
         GL11.glTexCoord2f(lx, ly);
