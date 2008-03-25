@@ -42,7 +42,7 @@ public class AlphaState extends RenderState
     public static AlphaState getTestInstance (float reference)
     {
         if (reference == 0f) {
-            return TRANSLUCENT;
+            return PREMULTIPLIED;
         } else if (reference == 1f) {
             return MASKED;
         }
