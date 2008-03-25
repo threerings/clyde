@@ -8,6 +8,8 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
@@ -133,6 +135,7 @@ public class CharacterTextFactory extends TextFactory
             public void render (Renderer renderer, int x, int y, float alpha) {
                 float a = color.a * alpha;
                 renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
+                y += _metrics.getDescent();
                 for (Glyph glyph : glyphs) {
                     glyph.render(renderer, x, y);
                     x += glyph.width;
@@ -234,9 +237,11 @@ public class CharacterTextFactory extends TextFactory
 
         public Glyph (char c)
         {
-            width = _metrics.charWidth(c);
-            Rectangle2D bounds = _metrics.getStringBounds(Character.toString(_c = c), _graphics);
-            _bounds = new Rectangle(
+            width = _metrics.charWidth(_c = c);
+            FontRenderContext ctx = _graphics.getFontRenderContext();
+            GlyphVector vector = _font.createGlyphVector(ctx, Character.toString(c));
+            java.awt.Rectangle bounds = vector.getPixelBounds(ctx, 0f, 0f);
+            _bounds = (bounds.width == 0 || bounds.height == 0) ? null : new Rectangle(
                 (int)Math.round(bounds.getX()),
                 (int)Math.round(-(bounds.getY() + bounds.getHeight())),
                 (int)Math.round(bounds.getWidth()),
@@ -249,6 +254,9 @@ public class CharacterTextFactory extends TextFactory
         public void render (Renderer renderer, int x, int y)
         {
             if (_units == null) {
+                if (_bounds == null) {
+                    return; // whitespace
+                }
                 // render the glyph to the scratch image
                 _graphics.clearRect(0, 0, _scratch.getWidth(), _scratch.getHeight());
                 _graphics.drawString(
@@ -371,5 +379,5 @@ public class CharacterTextFactory extends TextFactory
         Maps.newHashMap();
 
     /** The width/height of the glyph textures. */
-    protected static final int TEXTURE_SIZE = 256;
+    protected static final int TEXTURE_SIZE = 512;
 }
