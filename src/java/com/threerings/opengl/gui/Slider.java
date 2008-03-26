@@ -141,12 +141,12 @@ public class Slider extends Component
         Icon frob = getFrob();
         if (_orient == HORIZONTAL) {
             int fwid = frob.getWidth();
-            _model.setValue((mx - fwid/2) * _model.getRange() /
-                            (getWidth() - insets.getHorizontal() - fwid));
+            _model.setValue(_model.getMinimum() + Math.round((mx - fwid*0.5f) * _model.getRange() /
+                            (getWidth() - insets.getHorizontal() - fwid)));
         } else {
             int fhei = frob.getHeight();
-            _model.setValue((my - fhei/2) * _model.getRange() /
-                            (getHeight() - insets.getVertical() - fhei));
+            _model.setValue(_model.getMinimum() + Math.round((my - fhei*0.5f) * _model.getRange() /
+                            (getHeight() - insets.getVertical() - fhei)));
         }
     }
 
