@@ -328,6 +328,45 @@ public final class Matrix4f
     }
 
     /**
+     * Sets this to a perspective projection matrix.  The formula comes from the OpenGL
+     * documentation for the glFrustum function.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f setToFrustum (
+        float left, float right, float bottom, float top, float near, float far)
+    {
+        float rrl = 1f / (right - left);
+        float rtb = 1f / (top - bottom);
+        float rfn = 1f / (far - near);
+        float n2 = 2f * near;
+        return set(
+            n2 * rrl, 0f, (right + left) * rrl, 0f,
+            0f, n2 * rtb, (top + bottom) * rtb, 0f,
+            0f, 0f, (far + near) * rfn, n2 * far * rfn,
+            0f, 0f, -1f, 0f);
+    }
+
+    /**
+     * Sets this to an orthographic projection matrix.  The formula comes from the OpenGL
+     * documentation for the glOrtho function.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f setToOrtho (
+        float left, float right, float bottom, float top, float near, float far)
+    {
+        float rrl = 1f / (right - left);
+        float rtb = 1f / (top - bottom);
+        float rfn = 1f / (far - near);
+        return set(
+            2f * rrl, 0f, 0f, (right + left) * rrl,
+            0f, 2f * rtb, 0f, (top + bottom) * rtb,
+            0f, 0f, -2f * rfn, (far + near) * rfn,
+            0f, 0f, 0f, 1f);
+    }
+
+    /**
      * Transposes this matrix in-place.
      *
      * @return a reference to this matrix, for chaining.
@@ -743,6 +782,40 @@ public final class Matrix4f
         buf.put(m20).put(m21).put(m22).put(m23);
         buf.put(m30).put(m31).put(m32).put(m33);
         return buf;
+    }
+
+    /**
+     * Projects the supplied point in-place using this matrix.
+     *
+     * @return a reference to the point, for chaining.
+     */
+    public Vector3f projectPointLocal (Vector3f point)
+    {
+        return projectPoint(point, point);
+    }
+
+    /**
+     * Projects the supplied point using this matrix.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector3f projectPoint (Vector3f point)
+    {
+        return projectPoint(point, new Vector3f());
+    }
+
+    /**
+     * Projects the supplied point using this matrix and places the result in the object supplied.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector3f projectPoint (Vector3f point, Vector3f result)
+    {
+        float rw = 1f / (m03*point.x + m13*point.y + m23*point.z + m33);
+        return result.set(
+            (m00*point.x + m10*point.y + m20*point.z + m30) * rw,
+            (m01*point.x + m11*point.y + m21*point.z + m31) * rw,
+            (m02*point.x + m12*point.y + m22*point.z + m32) * rw);
     }
 
     /**

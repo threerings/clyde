@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
+import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray;
 import com.threerings.math.Transform;
 import com.threerings.math.Vector3f;
@@ -118,9 +119,22 @@ public class Camera
         _localVolume.setToProjection(
             _left = left, _right = right, _bottom = bottom, _top = top,
             _near = near, _far = far, _ortho = ortho);
+        if (ortho) {
+            _projection.setToOrtho(left, right, bottom, top, near, far);
+        } else {
+            _projection.setToFrustum(left, right, bottom, top, near, far);
+        }
         if (_renderer != null) {
             _renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _ortho);
         }
+    }
+
+    /**
+     * Returns a reference to the projection matrix.
+     */
+    public Matrix4f getProjection ()
+    {
+        return _projection;
     }
 
     /**
@@ -180,6 +194,37 @@ public class Camera
     }
 
     /**
+     * Transforms and projects a point in world space into window space.
+     *
+     * @return a reference to the point, for chaining.
+     */
+    public Vector3f transformLocal (Vector3f point)
+    {
+        return transform(point, point);
+    }
+
+    /**
+     * Transforms and projects a point in world space into window space.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector3f transform (Vector3f point)
+    {
+        return transform(point, new Vector3f());
+    }
+
+    /**
+     * Transforms and projects a point in world space into window space, placing the result in
+     * the object provided.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector3f transform (Vector3f point, Vector3f result)
+    {
+        return _projection.projectPointLocal(_viewTransform.transformPoint(point, result));
+    }
+
+    /**
      * Populates the supplied object with a ray through the center of the viewport.
      */
     public void getCenterRay (Ray result)
@@ -235,6 +280,9 @@ public class Camera
 
     /** The camera frustum parameters. */
     protected float _left = -1f, _right = +1f, _bottom = -1f, _top = +1f, _near = +1f, _far = -1f;
+
+    /** The cached projection matrix. */
+    protected Matrix4f _projection = new Matrix4f();
 
     /** Whether or not the camera is set to an orthographic projection. */
     protected boolean _ortho = true;
