@@ -35,7 +35,14 @@ public class Camera
      */
     public void updateTransform ()
     {
+        // the view transform is the inverse of the world transform
         _worldTransform.invert(_viewTransform);
+
+        // make sure our matrices are up-to-date
+        _worldTransform.update(Transform.AFFINE);
+        _viewTransform.update(Transform.AFFINE);
+
+        // transform the frustum into world space
         _localVolume.transform(_worldTransform, _worldVolume);
     }
 
