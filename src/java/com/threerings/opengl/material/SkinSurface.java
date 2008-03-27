@@ -37,21 +37,14 @@ public class SkinSurface extends DefaultSurface
         super(ctx, material, mesh);
         _bones = mesh.getBones();
 
-        // determine whether we're using a sphere map
+        // find the texture unit in order to determine whether we're using a sphere map
         RenderState[] states = _bbatch.getStates();
         TextureState tstate = (TextureState)states[RenderState.TEXTURE_STATE];
         TextureUnit unit = (tstate == null) ? null : tstate.getUnit(0);
 
-        Program program;
-        if (unit != null && unit.genModeS == GL11.GL_SPHERE_MAP) {
-            if ((program = material.getSkinProgram(true)) != null) {
-                unit.genModeS = unit.genModeT = -1; // the shader will handle texture generation
-            }
-        } else {
-            program = material.getSkinProgram(false);
-        }
-
         // create the shader state if we're using one
+        Program program = material.getSkinProgram(
+            unit != null && unit.genModeS == GL11.GL_SPHERE_MAP);
         if (program != null) {
             Uniform[] uniforms = new Uniform[_bones.length];
             for (int ii = 0; ii < _bones.length; ii++) {
