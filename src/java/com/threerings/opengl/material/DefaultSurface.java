@@ -53,6 +53,14 @@ public class DefaultSurface extends Surface
         _center = geom.getBounds().getCenter();
     }
 
+    /**
+     * Returns a reference to the base batch.
+     */
+    public SimpleBatch getBaseBatch ()
+    {
+        return _bbatch;
+    }
+
     @Override // documentation inherited
     public void setHost (SurfaceHost host)
     {

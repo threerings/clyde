@@ -47,6 +47,14 @@ public class StaticModel extends Model
         return _vmeshes;
     }
 
+    /**
+     * Returns a reference to the model's array of surfaces.
+     */
+    public Surface[] getSurfaces ()
+    {
+        return _surfaces;
+    }
+
     // documentation inherited from interface SurfaceHost
     public Transform getModelview ()
     {
