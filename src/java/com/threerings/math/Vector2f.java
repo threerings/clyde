@@ -136,7 +136,8 @@ public final class Vector2f
      */
     public float angle (Vector2f other)
     {
-        return FloatMath.acos(dot(other) / (length() * other.length()));
+        float cos = dot(other) / (length() * other.length());
+        return cos >= 1f ? 0f : FloatMath.acos(cos);
     }
 
     /**
