@@ -100,7 +100,7 @@ public class CharacterTextFactory extends TextFactory
 
     @Override // documentation inherited
     public Text createText (
-        final String text, final Color4f color, int effect,
+        final String text, final Color4f color, final int effect,
         final int effectSize, final Color4f effectColor, boolean useAdvance)
     {
         // get/create glyphs
@@ -151,6 +151,12 @@ public class CharacterTextFactory extends TextFactory
                 // multi-pixel outlines go below the character
                 if (outlines != null && effectSize > 1) {
                     renderGlyphs(renderer, outlines, effectColor, x, y, alpha);
+                }
+                // as do shadows
+                if (effect == SHADOW) {
+                    renderGlyphs(
+                        renderer, glyphs, effectColor, x + effectSize - 1, y - effectSize, alpha);
+                    x += 1;
                 }
 
                 // now draw the characters
