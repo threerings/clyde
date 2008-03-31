@@ -6,12 +6,13 @@ package com.threerings.math;
 import java.nio.FloatBuffer;
 
 import com.threerings.io.Streamable;
+import com.threerings.export.Exportable;
 
 /**
  * A three element vector.
  */
 public final class Vector3f
-    implements Streamable
+    implements Streamable, Exportable
 {
     /** A unit vector in the X+ direction. */
     public static final Vector3f UNIT_X = new Vector3f(1f, 0f, 0f);

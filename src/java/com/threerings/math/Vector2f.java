@@ -6,12 +6,13 @@ package com.threerings.math;
 import java.nio.FloatBuffer;
 
 import com.threerings.io.Streamable;
+import com.threerings.export.Exportable;
 
 /**
  * A two element vector.
  */
 public final class Vector2f
-    implements Streamable
+    implements Streamable, Exportable
 {
     /** A unit vector in the X+ direction. */
     public static final Vector2f UNIT_X = new Vector2f(1f, 0f);
