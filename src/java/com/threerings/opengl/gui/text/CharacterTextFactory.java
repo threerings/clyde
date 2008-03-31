@@ -9,6 +9,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Rectangle2D;
@@ -309,12 +310,13 @@ public class CharacterTextFactory extends TextFactory
                 }
                 // render the glyph to the scratch image
                 _graphics.clearRect(0, 0, _scratch.getWidth(), _scratch.getHeight());
+                Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height);
                 if (_effect == OUTLINE) {
                     _graphics.setStroke(new BasicStroke(
                         _size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                    _graphics.draw(_vector.getOutline(-_bounds.x, _bounds.y + _bounds.height));
+                    _graphics.draw(outline);
                 } else {
-                    _graphics.drawGlyphVector(_vector, -_bounds.x, _bounds.y + _bounds.height);
+                    _graphics.fill(outline);
                 }
                 float[] tcoords = new float[4];
                 _units = addGlyphToTexture(renderer, _bounds.width, _bounds.height, tcoords);
