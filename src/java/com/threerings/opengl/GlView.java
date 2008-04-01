@@ -10,7 +10,7 @@ import com.threerings.opengl.util.Tickable;
  * A simple base class for OpenGL views.
  */
 public abstract class GlView
-    implements Renderable
+    implements Tickable, Renderable
 {
     /**
      * Notifies the view that it is going to be rendered.
