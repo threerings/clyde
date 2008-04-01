@@ -30,12 +30,13 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlUtil;
 import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.util.Tickable;
 
 /**
  * A 3D model.
  */
 public abstract class Model
-    implements SurfaceHost, Intersectable, Renderable, Cloneable, Exportable
+    implements SurfaceHost, Tickable, Intersectable, Renderable, Cloneable, Exportable
 {
     /**
      * Creates a new model.
@@ -180,14 +181,6 @@ public abstract class Model
     public abstract boolean requiresTick ();
 
     /**
-     * Updates the state of this model for the current frame based on the elapsed time in seconds.
-     */
-    public void tick (float elapsed)
-    {
-        // nothing by default
-    }
-
-    /**
      * Resets the state of this model.  Used when models are reused from a pool.
      */
     public void reset ()
@@ -241,6 +234,12 @@ public abstract class Model
     public MaterialState getMaterialState ()
     {
         return _mstate;
+    }
+
+    // documentation inherited from interface Tickable
+    public void tick (float elapsed)
+    {
+        // nothing by default
     }
 
     @Override // documentation inherited

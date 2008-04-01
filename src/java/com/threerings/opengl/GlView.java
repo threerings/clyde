@@ -4,6 +4,7 @@
 package com.threerings.opengl;
 
 import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.util.Tickable;
 
 /**
  * A simple base class for OpenGL views.
@@ -25,9 +26,7 @@ public abstract class GlView
     {
     }
 
-    /**
-     * Performs any per-frame updates that are necessary even when not rendering.
-     */
+    // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
     }

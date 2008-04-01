@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GL11;
 import com.threerings.opengl.renderer.Camera;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.util.Tickable;
 
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
@@ -17,6 +18,7 @@ import com.threerings.opengl.gui.util.Rectangle;
  * Displays 3D geometry inside a normal user interface.
  */
 public class GeomView extends Component
+    implements Tickable
 {
     /**
      * Creates a view with no configured geometry. Geometry can be set later with {@link
@@ -62,10 +64,8 @@ public class GeomView extends Component
     	return _geom;
     }
 
-    /**
-     * Called every frame (while we're added to the view hierarchy) by the {@link Root}.
-     */
-    public void update (float frameTime)
+    // documentation inherited from interface Tickable
+    public void tick (float elapsed)
     {
         if (_geom != null) {
             // _geom.updateGeometricState(frameTime, true);
@@ -77,14 +77,14 @@ public class GeomView extends Component
     {
         super.wasAdded();
         _root = getWindow().getRoot();
-        _root.registerGeomView(this);
+        _root.addTickParticipant(this);
     }
 
     // documentation inherited
     protected void wasRemoved ()
     {
         super.wasRemoved();
-        _root.unregisterGeomView(this);
+        _root.removeTickParticipant(this);
         _root = null;
     }
 

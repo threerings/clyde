@@ -26,6 +26,7 @@ import com.threerings.opengl.renderer.state.StencilState;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.util.Tickable;
 
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.EventListener;
@@ -37,7 +38,7 @@ import com.threerings.opengl.gui.layout.BorderLayout;
  * Connects the BUI system into the JME scene graph.
  */
 public abstract class Root
-    implements Renderable
+    implements Tickable, Renderable
 {
     /** The baseline render states. */
     public static final RenderState[] STATES = new RenderState[] {
@@ -193,6 +194,22 @@ public abstract class Root
     }
 
     /**
+     * Adds a tick participant to the list.
+     */
+    public void addTickParticipant (Tickable participant)
+    {
+        _tickParticipants.add(participant);
+    }
+
+    /**
+     * Removes a tick participant from the list.
+     */
+    public void removeTickParticipant (Tickable participant)
+    {
+        _tickParticipants.remove(participant);
+    }
+
+    /**
      * Configures the number of seconds that the mouse must rest over a component to trigger a
      * tooltip. If the value is set to zero, tips will appear immediately.
      */
@@ -334,8 +351,14 @@ public abstract class Root
     }
 
     /**
-     * Updates the state of the UI.
+     * Sets the color of the shade behind the first active modal window.
      */
+    public void setModalShade (Color4f color)
+    {
+        _modalShade = color;
+    }
+
+    // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
         // update the tick stamp
@@ -350,9 +373,9 @@ public abstract class Root
             }
         }
 
-        // update our geometry views if we have any
-        for (int ii = 0, ll = _geomviews.size(); ii < ll; ii++) {
-            _geomviews.get(ii).update(elapsed);
+        // notify our tick participants (in reverse order, so that they can remove themselves)
+        for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
+            _tickParticipants.get(ii).tick(elapsed);
         }
 
         // check to see if we need to pop up a tooltip
@@ -412,14 +435,6 @@ public abstract class Root
         // we need to validate here because we're adding a window in the middle of our normal frame
         // processing
         _tipwin.validate();
-    }
-
-    /**
-     * Sets the color of the shade behind the first active modal window.
-     */
-    public void setModalShade (Color4f color)
-    {
-        _modalShade = color;
     }
 
     // documentation inherited from interface Renderable
@@ -541,24 +556,6 @@ public abstract class Root
     }
 
     /**
-     * Registers a {@link GeomView} with the root node. This is called automatically from {@link
-     * GeomView#wasAdded}.
-     */
-    protected void registerGeomView (GeomView nview)
-    {
-        _geomviews.add(nview);
-    }
-
-    /**
-     * Clears out a node view registration. This is called automatically from {@link
-     * GeomView#wasRemoved}.
-     */
-    protected void unregisterGeomView (GeomView nview)
-    {
-        _geomviews.remove(nview);
-    }
-
-    /**
      * Called by a window when its position changes. This triggers a recomputation of the hover
      * component as the window may have moved out from under or under the mouse.
      */
@@ -671,7 +668,7 @@ public abstract class Root
     protected Component _hcomponent, _ccomponent;
     protected Component _focus;
     protected ArrayList<Component> _defaults = new ArrayList<Component>();
-    protected ArrayList<GeomView> _geomviews = new ArrayList<GeomView>();
+    protected ArrayList<Tickable> _tickParticipants = new ArrayList<Tickable>();
     protected ArrayList<EventListener> _globals = new ArrayList<EventListener>();
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();

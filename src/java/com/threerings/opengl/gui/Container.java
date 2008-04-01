@@ -221,17 +221,6 @@ public class Container extends Component
     }
 
     // documentation inherited
-    public void setVisible (boolean visible)
-    {
-        super.setVisible(visible);
-
-        // show or hide our children accordingly
-        for (int ii = getComponentCount() - 1; ii >= 0; ii--) {
-            getComponent(ii).setVisible(visible);
-        }
-    }
-
-    // documentation inherited
     public Component getHitComponent (int mx, int my)
     {
         // if we're not within our bounds, we don't need to check our children
