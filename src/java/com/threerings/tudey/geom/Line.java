@@ -100,7 +100,7 @@ public final class Line extends Shape
     protected boolean checkIntersects (Line line)
     {
         //NOTE: adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
-        float ux = x2 - x1, uy = y2 - y1;
+        float ux = _x2 - _x1, uy = _y2 - _y1;
         float vx = line._x2 - line._x1, vy = line._y2 - line._y1;
         float d = vy * ux - vx * uy;
         // check if the segments are parallel
@@ -108,7 +108,7 @@ public final class Line extends Shape
             return false;
         }
         // check if the segments intersect
-        float wx = x1 - line._x1, wy = y1 - line._y1;
+        float wx = _x1 - line._x1, wy = _y1 - line._y1;
         float s = vx * wy - vy * wx;
         if (s < 0f || s > d) {
             return false;
