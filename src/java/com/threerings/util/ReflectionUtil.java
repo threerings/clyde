@@ -49,25 +49,34 @@ public class ReflectionUtil
 
     /**
      * Creates a new instance of the named class.
+     *
+     * @param classname the name of the class to instantiate.
      */
-    public static Object newInstance (String classname, Object... params)
+    public static Object newInstance (String classname)
+    {
+        return newInstance(classname, null);
+    }
+
+    /**
+     * Creates a new instance of the named inner class.
+     *
+     * @param clazz the name of the class to instantiate.
+     * @param outer an instance of the enclosing class.
+     */
+    public static Object newInstance (String classname, Object outer)
     {
         try {
-            Class[] pclass = new Class[params.length];
-            for (int ii = 0, nn = params.length; ii < nn; ii++) {
-                pclass[ii] = params[ii].getClass();
-            }
-            Class<?> clazz = Class.forName(classname);
-            Constructor ctor = clazz.getConstructor(pclass);
-            return ctor.newInstance(params);
+            return createNewInstance(Class.forName(classname), outer);
         } catch (Exception e) {
-            log.log(WARNING, "Failed to create new instance [class=" + classname + "].", e);
+            log.log(WARNING, "Failed to get class by name [class=" + classname + "].", e);
             return null;
         }
     }
 
     /**
      * Creates a new instance of the specified class.
+     *
+     * @param clazz the class to instantiate.
      */
     public static Object newInstance (Class clazz)
     {
@@ -75,14 +84,26 @@ public class ReflectionUtil
     }
 
     /**
+     * Creates a new instance of the specified inner class.
+     *
+     * @param clazz the class to instantiate.
+     * @param outer an instance of the enclosing class.
+     */
+    public static Object newInstance (Class clazz, Object outer)
+    {
+        return createNewInstance(clazz, outer);
+    }
+
+    /**
      * Creates a new instance of the specified (possibly inner) class.
      *
+     * @param clazz the class to instantiate.
      * @param outer for inner classes, a reference to the enclosing instance (otherwise
      * <code>null</code>).
      * @return the newly created object, or <code>null</code> if there was some error
      * (in which case a message will be logged).
      */
-    public static Object newInstance (Class clazz, Object outer)
+    protected static Object createNewInstance (Class clazz, Object outer)
     {
         Constructor ctor = _ctors.get(clazz);
         if (ctor == null) {
