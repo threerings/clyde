@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.geom;
 
+import com.threerings.math.FloatMath;
+
 /**
  * A line segment.
  */
@@ -97,7 +99,25 @@ public final class Line extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Line line)
     {
-        return false; // TODO
+        //NOTE: adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
+        float ux = x2 - x1, uy = y2 - y1;
+        float vx = line._x2 - line._x1, vy = line._y2 - line._y1;
+        float d = vy * ux - vx * uy;
+        // check if the segments are parallel
+        if (FloatMath.epsilonEquals(d, 0f)) {
+            return false;
+        }
+        // check if the segments intersect
+        float wx = x1 - line._x1, wy = y1 - line._y1;
+        float s = vx * wy - vy * wx;
+        if (s < 0f || s > d) {
+            return false;
+        }
+        float t = ux * wy - uy * wx;
+        if (t < 0f || t > d) {
+            return false;
+        }
+        return true;
     }
 
     /**
