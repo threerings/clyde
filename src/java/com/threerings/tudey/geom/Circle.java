@@ -132,7 +132,21 @@ public final class Circle extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Line line)
     {
-        return false; // TODO
+        //NOTE: adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/sphereline/
+        float ux = line.getX2() - line.getX1(), uy = line.getY2() - line.getY1();
+        float vx = _x - line.getX1(), vy = _y - line.getY1();
+        float u = (vx * ux + vy * uy) / (ux * ux + uy * uy);
+        // ensure the closest point on the line to the circle is on the segment
+        if (u < 0f || u > 1f) {
+            return false;
+        }
+        float ix = line.getX1() + u * ux, iy = line.getY1() + u * uy;
+        float dx = _x - ix, dy = _y - iy;
+        // ensure the point is in or on the circle
+        if (dx*dx + dy*dy >= _radius*_radius) {
+            return false;
+        }
+        return true;
     }
 
     @Override // documentation inherited

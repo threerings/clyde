@@ -23,29 +23,6 @@ public class LineTest extends TestCase
         assertEquals(line1, line2);
     }
 
-    public void testIntersection ()
-    {
-        // check conincident
-        Line line1 = new Line(0f, 0f, 1f, 1f);
-        Line line2 = new Line(0f, 0f, 1f, 1f);
-        assertEquals(line1.checkIntersects(line2), true);
-
-        // check parallel
-        line1.set(0f, 0f, 2f, 2f);
-        line2.set(0f, -2f, 2f, 0f);
-        assertEquals(line1.checkIntersects(line2), false);
-
-        // check non-intersecting
-        line1.set(-1f, -1f, 1f, 1f);
-        line2.set(3f, 4f, 5f, 6f);
-        assertEquals(line1.checkIntersects(line2), false);
-
-        // check intersecting
-        line1.set(0f, 1f, 1f, 0f);
-        line2.set(0f, 0f, 1f, 1f);
-        assertEquals(line1.checkIntersects(line2), true);
-    }
-
     public void testBounds ()
     {
         Line line = new Line(0f, 0f, 10f, 10f);
@@ -60,4 +37,32 @@ public class LineTest extends TestCase
         bounds.set(0f, -1f, 0f, 1f);
         assertEquals(line.getBounds(), bounds);
     }
+
+    public void testIntersection ()
+    {
+        // check conincident
+        Line line1 = new Line(0f, 0f, 1f, 1f);
+        Line line2 = new Line(0f, 0f, 1f, 1f);
+        assertEquals(line1.intersects(line2), true);
+
+        // check parallel
+        line1.set(0f, 0f, 2f, 2f);
+        line2.set(0f, -2f, 2f, 0f);
+        assertEquals(line1.intersects(line2), false);
+
+        // check non-intersecting
+        line1.set(-1f, -1f, 1f, 1f);
+        line2.set(3f, 4f, 5f, 6f);
+        assertEquals(line1.intersects(line2), false);
+
+        // check intersecting
+        line1.set(0f, 1f, 1f, 0f);
+        line2.set(0f, 0f, 1f, 1f);
+        assertEquals(line1.intersects(line2), true);
+
+        line1.set(-1f, -1f, 1f, 1f);
+        line2.set(0f, -1f, 0f, 1f);
+        assertEquals(line1.intersects(line2), true);
+    }
+
 }

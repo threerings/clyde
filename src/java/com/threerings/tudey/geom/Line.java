@@ -135,34 +135,30 @@ public final class Line extends Shape
             return false;
         }
         // check if the intersection point is outside either segment
-        if (s < 0f || s > d) {
+        if ((d >= 0f && (s < 0f || s > d)) ||
+            (d < 0f && (s > 0f || s < d))) {
             return false;
         }
-        if (t < 0f || t > d) {
+        if ((d >= 0f && (t < 0f || t > d)) ||
+            (d < 0f && (t > 0f || t < d))) {
             return false;
         }
         return true;
     }
 
-    /**
-     * Determines whether this shape intersects the given circle.
-     */
+    @Override // documentation inherited
     protected boolean checkIntersects (Circle circle)
     {
         return circle.checkIntersects(this);
     }
 
-    /**
-     * Determines whether this shape intersects the given rectangle.
-     */
+    @Override // documentation inherited
     protected boolean checkIntersects (Rectangle rectangle)
     {
         return rectangle.checkIntersects(this);
     }
 
-    /**
-     * Determines whether this shape intersects the given capsule.
-     */
+    @Override // documentation inherited
     protected boolean checkIntersects (Capsule capsule)
     {
         return capsule.checkIntersects(this);
