@@ -83,6 +83,13 @@ public final class Point extends Shape
     }
 
     @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Point opoint;
+        return super.equals(other) && _x == (opoint = (Point)other)._x && _y == opoint._y;
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         StringBuilder builder = new StringBuilder();

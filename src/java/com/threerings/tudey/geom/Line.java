@@ -90,6 +90,27 @@ public final class Line extends Shape
         return _y2;
     }
 
+    /**
+     * Returns the minimum distance from the line to the specified point.
+     */
+    public float getMinimumDistance (float x, float y)
+    {
+        float vx = (_x2 - _x1), vy = (_y2 - _y1);
+        float px = (x - _x1), py = (y - _y1);
+        float t = px*vx + py*vy;
+        if (t < 0f) { // point closest to start
+            return FloatMath.sqrt(px*px + py*py);
+        }
+        float d = vx*vx + vy*vy;
+        if (t > d) { // point closest to end
+            float wx = (x - _x2), wy = (y - _y2);
+            return FloatMath.sqrt(wx*wx + wy*wy);
+        } else { // point closest to middle
+            float u = px*px + py*py;
+            return FloatMath.sqrt(u - t*t/d);
+        }
+    }
+
     @Override // documentation inherited
     public void updateBounds ()
     {
@@ -100,6 +121,15 @@ public final class Line extends Shape
     public boolean intersects (Shape other)
     {
         return other.checkIntersects(this);
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Line oline;
+        return super.equals(other) &&
+            _x1 == (oline = (Line)other)._x1 && _y1 == oline._y1 &&
+            _x2 == oline._x2 && _y2 == oline._y2;
     }
 
     @Override // documentation inherited

@@ -101,6 +101,15 @@ public final class Rectangle extends Shape
     }
 
     @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Rectangle orect;
+        return super.equals(other) &&
+            _minX == (orect = (Rectangle)other)._minX && _minY == orect._minY &&
+            _maxX == orect._maxX && _maxY == orect._maxY;
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         StringBuilder builder = new StringBuilder();

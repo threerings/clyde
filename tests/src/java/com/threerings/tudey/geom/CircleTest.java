@@ -28,6 +28,14 @@ public class CircleTest extends TestCase
         assertEquals(circle1, circle2);
     }
 
+    public void testClone ()
+    {
+        Circle circle1 = new Circle(1f, 1f, 2f);
+        Circle circle2 = (Circle)circle1.clone();
+        assertEquals(circle1, circle2);
+        assertEquals(circle1.getBounds(), circle2.getBounds());
+    }
+
     public void testBounds ()
     {
         Circle circle = new Circle(1f, 2f, 3f);

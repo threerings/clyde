@@ -128,6 +128,16 @@ public final class Capsule extends Shape
     }
 
     @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Capsule ocapsule;
+        return super.equals(other) &&
+            _x1 == (ocapsule = (Capsule)other)._x1 && _y1 == ocapsule._y1 &&
+            _x2 == ocapsule._x2 && _y2 == ocapsule._y2 &&
+            _radius == ocapsule._radius;
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         StringBuilder builder = new StringBuilder();

@@ -5,10 +5,6 @@ package com.threerings.tudey.geom;
 
 import java.io.IOException;
 
-import com.threerings.util.DeepObject;
-import com.threerings.util.DeepOmit;
-import com.threerings.util.Shallow;
-
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.Streamable;
 
@@ -18,8 +14,8 @@ import com.threerings.export.Importer;
 /**
  * The superclass of 2D shapes.
  */
-public abstract class Shape extends DeepObject
-    implements Streamable, Exportable
+public abstract class Shape
+    implements Streamable, Exportable, Cloneable
 {
     /**
      * Returns a reference to the bounds of the shape.
@@ -115,11 +111,25 @@ public abstract class Shape extends DeepObject
     }
 
     @Override // documentation inherited
-    public Object copy (Object dest)
+    public boolean equals (Object other)
     {
-        Shape nshape = (Shape)super.copy(dest);
-        nshape.initTransientFields();
-        return nshape;
+        return other != null && getClass() == other.getClass();
+    }
+
+    @Override // documentation inherited
+    public Object clone ()
+    {
+        try {
+            // cloning mostly does the right thing since shapes are mostly primitives
+            Shape nshape = (Shape)super.clone();
+            nshape.initTransientFields();
+            // make shallow copies of the space and data
+            nshape._space = _space;
+            nshape._data = _data;
+            return nshape;
+        } catch (CloneNotSupportedException e) {
+            return null; // should never happen
+        }
     }
 
     /**
@@ -214,7 +224,6 @@ public abstract class Shape extends DeepObject
     }
 
     /** The bounds of the shape. */
-    @DeepOmit
     protected transient Bounds _bounds = new Bounds();
 
     /** The shape's intersection flags. */
@@ -224,10 +233,8 @@ public abstract class Shape extends DeepObject
     protected int _intersectionMask = ~0;
 
     /** The space in which this shape is contained (if any). */
-    @Shallow
     protected Space _space;
 
     /** The shape's user data. */
-    @Shallow
     protected transient Object _data;
 }

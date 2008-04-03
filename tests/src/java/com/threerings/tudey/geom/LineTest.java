@@ -5,6 +5,8 @@ package com.threerings.tudey.geom;
 
 import junit.framework.TestCase;
 
+import com.threerings.math.FloatMath;
+
 /**
  * Tests the {@link Line}.
  */
@@ -21,6 +23,14 @@ public class LineTest extends TestCase
         Line line2 = new Line();
         line2.set(1f, 1f, 2f, 3f);
         assertEquals(line1, line2);
+    }
+
+    public void testClone ()
+    {
+        Line line1 = new Line(1f, 1f, 2f, 3f);
+        Line line2 = (Line)line1.clone();
+        assertEquals(line1, line2);
+        assertEquals(line1.getBounds(), line2.getBounds());
     }
 
     public void testBounds ()
@@ -65,4 +75,19 @@ public class LineTest extends TestCase
         assertEquals(line1.intersects(line2), true);
     }
 
+    public void testMinimumDistance ()
+    {
+        // one end
+        Line line = new Line(-1f, 0f, 1f, 0f);
+        assertEquals(line.getMinimumDistance(-2f, 0f), 1f, FloatMath.EPSILON);
+
+        // other end
+        assertEquals(line.getMinimumDistance(2f, 0f), 1f, FloatMath.EPSILON);
+
+        // middle
+        assertEquals(line.getMinimumDistance(0f, 1f), 1f, FloatMath.EPSILON);
+
+        // on line
+        assertEquals(line.getMinimumDistance(0f, 0f), 0f, FloatMath.EPSILON);
+    }
 }
