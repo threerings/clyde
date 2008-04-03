@@ -124,9 +124,7 @@ public final class Circle extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Point point)
     {
-        float dx = _x - point.getX();
-        float dy = _y - point.getY();
-        return (dx*dx + dy*dy) <= _radius*_radius;
+        return isInside(point.getX(), point.getY());
     }
 
     @Override // documentation inherited
@@ -137,7 +135,10 @@ public final class Circle extends Shape
         float vx = _x - line.getX1(), vy = _y - line.getY1();
         float u = (vx * ux + vy * uy) / (ux * ux + uy * uy);
         // ensure the closest point on the line to the circle is on the segment
-        if (u < 0f || u > 1f) {
+        if (u < 0f && !isInside(line.getX1(), line.getY1())) {
+            return false;
+        }
+        if (u > 1f && !isInside(line.getX2(), line.getY2())) {
             return false;
         }
         float ix = line.getX1() + u * ux, iy = line.getY1() + u * uy;
@@ -168,6 +169,16 @@ public final class Circle extends Shape
     protected boolean checkIntersects (Capsule capsule)
     {
         return capsule.checkIntersects(this);
+    }
+
+    /**
+     * Checks if the specified point lies inside this circle.
+     */
+    protected boolean isInside (float x, float y)
+    {
+        float dx = _x - x;
+        float dy = _y - y;
+        return (dx*dx + dy*dy) <= _radius*_radius;
     }
 
     /** The location of the circle's center. */

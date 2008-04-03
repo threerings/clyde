@@ -123,8 +123,8 @@ public final class Line extends Shape
     {
         //NOTE: adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
         float ux = _x2 - _x1, uy = _y2 - _y1;
-        float vx = line._x2 - line._x1, vy = line._y2 - line._y1;
-        float wx = _x1 - line._x1, wy = _y1 - line._y1;
+        float vx = line.getX2() - line.getX1(), vy = line.getY2() - line.getY1();
+        float wx = _x1 - line.getX1(), wy = _y1 - line.getY1();
         float d = vy * ux - vx * uy;
         float s = vx * wy - vy * wx;
         float t = ux * wy - uy * wx;
