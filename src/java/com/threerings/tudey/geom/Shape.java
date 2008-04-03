@@ -73,6 +73,12 @@ public abstract class Shape
         return _data;
     }
 
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        return other != null && getClass() == other.getClass();
+    }
+
     /**
      * Determines whether the specified shape intersects this one.  This method relies on
      * <a href="http://en.wikipedia.org/wiki/Double_dispatch">double-dispatch</a> to invoke

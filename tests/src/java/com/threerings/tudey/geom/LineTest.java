@@ -28,22 +28,22 @@ public class LineTest extends TestCase
         // check conincident
         Line line1 = new Line(0f, 0f, 1f, 1f);
         Line line2 = new Line(0f, 0f, 1f, 1f);
-        assertTrue(line1.intersects(line2));
+        assertEquals(line1.checkIntersects(line2), true);
 
         // check parallel
         line1.set(0f, 0f, 2f, 2f);
         line2.set(0f, -2f, 2f, 0f);
-        assertFalse(line1.intersects(line2));
+        assertEquals(line1.checkIntersects(line2), false);
 
         // check non-intersecting
         line1.set(-1f, -1f, 1f, 1f);
         line2.set(3f, 4f, 5f, 6f);
-        assertFalse(line1.intersects(line2));
+        assertEquals(line1.checkIntersects(line2), false);
 
         // check intersecting
         line1.set(0f, 1f, 1f, 0f);
         line2.set(0f, 0f, 1f, 1f);
-        assertTrue(line1.intersects(line2));
+        assertEquals(line1.checkIntersects(line2), true);
     }
 
     public void testBounds ()

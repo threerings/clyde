@@ -97,23 +97,49 @@ public final class Line extends Shape
     }
 
     @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Line oline;
+        return super.equals(other) &&
+            FloatMath.epsilonEquals(_x1, (oline = (Line)other)._x1) &&
+            FloatMath.epsilonEquals(_y1, oline._y1) &&
+            FloatMath.epsilonEquals(_x2, oline._x2) &&
+            FloatMath.epsilonEquals(_y2, oline._y2);
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Line[");
+        builder.append("x1=").append(_x1).append(", ");
+        builder.append("y1=").append(_y1).append(", ");
+        builder.append("x2=").append(_x2).append(", ");
+        builder.append("y2=").append(_y2);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    @Override // documentation inherited
     protected boolean checkIntersects (Line line)
     {
         //NOTE: adapted from http://local.wasp.uwa.edu.au/~pbourke/geometry/lineline2d/
         float ux = _x2 - _x1, uy = _y2 - _y1;
         float vx = line._x2 - line._x1, vy = line._y2 - line._y1;
+        float wx = _x1 - line._x1, wy = _y1 - line._y1;
         float d = vy * ux - vx * uy;
-        // check if the segments are parallel
-        if (FloatMath.epsilonEquals(d, 0f)) {
+        float s = vx * wy - vy * wx;
+        float t = ux * wy - uy * wx;
+        // check if the segments are parallel but not conincident
+        if (FloatMath.epsilonEquals(d, 0f) &&
+                !(FloatMath.epsilonEquals(s, 0f) &&
+                  FloatMath.epsilonEquals(t, 0f))) {
             return false;
         }
-        // check if the segments intersect
-        float wx = _x1 - line._x1, wy = _y1 - line._y1;
-        float s = vx * wy - vy * wx;
+        // check if the intersection point is outside either segment
         if (s < 0f || s > d) {
             return false;
         }
-        float t = ux * wy - uy * wx;
         if (t < 0f || t > d) {
             return false;
         }
