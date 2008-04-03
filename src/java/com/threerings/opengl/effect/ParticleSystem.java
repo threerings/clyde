@@ -764,6 +764,23 @@ public class ParticleSystem extends Model
     }
 
     /**
+     * Sets whether to update the system when it is enqueued for rendering, rather than
+     * in the {@link #tick} method.
+     */
+    public void setUpdateOnEnqueue (boolean updateOnEnqueue)
+    {
+        _updateOnEnqueue = updateOnEnqueue;
+    }
+
+    /**
+     * Checks whether the system is updated when enqueued.
+     */
+    public boolean getUpdateOnEnqueue ()
+    {
+        return _updateOnEnqueue;
+    }
+
+    /**
      * Returns whether this system has no particles alive or yet to be spawned.
      */
     public boolean isComplete ()
@@ -837,15 +854,11 @@ public class ParticleSystem extends Model
     @Override // documentation inherited
     public void tick (float elapsed)
     {
-        // reset the bounds
-        _worldBounds.setToEmpty();
-        for (LayerGroup group : _groups) {
-            group.bounds.setToEmpty();
-        }
-
-        // tick the layers (they will expand the bounds)
-        for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
-            _layers.get(ii).tick(elapsed);
+        // if specified, wait until we actually enqueue the system before updating
+        if (_updateOnEnqueue) {
+            _elapsed = elapsed;
+        } else {
+            update(elapsed);
         }
     }
 
@@ -903,9 +916,32 @@ public class ParticleSystem extends Model
             group.depth = view.transformPointZ(group.bounds.getCenter(_center));
         }
 
+        // update the layers if specified
+        if (_updateOnEnqueue) {
+            update(_elapsed);
+            _elapsed = 0f;
+        }
+
         // enqueue the layers
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
             _layers.get(ii).enqueue(modelview);
+        }
+    }
+
+    /**
+     * Updates the layers.
+     */
+    protected void update (float elapsed)
+    {
+        // reset the bounds
+        _worldBounds.setToEmpty();
+        for (LayerGroup group : _groups) {
+            group.bounds.setToEmpty();
+        }
+
+        // tick the layers (they will expand the bounds)
+        for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
+            _layers.get(ii).tick(elapsed);
         }
     }
 
@@ -929,6 +965,12 @@ public class ParticleSystem extends Model
 
     /** Layer groups mapped by index. */
     protected transient LayerGroup[] _groups = new LayerGroup[0];
+
+    /** Whether or not we wait until we are enqueued before updating the layers. */
+    protected transient boolean _updateOnEnqueue;
+
+    /** The elapsed time passed to the {@link #tick} method. */
+    protected transient float _elapsed;
 
     /** Used to compute the bounding box centers. */
     protected transient Vector3f _center = new Vector3f();
