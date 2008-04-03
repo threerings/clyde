@@ -52,7 +52,7 @@ public final class Rectangle extends Shape
         _minY = minY;
         _maxX = maxX;
         _maxY = maxY;
-        _bounds.set(_minX, _minY, _maxX, _maxY);
+        updateBounds();
         didMove();
     }
 
@@ -89,18 +89,15 @@ public final class Rectangle extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Shape other)
+    public void updateBounds ()
     {
-        return other.checkIntersects(this);
+        _bounds.set(_minX, _minY, _maxX, _maxY);
     }
 
     @Override // documentation inherited
-    public boolean equals (Object other)
+    public boolean intersects (Shape other)
     {
-        Rectangle orect;
-        return super.equals(other) &&
-            _minX == (orect = (Rectangle)other)._minX && _minY == orect._minY &&
-            _maxX == orect._maxX && _maxY == orect._maxY;
+        return other.checkIntersects(this);
     }
 
     @Override // documentation inherited

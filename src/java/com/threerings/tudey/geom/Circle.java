@@ -67,7 +67,7 @@ public final class Circle extends Shape
         _x = x;
         _y = y;
         _radius = radius;
-        _bounds.set(x - radius, y - radius, x + radius, y + radius);
+        updateBounds();
         didMove();
     }
 
@@ -96,17 +96,15 @@ public final class Circle extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Shape other)
+    public void updateBounds ()
     {
-        return other.checkIntersects(this);
+        _bounds.set(_x - _radius, _y - _radius, _x + _radius, _y + _radius);
     }
 
     @Override // documentation inherited
-    public boolean equals (Object other)
+    public boolean intersects (Shape other)
     {
-        Circle ocircle;
-        return super.equals(other) &&
-            _x == (ocircle = (Circle)other)._x && _y == ocircle._y && _radius == ocircle._radius;
+        return other.checkIntersects(this);
     }
 
     @Override // documentation inherited
@@ -172,7 +170,7 @@ public final class Circle extends Shape
     }
 
     /**
-     * Checks if the specified point lies inside this circle.
+     * Checks if the specified point lies inside the circle.
      */
     protected boolean isInside (float x, float y)
     {

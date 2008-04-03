@@ -50,7 +50,7 @@ public final class Point extends Shape
         willMove();
         _x = x;
         _y = y;
-        _bounds.set(_x, _y, _x, _y);
+        updateBounds();
         didMove();
     }
 
@@ -71,16 +71,15 @@ public final class Point extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Shape other)
+    public void updateBounds ()
     {
-        return other.checkIntersects(this);
+        _bounds.set(_x, _y, _x, _y);
     }
 
     @Override // documentation inherited
-    public boolean equals (Object other)
+    public boolean intersects (Shape other)
     {
-        Point opoint;
-        return super.equals(other) && _x == (opoint = (Point)other)._x && _y == opoint._y;
+        return other.checkIntersects(this);
     }
 
     @Override // documentation inherited

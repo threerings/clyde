@@ -3,10 +3,23 @@
 
 package com.threerings.tudey.geom;
 
+import java.io.IOException;
+
+import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
+import com.threerings.util.Shallow;
+
+import com.threerings.io.ObjectInputStream;
+import com.threerings.io.Streamable;
+
+import com.threerings.export.Exportable;
+import com.threerings.export.Importer;
+
 /**
  * The superclass of 2D shapes.
  */
-public abstract class Shape
+public abstract class Shape extends DeepObject
+    implements Streamable, Exportable
 {
     /**
      * Returns a reference to the bounds of the shape.
@@ -14,6 +27,14 @@ public abstract class Shape
     public Bounds getBounds ()
     {
         return _bounds;
+    }
+
+    /**
+     * Updates the bounds of the shape.
+     */
+    public void updateBounds ()
+    {
+        // nothing by default
     }
 
     /**
@@ -73,10 +94,32 @@ public abstract class Shape
         return _data;
     }
 
-    @Override // documentation inherited
-    public boolean equals (Object other)
+    /**
+     * Reads the fields of the shape.
+     */
+    public void readObject (ObjectInputStream in)
+        throws IOException, ClassNotFoundException
     {
-        return other != null && getClass() == other.getClass();
+        in.defaultReadObject();
+        initTransientFields();
+    }
+
+    /**
+     * Reads the fields of the shape.
+     */
+    public void readFields (Importer in)
+        throws IOException
+    {
+        in.defaultReadFields();
+        initTransientFields();
+    }
+
+    @Override // documentation inherited
+    public Object copy (Object dest)
+    {
+        Shape nshape = (Shape)super.copy(dest);
+        nshape.initTransientFields();
+        return nshape;
     }
 
     /**
@@ -162,11 +205,17 @@ public abstract class Shape
         }
     }
 
-    /** The space in which this shape is contained (if any). */
-    protected Space _space;
+    /**
+     * Initializes the transient fields after construction, deserialization, etc.
+     */
+    protected void initTransientFields ()
+    {
+        updateBounds();
+    }
 
     /** The bounds of the shape. */
-    protected Bounds _bounds = new Bounds();
+    @DeepOmit
+    protected transient Bounds _bounds = new Bounds();
 
     /** The shape's intersection flags. */
     protected int _intersectionFlags = ~0;
@@ -174,6 +223,11 @@ public abstract class Shape
     /** The shape's intersection mask. */
     protected int _intersectionMask = ~0;
 
+    /** The space in which this shape is contained (if any). */
+    @Shallow
+    protected Space _space;
+
     /** The shape's user data. */
-    protected Object _data;
+    @Shallow
+    protected transient Object _data;
 }

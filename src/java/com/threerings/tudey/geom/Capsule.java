@@ -69,9 +69,7 @@ public final class Capsule extends Shape
         _x2 = x2;
         _y2 = y2;
         _radius = radius;
-        _bounds.set(
-            Math.min(x1, x2) - radius, Math.min(y1, y2) - radius,
-            Math.max(x1, x2) + radius, Math.max(y1, y2) + radius);
+        updateBounds();
         didMove();
     }
 
@@ -116,19 +114,17 @@ public final class Capsule extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Shape other)
+    public void updateBounds ()
     {
-        return other.checkIntersects(this);
+        _bounds.set(
+            Math.min(_x1, _x2) - _radius, Math.min(_y1, _y2) - _radius,
+            Math.max(_x1, _x2) + _radius, Math.max(_y1, _y2) + _radius);
     }
 
     @Override // documentation inherited
-    public boolean equals (Object other)
+    public boolean intersects (Shape other)
     {
-        Capsule ocapsule;
-        return super.equals(other) &&
-            _x1 == (ocapsule = (Capsule)other)._x1 && _y1 == ocapsule._y1 &&
-            _x2 == ocapsule._x2 && _y2 == ocapsule._y2 &&
-            _radius == ocapsule._radius;
+        return other.checkIntersects(this);
     }
 
     @Override // documentation inherited

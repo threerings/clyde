@@ -54,7 +54,7 @@ public final class Line extends Shape
         _y1 = y1;
         _x2 = x2;
         _y2 = y2;
-        _bounds.set(Math.min(x1, x2), Math.min(y1, y2), Math.max(x1, x2), Math.max(y1, y2));
+        updateBounds();
         didMove();
     }
 
@@ -91,18 +91,15 @@ public final class Line extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Shape other)
+    public void updateBounds ()
     {
-        return other.checkIntersects(this);
+        _bounds.set(Math.min(_x1, _x2), Math.min(_y1, _y2), Math.max(_x1, _x2), Math.max(_y1, _y2));
     }
 
     @Override // documentation inherited
-    public boolean equals (Object other)
+    public boolean intersects (Shape other)
     {
-        Line oline;
-        return super.equals(other) &&
-            _x1 == (oline = (Line)other)._x1 && _y1 == oline._y1 &&
-            _x2 == oline._x2 && _y2 == oline._y2;
+        return other.checkIntersects(this);
     }
 
     @Override // documentation inherited
