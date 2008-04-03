@@ -1386,6 +1386,7 @@ public class ArticulatedModel extends Model
      */
     protected void updateLocalBounds ()
     {
+        // add the skin mesh bounds
         for (SkinMesh mesh : _smeshes) {
             _localBounds.addLocal(mesh.getBounds());
         }
