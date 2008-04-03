@@ -101,10 +101,8 @@ public final class Line extends Shape
     {
         Line oline;
         return super.equals(other) &&
-            FloatMath.epsilonEquals(_x1, (oline = (Line)other)._x1) &&
-            FloatMath.epsilonEquals(_y1, oline._y1) &&
-            FloatMath.epsilonEquals(_x2, oline._x2) &&
-            FloatMath.epsilonEquals(_y2, oline._y2);
+            _x1 == (oline = (Line)other)._x1 && _y1 == oline._y1 &&
+            _x2 == oline._x2 && _y2 == oline._y2;
     }
 
     @Override // documentation inherited

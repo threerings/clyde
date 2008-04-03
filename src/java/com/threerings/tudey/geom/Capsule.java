@@ -122,6 +122,30 @@ public final class Capsule extends Shape
     }
 
     @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Capsule ocapsule;
+        return super.equals(other) &&
+            _x1 == (ocapsule = (Capsule)other)._x1 && _y1 == ocapsule._y1 &&
+            _x2 == ocapsule._x2 && _y2 == ocapsule._y2 &&
+            _radius == ocapsule._radius;
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Capsule[");
+        builder.append("x1=").append(_x1).append(", ");
+        builder.append("y1=").append(_y1).append(", ");
+        builder.append("x2=").append(_x2).append(", ");
+        builder.append("y2=").append(_y2).append(", ");
+        builder.append("radius=").append(_radius);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    @Override // documentation inherited
     protected boolean checkIntersects (Point point)
     {
         return false; // TODO

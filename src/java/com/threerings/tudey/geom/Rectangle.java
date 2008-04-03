@@ -95,6 +95,28 @@ public final class Rectangle extends Shape
     }
 
     @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Rectangle orect;
+        return super.equals(other) &&
+            _minX == (orect = (Rectangle)other)._minX && _minY == orect._minY &&
+            _maxX == orect._maxX && _maxY == orect._maxY;
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Rectangle[");
+        builder.append("minx=").append(_minX).append(", ");
+        builder.append("miny=").append(_minY).append(", ");
+        builder.append("maxx=").append(_maxX).append(", ");
+        builder.append("maxy=").append(_maxY);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    @Override // documentation inherited
     protected boolean checkIntersects (Point point)
     {
         float x = point.getX();

@@ -102,6 +102,26 @@ public final class Circle extends Shape
     }
 
     @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        Circle ocircle;
+        return super.equals(other) &&
+            _x == (ocircle = (Circle)other)._x && _y == ocircle._y && _radius == ocircle._radius;
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Circle[");
+        builder.append("x=").append(_x).append(", ");
+        builder.append("y=").append(_y).append(", ");
+        builder.append("radius=").append(_radius);
+        builder.append("]");
+        return builder.toString();
+    }
+
+    @Override // documentation inherited
     protected boolean checkIntersects (Point point)
     {
         float dx = _x - point.getX();
