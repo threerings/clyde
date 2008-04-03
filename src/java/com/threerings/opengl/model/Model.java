@@ -8,7 +8,6 @@ import java.util.Properties;
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.PropertiesUtil;
-import com.samskivert.util.StringUtil;
 
 import com.threerings.math.Box;
 import com.threerings.math.Frustum;
@@ -73,18 +72,6 @@ public abstract class Model
 
         // let subclasses perform custom initialization
         didInit();
-
-        // expand the bounds by an amount specified in the properties
-        float[] expansion = StringUtil.parseFloatArray(
-            _props.getProperty("bounds_expansion", "0"));
-        if (expansion == null) {
-            return;
-        }
-        if (expansion.length >= 3) {
-            _localBounds.expandLocal(expansion[0], expansion[1], expansion[2]);
-        } else {
-            _localBounds.expandLocal(expansion[0], expansion[0], expansion[0]);
-        }
     }
 
     /**

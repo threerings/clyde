@@ -11,6 +11,7 @@ import java.util.Properties;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
@@ -280,6 +281,7 @@ public class ArticulatedModel extends Model
             }
             // update the local bounds
             _localBounds.addLocal(_vmesh.getBounds().transform(_modelview));
+
             // create the transform state
             _tstate = new TransformState();
             _modelview = _tstate.getModelview();
@@ -1389,6 +1391,18 @@ public class ArticulatedModel extends Model
         // add the skin mesh bounds
         for (SkinMesh mesh : _smeshes) {
             _localBounds.addLocal(mesh.getBounds());
+        }
+
+        // expand the bounds by an amount specified in the properties
+        float[] expansion = StringUtil.parseFloatArray(
+            _props.getProperty("bounds_expansion", "0"));
+        if (expansion == null) {
+            return;
+        }
+        if (expansion.length >= 3) {
+            _localBounds.expandLocal(expansion[0], expansion[1], expansion[2]);
+        } else {
+            _localBounds.expandLocal(expansion[0], expansion[0], expansion[0]);
         }
     }
 
