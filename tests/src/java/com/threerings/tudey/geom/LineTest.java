@@ -53,26 +53,26 @@ public class LineTest extends TestCase
         // check conincident
         Line line1 = new Line(0f, 0f, 1f, 1f);
         Line line2 = new Line(0f, 0f, 1f, 1f);
-        assertEquals(line1.intersects(line2), true);
+        assertTrue(line1.intersects(line2));
 
         // check parallel
         line1.set(0f, 0f, 2f, 2f);
         line2.set(0f, -2f, 2f, 0f);
-        assertEquals(line1.intersects(line2), false);
+        assertFalse(line1.intersects(line2));
 
         // check non-intersecting
         line1.set(-1f, -1f, 1f, 1f);
         line2.set(3f, 4f, 5f, 6f);
-        assertEquals(line1.intersects(line2), false);
+        assertFalse(line1.intersects(line2));
 
         // check intersecting
         line1.set(0f, 1f, 1f, 0f);
         line2.set(0f, 0f, 1f, 1f);
-        assertEquals(line1.intersects(line2), true);
+        assertTrue(line1.intersects(line2));
 
         line1.set(-1f, -1f, 1f, 1f);
         line2.set(0f, -1f, 0f, 1f);
-        assertEquals(line1.intersects(line2), true);
+        assertTrue(line1.intersects(line2));
     }
 
     public void testMinimumDistance ()

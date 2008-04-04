@@ -48,15 +48,15 @@ public class CircleTest extends TestCase
         // check inside
         Circle circle = new Circle(0f, 0f, 3f);
         Point point = new Point(1f, 1f);
-        assertEquals(circle.intersects(point), true);
+        assertTrue(circle.intersects(point));
 
         // check outside
         point.set(5f, 5f);
-        assertEquals(circle.intersects(point), false);
+        assertFalse(circle.intersects(point));
 
         // check on circle
         point.set(1f, 0f);
-        assertEquals(circle.intersects(point), true);
+        assertTrue(circle.intersects(point));
     }
 
     public void testCircleIntersection ()
@@ -64,15 +64,15 @@ public class CircleTest extends TestCase
         // check coincident
         Circle circle1 = new Circle(0f, 0f, 1f);
         Circle circle2 = new Circle(0f, 0f, 1f);
-        assertEquals(circle1.intersects(circle2), true);
+        assertTrue(circle1.intersects(circle2));
 
         // check overlapping
         circle1.set(0.5f, 0f, 1f);
-        assertEquals(circle1.intersects(circle2), true);
+        assertTrue(circle1.intersects(circle2));
 
         // check not overlapping
         circle1.set(5f, 0f, 1f);
-        assertEquals(circle1.intersects(circle2), false);
+        assertFalse(circle1.intersects(circle2));
     }
 
     public void testLineIntersection ()
@@ -80,30 +80,30 @@ public class CircleTest extends TestCase
         // check inside
         Circle circle = new Circle(0f, 0f, 1f);
         Line line = new Line(-0.5f, 0.5f, 0.5f, -0.5f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
         line.set(-0.5f, -0.5f, 0.5f, -0.25f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
 
         // check one end inside
         line.set(-2f, 1f, 0f, 0f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
         line.set(-0.25f, 0.5f, 2f, 0.75f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
         line.set(0.5f, 0.25f, 2f, 1.75f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
 
         // check through
         line.set(-2f, 0.5f, 2f, 0.6f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
         line.set(0.75f, 2f, 0.75f, -2f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
 
         // check outside
         line.set(3f, 0f, 5f, 2f);
-        assertEquals(circle.intersects(line), false);
+        assertFalse(circle.intersects(line));
 
         // check one point on edge
         line.set(1f, 0f, 2f, 4f);
-        assertEquals(circle.intersects(line), true);
+        assertTrue(circle.intersects(line));
     }
 }
