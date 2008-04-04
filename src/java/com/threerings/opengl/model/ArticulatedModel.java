@@ -120,6 +120,17 @@ public class ArticulatedModel extends Model
         }
 
         /**
+         * Populates the supplied result vector with the world space translation of this node.
+         *
+         * @return a reference to the result vector, for chaining.
+         */
+        public Vector3f getTranslation (Vector3f result)
+        {
+            Transform world = _ctx.getRenderer().getCamera().getWorldTransform();
+            return world.transformPoint(_modelview.getTranslation(), result);
+        }
+
+        /**
          * Enqueues the node for rendering.
          */
         public void enqueue (Transform parentModelview)
@@ -1051,17 +1062,36 @@ public class ArticulatedModel extends Model
 
     /**
      * Retrieves the translation of the specified node.
+     *
+     * @return a new vector containing the result.
      */
     public Vector3f getTranslation (String point)
     {
-        Node node = _nodes.get(point);
-        if (node != null) {
-            Transform world = _ctx.getRenderer().getCamera().getWorldTransform();
-            return world.transformPoint(node.getModelview().getTranslation());
-        } else {
-            log.warning("Invalid node [name=" + point + "].");
-            return new Vector3f();
+        return getTranslation(point, new Vector3f());
+    }
+
+    /**
+     * Populates the supplied vector with the translation of the specified node.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector3f getTranslation (String point, Vector3f result)
+    {
+        Node node = getAttachmentNode(point);
+        return (node == null) ? result : node.getTranslation(result);
+    }
+
+    /**
+     * Fetches the named attachment point, logging a warning and returning <code>null</code> if
+     * the point doesn't exist.
+     */
+    public Node getAttachmentNode (String point)
+    {
+        Node node = (point != null) ? _nodes.get(point) : _root;
+        if (node == null) {
+            log.warning("Invalid attachment point [name=" + point + "].");
         }
+        return node;
     }
 
     /**
@@ -1421,19 +1451,6 @@ public class ArticulatedModel extends Model
             }
         }
         _animtracks.add(track);
-    }
-
-    /**
-     * Fetches the named attachment point, logging a warning and returning <code>null</code> if
-     * the point doesn't exist.
-     */
-    protected Node getAttachmentNode (String point)
-    {
-        Node node = (point != null) ? _nodes.get(point) : _root;
-        if (node == null) {
-            log.warning("Invalid attachment point [name=" + point + "].");
-        }
-        return node;
     }
 
     /**
