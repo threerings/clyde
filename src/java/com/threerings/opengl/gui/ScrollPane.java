@@ -304,6 +304,12 @@ public class ScrollPane extends Container
             }
         }
 
+        @Override // documentation inherited
+        protected String getDefaultStyleClass ()
+        {
+            return "viewport";
+        }
+
         // documentation inherited
         protected Dimension computePreferredSize (int whint, int hhint)
         {
