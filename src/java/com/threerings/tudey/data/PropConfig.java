@@ -13,8 +13,29 @@ import com.threerings.util.PropertyConfig;
  */
 public class PropConfig extends PropertyConfig
 {
+    /**
+     * Contains a model to attach to the prop.
+     */
+    public static class Attachment
+    {
+        /** The model to attach. */
+        public String model;
+
+        /** The point at which to attach the model. */
+        public String point;
+
+        public Attachment (String model, String point)
+        {
+            this.model = model;
+            this.point = point;
+        }
+    }
+
     /** The prop model. */
     public String model;
+
+    /** The prop model variant. */
+    public String variant;
 
     /** The radius of the prop's bounding cylinder. */
     public float radius;
@@ -27,6 +48,9 @@ public class PropConfig extends PropertyConfig
 
     /** Whether or not bullets can pass through the prop. */
     public boolean penetrable;
+
+    /** Model attachments. */
+    public Attachment[] attachments;
 
     /**
      * Returns the configuration of the named prop.
@@ -47,14 +71,23 @@ public class PropConfig extends PropertyConfig
     @Override // documentation inherited
     protected void didInit ()
     {
-        model = getProperty("model", "props/" + name + "/model");
+        model = getProperty("model", "world/prop/" + name + "/model");
+        variant = getProperty("variant");
         radius = getProperty("radius", 0.5f);
         height = getProperty("height", 1f);
         passable = getProperty("passable", false);
         penetrable = passable || getProperty("penetrable", false);
+
+        String[] attaches = getProperty("attachments", new String[0]);
+        attachments = new Attachment[attaches.length];
+        for (int ii = 0; ii < attachments.length; ii++) {
+            String name = attaches[ii];
+            attachments[ii] = new Attachment(
+                name, getProperty(name + ".attach", (String)null));
+        }
     }
 
     /** Maps prop names to their configurations. */
     protected static HashMap<String, PropConfig> _configs =
-        loadConfigs(PropConfig.class, "props/props.txt");
+        loadConfigs(PropConfig.class, "world/prop/list.txt");
 }

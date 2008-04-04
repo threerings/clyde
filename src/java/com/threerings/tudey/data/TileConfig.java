@@ -138,8 +138,8 @@ public class TileConfig extends PropertyConfig
 
     /** Load the ids and tileset names. */
     static {
-        Properties ids = ResourceUtil.loadProperties("tilesets/ids.properties");
-        for (String tileset : ResourceUtil.loadStrings("tilesets/tilesets.txt")) {
+        Properties ids = ResourceUtil.loadProperties("world/tileset/ids.properties");
+        for (String tileset : ResourceUtil.loadStrings("world/tileset/list.txt")) {
             loadTilesetProperties(tileset, ids);
         }
     }
