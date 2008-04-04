@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.geom;
 
+import com.threerings.math.FloatMath;
+
 /**
  * An axis-aligned rectangle.
  */
@@ -46,6 +48,9 @@ public final class Rectangle extends Shape
     {
         if (_minX == minX && _minY == minY && _maxX == maxX && _maxY == maxY) {
             return;
+        }
+        if (minX > maxX || minY > maxY) {
+            throw new IllegalArgumentException("Maximum extents must be greater than the minimums.");
         }
         willMove();
         _minX = minX;
@@ -125,21 +130,77 @@ public final class Rectangle extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Point point)
     {
-        float x = point.getX();
-        float y = point.getY();
-        return x >= _minX && x <= _maxX && y >= _minY && y <= _maxY;
+        return checkIntersects(point.getX(), point.getY());
     }
 
     @Override // documentation inherited
     protected boolean checkIntersects (Line line)
     {
-        return false; // TODO
+        // check if the segment starts or ends inside the rectangle
+        if (checkIntersects(line.getX1(), line.getY1()) ||
+                checkIntersects(line.getX2(), line.getY2())) {
+            return true;
+        }
+        // check if the segment intersects the rectangle
+        if (line.getX2() > line.getX1()) {
+            float t = (_minX - line.getX1()) / (line.getX2() - line.getX1());
+            if (checkIntersectsX(line, t)) {
+                return true;
+            }
+        } else if (line.getX1() > line.getX2()) {
+            float t = (_maxX - line.getX1()) / (line.getX2() - line.getX1());
+            if (checkIntersectsX(line, t)) {
+                return true;
+            }
+        }
+        if (line.getY2() > line.getY1()) {
+            float t = (_minY - line.getY1()) / (line.getY2() - line.getY1());
+            if (checkIntersectsY(line, t)) {
+                return true;
+            }
+        } else if (line.getY1() > line.getY2()) {
+            float t = (_maxY - line.getY1()) / (line.getY2() - line.getY1());
+            if (checkIntersectsY(line, t)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override // documentation inherited
     protected boolean checkIntersects (Circle circle)
     {
-        return false; // TODO
+        // the center of the circle is in one of nine sections:
+        // [lower/middle/upper][left/middle/right]
+        float dx = 0f, dy = 0f;
+        if (circle.getX() < _minX) { // left
+            dx = _minX - circle.getX();
+            if (circle.getY() < _minY) { // lower
+                dy = _minY - circle.getY();
+            } else if (circle.getY() > _maxY) { // upper
+                dy = circle.getY() - _maxY;
+            } else { // middle
+                return dx <= circle.getRadius();
+            }
+        } else if (circle.getX() > _maxX) { // right
+            dx = circle.getX() - _maxX;
+            if (circle.getY() < _minY) { // lower
+                dy = _minY - circle.getY();
+            } else if (circle.getY() > _maxY) { // upper
+                dy = circle.getY() - _maxY;
+            } else { // middle
+                return dx <= circle.getRadius();
+            }
+        } else { // middle
+            if (circle.getY() < _minY) { // lower
+                return (_minY - circle.getY()) <= circle.getRadius();
+            } else if (circle.getY() > _maxY) { // upper
+                return (circle.getY() - _maxY) <= circle.getRadius();
+            } else { // middle (contained)
+                return true;
+            }
+        }
+        return (dx*dx + dy*dy) <= circle.getRadius()*circle.getRadius();
     }
 
     @Override // documentation inherited
@@ -153,6 +214,38 @@ public final class Rectangle extends Shape
     protected boolean checkIntersects (Capsule capsule)
     {
         return capsule.checkIntersects(this);
+    }
+
+    /**
+     * Helper method for {@link #checkIntersects}.
+     */
+    protected boolean checkIntersects (float x, float y)
+    {
+        return x >= _minX && x <= _maxX && y >= _minY && y <= _maxY;
+    }
+
+    /**
+     * Helper method for {@link #checkIntersects(Line)}.
+     */
+    protected boolean checkIntersectsX (Line line, float t)
+    {
+        if (t < 0f || t > 1f) {
+            return false;
+        }
+        float y = line.getY1() + t * (line.getY2() - line.getY1());
+        return (y >= _minX && y <= _maxY);
+    }
+
+    /**
+     * Helper method for {@link #checkIntersects(Line)}.
+     */
+    protected boolean checkIntersectsY (Line line, float t)
+    {
+        if (t < 0f || t > 1f) {
+            return false;
+        }
+        float x = line.getX1() + t * (line.getX2() - line.getX1());
+        return (x >= _minX && x <= _maxX);
     }
 
     /** The minimum extent of the rectangle. */
