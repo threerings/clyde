@@ -66,13 +66,13 @@ public class CharacterTextFactory extends TextFactory
         _graphics = _scratch.createGraphics();
         _metrics = _graphics.getFontMetrics(font);
 
-        // now that we have the metrics, we can recreate the image in the biggest size we'll
-        // need (we'll allow up to 50% for effects)
-        Rectangle2D bounds = _metrics.getMaxCharBounds(_graphics);
-        _scratch = new BufferedImage(
-            (int)Math.ceil(bounds.getWidth() * 1.5),
-            (int)Math.ceil(bounds.getHeight() * 1.5),
-            BufferedImage.TYPE_INT_ARGB);
+        // create a test glyph to determine the size
+        FontRenderContext ctx = _graphics.getFontRenderContext();
+        GlyphVector vector = _font.createGlyphVector(ctx, "J");
+        java.awt.Rectangle bounds = vector.getPixelBounds(ctx, 0f, 0f);
+
+        // allow up to twice the sample dimensions for descenders, effects, etc.
+        _scratch = new BufferedImage(bounds.width*2, bounds.height*2, BufferedImage.TYPE_INT_ARGB);
         _graphics.dispose();
         _graphics = _scratch.createGraphics();
         _graphics.setFont(font);
@@ -264,6 +264,10 @@ public class CharacterTextFactory extends TextFactory
     protected TextureUnit[] addGlyphToTexture (
         Renderer renderer, int width, int height, float[] tcoords)
     {
+        // make sure the width and height don't exceed the borders of the scratchpad
+        width = Math.min(width, _scratch.getWidth());
+        height = Math.min(height, _scratch.getHeight());
+
         // try to add to the current texture; if there's not enough room, create a new one
         TextureUnit[] units = (_texture == null) ? null : _texture.add(width, height, tcoords);
         if (units == null) {
