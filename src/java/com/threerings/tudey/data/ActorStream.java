@@ -70,9 +70,13 @@ public class ActorStream
             Frame frame = _frames.get(ii);
             if (timestamp >= frame.timestamp) {
                 Frame next = _frames.get(ii + 1);
-                float t = (float)(timestamp - frame.timestamp) /
-                    (next.timestamp - frame.timestamp);
-                frame.state.interpolate(next.state, t, _actor);
+                if (timestamp == frame.timestamp) {
+                    _actor.set(frame.state);
+                } else {
+                    float t = (float)(timestamp - frame.timestamp) /
+                        (next.timestamp - frame.timestamp);
+                    frame.state.interpolate(next.state, t, _actor);
+                }
                 return;
             }
         }

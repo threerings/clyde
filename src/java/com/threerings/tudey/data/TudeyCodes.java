@@ -15,9 +15,6 @@ public interface TudeyCodes
      * (used to ensure that we are always interpolating between two valid states). */
     public static final long INTERPOLATION_DELAY = 100L;
 
-    /** The server delays actions by this long to account for buffering. */
-    public static final long BUFFER_INTERVAL = 150L;
-
     /** Our maximum expected one-way latency. */
     public static final long MAX_LATENCY = 500L;
 

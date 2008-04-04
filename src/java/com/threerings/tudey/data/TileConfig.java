@@ -22,6 +22,9 @@ public class TileConfig extends PropertyConfig
     /** The name of the tile model. */
     public String model;
 
+    /** The variant of the tile model. */
+    public String variant;
+
     /** The width of the tile (in tile units). */
     public int width;
 
@@ -93,6 +96,7 @@ public class TileConfig extends PropertyConfig
         width = getProperty("width", 1);
         height = getProperty("height", 1);
         model = getProperty("model", "tilesets/" + name);
+        variant = getProperty("variant");
         passable = getProperty("passable", new boolean[] { false });
         int area = width * height;
         if (passable.length != area) {
