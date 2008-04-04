@@ -155,11 +155,12 @@ public final class Line extends Shape
         float d = vy * ux - vx * uy;
         float s = vx * wy - vy * wx;
         float t = ux * wy - uy * wx;
-        // check if the segments are parallel but not conincident
-        if (FloatMath.epsilonEquals(d, 0f) &&
-                !(FloatMath.epsilonEquals(s, 0f) &&
-                  FloatMath.epsilonEquals(t, 0f))) {
-            return false;
+        // check if the segments are parallel or conincident
+        if (FloatMath.epsilonEquals(d, 0f)) {
+            if (FloatMath.epsilonEquals(s, 0f) && FloatMath.epsilonEquals(t, 0f)) {
+                return true; // coincident
+            }
+            return false; // parallel
         }
         // check if the intersection point is outside either segment
         if ((d >= 0f && (s < 0f || s > d)) ||
