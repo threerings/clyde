@@ -149,6 +149,14 @@ public abstract class PropertyConfig
     }
 
     /**
+     * Fetches a string array property from the configuration.
+     */
+    public String[] getProperty (String key, String[] defvalue)
+    {
+        return getProperty(props, key, defvalue);
+    }
+
+    /**
      * Fetches a boolean array property from the configuration.
      */
     public boolean[] getProperty (String key, boolean[] defvalue)
