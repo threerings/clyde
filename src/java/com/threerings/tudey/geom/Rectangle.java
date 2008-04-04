@@ -141,30 +141,10 @@ public final class Rectangle extends Shape
                 checkIntersects(line.getX2(), line.getY2())) {
             return true;
         }
-        // check if the segment intersects the rectangle
-        if (line.getX2() > line.getX1()) {
-            float t = (_minX - line.getX1()) / (line.getX2() - line.getX1());
-            if (checkIntersectsX(line, t)) {
-                return true;
-            }
-        } else if (line.getX1() > line.getX2()) {
-            float t = (_maxX - line.getX1()) / (line.getX2() - line.getX1());
-            if (checkIntersectsX(line, t)) {
-                return true;
-            }
-        }
-        if (line.getY2() > line.getY1()) {
-            float t = (_minY - line.getY1()) / (line.getY2() - line.getY1());
-            if (checkIntersectsY(line, t)) {
-                return true;
-            }
-        } else if (line.getY1() > line.getY2()) {
-            float t = (_maxY - line.getY1()) / (line.getY2() - line.getY1());
-            if (checkIntersectsY(line, t)) {
-                return true;
-            }
-        }
-        return false;
+        return Math.abs(line.getX2() - line.getX1()) > FloatMath.EPSILON &&
+                   (intersectsX(line, _minX) || intersectsX(line, _maxX)) ||
+               Math.abs(line.getY2() - line.getY1()) > FloatMath.EPSILON &&
+                   (intersectsY(line, _minY) || intersectsY(line, _maxY));
     }
 
     @Override // documentation inherited
@@ -225,27 +205,33 @@ public final class Rectangle extends Shape
     }
 
     /**
-     * Helper method for {@link #checkIntersects(Line)}.
+     * Helper method for {@link #checkIntersects(Line)}.  Determines whether 
+     * the line intersects the rectangle on the side where x equals the value
+     * specified.
      */
-    protected boolean checkIntersectsX (Line line, float t)
+    protected boolean intersectsX (Line line, float x)
     {
-        if (t < 0f || t > 1f) {
-            return false;
+        float t = (x - line.getX1()) / (line.getX2() - line.getX1());
+        if (t >= 0f && t <= 1f) {
+            float iy = line.getY1() + t * (line.getY2() - line.getY1());
+            return iy >= _minY && iy <= _maxY;
         }
-        float y = line.getY1() + t * (line.getY2() - line.getY1());
-        return (y >= _minX && y <= _maxY);
+        return false;
     }
 
     /**
-     * Helper method for {@link #checkIntersects(Line)}.
+     * Helper method for {@link #checkIntersects(Line)}.  Determines whether 
+     * the line intersects the rectangle on the side where y equals the value
+     * specified.
      */
-    protected boolean checkIntersectsY (Line line, float t)
+    protected boolean intersectsY (Line line, float y)
     {
-        if (t < 0f || t > 1f) {
-            return false;
+        float t = (y - line.getY1()) / (line.getY2() - line.getY1());
+        if (t >= 0f && t <= 1f) {
+            float ix = line.getX1() + t * (line.getX2() - line.getX1());
+            return ix >= _minX && ix <= _maxX;
         }
-        float x = line.getX1() + t * (line.getX2() - line.getX1());
-        return (x >= _minX && x <= _maxX);
+        return false;
     }
 
     /** The minimum extent of the rectangle. */
