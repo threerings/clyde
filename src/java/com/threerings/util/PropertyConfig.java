@@ -190,9 +190,11 @@ public abstract class PropertyConfig
     protected static <T extends PropertyConfig> HashMap<String, T> loadConfigs (
         Class<T> clazz, String paths)
     {
+        // the prefix is everything up to and including the last slash of the path
+        int prefix = paths.lastIndexOf('/') + 1;
         HashMap<String, T> map = new HashMap<String, T>();
         for (String path : ResourceUtil.loadStrings(paths)) {
-            loadConfig(clazz, path, map);
+            loadConfig(clazz, path, prefix, map);
         }
         return map;
     }
@@ -204,10 +206,11 @@ public abstract class PropertyConfig
     protected static <T extends PropertyConfig> HashIntMap<T> loadConfigs (
         Class<T> clazz, String paths, String ids)
     {
+        int prefix = paths.lastIndexOf('/') + 1;
         HashIntMap<T> map = new HashIntMap<T>();
         Properties idprops = ResourceUtil.loadProperties(ids);
         for (String path : ResourceUtil.loadStrings(paths)) {
-            loadConfig(clazz, path, getProperty(idprops, path, 0), map);
+            loadConfig(clazz, path, prefix, getProperty(idprops, path, 0), map);
         }
         return map;
     }
@@ -216,9 +219,9 @@ public abstract class PropertyConfig
      * Loads a single configuration and stores it in the supplied name map.
      */
     protected static <T extends PropertyConfig> void loadConfig (
-        Class<T> clazz, String path, Map<String, T> map)
+        Class<T> clazz, String path, int prefix, Map<String, T> map)
     {
-        T config = loadConfig(clazz, path);
+        T config = loadConfig(clazz, path, prefix);
         map.put(config.name, config);
     }
 
@@ -226,30 +229,32 @@ public abstract class PropertyConfig
      * Loads a single configuration and stores it in the supplied id map.
      */
     protected static <T extends PropertyConfig> void loadConfig (
-        Class<T> clazz, String path, int id, HashIntMap<T> map)
+        Class<T> clazz, String path, int prefix, int id, HashIntMap<T> map)
     {
-        T config = loadConfig(clazz, path, id);
+        T config = loadConfig(clazz, path, prefix, id);
         map.put(id, config);
     }
 
     /**
      * Loads and returns a single configuration.
      */
-    protected static <T extends PropertyConfig> T loadConfig (Class<T> clazz, String path)
+    protected static <T extends PropertyConfig> T loadConfig (
+        Class<T> clazz, String path, int prefix)
     {
-        return loadConfig(clazz, path, 0);
+        return loadConfig(clazz, path, prefix, 0);
     }
 
     /**
      * Loads and returns a single configuration.
      */
-    protected static <T extends PropertyConfig> T loadConfig (Class<T> clazz, String path, int id)
+    protected static <T extends PropertyConfig> T loadConfig (
+        Class<T> clazz, String path, int prefix, int id)
     {
         Properties props = ResourceUtil.loadProperties(path);
         T config = null;
         try {
             config = clazz.newInstance();
-            config.init(getName(path), id, props);
+            config.init(getName(path, prefix), id, props);
         } catch (Exception e) {
             log.log(WARNING, "Failed to load config [path=" + path + "].", e);
         }
@@ -257,11 +262,10 @@ public abstract class PropertyConfig
     }
 
     /**
-     * Returns the name from within a path (everything between the first and last slashes).
+     * Returns the name from within a path (everything between the prefix and the last slash).
      */
-    protected static String getName (String path)
+    protected static String getName (String path, int prefix)
     {
-        int idx0 = path.indexOf('/'), idx1 = path.lastIndexOf('/');
-        return path.substring(0, idx1).substring(idx0 + 1);
+        return path.substring(0, path.lastIndexOf('/')).substring(prefix);
     }
 }

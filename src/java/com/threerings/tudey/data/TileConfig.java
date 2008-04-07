@@ -6,17 +6,17 @@ package com.threerings.tudey.data;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.Set;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.PropertiesUtil;
 
-import com.threerings.util.PropertyConfig;
 import com.threerings.util.ResourceUtil;
 
 /**
  * Contains information about one of the tiles in a tileset.
  */
-public class TileConfig extends PropertyConfig
+public class TileConfig extends SceneElementConfig
     implements TudeyCodes
 {
     /** The name of the tile model. */
@@ -91,6 +91,13 @@ public class TileConfig extends PropertyConfig
     }
 
     @Override // documentation inherited
+    public void getResources (Set<SceneResource> results)
+    {
+        super.getResources(results);
+        results.add(new SceneResource.Model(model, variant));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         width = getProperty("width", 1);
@@ -123,7 +130,7 @@ public class TileConfig extends PropertyConfig
     {
         Properties props = ResourceUtil.loadProperties(tileset);
         String[] tiles = getProperty(props, "tiles", new String[0]);
-        String prefix = getName(tileset) + "/";
+        String prefix = getName(tileset, "world/tileset/".length()) + "/";
         for (String tile : tiles) {
             String name = prefix + tile;
             int id = getProperty(ids, name, 0);

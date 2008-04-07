@@ -4,14 +4,13 @@
 package com.threerings.tudey.data;
 
 import java.util.Collection;
-import java.util.HashMap;
-
-import com.threerings.util.PropertyConfig;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Contains information about a prop.
  */
-public class PropConfig extends PropertyConfig
+public class PropConfig extends SceneElementConfig
 {
     /**
      * Contains a model to attach to the prop.
@@ -69,6 +68,16 @@ public class PropConfig extends PropertyConfig
     }
 
     @Override // documentation inherited
+    public void getResources (Set<SceneResource> results)
+    {
+        super.getResources(results);
+        results.add(new SceneResource.Model(model, variant));
+        for (Attachment attachment : attachments) {
+            results.add(new SceneResource.Model(attachment.model));
+        }
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         model = getProperty("model", "world/prop/" + name + "/model");
@@ -88,6 +97,6 @@ public class PropConfig extends PropertyConfig
     }
 
     /** Maps prop names to their configurations. */
-    protected static HashMap<String, PropConfig> _configs =
+    protected static Map<String, PropConfig> _configs =
         loadConfigs(PropConfig.class, "world/prop/list.txt");
 }
