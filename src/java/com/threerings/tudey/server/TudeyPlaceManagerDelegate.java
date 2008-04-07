@@ -68,9 +68,10 @@ public class TudeyPlaceManagerDelegate extends PlaceManagerDelegate
     protected void tick ()
     {
         // get the elapsed time and reset the timer
-        long emillis = _timer.getElapsedMillis();
+        long timestamp = _timer.getElapsedMillis();
+        long emillis = (_lastTick > 0L) ? (timestamp - _lastTick) : 0L;
         float elapsed = emillis / 1000f;
-        _timer.reset();
+        _lastTick = timestamp;
 
         // advance the
         _plobj.startTransaction();
@@ -90,6 +91,14 @@ public class TudeyPlaceManagerDelegate extends PlaceManagerDelegate
         return 100L;
     }
 
+    /**
+     * Resets the updater timer.
+     */
+    protected void resetTimer ()
+    {
+        _lastTick = 0L;
+    }
+
     /** The uncasted place object. */
     protected PlaceObject _plobj;
 
@@ -101,4 +110,7 @@ public class TudeyPlaceManagerDelegate extends PlaceManagerDelegate
 
     /** Used to measure elapsed time. */
     protected MediaTimer _timer;
+
+    /** The time of the last update tick. */
+    protected long _lastTick;
 }
