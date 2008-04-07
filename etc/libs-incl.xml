@@ -16,5 +16,6 @@
     <include name="narya-distrib.jar"/>
     <include name="nenya-media.jar"/>
     <include name="nenya-rsrc.jar"/>
+    <include name="nenya-openal.jar"/>
   </fileset>
 </project>

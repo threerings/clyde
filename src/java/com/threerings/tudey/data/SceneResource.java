@@ -113,8 +113,7 @@ public abstract class SceneResource extends DeepObject
         @Override // documentation inherited
         public void preload (TudeyContext ctx)
         {
-            //TODO maybe make TudeyContext also extend AlContext?
-            //ProjectXUI.preloadSound("effect/" + name);
+            ctx.getSoundManager().loadClip(ctx.getClipProvider(), "sound/effect/" + name + ".ogg");
         }
     }
 
