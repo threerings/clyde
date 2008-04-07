@@ -265,8 +265,8 @@ public class CharacterTextFactory extends TextFactory
         Renderer renderer, int width, int height, float[] tcoords)
     {
         // make sure the width and height don't exceed the borders of the scratchpad
-        width = Math.min(width, _scratch.getWidth());
-        height = Math.min(height, _scratch.getHeight());
+        width = Math.min(Math.max(width, 0), _scratch.getWidth());
+        height = Math.min(Math.max(height, 0), _scratch.getHeight());
 
         // try to add to the current texture; if there's not enough room, create a new one
         TextureUnit[] units = (_texture == null) ? null : _texture.add(width, height, tcoords);
@@ -293,7 +293,7 @@ public class CharacterTextFactory extends TextFactory
             FontRenderContext ctx = _graphics.getFontRenderContext();
             _vector = _font.createGlyphVector(ctx, Character.toString(c));
             java.awt.Rectangle bounds = _vector.getPixelBounds(ctx, 0f, 0f);
-            _bounds = (bounds.width == 0 || bounds.height == 0) ? null : new Rectangle(
+            _bounds = (bounds.width <= 0 || bounds.height <= 0) ? null : new Rectangle(
                 (int)Math.round(bounds.getX()),
                 (int)Math.round(-(bounds.getY() + bounds.getHeight())),
                 (int)Math.round(bounds.getWidth()),
