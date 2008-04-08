@@ -106,11 +106,22 @@ public final class Bounds
     @Override // documentation inherited
     public boolean equals (Object other)
     {
-        if (!(other instanceof Bounds)) {
-            return false;
-        }
         Bounds obounds = (Bounds)other;
-        return (minX == obounds.minX && minY == obounds.minY &&
-            maxX == obounds.maxX && maxY == obounds.maxY);
+        return other != null && other instanceof Bounds &&
+            minX == (obounds = (Bounds)other).minX && minY == obounds.minY &&
+            maxX == obounds.maxX && maxY == obounds.maxY;
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Bounds[");
+        builder.append("minx=").append(minX).append(", ");
+        builder.append("miny=").append(minY).append(", ");
+        builder.append("maxx=").append(maxX).append(", ");
+        builder.append("maxy=").append(maxY);
+        builder.append("]");
+        return builder.toString();
     }
 }

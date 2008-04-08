@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.geom;
 
+import com.threerings.math.FloatMath;
+
 /**
  * A capsule shape.
  */
@@ -63,6 +65,9 @@ public final class Capsule extends Shape
         if (_x1 == x1 && _y1 == y1 && _x2 == x2 && _y2 == y2 && _radius == radius) {
             return;
         }
+        if (radius < 0f) {
+            throw new IllegalArgumentException("Radius cannot be negative.");
+        }
         willMove();
         _x1 = x1;
         _y1 = y1;
@@ -113,6 +118,27 @@ public final class Capsule extends Shape
         return _radius;
     }
 
+    /**
+     * Returns the minimum distance from the capsule to the specified point.
+     */
+    public float getMinimumDistance (float x, float y)
+    {
+        float vx = (_x2 - _x1), vy = (_y2 - _y1);
+        float px = (x - _x1), py = (y - _y1);
+        float t = px*vx + py*vy;
+        if (t < 0f) { // point closest to start
+            return Math.max(0f, FloatMath.sqrt(px*px + py*py) - _radius);
+        }
+        float d = vx*vx + vy*vy;
+        if (t > d) { // point closest to end
+            float wx = (x - _x2), wy = (y - _y2);
+            return Math.max(0f, FloatMath.sqrt(wx*wx + wy*wy) - _radius);
+        } else { // point closest to middle
+            float u = px*px + py*py;
+            return Math.max(0f, FloatMath.sqrt(u - t*t/d) - _radius);
+        }
+    }
+
     @Override // documentation inherited
     public void updateBounds ()
     {
@@ -154,7 +180,7 @@ public final class Capsule extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Point point)
     {
-        return false; // TODO
+        return getMinimumDistance(point.getX(), point.getY()) <= 0f;
     }
 
     @Override // documentation inherited

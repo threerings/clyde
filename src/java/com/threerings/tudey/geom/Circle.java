@@ -63,6 +63,9 @@ public final class Circle extends Shape
         if (_x == x && _y == y && _radius == radius) {
             return;
         }
+        if (radius < 0f) {
+            throw new IllegalArgumentException("Radius cannot be negative.");
+        }
         willMove();
         _x = x;
         _y = y;

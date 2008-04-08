@@ -28,6 +28,16 @@ public class CircleTest extends TestCase
         assertEquals(circle1, circle2);
     }
 
+    public void testBadSet ()
+    {
+        try {
+            Circle circle = new Circle(0f, 0f, -1f);
+        } catch (IllegalArgumentException iae) {
+            return;
+        }
+        fail("Expected IllegalArgumentException");
+    }
+
     public void testClone ()
     {
         Circle circle1 = new Circle(1f, 1f, 2f);
