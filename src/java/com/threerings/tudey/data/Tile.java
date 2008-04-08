@@ -127,6 +127,12 @@ public class Tile extends SceneElement
         return _bounds;
     }
 
+    @Override // documentation inherited
+    public void getResources (java.util.Set<SceneResource> results)
+    {
+        getConfig().getResources(results);
+    }
+
     /** The bounds of the tile. */
     protected transient Rectangle _bounds;
 }

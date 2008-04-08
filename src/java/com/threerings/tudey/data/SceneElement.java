@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.data;
 
+import java.util.Set;
+
 import com.threerings.io.SimpleStreamableObject;
 
 import com.threerings.export.Exportable;
@@ -14,6 +16,15 @@ import com.threerings.util.DeepUtil;
 public abstract class SceneElement extends SimpleStreamableObject
     implements Exportable, Cloneable
 {
+    /**
+     * Finds the resources required for this element that should be preloaded
+     * and pinned in the cache.
+     */
+    public void getResources (Set<SceneResource> results)
+    {
+        // nothing by default
+    }
+
     @Override // documentation inherited
     public Object clone ()
     {

@@ -39,10 +39,18 @@ public class Prop extends Placeable
         return PropConfig.getConfig(_type);
     }
 
-    @Override // documentation inherited
+    /**
+     * Checks whether the configuration of this tile is valid.
+     */
     public boolean isValid ()
     {
         return getConfig() != null;
+    }
+
+    @Override // documentation inherited
+    public void getResources (java.util.Set<SceneResource> results)
+    {
+        getConfig().getResources(results);
     }
 
     /** The prop type. */
