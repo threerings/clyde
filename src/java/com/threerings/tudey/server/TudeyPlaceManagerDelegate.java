@@ -67,9 +67,9 @@ public class TudeyPlaceManagerDelegate extends PlaceManagerDelegate
      */
     protected void tick ()
     {
-        // get the elapsed time and reset the timer
+        // determine the amount of time elapsed (make sure it's not negative due to calibration)
         long timestamp = _timer.getElapsedMillis();
-        long emillis = (_lastTick > 0L) ? (timestamp - _lastTick) : 0L;
+        long emillis = (_lastTick > 0L) ? Math.max(0L, timestamp - _lastTick) : 0L;
         float elapsed = emillis / 1000f;
         _lastTick = timestamp;
 

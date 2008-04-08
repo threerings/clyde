@@ -79,7 +79,7 @@ public class TimeSmoother
         // approach the target delta if not yet there
         long now = _timer.getElapsedMillis();
         if (_delta != _tdelta && now != _dstamp) {
-            long elapsed = now - _dstamp;
+            long elapsed = Math.max(0L, now - _dstamp);
             float pct = 1f - FloatMath.exp(CONVERGENCE_RATE * elapsed);
             long diff = (long)((_tdelta - _delta) * pct);
             if (diff == 0) {
