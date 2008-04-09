@@ -284,7 +284,13 @@ public class Component
      */
     public void setCursor (Cursor cursor)
     {
+        if (_cursor == cursor) {
+            return;
+        }
         _cursor = cursor;
+        if (isAdded() && changeCursor() && _hover) {
+            updateCursor(_cursor);
+        }
     }
 
     /**
