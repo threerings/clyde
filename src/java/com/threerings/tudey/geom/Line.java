@@ -8,7 +8,7 @@ import com.threerings.math.FloatMath;
 /**
  * A line segment.
  */
-public final class Line extends Shape
+public class Line extends Shape
 {
     /**
      * Creates a line segment between the specified points.
@@ -95,26 +95,14 @@ public final class Line extends Shape
      */
     public float getMinimumDistance (float x, float y)
     {
-        float vx = (_x2 - _x1), vy = (_y2 - _y1);
-        float px = (x - _x1), py = (y - _y1);
-        float t = px*vx + py*vy;
-        if (t < 0f) { // point closest to start
-            return FloatMath.sqrt(px*px + py*py);
-        }
-        float d = vx*vx + vy*vy;
-        if (t > d) { // point closest to end
-            float wx = (x - _x2), wy = (y - _y2);
-            return FloatMath.sqrt(wx*wx + wy*wy);
-        } else { // point closest to middle
-            float u = px*px + py*py;
-            return FloatMath.sqrt(u - t*t/d);
-        }
+        return FloatMath.sqrt(GeomUtil.getMinimumDistanceSquared(_x1, _y1, _x2, _y2, x, y));
     }
 
     @Override // documentation inherited
     public void updateBounds ()
     {
-        _bounds.set(Math.min(_x1, _x2), Math.min(_y1, _y2), Math.max(_x1, _x2), Math.max(_y1, _y2));
+        _bounds.set(Math.min(_x1, _x2), Math.min(_y1, _y2),
+                    Math.max(_x1, _x2), Math.max(_y1, _y2));
     }
 
     @Override // documentation inherited
