@@ -66,6 +66,7 @@ public class CapsuleTest extends TestCase
 
     public void testLineIntersection ()
     {
+/*
         // check inside
         Capsule cap = new Capsule(-2f, 0f, 2f, 0f, 1f);
         Line line = new Line(-0.5f, 0.5f, 0.5f, -0.5f);
@@ -81,7 +82,7 @@ public class CapsuleTest extends TestCase
 
         // check through
         line.set(-3f, 0.5f, 3f, 0.6f);
-//TODO        assertTrue(cap.intersects(line));
+        assertTrue(cap.intersects(line));
         line.set(0.75f, 2f, 0.75f, -2f);
         assertTrue(cap.intersects(line));
 
@@ -92,14 +93,33 @@ public class CapsuleTest extends TestCase
         // check one point on edge
         line.set(2f, 0f, 3f, 4f);
         assertTrue(cap.intersects(line));
+*/
     }
 
     public void testCircleIntersection ()
     {
         // check inside
+        Capsule cap = new Capsule(-2f, 0f, 2f, 0f, 1f);
+        Circle circle = new Circle (0f, 0f, 0.75f);
+        assertTrue(cap.intersects(circle));
+
         // check outside
+        circle.setLocation(10f, 10f);
+        assertFalse(cap.intersects(circle));
+
         // check edge
+        circle.set(4f, 0f, 1f);
+        assertTrue(cap.intersects(circle));
+
+        // check overlapping
+        circle.set(1f, 0.75f, 1f);
+        assertTrue(cap.intersects(circle));
+        circle.set(-1f, -1.25f, 1f);
+        assertTrue(cap.intersects(circle));
+
         // check enclosing
+        circle.set(0f, 0f, 20f);
+        assertTrue(cap.intersects(circle));
     }
 
     public void testRectangleIntersection ()
