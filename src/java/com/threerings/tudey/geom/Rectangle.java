@@ -141,10 +141,11 @@ public final class Rectangle extends Shape
                 checkIntersects(line.getX2(), line.getY2())) {
             return true;
         }
-        return Math.abs(line.getX2() - line.getX1()) > FloatMath.EPSILON &&
-                   (intersectsX(line, _minX) || intersectsX(line, _maxX)) ||
-               Math.abs(line.getY2() - line.getY1()) > FloatMath.EPSILON &&
-                   (intersectsY(line, _minY) || intersectsY(line, _maxY));
+        // check if the segment crosses any side
+        return !FloatMath.epsilonEquals(line.getX1(), line.getX2()) &&
+                   (checkIntersectsX(line, _minX) || checkIntersectsX(line, _maxX)) ||
+               !FloatMath.epsilonEquals(line.getY1(), line.getY2()) &&
+                   (checkIntersectsY(line, _minY) || checkIntersectsY(line, _maxY));
     }
 
     @Override // documentation inherited
@@ -205,11 +206,11 @@ public final class Rectangle extends Shape
     }
 
     /**
-     * Helper method for {@link #checkIntersects(Line)}.  Determines whether 
-     * the line intersects the rectangle on the side where x equals the value
-     * specified.
+     * Helper method for {@link #checkIntersects(Line)}. Determines whether 
+     * the line intersects the rectangle on the horizontal side where x equals
+     * the value specified.
      */
-    protected boolean intersectsX (Line line, float x)
+    protected boolean checkIntersectsX (Line line, float x)
     {
         float t = (x - line.getX1()) / (line.getX2() - line.getX1());
         if (t >= 0f && t <= 1f) {
@@ -220,11 +221,11 @@ public final class Rectangle extends Shape
     }
 
     /**
-     * Helper method for {@link #checkIntersects(Line)}.  Determines whether 
-     * the line intersects the rectangle on the side where y equals the value
-     * specified.
+     * Helper method for {@link #checkIntersects(Line)}. Determines whether 
+     * the line intersects the rectangle on the vertical side where y equals
+     * the value specified.
      */
-    protected boolean intersectsY (Line line, float y)
+    protected boolean checkIntersectsY (Line line, float y)
     {
         float t = (y - line.getY1()) / (line.getY2() - line.getY1());
         if (t >= 0f && t <= 1f) {
