@@ -187,7 +187,15 @@ public final class Capsule extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Rectangle rectangle)
     {
-        return false; // TODO
+        // check if the segment starts or ends inside the rectangle
+        if (rectangle.checkIntersects(_x1, _y1) ||
+                rectangle.checkIntersects(_x2, _y2)) {
+            return true;
+        }
+        return Math.abs(_x2 - _x1) > FloatMath.EPSILON &&
+                   (intersectsX(rectangle, rectangle.getMinimumX()) || intersectsX(rectangle, rectangle.getMaximumX())) ||
+               Math.abs(_y2 - _y1) > FloatMath.EPSILON &&
+                   (intersectsY(rectangle, rectangle.getMinimumY()) || intersectsY(rectangle, rectangle.getMaximumY()));
     }
 
     @Override // documentation inherited
@@ -222,6 +230,36 @@ public final class Capsule extends Shape
         float e = -ox*ux + -oy*uy;
 
         return -1f; // TODO
+    }
+
+    /**
+     * Helper method for {@link #checkIntersects(Rectangle)}. Determines whether 
+     * the capsule segment intersects the rectangle on the side where x equals
+     * the value specified.
+     */
+    protected boolean intersectsX (Rectangle rect, float x)
+    {
+        float t = (x - _x1) / (_x2 - _x1);
+        if (t >= 0f && t <= 1f) {
+            float iy = _y1 + t * (_y2 - _y1);
+            return iy >= rect.getMinimumY() - _radius && iy <= rect.getMaximumY() + _radius;
+        }
+        return false;
+    }
+
+    /**
+     * Helper method for {@link #checkIntersects(Rectangle)}. Determines whether 
+     * the capsule segment intersects the rectangle on the side where y equals
+     * the value specified.
+     */
+    protected boolean intersectsY (Rectangle rect, float y)
+    {
+        float t = (y - _y1) / (_y2 - _y1);
+        if (t >= 0f && t <= 1f) {
+            float ix = _x1 + t * (_x2 - _x1);
+            return ix >= rect.getMinimumX() - _radius && ix <= rect.getMaximumX() + _radius;
+        }
+        return false;
     }
 
     /** The first vertex. */

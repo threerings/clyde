@@ -124,9 +124,34 @@ public class CapsuleTest extends TestCase
 
     public void testRectangleIntersection ()
     {
-        // check coincident
-        // check overlapping
-        // check not overlapping
+        // check inside
+        Rectangle rect = new Rectangle(-2f, -1f, 2f, 1f);
+        Capsule cap = new Capsule(-0.5f, 0.5f, 0.5f, -0.5f, 0.5f);
+        assertTrue(cap.intersects(rect));
+        cap.set(-0.5f, -0.5f, 0.5f, -0.25f, 1f);
+        assertTrue(cap.intersects(rect));
+
+        // check one end inside
+        cap.set(-3f, 2f, 0f, 0f, 1f);
+        assertTrue(cap.intersects(rect));
+        cap.set(-0.25f, 0.5f, 3f, 0.75f, 1f);
+        assertTrue(cap.intersects(rect));
+        cap.set(0f, 1.25f, 0f, 3f, 1f);
+        assertTrue(cap.intersects(rect));
+
+        // check through
+        cap.set(-4f, 0.5f, 4f, 0.6f, 0.25f);
+        assertTrue(cap.intersects(rect));
+        cap.set(0.75f, 2f, 0.75f, -2f, 0.5f);
+        assertTrue(cap.intersects(rect));
+
+        // check outside
+        cap.set(5f, 0f, 8f, 2f, 1f);
+        assertFalse(cap.intersects(rect));
+
+        // check one point on edge
+        cap.set(3f, 0f, 4f, 4f, 1f);
+        assertTrue(cap.intersects(rect));
     }
 
     public void testCapsuleIntersection ()
