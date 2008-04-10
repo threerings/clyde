@@ -89,16 +89,20 @@ public class RectangleTest extends TestCase
         line.set(3f, 0f, 5f, 2f);
         assertFalse(rect.intersects(line));
 
-        // check one point on edge
+        // check on edge
         line.set(2f, 0f, 3f, 4f);
-        assertTrue(rect.intersects(line));
+        assertTrue(rect.intersects(line)); // one point on edge
+        line.set(2f, -2f, 2f, 2f);
+        assertTrue(rect.intersects(line)); // along vertical edge
+        line.set(3f, -1f, -3f, -1f);
+        assertTrue(rect.intersects(line)); // along horizontal edge
     }
 
     public void testCircleIntersection ()
     {
-        // check inside
+        // check completely
         Rectangle rect = new Rectangle(-2f, -1f, 2f, 1f);
-        Circle circle = new Circle (0f, 0f, 1f);
+        Circle circle = new Circle (0f, 0f, 0.75f);
         assertTrue(rect.intersects(circle));
 
         // check outside
@@ -106,8 +110,14 @@ public class RectangleTest extends TestCase
         assertFalse(rect.intersects(circle));
 
         // check edge
-        circle.setLocation(3f, 0f);
+        circle.set(3f, 0f, 1f);
         assertTrue(rect.intersects(circle));
+
+        // check overlapping
+        circle.set(1.25f, 1.25f, 0.4f);
+        assertTrue(rect.intersects(circle)); // center outside rect
+        circle.set(-1.8f, 0.1f, 0.6f);
+        assertTrue(rect.intersects(circle)); // center inside rect
 
         // check enclosing
         circle.set(0f, 0f, 20f);
