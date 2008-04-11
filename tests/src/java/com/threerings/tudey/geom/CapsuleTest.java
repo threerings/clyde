@@ -66,7 +66,6 @@ public class CapsuleTest extends TestCase
 
     public void testLineIntersection ()
     {
-/*
         // check inside
         Capsule cap = new Capsule(-2f, 0f, 2f, 0f, 1f);
         Line line = new Line(-0.5f, 0.5f, 0.5f, -0.5f);
@@ -93,7 +92,6 @@ public class CapsuleTest extends TestCase
         // check one point on edge
         line.set(2f, 0f, 3f, 4f);
         assertTrue(cap.intersects(line));
-*/
     }
 
     public void testCircleIntersection ()
@@ -124,7 +122,6 @@ public class CapsuleTest extends TestCase
 
     public void testRectangleIntersection ()
     {
-/*
         // check inside
         Rectangle rect = new Rectangle(-2f, -1f, 2f, 1f);
         Capsule cap = new Capsule(-0.5f, 0.5f, 0.5f, -0.5f, 0.5f);
@@ -153,13 +150,36 @@ public class CapsuleTest extends TestCase
         // check one point on edge
         cap.set(3f, 0f, 4f, 4f, 1f);
         assertTrue(cap.intersects(rect));
-*/
     }
 
     public void testCapsuleIntersection ()
     {
         // check coincident
+        Capsule cap1 = new Capsule(1f, 1f, 2f, 3f, 5f);
+        Capsule cap2 = new Capsule(1f, 1f, 2f, 3f, 5f);
+        assertTrue(cap1.intersects(cap2));
+
         // check overlapping
+        cap1.set(-2f, 0f, 2f, 0f, 1f);
+        cap2.set(0f, 2f, 0f, -2f, 1f);
+        assertTrue(cap1.intersects(cap2)); // intersecting in center
+        cap2.set(-4f, 2f, -0.25f, 1.1f, 1f);
+        assertTrue(cap1.intersects(cap2)); // overlapping
+        cap2.set(2f, 0.5f, -2f, 0.5f, 1f);
+        assertTrue(cap1.intersects(cap2)); // parallel side by side, overlapping
+        cap2.set(2.5f, 0f, 4f, 0f, 1f);
+        assertTrue(cap1.intersects(cap2)); // parallel in line, ends overlapping
+        cap2.set(-1f, -1f, 3f, -1f, 0.25f);
+        assertTrue(cap1.intersects(cap2)); // parallel offset, overlapping
+
+        // check edge
+        cap2.set(3f, 0f, 5f, 1f, 1f);
+        assertTrue(cap1.intersects(cap2));
+
         // check not overlapping
+        cap2.set(10f, 10f, 11f, 11f, 0.2f);
+        assertFalse(cap1.intersects(cap2)); // way off
+        cap2.set(2f, 2f, -2f, 1.5f, 0.1f);
+        assertFalse(cap1.intersects(cap2)); // parallel
     }
 }

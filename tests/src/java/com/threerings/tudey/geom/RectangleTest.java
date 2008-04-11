@@ -138,5 +138,11 @@ public class RectangleTest extends TestCase
         // check not overlapping
         rect1.set(10f, 10f, 11f, 11f);
         assertFalse(rect1.intersects(rect2));
+
+        // check inside
+        rect1.set(-0.5f, -0.5f, 0.5f, 0.5f);
+        assertTrue(rect1.intersects(rect2)); // inside
+        rect1.set(-10f, -10f, 10f, 10f);
+        assertTrue(rect1.intersects(rect2)); // enclosing
     }
 }

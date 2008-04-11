@@ -118,14 +118,6 @@ public final class Capsule extends Shape
         return _radius;
     }
 
-    /**
-     * Returns the minimum distance from the capsule to the specified point.
-     */
-    public float getMinimumDistance (float x, float y)
-    {
-        return Math.max(0f, GeomUtil.getMinimumDistanceSquared(_x1, _y1, _x2, _y2, x, y) - _radius);
-    }
-
     @Override // documentation inherited
     public void updateBounds ()
     {
@@ -173,8 +165,7 @@ public final class Capsule extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Line line)
     {
-        return false; // TODO
-        //return getMinimumDistanceSquared(line.getX1(), line.getY1(), line.getX2(), line.getY2()) <= _radius*_radius;
+        return checkIntersects(line.getX1(), line.getY1(), line.getX2(), line.getY2());
     }
 
     @Override // documentation inherited
@@ -192,16 +183,18 @@ public final class Capsule extends Shape
                 rectangle.checkIntersects(_x2, _y2)) {
             return true;
         }
-        return Math.abs(_x2 - _x1) > FloatMath.EPSILON &&
-                   (intersectsX(rectangle, rectangle.getMinimumX()) || intersectsX(rectangle, rectangle.getMaximumX())) ||
-               Math.abs(_y2 - _y1) > FloatMath.EPSILON &&
-                   (intersectsY(rectangle, rectangle.getMinimumY()) || intersectsY(rectangle, rectangle.getMaximumY()));
+        // check if the capsule intersects any side of the rectangle
+        return checkIntersects(rectangle.getMinimumX(), rectangle.getMinimumY(), rectangle.getMaximumX(), rectangle.getMinimumY()) ||
+                checkIntersects(rectangle.getMaximumX(), rectangle.getMinimumY(), rectangle.getMaximumX(), rectangle.getMaximumY()) ||
+                checkIntersects(rectangle.getMaximumX(), rectangle.getMaximumY(), rectangle.getMinimumX(), rectangle.getMaximumY()) ||
+                checkIntersects(rectangle.getMinimumX(), rectangle.getMaximumY(), rectangle.getMinimumX(), rectangle.getMinimumY());
     }
 
     @Override // documentation inherited
     protected boolean checkIntersects (Capsule capsule)
     {
-        return false; // TODO
+        float rsum = _radius + capsule.getRadius();
+        return getMinimumDistanceSquared(capsule.getX1(), capsule.getY1(), capsule.getX2(), capsule.getY2()) <= rsum*rsum;
     }
 
     /**
@@ -213,53 +206,210 @@ public final class Capsule extends Shape
     }
 
     /**
-     * Returns the minimum distance between two line segments.
+     * Returns whether the capsule intersects the specified line segment.
+     */
+    protected boolean checkIntersects (
+        float x1, float y1, float x2, float y2)
+    {
+        return getMinimumDistanceSquared(x1, y1, x2, y2) <= _radius*_radius;
+    }
+
+    /**
+     * Returns the minimum distance between the capsule segment and the specified line segment.
      */
     protected float getMinimumDistanceSquared (
         float x1, float y1, float x2, float y2)
     {
-        //NOTE: adapted from www.geometrictools.com/Documentation/DistanceLine3Line3.pdf
+        /* NOTE: adapted from www.geometrictools.com/Documentation/DistanceLine3Line3.pdf
+         * Apparently this is the least complex way to do it.
+         * Two line segments parameterized by s (the capsule segment) and t (the other segment).
+         * Squared distance function Q(s, t) = as^2 + 2bst + ct^2 + 2ds + 2et + f, where the
+         * letters are defined as below. 
+         */
         float vx = _x2 - _x1, vy = _y2 - _y1;
         float ox = x2 - x1, oy = y2 - y1;
-        float ux = _x1 - x1, uy = _y1 - y1;
+        float dx = _x1 - x1, dy = _y1 - y1;
 
         float a = vx*vx + vy*vy;
         float b = -vx*ox + -vy*oy;
         float c = ox*ox + oy*oy;
-        float d = vx*ux + vy*uy;
-        float e = -ox*ux + -oy*uy;
+        float d = vx*dx + vy*dy;
+        float e = -ox*dx + -oy*dy;
+        float f = dx*dx + dy*dy;
+        float det = a*c - b*b;
 
-        return -1f; // TODO
-    }
+        float s, t, tmp;
 
-    /**
-     * Helper method for {@link #checkIntersects(Rectangle)}. Determines whether 
-     * the capsule segment intersects the rectangle on the side where x equals
-     * the value specified.
-     */
-    protected boolean intersectsX (Rectangle rect, float x)
-    {
-        float t = (x - _x1) / (_x2 - _x1);
-        if (t >= 0f && t <= 1f) {
-            float iy = _y1 + t * (_y2 - _y1);
-            return iy >= rect.getMinimumY() - _radius && iy <= rect.getMaximumY() + _radius;
+        if (!FloatMath.epsilonEquals(0f, det)) { // segments are not parallel
+            s = b*e - c*d;
+            t = b*d - a*e;
+            if (s >= 0f) {
+                if (s <= det) {
+                    if (t >= 0f) {
+                        if (t <= det) { // region 0
+                            float inv = 1f / det;
+                            s *= inv;
+                            t *= inv;
+                            return a*s*s + 2*b*s*t + c*t*t + 2*d*s + 2*e*t + f;
+                        } else { // region 3 (t=1)
+                            tmp = b + d;
+                            if (tmp >= 0f) { // s=0
+                                return c + 2*e + f;
+                            } else if (-tmp >= a) { // s=1
+                                return a + c + f + 2*(e+tmp);
+                            } else {
+                                s = -tmp/a;
+                                return tmp*s + c + 2*e + f;
+                            }
+                        }
+                    } else { // region 7 (t=0)
+                        if (d >= 0f) { // s=0
+                            return f;
+                        } else if (-d >= a) { // s=1
+                            return a + 2*d + f;
+                        } else {
+                            s = -d/a;
+                            return d*s + f;
+                        }
+                    }
+                } else {
+                    if (t >= 0f) {
+                        if (t <= det) { // region 1 (s=1)
+                            tmp = b + e;
+                            if (tmp >= 0f) { // t=0
+                                return a + 2*d + f;
+                            } else if (-tmp >= c) { // t=1
+                                return a + c + f + 2*(d+tmp);
+                            } else {
+                                t = -tmp/c;
+                                return tmp*t + a + 2*d + f;
+                            }
+                        } else { // region 2
+                            tmp = b + d;
+                            if (-tmp <= a) { // t=1
+                                if (tmp >= 0f) { // s=0
+                                    return c + 2*e + f;
+                                } else {
+                                    s = -tmp/a;
+                                    return tmp*s + c + 2*e + f;
+                                }
+                            } else { // s=1
+                                tmp = b + e;
+                                if (tmp >= 0f) { // t=0
+                                    return a + 2*d + f;
+                                } else if (-tmp >= c) { // t=1
+                                    return a + c + f + 2*(d+tmp);
+                                } else {
+                                    t = -tmp/c;
+                                    return tmp*t + a + 2*d + f;
+                                }
+                            }
+                        }
+                    } else { // region 8
+                        if (-d < a) { // t=0
+                            if (d >= 0f) { // s=0
+                                return f;
+                            } else {
+                                s = -d/a;
+                                return d*s + f;
+                            }
+                        } else { // s=1
+                            tmp = b + e;
+                            if (tmp >= 0f) { // t=0
+                                return a + 2*d + f;
+                            } else if (-tmp >= c) { // t=1
+                                return a + c + f + 2*(d+tmp);
+                            } else {
+                                t = -tmp/c;
+                                return tmp*t + a + 2*d + f;
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (t >= 0f) {
+                    if (t <= det) { // region 5 (s=0)
+                        if (e >= 0f) { // t=0
+                            return f;
+                        } else if (-e >= c) { // t=1
+                            return c + 2*e + f;
+                        } else {
+                            t = -e/c;
+                            return e*t + f;
+                        }
+                    } else { // region 4
+                        tmp = b + d;
+                        if (tmp < 0f) { // t=1
+                            if (-tmp >= a) { // s=1
+                                return a + c + f + 2*(e+tmp);
+                            } else {
+                                s = -tmp/a;
+                                return tmp*s + c + 2*e + f;
+                            }
+                        } else { // s=0
+                            if (e >= 0f) { // t=0
+                                return f;
+                            } else if (-e >= c) {
+                                return c + 2*e + f;
+                            } else {
+                                t = -e/c;
+                                return e*t + f;
+                            }
+                        }
+                    }
+                } else { // region 6
+                    if (d < 0f) { // t=0
+                        if (-d >= a) { // s=1
+                            return a + 2*d + f;
+                        } else {
+                            s = -d/a;
+                            return d*s + f;
+                        }
+                    } else { // s=0
+                        if (e >= 0f) { // t=0
+                            return f;
+                        } else if (-e >= c) { // t=1
+                            return c + 2*e + f;
+                        } else {
+                            t = -e/c;
+                            return e*t + f;
+                        }
+                    }
+                }
+            }
+        } else { // segments are parallel
+            if (b > 0f) { // dir vecs obtuse angle
+                if (d >= 0f) { // s=0,t=0
+                    return f;
+                } else if (-d <= a) { // t=0
+                    s = -d/a;
+                    return d*s + f;
+                } else { // s=1
+                    tmp = a + d;
+                    if (-tmp >= b) { // t=1
+                        return a + c + f + 2*(b+d+e);
+                    } else {
+                        t = -tmp/b;
+                        return a + 2*d + f + t*(c*t + 2*(b+e));
+                    }
+                }
+            } else { // dir vecs acute angle
+                if (-d >= a) { // s=1,t=0
+                    return a + 2*d + f;
+                } else if (d <= 0f) { // t=0
+                    s = -d/a;
+                    return d*s + f;
+                } else { // s=0
+                    if (d >= -b) { // t=1
+                        return c + 2*e + f;
+                    } else {
+                        t = -d/b;
+                        return f + t*(2*e + c*t);
+                    }
+                }
+            }
+            
         }
-        return false;
-    }
-
-    /**
-     * Helper method for {@link #checkIntersects(Rectangle)}. Determines whether 
-     * the capsule segment intersects the rectangle on the side where y equals
-     * the value specified.
-     */
-    protected boolean intersectsY (Rectangle rect, float y)
-    {
-        float t = (y - _y1) / (_y2 - _y1);
-        if (t >= 0f && t <= 1f) {
-            float ix = _x1 + t * (_x2 - _x1);
-            return ix >= rect.getMinimumX() - _radius && ix <= rect.getMaximumX() + _radius;
-        }
-        return false;
     }
 
     /** The first vertex. */
