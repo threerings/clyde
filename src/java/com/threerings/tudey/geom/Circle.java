@@ -133,24 +133,21 @@ public final class Circle extends Shape
     @Override // documentation inherited
     protected boolean checkIntersects (Point point)
     {
-        float dx = _x - point.getX();
-        float dy = _y - point.getY();
-        return (dx*dx + dy*dy) <= _radius*_radius;
+        return DistanceUtil.getPointPoint2(_x, _y, point.getX(), point.getY()) <= _radius*_radius;
     }
 
     @Override // documentation inherited
     protected boolean checkIntersects (Line line)
     {
-        return line.getMinimumDistance(_x, _y) <= _radius;
+        return DistanceUtil.getLinePoint2(
+            line.getX1(), line.getY1(), line.getX2(), line.getY2(), _x, _y) <= _radius*_radius;
     }
 
     @Override // documentation inherited
     protected boolean checkIntersects (Circle circle)
     {
-        float dx = _x - circle.getX();
-        float dy = _y - circle.getY();
         float rsum = _radius + circle.getRadius();
-        return (dx*dx + dy*dy) <= rsum*rsum;
+        return DistanceUtil.getPointPoint2(_x, _y, circle.getX(), circle.getY()) <= rsum*rsum;
     }
 
     @Override // documentation inherited

@@ -74,20 +74,4 @@ public class LineTest extends TestCase
         line2.set(0f, -1f, 0f, 1f);
         assertTrue(line1.intersects(line2));
     }
-
-    public void testMinimumDistance ()
-    {
-        // one end
-        Line line = new Line(-1f, 0f, 1f, 0f);
-        assertEquals(line.getMinimumDistance(-2f, 0f), 1f, FloatMath.EPSILON);
-
-        // other end
-        assertEquals(line.getMinimumDistance(2f, 0f), 1f, FloatMath.EPSILON);
-
-        // middle
-        assertEquals(line.getMinimumDistance(0f, 1f), 1f, FloatMath.EPSILON);
-
-        // on line
-        assertEquals(line.getMinimumDistance(0f, 0f), 0f, FloatMath.EPSILON);
-    }
 }

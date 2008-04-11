@@ -90,14 +90,6 @@ public class Line extends Shape
         return _y2;
     }
 
-    /**
-     * Returns the minimum distance from the line to the specified point.
-     */
-    public float getMinimumDistance (float x, float y)
-    {
-        return FloatMath.sqrt(GeomUtil.getMinimumDistanceSquared(_x1, _y1, _x2, _y2, x, y));
-    }
-
     @Override // documentation inherited
     public void updateBounds ()
     {
