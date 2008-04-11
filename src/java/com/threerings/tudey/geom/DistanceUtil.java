@@ -67,7 +67,7 @@ public class DistanceUtil
 
         float s, t, tmp;
 
-        if (!FloatMath.epsilonEquals(0f, det)) { // segments are not parallel
+        if (FloatMath.abs(det) > FloatMath.EPSILON) { // segments are not parallel
             s = b*e - c*d;
             t = b*d - a*e;
             if (s >= 0f) {
