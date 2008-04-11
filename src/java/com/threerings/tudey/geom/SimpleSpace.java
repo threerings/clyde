@@ -76,8 +76,8 @@ public class SimpleSpace extends Space
     {
         results.clear();
         for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            Shape s1 = _shapes.get(ii);
             for (int jj = ii + 1; jj < nn; jj++) {
-                Shape s1 = _shapes.get(ii);
                 Shape s2 = _shapes.get(jj);
                 if (s1.testIntersectionFlags(s2) &&
                         s1.getBounds().intersects(s2.getBounds()) &&
