@@ -3,7 +3,7 @@
 
 package com.threerings.tudey.geom;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A container for shapes (as well as a shape itself) that allows intersection testing.
@@ -46,10 +46,16 @@ public abstract class Space extends Shape
     public abstract int size ();
 
     /**
-     * Finds all shapes that intersect the one given and places them into the provided result
-     * list.
+     * Finds all shapes that intersect the one given and places them into the
+     * provided result list.
      */
-    public abstract void getIntersecting (Shape shape, ArrayList<Shape> results);
+    public abstract void getIntersecting (Shape shape, List<Shape> results);
+
+    /**
+     * Finds all the shape intersections in the space and places them into the
+     * provided result list.
+     */
+    public abstract void getIntersecting (List<Intersection> results);
 
     @Override // documentation inherited
     protected boolean checkIntersects (Point point)

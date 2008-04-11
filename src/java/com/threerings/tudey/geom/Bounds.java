@@ -97,7 +97,7 @@ public final class Bounds
     /**
      * Determines whether these bounds intersect the other bounds specified.
      */
-    public boolean intersect (Bounds other)
+    public boolean intersects (Bounds other)
     {
         return minX <= other.maxX && minY <= other.maxY &&
             maxX >= other.minX && maxY >= other.minY;

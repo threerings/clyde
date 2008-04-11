@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.geom;
 
+import java.util.List;
 import java.util.ArrayList;
 
 /**
@@ -49,7 +50,7 @@ public class SimpleSpace extends Space
         Bounds obounds = other.getBounds();
         for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
             Shape shape = _shapes.get(ii);
-            if (shape.getBounds().intersect(obounds) && shape.intersects(other)) {
+            if (shape.getBounds().intersects(obounds) && shape.intersects(other)) {
                 return true;
             }
         }
@@ -57,17 +58,23 @@ public class SimpleSpace extends Space
     }
 
     @Override // documentation inherited
-    public void getIntersecting (Shape shape, ArrayList<Shape> results)
+    public void getIntersecting (Shape shape, List<Shape> results)
     {
         results.clear();
         Bounds bounds = shape.getBounds();
         for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
             Shape oshape = _shapes.get(ii);
-            if (shape.testIntersectionFlags(oshape) && bounds.intersect(oshape.getBounds()) &&
+            if (shape.testIntersectionFlags(oshape) && bounds.intersects(oshape.getBounds()) &&
                     shape.intersects(oshape)) {
                 results.add(oshape);
             }
         }
+    }
+
+    @Override // documentation inherited
+    public abstract void getIntersecting (List<Intersection> results)
+    {
+        results.clear();
     }
 
     @Override // documentation inherited
@@ -78,5 +85,5 @@ public class SimpleSpace extends Space
     }
 
     /** The shapes in the space. */
-    protected ArrayList<Shape> _shapes = new ArrayList<Shape>();
+    protected List<Shape> _shapes = new ArrayList<Shape>();
 }
