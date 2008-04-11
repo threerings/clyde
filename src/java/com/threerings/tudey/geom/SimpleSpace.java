@@ -75,6 +75,17 @@ public class SimpleSpace extends Space
     public void getIntersecting (List<Intersection> results)
     {
         results.clear();
+        for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            for (int jj = ii + 1; jj < nn; jj++) {
+                Shape s1 = _shapes.get(ii);
+                Shape s2 = _shapes.get(jj);
+                if (s1.testIntersectionFlags(s2) &&
+                        s1.getBounds().intersects(s2.getBounds()) &&
+                        s1.intersects(s2)) {
+                    results.add(new Intersection(s1, s2));
+                }
+            }
+        }
     }
 
     @Override // documentation inherited
@@ -85,5 +96,5 @@ public class SimpleSpace extends Space
     }
 
     /** The shapes in the space. */
-    protected List<Shape> _shapes = new ArrayList<Shape>();
+    protected ArrayList<Shape> _shapes = new ArrayList<Shape>();
 }
