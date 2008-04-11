@@ -72,7 +72,7 @@ public class SimpleSpace extends Space
     }
 
     @Override // documentation inherited
-    public abstract void getIntersecting (List<Intersection> results)
+    public void getIntersecting (List<Intersection> results)
     {
         results.clear();
     }
