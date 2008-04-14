@@ -3,6 +3,10 @@
 
 package com.threerings.tudey.geom;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import junit.framework.TestCase;
 
 /**
@@ -18,38 +22,171 @@ public abstract class AbstractSpaceTest extends TestCase
     @Override // documentation inherited
     public void setUp ()
     {
+        // create the space implementation to test
         _space = createSpace();
         assertNotNull(_space);
+        // create the test shapes
+        createTestShapes();
     }
 
-    public void testAddRemove ()
+    public void testEmpty ()
     {
-        // TODO implement
+        assertTrue(_space.isEmpty());
     }
 
-    public void testContains ()
+    public void testAdd ()
     {
-        // TODO implement
+        assertTrue(_space.add(_s1));
+        assertTrue(_space.add(_s2));
+        assertTrue(_space.add(_s3));
+        assertEquals(3, _space.size());
+        assertFalse(_space.isEmpty());
+
+        assertTrue(_space.contains(_s1));
+        assertTrue(_space.contains(_s2));
+        assertTrue(_space.contains(_s3));
+        assertFalse(_space.contains(_s4));
+
+        // make sure we can't readd a space
+        assertFalse(_space.add(_s1));
     }
 
-    public void testSize ()
+    public void testRemove ()
     {
-        // TODO implement
+        _space.add(_s1);
+        _space.add(_s2);
+        _space.add(_s3);
+
+        assertTrue(_space.contains(_s1));
+        assertTrue(_space.remove(_s1));
+        assertFalse(_space.remove(_s1));
+
+        assertEquals(2, _space.size());
+        assertFalse(_space.isEmpty());
+
+        assertTrue(_space.add(_s1)); // test re-adding it
+
+        assertFalse(_space.remove(_s4));
+    }
+
+    public void testClear ()
+    {
+        _space.add(_s1);
+        _space.add(_s2);
+        _space.add(_s3);
+
+        assertFalse(_space.isEmpty());
+        _space.clear();
+        assertEquals(0, _space.size());
+        assertTrue(_space.isEmpty());
     }
 
     public void testIntersects ()
     {
-        // TODO implement
+        addTestShapes();
+
+        Circle circle = new Circle(0f, 0f, 2f);
+        Line line = new Line(-10f, 0f, 10f, 0f);
+        Point point = new Point(3f, 3f);
+        Capsule cap = new Capsule(-7f, 7f, -4f, 4f, 2f);
+
+        assertTrue(_space.intersects(circle));
+        assertTrue(_space.intersects(line));
+        assertTrue(_space.intersects(point));
+        assertTrue(_space.intersects(cap));
+        _space.remove(_s2);
+        assertFalse(_space.intersects(point));
+        ((Line)_s5).set(100f, 100f, 101f, 101f);
+        assertFalse(_space.intersects(cap));
+        _space.clear();
+        assertFalse(_space.intersects(circle));
+        assertFalse(_space.intersects(line));
     }
 
     public void testGetIntersectingShape ()
     {
-        // TODO implement
+        addTestShapes();
+
+        Circle circle = new Circle(0f, 0f, 1.8f);
+        Line line = new Line(-10f, 0f, 10f, 0f);
+        Point point = new Point(3f, 3f);
+        Capsule cap = new Capsule(-7f, 7f, -4f, 4f, 2f);
+
+        testIntersection(circle, _s1, _s3, _s4, _s7);
+        testIntersection(line, _s2, _s3, _s7);
+        testIntersection(point, _s2);
+        testIntersection(cap, _s5);
+        _space.remove(_s2);
+        testIntersection(point);
+        ((Line)_s5).set(100f, 100f, 101f, 101f);
+        testIntersection(cap);
     }
 
     public void testGetIntersectingSelf ()
     {
         // TODO implement
+    }
+
+    /**
+     * Creates some test shapes.
+     */
+    protected void createTestShapes ()
+    {
+        _s1 = new Point (1f, 1f);
+        _s2 = new Rectangle(2f, -1f, 4f, 4f);
+        _s3 = new Rectangle(-3.5f, -0.5f, -1.5f, 0.5f);
+        _s4 = new Circle(-1f, 1f, 0.25f);
+        _s5 = new Line(-6f, 5f, -1f, 3f);
+        _s6 = new Capsule(-1f, 3f, 1f, 3f, 0.5f);
+        _s7 = new Line(0.5f, 2f, 0.5f, -1f);
+        _s8 = new Circle(0f, -8f, 2f);
+        _s9 = new Capsule(-1f, -3f, 3f, -5f, 1f);
+    }
+
+    /**
+     * Adds the test shapes to the space.
+     */
+    protected void addTestShapes ()
+    {
+        _space.add(_s1);
+        _space.add(_s2);
+        _space.add(_s3);
+        _space.add(_s4);
+        _space.add(_s5);
+        _space.add(_s6);
+        _space.add(_s7);
+        _space.add(_s8);
+        _space.add(_s9);
+    }
+
+    /**
+     * Tests the 
+     */
+    protected void testIntersection (Shape test, Shape... results)
+    {
+        List<Shape> actual = new ArrayList<Shape>();
+        List<Shape> expected = Arrays.asList(results);
+        _space.getIntersecting(test, actual);
+        assertEquivalent(expected, actual);
+    }
+
+    /**
+     * Returns whether the two lists contain the same items.
+     */
+    protected void assertEquivalent (List<Shape> expected, List<Shape> actual)
+    {
+        for (int ii = 0, nn = expected.size(); ii < nn; ii++) {
+            Shape expect = expected.get(ii);
+            if (!actual.contains(expect)) {
+                fail("Actual list missing expected shape " + expect);
+            }
+        }
+        for (int ii = 0, nn = actual.size(); ii < nn; ii++) {
+            Shape got = actual.get(ii);
+            if (!expected.contains(got)) {
+                fail("Actual list contains unexpected shape " + got);
+            }
+        }
     }
 
     /**
@@ -59,4 +196,7 @@ public abstract class AbstractSpaceTest extends TestCase
 
     /** The space to test. */
     protected Space _space;
+
+    /** Some shapes for use in the tests. */
+    protected Shape _s1, _s2, _s3, _s4, _s5, _s6, _s7, _s8, _s9;
 }
