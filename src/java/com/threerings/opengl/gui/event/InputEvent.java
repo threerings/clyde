@@ -46,6 +46,38 @@ public class InputEvent extends Event
         return _modifiers;
     }
 
+    /**
+     * Determines whether the shift key was down at the time this event was generated.
+     */
+    public boolean isShiftDown ()
+    {
+        return (_modifiers & SHIFT_DOWN_MASK) != 0;
+    }
+
+    /**
+     * Determines whether the control key was down at the time this event was generated.
+     */
+    public boolean isControlDown ()
+    {
+        return (_modifiers & CTRL_DOWN_MASK) != 0;
+    }
+
+    /**
+     * Determines whether the alt key was down at the time this event was generated.
+     */
+    public boolean isAltDown ()
+    {
+        return (_modifiers & ALT_DOWN_MASK) != 0;
+    }
+
+    /**
+     * Determines whether the meta key was down at the time this event was generated.
+     */
+    public boolean isMetaDown ()
+    {
+        return (_modifiers & META_DOWN_MASK) != 0;
+    }
+
     protected InputEvent (Object source, long when, int modifiers)
     {
         super(source, when);

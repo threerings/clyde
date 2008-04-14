@@ -332,6 +332,22 @@ public abstract class Root
     public abstract void setCursor (Cursor cursor);
 
     /**
+     * Returns the x coordinate of the mouse cursor.
+     */
+    public int getMouseX ()
+    {
+        return _mouseX;
+    }
+
+    /**
+     * Returns the y coordinate of the mouse cursor.
+     */
+    public int getMouseY ()
+    {
+        return _mouseY;
+    }
+
+    /**
      * Generates a string representation of this instance.
      */
     public String toString ()

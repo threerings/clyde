@@ -76,6 +76,7 @@ public class CanvasRoot extends Root
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_PRESSED,
             convertButton(e), _mouseX, _mouseY);
+        maybeConsume(e, event);
         dispatchEvent(_ccomponent, event);
     }
 
@@ -87,6 +88,7 @@ public class CanvasRoot extends Root
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_RELEASED,
             convertButton(e), _mouseX, _mouseY);
+        maybeConsume(e, event);
         dispatchEvent(getTargetComponent(), event);
         _ccomponent = null;
     }
@@ -109,6 +111,7 @@ public class CanvasRoot extends Root
                 MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED;
             MouseEvent event = new MouseEvent(
                 this, e.getWhen(), _modifiers, type, _mouseX, _mouseY);
+            maybeConsume(e, event);
             dispatchEvent(tcomponent, event);
         }
     }
@@ -121,6 +124,7 @@ public class CanvasRoot extends Root
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_WHEELED,
             convertButton(e), _mouseX, _mouseY, e.getWheelRotation());
+        maybeConsume(e, event);
         dispatchEvent(getTargetComponent(), event);
     }
 
@@ -133,6 +137,7 @@ public class CanvasRoot extends Root
         KeyEvent event = new KeyEvent(
             this, e.getWhen(), _modifiers, KeyEvent.KEY_PRESSED,
             e.getKeyChar(), convertKeyCode(e));
+        maybeConsume(e, event);
         dispatchEvent(getFocus(), event);
     }
 
@@ -145,6 +150,7 @@ public class CanvasRoot extends Root
         KeyEvent event = new KeyEvent(
             this, e.getWhen(), _modifiers, KeyEvent.KEY_RELEASED,
             e.getKeyChar(), convertKeyCode(e));
+        maybeConsume(e, event);
         dispatchEvent(getFocus(), event);
     }
 
@@ -373,6 +379,16 @@ public class CanvasRoot extends Root
 //        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_POWER;
 //        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_SLEEP;
         default: return Keyboard.KEY_UNLABELED;
+        }
+    }
+
+    /**
+     * Consumes the destination event if the source event is consumed.
+     */
+    protected static void maybeConsume (java.awt.event.InputEvent src, InputEvent dest)
+    {
+        if (src.isConsumed()) {
+            dest.consume();
         }
     }
 

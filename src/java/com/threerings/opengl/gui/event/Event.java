@@ -21,6 +21,22 @@ public class Event extends EventObject
     }
 
     /**
+     * Checks whether the event has been flagged as consumed.
+     */
+    public boolean isConsumed ()
+    {
+        return _consumed;
+    }
+
+    /**
+     * Flags this event as consumed.
+     */
+    public void consume ()
+    {
+        _consumed = true;
+    }
+
+    /**
      * Generates a string representation of this instance.
      */
     public String toString ()
@@ -69,4 +85,7 @@ public class Event extends EventObject
     }
 
     protected long _when;
+
+    /** Whether or not the event has been flagged as "consumed." */
+    protected boolean _consumed;
 }
