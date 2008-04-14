@@ -45,6 +45,15 @@ public class SimpleSpace extends Space
     }
 
     @Override // documentation inherited
+    public void clear ()
+    {
+        for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            _shapes.get(ii).setSpace(null);
+        }
+        _shapes.clear();
+    }
+
+    @Override // documentation inherited
     public boolean intersects (Shape other)
     {
         Bounds obounds = other.getBounds();

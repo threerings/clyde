@@ -46,6 +46,11 @@ public abstract class Space extends Shape
     public abstract int size ();
 
     /**
+     * Removes all the shapes from this space.
+     */
+    public abstract void clear ();
+
+    /**
      * Finds all shapes that intersect the one given and places them into the
      * provided result list.
      */
