@@ -57,6 +57,5 @@ public class Intersection
     }
 
     /** The intersecting shapes. */
-    @Shallow
     protected Shape _shape1, _shape2;
 }

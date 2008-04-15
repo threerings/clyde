@@ -11,6 +11,9 @@ import com.threerings.io.Streamable;
 import com.threerings.export.Exportable;
 import com.threerings.export.Importer;
 
+import com.threerings.util.DeepUtil;
+import com.threerings.util.DeepOmit;
+
 /**
  * The superclass of 2D shapes.
  */
@@ -132,6 +135,12 @@ public abstract class Shape
         }
     }
 
+    @Override // documenation inherited
+    public int hashCode ()
+    {
+        return DeepUtil.hashCode(this);
+    }
+
     /**
      * Determines whether the specified shape intersects this one.  This method relies on
      * <a href="http://en.wikipedia.org/wiki/Double_dispatch">double-dispatch</a> to invoke
@@ -224,17 +233,22 @@ public abstract class Shape
     }
 
     /** The bounds of the shape. */
+    @DeepOmit
     protected transient Bounds _bounds = new Bounds();
 
     /** The shape's intersection flags. */
+    @DeepOmit
     protected int _intersectionFlags = ~0;
 
     /** The shape's intersection mask. */
+    @DeepOmit
     protected int _intersectionMask = ~0;
 
     /** The space in which this shape is contained (if any). */
+    @DeepOmit
     protected Space _space;
 
     /** The shape's user data. */
+    @DeepOmit
     protected transient Object _data;
 }
