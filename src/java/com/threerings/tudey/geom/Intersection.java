@@ -32,6 +32,23 @@ public class Intersection
         return _shape2;
     }
 
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!(other instanceof Intersection)) {
+            return false;
+        }
+        Intersection oisect = (Intersection)other;
+        return (_shape1.equals(oisect._shape1) && _shape2.equals(oisect._shape2)) ||
+            (_shape1.equals(oisect._shape2) && _shape2.equals(oisect._shape1));
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "Intersection[s1=" + _shape1 + ", s2=" + _shape2 + "]";
+    }
+
     /** The intersecting shapes. */
     protected Shape _shape1, _shape2;
 }

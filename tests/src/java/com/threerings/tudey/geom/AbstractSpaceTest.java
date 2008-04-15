@@ -124,7 +124,25 @@ public abstract class AbstractSpaceTest extends TestCase
 
     public void testGetIntersectingSelf ()
     {
-        // TODO implement
+        addTestShapes();
+
+        // no conflicts initially
+        testSelfIntersection();
+
+        // create a bunch of conflicts
+        Rectangle rect = new Rectangle(-2f, -2f, 2f, 2f);
+        _space.add(rect);
+        testSelfIntersection(new Intersection(rect, _s1), new Intersection(rect, _s2),
+                             new Intersection(rect, _s3), new Intersection(rect, _s4),
+                             new Intersection(rect, _s7), new Intersection(rect, _s9));
+
+        // move things around
+        ((Point)_s1).set(10f, 10f);
+        _space.remove(_s2);
+        _space.remove(_s3);
+        ((Circle)_s4).setLocation(-6f, 5f);
+        testSelfIntersection(new Intersection(_s5, _s4),
+                             new Intersection(rect, _s7), new Intersection(rect, _s9));
     }
 
     /**
@@ -136,7 +154,7 @@ public abstract class AbstractSpaceTest extends TestCase
         _s2 = new Rectangle(2f, -1f, 4f, 4f);
         _s3 = new Rectangle(-3.5f, -0.5f, -1.5f, 0.5f);
         _s4 = new Circle(-1f, 1f, 0.25f);
-        _s5 = new Line(-6f, 5f, -1f, 3f);
+        _s5 = new Line(-6f, 5f, -2f, 3f);
         _s6 = new Capsule(-1f, 3f, 1f, 3f, 0.5f);
         _s7 = new Line(0.5f, 2f, 0.5f, -1f);
         _s8 = new Circle(0f, -8f, 2f);
@@ -160,7 +178,7 @@ public abstract class AbstractSpaceTest extends TestCase
     }
 
     /**
-     * Tests the 
+     * Performs a single intersection test and verifies the results.
      */
     protected void testIntersection (Shape test, Shape... results)
     {
@@ -171,20 +189,32 @@ public abstract class AbstractSpaceTest extends TestCase
     }
 
     /**
+     * Performs a single self intersection test and verifies the results.
+     */
+    protected void testSelfIntersection (Intersection... results)
+    {
+        List<Intersection> actual = new ArrayList<Intersection>();
+        List<Intersection> expected = Arrays.asList(results);
+        _space.getIntersecting(actual);
+        assertEquivalent(expected, actual);
+    }
+
+    /**
      * Returns whether the two lists contain the same items.
      */
-    protected void assertEquivalent (List<Shape> expected, List<Shape> actual)
+    @SuppressWarnings("unchecked")
+    protected void assertEquivalent (List expected, List actual)
     {
         for (int ii = 0, nn = expected.size(); ii < nn; ii++) {
-            Shape expect = expected.get(ii);
+            Object expect = expected.get(ii);
             if (!actual.contains(expect)) {
-                fail("Actual list missing expected shape " + expect);
+                fail("Actual list missing expected item " + expect);
             }
         }
         for (int ii = 0, nn = actual.size(); ii < nn; ii++) {
-            Shape got = actual.get(ii);
+            Object got = actual.get(ii);
             if (!expected.contains(got)) {
-                fail("Actual list contains unexpected shape " + got);
+                fail("Actual list contains unexpected item " + got);
             }
         }
     }
