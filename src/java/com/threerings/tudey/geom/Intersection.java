@@ -44,11 +44,19 @@ public class Intersection
     }
 
     @Override // documentation inherited
+    public int hashCode ()
+    {
+        // use a simple summation so i1.equals(i2) => i1.hashCode()==i2.hashCode()
+        return _shape1.hashCode() + _shape2.hashCode();
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         return "Intersection[s1=" + _shape1 + ", s2=" + _shape2 + "]";
     }
 
     /** The intersecting shapes. */
+    @Shallow
     protected Shape _shape1, _shape2;
 }
