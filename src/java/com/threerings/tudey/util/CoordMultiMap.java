@@ -46,13 +46,10 @@ public class CoordMultiMap<T> extends CoordMap<T>
         _loadFactor = loadFactor;
     }
 
-    /**
-     * Returns the only the first value at the specified coordinates, or <code>null</code> if none.
-     */
-    @Override
+    @Override // documentation inherited
     public T get (int x, int y)
     {
-        return super.get(x, y);
+        throw new UnsupportedOperationException("CoordMultiMap.get(int,int) is unsupported, use getAll(int,int) instead.");
     }
 
     /**
@@ -102,7 +99,7 @@ public class CoordMultiMap<T> extends CoordMap<T>
     /**
      * Maps the given value at the specified coordinates.
      *
-     * @return always <code>null</code>.
+     * @return the value inserted.
      */
     public T put (int x, int y, T value)
     {
@@ -117,7 +114,7 @@ public class CoordMultiMap<T> extends CoordMap<T>
             _entries[idx] = new Entry<T>(key, value);
             _size++;
             _modcount++;
-            return null;
+            return value;
         }
 
         // the chain has started, so update/append
@@ -126,20 +123,15 @@ public class CoordMultiMap<T> extends CoordMap<T>
                 entry.next = new Entry<T>(key, value);
                 _size++;
                 _modcount++;
-                return null;
+                return value;
             }
         }
     }
 
-    /**
-     * Removes only the first element at the specified coordinates.
-     *
-     * @return the previous mapping, or null for none.
-     */
-    @Override
+    @Override // documentation inherited
     public T remove (int x, int y)
     {
-        return super.remove(x, y);
+        throw new UnsupportedOperationException("CoordMultiMap.remove(int,int) is unsupported, use removeAll(int,int) instead.");
     }
 
     /**
