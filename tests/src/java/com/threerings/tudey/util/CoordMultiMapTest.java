@@ -73,7 +73,7 @@ public class CoordMultiMapTest extends TestCase
         assertEquivalent(map, ref);
     }
 
-    public void testSimpleDeletion ()
+    public void testChainRemoval ()
     {
         CoordMultiMap<Integer> map = new CoordMultiMap<Integer>();
         map.put(0, 0, 1);
@@ -86,7 +86,7 @@ public class CoordMultiMapTest extends TestCase
         assertFalse(map.containsKey(0, 0));
     }
 
-    public void testDeletion ()
+    public void testRemoval ()
     {
         CoordMultiMap<Integer> map = new CoordMultiMap<Integer>();
         MultiValueMap ref = new MultiValueMap();
@@ -106,6 +106,31 @@ public class CoordMultiMapTest extends TestCase
         map.clear();
         assertTrue(map.isEmpty());
         assertEquals(0, map.size());
+    }
+
+    public void testSpecificRemoval ()
+    {
+        CoordMultiMap<Integer> map = new CoordMultiMap<Integer>();
+        map.put(0, 0, 1);
+        map.put(0, 0, 2);
+        map.put(0, 0, 3);
+        map.put(0, 0, 4);
+        map.put(1, 1, 2);
+
+        // remove one element from the chain
+        assertEquals(new Integer(3), map.remove(0, 0, 3));
+        assertEquals(4, map.size());
+        assertTrue(map.containsKey(0, 0));
+
+        // remove the first element from the chain
+        assertEquals(new Integer(1), map.remove(0, 0, 1));
+        assertEquals(3, map.size());
+        assertTrue(map.containsKey(0, 0));
+
+        // remove a single (non-chained) element
+        assertEquals(new Integer(2), map.remove(1, 1, 2));
+        assertEquals(2, map.size());
+        assertFalse(map.containsKey(1, 1));
     }
 
     public void testStream ()

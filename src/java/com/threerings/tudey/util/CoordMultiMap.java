@@ -135,6 +135,38 @@ public class CoordMultiMap<T> extends CoordMap<T>
     }
 
     /**
+     * Removes the value at the specified coordinates.
+     *
+     * @return the value removed, or <code>null</code> if nothing was removed
+     */
+    public T remove (int x, int y, T value)
+    {
+        // see if there's a chain
+        int key = CoordUtil.getCoord(x, y);
+        int idx = getHashIndex(x, y);
+        Entry<T> entry = _entries[idx];
+        if (entry == null) {
+            return null;
+        } else if (entry.key == key && value.equals(entry.value)) {
+            _entries[idx] = entry.next;
+            _size--;
+            _modcount++;
+            return value;
+        }
+
+        // follow the chain
+        for (; entry.next != null; entry = entry.next) {
+            if (entry.next.key == key && value.equals(entry.next.value)) {
+                entry.next = entry.next.next;
+                _size--;
+                _modcount++;
+                return value;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Removes all the elements at the specified coordinates.
      */
     public void removeAll (int x, int y)
