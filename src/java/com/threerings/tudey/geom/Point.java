@@ -89,6 +89,12 @@ public final class Point extends Shape
         return super.equals(other) && _x == (opoint = (Point)other)._x && _y == opoint._y;
     }
 
+    @Override // documenation inherited
+    public int hashCode ()
+    {
+        return calculateHashCode(_x, _y);
+    }
+
     @Override // documentation inherited
     public String toString ()
     {

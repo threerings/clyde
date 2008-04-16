@@ -112,6 +112,12 @@ public class Line extends Shape
             _x2 == oline._x2 && _y2 == oline._y2;
     }
 
+    @Override // documenation inherited
+    public int hashCode ()
+    {
+        return calculateHashCode(_x1, _y1, _x2, _y2);
+    }
+
     @Override // documentation inherited
     public String toString ()
     {

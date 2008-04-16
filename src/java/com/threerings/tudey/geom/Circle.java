@@ -118,6 +118,12 @@ public final class Circle extends Shape
             _x == (ocircle = (Circle)other)._x && _y == ocircle._y && _radius == ocircle._radius;
     }
 
+    @Override // documenation inherited
+    public int hashCode ()
+    {
+        return calculateHashCode(_x, _y, _radius);
+    }
+
     @Override // documentation inherited
     public String toString ()
     {

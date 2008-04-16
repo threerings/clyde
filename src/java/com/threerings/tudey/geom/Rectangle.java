@@ -114,6 +114,12 @@ public final class Rectangle extends Shape
             _maxX == orect._maxX && _maxY == orect._maxY;
     }
 
+    @Override // documenation inherited
+    public int hashCode ()
+    {
+        return calculateHashCode(_minX, _minY, _maxX, _maxY);
+    }
+
     @Override // documentation inherited
     public String toString ()
     {

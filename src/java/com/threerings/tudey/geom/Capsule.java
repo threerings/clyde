@@ -142,6 +142,12 @@ public final class Capsule extends Shape
             _radius == ocapsule._radius;
     }
 
+    @Override // documenation inherited
+    public int hashCode ()
+    {
+        return calculateHashCode(_x1, _y1, _x2, _y2, _radius);
+    }
+
     @Override // documentation inherited
     public String toString ()
     {
