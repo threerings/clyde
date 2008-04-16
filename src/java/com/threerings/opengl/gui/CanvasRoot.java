@@ -123,7 +123,7 @@ public class CanvasRoot extends Root
 
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_WHEELED,
-            convertButton(e), _mouseX, _mouseY, e.getWheelRotation());
+            convertButton(e), _mouseX, _mouseY, -e.getWheelRotation());
         maybeConsume(e, event);
         dispatchEvent(getTargetComponent(), event);
     }
