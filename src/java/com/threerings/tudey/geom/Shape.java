@@ -212,7 +212,24 @@ public abstract class Shape
     {
         if (_space != null) {
             _space.shapeDidMove(this);
+            _active = true;
         }
+    }
+
+    /**
+     * Sets whether the shape is active (moves or changes shape).
+     */
+    protected void setActive (boolean active)
+    {
+        _active = active;
+    }
+
+    /**
+     * Returns whether the shape is active (moves or changes shape).
+     */
+    protected boolean isActive ()
+    {
+        return _active;
     }
 
     /**
@@ -251,4 +268,6 @@ public abstract class Shape
     /** The shape's user data. */
     protected transient Object _data;
 
+    /** If this shape changes position or shape. */
+    protected transient boolean _active;
 }

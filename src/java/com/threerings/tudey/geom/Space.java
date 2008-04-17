@@ -58,7 +58,8 @@ public abstract class Space extends Shape
 
     /**
      * Finds all the shape intersections in the space and places them into the
-     * provided result list.
+     * provided result list. Static shapes (i.e., shapes that do not move) will
+     * not be tested for intersection with one another.
      */
     public abstract void getIntersecting (List<Intersection> results);
 

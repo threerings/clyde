@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.samskivert.util.RandomUtil;
+
 import junit.framework.TestCase;
 
 /**
@@ -27,6 +29,8 @@ public abstract class AbstractSpaceTest extends TestCase
         assertNotNull(_space);
         // create the test shapes
         createTestShapes();
+        // use a fixed seed so that our results are reproducible
+        RandomUtil.rand.setSeed(1199325877849L);
     }
 
     public void testEmpty ()
@@ -130,8 +134,9 @@ public abstract class AbstractSpaceTest extends TestCase
         testSelfIntersection();
 
         // create a bunch of conflicts
-        Rectangle rect = new Rectangle(-2f, -2f, 2f, 2f);
+        Rectangle rect = new Rectangle();
         _space.add(rect);
+        rect.set(-2f, -2f, 2f, 2f); // mark the shape active
         testSelfIntersection(new Intersection(rect, _s1), new Intersection(rect, _s2),
                              new Intersection(rect, _s3), new Intersection(rect, _s4),
                              new Intersection(rect, _s7), new Intersection(rect, _s9));
@@ -143,6 +148,29 @@ public abstract class AbstractSpaceTest extends TestCase
         ((Circle)_s4).setLocation(-6f, 5f);
         testSelfIntersection(new Intersection(_s5, _s4),
                              new Intersection(rect, _s7), new Intersection(rect, _s9));
+    }
+
+    public void testStress ()
+    {
+        // add one metric truckload of static rectangles (tiles&blocks)
+        for (int ii = 0; ii < 10000; ii++) {
+            int minx = RandomUtil.getInt(200, -200), miny = RandomUtil.getInt(200, -200);
+            int w = RandomUtil.getInt(4, 1), h = RandomUtil.getInt(4, 1);
+            Rectangle rect = new Rectangle(minx, miny, minx+w, miny+h);
+            _space.add(rect);
+        }
+
+        // add (e^-(i*pi))*(-100) active circles (players&monsters)
+        for (int ii = 0; ii < 150; ii++) {
+            float x = RandomUtil.getFloat(400f) - 200f, y = RandomUtil.getFloat(400f) - 200f;
+            float r = RandomUtil.getFloat(4f) + 0.1f;
+            Circle circle = new Circle();
+            _space.add(circle);
+            circle.set(x, y, r); // get it marked as active
+        }
+
+        // intersect 'em!
+        _space.getIntersecting(new ArrayList<Intersection>());
     }
 
     /**

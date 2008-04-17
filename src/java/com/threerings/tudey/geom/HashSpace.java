@@ -12,6 +12,18 @@ import com.threerings.tudey.util.CoordMultiMap;
 
 /**
  * A space that uses spatial hashing to accelerate collision detection.
+ *
+ * <p>Be aware that moving shapes are not automatically rehashed. (Implying the
+ * intersection methods will not always be accurate.) Rather, it is assumed that
+ * intersections will be calculated once per frame via {@link
+ * getIntersecting(List<Intersection>)} at which point the entire space is
+ * efficiently rehashed. Clients can, however, force a rehash by calling {@link
+ * rehash()}.</p>
+ *
+ * <p>Also be aware that this space makes extensive use of the automatic
+ * classification of shapes as active or static. Moving an otherwise stationary
+ * shape will permanently and irrevocably reclassify it as active and, in the
+ * process, degrade collision detection performance.</p>
  */
 public class HashSpace extends Space
 {
@@ -33,7 +45,26 @@ public class HashSpace extends Space
         if (gridsize <= 0f) {
             throw new IllegalArgumentException("Grid size must be greater than zero.");
         }
-        _size = gridsize;
+        _cellSize = gridsize;
+    }
+
+    /**
+     * Forces a rehash of all the shapes in this space.
+     */
+    public void rehash ()
+    {
+        // rehash the statics
+        CoordMultiMap<Shape> nstatic = new CoordMultiMap<Shape>();
+        for (Shape shape : _static.values()) {
+            map(shape, nstatic);
+        }
+        _static = nstatic;
+        // rehash the actives
+        CoordMultiMap<Shape> nactive = new CoordMultiMap<Shape>();
+        for (Shape shape : _active.values()) {
+            map(shape, nactive);
+        }
+        _active = nactive;
     }
 
     @Override // documentation inherited
@@ -43,6 +74,8 @@ public class HashSpace extends Space
             return false;
         }
         shape.setSpace(this);
+        map(shape, shape.isActive() ? _active : _static);
+        _size++;
         return true;
     }
 
@@ -53,42 +86,44 @@ public class HashSpace extends Space
             return false;
         }
         shape.setSpace(null);
+        unmap(shape, shape.isActive() ? _active : _static);
+        _size--;
         return true;
     }
 
     @Override // documentation inherited
     public int size ()
     {
-        return _shapes.size();
+        return _size;
     }
 
     @Override // documentation inherited
     public void clear ()
     {
-        _shapes.clear();
         _active.clear();
         _static.clear();
+        _size = 0;
     }
 
     @Override // documentation inherited
     public boolean intersects (Shape other)
     {
         Bounds bounds = other.getBounds();
-        int minx = (int)(bounds.minX / _size);
-        int miny = (int)(bounds.minY / _size);
-        int maxx = (int)(bounds.maxX / _size);
-        int maxy = (int)(bounds.maxY / _size);
+        int minx = (int)(bounds.minX / _cellSize);
+        int miny = (int)(bounds.minY / _cellSize);
+        int maxx = (int)(bounds.maxX / _cellSize);
+        int maxy = (int)(bounds.maxY / _cellSize);
         for (int xx = minx; xx <= maxx; xx++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 // check against the active shapes
                 for (Iterator<Shape> ii = _active.getAll(xx, yy); ii.hasNext(); ) {
-                    if (checkIntersects(other, ii.next())) {
+                    if (other.intersects(ii.next())) {
                         return true;
                     }
                 }
                 // check against the static shapes
                 for (Iterator<Shape> ii = _static.getAll(xx, yy); ii.hasNext(); ) {
-                    if (checkIntersects(other, ii.next())) {
+                    if (other.intersects(ii.next())) {
                         return true;
                     }
                 }
@@ -102,23 +137,23 @@ public class HashSpace extends Space
     {
         results.clear();
         Bounds bounds = other.getBounds();
-        int minx = (int)(bounds.minX / _size);
-        int miny = (int)(bounds.minY / _size);
-        int maxx = (int)(bounds.maxX / _size);
-        int maxy = (int)(bounds.maxY / _size);
+        int minx = (int)(bounds.minX / _cellSize);
+        int miny = (int)(bounds.minY / _cellSize);
+        int maxx = (int)(bounds.maxX / _cellSize);
+        int maxy = (int)(bounds.maxY / _cellSize);
         for (int xx = minx; xx <= maxx; xx++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 // check against the active shapes
                 for (Iterator<Shape> ii = _active.getAll(xx, yy); ii.hasNext(); ) {
                     Shape shape = ii.next();
-                    if (checkIntersects(other, shape)) {
+                    if (shape.testIntersectionFlags(other) && shape.intersects(other)) {
                         results.add(shape);
                     }
                 }
                 // check against the static shapes
                 for (Iterator<Shape> ii = _static.getAll(xx, yy); ii.hasNext(); ) {
                     Shape shape = ii.next();
-                    if (checkIntersects(other, shape)) {
+                    if (shape.testIntersectionFlags(other) && shape.intersects(other)) {
                         results.add(shape);
                     }
                 }
@@ -130,6 +165,38 @@ public class HashSpace extends Space
     public void getIntersecting (List<Intersection> results)
     {
         results.clear();
+        CoordMultiMap<Shape> nactive = new CoordMultiMap<Shape>();
+        Set<Shape> actives = new HashSet<Shape>(_active.values()); // only want the unique shapes
+        // only look for collisions with active shapes
+        for (Shape shape : actives) {
+            Bounds bounds = shape.getBounds();
+            int minx = (int)(bounds.minX / _cellSize);
+            int miny = (int)(bounds.minY / _cellSize);
+            int maxx = (int)(bounds.maxX / _cellSize);
+            int maxy = (int)(bounds.maxY / _cellSize);
+            for (int xx = minx; xx <= maxx; xx++) {
+                for (int yy = miny; yy <= maxy; yy++) {
+                    // collide with the static
+                    for (Iterator<Shape> ii = _static.getAll(xx, yy); ii.hasNext(); ) {
+                        Shape sshape = ii.next();
+                        if (shape.testIntersectionFlags(sshape) && shape.intersects(sshape)) {
+                            results.add(new Intersection(shape, sshape));
+                        }
+                    }
+                    // collide with the active and rehash in the process (this
+                    // also lets use avoid filtering duplicate collisions)
+                    for (Iterator<Shape> ii = nactive.getAll(xx, yy); ii.hasNext(); ) {
+                        Shape ashape = ii.next();
+                        if (shape.testIntersectionFlags(ashape) && shape.intersects(ashape)) {
+                            results.add(new Intersection(shape, ashape));
+                        }
+                    }
+                    nactive.put(xx, yy, shape);
+                }
+            }
+        }
+        // use our newly rehashed set of active shapes
+        _active = nactive;
     }
 
     /**
@@ -138,15 +205,15 @@ public class HashSpace extends Space
     protected void map (Shape shape, CoordMultiMap<Shape> map)
     {
         Bounds bounds = shape.getBounds();
-        int minx = (int)(bounds.minX / _size);
-        int miny = (int)(bounds.minY / _size);
-        int maxx = (int)(bounds.maxX / _size);
-        int maxy = (int)(bounds.maxY / _size);
+        int minx = (int)(bounds.minX / _cellSize);
+        int miny = (int)(bounds.minY / _cellSize);
+        int maxx = (int)(bounds.maxX / _cellSize);
+        int maxy = (int)(bounds.maxY / _cellSize);
         for (int xx = minx; xx <= maxx; xx++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 map.put(xx, yy, shape);
             }
-        };
+        }
     }
 
     /**
@@ -155,64 +222,33 @@ public class HashSpace extends Space
     protected void unmap (Shape shape, CoordMultiMap<Shape> map)
     {
         Bounds bounds = shape.getBounds();
-        int minx = (int)(bounds.minX / _size);
-        int miny = (int)(bounds.minY / _size);
-        int maxx = (int)(bounds.maxX / _size);
-        int maxy = (int)(bounds.maxY / _size);
+        int minx = (int)(bounds.minX / _cellSize);
+        int miny = (int)(bounds.minY / _cellSize);
+        int maxx = (int)(bounds.maxX / _cellSize);
+        int maxy = (int)(bounds.maxY / _cellSize);
         for (int xx = minx; xx <= maxx; xx++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 map.remove(xx, yy, shape);
             }
-        };
-    }
-
-    /**
-     * Checks if the two shapes intersect.
-     */
-    protected boolean checkIntersects (Shape s1, Shape s2)
-    {
-        return s1.testIntersectionFlags(s2) && s1.intersects(s2);
+        }
     }
 
     @Override // documentation inherited
     protected void shapeWillMove (Shape shape)
     {
-        // remove from wherever
+        if (!shape.isActive()) {
+            unmap(shape, _static);
+        }
     }
 
     @Override // documentation inherited
     protected void shapeDidMove (Shape shape)
     {
-        // add to active
-    }
-
-    /** A wrapper for shapes. */
-    protected static final class ShapeWrapper
-    {
-        public Shape shape;
-        public boolean active;
-
-        public ShapeWrapper (Shape shape)
-        {
-            this.shape = shape;
-            this.active = false;
-        }
-
-        @Override // documentation inherited
-        public boolean equals (Object other)
-        {
-            return shape.equals(other);
-        }
-        
-        @Override // documentation inherited
-        public int hashCode ()
-        {
-            return shape.hashCode();
+        // check if the shape should be reclassified as active
+        if (!shape.isActive()) {
+            map(shape, _active);
         }
     }
-
-    /** The shapes in the space. */
-    protected Set<ShapeWrapper> _shapes = new HashSet<ShapeWrapper>();
 
     /** The spatial hash containing the static shapes. */
     protected CoordMultiMap<Shape> _static = new CoordMultiMap<Shape>();
@@ -220,6 +256,9 @@ public class HashSpace extends Space
     /** The spatial hash containing the active shapes. */
     protected CoordMultiMap<Shape> _active = new CoordMultiMap<Shape>();
 
-    /** The size of the grid squares. */
-    protected final float _size;
+    /** The number of shapes in the space. */
+    protected int _size;
+
+    /** The width/height of each grid cell. */
+    protected final float _cellSize;
 }

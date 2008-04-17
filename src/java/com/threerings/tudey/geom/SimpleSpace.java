@@ -73,7 +73,8 @@ public class SimpleSpace extends Space
         Bounds bounds = shape.getBounds();
         for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
             Shape oshape = _shapes.get(ii);
-            if (shape.testIntersectionFlags(oshape) && bounds.intersects(oshape.getBounds()) &&
+            if (shape.testIntersectionFlags(oshape) &&
+                    bounds.intersects(oshape.getBounds()) &&
                     shape.intersects(oshape)) {
                 results.add(oshape);
             }
@@ -89,6 +90,7 @@ public class SimpleSpace extends Space
             for (int jj = ii + 1; jj < nn; jj++) {
                 Shape s2 = _shapes.get(jj);
                 if (s1.testIntersectionFlags(s2) &&
+                        (s1.isActive() || s2.isActive()) &&
                         s1.getBounds().intersects(s2.getBounds()) &&
                         s1.intersects(s2)) {
                     results.add(new Intersection(s1, s2));

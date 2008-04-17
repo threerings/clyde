@@ -57,12 +57,11 @@ public class CoordMultiMap<T> extends CoordMap<T>
      */
     public Iterator<T> getAll (final int x, final int y)
     {
-        final int key = CoordUtil.getCoord(x, y);
         return new Iterator<T>() {
             public boolean hasNext () {
                 checkConcurrentModification();
                 for (; _entry != null; _entry = _entry.next) {
-                    if (_entry.key == key) {
+                    if (_entry.key == _key) {
                         return true;
                     }
                 }
@@ -93,6 +92,7 @@ public class CoordMultiMap<T> extends CoordMap<T>
             }
             protected Entry<T> _entry = _entries[getHashIndex(x, y)];
             protected int _omodcount = _modcount;
+            protected int _key = CoordUtil.getCoord(x, y);
         };
     }
 
