@@ -31,7 +31,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Returns a reference to the level's environment object.
+     * Returns a reference to the scene's environment object.
      */
     public Environment getEnvironment ()
     {
@@ -39,7 +39,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Sets the level's environment object.
+     * Sets the scene's environment object.
      */
     public void setEnvironment (Environment environment)
     {
@@ -47,7 +47,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Returns a reference to the set of all tiles in the level.
+     * Returns a reference to the set of all tiles in the scene.
      */
     public TileSet getTiles ()
     {
@@ -55,7 +55,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Retrieves all of the tiles in the level that intersect the specified region.
+     * Retrieves all of the tiles in the scene that intersect the specified region.
      *
      * @return a new set containing the results.
      */
@@ -65,7 +65,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Retrieves all of the tiles in the level that intersect the specified region and places them
+     * Retrieves all of the tiles in the scene that intersect the specified region and places them
      * in the set provided.
      *
      * @return a reference to the result set.
@@ -94,7 +94,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Returns the tile intersecting the given coordinates, if any.  Note that the tile returned
+     * Returns the tile intersecting the given coordinates, if any. Note that the tile returned
      * may be a "dummy" tile maintained by a tile set, and should be copied if its values must be
      * preserved.
      */
@@ -106,7 +106,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Adds a group of tiles to the level.
+     * Adds a group of tiles to the scene.
      */
     public void addTiles (TileSet tiles)
     {
@@ -117,7 +117,7 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Removes a group of tiles from the level.
+     * Removes a group of tiles from the scene.
      */
     public void removeTiles (TileSet tiles)
     {
@@ -129,11 +129,29 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
-     * Returns a reference to the set of all placeable objects in the level.
+     * Returns a reference to the set of all placeable objects in the scene.
      */
     public PlaceableSet getPlaceables ()
     {
         return _placeables;
+    }
+
+    /**
+     * Adds a group of placeable objects to the scene.
+     */
+    public void addPlaceables (PlaceableSet placeables)
+    {
+        _placeables.addAll(placeables);
+    }
+
+    /**
+     * Removes a group of placeable objects from the scene.
+     */
+    public void removePlaceables (PlaceableSet placeables)
+    {
+        for (Placeable placeable : placeables) {
+            _placeables.remove(placeable);
+        }
     }
 
     /**
