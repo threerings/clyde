@@ -4,6 +4,7 @@
 package com.threerings.tudey.geom;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -74,7 +75,12 @@ public class HashSpace extends Space
             return false;
         }
         shape.setSpace(this);
-        map(shape, shape.isActive() ? _active : _static);
+        if (shape.isActive()) {
+            map(shape, _active);
+            _actives.add(shape);
+        } else {
+            map(shape, _static);
+        }
         _size++;
         return true;
     }
@@ -86,7 +92,12 @@ public class HashSpace extends Space
             return false;
         }
         shape.setSpace(null);
-        unmap(shape, shape.isActive() ? _active : _static);
+        if (shape.isActive()) {
+            unmap(shape, _active);
+            _actives.remove(shape);
+        } else {
+            unmap(shape, _static);
+        }
         _size--;
         return true;
     }
@@ -166,9 +177,9 @@ public class HashSpace extends Space
     {
         results.clear();
         CoordMultiMap<Shape> nactive = new CoordMultiMap<Shape>();
-        Set<Shape> actives = new HashSet<Shape>(_active.values()); // only want the unique shapes
         // only look for collisions with active shapes
-        for (Shape shape : actives) {
+        for (int ii = 0, nn = _actives.size(); ii < nn; ii++) {
+            Shape shape = _actives.get(ii);
             Bounds bounds = shape.getBounds();
             int minx = (int)(bounds.minX / _cellSize);
             int miny = (int)(bounds.minY / _cellSize);
@@ -177,16 +188,16 @@ public class HashSpace extends Space
             for (int xx = minx; xx <= maxx; xx++) {
                 for (int yy = miny; yy <= maxy; yy++) {
                     // collide with the static
-                    for (Iterator<Shape> ii = _static.getAll(xx, yy); ii.hasNext(); ) {
-                        Shape sshape = ii.next();
+                    for (Iterator<Shape> jj = _static.getAll(xx, yy); jj.hasNext(); ) {
+                        Shape sshape = jj.next();
                         if (shape.testIntersectionFlags(sshape) && shape.intersects(sshape)) {
                             results.add(new Intersection(shape, sshape));
                         }
                     }
                     // collide with the active and rehash in the process (this
                     // also lets use avoid filtering duplicate collisions)
-                    for (Iterator<Shape> ii = nactive.getAll(xx, yy); ii.hasNext(); ) {
-                        Shape ashape = ii.next();
+                    for (Iterator<Shape> jj = nactive.getAll(xx, yy); jj.hasNext(); ) {
+                        Shape ashape = jj.next();
                         if (shape.testIntersectionFlags(ashape) && shape.intersects(ashape)) {
                             results.add(new Intersection(shape, ashape));
                         }
@@ -247,6 +258,7 @@ public class HashSpace extends Space
         // check if the shape should be reclassified as active
         if (!shape.isActive()) {
             map(shape, _active);
+            _actives.add(shape);
         }
     }
 
@@ -255,6 +267,9 @@ public class HashSpace extends Space
 
     /** The spatial hash containing the active shapes. */
     protected CoordMultiMap<Shape> _active = new CoordMultiMap<Shape>();
+
+    /** Maintain a list of the active shapes. */
+    protected ArrayList<Shape> _actives = new ArrayList<Shape>();
 
     /** The number of shapes in the space. */
     protected int _size;

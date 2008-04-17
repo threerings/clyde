@@ -153,7 +153,7 @@ public abstract class AbstractSpaceTest extends TestCase
     public void testStress ()
     {
         // add one metric truckload of static rectangles (tiles&blocks)
-        for (int ii = 0; ii < 10000; ii++) {
+        for (int ii = 0; ii < 1000; ii++) {
             int minx = RandomUtil.getInt(200, -200), miny = RandomUtil.getInt(200, -200);
             int w = RandomUtil.getInt(4, 1), h = RandomUtil.getInt(4, 1);
             Rectangle rect = new Rectangle(minx, miny, minx+w, miny+h);
@@ -161,7 +161,7 @@ public abstract class AbstractSpaceTest extends TestCase
         }
 
         // add (e^-(i*pi))*(-100) active circles (players&monsters)
-        for (int ii = 0; ii < 150; ii++) {
+        for (int ii = 0; ii < 50; ii++) {
             float x = RandomUtil.getFloat(400f) - 200f, y = RandomUtil.getFloat(400f) - 200f;
             float r = RandomUtil.getFloat(4f) + 0.1f;
             Circle circle = new Circle();
@@ -169,8 +169,10 @@ public abstract class AbstractSpaceTest extends TestCase
             circle.set(x, y, r); // get it marked as active
         }
 
-        // intersect 'em!
-        _space.getIntersecting(new ArrayList<Intersection>());
+        // intersect 'em! a lot! (because typically we're doing intersections, not adding/removing)
+        for (int ii = 0; ii < 25; ii++) {
+            _space.getIntersecting(new ArrayList<Intersection>());
+        }
     }
 
     /**
