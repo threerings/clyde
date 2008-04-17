@@ -14,9 +14,9 @@ import com.threerings.crowd.server.PlaceManagerDelegate;
 import com.threerings.media.timer.MediaTimer;
 import com.threerings.util.TimerUtil;
 
-import com.threerings.tudey.data.Tile;
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeyPlaceObject;
+import com.threerings.tudey.data.TudeySceneUpdate;
 
 /**
  * Manages the 2D scene.
@@ -57,9 +57,8 @@ public class TudeyPlaceManagerDelegate extends PlaceManagerDelegate
     }
 
     // documentation inherited from interface TudeyProvider
-    public void placeTile (ClientObject caller, Tile tile)
+    public void updateScene (ClientObject caller, TudeySceneUpdate update)
     {
-
     }
 
     /**

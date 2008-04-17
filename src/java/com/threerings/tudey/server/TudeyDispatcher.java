@@ -1,3 +1,5 @@
+//
+// $Id$
 package com.threerings.tudey.server;
 
 import com.threerings.presents.client.Client;
@@ -6,8 +8,8 @@ import com.threerings.presents.data.InvocationMarshaller;
 import com.threerings.presents.server.InvocationDispatcher;
 import com.threerings.presents.server.InvocationException;
 import com.threerings.tudey.client.TudeyService;
-import com.threerings.tudey.data.Tile;
 import com.threerings.tudey.data.TudeyMarshaller;
+import com.threerings.tudey.data.TudeySceneUpdate;
 
 /**
  * Dispatches requests to the {@link TudeyProvider}.
@@ -36,10 +38,10 @@ public class TudeyDispatcher extends InvocationDispatcher
         throws InvocationException
     {
         switch (methodId) {
-        case TudeyMarshaller.PLACE_TILE:
-            ((TudeyProvider)provider).placeTile(
+        case TudeyMarshaller.UPDATE_SCENE:
+            ((TudeyProvider)provider).updateScene(
                 source,
-                (Tile)args[0]
+                (TudeySceneUpdate)args[0]
             );
             return;
 

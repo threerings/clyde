@@ -1,10 +1,12 @@
+//
+// $Id$
 package com.threerings.tudey.data;
 
 import com.threerings.presents.client.Client;
 import com.threerings.presents.data.InvocationMarshaller;
 import com.threerings.presents.dobj.InvocationResponseEvent;
 import com.threerings.tudey.client.TudeyService;
-import com.threerings.tudey.data.Tile;
+import com.threerings.tudey.data.TudeySceneUpdate;
 
 /**
  * Provides the implementation of the {@link TudeyService} interface
@@ -16,13 +18,13 @@ import com.threerings.tudey.data.Tile;
 public class TudeyMarshaller extends InvocationMarshaller
     implements TudeyService
 {
-    /** The method id used to dispatch {@link #placeTile} requests. */
-    public static final int PLACE_TILE = 1;
+    /** The method id used to dispatch {@link #updateScene} requests. */
+    public static final int UPDATE_SCENE = 1;
 
     // from interface TudeyService
-    public void placeTile (Client arg1, Tile arg2)
+    public void updateScene (Client arg1, TudeySceneUpdate arg2)
     {
-        sendRequest(arg1, PLACE_TILE, new Object[] {
+        sendRequest(arg1, UPDATE_SCENE, new Object[] {
             arg2
         });
     }

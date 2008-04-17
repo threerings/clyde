@@ -268,7 +268,7 @@ public class HashSpace extends Space
     /** The spatial hash containing the active shapes. */
     protected CoordMultiMap<Shape> _active = new CoordMultiMap<Shape>();
 
-    /** Maintain a list of the active shapes. */
+    /** A list of the active shapes. */
     protected ArrayList<Shape> _actives = new ArrayList<Shape>();
 
     /** The number of shapes in the space. */
