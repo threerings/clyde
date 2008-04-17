@@ -13,6 +13,11 @@ import com.threerings.export.Exportable;
 /**
  * Maps pairs of coordinates (in the range [-32767, +32767]) to lists of
  * objects using a 2D hash table that employs chaining to resolve collisions.
+ *
+ * Extending <code>CoordMap</code> is merely an implementation convenience and
+ * should <em>not</em> be taken as a statement that the two classes share the
+ * same interface, or that a <code>CoordMultiMap</code> could be used
+ * transparently in place of a <code>CoordMap</code>.
  */
 public class CoordMultiMap<T> extends CoordMap<T>
     implements Streamable, Exportable
