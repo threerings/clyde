@@ -29,6 +29,16 @@ public interface TudeyPlaceObject
     public boolean isPaused ();
 
     /**
+     * Sets the scene descriptor.
+     */
+    public void setSceneDescriptor (SceneDescriptor scene);
+
+    /**
+     * Gets the scene descriptor used to construct the scene model.
+     */
+    public SceneDescriptor getSceneDescriptor ();
+
+    /**
      * Sets the set of actors.
      */
     public void setActors (ActorSet actors);
