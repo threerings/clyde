@@ -37,7 +37,7 @@ public class TudeyPathFinder
      *
      * @param start the staring coordinate
      * @param end the ending coordinate
-     * @param traverser the shape of the object moving through the shape
+     * @param radius the size of the object moving through the space
      * @param longest the longest allowable path, in scene grid spaces
      * @param partial if true, a partial path path will be returned that gets
      * the traverser as close to the goal as possible in the event that a
@@ -45,9 +45,9 @@ public class TudeyPathFinder
      * @return a list of point objects representing a path from coordinates
      * start to end, inclusive or <code>null</code> if no path could be found
      */
-    public List<Point> findPath (Point start, Point end, Circle traverser, int longest, boolean partial)
+    public List<Point> findPath (Point start, Point end, float radius, int longest, boolean partial)
     {
-        final Circle circle = (Circle)traverser.clone(); // make a copy of the parameter
+        final Circle circle = new Circle(0f, 0f, radius); // create a dummy circle
         final int dist = longest * 2; // convert scene space to grid space
 
         // find the path
@@ -79,7 +79,7 @@ public class TudeyPathFinder
         ArrayList<Point> npath = new ArrayList<Point>(path.size());
         for (int ii = 0, nn = path.size(); ii < nn; ii++) {
             java.awt.Point pt = path.get(ii);
-            npath.set(ii, new Point(gridToScene(pt.x), gridToScene(pt.y)));
+            npath.add(new Point(gridToScene(pt.x), gridToScene(pt.y)));
         }
 
         return npath;
