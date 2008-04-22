@@ -133,6 +133,9 @@ public abstract class GlCanvasApp extends GlApp
             }
         });
 
+        // request focus for the canvas
+        _canvas.requestFocusInWindow();
+
         // give subclasses a chance to init
         didInit();
     }
