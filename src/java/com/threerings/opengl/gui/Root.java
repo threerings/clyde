@@ -533,7 +533,7 @@ public abstract class Root
                         return true;
                     }
                 }
-                break;
+                return false;
             }
         }
 
