@@ -18,6 +18,6 @@ public class HashSpaceTest extends AbstractSpaceTest
     @Override // documentation inherited
     protected Space createSpace ()
     {
-        return new HashSpace ();
+        return new HashSpace (2f);
     }
 }
