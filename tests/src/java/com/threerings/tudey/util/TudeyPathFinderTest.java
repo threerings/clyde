@@ -13,6 +13,7 @@ import com.threerings.tudey.geom.Point;
 import com.threerings.tudey.geom.Rectangle;
 import com.threerings.tudey.geom.Space;
 import com.threerings.tudey.geom.HashSpace;
+import com.threerings.tudey.geom.SimpleSpace;
 
 /**
  * Tests the {@link TudeyPathFinder}.
@@ -24,7 +25,7 @@ public class TudeyPathFinderTest extends TestCase
         super(name);
     }
 
-    public void testPath ()
+    public void testFullPath ()
     {
         Space space = new HashSpace(2f);
         TudeyPathFinder pather = new TudeyPathFinder(space);
@@ -36,32 +37,50 @@ public class TudeyPathFinderTest extends TestCase
         // get out of the U
         start.set(3.5f, -0.5f);
         end.set(7f, 0.5f);
-        path = pather.findPath(start, end, 0.45f, 20, true);
-        assertValidPath(path, start, end, 0.45f, space);
+        path = pather.findPath(start, end, 0.45f, 20, false);
+        assertValidPath(path, 0.45f, space);
 
         // top left to bottom right
         start.set(-5f, 7f);
         end.set(6.5f, -2.5f);
-        path = pather.findPath(start, end, 0.45f, 50, true);
-        assertValidPath(path, start, end, 0.45f, space);
+        path = pather.findPath(start, end, 0.45f, 50, false);
+        assertValidPath(path, 0.45f, space);
 
         // through the corridor
         start.set(-2f, 3f);
         end.set(-2f, 7f);
-        path = pather.findPath(start, end, 0.95f, 15, true);
-        assertValidPath(path, start, end, 0.95f, space);
+        path = pather.findPath(start, end, 0.95f, 15, false);
+        assertValidPath(path, 0.95f, space);
 
         // through the north-east quadrant
         start.set(8f, 8f);
         end.set(1f, 3f);
-        path = pather.findPath(start, end, 0.45f, 15, true);
-        assertValidPath(path, start, end, 0.45f, space);
+        path = pather.findPath(start, end, 0.45f, 15, false);
+        assertValidPath(path, 0.45f, space);
+
+        // around for a huge object
+        start.set(-7f, 3f);
+        end.set(8f, 2f);
+        path = pather.findPath(start, end, 1.45f, 40, false);
+        assertValidPath(path, 1.45f, space);
+    }
+
+    public void testPartialPath ()
+    {
+        Space space = new HashSpace(2f);
+        TudeyPathFinder pather = new TudeyPathFinder(space);
+        populateSpace(space);
+
+        Point start = new Point(-2f, 0f);
+        Point end = new Point(8f, 8f);
+        List<Point> path = pather.findPath(start, end, 0.25f, 5, true);
+        assertValidPath(path, 0.25f, space);
     }
 
     /**
      * Asserts that the specified path can be followed in the space.
      */
-    protected void assertValidPath (List<Point> path, Point start, Point end, float radius, Space space)
+    protected void assertValidPath (List<Point> path, float radius, Space space)
     {
         for (int ii = 0, nn = path.size() - 1; ii < nn; ii++) {
             Point cur = path.get(ii);
