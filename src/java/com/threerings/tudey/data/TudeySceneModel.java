@@ -94,6 +94,14 @@ public class TudeySceneModel extends SimpleStreamableObject
     }
 
     /**
+     * Returns the tile elevation at the specified coordinates.
+     */
+    public int getElevation (float x, float y)
+    {
+        return getElevation((int)Math.floor(x), (int)Math.floor(y));
+    }
+
+    /**
      * Returns the tile intersecting the given coordinates, if any. Note that the tile returned
      * may be a "dummy" tile maintained by a tile set, and should be copied if its values must be
      * preserved.
