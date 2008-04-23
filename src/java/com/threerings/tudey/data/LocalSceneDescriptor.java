@@ -7,7 +7,7 @@ import com.threerings.util.ResourceUtil;
 
 import com.threerings.export.BinaryImporter;
 
-import static com.threerings.ClydeLog.*;
+import static com.threerings.tudey.Log.*;
 
 /**
  * Contains the name of the scene to load locally on the client.
