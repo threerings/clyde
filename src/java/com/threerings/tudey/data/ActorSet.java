@@ -6,7 +6,7 @@ package com.threerings.tudey.data;
 import com.threerings.presents.dobj.DSet;
 
 /**
- * A set of actors.  Allows direct manipulation of the set's contents.
+ * A set of actors. Allows direct manipulation of the set's contents.
  */
 public class ActorSet extends DSet<Actor>
 {

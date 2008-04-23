@@ -11,7 +11,7 @@ import com.threerings.export.Exportable;
 import com.threerings.util.DeepUtil;
 
 /**
- * Superclass for objects stored in the scene.
+ * Superclass for objects in the scene.
  */
 public abstract class SceneElement extends SimpleStreamableObject
     implements Exportable, Cloneable

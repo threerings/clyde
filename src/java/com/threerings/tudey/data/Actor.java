@@ -14,7 +14,7 @@ import com.threerings.tudey.client.ActorSprite;
 /**
  * An active element of the scene.
  */
-public abstract class Actor extends SimpleStreamableObject
+public abstract class Actor extends SceneElement
     implements Cloneable, DSet.Entry
 {
     /** The presence state, used for extrapolation. */
@@ -189,21 +189,9 @@ public abstract class Actor extends SimpleStreamableObject
     }
 
     @Override // documentation inherited
-    public Object clone ()
-    {
-        return DeepUtil.copy(this);
-    }
-
-    @Override // documentation inherited
     public int hashCode ()
     {
         return _actorId;
-    }
-
-    @Override // documentation inherited
-    public boolean equals (Object other)
-    {
-        return DeepUtil.equals(this, other);
     }
 
     /** Uniquely identifies the actor. */

@@ -40,7 +40,7 @@ public class Prop extends Placeable
     }
 
     /**
-     * Checks whether the configuration of this tile is valid.
+     * Checks whether the configuration of this prop is valid.
      */
     public boolean isValid ()
     {
