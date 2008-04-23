@@ -35,6 +35,7 @@ public final class Bounds
      */
     public Bounds ()
     {
+        setToEmpty();
     }
 
     /**
@@ -91,6 +92,18 @@ public final class Bounds
         this.minY = minY;
         this.maxX = maxX;
         this.maxY = maxY;
+        return this;
+    }
+
+    /**
+     * Sets the minimum and maximum extents of these bounds to 
+     * {@link Float#MAX_VALUE} and {@link Float#MIN_VALUE} respectively.
+     *
+     * @return a referenece to these bounds, for chaining.
+     */
+    public Bounds setToEmpty ()
+    {
+        set(Float.MAX_VALUE, Float.MAX_VALUE, Float.MIN_VALUE, Float.MIN_VALUE);
         return this;
     }
 

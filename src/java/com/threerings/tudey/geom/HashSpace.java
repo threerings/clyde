@@ -54,18 +54,12 @@ public class HashSpace extends Space
      */
     public void rehash ()
     {
-        // rehash the statics
-        CoordMultiMap<Shape> nstatic = new CoordMultiMap<Shape>();
-        for (Shape shape : _static.values()) {
-            map(shape, nstatic);
+        _static.clear();
+        _active.clear();
+        for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            Shape shape = _shapes.get(ii);
+            map(shape, shape.isActive() ? _active : _static);
         }
-        _static = nstatic;
-        // rehash the actives
-        CoordMultiMap<Shape> nactive = new CoordMultiMap<Shape>();
-        for (Shape shape : _active.values()) {
-            map(shape, nactive);
-        }
-        _active = nactive;
     }
 
     @Override // documentation inherited
@@ -75,37 +69,27 @@ public class HashSpace extends Space
             return false;
         }
         shape.setSpace(this);
-        if (shape.isActive()) {
-            map(shape, _active);
-            _actives.add(shape);
-        } else {
-            map(shape, _static);
-        }
-        _size++;
+        _shapes.add(shape);
+        _bounds.addLocal(shape.getBounds());
+        map(shape, shape.isActive() ? _active : _static);
         return true;
     }
 
     @Override // documentation inherited
     public boolean remove (Shape shape)
     {
-        if (shape.getSpace() != this) {
+        if (!_shapes.remove(shape)) {
             return false;
         }
         shape.setSpace(null);
-        if (shape.isActive()) {
-            unmap(shape, _active);
-            _actives.remove(shape);
-        } else {
-            unmap(shape, _static);
-        }
-        _size--;
+        unmap(shape, shape.isActive() ? _active : _static);
         return true;
     }
 
     @Override // documentation inherited
     public int size ()
     {
-        return _size;
+        return _shapes.size();
     }
 
     @Override // documentation inherited
@@ -113,7 +97,19 @@ public class HashSpace extends Space
     {
         _active.clear();
         _static.clear();
-        _size = 0;
+        for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            _shapes.get(ii).setSpace(null);
+        }
+        _shapes.clear();
+    }
+
+    @Override // documentation inherited
+    public void updateBounds ()
+    {
+        _bounds.setToEmpty();
+        for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            _bounds.addLocal(_shapes.get(ii).getBounds());
+        }
     }
 
     @Override // documentation inherited
@@ -178,8 +174,11 @@ public class HashSpace extends Space
         results.clear();
         CoordMultiMap<Shape> nactive = new CoordMultiMap<Shape>();
         // only look for collisions with active shapes
-        for (int ii = 0, nn = _actives.size(); ii < nn; ii++) {
-            Shape shape = _actives.get(ii);
+        for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            Shape shape = _shapes.get(ii);
+            if (!shape.isActive()) {
+                continue;
+            }
             Bounds bounds = shape.getBounds();
             int minx = (int)(bounds.minX / _cellSize);
             int miny = (int)(bounds.minY / _cellSize);
@@ -258,7 +257,6 @@ public class HashSpace extends Space
         // check if the shape should be reclassified as active
         if (!shape.isActive()) {
             map(shape, _active);
-            _actives.add(shape);
         }
     }
 
@@ -268,11 +266,8 @@ public class HashSpace extends Space
     /** The spatial hash containing the active shapes. */
     protected CoordMultiMap<Shape> _active = new CoordMultiMap<Shape>();
 
-    /** A list of the active shapes. */
-    protected ArrayList<Shape> _actives = new ArrayList<Shape>();
-
-    /** The number of shapes in the space. */
-    protected int _size;
+    /** The shapes in the space. */
+    protected ArrayList<Shape> _shapes = new ArrayList<Shape>();
 
     /** The width/height of each grid cell. */
     protected final float _cellSize;

@@ -20,11 +20,7 @@ public class SimpleSpace extends Space
         }
         shape.setSpace(this);
         _shapes.add(shape);
-        if (size() == 1) {
-            _bounds.set(shape.getBounds());
-        } else {
-            _bounds.addLocal(shape.getBounds());
-        }
+        _bounds.addLocal(shape.getBounds());
         return true;
     }
 
@@ -51,6 +47,15 @@ public class SimpleSpace extends Space
             _shapes.get(ii).setSpace(null);
         }
         _shapes.clear();
+    }
+
+    @Override // documentation inherited
+    public void updateBounds ()
+    {
+        _bounds.setToEmpty();
+        for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+            _bounds.addLocal(_shapes.get(ii).getBounds());
+        }
     }
 
     @Override // documentation inherited
