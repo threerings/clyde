@@ -47,8 +47,8 @@ public class TudeyPathFinder
      */
     public List<Point> findPath (Point start, Point end, float radius, int longest, boolean partial)
     {
+        longest *= 2; // convert scene space to grid space
         final Circle circle = new Circle(0f, 0f, radius); // create a dummy circle
-        final int dist = longest * 2; // convert scene space to grid space
 
         // find the path
         List<java.awt.Point> path = AStarPathUtil.getPath(
@@ -70,7 +70,7 @@ public class TudeyPathFinder
                 }
             },
             null,
-            dist,
+            longest,
             sceneToGrid(start.getX()), sceneToGrid(start.getY()),
             sceneToGrid(end.getX()), sceneToGrid(end.getY()),
             partial);

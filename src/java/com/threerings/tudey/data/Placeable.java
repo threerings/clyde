@@ -4,7 +4,7 @@
 package com.threerings.tudey.data;
 
 /**
- * The superclass of the objects in the scene.
+ * A static element of the scene.
  */
 public class Placeable extends SceneElement
 {
