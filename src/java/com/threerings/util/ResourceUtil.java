@@ -63,7 +63,7 @@ public class ResourceUtil
      * Gets the identified resource as a stream, logging an error and returning an empty stream if
      * it doesn't exist.
      */
-    protected static InputStream getResourceAsStream (String path)
+    public static InputStream getResourceAsStream (String path)
     {
         InputStream stream = ResourceUtil.class.getResourceAsStream("/rsrc/" + path);
         if (stream == null) {

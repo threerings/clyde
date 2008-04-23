@@ -7,7 +7,7 @@ import com.threerings.io.Streamable;
 import com.threerings.export.Exportable;
 
 /**
- * Superclass for objects stored in the scene.
+ * An abstract representation of the scene model for transmission to clients.
  */
 public abstract class SceneDescriptor
     implements Streamable, Exportable
