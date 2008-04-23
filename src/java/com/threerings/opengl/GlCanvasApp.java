@@ -13,6 +13,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.logging.Level;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.PixelFormat;
@@ -20,6 +21,9 @@ import org.lwjgl.opengl.PixelFormat;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.media.ManagedJFrame;
+
+import com.threerings.util.KeyboardManager;
+import com.threerings.util.KeyTranslatorImpl;
 
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
@@ -47,8 +51,11 @@ public abstract class GlCanvasApp extends GlApp
             }
         });
 
+        // add the canvas inside a panel so that we can use KeyboardManager
+        JPanel panel = new JPanel(new BorderLayout());
+        _frame.add(panel, BorderLayout.CENTER);
         try {
-            _frame.add(_canvas = new GlCanvas(new PixelFormat(0, 8, 0)) {
+            panel.add(_canvas = new GlCanvas(new PixelFormat(0, 8, 0)) {
                 public void didInit () {
                     initRenderer();
                 }
@@ -60,9 +67,15 @@ public abstract class GlCanvasApp extends GlApp
                     GlCanvasApp.this.renderScene();
                 }
             }, BorderLayout.CENTER);
+
         } catch (LWJGLException e) {
             log.log(Level.WARNING, "Failed to open window.", e);
+            return;
         }
+
+        // create the keyboard manager
+        _keymgr = new KeyboardManager();
+        _keymgr.setTarget(panel, new KeyTranslatorImpl());
     }
 
     /**
@@ -136,6 +149,9 @@ public abstract class GlCanvasApp extends GlApp
         // request focus for the canvas
         _canvas.requestFocusInWindow();
 
+        // enable the keyboard manager
+        _keymgr.setEnabled(true);
+
         // give subclasses a chance to init
         didInit();
     }
@@ -188,4 +204,7 @@ public abstract class GlCanvasApp extends GlApp
 
     /** The render canvas. */
     protected GlCanvas _canvas;
+
+    /** The keyboard manager for the canvas. */
+    protected KeyboardManager _keymgr;
 }
