@@ -4,6 +4,7 @@
 package com.threerings.tudey.data;
 
 import com.threerings.tudey.client.ActorSprite;
+import com.threerings.tudey.geom.Rectangle;
 
 /**
  * Represents a block in the scene.
@@ -72,6 +73,15 @@ public class Block extends Actor
     }
 
     @Override // documentation inherited
+    public Rectangle getBounds ()
+    {
+        if (_bounds == null) {
+            _bounds = new Rectangle(x, y, x+1, y+1);
+        }
+        return _bounds;
+    }
+
+    @Override // documentation inherited
     public void getResources (java.util.Set<SceneResource> results)
     {
         getConfig().getResources(results);
@@ -82,4 +92,7 @@ public class Block extends Actor
 
     /** The contents of the block. */
     protected Object _contents;
+
+    /** The bounds of the block. */
+    protected transient Rectangle _bounds;
 }

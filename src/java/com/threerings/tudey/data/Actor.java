@@ -10,6 +10,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.util.DeepUtil;
 
 import com.threerings.tudey.client.ActorSprite;
+import com.threerings.tudey.geom.Shape;
 
 /**
  * An active element of the scene.
@@ -60,9 +61,14 @@ public abstract class Actor extends SceneElement
     public abstract ActorSprite createSprite ();
 
     /**
-     * Returns the name of the server-side logic class for the actor.
+     * Returns the name of the server-side logic class for this actor.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Returns the bounding shape for this actor.
+     */
+    public abstract Shape getBounds ();
 
     /**
      * Interpolates in-place between the state of this and another actor.
