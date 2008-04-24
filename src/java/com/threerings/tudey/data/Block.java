@@ -76,8 +76,9 @@ public class Block extends Actor
     public Rectangle getBounds ()
     {
         if (_bounds == null) {
-            _bounds = new Rectangle(x, y, x+1, y+1);
+            _bounds = new Rectangle();
         }
+        _bounds.set(x, y, x + 1, y + 1);
         return _bounds;
     }
 
