@@ -84,7 +84,7 @@ public class TextureCache
         if (image == null) {
             try {
                 image = readImage(path);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 log.log(Level.WARNING,"Unable to load image resource [path=" + path + "].", e);
                 image = ImageUtil.createErrorImage(64, 64);
             }
