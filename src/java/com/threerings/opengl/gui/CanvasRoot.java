@@ -8,8 +8,6 @@ import java.awt.EventQueue;
 
 import org.lwjgl.input.Keyboard;
 
-import com.threerings.util.KeyboardManager;
-
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.InputEvent;
