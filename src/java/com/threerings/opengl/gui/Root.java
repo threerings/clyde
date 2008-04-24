@@ -9,6 +9,8 @@ import java.util.logging.Level;
 
 import org.lwjgl.opengl.GL11;
 
+import com.samskivert.util.HashIntMap;
+
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -31,6 +33,7 @@ import com.threerings.opengl.util.Tickable;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.EventListener;
 import com.threerings.opengl.gui.event.FocusEvent;
+import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
@@ -380,6 +383,13 @@ public abstract class Root
         // update the tick stamp
         _tickStamp = System.currentTimeMillis();
 
+        // repeat keys as necessary
+        if (!_pressed.isEmpty()) {
+            for (KeyRecord key : _pressed.values()) {
+                key.maybeRepeat();
+            }
+        }
+
         // validate all invalid roots
         while (_invalidRoots.size() > 0) {
             Component root = _invalidRoots.remove(0);
@@ -493,6 +503,25 @@ public abstract class Root
                 Log.log.log(Level.WARNING, win + " failed in render()", t);
             }
         }
+    }
+
+    /**
+     * Dispatches a key event.
+     */
+    protected boolean dispatchKeyEvent (Component target, KeyEvent event)
+    {
+        // keep track of keys pressed
+        if (event.getType() == KeyEvent.KEY_PRESSED) {
+            int keyCode = event.getKeyCode();
+            if (_pressed.containsKey(keyCode)) {
+                return false; // we're already repeating the key
+            }
+            _pressed.put(keyCode, new KeyRecord(event));
+
+        } else { // event.getType() == KeyEvent.KEY_RELEASED
+            _pressed.remove(event.getKeyCode());
+        }
+        return dispatchEvent(target, event);
     }
 
     /**
@@ -662,6 +691,36 @@ public abstract class Root
         GL11.glEnd();
     }
 
+    /**
+     * Describes a key being held down.
+     */
+    protected class KeyRecord
+    {
+        public KeyRecord (KeyEvent press)
+        {
+            _press = press;
+            _nextRepeat = press.getWhen() + REPEAT_DELAY;
+        }
+
+        /**
+         * Dispatches a key repeat event if appropriate.
+         */
+        public void maybeRepeat ()
+        {
+            if (_tickStamp < _nextRepeat) {
+                return;
+            }
+            KeyEvent event = new KeyEvent(
+                Root.this, _tickStamp, _modifiers, KeyEvent.KEY_PRESSED,
+                _press.getKeyChar(), _press.getKeyCode());
+            dispatchEvent(getFocus(), event);
+            _nextRepeat += 1000L / REPEAT_RATE;
+        }
+
+        protected KeyEvent _press;
+        protected long _nextRepeat;
+    }
+
     protected GlContext _ctx;
 
     protected Batch _batch = new Batch() {
@@ -689,5 +748,14 @@ public abstract class Root
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
 
+    /** Keys currently pressed, mapped by key code. */
+    protected HashIntMap<KeyRecord> _pressed = new HashIntMap<KeyRecord>();
+
     protected static final float TIP_MODE_RESET = 0.6f;
+
+    /** The key press repeat rate. */
+    protected static final int REPEAT_RATE = 25;
+
+    /** The delay in milliseconds before auto-repeated key presses will begin. */
+    protected static final long REPEAT_DELAY = 500L;
 }

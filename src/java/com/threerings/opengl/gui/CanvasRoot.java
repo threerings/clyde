@@ -8,6 +8,8 @@ import java.awt.EventQueue;
 
 import org.lwjgl.input.Keyboard;
 
+import com.threerings.util.KeyboardManager;
+
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.InputEvent;
@@ -138,7 +140,7 @@ public class CanvasRoot extends Root
             this, e.getWhen(), _modifiers, KeyEvent.KEY_PRESSED,
             e.getKeyChar(), convertKeyCode(e));
         maybeConsume(e, event);
-        dispatchEvent(getFocus(), event);
+        dispatchKeyEvent(getFocus(), event);
     }
 
     // documentation inherited from interface KeyListener
@@ -151,7 +153,7 @@ public class CanvasRoot extends Root
             this, e.getWhen(), _modifiers, KeyEvent.KEY_RELEASED,
             e.getKeyChar(), convertKeyCode(e));
         maybeConsume(e, event);
-        dispatchEvent(getFocus(), event);
+        dispatchKeyEvent(getFocus(), event);
     }
 
     // documentation inherited from interface KeyListener
