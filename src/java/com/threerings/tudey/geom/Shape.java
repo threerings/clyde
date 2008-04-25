@@ -113,7 +113,7 @@ public abstract class Shape
     @Override // documentation inherited
     public boolean equals (Object other)
     {
-        return (this == other) || (other != null && getClass() == other.getClass());
+        return other != null && getClass() == other.getClass();
     }
 
     @Override // documentation inherited
