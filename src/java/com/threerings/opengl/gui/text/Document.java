@@ -82,13 +82,13 @@ public class Document
      */
     public int indexOfWordEnd (int from)
     {
-        // consume the current block of whitespace, if any, then look for the next
-        boolean consumingWhitespace = true;
+        // consume the current block of nonword characters, if any, then look for the next
+        boolean consumingNonword = true;
         for (int ii = from, nn = _text.length(); ii < nn; ii++) {
-            boolean whitespace = Character.isWhitespace(_text.charAt(ii));
-            if (consumingWhitespace) {
-                consumingWhitespace = whitespace;
-            } else if (whitespace) {
+            boolean nonword = !Character.isLetterOrDigit(_text.charAt(ii));
+            if (consumingNonword) {
+                consumingNonword = nonword;
+            } else if (nonword) {
                 return ii;
             }
         }
@@ -100,13 +100,13 @@ public class Document
      */
     public int lastIndexOfWordStart (int from)
     {
-        // consume the current block of whitespace, if any, then look for the previous
-        boolean consumingWhitespace = true;
+        // consume the current block of nonword characters, if any, then look for the previous
+        boolean consumingNonword = true;
         for (int ii = from - 1; ii >= 0; ii--) {
-            boolean whitespace = Character.isWhitespace(_text.charAt(ii));
-            if (consumingWhitespace) {
-                consumingWhitespace = whitespace;
-            } else if (whitespace) {
+            boolean nonword = !Character.isLetterOrDigit(_text.charAt(ii));
+            if (consumingNonword) {
+                consumingNonword = nonword;
+            } else if (nonword) {
                 return ii + 1;
             }
         }
