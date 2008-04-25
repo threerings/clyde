@@ -24,14 +24,20 @@ public interface EditCommands
     public static final int CURSOR_RIGHT = 4;
 
     /** A text editing command. */
-    public static final int START_OF_LINE = 5;
+    public static final int WORD_LEFT = 5;
 
     /** A text editing command. */
-    public static final int END_OF_LINE = 6;
+    public static final int WORD_RIGHT = 6;
 
     /** A text editing command. */
-    public static final int RELEASE_FOCUS = 7;
+    public static final int START_OF_LINE = 7;
 
     /** A text editing command. */
-    public static final int CLEAR = 8;
+    public static final int END_OF_LINE = 8;
+
+    /** A text editing command. */
+    public static final int RELEASE_FOCUS = 9;
+
+    /** A text editing command. */
+    public static final int CLEAR = 10;
 }

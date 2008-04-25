@@ -197,6 +197,14 @@ public class TextField extends TextComponent
                     setCursorPos(Math.min(_text.getLength(), _cursp+1));
                     break;
 
+                case WORD_LEFT:
+                    setCursorPos(_text.lastIndexOfWordStart(_cursp));
+                    break;
+
+                case WORD_RIGHT:
+                    setCursorPos(_text.indexOfWordEnd(_cursp));
+                    break;
+
                 case START_OF_LINE:
                     setCursorPos(0);
                     break;

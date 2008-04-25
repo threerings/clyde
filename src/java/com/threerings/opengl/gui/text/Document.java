@@ -77,6 +77,42 @@ public class Document
         return replace(0, getLength(), text);
     }
 
+    /**
+     * Finds the location of the first word end boundary after the specified position.
+     */
+    public int indexOfWordEnd (int from)
+    {
+        // consume the current block of whitespace, if any, then look for the next
+        boolean consumingWhitespace = true;
+        for (int ii = from, nn = _text.length(); ii < nn; ii++) {
+            boolean whitespace = Character.isWhitespace(_text.charAt(ii));
+            if (consumingWhitespace) {
+                consumingWhitespace = whitespace;
+            } else if (whitespace) {
+                return ii;
+            }
+        }
+        return _text.length();
+    }
+
+    /**
+     * Finds the location of the last word start boundary before the specified position.
+     */
+    public int lastIndexOfWordStart (int from)
+    {
+        // consume the current block of whitespace, if any, then look for the previous
+        boolean consumingWhitespace = true;
+        for (int ii = from - 1; ii >= 0; ii--) {
+            boolean whitespace = Character.isWhitespace(_text.charAt(ii));
+            if (consumingWhitespace) {
+                consumingWhitespace = whitespace;
+            } else if (whitespace) {
+                return ii + 1;
+            }
+        }
+        return 0;
+    }
+
     /** Returns the number of characters in the document. */
     public int getLength ()
     {
