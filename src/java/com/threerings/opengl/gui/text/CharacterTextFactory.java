@@ -314,7 +314,7 @@ public class CharacterTextFactory extends TextFactory
                 }
                 // render the glyph to the scratch image
                 _graphics.clearRect(0, 0, _scratch.getWidth(), _scratch.getHeight());
-                Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height);
+                Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height - 1);
                 if (_effect == OUTLINE) {
                     _graphics.setStroke(new BasicStroke(
                         _size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
