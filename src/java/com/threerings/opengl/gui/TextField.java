@@ -5,6 +5,8 @@ package com.threerings.opengl.gui;
 
 import org.lwjgl.opengl.GL11;
 
+import com.samskivert.util.IntTuple;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -155,10 +157,9 @@ public class TextField extends TextComponent
     // documentation inherited from interface Document.Listener
     public void textRemoved (Document document, int offset, int length)
     {
-        // confine the cursor to the new text
-        if (_cursp > _text.getLength()) {
-            setCursorPos(_text.getLength());
-        }
+        // confine the cursor/selection to the new text
+        int len = _text.getLength();
+        setSelection(Math.min(_cursp, len), Math.min(_selp, len));
 
         // if we're already part of the hierarchy, recreate our glyps
         if (isAdded()) {
@@ -184,7 +185,9 @@ public class TextField extends TextComponent
                 int modifiers = kev.getModifiers(), keyCode = kev.getKeyCode();
                 switch (_keymap.lookupMapping(modifiers, keyCode)) {
                 case BACKSPACE:
-                    if (_cursp > 0 && _text.getLength() > 0) {
+                    if (!selectionIsEmpty()) {
+                        deleteSelectedText();
+                    } else if (_cursp > 0 && _text.getLength() > 0) {
                         int pos = _cursp-1;
                         if (_text.remove(pos, 1)) { // might change _cursp
                             setCursorPos(pos);
@@ -193,7 +196,9 @@ public class TextField extends TextComponent
                     break;
 
                 case DELETE:
-                    if (_cursp < _text.getLength()) {
+                    if (!selectionIsEmpty()) {
+                        deleteSelectedText();
+                    } else if (_cursp < _text.getLength()) {
                         _text.remove(_cursp, 1);
                     }
                     break;
@@ -236,28 +241,22 @@ public class TextField extends TextComponent
                     break;
 
                 case CUT:
-                    if (_cursp != _selp) {
-                        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
-                        int length = end - start;
-                        String text = _text.getText(start, length);
-                        if (_text.remove(start, length)) {
-                            getWindow().getRoot().setClipboardText(text);
-                            setCursorPos(start);
-                        }
+                    if (!selectionIsEmpty()) {
+                        getWindow().getRoot().setClipboardText(deleteSelectedText());
                     }
                     break;
 
                 case COPY:
-                    if (_cursp != _selp) {
-                        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
-                        getWindow().getRoot().setClipboardText(_text.getText(start, end - start));
+                    if (!selectionIsEmpty()) {
+                        getWindow().getRoot().setClipboardText(getSelectedText());
                     }
                     break;
 
                 case PASTE:
                     String clip = getWindow().getRoot().getClipboardText();
-                    if (clip != null && _text.insert(_cursp, clip)) {
-                        setCursorPos(_cursp + clip.length());
+                    if (clip != null) {
+                        // this works even if nothing is selected
+                        replaceSelectedText(clip);
                     }
                     break;
 
@@ -266,11 +265,7 @@ public class TextField extends TextComponent
                     char c = kev.getKeyChar();
                     if ((modifiers & ~KeyEvent.SHIFT_DOWN_MASK) == 0 && Character.isDefined(c) &&
                             !Character.isISOControl(c)) {
-                        String text = String.valueOf(c);
-                        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
-                        if (_text.replace(start, end - start, text)) {
-                            setCursorPos(_cursp + 1);
-                        }
+                        replaceSelectedText(String.valueOf(c));
                     } else {
                         return super.dispatchEvent(event);
                     }
@@ -290,7 +285,10 @@ public class TextField extends TextComponent
             int pos = _glyphs.getHitPos(mx, my);
             int type = mev.getType();
             if (type == MouseEvent.MOUSE_PRESSED) {
-                setCursorPos(pos);
+                // if pressed inside the selection, wait for click
+                if (!selectionContains(pos)) {
+                    setCursorPos(pos);
+                }
                 return true;
 
             } else if (type == MouseEvent.MOUSE_DRAGGED) {
@@ -298,19 +296,16 @@ public class TextField extends TextComponent
                 return true;
 
             } else if (type == MouseEvent.MOUSE_CLICKED) {
-                int count = mev.getClickCount();
-                if (count >= 3) {
+                int count = (mev.getClickCount() - 1) % 3;
+                if (count == 0) {
+                    setCursorPos(pos);
+                } else if (count == 1) {
+                    IntTuple extents = _text.getWordExtents(pos);
+                    setSelection(extents.left, extents.right);
+                } else { // count == 2
                     setSelection(_text.getLength(), 0);
-                    return true;
-
-                } else if (count == 2) {
-                    int start = _text.lastIndexOfWordStart(pos);
-                    int end = _text.indexOfWordEnd(pos);
-                    if (end > start) {
-                        setSelection(end, start);
-                    }
-                    return true;
                 }
+                return true;
             }
 
         } else if (event instanceof FocusEvent) {
@@ -501,6 +496,60 @@ public class TextField extends TextComponent
     }
 
     /**
+     * Checks whether the selection is empty.
+     */
+    protected boolean selectionIsEmpty ()
+    {
+        return _cursp == _selp;
+    }
+
+    /**
+     * Determines whether the selection contains the specified position.
+     */
+    protected boolean selectionContains (int pos)
+    {
+        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
+        return pos >= start && pos < end;
+    }
+
+    /**
+     * Returns the currently selected text.
+     */
+    protected String getSelectedText ()
+    {
+        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
+        return _text.getText(start, end - start);
+    }
+
+    /**
+     * Deletes the currently selected text.
+     *
+     * @return the previously selected text (an empty string if nothing was selected).
+     */
+    protected String deleteSelectedText ()
+    {
+        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
+        int length = end - start;
+        String text = _text.getText(start, length);
+        if (_text.remove(start, length)) {
+            setCursorPos(start);
+        }
+        return text;
+    }
+
+    /**
+     * Replaces the currently selected text with the supplied text.
+     */
+    protected void replaceSelectedText (String text)
+    {
+        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
+        int length = end - start;
+        if (_text.replace(start, length, text)) {
+            setCursorPos(start + text.length());
+        }
+    }
+
+    /**
      * Updates the cursor position, moving the visible representation as
      * well as the insertion and deletion point.
      */
@@ -527,8 +576,8 @@ public class TextField extends TextComponent
         }
 
         // scroll our text left or right as necessary
-        if (_selx < _txoff) {
-            _txoff = _selx;
+        if (_cursx < _txoff) {
+            _txoff = _cursx;
         } else {
             int avail = getWidth() - getInsets().getHorizontal();
             if (_cursx > _txoff + avail) {

@@ -6,6 +6,8 @@ package com.threerings.opengl.gui.text;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
+import com.samskivert.util.IntTuple;
+
 import com.threerings.opengl.gui.Log;
 
 /**
@@ -111,6 +113,28 @@ public class Document
             }
         }
         return 0;
+    }
+
+    /**
+     * Given a location in the string, finds the extents (start and end offsets) of connected
+     * word or non-word characters (depending on the character at the start).  Used for
+     * double-click selection.
+     */
+    public IntTuple getWordExtents (int start)
+    {
+        // determine whether the character at the start is a word character
+        int length = _text.length();
+        boolean word = Character.isLetterOrDigit(_text.charAt(Math.min(start, length - 1)));
+
+        // scan backwards and forwards to find the extents
+        while (start > 0 && Character.isLetterOrDigit(_text.charAt(start-1)) == word) {
+            start--;
+        }
+        int end = start;
+        while (end < length && Character.isLetterOrDigit(_text.charAt(end)) == word) {
+            end++;
+        }
+        return new IntTuple(start, end);
     }
 
     /** Returns the number of characters in the document. */

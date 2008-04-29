@@ -131,10 +131,12 @@ public class CharacterTextFactory extends TextFactory
             public int getHitPos (int x, int y) {
                 int tx = 0;
                 for (int ii = 0; ii < glyphs.length; ii++) {
-                    tx += glyphs[ii].width;
+                    int hwidth = glyphs[ii].width/2;
+                    tx += hwidth;
                     if (x < tx) {
                         return ii;
                     }
+                    tx += (glyphs[ii].width - hwidth);
                 }
                 return glyphs.length;
             }
