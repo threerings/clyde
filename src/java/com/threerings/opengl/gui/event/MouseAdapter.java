@@ -21,6 +21,11 @@ public class MouseAdapter
     }
 
     // documentation inherited from interface MouseListener
+    public void mouseClicked (MouseEvent event)
+    {
+    }
+
+    // documentation inherited from interface MouseListener
     public void mouseEntered (MouseEvent event)
     {
     }

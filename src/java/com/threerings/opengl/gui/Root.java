@@ -3,6 +3,11 @@
 
 package com.threerings.opengl.gui;
 
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Level;
@@ -37,6 +42,9 @@ import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
+import static java.util.logging.Level.*;
+import static com.threerings.opengl.gui.Log.*;
+
 /**
  * Connects the BUI system into the JME scene graph.
  */
@@ -61,6 +69,45 @@ public abstract class Root
     public long getTickStamp ()
     {
         return _tickStamp;
+    }
+
+    /**
+     * Returns a reference to the clipboard.
+     */
+    public Clipboard getClipboard ()
+    {
+        return _clipboard;
+    }
+
+    /**
+     * Returns the text in the clipboard, or <code>null</code> for none.
+     */
+    public String getClipboardText ()
+    {
+        if (_clipboard == null) {
+            return null;
+        }
+        try {
+            Transferable contents = _clipboard.getContents(this);
+            return (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) ?
+                (String)contents.getTransferData(DataFlavor.stringFlavor) : null;
+
+        } catch (Exception e) {
+            log.log(WARNING, "Failed to access clipboard.", e);
+            return null;
+        }
+    }
+
+    /**
+     * Sets the text in the clipboard.
+     */
+    public void setClipboardText (String text)
+    {
+        if (_clipboard == null) {
+            return;
+        }
+        StringSelection select = new StringSelection(text);
+        _clipboard.setContents(select, select);
     }
 
     /**
@@ -384,8 +431,8 @@ public abstract class Root
         _tickStamp = System.currentTimeMillis();
 
         // repeat keys as necessary
-        if (!_pressed.isEmpty()) {
-            for (KeyRecord key : _pressed.values()) {
+        if (!_pressedKeys.isEmpty()) {
+            for (KeyRecord key : _pressedKeys.values()) {
                 key.maybeRepeat();
             }
         }
@@ -506,20 +553,37 @@ public abstract class Root
     }
 
     /**
-     * Dispatches a key event.
+     * Dispatches a mouse event, performing extra processing for clicks.
+     */
+    protected boolean dispatchMouseEvent (Component target, MouseEvent event)
+    {
+        boolean dispatched = dispatchEvent(target, event);
+
+        // note press/release events
+        int type = event.getType();
+        if (type == MouseEvent.MOUSE_PRESSED) {
+            _buttons[event.getButton()].wasPressed(target, event);
+        } else if (type == MouseEvent.MOUSE_RELEASED) {
+            _buttons[event.getButton()].wasReleased(target, event);
+        }
+        return dispatched;
+    }
+
+    /**
+     * Dispatches a key event, performing extra processing for key repeats.
      */
     protected boolean dispatchKeyEvent (Component target, KeyEvent event)
     {
         // keep track of keys pressed
         if (event.getType() == KeyEvent.KEY_PRESSED) {
             int keyCode = event.getKeyCode();
-            if (_pressed.containsKey(keyCode)) {
+            if (_pressedKeys.containsKey(keyCode)) {
                 return false; // we're already repeating the key
             }
-            _pressed.put(keyCode, new KeyRecord(event));
+            _pressedKeys.put(keyCode, new KeyRecord(event));
 
         } else { // event.getType() == KeyEvent.KEY_RELEASED
-            _pressed.remove(event.getKeyCode());
+            _pressedKeys.remove(event.getKeyCode());
         }
         return dispatchEvent(target, event);
     }
@@ -692,6 +756,42 @@ public abstract class Root
     }
 
     /**
+     * Contains the state of a mouse button.
+     */
+    protected class ButtonRecord
+    {
+        /**
+         * Called when the button is pressed.
+         */
+        public void wasPressed (Component target, MouseEvent press)
+        {
+            long when = press.getWhen();
+            _clickTime = when + CLICK_INTERVAL;
+            _count = (when < _chainTime) ? (_count + 1) : 1;
+            _target = target;
+        }
+
+        /**
+         * Called when the button is released.
+         */
+        public void wasReleased (Component target, MouseEvent release)
+        {
+            long when = release.getWhen();
+            if (target == _target && when < _clickTime) {
+                MouseEvent event = new MouseEvent(
+                    Root.this, when, _modifiers, MouseEvent.MOUSE_CLICKED,
+                    release.getButton(), release.getX(), release.getY(), _count);
+                dispatchEvent(_target, event);
+                _chainTime = when + CLICK_CHAIN_INTERVAL;
+            }
+        }
+
+        protected long _clickTime, _chainTime;
+        protected int _count;
+        protected Component _target;
+    }
+
+    /**
      * Describes a key being held down.
      */
     protected class KeyRecord
@@ -699,7 +799,7 @@ public abstract class Root
         public KeyRecord (KeyEvent press)
         {
             _press = press;
-            _nextRepeat = press.getWhen() + REPEAT_DELAY;
+            _nextRepeat = press.getWhen() + KEY_REPEAT_DELAY;
         }
 
         /**
@@ -714,7 +814,7 @@ public abstract class Root
                 Root.this, _tickStamp, _modifiers, KeyEvent.KEY_PRESSED,
                 _press.getKeyChar(), _press.getKeyCode());
             dispatchEvent(getFocus(), event);
-            _nextRepeat += 1000L / REPEAT_RATE;
+            _nextRepeat += 1000L / KEY_REPEAT_RATE;
         }
 
         protected KeyEvent _press;
@@ -733,6 +833,7 @@ public abstract class Root
     protected long _tickStamp;
     protected int _modifiers;
     protected int _mouseX, _mouseY;
+    protected Clipboard _clipboard;
 
     protected Window _tipwin;
     protected float _lastMoveTime, _tipTime = 1f, _lastTipTime;
@@ -748,14 +849,24 @@ public abstract class Root
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
 
+    /** Mouse button information. */
+    protected ButtonRecord[] _buttons = new ButtonRecord[] {
+        new ButtonRecord(), new ButtonRecord(), new ButtonRecord() };
+
     /** Keys currently pressed, mapped by key code. */
-    protected HashIntMap<KeyRecord> _pressed = new HashIntMap<KeyRecord>();
+    protected HashIntMap<KeyRecord> _pressedKeys = new HashIntMap<KeyRecord>();
 
     protected static final float TIP_MODE_RESET = 0.6f;
 
+    /** Mouse buttons released within this interval after being pressed are counted as clicks. */
+    protected static final long CLICK_INTERVAL = 250L;
+
+    /** Clicks this close to one another are chained together for counting purposes. */
+    protected static final long CLICK_CHAIN_INTERVAL = 250L;
+
     /** The key press repeat rate. */
-    protected static final int REPEAT_RATE = 25;
+    protected static final int KEY_REPEAT_RATE = 25;
 
     /** The delay in milliseconds before auto-repeated key presses will begin. */
-    protected static final long REPEAT_DELAY = 500L;
+    protected static final long KEY_REPEAT_DELAY = 500L;
 }

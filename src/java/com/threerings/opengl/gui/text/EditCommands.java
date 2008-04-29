@@ -40,4 +40,13 @@ public interface EditCommands
 
     /** A text editing command. */
     public static final int CLEAR = 10;
+
+    /** A text editing command. */
+    public static final int CUT = 11;
+
+    /** A text editing command. */
+    public static final int COPY = 12;
+
+    /** A text editing command. */
+    public static final int PASTE = 13;
 }

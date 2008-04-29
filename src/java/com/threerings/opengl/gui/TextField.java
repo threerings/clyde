@@ -131,6 +131,15 @@ public class TextField extends TextComponent
         _prefWidth = width;
     }
 
+    /**
+     * Returns the selection background configured for this component.
+     */
+    public Background getSelectionBackground ()
+    {
+        Background background = _selectionBackgrounds[getState()];
+        return (background != null) ? background : _selectionBackgrounds[DEFAULT];
+    }
+
     // documentation inherited from interface Document.Listener
     public void textInserted (Document document, int offset, int length)
     {
@@ -226,13 +235,40 @@ public class TextField extends TextComponent
                     _text.setText("");
                     break;
 
+                case CUT:
+                    if (_cursp != _selp) {
+                        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
+                        int length = end - start;
+                        String text = _text.getText(start, length);
+                        if (_text.remove(start, length)) {
+                            getWindow().getRoot().setClipboardText(text);
+                            setCursorPos(start);
+                        }
+                    }
+                    break;
+
+                case COPY:
+                    if (_cursp != _selp) {
+                        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
+                        getWindow().getRoot().setClipboardText(_text.getText(start, end - start));
+                    }
+                    break;
+
+                case PASTE:
+                    String clip = getWindow().getRoot().getClipboardText();
+                    if (clip != null && _text.insert(_cursp, clip)) {
+                        setCursorPos(_cursp + clip.length());
+                    }
+                    break;
+
                 default:
                     // insert printable and shifted printable characters
                     char c = kev.getKeyChar();
                     if ((modifiers & ~KeyEvent.SHIFT_DOWN_MASK) == 0 && Character.isDefined(c) &&
                             !Character.isISOControl(c)) {
                         String text = String.valueOf(c);
-                        if (_text.insert(_cursp, text)) {
+                        int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
+                        if (_text.replace(start, end - start, text)) {
                             setCursorPos(_cursp + 1);
                         }
                     } else {
@@ -244,16 +280,37 @@ public class TextField extends TextComponent
                 return true; // we've consumed these events
             }
 
-        } else if (event instanceof MouseEvent) {
+        } else if (event instanceof MouseEvent &&
+            // don't adjust the cursor/selection if we have no text
+            _text.getLength() > 0) {
             MouseEvent mev = (MouseEvent)event;
-            if (mev.getType() == MouseEvent.MOUSE_PRESSED &&
-                // don't adjust the cursor if we have no text
-                _text.getLength() > 0) {
-                Insets insets = getInsets();
-                int mx = mev.getX() - getAbsoluteX() - insets.left + _txoff,
-                    my = mev.getY() - getAbsoluteY() - insets.bottom;
-                setCursorPos(_glyphs.getHitPos(mx, my));
+            Insets insets = getInsets();
+            int mx = mev.getX() - getAbsoluteX() - insets.left + _txoff,
+                my = mev.getY() - getAbsoluteY() - insets.bottom;
+            int pos = _glyphs.getHitPos(mx, my);
+            int type = mev.getType();
+            if (type == MouseEvent.MOUSE_PRESSED) {
+                setCursorPos(pos);
                 return true;
+
+            } else if (type == MouseEvent.MOUSE_DRAGGED) {
+                setSelection(pos, _selp);
+                return true;
+
+            } else if (type == MouseEvent.MOUSE_CLICKED) {
+                int count = mev.getClickCount();
+                if (count >= 3) {
+                    setSelection(_text.getLength(), 0);
+                    return true;
+
+                } else if (count == 2) {
+                    int start = _text.lastIndexOfWordStart(pos);
+                    int end = _text.indexOfWordEnd(pos);
+                    if (end > start) {
+                        setSelection(end, start);
+                    }
+                    return true;
+                }
             }
 
         } else if (event instanceof FocusEvent) {
@@ -282,6 +339,12 @@ public class TextField extends TextComponent
     protected void configureStyle (StyleSheet style)
     {
         super.configureStyle(style);
+
+        // configure our selection backgrounds
+        for (int ii = 0; ii < getStateCount(); ii++) {
+            _selectionBackgrounds[ii] = style.getSelectionBackground(
+                this, getStatePseudoClass(ii));
+        }
 
         // look up our keymap
         _keymap = style.getKeyMap(this, null);
@@ -326,6 +389,20 @@ public class TextField extends TextComponent
 
         Insets insets = getInsets();
 
+        // render the selection background if appropriate
+        if (_showCursor && _cursx != _selx) {
+            Background background = getSelectionBackground();
+            if (background != null) {
+                int cx = _cursx - _txoff;
+                int sx = Math.min(Math.max(_selx - _txoff, 0),
+                    _width - insets.getHorizontal() - 1);
+                int x1 = Math.min(cx, sx), x2 = Math.max(cx, sx);
+                background.render(
+                    renderer, insets.left + x1, insets.bottom,
+                    x2 - x1 + 1, getTextFactory().getHeight(), _alpha);
+            }
+        }
+
         // render our text
         if (_glyphs != null) {
             // clip the text to our visible text region
@@ -344,7 +421,7 @@ public class TextField extends TextComponent
         }
 
         // render the cursor if we have focus
-        if (_showCursor) {
+        if (_showCursor && _cursx == _selx) {
             int cx = insets.left - _txoff + _cursx;
             renderer.setColorState(getColor());
             renderer.setTextureState(null);
@@ -394,7 +471,7 @@ public class TextField extends TextComponent
 
         // if we have no text, clear out all our internal markers
         if (_text.getLength() == 0) {
-            _txoff = _cursp = _cursx = 0;
+            _txoff = _cursp = _cursx = _selp = _selx = 0;
             return;
         }
 
@@ -402,7 +479,7 @@ public class TextField extends TextComponent
         _glyphs = getTextFactory().createText(
             getDisplayText(), getColor(), UIConstants.PLAIN,
             UIConstants.DEFAULT_SIZE, null, true);
-        setCursorPos(_cursp);
+        setSelection(_cursp, _selp);
     }
 
     /**
@@ -429,19 +506,29 @@ public class TextField extends TextComponent
      */
     protected void setCursorPos (int cursorPos)
     {
-        // note the new cursor character position
-        _cursp = cursorPos;
+        setSelection(cursorPos, cursorPos);
+    }
 
-        // compute the new cursor screen position
+    /**
+     * Updates the selection.
+     */
+    protected void setSelection (int cursorPos, int selectPos)
+    {
+        // note the new selection
+        _cursp = cursorPos;
+        _selp = selectPos;
+
+        // compute the new screen positions
         if (_glyphs != null) {
             _cursx = _glyphs.getCursorPos(cursorPos);
+            _selx = _glyphs.getCursorPos(selectPos);
         } else {
-            _cursx = 0;
+            _cursx = _selx = 0;
         }
 
         // scroll our text left or right as necessary
-        if (_cursx < _txoff) {
-            _txoff = _cursx;
+        if (_selx < _txoff) {
+            _txoff = _selx;
         } else {
             int avail = getWidth() - getInsets().getHorizontal();
             if (_cursx > _txoff + avail) {
@@ -459,7 +546,9 @@ public class TextField extends TextComponent
 
     protected int _prefWidth = -1;
     protected boolean _showCursor;
-    protected int _cursp, _cursx, _txoff;
+    protected int _cursp, _selp, _cursx, _selx, _txoff;
+
+    protected Background[] _selectionBackgrounds = new Background[getStateCount()];
 
     protected Rectangle _srect = new Rectangle();
 }

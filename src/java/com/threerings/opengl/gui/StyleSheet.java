@@ -235,6 +235,11 @@ public class StyleSheet
         return new DefaultKeyMap();
     }
 
+    public Background getSelectionBackground (Component component, String pseudoClass)
+    {
+        return (Background)findProperty(component, pseudoClass, "selection-background", false);
+    }
+
     protected Object findProperty (
         Component component, String pseudoClass, String property, boolean climb)
     {
@@ -383,7 +388,7 @@ public class StyleSheet
         if (name.equals("color") || name.equals("effect-color")) {
             return parseColor((String)args.get(0));
 
-        } else if (name.equals("background")) {
+        } else if (name.equals("background") || name.equals("selection-background")) {
             BackgroundProperty bprop = new BackgroundProperty();
             bprop.type = (String)args.get(0);
             if (bprop.type.equals("solid")) {

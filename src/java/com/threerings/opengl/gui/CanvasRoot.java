@@ -26,6 +26,7 @@ public class CanvasRoot extends Root
     {
         super(ctx);
         _canvas = canvas;
+        _clipboard = canvas.getToolkit().getSystemSelection();
 
         // we want to hear about mouse movement, clicking, and keys
         canvas.addMouseListener(this);
@@ -77,7 +78,7 @@ public class CanvasRoot extends Root
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_PRESSED,
             convertButton(e), _mouseX, _mouseY);
         maybeConsume(e, event);
-        dispatchEvent(_ccomponent, event);
+        dispatchMouseEvent(_ccomponent, event);
     }
 
     // documentation inherited from interface MouseListener
@@ -89,7 +90,7 @@ public class CanvasRoot extends Root
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_RELEASED,
             convertButton(e), _mouseX, _mouseY);
         maybeConsume(e, event);
-        dispatchEvent(getTargetComponent(), event);
+        dispatchMouseEvent(getTargetComponent(), event);
         _ccomponent = null;
     }
 
@@ -112,7 +113,7 @@ public class CanvasRoot extends Root
             MouseEvent event = new MouseEvent(
                 this, e.getWhen(), _modifiers, type, _mouseX, _mouseY);
             maybeConsume(e, event);
-            dispatchEvent(tcomponent, event);
+            dispatchMouseEvent(tcomponent, event);
         }
     }
 
@@ -123,9 +124,9 @@ public class CanvasRoot extends Root
 
         MouseEvent event = new MouseEvent(
             this, e.getWhen(), _modifiers, MouseEvent.MOUSE_WHEELED,
-            convertButton(e), _mouseX, _mouseY, -e.getWheelRotation());
+            convertButton(e), _mouseX, _mouseY, 0, -e.getWheelRotation());
         maybeConsume(e, event);
-        dispatchEvent(getTargetComponent(), event);
+        dispatchMouseEvent(getTargetComponent(), event);
     }
 
     // documentation inherited from interface KeyListener

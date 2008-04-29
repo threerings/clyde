@@ -14,22 +14,25 @@ public class MouseEvent extends InputEvent
     /** An event generated when a mouse button is released. */
     public static final int MOUSE_RELEASED = 1;
 
+    /** An event generated when a mouse button is clicked. */
+    public static final int MOUSE_CLICKED = 2;
+
     /** An event generated when the mouse enters a component's bounds. */
-    public static final int MOUSE_ENTERED = 2;
+    public static final int MOUSE_ENTERED = 3;
 
     /** An event generated when the mouse exits a component's bounds. */
-    public static final int MOUSE_EXITED = 3;
+    public static final int MOUSE_EXITED = 4;
 
     /** An event generated when the mouse is moved. */
-    public static final int MOUSE_MOVED = 4;
+    public static final int MOUSE_MOVED = 5;
 
     /** An event generated when the mouse is dragged. Drag events are
      * dispatched to the component in which a mouse is clicked and held
      * for all movement until all buttons are released. */
-    public static final int MOUSE_DRAGGED = 5;
+    public static final int MOUSE_DRAGGED = 6;
 
     /** An event generated when the mouse wheel was rotated. */
-    public static final int MOUSE_WHEELED = 6;
+    public static final int MOUSE_WHEELED = 7;
 
     /** A constant representing the "left" mouse button. */
     public static final int BUTTON1 = 0;
@@ -43,7 +46,7 @@ public class MouseEvent extends InputEvent
     public MouseEvent (Object source, long when, int modifiers, int type,
                        int mx, int my)
     {
-        this(source, when, modifiers, type, -1, mx, my, 0);
+        this(source, when, modifiers, type, -1, mx, my);
     }
 
     public MouseEvent (Object source, long when, int modifiers, int type,
@@ -53,13 +56,20 @@ public class MouseEvent extends InputEvent
     }
 
     public MouseEvent (Object source, long when, int modifiers, int type,
-                       int button, int mx, int my, int delta)
+                       int button, int mx, int my, int ccount)
+    {
+        this(source, when, modifiers, type, button, mx, my, ccount, 0);
+    }
+
+    public MouseEvent (Object source, long when, int modifiers, int type,
+                       int button, int mx, int my, int ccount, int delta)
     {
         super(source, when, modifiers);
         _type = type;
         _button = button;
         _mx = mx;
         _my = my;
+        _ccount = ccount;
         _delta = delta;
     }
 
@@ -101,6 +111,14 @@ public class MouseEvent extends InputEvent
     }
 
     /**
+     * Returns the click count of the event.
+     */
+    public int getClickCount ()
+    {
+        return _ccount;
+    }
+
+    /**
      * For mouse wheel events this indicates the delta by which the wheel
      * was moved. The units seem to be defined by the underlying OpenGL
      * wrapper, presently LWJGL.
@@ -124,6 +142,12 @@ public class MouseEvent extends InputEvent
         case MOUSE_RELEASED:
             if (listener instanceof MouseListener) {
                 ((MouseListener)listener).mouseReleased(this);
+            }
+            break;
+
+        case MOUSE_CLICKED:
+            if (listener instanceof MouseListener) {
+                ((MouseListener)listener).mouseClicked(this);
             }
             break;
 
@@ -166,6 +190,9 @@ public class MouseEvent extends InputEvent
         buf.append(", button=").append(_button);
         buf.append(", x=").append(_mx);
         buf.append(", y=").append(_my);
+        if (_ccount != 0) {
+            buf.append(", ccount=").append(_ccount);
+        }
         if (_delta != 0) {
             buf.append(", delta=").append(_delta);
         }
@@ -175,5 +202,6 @@ public class MouseEvent extends InputEvent
     protected int _button;
     protected int _mx;
     protected int _my;
+    protected int _ccount;
     protected int _delta;
 }
