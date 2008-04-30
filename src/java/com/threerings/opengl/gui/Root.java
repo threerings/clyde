@@ -557,6 +557,7 @@ public abstract class Root
      */
     protected boolean dispatchMouseEvent (Component target, MouseEvent event)
     {
+        // dispatch event before click processing
         boolean dispatched = dispatchEvent(target, event);
 
         // note press/release events

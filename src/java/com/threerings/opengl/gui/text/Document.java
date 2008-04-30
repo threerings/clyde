@@ -88,6 +88,7 @@ public class Document
     /**
      * Replaces the current contents of the document with the specified text.
      *
+     * @param undoId an id used to group compound edits for undo (-1 if not undoable).
      * @return true if the text was changed, false if it was rejected by the
      * document validator.
      */
@@ -163,6 +164,7 @@ public class Document
     /**
      * Inserts the specified text at the specified offset.
      *
+     * @param undoId an id used to group compound edits for undo (-1 if not undoable).
      * @return true if the text was inserted, false if it was rejected by the
      * document validator.
      */
@@ -174,6 +176,7 @@ public class Document
     /**
      * Deletes specified run of text at the specified offset.
      *
+     * @param undoId an id used to group compound edits for undo (-1 if not undoable).
      * @return true if the text was removed, false if it was rejected by the
      * document validator.
      */
@@ -185,6 +188,7 @@ public class Document
     /**
      * Replaces the specified run of text with the supplied new text.
      *
+     * @param undoId an id used to group compound edits for undo (-1 if not undoable).
      * @return true if the text was replaced, false if it was rejected by the
      * document validator.
      */
@@ -206,8 +210,14 @@ public class Document
 
         if (undoId > 0) {
             if (undoId != _lastUndoId) {
+                // rather than using the "real" compound edit, which will only add edits while it's
+                // in progress, we create a simpler compound edit that we can post immediately and
+                // keep adding events to it until the undo id changes
                 _undosup.postEdit(_compoundEdit = new AbstractUndoableEdit() {
                     public boolean addEdit (UndoableEdit edit) {
+                        // we use "significance" as the condition for whether we can combine
+                        // events.  this is useful for making sure that the compound events
+                        // aren't compounded with each other in the UndoManager
                         return edit.isSignificant() ? false : _edits.add(edit);
                     }
                     public void undo () {

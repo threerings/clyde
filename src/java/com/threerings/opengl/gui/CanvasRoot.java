@@ -92,6 +92,7 @@ public class CanvasRoot extends Root
         maybeConsume(e, event);
         dispatchMouseEvent(getTargetComponent(), event);
         _ccomponent = null;
+        updateHoverComponent(_mouseX, _mouseY);
     }
 
     // documentation inherited from interface MouseMotionListener
@@ -159,6 +160,15 @@ public class CanvasRoot extends Root
     public void keyTyped (java.awt.event.KeyEvent e)
     {
         // N/A
+    }
+
+    @Override // documentation inherited
+    protected void updateHoverComponent (int mx, int my)
+    {
+        // delay updating the hover component if we have a clicked component
+        if (_ccomponent == null) {
+            super.updateHoverComponent(mx, my);
+        }
     }
 
     protected boolean updateState (java.awt.event.MouseEvent e)

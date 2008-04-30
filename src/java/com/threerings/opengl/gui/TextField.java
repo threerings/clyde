@@ -619,11 +619,12 @@ public class TextField extends TextComponent
     /**
      * Returns an undo operation id.
      *
-     * @param compoundType if non-null and equal to the last compound type, return the same
-     * undo id as last time.
+     * @param compoundType identifies the edit type for purposes of compounding events together.
      */
     protected int nextUndoId (CompoundType compoundType)
     {
+        // usually, we group edits with the same compound type under the same undo id; however,
+        // we have a special case used to group words with their trailing whitespace/punctuation
         if ((compoundType != null && compoundType == _lastCompoundType) ||
                 (compoundType == CompoundType.NONWORD_CHAR &&
                     _lastCompoundType == CompoundType.WORD_CHAR)) {
