@@ -6,6 +6,11 @@ package com.threerings.opengl.gui.text;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.UndoableEdit;
+import javax.swing.undo.UndoableEditSupport;
+
 import com.samskivert.util.IntTuple;
 
 import com.threerings.opengl.gui.Log;
@@ -56,6 +61,18 @@ public class Document
         }
     }
 
+    /** Adds a listener for undoable edits. */
+    public void addUndoableEditListener (UndoableEditListener listener)
+    {
+        _undosup.addUndoableEditListener(listener);
+    }
+
+    /** Removes a listener for undoable edits. */
+    public void removeUndoableEditListener (UndoableEditListener listener)
+    {
+        _undosup.removeUndoableEditListener(listener);
+    }
+
     /** Returns the entire text of the document. */
     public String getText ()
     {
@@ -74,9 +91,9 @@ public class Document
      * @return true if the text was changed, false if it was rejected by the
      * document validator.
      */
-    public boolean setText (String text)
+    public boolean setText (String text, int undoId)
     {
-        return replace(0, getLength(), text);
+        return replace(0, getLength(), text, undoId);
     }
 
     /**
@@ -149,9 +166,9 @@ public class Document
      * @return true if the text was inserted, false if it was rejected by the
      * document validator.
      */
-    public boolean insert (int offset, String text)
+    public boolean insert (int offset, String text, int undoId)
     {
-        return replace(offset, 0, text);
+        return replace(offset, 0, text, undoId);
     }
 
     /**
@@ -160,9 +177,9 @@ public class Document
      * @return true if the text was removed, false if it was rejected by the
      * document validator.
      */
-    public boolean remove (int offset, int length)
+    public boolean remove (int offset, int length, int undoId)
     {
-        return replace(offset, length, "");
+        return replace(offset, length, "", undoId);
     }
 
     /**
@@ -171,7 +188,7 @@ public class Document
      * @return true if the text was replaced, false if it was rejected by the
      * document validator.
      */
-    public boolean replace (int offset, int length, String text)
+    public boolean replace (final int offset, final int length, final String text, int undoId)
     {
         StringBuffer buf = new StringBuffer();
         if (offset > 0) {
@@ -186,6 +203,44 @@ public class Document
         if (!validateEdit(_text, ntext)) {
             return false;
         }
+
+        if (undoId > 0) {
+            if (undoId != _lastUndoId) {
+                _undosup.postEdit(_compoundEdit = new AbstractUndoableEdit() {
+                    public boolean addEdit (UndoableEdit edit) {
+                        return edit.isSignificant() ? false : _edits.add(edit);
+                    }
+                    public void undo () {
+                        super.undo();
+                        for (int ii = _edits.size() - 1; ii >= 0; ii--) {
+                            _edits.get(ii).undo();
+                        }
+                    }
+                    public void redo () {
+                        super.redo();
+                        for (int ii = 0, nn = _edits.size(); ii < nn; ii++) {
+                            _edits.get(ii).redo();
+                        }
+                    }
+                    protected ArrayList<UndoableEdit> _edits = new ArrayList<UndoableEdit>();
+                });
+            }
+            final String otext = _text.substring(offset, offset + length);
+            _compoundEdit.addEdit(new AbstractUndoableEdit() {
+                public void undo () {
+                    super.undo();
+                    replace(offset, text.length(), otext, -1);
+                }
+                public void redo () {
+                    super.redo();
+                    replace(offset, length, text, -1);
+                }
+                public boolean isSignificant () {
+                    return false;
+                }
+            });
+        }
+        _lastUndoId = undoId;
 
         _text = ntext;
         if (length > 0) {
@@ -236,4 +291,7 @@ public class Document
 
     protected String _text = "";
     protected ArrayList<Listener> _listeners;
+    protected UndoableEditSupport _undosup = new UndoableEditSupport(this);
+    protected UndoableEdit _compoundEdit;
+    protected int _lastUndoId;
 }

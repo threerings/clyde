@@ -34,6 +34,9 @@ public class DefaultKeyMap extends KeyMap
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_C, EditCommands.COPY);
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_V, EditCommands.PASTE);
 
+        addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_Z, EditCommands.UNDO);
+        addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_Y, EditCommands.REDO);
+
         // some emacs commands because I love them so
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_A,
                    EditCommands.START_OF_LINE);

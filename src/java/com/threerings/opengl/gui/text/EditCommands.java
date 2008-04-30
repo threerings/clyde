@@ -49,4 +49,10 @@ public interface EditCommands
 
     /** A text editing command. */
     public static final int PASTE = 13;
+
+    /** A text editing command. */
+    public static final int UNDO = 14;
+
+    /** A text editing command. */
+    public static final int REDO = 15;
 }

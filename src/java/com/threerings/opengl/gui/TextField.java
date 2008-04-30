@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui;
 
+import javax.swing.undo.UndoManager;
+
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.IntTuple;
@@ -81,7 +83,8 @@ public class TextField extends TextComponent
             text = "";
         }
         if (!_text.getText().equals(text)) {
-            _text.setText(text);
+            _text.setText(text, -1);
+            _undomgr.discardAllEdits();
         }
     }
 
@@ -112,6 +115,7 @@ public class TextField extends TextComponent
     {
         _text = document;
         _text.addListener(this);
+        _text.addUndoableEditListener(_undomgr);
     }
 
     /**
@@ -145,6 +149,9 @@ public class TextField extends TextComponent
     // documentation inherited from interface Document.Listener
     public void textInserted (Document document, int offset, int length)
     {
+        // put the cursor at the end of the insertion
+        setCursorPos(offset + length);
+
         // if we're already part of the hierarchy, recreate our glyps
         if (isAdded()) {
             recreateGlyphs();
@@ -157,9 +164,8 @@ public class TextField extends TextComponent
     // documentation inherited from interface Document.Listener
     public void textRemoved (Document document, int offset, int length)
     {
-        // confine the cursor/selection to the new text
-        int len = _text.getLength();
-        setSelection(Math.min(_cursp, len), Math.min(_selp, len));
+        // put the cursor at the beginning of the deletion
+        setCursorPos(offset);
 
         // if we're already part of the hierarchy, recreate our glyps
         if (isAdded()) {
@@ -189,8 +195,9 @@ public class TextField extends TextComponent
                         deleteSelectedText();
                     } else if (_cursp > 0 && _text.getLength() > 0) {
                         int pos = _cursp-1;
-                        if (_text.remove(pos, 1)) { // might change _cursp
+                        if (_text.remove(pos, 1, nextUndoId(CompoundType.BACKSPACE))) {
                             setCursorPos(pos);
+                            _lastCompoundType = CompoundType.BACKSPACE;
                         }
                     }
                     break;
@@ -199,7 +206,8 @@ public class TextField extends TextComponent
                     if (!selectionIsEmpty()) {
                         deleteSelectedText();
                     } else if (_cursp < _text.getLength()) {
-                        _text.remove(_cursp, 1);
+                        _text.remove(_cursp, 1, nextUndoId(CompoundType.DELETE));
+                        _lastCompoundType = CompoundType.DELETE;
                     }
                     break;
 
@@ -237,7 +245,7 @@ public class TextField extends TextComponent
                     break;
 
                 case CLEAR:
-                    _text.setText("");
+                    _text.setText("", nextUndoId(null));
                     break;
 
                 case CUT:
@@ -256,7 +264,19 @@ public class TextField extends TextComponent
                     String clip = getWindow().getRoot().getClipboardText();
                     if (clip != null) {
                         // this works even if nothing is selected
-                        replaceSelectedText(clip);
+                        replaceSelectedText(clip, null);
+                    }
+                    break;
+
+                case UNDO:
+                    if (_undomgr.canUndo()) {
+                        _undomgr.undo();
+                    }
+                    break;
+
+                case REDO:
+                    if (_undomgr.canRedo()) {
+                        _undomgr.redo();
                     }
                     break;
 
@@ -265,7 +285,9 @@ public class TextField extends TextComponent
                     char c = kev.getKeyChar();
                     if ((modifiers & ~KeyEvent.SHIFT_DOWN_MASK) == 0 && Character.isDefined(c) &&
                             !Character.isISOControl(c)) {
-                        replaceSelectedText(String.valueOf(c));
+                        replaceSelectedText(String.valueOf(c),
+                            Character.isLetterOrDigit(c) ?
+                                CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
                     } else {
                         return super.dispatchEvent(event);
                     }
@@ -455,6 +477,7 @@ public class TextField extends TextComponent
     protected void lostFocus ()
     {
         _showCursor = false;
+        _undomgr.discardAllEdits();
     }
 
     /**
@@ -531,7 +554,7 @@ public class TextField extends TextComponent
         int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
         int length = end - start;
         String text = _text.getText(start, length);
-        if (_text.remove(start, length)) {
+        if (_text.remove(start, length, nextUndoId(null))) {
             setCursorPos(start);
         }
         return text;
@@ -540,12 +563,13 @@ public class TextField extends TextComponent
     /**
      * Replaces the currently selected text with the supplied text.
      */
-    protected void replaceSelectedText (String text)
+    protected void replaceSelectedText (String text, CompoundType compoundType)
     {
         int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
         int length = end - start;
-        if (_text.replace(start, length, text)) {
+        if (_text.replace(start, length, text, nextUndoId(compoundType))) {
             setCursorPos(start + text.length());
+            _lastCompoundType = compoundType;
         }
     }
 
@@ -561,8 +585,11 @@ public class TextField extends TextComponent
     /**
      * Updates the selection.
      */
-    protected void setSelection (int cursorPos, int selectPos)
+    protected void setSelection (final int cursorPos, final int selectPos)
     {
+        // by default, this breaks up any compound edits
+        _lastCompoundType = null;
+
         // note the new selection
         _cursp = cursorPos;
         _selp = selectPos;
@@ -578,7 +605,7 @@ public class TextField extends TextComponent
         // scroll our text left or right as necessary
         if (_cursx < _txoff) {
             _txoff = _cursx;
-        } else {
+        } else if (_width > 0) { // make sure we're laid out
             int avail = getWidth() - getInsets().getHorizontal();
             if (_cursx > _txoff + avail) {
                 _txoff = _cursx - avail;
@@ -588,6 +615,25 @@ public class TextField extends TextComponent
             }
         }
     }
+
+    /**
+     * Returns an undo operation id.
+     *
+     * @param compoundType if non-null and equal to the last compound type, return the same
+     * undo id as last time.
+     */
+    protected int nextUndoId (CompoundType compoundType)
+    {
+        if ((compoundType != null && compoundType == _lastCompoundType) ||
+                (compoundType == CompoundType.NONWORD_CHAR &&
+                    _lastCompoundType == CompoundType.WORD_CHAR)) {
+            return _lastUndoId;
+        }
+        return ++_lastUndoId;
+    }
+
+    /** Edits that can be compounded together. */
+    protected enum CompoundType { WORD_CHAR, NONWORD_CHAR, BACKSPACE, DELETE };
 
     protected Document _text;
     protected Text _glyphs;
@@ -600,4 +646,8 @@ public class TextField extends TextComponent
     protected Background[] _selectionBackgrounds = new Background[getStateCount()];
 
     protected Rectangle _srect = new Rectangle();
+
+    protected UndoManager _undomgr = new UndoManager();
+    protected int _lastUndoId;
+    protected CompoundType _lastCompoundType;
 }
