@@ -71,14 +71,16 @@ public class CharacterTextFactory extends TextFactory
         GlyphVector vector = _font.createGlyphVector(ctx, "J");
         java.awt.Rectangle bounds = vector.getPixelBounds(ctx, 0f, 0f);
 
-        // allow up to twice the sample dimensions for descenders, effects, etc.
-        _scratch = new BufferedImage(bounds.width*2, bounds.height*2, BufferedImage.TYPE_INT_ARGB);
+        // allow up to three times the sample dimensions for descenders, effects, etc.
+        _scratch = new BufferedImage(bounds.width*3, bounds.height*3, BufferedImage.TYPE_INT_ARGB);
         _graphics.dispose();
         _graphics = _scratch.createGraphics();
         _graphics.setFont(font);
         _graphics.setBackground(new Color(0, true));
         _graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
             antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+        _graphics.setRenderingHint(
+            RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
     }
 
     /**
@@ -295,13 +297,11 @@ public class CharacterTextFactory extends TextFactory
             FontRenderContext ctx = _graphics.getFontRenderContext();
             _vector = _font.createGlyphVector(ctx, Character.toString(c));
             java.awt.Rectangle bounds = _vector.getPixelBounds(ctx, 0f, 0f);
-            _bounds = (bounds.width <= 0 || bounds.height <= 0) ? null : new Rectangle(
-                (int)Math.round(bounds.getX()),
-                (int)Math.round(-(bounds.getY() + bounds.getHeight())),
-                (int)Math.round(bounds.getWidth()),
-                (int)Math.round(bounds.getHeight()));
-            if (_effect == OUTLINE && _bounds != null) {
-                _bounds.grow((int)Math.ceil(size/2.0), (int)Math.ceil(size/2.0));
+            if (bounds.width > 0 && bounds.height > 0) {
+                _bounds = new Rectangle(
+                    bounds.x, -bounds.y - bounds.height, bounds.width, bounds.height);
+                int grow = 1 + (_effect == OUTLINE ? Math.round(size/2f) : 0);
+                _bounds.grow(grow, grow);
             }
         }
 
@@ -319,7 +319,7 @@ public class CharacterTextFactory extends TextFactory
                 Shape outline = _vector.getOutline(-_bounds.x, _bounds.y + _bounds.height);
                 if (_effect == OUTLINE) {
                     _graphics.setStroke(new BasicStroke(
-                        _size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                        _size, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND));
                     _graphics.draw(outline);
                 } else {
                     _graphics.fill(outline);
