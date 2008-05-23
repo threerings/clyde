@@ -118,10 +118,7 @@ public class ConfigEditor
         gpanel.add(_gbox = new JComboBox(_gstates));
         _gbox.addItemListener(this);
 
-        JTree tree = new JTree();
-        tree.setRootVisible(false);
-        tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        cpanel.add(new JScrollPane(tree));
+        cpanel.add(_pane = new JScrollPane());
 
         JPanel bpanel = new JPanel();
         cpanel.add(bpanel, GroupLayout.FIXED);
@@ -134,6 +131,10 @@ public class ConfigEditor
         // create the editor panel
         _epanel = new EditorPanel(_msgs, EditorPanel.CategoryMode.TABS, null);
         _frame.add(_epanel, BorderLayout.CENTER);
+        _epanel.setObject(new com.threerings.opengl.config.TextureConfig());
+
+        // activate the first group
+        _gstates[0].activate();
     }
 
     /**
@@ -168,6 +169,7 @@ public class ConfigEditor
     // documentation inherited from interface ItemListener
     public void itemStateChanged (ItemEvent event)
     {
+        ((GroupState)_gbox.getSelectedItem()).activate();
     }
 
     /**
@@ -245,10 +247,26 @@ public class ConfigEditor
         /** The (possibly translated) group label. */
         public String label;
 
+        /** The tree component. */
+        public JTree tree;
+
         public GroupState (ConfigGroup group)
         {
             this.group = group;
             label = getLabel(group.getName());
+        }
+
+        /**
+         * Activates this group.
+         */
+        public void activate ()
+        {
+            if (tree == null) {
+                tree = new JTree();
+                tree.setRootVisible(false);
+                tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            }
+            _pane.setViewportView(tree);
         }
 
         // documentation inherited from interface Comparable
@@ -287,6 +305,9 @@ public class ConfigEditor
 
     /** Determines the selected group. */
     protected JComboBox _gbox;
+
+    /** The scroll pane that holds the group trees. */
+    protected JScrollPane _pane;
 
     /** The "clone configuration" button. */
     protected JButton _cloneConfig;

@@ -3,6 +3,7 @@
 
 package com.threerings.opengl.config;
 
+import org.lwjgl.opengl.ARBShadow;
 import org.lwjgl.opengl.ARBTextureBorderClamp;
 import org.lwjgl.opengl.ARBTextureMirroredRepeat;
 import org.lwjgl.opengl.GL11;
@@ -13,6 +14,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Texture;
 
 /**
  * Texture metadata.
@@ -22,27 +24,13 @@ public class TextureConfig extends ManagedConfig
     /** Minification filter constants. */
     public enum MinFilter
     {
-        /** Chooses the nearest texel to the coordinates. */
         NEAREST(GL11.GL_NEAREST),
-
-        /** Linearly interpolates between the texels. */
         LINEAR(GL11.GL_LINEAR),
-
-        /** Chooses the nearest texel on the nearest mipmap. */
         NEAREST_MIPMAP_NEAREST(GL11.GL_NEAREST_MIPMAP_NEAREST),
-
-        /** Linearly interpolates between the texels on the nearest mipmap. */
         LINEAR_MIPMAP_NEAREST(GL11.GL_LINEAR_MIPMAP_NEAREST),
-
-        /** Chooses the nearest texel on each mipmap, then linearly interpolates between them. */
         NEAREST_MIPMAP_LINEAR(GL11.GL_NEAREST_MIPMAP_LINEAR),
-
-        /** Linearly interpolates between the mipmaps, then between the texels. */
         LINEAR_MIPMAP_LINEAR(GL11.GL_LINEAR_MIPMAP_LINEAR);
 
-        /**
-         * Returns the corresponding OpenGL constant.
-         */
         public int getGLConstant ()
         {
             return _glConstant;
@@ -59,15 +47,9 @@ public class TextureConfig extends ManagedConfig
     /** Magnification filter constants. */
     public enum MagFilter
     {
-        /** Chooses the nearest texel to the coordinates. */
         NEAREST(GL11.GL_NEAREST),
-
-        /** Linearly interpolates between the texels. */
         LINEAR(GL11.GL_LINEAR);
 
-        /**
-         * Returns the corresponding OpenGL constant.
-         */
         public int getGLConstant ()
         {
             return _glConstant;
@@ -84,50 +66,102 @@ public class TextureConfig extends ManagedConfig
     /** Wrap constants. */
     public enum Wrap
     {
-        /** Clamps the texture coordinates. */
         CLAMP(GL11.GL_CLAMP),
-
-        /** Clamps to the edge. */
         CLAMP_TO_EDGE(GL12.GL_CLAMP_TO_EDGE) {
             public boolean isSupported () {
                 return GLContext.getCapabilities().OpenGL12;
             }
         },
-
-        /** Repeats past the edge. */
         REPEAT(GL11.GL_REPEAT),
-
-        /** Clamps to the border. */
         CLAMP_TO_BORDER(ARBTextureBorderClamp.GL_CLAMP_TO_BORDER_ARB) {
             public boolean isSupported () {
                 return GLContext.getCapabilities().GL_ARB_texture_border_clamp;
             }
         },
-
-        /** Repeats past the edge, flipping each time. */
         MIRRORED_REPEAT(ARBTextureMirroredRepeat.GL_MIRRORED_REPEAT_ARB) {
             public boolean isSupported () {
                 return GLContext.getCapabilities().GL_ARB_texture_mirrored_repeat;
             }
         };
 
-        /**
-         * Returns the corresponding OpenGL constant.
-         */
         public int getGLConstant ()
         {
             return _glConstant;
         }
 
-        /**
-         * Checks whether the option is available on the current platform.
-         */
         public boolean isSupported ()
         {
             return true;
         }
 
         Wrap (int glConstant)
+        {
+            _glConstant = glConstant;
+        }
+
+        protected int _glConstant;
+    }
+
+    /** Compare mode constants. */
+    public enum CompareMode
+    {
+        NONE(GL11.GL_NONE),
+        COMPARE_R_TO_TEXTURE(ARBShadow.GL_COMPARE_R_TO_TEXTURE_ARB) {
+            public boolean isSupported () {
+                return GLContext.getCapabilities().GL_ARB_shadow;
+            }
+        };
+
+        public int getGLConstant ()
+        {
+            return _glConstant;
+        }
+
+        public boolean isSupported ()
+        {
+            return true;
+        }
+
+        CompareMode (int glConstant)
+        {
+            _glConstant = glConstant;
+        }
+
+        protected int _glConstant;
+    }
+
+    /** Compare function constants. */
+    public enum CompareFunc
+    {
+        LEQUAL(GL11.GL_LEQUAL),
+        GEQUAL(GL11.GL_GEQUAL);
+
+        public int getGLConstant ()
+        {
+            return _glConstant;
+        }
+
+        CompareFunc (int glConstant)
+        {
+            _glConstant = glConstant;
+        }
+
+        protected int _glConstant;
+    }
+
+    /** Depth mode constants. */
+    public enum DepthMode
+    {
+        LUMINANCE(GL11.GL_LUMINANCE),
+        INTENSITY(GL11.GL_INTENSITY),
+        ALPHA(GL11.GL_ALPHA);
+
+        public int getGLConstant ()
+        {
+            return _glConstant;
+        }
+
+        DepthMode (int glConstant)
         {
             _glConstant = glConstant;
         }
@@ -142,6 +176,10 @@ public class TextureConfig extends ManagedConfig
     /** The magnification filter. */
     @Editable
     public MagFilter magFilter = MagFilter.LINEAR;
+
+    /** The maximum degree of anisotropy. */
+    @Editable(min=1.0, step=0.01)
+    public float maxAnisotropy = 1f;
 
     /** The s wrap mode. */
     @Editable
@@ -158,4 +196,29 @@ public class TextureConfig extends ManagedConfig
     /** The border color. */
     @Editable(mode="alpha")
     public Color4f borderColor = new Color4f(0f, 0f, 0f, 0f);
+
+    /** The texture compare mode. */
+    @Editable
+    public CompareMode compareMode = CompareMode.NONE;
+
+    /** The texture compare function. */
+    @Editable
+    public CompareFunc compareFunc = CompareFunc.LEQUAL;
+
+    /** The depth texture mode. */
+    @Editable
+    public DepthMode depthMode = DepthMode.LUMINANCE;
+
+    /**
+     * Applies this configuration to the specified texture.
+     */
+    public void apply (Texture texture)
+    {
+        texture.setFilters(minFilter.getGLConstant(), magFilter.getGLConstant());
+        texture.setMaxAnisotropy(maxAnisotropy);
+        texture.setWrap(wrapS.getGLConstant(), wrapT.getGLConstant(), wrapR.getGLConstant());
+        texture.setBorderColor(borderColor);
+        texture.setCompare(compareMode.getGLConstant(), compareFunc.getGLConstant());
+        texture.setDepthMode(depthMode.getGLConstant());
+    }
 }

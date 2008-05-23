@@ -71,6 +71,9 @@ public class TextureUnit
     /** The alpha combine scale. */
     public float alphaScale = 1f;
 
+    /** The texture level of detail bias. */
+    public float lodBias;
+
     /** The s texture coordinate generation mode (-1 for disabled). */
     public int genModeS = -1;
 

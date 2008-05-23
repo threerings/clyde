@@ -26,6 +26,7 @@ import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.ContextCapabilities;
 import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.EXTTextureLODBias;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
@@ -1309,6 +1310,12 @@ public class Renderer
                         urec.alphaScale = unit.alphaScale);
                 }
             }
+            if (urec.lodBias != unit.lodBias) {
+                setActiveUnit(ii);
+                GL11.glTexEnvf(
+                    EXTTextureLODBias.GL_TEXTURE_FILTER_CONTROL_EXT,
+                    EXTTextureLODBias.GL_TEXTURE_LOD_BIAS_EXT, urec.lodBias = unit.lodBias);
+            }
             boolean genEnabledS = (unit.genModeS != -1);
             if (urec.genEnabledS != Boolean.valueOf(genEnabledS)) {
                 setActiveUnit(ii);
@@ -2025,6 +2032,9 @@ public class Renderer
             if (GLContext.getCapabilities().GL_ARB_texture_cube_map) {
                 enabledCubeMap = null;
                 textureCubeMap = INVALID_TEXTURE;
+            }
+            if (GLContext.getCapabilities().GL_EXT_texture_lod_bias) {
+                lodBias = Float.NaN;
             }
             genEnabledS = genEnabledT = genEnabledR = genEnabledQ = null;
             genEyePlaneS.x = genEyePlaneT.y = genEyePlaneR.x = genEyePlaneQ.x = Float.NaN;

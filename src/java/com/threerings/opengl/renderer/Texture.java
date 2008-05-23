@@ -14,6 +14,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
@@ -21,6 +22,7 @@ import org.lwjgl.opengl.ARBDepthTexture;
 import org.lwjgl.opengl.ARBShadow;
 import org.lwjgl.opengl.ARBTextureCompression;
 import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
@@ -106,6 +108,19 @@ public abstract class Texture
     }
 
     /**
+     * Sets the texture maximum anisotropy.
+     */
+    public void setMaxAnisotropy (float maxAnisotropy)
+    {
+        if (_maxAnisotropy != maxAnisotropy) {
+            _renderer.setTexture(this);
+            GL11.glTexParameterf(
+                _target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                _maxAnisotropy = maxAnisotropy);
+        }
+    }
+
+    /**
      * Convenience method to set the s and t wrap modes at once.
      */
     public void setWrap (int s, int t)
@@ -154,6 +169,18 @@ public abstract class Texture
         if (_wrapR != wrap) {
             _renderer.setTexture(this);
             GL11.glTexParameteri(_target, GL12.GL_TEXTURE_WRAP_R, _wrapR = wrap);
+        }
+    }
+
+    /**
+     * Sets the border color.
+     */
+    public void setBorderColor (Color4f borderColor)
+    {
+        if (!_borderColor.equals(borderColor)) {
+            _renderer.setTexture(this);
+            _borderColor.set(borderColor).get(_vbuf).rewind();
+            GL11.glTexParameter(_target, GL11.GL_TEXTURE_BORDER_COLOR, _vbuf);
         }
     }
 
@@ -334,6 +361,9 @@ public abstract class Texture
     /** The current magnification filter. */
     protected int _magFilter = GL11.GL_LINEAR;
 
+    /** The maximum degree of anisotropy. */
+    protected float _maxAnisotropy = 1f;
+
     /** The s texture wrap mode. */
     protected int _wrapS = GL11.GL_REPEAT;
 
@@ -343,6 +373,9 @@ public abstract class Texture
     /** The r texture wrap mode. */
     protected int _wrapR = GL11.GL_REPEAT;
 
+    /** The border color. */
+    protected Color4f _borderColor = new Color4f(0f, 0f, 0f, 0f);
+
     /** The texture compare mode. */
     protected int _compareMode = GL11.GL_NONE;
 
@@ -351,6 +384,9 @@ public abstract class Texture
 
     /** The depth texture mode. */
     protected int _depthMode = GL11.GL_LUMINANCE;
+
+    /** A buffer for floating point values. */
+    protected static FloatBuffer _vbuf = BufferUtils.createFloatBuffer(16);
 
     /** Formats corresponding to one, two, three, or four color components. */
     protected static final int[] FORMATS = {
