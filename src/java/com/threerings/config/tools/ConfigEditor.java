@@ -14,10 +14,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import java.util.Collection;
+import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -26,7 +28,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
-import javax.swing.KeyStroke;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
@@ -36,6 +37,7 @@ import com.samskivert.util.QuickSort;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
+import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.swing.EditorPanel;
 
@@ -85,6 +87,10 @@ public class ConfigEditor
             }
         });
 
+        // create and init the editable preferences
+        _eprefs = new ToolUtil.EditablePrefs(_prefs);
+        _eprefs.init(_rsrcmgr);
+
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
         _frame.setJMenuBar(menubar);
@@ -92,6 +98,10 @@ public class ConfigEditor
         JMenu file = createMenu("file", KeyEvent.VK_F);
         menubar.add(file);
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+
+        JMenu edit = createMenu("edit", KeyEvent.VK_E);
+        menubar.add(edit);
+        edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
 
         // create the chooser panel
         JPanel cpanel = GroupLayout.makeVStretchBox(5);
@@ -163,6 +173,11 @@ public class ConfigEditor
         String action = event.getActionCommand();
         if (action.equals("quit")) {
             shutdown();
+        } else if (action.equals("preferences")) {
+            if (_pdialog == null) {
+                _pdialog = EditorPanel.createDialog(_frame, _msgs, "t.preferences", _eprefs);
+            }
+            _pdialog.setVisible(true);
         }
     }
 
@@ -177,9 +192,7 @@ public class ConfigEditor
      */
     protected JMenu createMenu (String name, int mnemonic)
     {
-        JMenu menu = new JMenu(_msgs.get("m." + name));
-        menu.setMnemonic(mnemonic);
-        return menu;
+        return ToolUtil.createMenu(_msgs, name, mnemonic);
     }
 
     /**
@@ -187,7 +200,33 @@ public class ConfigEditor
      */
     protected JMenuItem createMenuItem (String action, int mnemonic, int accelerator)
     {
-        return createMenuItem(action, mnemonic, accelerator, KeyEvent.CTRL_MASK);
+        return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator);
+    }
+
+    /**
+     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator
+     * key/modifiers.
+     */
+    protected JMenuItem createMenuItem (
+        String action, int mnemonic, int accelerator, int modifiers)
+    {
+        return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator, modifiers);
+    }
+
+    /**
+     * Creates a button with the specified action.
+     */
+    protected JButton createButton (String action)
+    {
+        return ToolUtil.createButton(this, _msgs, action);
+    }
+
+    /**
+     * Creates a button with the specified action and translation key.
+     */
+    protected JButton createButton (String action, String key)
+    {
+        return ToolUtil.createButton(this, _msgs, action, key);
     }
 
     /**
@@ -198,41 +237,6 @@ public class ConfigEditor
     {
         String key = "m." + name;
         return _msgs.exists(key) ? _msgs.get(key) : name;
-    }
-
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator
-     * key/modifiers.
-     */
-    protected JMenuItem createMenuItem (
-        String action, int mnemonic, int accelerator, int modifiers)
-    {
-        JMenuItem item = new JMenuItem(_msgs.get("m." + action), mnemonic);
-        item.setActionCommand(action);
-        item.addActionListener(this);
-        if (accelerator != -1) {
-            item.setAccelerator(KeyStroke.getKeyStroke(accelerator, modifiers));
-        }
-        return item;
-    }
-
-    /**
-     * Creates a button with the specified action.
-     */
-    protected JButton createButton (String action)
-    {
-        return createButton(action, "m." + action);
-    }
-
-    /**
-     * Creates a button with the specified action and translation key.
-     */
-    protected JButton createButton (String action, String key)
-    {
-        JButton button = new JButton(_msgs.get(key));
-        button.setActionCommand(action);
-        button.addActionListener(this);
-        return button;
     }
 
     /**
@@ -300,6 +304,12 @@ public class ConfigEditor
     /** The main frame. */
     protected JFrame _frame;
 
+    /** The editable preferences object. */
+    protected ToolUtil.EditablePrefs _eprefs;
+
+    /** The preferences dialog. */
+    protected JDialog _pdialog;
+
     /** The configuration group states. */
     protected GroupState[] _gstates;
 
@@ -317,4 +327,7 @@ public class ConfigEditor
 
     /** The object editor panel. */
     protected EditorPanel _epanel;
+
+    /** The application preferences. */
+    protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigEditor.class);
 }
