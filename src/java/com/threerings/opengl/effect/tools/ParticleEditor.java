@@ -57,28 +57,22 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
-import com.threerings.util.MessageBundle;
-
 import com.threerings.math.Vector3f;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
-import com.threerings.export.Exportable;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
+import com.threerings.util.ToolUtil;
 
-import com.threerings.opengl.GlCanvasApp;
-import com.threerings.opengl.camera.CameraHandler;
-import com.threerings.opengl.camera.MouseOrbiter;
-import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.effect.ParticleSystem;
 import com.threerings.opengl.effect.ParticleSystem.Layer;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.RenderState;
-import com.threerings.opengl.util.Compass;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.Grid;
 import com.threerings.opengl.util.SimpleRenderable;
@@ -89,72 +83,9 @@ import static com.threerings.opengl.Log.*;
 /**
  * The particle editor application.
  */
-public class ParticleEditor extends GlCanvasApp
-    implements ActionListener, ListSelectionListener
+public class ParticleEditor extends GlCanvasTool
+    implements ListSelectionListener
 {
-    /**
-     * An editable preferences object (implements {@link Exportable} to make sure that Proguard
-     * doesn't remove its methods).
-     */
-    public class PreferencesObject
-        implements Exportable
-    {
-        public PreferencesObject ()
-        {
-            String bgcolor = _prefs.get("background_color", "0.8, 0.8, 0.8, 1");
-            try {
-                _renderer.setClearColor(new Color4f(StringUtil.parseFloatArray(bgcolor)));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            _texturePath = new File(_prefs.get("texture_path", System.getProperty("user.dir")));
-        }
-
-        /**
-         * Sets the background color.
-         */
-        @Editable(weight=0)
-        public void setBackgroundColor (Color4f color)
-        {
-            _renderer.setClearColor(color);
-            _prefs.put("background_color",
-                color.r + ", " + color.g + ", " + color.b + ", " + color.a);
-        }
-
-        /**
-         * Returns the background color.
-         */
-        @Editable
-        public Color4f getBackgroundColor ()
-        {
-            return _renderer.getClearColor();
-        }
-
-        /**
-         * Sets the path to use when resolving textures.
-         */
-        @Editable(weight=1, mode="directory", nullable=false)
-        public void setTexturePath (File path)
-        {
-            _texturePath = path;
-            String pstr = path.toString();
-            _prefs.put("texture_path", pstr);
-            _particles.setPath(pstr);
-        }
-
-        /**
-         * Returns the texture path.
-         */
-        @Editable
-        public File getTexturePath ()
-        {
-            return _texturePath;
-        }
-
-        /** The path to use when resolving textures. */
-        protected File _texturePath;
-    }
-
     /**
      * The program entry point.
      */
@@ -168,7 +99,7 @@ public class ParticleEditor extends GlCanvasApp
      */
     public ParticleEditor (String particles)
     {
-        _msgs = _msgmgr.getBundle("particle");
+        super("particle");
         _initParticles = (particles == null) ? null : new File(particles);
 
         // set the title
@@ -317,7 +248,20 @@ public class ParticleEditor extends GlCanvasApp
         bpanel.add(createButton("reset"));
     }
 
-    // documentation inherited from interface ActionListener
+    // documentation inherited from interface ListSelectionListener
+    public void valueChanged (ListSelectionEvent event)
+    {
+        int idx = _ltable.getSelectedRow();
+        boolean enabled = (idx != -1);
+        _cloneLayer.setEnabled(enabled);
+        _deleteLayer.setEnabled(enabled);
+        _editor.setVisible(enabled);
+        if (enabled) {
+            _editor.setObject(_particles.getLayers().get(idx));
+        }
+    }
+
+    @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -339,95 +283,19 @@ public class ParticleEditor extends GlCanvasApp
             importParticles();
         } else if (action.equals("export")) {
             exportParticles();
-        } else if (action.equals("quit")) {
-            System.exit(0);
-        } else if (action.equals("preferences")) {
-            showPreferences();
         } else if (action.equals("toggle_ground")) {
             _ground = (_ground == null) ? createGround() : null;
-        } else if (action.equals("toggle_bounds")) {
-            _bounds = (_bounds == null) ? createBounds() : null;
-        } else if (action.equals("toggle_compass")) {
-            _compass = (_compass == null) ? new Compass(this) : null;
-        } else if (action.equals("toggle_stats")) {
-            _renderer.setShowStats(!_renderer.getShowStats());
         } else if (action.equals("reset")) {
             _particles.reset();
-        } else if (action.equals("recenter")) {
-            ((OrbitCameraHandler)_camhand).getTarget().set(Vector3f.ZERO);
         } else if (action.equals("new_layer")) {
             ((LayerTableModel)_ltable.getModel()).newLayer();
         } else if (action.equals("clone_layer")) {
             ((LayerTableModel)_ltable.getModel()).cloneLayer();
         } else if (action.equals("delete_layer")) {
             ((LayerTableModel)_ltable.getModel()).deleteLayer();
+        } else {
+            super.actionPerformed(event);
         }
-    }
-
-    // documentation inherited from interface ListSelectionListener
-    public void valueChanged (ListSelectionEvent event)
-    {
-        int idx = _ltable.getSelectedRow();
-        boolean enabled = (idx != -1);
-        _cloneLayer.setEnabled(enabled);
-        _deleteLayer.setEnabled(enabled);
-        _editor.setVisible(enabled);
-        if (enabled) {
-            _editor.setObject(_particles.getLayers().get(idx));
-        }
-    }
-
-    /**
-     * Creates a menu with the specified name and mnemonic.
-     */
-    protected JMenu createMenu (String name, int mnemonic)
-    {
-        JMenu menu = new JMenu(_msgs.get("m." + name));
-        menu.setMnemonic(mnemonic);
-        return menu;
-    }
-
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator.
-     */
-    protected JMenuItem createMenuItem (String action, int mnemonic, int accelerator)
-    {
-        return createMenuItem(action, mnemonic, accelerator, KeyEvent.CTRL_MASK);
-    }
-
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator
-     * key/modifiers.
-     */
-    protected JMenuItem createMenuItem (
-        String action, int mnemonic, int accelerator, int modifiers)
-    {
-        JMenuItem item = new JMenuItem(_msgs.get("m." + action), mnemonic);
-        item.setActionCommand(action);
-        item.addActionListener(this);
-        if (accelerator != -1) {
-            item.setAccelerator(KeyStroke.getKeyStroke(accelerator, modifiers));
-        }
-        return item;
-    }
-
-    /**
-     * Creates a button with the specified action.
-     */
-    protected JButton createButton (String action)
-    {
-        return createButton(action, "m." + action);
-    }
-
-    /**
-     * Creates a button with the specified action and translation key.
-     */
-    protected JButton createButton (String action, String key)
-    {
-        JButton button = new JButton(_msgs.get(key));
-        button.setActionCommand(action);
-        button.addActionListener(this);
-        return button;
     }
 
     /**
@@ -453,9 +321,7 @@ public class ParticleEditor extends GlCanvasApp
         };
     }
 
-    /**
-     * (Re)creates the debug bounds renderer.
-     */
+    @Override // documentation inherited
     protected DebugBounds createBounds ()
     {
         return new DebugBounds(this) {
@@ -466,23 +332,15 @@ public class ParticleEditor extends GlCanvasApp
     }
 
     @Override // documentation inherited
-    protected CameraHandler createCameraHandler ()
+    protected ToolUtil.EditablePrefs createEditablePrefs ()
     {
-        // add an orbiter to move the camera with the mouse
-        OrbitCameraHandler camhand = new OrbitCameraHandler(this);
-        new MouseOrbiter(camhand).addTo(_canvas);
-        return camhand;
+        return new ParticleEditorPrefs(_prefs);
     }
 
     @Override // documentation inherited
     protected void didInit ()
     {
-        // create the preferences object
-        _prefsobj = new PreferencesObject();
-
-        // create the reference grid
-        _grid = new Grid(this, 65, 1f);
-        _grid.getColor().set(0.2f, 0.2f, 0.2f, 1f);
+        super.didInit();
 
         // initialize the table
         _ltable.setModel(new LayerTableModel());
@@ -624,7 +482,8 @@ public class ParticleEditor extends GlCanvasApp
      */
     protected void initParticles (String path)
     {
-        _particles.init(this, _prefsobj.getTexturePath().toString());
+        ParticleEditorPrefs eprefs = (ParticleEditorPrefs)_eprefs;
+        _particles.init(this, eprefs.getTexturePath().toString());
         ((LayerTableModel)_ltable.getModel()).fireTableDataChanged();
     }
 
@@ -647,42 +506,6 @@ public class ParticleEditor extends GlCanvasApp
     }
 
     /**
-     * Brings up the preferences dialog.
-     */
-    protected void showPreferences ()
-    {
-        if (_pdialog == null) {
-            _pdialog = new JDialog(_frame, _msgs.get("t.preferences"));
-            EditorPanel epanel = new EditorPanel(_msgs);
-            _pdialog.add(epanel, BorderLayout.CENTER);
-            epanel.setObject(_prefsobj);
-            JPanel bpanel = new JPanel();
-            _pdialog.add(bpanel, BorderLayout.SOUTH);
-            JButton ok = new JButton(_msgs.get("m.ok"));
-            bpanel.add(ok);
-            ok.addActionListener(new ActionListener() {
-                public void actionPerformed (ActionEvent event) {
-                    _pdialog.setVisible(false);
-                }
-            });
-            _pdialog.setSize(300, 200);
-        }
-        showCentered(_pdialog);
-    }
-
-    /**
-     * Shows a dialog centered on the canvas.
-     */
-    protected void showCentered (JDialog dialog)
-    {
-        Point pt = _canvas.getLocationOnScreen();
-        dialog.setLocation(
-            pt.x + (_canvas.getWidth() - dialog.getWidth()) / 2,
-            pt.y + (_canvas.getHeight() - dialog.getHeight()) / 2);
-        dialog.setVisible(true);
-    }
-
-    /**
      * Sets the file and updates the revert item and title bar.
      */
     protected void setFile (File file)
@@ -702,6 +525,42 @@ public class ParticleEditor extends GlCanvasApp
             title = title + ": " + _file;
         }
         _frame.setTitle(title);
+    }
+
+    /**
+     * Particle editor preferences.
+     */
+    protected class ParticleEditorPrefs extends CanvasToolPrefs
+    {
+        public ParticleEditorPrefs (Preferences prefs)
+        {
+            super(prefs);
+            _texturePath = new File(_prefs.get("texture_path", System.getProperty("user.dir")));
+        }
+
+        /**
+         * Sets the path to use when resolving textures.
+         */
+        @Editable(weight=1, mode="directory", nullable=false)
+        public void setTexturePath (File path)
+        {
+            _texturePath = path;
+            String pstr = path.toString();
+            _prefs.put("texture_path", pstr);
+            _particles.setPath(pstr);
+        }
+
+        /**
+         * Returns the texture path.
+         */
+        @Editable
+        public File getTexturePath ()
+        {
+            return _texturePath;
+        }
+
+        /** The path to use when resolving textures. */
+        protected File _texturePath;
     }
 
     /**
@@ -831,9 +690,6 @@ public class ParticleEditor extends GlCanvasApp
         }
     }
 
-    /** The viewer message bundle. */
-    protected MessageBundle _msgs;
-
     /** The file to attempt to load on initialization, if any. */
     protected File _initParticles;
 
@@ -845,9 +701,6 @@ public class ParticleEditor extends GlCanvasApp
 
     /** The file chooser for importing and exporting particle files. */
     protected JFileChooser _exportChooser;
-
-    /** The preferences dialog. */
-    protected JDialog _pdialog;
 
     /** The layer table. */
     protected JTable _ltable;
@@ -863,18 +716,6 @@ public class ParticleEditor extends GlCanvasApp
 
     /** The ground plane. */
     protected SimpleRenderable _ground;
-
-    /** The reference grid. */
-    protected Grid _grid;
-
-    /** The bounds display. */
-    protected DebugBounds _bounds;
-
-    /** The coordinate system compass. */
-    protected Compass _compass;
-
-    /** The preferences object. */
-    protected PreferencesObject _prefsobj;
 
     /** The loaded particle file. */
     protected File _file;

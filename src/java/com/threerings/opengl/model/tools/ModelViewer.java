@@ -46,18 +46,14 @@ import com.samskivert.swing.Spacer;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
-import com.threerings.util.MessageBundle;
-
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.export.BinaryImporter;
+import com.threerings.util.ToolUtil;
 
-import com.threerings.opengl.GlCanvasApp;
-import com.threerings.opengl.camera.CameraHandler;
-import com.threerings.opengl.camera.MouseOrbiter;
-import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.AnimationObserver;
 import com.threerings.opengl.model.ArticulatedModel;
@@ -74,8 +70,7 @@ import static com.threerings.opengl.Log.*;
 /**
  * A simple model viewer application.
  */
-public class ModelViewer extends GlCanvasApp
-    implements ActionListener
+public class ModelViewer extends GlCanvasTool
 {
     /**
      * The program entry point.
@@ -90,7 +85,7 @@ public class ModelViewer extends GlCanvasApp
      */
     public ModelViewer (String model)
     {
-        _msgs = _msgmgr.getBundle("viewer");
+        super("viewer");
         _initModel = (model == null) ? null : new File(model);
 
         // set the title
@@ -108,6 +103,10 @@ public class ModelViewer extends GlCanvasApp
         _reload.setEnabled(false);
         file.addSeparator();
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+
+        JMenu edit = createMenu("edit", KeyEvent.VK_E);
+        menubar.add(edit);
+        edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
@@ -167,7 +166,7 @@ public class ModelViewer extends GlCanvasApp
         _compass = new Compass(this);
     }
 
-    // documentation inherited from interface ActionListener
+    @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
         Object source = event.getSource();
@@ -180,46 +179,12 @@ public class ModelViewer extends GlCanvasApp
             open();
         } else if (action.equals("reload")) {
             open(_file);
-        } else if (action.equals("quit")) {
-            System.exit(0);
-        } else if (action.equals("toggle_bounds")) {
-            _bounds = (_bounds == null) ? createBounds() : null;
-        } else if (action.equals("toggle_compass")) {
-            _compass = (_compass == null) ? new Compass(this) : null;
-        } else if (action.equals("toggle_stats")) {
-            _renderer.setShowStats(!_renderer.getShowStats());
-        } else if (action.equals("recenter")) {
-            ((OrbitCameraHandler)_camhand).getTarget().set(Vector3f.ZERO);
+        } else {
+            super.actionPerformed(event);
         }
     }
 
-    /**
-     * Creates a menu with the specified name and mnemonic.
-     */
-    protected JMenu createMenu (String name, int mnemonic)
-    {
-        JMenu menu = new JMenu(_msgs.get("m." + name));
-        menu.setMnemonic(mnemonic);
-        return menu;
-    }
-
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator.
-     */
-    protected JMenuItem createMenuItem (String action, int mnemonic, int accelerator)
-    {
-        JMenuItem item = new JMenuItem(_msgs.get("m." + action), mnemonic);
-        item.setActionCommand(action);
-        item.addActionListener(this);
-        if (accelerator != -1) {
-            item.setAccelerator(KeyStroke.getKeyStroke(accelerator, KeyEvent.CTRL_MASK));
-        }
-        return item;
-    }
-
-    /**
-     * (Re)creates the debug bounds renderer.
-     */
+    @Override // documentation inherited
     protected DebugBounds createBounds ()
     {
         return new DebugBounds(this) {
@@ -233,23 +198,15 @@ public class ModelViewer extends GlCanvasApp
     }
 
     @Override // documentation inherited
-    protected CameraHandler createCameraHandler ()
+    protected ToolUtil.EditablePrefs createEditablePrefs ()
     {
-        // add an orbiter to move the camera with the mouse
-        OrbitCameraHandler camhand = new OrbitCameraHandler(this);
-        new MouseOrbiter(camhand).addTo(_canvas);
-        return camhand;
+        return new CanvasToolPrefs(_prefs);
     }
 
     @Override // documentation inherited
     protected void didInit ()
     {
-        // clear to gray
-        _renderer.setClearColor(Color4f.GRAY);
-
-        // create the reference grid
-        _grid = new Grid(this, 65, 1f);
-        _grid.getColor().set(0.2f, 0.2f, 0.2f, 1f);
+        super.didInit();
 
         // attempt to load the model file specified on the command line
         if (_initModel != null) {
@@ -785,9 +742,6 @@ public class ModelViewer extends GlCanvasApp
         }
     }
 
-    /** The viewer message bundle. */
-    protected MessageBundle _msgs;
-
     /** The file to attempt to load on initialization, if any. */
     protected File _initModel;
 
@@ -808,15 +762,6 @@ public class ModelViewer extends GlCanvasApp
 
     /** Adds a new track panel. */
     protected JButton _atrack;
-
-    /** The reference grid. */
-    protected Grid _grid;
-
-    /** The bounds display. */
-    protected DebugBounds _bounds;
-
-    /** The coordinate system compass. */
-    protected Compass _compass;
 
     /** The loaded model file. */
     protected File _file;

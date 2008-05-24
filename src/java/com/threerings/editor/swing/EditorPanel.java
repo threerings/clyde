@@ -3,24 +3,35 @@
 
 package com.threerings.editor.swing;
 
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.util.MessageBundle;
 
@@ -41,6 +52,50 @@ public class EditorPanel extends BasePropertyEditor
      * panels, in separate tabs, or in a card layout with a combo box at the top).
      */
     public enum CategoryMode { PANELS, TABS, CHOOSER };
+
+    /**
+     * Creates and returns a simple dialog for editing the supplied object.
+     */
+    public static JDialog createDialog (
+        Component parentComponent, MessageBundle msgs, String title, Object object)
+    {
+        return createDialog(parentComponent, msgs, CategoryMode.TABS, title, object);
+    }
+
+    /**
+     * Creates and returns a simple dialog for editing the supplied object.
+     */
+    public static JDialog createDialog (
+        Component parentComponent, MessageBundle msgs, CategoryMode catmode,
+        String title, Object object)
+    {
+        Component root = SwingUtilities.getRoot(parentComponent);
+        final JDialog dialog = (root instanceof Dialog) ?
+            new JDialog((Dialog)root, msgs.get(title)) :
+                new JDialog((Frame)(root instanceof Frame ? root : null), msgs.get(title));
+        EditorPanel epanel = new EditorPanel(msgs, catmode, null);
+        dialog.add(epanel, BorderLayout.CENTER);
+        epanel.setObject(object);
+        JPanel bpanel = new JPanel();
+        dialog.add(bpanel, BorderLayout.SOUTH);
+        JButton ok = new JButton(msgs.get("m.ok"));
+        bpanel.add(ok);
+        ok.addActionListener(new ActionListener() {
+            public void actionPerformed (ActionEvent event) {
+                dialog.setVisible(false);
+            }
+        });
+        dialog.pack();
+        if (parentComponent == null || !parentComponent.isShowing()) {
+            SwingUtil.centerWindow(dialog);
+        } else {
+            Point pt = parentComponent.getLocationOnScreen();
+            dialog.setLocation(
+                pt.x + (parentComponent.getWidth() - dialog.getWidth()) / 2,
+                pt.y + (parentComponent.getHeight() - dialog.getHeight()) / 2);
+        }
+        return dialog;
+    }
 
     /**
      * Creates an empty editor panel.
