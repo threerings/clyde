@@ -144,6 +144,15 @@ public class XMLExporter extends Exporter
     public void close ()
         throws IOException
     {
+        // finish up, then close the underlying stream
+        finish();
+        _out.close();
+    }
+
+    @Override // documentation inherited
+    public void finish ()
+        throws IOException
+    {
         // create the output object
         DOMImplementationLS impl = (DOMImplementationLS)_document.getImplementation();
         LSOutput lsout = impl.createLSOutput();
@@ -152,9 +161,6 @@ public class XMLExporter extends Exporter
         // write out the document
         LSSerializer serializer = impl.createLSSerializer();
         serializer.write(_document, lsout);
-
-        // close the stream
-        _out.close();
     }
 
     /**

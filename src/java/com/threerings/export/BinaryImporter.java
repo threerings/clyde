@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.zip.InflaterInputStream;
+
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Tuple;
 
@@ -34,7 +36,7 @@ public class BinaryImporter extends Importer
      */
     public BinaryImporter (InputStream in)
     {
-        _in = new DataInputStream(in);
+        _in = new DataInputStream(_base = in);
 
         // populate the class map with the bootstrap classes
         for (int ii = 0; ii < BinaryExporter.BOOTSTRAP_CLASSES.length; ii++) {
@@ -61,6 +63,9 @@ public class BinaryImporter extends Importer
                 throw new IOException("Invalid version [version=" +
                     Integer.toHexString(version) + "].");
             }
+
+            // the rest of the stream will be compressed
+            _in = new DataInputStream(new InflaterInputStream(_base));
 
             // initialize mapping
             _objects = new HashIntMap<Object>();
@@ -589,6 +594,9 @@ public class BinaryImporter extends Importer
     }
 
     /** The underlying input stream. */
+    protected InputStream _base;
+
+    /** The stream that we use for reading data. */
     protected DataInputStream _in;
 
     /** Maps ids to objects read.  A null value indicates that the stream has not yet been

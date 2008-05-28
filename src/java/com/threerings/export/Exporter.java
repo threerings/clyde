@@ -592,9 +592,15 @@ public abstract class Exporter
         throws IOException;
 
     /**
-     * Closes the underlying stream.
+     * Writes out any remaining data and closes the underlying stream.
      */
     public abstract void close ()
+        throws IOException;
+
+    /**
+     * Writes out any remaining data without closing the underlying stream.
+     */
+    public abstract void finish ()
         throws IOException;
 
     /**

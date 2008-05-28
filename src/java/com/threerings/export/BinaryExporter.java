@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import java.util.zip.DeflaterOutputStream;
+
 import com.samskivert.util.Tuple;
 
 import com.threerings.util.ReflectionUtil;
@@ -28,7 +30,7 @@ public class BinaryExporter extends Exporter
     public static final int MAGIC_NUMBER = 0xFACEAF0E;
 
     /** Identifies the format version. */
-    public static final int VERSION = 0x10000000;
+    public static final int VERSION = 0x10001000;
 
     /** Indicates that a stored class is final. */
     public static final byte FINAL_CLASS_FLAG = (byte)(1 << 0);
@@ -53,7 +55,7 @@ public class BinaryExporter extends Exporter
      */
     public BinaryExporter (OutputStream out)
     {
-        _out = new DataOutputStream(out);
+        _out = new DataOutputStream(_base = out);
 
         // populate the class map with the bootstrap classes
         for (Class clazz : BOOTSTRAP_CLASSES) {
@@ -69,6 +71,9 @@ public class BinaryExporter extends Exporter
             // write the preamble
             _out.writeInt(MAGIC_NUMBER);
             _out.writeInt(VERSION);
+
+            // everything thereafter will be compressed
+            _out = new DataOutputStream(_defout = new DeflaterOutputStream(_base));
 
             // initialize mapping
             _objectIds = new IdentityHashMap<Object, Integer>();
@@ -144,8 +149,18 @@ public class BinaryExporter extends Exporter
     public void close ()
         throws IOException
     {
-        // close the stream
+        // close the underlying stream (automatically finishes the deflation)
         _out.close();
+    }
+
+    @Override // documentation inherited
+    public void finish ()
+        throws IOException
+    {
+        // finish up the deflation, provided we ever started
+        if (_defout != null) {
+            _defout.finish();
+        }
     }
 
     /**
@@ -406,7 +421,13 @@ public class BinaryExporter extends Exporter
     }
 
     /** The underlying output stream. */
+    protected OutputStream _base;
+
+    /** The stream that we use for writing data. */
     protected DataOutputStream _out;
+
+    /** The deflater stream between the data output and the underlying output. */
+    protected DeflaterOutputStream _defout;
 
     /** Maps objects written to their integer ids.  A null value indicates that the stream has not
      * yet been initialized. */
