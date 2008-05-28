@@ -122,6 +122,8 @@ public class ParticleEditor extends GlCanvasTool
         file.add(createMenuItem("import", KeyEvent.VK_I, -1));
         file.add(createMenuItem("export", KeyEvent.VK_E, -1));
         file.addSeparator();
+        file.add(createMenuItem("import_layers", KeyEvent.VK_L, KeyEvent.VK_L));
+        file.addSeparator();
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
@@ -283,6 +285,8 @@ public class ParticleEditor extends GlCanvasTool
             importParticles();
         } else if (action.equals("export")) {
             exportParticles();
+        } else if (action.equals("import_layers")) {
+            importLayers();
         } else if (action.equals("toggle_ground")) {
             _ground = (_ground == null) ? createGround() : null;
         } else if (action.equals("reset")) {
@@ -506,6 +510,25 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     /**
+     * Brings up the import layers dialog.
+     */
+    protected void importLayers ()
+    {
+        if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+            File file = _chooser.getSelectedFile();
+            try {
+                BinaryImporter in = new BinaryImporter(new FileInputStream(file));
+                ParticleSystem particles = (ParticleSystem)in.readObject();
+                ((LayerTableModel)_ltable.getModel()).insertLayers(particles.getLayers());
+                in.close();
+            } catch (IOException e) {
+                log.log(WARNING, "Failed to import layers [file=" + file + "].", e);
+            }
+        }
+        _prefs.put("particle_dir", _chooser.getCurrentDirectory().toString());
+    }
+
+    /**
      * Sets the file and updates the revert item and title bar.
      */
     protected void setFile (File file)
@@ -591,6 +614,27 @@ public class ParticleEditor extends GlCanvasTool
             layer.init();
             layers.add(layer);
             fireTableRowsInserted(idx, idx);
+            _ltable.changeSelection(idx, 0, false, false);
+        }
+
+        /**
+         * Inserts copies of the specified layers.
+         */
+        public void insertLayers (ArrayList<Layer> olayers)
+        {
+            int count = olayers.size();
+            if (count == 0) {
+                return;
+            }
+            ArrayList<Layer> layers = _particles.getLayers();
+            int idx = layers.size();
+            for (int ii = 0; ii < count; ii++) {
+                Layer olayer = olayers.get(ii);
+                Layer nlayer = _particles.createLayer(olayer.name);
+                olayer.copy(nlayer);
+                layers.add(nlayer);
+            }
+            fireTableRowsInserted(idx, idx + count - 1);
             _ltable.changeSelection(idx, 0, false, false);
         }
 

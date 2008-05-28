@@ -26,6 +26,7 @@ import com.threerings.probs.FloatFunctionVariable;
 import com.threerings.probs.FloatVariable;
 import com.threerings.probs.QuaternionVariable;
 import com.threerings.probs.VectorVariable;
+import com.threerings.util.Copyable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.DeepUtil;
@@ -69,7 +70,7 @@ public class ParticleSystem extends Model
      * A single layer of the effect.
      */
     public class Layer
-        implements ParticleHost, Cloneable, Exportable
+        implements ParticleHost, Cloneable, Copyable, Exportable
     {
         /** The name of this layer. */
         public String name;
@@ -565,7 +566,13 @@ public class ParticleSystem extends Model
         @Override // documentation inherited
         public Object clone ()
         {
-            Layer clayer = DeepUtil.copy(this, null);
+            return copy(null);
+        }
+
+        // documentation inherited from interface Copyable
+        public Object copy (Object dest)
+        {
+            Layer clayer = (Layer)DeepUtil.copy(this, dest);
             clayer.init();
             return clayer;
         }
