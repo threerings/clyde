@@ -5,6 +5,7 @@ package com.threerings.opengl;
 
 import com.samskivert.util.RunQueue;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
@@ -28,6 +29,7 @@ public abstract class GlApp
         _renderer = new Renderer();
         _rsrcmgr = new ResourceManager("rsrc/");
         _msgmgr = new MessageManager("rsrc.i18n");
+        _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
         _texcache = new TextureCache(this);
         _shadcache = new ShaderCache(this);
         _matcache = new MaterialCache(this);
@@ -66,6 +68,12 @@ public abstract class GlApp
     }
 
     // documentation inherited from interface GlContext
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
+    }
+
+    // documentation inherited from interface GlContext
     public TextureCache getTextureCache ()
     {
         return _texcache;
@@ -100,6 +108,9 @@ public abstract class GlApp
 
     /** The message manager. */
     protected MessageManager _msgmgr;
+
+    /** The configuration manager. */
+    protected ConfigManager _cfgmgr;
 
     /** The texture cache. */
     protected TextureCache _texcache;

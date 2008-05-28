@@ -3,6 +3,8 @@
 
 package com.threerings.config;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -14,6 +16,11 @@ import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.export.BinaryImporter;
+import com.threerings.export.Importer;
+import com.threerings.export.XMLImporter;
+
+import static java.util.logging.Level.*;
+import static com.threerings.ClydeLog.*;
 
 /**
  * Contains a group of managed configurations, all of the same class.
@@ -114,14 +121,51 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Creates a new configuration group.
      */
-    protected ConfigGroup (String name, Class<T> cclass, boolean ids)
+    protected ConfigGroup (ConfigManager cfgmgr, String name, Class<T> cclass, boolean ids)
     {
+        _cfgmgr = cfgmgr;
         _name = name;
         _cclass = cclass;
 
         // create the id map if specified
         if (ids) {
             _configsById = new HashIntMap<T>();
+        }
+
+        // load the existing configurations (first checking for a binary file, then an xml file)
+        if (readConfigs(false) || readConfigs(true)) {
+            log.info("Read configurations for group " + _name + ".");
+        }
+    }
+
+    /**
+     * Attempts to read the initial set of configurations.
+     *
+     * @return true if successful, false otherwise.
+     */
+    protected boolean readConfigs (boolean xml)
+    {
+        String base = _cfgmgr.getConfigPath() + _name;
+        File file = _cfgmgr.getResourceManager().getResourceFile(base + (xml ? ".xml" : ".dat"));
+        if (!file.exists()) {
+            return false;
+        }
+        try {
+            FileInputStream fin = new FileInputStream(file);
+            Importer in = xml ? new XMLImporter(fin) : new BinaryImporter(fin);
+            @SuppressWarnings("unchecked") T[] configs = (T[])in.readObject();
+            for (T config : configs) {
+                _configsByName.put(config.getName(), config);
+                if (_configsById != null) {
+                    _configsById.put(config.getId(), config);
+                }
+            }
+            in.close();
+            return true;
+
+        } catch (Exception e) { // IOException, ClassCastException
+            log.log(WARNING, "Error reading configurations [file=" + file + "].", e);
+            return false;
         }
     }
 
@@ -166,6 +210,9 @@ public class ConfigGroup<T extends ManagedConfig>
             }
         });
     }
+
+    /** The configuration manager that created this group. */
+    protected ConfigManager _cfgmgr;
 
     /** The name of this group. */
     protected String _name;

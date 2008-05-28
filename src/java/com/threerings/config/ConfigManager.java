@@ -25,15 +25,22 @@ public class ConfigManager
     /**
      * Creates a new configuration manager.
      *
-     * @param configPath the resource path of the manager configuration.
+     * @param configPath the resource path of the configurations.
      */
     public ConfigManager (ResourceManager rsrcmgr, String configPath)
     {
         _rsrcmgr = rsrcmgr;
+        _configPath = configPath + (configPath.endsWith("/") ? "" : "/");
+    }
 
+    /**
+     * Initializes the configuration manager, loading its configuration groups and initial configs.
+     */
+    public void init ()
+    {
         // load the manager configuration
         try {
-            loadConfig(configPath);
+            loadManagerConfig();
         } catch (IOException e) {
             log.log(WARNING, "Failed to load manager config.", e);
         }
@@ -79,13 +86,29 @@ public class ConfigManager
     }
 
     /**
+     * Returns a reference to the resource manager used to load configurations.
+     */
+    protected ResourceManager getResourceManager ()
+    {
+        return _rsrcmgr;
+    }
+
+    /**
+     * Returns the resource path from which configurations are loaded.
+     */
+    protected String getConfigPath ()
+    {
+        return _configPath;
+    }
+
+    /**
      * Loads the manager config from the specified path.
      */
-    protected void loadConfig (String path)
+    protected void loadManagerConfig ()
         throws IOException
     {
         Properties props = new Properties();
-        props.load(_rsrcmgr.getResource(path));
+        props.load(_rsrcmgr.getResource(_configPath + "manager.properties"));
 
         // initialize the config groups
         String[] groups = StringUtil.parseStringArray(props.getProperty("groups", ""));
@@ -109,11 +132,14 @@ public class ConfigManager
     protected <T extends ManagedConfig> void registerGroup (
         String name, Class<T> clazz, boolean ids)
     {
-        _groups.put(clazz, new ConfigGroup<T>(name, clazz, ids));
+        _groups.put(clazz, new ConfigGroup<T>(this, name, clazz, ids));
     }
 
     /** The resource manager used to load configurations. */
     protected ResourceManager _rsrcmgr;
+
+    /** The resource path of the managed configurations. */
+    protected String _configPath;
 
     /** Registered configuration groups mapped by config class. */
     protected HashMap<Class, ConfigGroup> _groups = new HashMap<Class, ConfigGroup>();

@@ -3,6 +3,8 @@
 
 package com.threerings.util;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
@@ -16,9 +18,11 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
+import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.Editable;
+import com.threerings.export.SerializableWrapper;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.resource.ResourceManager;
 
@@ -30,6 +34,28 @@ import static com.threerings.ClydeLog.*;
  */
 public class ToolUtil
 {
+    /** A data flavor for referenced local wrapped objects (on this VM). */
+    public static final DataFlavor LOCAL_WRAPPED_FLAVOR;
+    static {
+        DataFlavor flavor = null;
+        try {
+            flavor = new DataFlavor(
+                DataFlavor.javaJVMLocalObjectMimeType +
+                ";class=com.threerings.export.SerializableWrapper");
+        } catch (ClassNotFoundException e) {
+             // won't happen
+        }
+        LOCAL_WRAPPED_FLAVOR = flavor;
+    }
+
+    /** A data flavor for serialized wrapped objects (from another VM). */
+    public static final DataFlavor SERIALIZED_WRAPPED_FLAVOR =
+        new DataFlavor(SerializableWrapper.class, null);
+
+    /** The flavors for local and serialized wrapped objects. */
+    public static final DataFlavor[] WRAPPED_FLAVORS = {
+        LOCAL_WRAPPED_FLAVOR, SERIALIZED_WRAPPED_FLAVOR };
+
     /**
      * A simple editable object used to manipulate preferences.
      */
@@ -112,6 +138,41 @@ public class ToolUtil
 
         /** The resource directory. */
         protected File _resourceDir;
+    }
+
+    /**
+     * A {@link Transferable} available in two flavors: one for use within a single VM and one that
+     * uses binary export/import to exchange data between different VMs.  Either way, the actual
+     * data returned is a {@link SerializableWrapper} containing the object of interest.
+     */
+    public static class WrappedTransfer
+        implements Transferable
+    {
+        public WrappedTransfer (Object object)
+        {
+            _wrapper = new SerializableWrapper(object);
+        }
+
+        // documentation inherited from interface Transferable
+        public DataFlavor[] getTransferDataFlavors ()
+        {
+            return WRAPPED_FLAVORS;
+        }
+
+        // documentation inherited from interface Transferable
+        public boolean isDataFlavorSupported (DataFlavor flavor)
+        {
+            return ListUtil.contains(WRAPPED_FLAVORS, flavor);
+        }
+
+        // documentation inherited from interface Transferable
+        public Object getTransferData (DataFlavor flavor)
+        {
+            return _wrapper;
+        }
+
+        /** The wrapped object. */
+        protected SerializableWrapper _wrapper;
     }
 
     /**

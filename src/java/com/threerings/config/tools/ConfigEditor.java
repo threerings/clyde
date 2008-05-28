@@ -60,7 +60,7 @@ public class ConfigEditor
     {
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/manager.properties");
+        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
         new ConfigEditor(rsrcmgr, msgmgr, cfgmgr, true).start();
     }
 
@@ -87,21 +87,43 @@ public class ConfigEditor
             }
         });
 
-        // create and init the editable preferences
-        _eprefs = new ToolUtil.EditablePrefs(_prefs);
-        _eprefs.init(_rsrcmgr);
-
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
         _frame.setJMenuBar(menubar);
 
         JMenu file = createMenu("file", KeyEvent.VK_F);
         menubar.add(file);
+
+        JMenu nmenu = createMenu("new", KeyEvent.VK_N);
+        file.add(nmenu);
+        nmenu.add(createMenuItem("config", KeyEvent.VK_C, KeyEvent.VK_N));
+        nmenu.add(createMenuItem("folder", KeyEvent.VK_F, KeyEvent.VK_F));
+        file.add(createMenuItem("open", KeyEvent.VK_O, KeyEvent.VK_O));
+        file.addSeparator();
+        file.add(createMenuItem("save", KeyEvent.VK_S, KeyEvent.VK_S));
+        file.add(createMenuItem("save_as", KeyEvent.VK_A, KeyEvent.VK_A));
+        file.add(createMenuItem("revert", KeyEvent.VK_R, KeyEvent.VK_R));
+        file.addSeparator();
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
-        edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
+        edit.add(createMenuItem("cut", KeyEvent.VK_T, KeyEvent.VK_X));
+        edit.add(createMenuItem("copy", KeyEvent.VK_C, KeyEvent.VK_C));
+        edit.add(createMenuItem("paste", KeyEvent.VK_P, KeyEvent.VK_V));
+        edit.add(createMenuItem("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0));
+
+        // if running standalone, create and initialize the editable preferences to
+        // allow changing the resource dir
+        if (standalone) {
+            edit.addSeparator();
+            edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_F));
+            _eprefs = new ToolUtil.EditablePrefs(_prefs);
+            _eprefs.init(_rsrcmgr);
+
+            // initialize the configuration manager here, after we have set the resource dir
+            _cfgmgr.init();
+        }
 
         // create the chooser panel
         JPanel cpanel = GroupLayout.makeVStretchBox(5);
@@ -129,14 +151,6 @@ public class ConfigEditor
         _gbox.addItemListener(this);
 
         cpanel.add(_pane = new JScrollPane());
-
-        JPanel bpanel = new JPanel();
-        cpanel.add(bpanel, GroupLayout.FIXED);
-        bpanel.add(createButton("new_config", "m.new"));
-        bpanel.add(_cloneConfig = createButton("clone_config", "m.clone"));
-        _cloneConfig.setEnabled(false);
-        bpanel.add(_deleteConfig = createButton("delete_config", "m.delete"));
-        _deleteConfig.setEnabled(false);
 
         // create the editor panel
         _epanel = new EditorPanel(_msgs, EditorPanel.CategoryMode.TABS, null);
@@ -171,8 +185,18 @@ public class ConfigEditor
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
-        if (action.equals("quit")) {
+        if (action.equals("config")) {
+        } else if (action.equals("folder")) {
+        } else if (action.equals("open")) {
+        } else if (action.equals("save")) {
+        } else if (action.equals("save_as")) {
+        } else if (action.equals("revert")) {
+        } else if (action.equals("quit")) {
             shutdown();
+        } else if (action.equals("cut")) {
+        } else if (action.equals("copy")) {
+        } else if (action.equals("paste")) {
+        } else if (action.equals("delete")) {
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
                 _pdialog = EditorPanel.createDialog(_frame, _msgs, "t.preferences", _eprefs);
@@ -268,6 +292,7 @@ public class ConfigEditor
             if (tree == null) {
                 tree = new JTree();
                 tree.setRootVisible(false);
+                tree.setEditable(true);
                 tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             }
             _pane.setViewportView(tree);

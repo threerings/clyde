@@ -130,6 +130,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _eprefs = createEditablePrefs();
         _eprefs.init(_rsrcmgr);
 
+        // initialize the configuration manager now that we have configured the resource dir
+        _cfgmgr.init();
+
         // create the reference grid
         _grid = new Grid(this, 65, 1f);
         _grid.getColor().set(0.2f, 0.2f, 0.2f, 1f);

@@ -3,6 +3,7 @@
 
 package com.threerings.opengl.util;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
@@ -28,6 +29,11 @@ public interface GlContext
      * Returns a reference to the message manager.
      */
     public MessageManager getMessageManager ();
+
+    /**
+     * Returns a reference to the configuration manager.
+     */
+    public ConfigManager getConfigManager ();
 
     /**
      * Returns a reference to the texture cache.
