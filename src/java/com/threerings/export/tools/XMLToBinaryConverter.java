@@ -4,8 +4,10 @@
 package com.threerings.export.tools;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.XMLImporter;
@@ -26,8 +28,17 @@ public class XMLToBinaryConverter
                 "Usage: XMLToBinaryConverter <xml input file> <binary output file>");
             return;
         }
-        XMLImporter in = new XMLImporter(new FileInputStream(args[0]));
-        BinaryExporter out = new BinaryExporter(new FileOutputStream(args[1]));
+        convert(new File(args[0]), new File(args[1]));
+    }
+
+    /**
+     * Performs the actual conversion.
+     */
+    public static void convert (File source, File dest)
+        throws IOException
+    {
+        XMLImporter in = new XMLImporter(new FileInputStream(source));
+        BinaryExporter out = new BinaryExporter(new FileOutputStream(dest));
         try {
             while (true) {
                 out.writeObject(in.readObject());
