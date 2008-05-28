@@ -3,6 +3,7 @@
 
 package com.threerings.export.tools;
 
+import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
@@ -27,11 +28,15 @@ public class XMLToBinaryConverter
         }
         XMLImporter in = new XMLImporter(new FileInputStream(args[0]));
         BinaryExporter out = new BinaryExporter(new FileOutputStream(args[1]));
-        Object obj;
-        while ((obj = in.readObject()) != null) {
-            out.writeObject(obj);
+        try {
+            while (true) {
+                out.writeObject(in.readObject());
+            }
+        } catch (EOFException e) {
+            // no problem
+        } finally {
+            in.close();
+            out.close();
         }
-        in.close();
-        out.close();
     }
 }

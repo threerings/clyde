@@ -3,6 +3,7 @@
 
 package com.threerings.export;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -73,7 +74,7 @@ public class XMLImporter extends Importer
             first = (_element == null) ? null : _element.getNextSibling();
         }
         if ((_element = findElement(first, "object")) == null) {
-            return null;
+            throw new EOFException();
         }
         return read(_element, Object.class);
     }
