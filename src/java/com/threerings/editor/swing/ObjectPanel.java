@@ -25,7 +25,6 @@ import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Property;
 
-import static java.util.logging.Level.*;
 import static com.threerings.editor.Log.*;
 
 /**
@@ -107,7 +106,7 @@ public class ObjectPanel extends BasePropertyEditor
                 try {
                     _values[idx] = value = newInstance(type);
                 } catch (Exception e) {
-                    log.log(WARNING, "Failed to create instance [type=" + type + "].", e);
+                    log.warning("Failed to create instance [type=" + type + "].", e);
                 }
             }
         }

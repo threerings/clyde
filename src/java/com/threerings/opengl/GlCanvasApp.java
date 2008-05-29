@@ -11,7 +11,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.logging.Level;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -69,7 +68,7 @@ public abstract class GlCanvasApp extends GlApp
             }, BorderLayout.CENTER);
 
         } catch (LWJGLException e) {
-            log.log(Level.WARNING, "Failed to open window.", e);
+            log.warning("Failed to open window.", e);
             return;
         }
 

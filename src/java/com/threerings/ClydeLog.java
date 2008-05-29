@@ -3,7 +3,7 @@
 
 package com.threerings;
 
-import java.util.logging.Logger;
+import com.samskivert.util.Logger;
 
 /**
  * A placeholder class that contains a reference to the log object used by this

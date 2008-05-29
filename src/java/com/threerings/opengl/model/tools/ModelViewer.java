@@ -64,7 +64,6 @@ import com.threerings.opengl.util.Compass;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.Grid;
 
-import static java.util.logging.Level.*;
 import static com.threerings.opengl.Log.*;
 
 /**
@@ -391,7 +390,7 @@ public class ModelViewer extends GlCanvasTool
                 return (Model)in.readObject();
             }
         } catch (Exception e) {
-            log.log(WARNING, "Failed to load model.", e);
+            log.warning("Failed to load model.", e);
         }
         return null;
     }
@@ -410,7 +409,7 @@ public class ModelViewer extends GlCanvasTool
                 return (Animation)in.readObject();
             }
         } catch (Exception e) {
-            log.log(WARNING, "Failed to load animation.", e);
+            log.warning("Failed to load animation.", e);
         }
         return null;
     }

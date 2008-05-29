@@ -77,7 +77,6 @@ import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.Grid;
 import com.threerings.opengl.util.SimpleRenderable;
 
-import static java.util.logging.Level.*;
 import static com.threerings.opengl.Log.*;
 
 /**
@@ -432,7 +431,7 @@ public class ParticleEditor extends GlCanvasTool
             in.close();
             setFile(file);
         } catch (IOException e) {
-            log.log(WARNING, "Failed to open particles [file=" + file + "].", e);
+            log.warning("Failed to open particles [file=" + file + "].", e);
         }
     }
 
@@ -458,7 +457,7 @@ public class ParticleEditor extends GlCanvasTool
             out.close();
             setFile(file);
         } catch (IOException e) {
-            log.log(WARNING, "Failed to save particles [file=" + file + "].", e);
+            log.warning("Failed to save particles [file=" + file + "].", e);
         }
     }
 
@@ -475,7 +474,7 @@ public class ParticleEditor extends GlCanvasTool
                 initParticles(file.getParent());
                 in.close();
             } catch (IOException e) {
-                log.log(WARNING, "Failed to import particles [file=" + file +"].", e);
+                log.warning("Failed to import particles [file=" + file +"].", e);
             }
         }
         _prefs.put("particle_export_dir", _exportChooser.getCurrentDirectory().toString());
@@ -503,7 +502,7 @@ public class ParticleEditor extends GlCanvasTool
                 out.writeObject(_particles);
                 out.close();
             } catch (IOException e) {
-                log.log(WARNING, "Failed to export particles [file=" + file + "].", e);
+                log.warning("Failed to export particles [file=" + file + "].", e);
             }
         }
         _prefs.put("particle_export_dir", _exportChooser.getCurrentDirectory().toString());
@@ -522,7 +521,7 @@ public class ParticleEditor extends GlCanvasTool
                 ((LayerTableModel)_ltable.getModel()).insertLayers(particles.getLayers());
                 in.close();
             } catch (IOException e) {
-                log.log(WARNING, "Failed to import layers [file=" + file + "].", e);
+                log.warning("Failed to import layers [file=" + file + "].", e);
             }
         }
         _prefs.put("particle_dir", _chooser.getCurrentDirectory().toString());

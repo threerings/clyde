@@ -10,7 +10,6 @@ import java.lang.reflect.Type;
 
 import com.samskivert.util.StringUtil;
 
-import static java.util.logging.Level.*;
 import static com.threerings.editor.Log.*;
 
 /**
@@ -49,7 +48,7 @@ public class MethodProperty extends Property
         try {
             return _getter.invoke(object);
         } catch (Exception e) {
-            log.log(WARNING, "Failed to get property [getter=" + _getter + "].", e);
+            log.warning("Failed to get property [getter=" + _getter + "].", e);
             return null;
         }
     }
@@ -60,7 +59,7 @@ public class MethodProperty extends Property
         try {
             _setter.invoke(object, value);
         } catch (Exception e) {
-            log.log(WARNING, "Failed to set property [setter=" + _setter + ".", e);
+            log.warning("Failed to set property [setter=" + _setter + "].", e);
         }
     }
 

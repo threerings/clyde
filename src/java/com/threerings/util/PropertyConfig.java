@@ -10,7 +10,6 @@ import java.util.Properties;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.StringUtil;
 
-import static java.util.logging.Level.*;
 import static com.threerings.ClydeLog.*;
 
 /**
@@ -256,7 +255,7 @@ public abstract class PropertyConfig
             config = clazz.newInstance();
             config.init(getName(path, prefix), id, props);
         } catch (Exception e) {
-            log.log(WARNING, "Failed to load config [path=" + path + "].", e);
+            log.warning("Failed to load config [path=" + path + "].", e);
         }
         return config;
     }

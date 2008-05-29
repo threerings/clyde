@@ -4,7 +4,6 @@
 package com.threerings.opengl.material;
 
 import java.util.Properties;
-import java.util.logging.Level;
 
 import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.util.GlContext;
@@ -28,8 +27,7 @@ public abstract class Material
             material.init(ctx, props);
             return material;
         } catch (Exception e) {
-            log.log(Level.WARNING, "Failed to instantiate material class [class=" +
-                mclass + "].", e);
+            log.warning("Failed to instantiate material class [class=" + mclass + "].", e);
             return null;
         }
     }

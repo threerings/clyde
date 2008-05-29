@@ -26,7 +26,6 @@ import com.threerings.opengl.model.SkinMesh;
 import com.threerings.opengl.model.StaticModel;
 import com.threerings.opengl.model.VisibleMesh;
 
-import static java.util.logging.Level.*;
 import static com.threerings.opengl.Log.*;
 
 /**
@@ -142,7 +141,7 @@ public class ModelCache
                     prototype.setKey(key);
 
                 } catch (IOException e) {
-                    log.log(WARNING, "Failed to load model [name=" + name + "].", e);
+                    log.warning("Failed to load model [name=" + name + "].", e);
                     prototype = ERROR_MODEL;
                 }
             } else {
@@ -167,7 +166,7 @@ public class ModelCache
                 anim.init();
 
             } catch (IOException e) {
-                log.log(WARNING, "Failed to load animation [name=" + name + "].", e);
+                log.warning("Failed to load animation [name=" + name + "].", e);
                 anim = ERROR_ANIM;
             }
         }

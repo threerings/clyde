@@ -18,7 +18,6 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.ObjectUtil;
 
-import static java.util.logging.Level.*;
 import static com.threerings.ClydeLog.*;
 
 /**
@@ -55,7 +54,7 @@ public class DeepUtil
         try {
             return handler.copy(source, dest);
         } catch (IllegalAccessException e) {
-            log.log(WARNING, "Couldn't access fields for deep copy.", e);
+            log.warning("Couldn't access fields for deep copy.", e);
             return null;
         }
     }
@@ -78,7 +77,7 @@ public class DeepUtil
         try {
             return handler.equals(o1, o2);
         } catch (IllegalAccessException e) {
-            log.log(WARNING, "Couldn't access fields for deep equals.", e);
+            log.warning("Couldn't access fields for deep equals.", e);
             return false;
         }
     }
@@ -96,7 +95,7 @@ public class DeepUtil
         try {
             return handler.hashCode(object);
         } catch (IllegalAccessException e) {
-            log.log(WARNING, "Couldn't access fields for deep hash code.", e);
+            log.warning("Couldn't access fields for deep hash code.", e);
             return 0;
         }
     }

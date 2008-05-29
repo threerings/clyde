@@ -3,8 +3,6 @@
 
 package com.threerings.opengl.renderer.util;
 
-import java.util.logging.Level;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ARBDepthTexture;
 import org.lwjgl.opengl.Drawable;
@@ -88,7 +86,7 @@ public class TextureRenderer
                 _renderer.init(_pbuffer, width, height);
 
             } catch (LWJGLException e) {
-                log.log(Level.WARNING, "Failed to create pbuffer.", e);
+                log.warning("Failed to create pbuffer.", e);
             }
         }
     }

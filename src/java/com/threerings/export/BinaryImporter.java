@@ -23,7 +23,6 @@ import com.samskivert.util.Tuple;
 
 import com.threerings.util.ReflectionUtil;
 
-import static java.util.logging.Level.*;
 import static com.threerings.export.Log.*;
 
 /**
@@ -82,7 +81,7 @@ public class BinaryImporter extends Importer
             Boolean value = (Boolean)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -95,7 +94,7 @@ public class BinaryImporter extends Importer
             Byte value = (Byte)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -108,7 +107,7 @@ public class BinaryImporter extends Importer
             Character value = (Character)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -121,7 +120,7 @@ public class BinaryImporter extends Importer
             Double value = (Double)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -134,7 +133,7 @@ public class BinaryImporter extends Importer
             Float value = (Float)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -147,7 +146,7 @@ public class BinaryImporter extends Importer
             Integer value = (Integer)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -160,7 +159,7 @@ public class BinaryImporter extends Importer
             Long value = (Long)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -173,7 +172,7 @@ public class BinaryImporter extends Importer
             Short value = (Short)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -186,7 +185,7 @@ public class BinaryImporter extends Importer
             @SuppressWarnings("unchecked") T value = (T)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.log(WARNING, "Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
             return defvalue;
         }
     }
@@ -248,7 +247,7 @@ public class BinaryImporter extends Importer
             try {
                 value = streamer.read(_in);
             } catch (ClassNotFoundException e) {
-                log.log(WARNING, "Class not found.", e);
+                log.warning("Class not found.", e);
             }
             if (value != null && objectId != -1) {
                 _objects.put(objectId, value);

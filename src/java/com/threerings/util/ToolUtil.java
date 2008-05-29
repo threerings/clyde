@@ -26,7 +26,6 @@ import com.threerings.export.SerializableWrapper;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.resource.ResourceManager;
 
-import static java.util.logging.Level.*;
 import static com.threerings.ClydeLog.*;
 
 /**
@@ -115,7 +114,7 @@ public class ToolUtil
                 try {
                     return new Color4f(StringUtil.parseFloatArray(cstr));
                 } catch (Exception e) {
-                    log.log(WARNING, "Error reading color preference [prefs=" + _prefs +
+                    log.warning("Error reading color preference [prefs=" + _prefs +
                         ", key=" + key + ", value=" + cstr + "].", e);
                 }
             }

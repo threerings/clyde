@@ -7,7 +7,6 @@ import java.awt.AWTEvent;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.GraphicsDevice;
-import java.util.logging.Level;
 import javax.swing.JPopupMenu;
 
 import org.lwjgl.LWJGLException;
@@ -52,7 +51,7 @@ public class GlCanvas extends AWTGLCanvas
         try {
             super.makeCurrent();
         } catch (LWJGLException e) {
-            log.log(Level.WARNING, "Failed to make context current.", e);
+            log.warning("Failed to make context current.", e);
         }
     }
 
@@ -62,7 +61,7 @@ public class GlCanvas extends AWTGLCanvas
         try {
             super.swapBuffers();
         } catch (LWJGLException e) {
-            log.log(Level.WARNING, "Error swapping buffers.", e);
+            log.warning("Error swapping buffers.", e);
         }
     }
 

@@ -25,7 +25,6 @@ import org.w3c.dom.Text;
 
 import com.threerings.util.ReflectionUtil;
 
-import static java.util.logging.Level.*;
 import static com.threerings.export.Log.*;
 
 /**
@@ -95,7 +94,7 @@ public class XMLImporter extends Importer
         try {
             return (value == null) ? defvalue : Byte.parseByte(value);
         } catch (NumberFormatException e) {
-            log.log(WARNING, "Couldn't parse value as byte [value=" + value + "].", e);
+            log.warning("Couldn't parse value as byte [value=" + value + "].", e);
             return defvalue;
         }
     }
@@ -116,7 +115,7 @@ public class XMLImporter extends Importer
         try {
             return (value == null) ? defvalue : Double.parseDouble(value);
         } catch (NumberFormatException e) {
-            log.log(WARNING, "Couldn't parse value as double [value=" + value + "].", e);
+            log.warning("Couldn't parse value as double [value=" + value + "].", e);
             return defvalue;
         }
     }
@@ -129,7 +128,7 @@ public class XMLImporter extends Importer
         try {
             return (value == null) ? defvalue : Float.parseFloat(value);
         } catch (NumberFormatException e) {
-            log.log(WARNING, "Couldn't parse value as float [value=" + value + "].", e);
+            log.warning("Couldn't parse value as float [value=" + value + "].", e);
             return defvalue;
         }
     }
@@ -142,7 +141,7 @@ public class XMLImporter extends Importer
         try {
             return (value == null) ? defvalue : Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            log.log(WARNING, "Couldn't parse value as int [value=" + value + "].", e);
+            log.warning("Couldn't parse value as int [value=" + value + "].", e);
             return defvalue;
         }
     }
@@ -155,7 +154,7 @@ public class XMLImporter extends Importer
         try {
             return (value == null) ? defvalue : Long.parseLong(value);
         } catch (NumberFormatException e) {
-            log.log(WARNING, "Couldn't parse value as long [value=" + value + "].", e);
+            log.warning("Couldn't parse value as long [value=" + value + "].", e);
             return defvalue;
         }
     }
@@ -168,7 +167,7 @@ public class XMLImporter extends Importer
         try {
             return (value == null) ? defvalue : Short.parseShort(value);
         } catch (NumberFormatException e) {
-            log.log(WARNING, "Couldn't parse value as short [value=" + value + "].", e);
+            log.warning("Couldn't parse value as short [value=" + value + "].", e);
             return defvalue;
         }
     }
@@ -222,7 +221,7 @@ public class XMLImporter extends Importer
             try {
                 cclazz = Class.forName(cstr);
             } catch (ClassNotFoundException e) {
-                log.log(WARNING, "Class not found.", e);
+                log.warning("Class not found.", e);
                 return null;
             }
         } else {
@@ -234,11 +233,11 @@ public class XMLImporter extends Importer
             Object value = null;
             try {
                 if ((value = stringifier.fromString(string)) == null) {
-                    log.log(WARNING, "Failed to parse string [string=" + string + ", class=" +
+                    log.warning("Failed to parse string [string=" + string + ", class=" +
                         cclazz + "].");
                 }
             } catch (Exception e) {
-                log.log(WARNING, "Failed to parse string [string=" + string + ", class=" +
+                log.warning("Failed to parse string [string=" + string + ", class=" +
                     cclazz + "].", e);
             }
             if (id.length() > 0 && value != null) {

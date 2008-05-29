@@ -19,7 +19,6 @@ import com.threerings.opengl.model.StaticModel;
 import com.threerings.opengl.model.VisibleMesh;
 import com.threerings.opengl.model.tools.ModelReader;
 
-import static java.util.logging.Level.*;
 import static com.threerings.opengl.Log.*;
 
 /**
@@ -133,7 +132,7 @@ public abstract class RenderMode extends DeepObject
                 _mesh = smodel.getVisibleMeshes()[0];
 
             } catch (Exception e) {
-                log.log(WARNING, "Failed to load model.", e);
+                log.warning("Failed to load model.", e);
                 _mesh = null;
             }
         }

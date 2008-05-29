@@ -12,7 +12,6 @@ import java.lang.reflect.Type;
 
 import java.util.Collection;
 
-import static java.util.logging.Level.*;
 import static com.threerings.editor.Log.*;
 
 /**
@@ -130,7 +129,7 @@ public abstract class Property
         } catch (NoSuchMethodException e) {
             // fall through
         } catch (Exception e) {
-            log.log(WARNING, "Failed to get editor type label [type=" + type + "].", e);
+            log.warning("Failed to get editor type label [type=" + type + "].", e);
         }
         return "type";
     }
@@ -164,7 +163,7 @@ public abstract class Property
         } catch (NoSuchMethodException e) {
             // fall through
         } catch (Exception e) {
-            log.log(WARNING, "Failed to get editor types [type=" + type + "].", e);
+            log.warning("Failed to get editor types [type=" + type + "].", e);
         }
         // just use the class itself
         return annotation.nullable() ? new Class[] { null, type } : new Class[] { type };

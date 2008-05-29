@@ -9,7 +9,6 @@ import java.lang.reflect.Modifier;
 
 import java.util.HashMap;
 
-import static java.util.logging.Level.*;
 import static com.threerings.ClydeLog.*;
 
 /**
@@ -68,7 +67,7 @@ public class ReflectionUtil
         try {
             return createNewInstance(Class.forName(classname), outer);
         } catch (Exception e) {
-            log.log(WARNING, "Failed to get class by name [class=" + classname + "].", e);
+            log.warning("Failed to get class by name [class=" + classname + "].", e);
             return null;
         }
     }
@@ -126,7 +125,7 @@ public class ReflectionUtil
         try {
             return (outer == null) ? ctor.newInstance() : ctor.newInstance(outer);
         } catch (Exception e) {
-            log.log(WARNING, "Failed to create new instance [class=" + clazz + "].", e);
+            log.warning("Failed to create new instance [class=" + clazz + "].", e);
             return null;
         }
     }

@@ -59,7 +59,6 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.Property;
 
-import static java.util.logging.Level.*;
 import static com.threerings.editor.Log.*;
 
 /**
@@ -88,7 +87,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             try {
                 editor = clazz.newInstance();
             } catch (Exception e) {
-                log.log(WARNING, "Failed to create property editor.", e);
+                log.warning("Failed to create property editor.", e);
                 editor = new ObjectEditor();
             }
         } else if (type.isEnum()) {
@@ -831,7 +830,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             try {
                 addValue(type.newInstance());
             } catch (Exception e) {
-                log.log(WARNING, "Failed to instantiate component [class=" + type + "].", e);
+                log.warning("Failed to instantiate component [class=" + type + "].", e);
             }
         }
 
@@ -933,7 +932,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
                     try {
                         _property.set(_object, values = (List)type.newInstance());
                     } catch (Exception e) {
-                        log.log(WARNING, "Failed to instantiate list [class=" + type + "].", e);
+                        log.warning("Failed to instantiate list [class=" + type + "].", e);
                         return;
                     }
                 }

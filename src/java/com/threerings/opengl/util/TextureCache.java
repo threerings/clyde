@@ -7,7 +7,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.logging.Level;
 import javax.imageio.ImageIO;
 
 import com.samskivert.util.SoftCache;
@@ -85,7 +84,7 @@ public class TextureCache
             try {
                 image = readImage(path);
             } catch (Exception e) {
-                log.log(Level.WARNING,"Unable to load image resource [path=" + path + "].", e);
+                log.warning("Unable to load image resource [path=" + path + "].", e);
                 image = ImageUtil.createErrorImage(64, 64);
             }
             _images.put(path, image);

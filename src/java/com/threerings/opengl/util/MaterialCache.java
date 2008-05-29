@@ -5,7 +5,6 @@ package com.threerings.opengl.util;
 
 import java.io.IOException;
 import java.util.Properties;
-import java.util.logging.Level;
 
 import com.samskivert.util.SoftCache;
 
@@ -57,8 +56,7 @@ public class MaterialCache
         try {
             props.load(GlUtil.getInputStream(_ctx, path + "/material.properties"));
         } catch (IOException e) {
-            log.log(Level.WARNING, "Failed to read material properties [name=" +
-                name + "].", e);
+            log.warning("Failed to read material properties [name=" + name + "].", e);
             return null;
         }
         GlUtil.normalizeProperties(path, props);

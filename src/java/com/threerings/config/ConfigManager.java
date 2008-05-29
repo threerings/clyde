@@ -14,7 +14,6 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
 
-import static java.util.logging.Level.*;
 import static com.threerings.ClydeLog.*;
 
 /**
@@ -42,7 +41,7 @@ public class ConfigManager
         try {
             loadManagerConfig();
         } catch (IOException e) {
-            log.log(WARNING, "Failed to load manager config.", e);
+            log.warning("Failed to load manager config.", e);
         }
     }
 
