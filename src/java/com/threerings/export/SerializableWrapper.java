@@ -56,7 +56,11 @@ public class SerializableWrapper
                 out.flush();
             }
         });
-        exporter.writeObject(_object);
+        try {
+            exporter.writeObject(_object);
+        } finally {
+            exporter.finish();
+        }
     }
 
     // documentation inherited from interface Externalizable

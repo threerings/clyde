@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -28,50 +27,6 @@ import static com.threerings.ClydeLog.*;
  */
 public class ConfigGroup<T extends ManagedConfig>
 {
-    /**
-     * A node in the config tree.
-     */
-    public static abstract class Node<T extends ManagedConfig>
-        implements Exportable
-    {
-        /**
-         * Sets the name of this node.
-         */
-        public void setName (String name)
-        {
-            _name = name;
-        }
-
-        /**
-         * Returns the name of this node.
-         */
-        public String getName ()
-        {
-            return _name;
-        }
-
-        /** The name of this node. */
-        protected String _name;
-    }
-
-    /**
-     * An internal (folder) node.
-     */
-    public static class InternalNode<T extends ManagedConfig> extends Node<T>
-    {
-        /** The children of this node. */
-        protected ArrayList<Node> _children;
-    }
-
-    /**
-     * A leaf node containing a single configuration.
-     */
-    public static class LeafNode<T extends ManagedConfig> extends Node<T>
-    {
-        /** The configuration stored in this node. */
-        protected T _config;
-    }
-
     /**
      * Returns the name of this group.
      */

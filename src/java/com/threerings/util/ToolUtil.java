@@ -40,7 +40,7 @@ public class ToolUtil
         try {
             flavor = new DataFlavor(
                 DataFlavor.javaJVMLocalObjectMimeType +
-                ";class=com.threerings.export.SerializableWrapper");
+                ";class=" + SerializableWrapper.class.getName());
         } catch (ClassNotFoundException e) {
              // won't happen
         }

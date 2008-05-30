@@ -6,11 +6,12 @@ package com.threerings.config;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.export.Exportable;
+import com.threerings.util.DeepObject;
 
 /**
  * Represents a configuration managed by the {@link ConfigManager}.
  */
-public abstract class ManagedConfig
+public abstract class ManagedConfig extends DeepObject
     implements Exportable
 {
     /**
