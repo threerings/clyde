@@ -388,7 +388,17 @@ public class ConfigEditor
         public void activate ()
         {
             if (tree == null) {
-                tree = new JTree(new ConfigTreeNode(null, null), true);
+                tree = new JTree(new DefaultTreeModel(new ConfigTreeNode(null, null), true) {
+                    public void valueForPathChanged (TreePath path, Object newValue) {
+                        super.valueForPathChanged(path, newValue);
+
+                        // remove and reinsert in sorted order
+                        ConfigTreeNode node = (ConfigTreeNode)path.getLastPathComponent();
+                        ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
+                        removeNodeFromParent(node);
+                        insertNodeInto(node, parent, parent.getInsertionIndex(node));
+                    }
+                });
                 tree.setRootVisible(false);
                 tree.setEditable(true);
 
@@ -434,25 +444,18 @@ public class ConfigEditor
                             return false; // some other kind of config
                         }
                         ConfigTreeNode snode = getSelectedNode();
-                        if (onode != null && onode == snode) {
-                            return false; // can't drop onto the original
-                        }
                         ConfigTreeNode parent = (ConfigTreeNode)tree.getModel().getRoot();
-                        int index = parent.getChildCount();
-                        if (snode != null && snode.getParent() != null) {
-                            if (snode.getAllowsChildren()) {
-                                parent = snode;
-                                index = snode.getChildCount();
-                            } else {
-                                parent = (ConfigTreeNode)snode.getParent();
-                                int oidx = (onode == null) ? -1 : parent.getIndex(onode);
-                                int sidx = parent.getIndex(snode);
-                                index = sidx + ((oidx >= 0 && sidx > oidx) ? 1 : 0);
-                            }
+                        if (snode != null) {
+                            parent = snode.getAllowsChildren() ?
+                                snode : (ConfigTreeNode)snode.getParent();
+                        }
+                        if (onode != null && onode.getParent() == parent) {
+                            return false; // can't move to the same folder
                         }
                         // have to clone it in case we are going to paste it multiple times
                         node = (ConfigTreeNode)node.clone();
-                        ((DefaultTreeModel)tree.getModel()).insertNodeInto(node, parent, index);
+                        ((DefaultTreeModel)tree.getModel()).insertNodeInto(
+                            node, parent, parent.getInsertionIndex(node));
                         tree.setSelectionPath(new TreePath(node.getPath()));
                         return true;
                     }
@@ -596,7 +599,7 @@ public class ConfigEditor
                 _msgs.get(config == null ? "m.new_folder" : "m.new_config"));
             ConfigTreeNode child = new ConfigTreeNode(name, config);
             ((DefaultTreeModel)tree.getModel()).insertNodeInto(
-                child, parent, parent.getChildCount());
+                child, parent, parent.getInsertionIndex(child));
             tree.startEditingAtPath(new TreePath(child.getPath()));
         }
 
@@ -628,19 +631,19 @@ public class ConfigEditor
             cnode = (ConfigTreeNode)onode.clone();
         }
 
-        @Override // documentation inherited
+        // documentation inherited from interface Transferable
         public DataFlavor[] getTransferDataFlavors ()
         {
             return NODE_TRANSFER_FLAVORS;
         }
 
-        @Override // documentation inherited
+        // documentation inherited from interface Transferable
         public boolean isDataFlavorSupported (DataFlavor flavor)
         {
             return ListUtil.contains(NODE_TRANSFER_FLAVORS, flavor);
         }
 
-        @Override // documentation inherited
+        // documentation inherited from interface Transferable
         public Object getTransferData (DataFlavor flavor)
         {
             return (flavor == LOCAL_NODE_TRANSFER_FLAVOR) ?
@@ -725,6 +728,28 @@ public class ConfigEditor
                     return name;
                 }
             }
+        }
+
+        /**
+         * Returns the index at which the specified node should be inserted to maintain the sort
+         * order.
+         */
+        public int getInsertionIndex (ConfigTreeNode child)
+        {
+            if (children == null) {
+                return 0;
+            }
+            String name = (String)child.getUserObject();
+            boolean folder = child.getAllowsChildren();
+            for (int ii = 0, nn = children.size(); ii < nn; ii++) {
+                ConfigTreeNode ochild = (ConfigTreeNode)children.get(ii);
+                String oname = (String)ochild.getUserObject();
+                boolean ofolder = ochild.getAllowsChildren();
+                if ((folder == ofolder) ? (name.compareTo(oname) <= 0) : folder) {
+                    return ii;
+                }
+            }
+            return children.size();
         }
 
         /**
