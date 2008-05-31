@@ -15,6 +15,14 @@ public abstract class ManagedConfig extends DeepObject
     implements Exportable
 {
     /**
+     * Sets the name of this configuration.
+     */
+    public void setName (String name)
+    {
+        _name = name;
+    }
+
+    /**
      * Returns the name of this configuration.
      */
     public String getName ()

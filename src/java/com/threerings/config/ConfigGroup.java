@@ -5,19 +5,26 @@ package com.threerings.config;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.lang.reflect.Array;
+
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
+import com.samskivert.util.QuickSort;
 
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
+import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
+import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 
 import static com.threerings.ClydeLog.*;
@@ -119,6 +126,34 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /**
+     * Saves this group's configurations.
+     */
+    public void save ()
+    {
+        // put all the configs into an array and sort them by name
+        @SuppressWarnings("unchecked") T[] array =
+            (T[])Array.newInstance(_cclass, _configsByName.size());
+        _configsByName.values().toArray(array);
+        QuickSort.sort(array, new Comparator<T>() {
+            public int compare (T c1, T c2) {
+                return c1.getName().compareTo(c2.getName());
+            }
+        });
+
+        // write them out to the file
+        String name = _cfgmgr.getConfigPath() + _name + ".xml";
+        File file = _cfgmgr.getResourceManager().getResourceFile(name);
+        try {
+            Exporter out = new XMLExporter(new FileOutputStream(file));
+            out.writeObject(array);
+            out.close();
+
+        } catch (IOException e) {
+            log.warning("Error writing configurations [file=" + file + "].", e);
+        }
+    }
+
+    /**
      * Creates a new configuration group.
      */
     protected ConfigGroup (ConfigManager cfgmgr, String name, Class<T> cclass, boolean ids)
@@ -134,7 +169,7 @@ public class ConfigGroup<T extends ManagedConfig>
 
         // load the existing configurations (first checking for a binary file, then an xml file)
         if (readConfigs(false) || readConfigs(true)) {
-            log.info("Read configurations for group " + _name + ".");
+            log.debug("Read configurations for group " + _name + ".");
         }
     }
 

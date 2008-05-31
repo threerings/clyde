@@ -85,6 +85,16 @@ public class ConfigManager
     }
 
     /**
+     * Saves the configurations in all groups.
+     */
+    public void saveAll ()
+    {
+        for (ConfigGroup group : _groups.values()) {
+            group.save();
+        }
+    }
+
+    /**
      * Returns a reference to the resource manager used to load configurations.
      */
     protected ResourceManager getResourceManager ()
