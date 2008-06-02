@@ -251,8 +251,7 @@ public class XMLImporter extends Importer
         try {
             Object value;
             if (cclazz.isArray()) {
-                String len = element.getAttribute("length");
-                value = Array.newInstance(cclazz.getComponentType(), Integer.parseInt(len));
+                value = Array.newInstance(cclazz.getComponentType(), countEntries());
             } else {
                 Class<?> eclazz = cclazz.getEnclosingClass();
                 value = ReflectionUtil.newInstance(cclazz,
@@ -280,6 +279,20 @@ public class XMLImporter extends Importer
         } finally {
             _element = oelement;
         }
+    }
+
+    /**
+     * Returns the number of entries under the current element.
+     */
+    protected int countEntries ()
+    {
+        int count = 0;
+        for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
+            if (node instanceof Element && node.getNodeName().equals("entry")) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**

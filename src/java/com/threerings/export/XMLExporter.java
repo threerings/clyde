@@ -220,10 +220,6 @@ public class XMLExporter extends Exporter
                 _document.createComment("empty") : _document.createTextNode(str));
             return;
         }
-        // write the array dimension, if applicable
-        if (cclazz.isArray()) {
-            element.setAttribute("length", Integer.toString(Array.getLength(value)));
-        }
         String oindent = _indent;
         Element oelement = _element;
         _element = element;
