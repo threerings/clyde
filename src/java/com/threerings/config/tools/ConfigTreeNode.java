@@ -171,6 +171,21 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     }
 
     /**
+     * Clears out the unique ids of all configs under this node.
+     */
+    public void clearConfigIds ()
+    {
+        if (_config != null) {
+            _config.setId(0);
+
+        } else if (children != null) {
+            for (Object child : children) {
+                ((ConfigTreeNode)child).clearConfigIds();
+            }
+        }
+    }
+
+    /**
      * Finds and returns the node with the specified name (or <code>null</code> if it can't be
      * found).
      */

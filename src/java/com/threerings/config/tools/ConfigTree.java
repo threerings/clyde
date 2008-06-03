@@ -114,7 +114,7 @@ public class ConfigTree extends JTree
         setDragEnabled(true);
         setTransferHandler(new TransferHandler() {
             public int getSourceActions (JComponent comp) {
-                return COPY_OR_MOVE;
+                return MOVE;
             }
             public boolean canImport (JComponent comp, DataFlavor[] flavors) {
                 return isEditable() &&
@@ -162,6 +162,11 @@ public class ConfigTree extends JTree
                 // find a unique name
                 String name = (String)node.getUserObject();
                 node.setUserObject(parent.findNameForChild(name));
+
+                // unless we're moving within the tree, we have to clear the ids
+                if (onode == null) {
+                    node.clearConfigIds();
+                }
 
                 // insert, re-expand, select
                 ((DefaultTreeModel)getModel()).insertNodeInto(

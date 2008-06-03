@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 import com.samskivert.util.QuickSort;
@@ -109,7 +110,11 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         _configsByName.put(config.getName(), config);
         if (_configsById != null) {
-            _configsById.put(config.getId(), config);
+            int id = config.getId();
+            if (id == 0) {
+                config.setId(id = assignId());
+            }
+            _configsById.put(id, config);
         }
         fireConfigAdded(config);
     }
@@ -121,7 +126,10 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         _configsByName.remove(config.getName());
         if (_configsById != null) {
-            _configsById.remove(config.getId());
+            int id = config.getId();
+            if (_configsById.get(id) == config) {
+                _configsById.remove(id);
+            }
         }
         fireConfigRemoved(config);
     }
@@ -278,7 +286,14 @@ public class ConfigGroup<T extends ManagedConfig>
             for (T config : configs) {
                 _configsByName.put(config.getName(), config);
                 if (_configsById != null) {
-                    _configsById.put(config.getId(), config);
+                    int id = config.getId();
+                    _highestId = Math.max(_highestId, id);
+                    _configsById.put(id, config);
+                }
+            }
+            for (int id = 1; id < _highestId; id++) {
+                if (!_configsById.containsKey(id)) {
+                    _freeIds = IntListUtil.add(_freeIds, id);
                 }
             }
             in.close();
@@ -297,6 +312,23 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         String name = _cfgmgr.getConfigPath() + _name + (xml ? ".xml" : ".dat");
         return _cfgmgr.getResourceManager().getResourceFile(name);
+    }
+
+    /**
+     * Assigns and returns a new id.
+     */
+    protected int assignId ()
+    {
+        if (_freeIds != null) {
+            for (int ii = 0; ii < _freeIds.length; ii++) {
+                int id = _freeIds[ii];
+                if (id > 0) {
+                    _freeIds[ii] = 0;
+                    return id;
+                }
+            }
+        }
+        return ++_highestId;
     }
 
     /**
@@ -355,6 +387,12 @@ public class ConfigGroup<T extends ManagedConfig>
 
     /** Configurations mapped by integer identifier. */
     protected HashIntMap<T> _configsById;
+
+    /** The highest id in use.  The next id is guaranteed to be available. */
+    protected int _highestId;
+
+    /** Free ids below the highest. */
+    protected int[] _freeIds;
 
     /** Configuration event listeners. */
     protected ObserverList<ConfigListener<T>> _listeners =

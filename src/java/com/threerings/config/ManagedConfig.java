@@ -31,26 +31,19 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /**
+     * Sets the unique identifier of this configuration.
+     */
+    public void setId (int id)
+    {
+        _id = id;
+    }
+
+    /**
      * Returns the unique identifier of this configuration.
      */
     public int getId ()
     {
         return _id;
-    }
-
-    @Override // documentation inherited
-    public String toString ()
-    {
-        return StringUtil.fieldsToString(this);
-    }
-
-    /**
-     * Initializes the configuration with its name and identifier.
-     */
-    protected void init (String name, int id)
-    {
-        _name = name;
-        _id = id;
     }
 
     /** The name of this configuration. */
