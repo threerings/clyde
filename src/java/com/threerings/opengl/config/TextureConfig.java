@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
-import com.threerings.config.ManagedConfig;
+import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -19,7 +19,7 @@ import com.threerings.opengl.renderer.Texture;
 /**
  * Texture metadata.
  */
-public class TextureConfig extends ManagedConfig
+public class TextureConfig extends ParameterizedConfig
 {
     /** Minification filter constants. */
     public enum MinFilter

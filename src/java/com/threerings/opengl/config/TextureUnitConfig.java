@@ -10,13 +10,14 @@ import org.lwjgl.opengl.GLContext;
 
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
 
 /**
  * Describes the configuration of a single texture unit.
  */
-public class TextureUnitConfig
+public class TextureUnitConfig extends DeepObject
     implements Exportable
 {
     /** Environment mode constants. */

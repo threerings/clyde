@@ -7,9 +7,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -21,16 +19,13 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Vector;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -40,25 +35,19 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTree;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
-import javax.swing.TransferHandler;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 
-import com.samskivert.util.ListUtil;
 import com.samskivert.util.QuickSort;
 
 import com.threerings.resource.ResourceManager;
@@ -67,14 +56,8 @@ import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.swing.EditorPanel;
-import com.threerings.export.Exportable;
-import com.threerings.export.Exporter;
-import com.threerings.export.Importer;
-import com.threerings.export.SerializableWrapper;
 
-import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigGroup;
-import com.threerings.config.ConfigListener;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
 
@@ -85,7 +68,7 @@ import static com.threerings.ClydeLog.*;
  * another application.
  */
 public class ConfigEditor
-    implements ActionListener, ItemListener, ClipboardOwner
+    implements ActionListener, ItemListener, ChangeListener, ClipboardOwner
 {
     /**
      * The program entry point.
@@ -136,8 +119,11 @@ public class ConfigEditor
         file.add(createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
         file.add(createMenuItem("revert_group", KeyEvent.VK_R, KeyEvent.VK_R));
         file.addSeparator();
-        file.add(createMenuItem("save_all", KeyEvent.VK_A, KeyEvent.VK_A));
-        file.add(createMenuItem("revert_all", KeyEvent.VK_E, KeyEvent.VK_E));
+        file.add(createMenuItem("import_group", KeyEvent.VK_I, KeyEvent.VK_I));
+        file.add(createMenuItem("export_group", KeyEvent.VK_E, KeyEvent.VK_E));
+        file.addSeparator();
+        file.add(createMenuItem("import_configs", KeyEvent.VK_C, -1));
+        file.add(_exportConfigs = createMenuItem("export_configs", KeyEvent.VK_X, -1));
         file.addSeparator();
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
@@ -159,6 +145,11 @@ public class ConfigEditor
             // initialize the configuration manager here, after we have set the resource dir
             _cfgmgr.init();
         }
+
+        JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
+        menubar.add(gmenu);
+        gmenu.add(createMenuItem("save_all", KeyEvent.VK_S, KeyEvent.VK_A));
+        gmenu.add(createMenuItem("revert_all", KeyEvent.VK_R, KeyEvent.VK_T));
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("config_dir", null));
@@ -201,7 +192,7 @@ public class ConfigEditor
         // create the editor panel
         _epanel = new EditorPanel(_msgs, EditorPanel.CategoryMode.TABS, null);
         _frame.add(_epanel, BorderLayout.CENTER);
-        _epanel.setObject(new com.threerings.opengl.config.TextureConfig());
+        _epanel.addChangeListener(this);
 
         // activate the first group
         _gstates[0].activate();
@@ -236,14 +227,18 @@ public class ConfigEditor
             gstate.newConfig();
         } else if (action.equals("folder")) {
             gstate.newFolder();
-        } else if (action.equals("save_all")) {
-            _cfgmgr.saveAll();
-        } else if (action.equals("revert_all")) {
-
         } else if (action.equals("save_group")) {
             gstate.group.save();
         } else if (action.equals("revert_group")) {
-
+            gstate.group.revert();
+        } else if (action.equals("import_group")) {
+            importGroup();
+        } else if (action.equals("export_group")) {
+            exportGroup();
+        } else if (action.equals("import_configs")) {
+            importConfigs();
+        } else if (action.equals("export_configs")) {
+            exportConfigs();
         } else if (action.equals("quit")) {
             shutdown();
         } else if (action.equals("cut")) {
@@ -259,6 +254,10 @@ public class ConfigEditor
                 _pdialog = EditorPanel.createDialog(_frame, _msgs, "t.preferences", _eprefs);
             }
             _pdialog.setVisible(true);
+        } else if (action.equals("save_all")) {
+            _cfgmgr.saveAll();
+        } else if (action.equals("revert_all")) {
+            _cfgmgr.revertAll();
         }
     }
 
@@ -266,6 +265,12 @@ public class ConfigEditor
     public void itemStateChanged (ItemEvent event)
     {
         ((GroupState)_gbox.getSelectedItem()).activate();
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+        ((GroupState)_gbox.getSelectedItem()).configChanged();
     }
 
     // documentation inherited from interface ClipboardOwner
@@ -328,41 +333,47 @@ public class ConfigEditor
     }
 
     /**
-     * Brings up the open dialog.
+     * Brings up the import group dialog.
      */
-    protected void open ()
+    protected void importGroup ()
     {
         if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
-            open(_chooser.getSelectedFile());
+            ((GroupState)_gbox.getSelectedItem()).group.load(_chooser.getSelectedFile());
         }
         _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
     }
 
     /**
-     * Attempts to open the specified config file.
+     * Brings up the export group dialog.
      */
-    protected void open (File file)
-    {
-
-    }
-
-    /**
-     * Brings up the save dialog.
-     */
-    protected void save ()
+    protected void exportGroup ()
     {
         if (_chooser.showSaveDialog(_frame) == JFileChooser.APPROVE_OPTION) {
-            save(_chooser.getSelectedFile());
+            ((GroupState)_gbox.getSelectedItem()).group.save(_chooser.getSelectedFile());
         }
         _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
     }
 
     /**
-     * Attempts to save to the specified file.
+     * Brings up the import config dialog.
      */
-    protected void save (File file)
+    protected void importConfigs ()
     {
+        if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+            ((GroupState)_gbox.getSelectedItem()).group.load(_chooser.getSelectedFile(), true);
+        }
+        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+    }
 
+    /**
+     * Brings up the export config dialog.
+     */
+    protected void exportConfigs ()
+    {
+        if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+            ((GroupState)_gbox.getSelectedItem()).exportNode(_chooser.getSelectedFile());
+        }
+        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
     }
 
     /**
@@ -374,18 +385,12 @@ public class ConfigEditor
         /** The actual group reference. */
         public ConfigGroup<ManagedConfig> group;
 
-        /** The (possibly translated) group label. */
-        public String label;
-
-        /** The tree component. */
-        public JTree tree;
-
         public GroupState (ConfigGroup group)
         {
             @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
                 (ConfigGroup<ManagedConfig>)group;
             this.group = mgroup;
-            label = getLabel(group.getName());
+            _label = getLabel(group.getName());
         }
 
         /**
@@ -393,131 +398,22 @@ public class ConfigEditor
          */
         public void activate ()
         {
-            if (tree == null) {
-                tree = new JTree(new DefaultTreeModel(new ConfigTreeNode(null, null), true) {
-                    public void valueForPathChanged (TreePath path, Object newValue) {
-                        super.valueForPathChanged(path, newValue);
-
-                        // save selection
-                        TreePath selection = tree.getSelectionPath();
-
-                        // remove and reinsert in sorted order
-                        ConfigTreeNode node = (ConfigTreeNode)path.getLastPathComponent();
-                        ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
-                        removeNodeFromParent(node);
-                        insertNodeInto(node, parent, parent.getInsertionIndex(node));
-
-                        // re-expand paths, reapply the selection
-                        node.expandPaths(tree);
-                        tree.setSelectionPath(selection);
+            if (_tree == null) {
+                _tree = new ConfigTree(group, true) {
+                    public void selectedConfigUpdated () {
+                        _epanel.refresh();
                     }
-                    public void insertNodeInto (
-                        MutableTreeNode child, MutableTreeNode parent, int index) {
-                        super.insertNodeInto(child, parent, index);
-                        ((ConfigTreeNode)child).addConfigs(group);
-                    }
-                    public void removeNodeFromParent (MutableTreeNode node) {
-                        super.removeNodeFromParent(node);
-                        ((ConfigTreeNode)node).removeConfigs(group);
-                    }
-                });
-                tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-                tree.setRootVisible(false);
-                tree.setEditable(true);
-                tree.getSelectionModel().setSelectionMode(
-                    TreeSelectionModel.SINGLE_TREE_SELECTION);
-                tree.addTreeSelectionListener(this);
-                buildTree();
-
-                // the expansion listener simply notes expansion in the node state
-                tree.addTreeExpansionListener(new TreeExpansionListener() {
-                    public void treeExpanded (TreeExpansionEvent event) {
-                        ((ConfigTreeNode)event.getPath().getLastPathComponent()).expanded = true;
-                    }
-                    public void treeCollapsed (TreeExpansionEvent event) {
-                        ((ConfigTreeNode)event.getPath().getLastPathComponent()).expanded = false;
-                    }
-                });
+                };
+                _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                _tree.addTreeSelectionListener(this);
 
                 // remove the mappings for cut/copy/paste since we handle those ourself
-                InputMap imap = tree.getInputMap().getParent();
-                imap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_MASK));
-                imap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK));
-                imap.remove(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK));
-
-                // the transfer handler handles dragging and dropping (both within the tree and
-                // between applications)
-                tree.setDragEnabled(true);
-                tree.setTransferHandler(new TransferHandler() {
-                    public int getSourceActions (JComponent comp) {
-                        return COPY_OR_MOVE;
-                    }
-                    public boolean canImport (JComponent comp, DataFlavor[] flavors) {
-                        return ListUtil.contains(flavors, ToolUtil.SERIALIZED_WRAPPED_FLAVOR);
-                    }
-                    public boolean importData (JComponent comp, Transferable t) {
-                        boolean local = t.isDataFlavorSupported(LOCAL_NODE_TRANSFER_FLAVOR);
-                        DataFlavor flavor = local ?
-                            LOCAL_NODE_TRANSFER_FLAVOR : ToolUtil.SERIALIZED_WRAPPED_FLAVOR;
-                        Object data;
-                        try {
-                            data = t.getTransferData(local ?
-                                LOCAL_NODE_TRANSFER_FLAVOR : ToolUtil.SERIALIZED_WRAPPED_FLAVOR);
-                        } catch (Exception e) {
-                            log.warning("Failure importing data.", e);
-                            return false;
-                        }
-                        ConfigTreeNode node, onode = null;
-                        if (local) {
-                            NodeTransfer transfer = (NodeTransfer)data;
-                            node = transfer.cnode;
-                            onode = transfer.onode;
-                        } else {
-                            data = ((SerializableWrapper)data).getObject();
-                            if (!(data instanceof ConfigTreeNode)) {
-                                return false; // some other kind of wrapped transfer
-                            }
-                            node = (ConfigTreeNode)data;
-                        }
-                        if (!node.verifyConfigClass(group.getConfigClass())) {
-                            return false; // some other kind of config
-                        }
-                        ConfigTreeNode snode = getSelectedNode();
-                        ConfigTreeNode parent = (ConfigTreeNode)tree.getModel().getRoot();
-                        if (snode != null && snode.getParent() != null) {
-                            parent = snode.getAllowsChildren() ?
-                                snode : (ConfigTreeNode)snode.getParent();
-                        }
-                        if (onode == parent || (onode != null && onode.getParent() == parent)) {
-                            return false; // can't move to self or to the same folder
-                        }
-                        // have to clone it in case we are going to paste it multiple times
-                        node = (ConfigTreeNode)node.clone();
-
-                        // find a unique name
-                        String name = (String)node.getUserObject();
-                        node.setUserObject(parent.findNameForChild(name));
-
-                        // insert, re-expand, select
-                        ((DefaultTreeModel)tree.getModel()).insertNodeInto(
-                            node, parent, parent.getInsertionIndex(node));
-                        node.expandPaths(tree);
-                        tree.setSelectionPath(new TreePath(node.getPath()));
-                        return true;
-                    }
-                    protected Transferable createTransferable (JComponent c) {
-                        ConfigTreeNode node = getSelectedNode();
-                        return (node == null) ? null : new NodeTransfer(node, false);
-                    }
-                    protected void exportDone (JComponent source, Transferable data, int action) {
-                        if (action == MOVE) {
-                            ConfigTreeNode onode = ((NodeTransfer)data).onode;
-                            ((DefaultTreeModel)tree.getModel()).removeNodeFromParent(onode);
-                        }
-                    }
-                });
+                InputMap imap = _tree.getInputMap();
+                imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_MASK), "noop");
+                imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK), "noop");
+                imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "noop");
             }
-            _pane.setViewportView(tree);
+            _pane.setViewportView(_tree);
             _paste.setEnabled(_clipgroup == this);
             updateSelection();
         }
@@ -557,8 +453,8 @@ public class ConfigEditor
          */
         public void copyNode ()
         {
-            Clipboard clipboard = tree.getToolkit().getSystemClipboard();
-            clipboard.setContents(new NodeTransfer(getSelectedNode(), true), ConfigEditor.this);
+            Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
+            clipboard.setContents(_tree.createClipboardTransferable(), ConfigEditor.this);
             _clipgroup = this;
             _paste.setEnabled(true);
         }
@@ -568,8 +464,8 @@ public class ConfigEditor
          */
         public void pasteNode ()
         {
-            Clipboard clipboard = tree.getToolkit().getSystemClipboard();
-            tree.getTransferHandler().importData(tree, clipboard.getContents(this));
+            Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
+            _tree.getTransferHandler().importData(_tree, clipboard.getContents(this));
         }
 
         /**
@@ -577,16 +473,34 @@ public class ConfigEditor
          */
         public void deleteNode ()
         {
-            ConfigTreeNode node = getSelectedNode();
+            ConfigTreeNode node = _tree.getSelectedNode();
             ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
             int index = parent.getIndex(node);
-            ((DefaultTreeModel)tree.getModel()).removeNodeFromParent(node);
+            ((DefaultTreeModel)_tree.getModel()).removeNodeFromParent(node);
             int ccount = parent.getChildCount();
             node = (ccount > 0) ?
                 (ConfigTreeNode)parent.getChildAt(Math.min(index, ccount - 1)) : parent;
-            if (node != tree.getModel().getRoot()) {
-                tree.setSelectionPath(new TreePath(node.getPath()));
+            if (node != _tree.getModel().getRoot()) {
+                _tree.setSelectionPath(new TreePath(node.getPath()));
             }
+        }
+
+        /**
+         * Exports the configurations under the currently selected node to a file.
+         */
+        public void exportNode (File file)
+        {
+            ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
+            _tree.getSelectedNode().getConfigs(configs);
+            group.save(configs, file);
+        }
+
+        /**
+         * Notes that the state of the currently selected configuration has changed.
+         */
+        public void configChanged ()
+        {
+            _tree.selectedConfigChanged();
         }
 
         // documentation inherited from interface TreeSelectionListener
@@ -598,26 +512,13 @@ public class ConfigEditor
         // documentation inherited from interface Comparable
         public int compareTo (GroupState other)
         {
-            return label.compareTo(other.label);
+            return _label.compareTo(other._label);
         }
 
         @Override // documentation inherited
         public String toString ()
         {
-            return label;
-        }
-
-        /**
-         * (Re)builds the entire tree based on the configurations in the group.
-         */
-        protected void buildTree ()
-        {
-            ConfigTreeNode root = (ConfigTreeNode)tree.getModel().getRoot();
-            root.removeAllChildren();
-            for (ManagedConfig config : group.getConfigs()) {
-                root.insertConfig(config, config.getName());
-            }
-            ((DefaultTreeModel)tree.getModel()).reload();
+            return _label;
         }
 
         /**
@@ -626,13 +527,14 @@ public class ConfigEditor
         protected void updateSelection ()
         {
             // find the selected node
-            ConfigTreeNode node = getSelectedNode();
+            ConfigTreeNode node = _tree.getSelectedNode();
 
             // update the editor panel
-            _epanel.setObject(node == null ? null : node.config);
+            _epanel.setObject(node == null ? null : node.getConfig());
 
-            // enable or disable the edit commands
+            // enable or disable the menu items
             boolean enable = (node != null);
+            _exportConfigs.setEnabled(enable);
             _cut.setEnabled(enable);
             _copy.setEnabled(enable);
             _delete.setEnabled(enable);
@@ -645,306 +547,24 @@ public class ConfigEditor
         protected void newNode (ManagedConfig config)
         {
             // find the parent under which we want to add the node
-            ConfigTreeNode snode = getSelectedNode();
+            ConfigTreeNode snode = _tree.getSelectedNode();
             ConfigTreeNode parent = (ConfigTreeNode)(snode == null ?
-                tree.getModel().getRoot() : snode.getParent());
+                _tree.getModel().getRoot() : snode.getParent());
 
             // create a node with a unique name and start editing it
             String name = parent.findNameForChild(
                 _msgs.get(config == null ? "m.new_folder" : "m.new_config"));
             ConfigTreeNode child = new ConfigTreeNode(name, config);
-            ((DefaultTreeModel)tree.getModel()).insertNodeInto(
+            ((DefaultTreeModel)_tree.getModel()).insertNodeInto(
                 child, parent, parent.getInsertionIndex(child));
-            tree.startEditingAtPath(new TreePath(child.getPath()));
+            _tree.startEditingAtPath(new TreePath(child.getPath()));
         }
 
-        /**
-         * Returns the selected node, or <code>null</code> for none.
-         */
-        protected ConfigTreeNode getSelectedNode ()
-        {
-            TreePath path = tree.getSelectionPath();
-            return (path == null) ? null : (ConfigTreeNode)path.getLastPathComponent();
-        }
-    }
+        /** The (possibly translated) group label. */
+        protected String _label;
 
-    /**
-     * Contains a node for transfer.
-     */
-    protected static class NodeTransfer
-        implements Transferable
-    {
-        /** The original node (to delete when the transfer completes). */
-        public ConfigTreeNode onode;
-
-        /** The cloned node. */
-        public ConfigTreeNode cnode;
-
-        public NodeTransfer (ConfigTreeNode onode, boolean clipboard)
-        {
-            this.onode = clipboard ? null : onode;
-            cnode = (ConfigTreeNode)onode.clone();
-        }
-
-        // documentation inherited from interface Transferable
-        public DataFlavor[] getTransferDataFlavors ()
-        {
-            return NODE_TRANSFER_FLAVORS;
-        }
-
-        // documentation inherited from interface Transferable
-        public boolean isDataFlavorSupported (DataFlavor flavor)
-        {
-            return ListUtil.contains(NODE_TRANSFER_FLAVORS, flavor);
-        }
-
-        // documentation inherited from interface Transferable
-        public Object getTransferData (DataFlavor flavor)
-        {
-            return (flavor == LOCAL_NODE_TRANSFER_FLAVOR) ?
-                this : new SerializableWrapper(cnode);
-        }
-    }
-
-    /**
-     * A node in the config tree.
-     */
-    protected static class ConfigTreeNode extends DefaultMutableTreeNode
-        implements Exportable
-    {
-        /** The configuration contained in this node, if any. */
-        public ManagedConfig config;
-
-        /** Whether or not this node is expanded. */
-        public boolean expanded;
-
-        /** The children of this node, mapped by (partial) name. */
-        public transient HashMap<String, ConfigTreeNode> names;
-
-        /**
-         * Creates a new node.
-         */
-        public ConfigTreeNode (String partialName, ManagedConfig config)
-        {
-            super(partialName, config == null);
-            this.config = config;
-        }
-
-        /**
-         * No-arg constructor for deserialization.
-         */
-        public ConfigTreeNode ()
-        {
-        }
-
-        /**
-         * Inserts the given configuration under this node, creating any required intermediate
-         * nodes.
-         */
-        public void insertConfig (ManagedConfig config, String name)
-        {
-            int idx = name.indexOf('/');
-            if (idx == -1) {
-                // last path component; insert in this node
-                ConfigTreeNode child = new ConfigTreeNode(name, config);
-                insert(child, getInsertionIndex(child));
-
-            } else {
-                // find (or create) next component in path, pass on the config
-                String partial = name.substring(0, idx);
-                ConfigTreeNode child = (names == null) ? null : names.get(partial);
-                if (child == null) {
-                    child = new ConfigTreeNode(partial, null);
-                    insert(child, getInsertionIndex(child));
-                }
-                child.insertConfig(config, name.substring(idx + 1));
-            }
-        }
-
-        /**
-         * Adds all configurations under this node to the supplied group.
-         */
-        public void addConfigs (ConfigGroup<ManagedConfig> group)
-        {
-            if (config != null) {
-                config.setName(getName());
-                group.addConfig(config);
-
-            } else if (children != null) {
-                for (Object child : children) {
-                    ((ConfigTreeNode)child).addConfigs(group);
-                }
-            }
-        }
-
-        /**
-         * Removes all configurations under this node from the supplied group.
-         */
-        public void removeConfigs (ConfigGroup<ManagedConfig> group)
-        {
-            if (config != null) {
-                group.removeConfig(config);
-
-            } else if (children != null) {
-                for (Object child : children) {
-                    ((ConfigTreeNode)child).removeConfigs(group);
-                }
-            }
-        }
-
-        /**
-         * Verifies that if this node contains any actual configurations, they're instances of
-         * the supplied class.
-         */
-        public boolean verifyConfigClass (Class clazz)
-        {
-            if (config != null) {
-                return clazz.isInstance(config);
-
-            } else if (children != null) {
-                for (Object child : children) {
-                    if (!((ConfigTreeNode)child).verifyConfigClass(clazz)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        /**
-         * Returns the full name of this node.
-         */
-        public String getName ()
-        {
-            String partialName = (String)userObject;
-            String parentName = (parent == null) ? null : ((ConfigTreeNode)parent).getName();
-            return (parentName == null) ? partialName : (parentName + "/" + partialName);
-        }
-
-        /**
-         * Finds an unused name for a child of this node from the specified base.
-         */
-        public String findNameForChild (String base)
-        {
-            if (names == null || !names.containsKey(base)) {
-                return base;
-            }
-            for (int ii = 2;; ii++) {
-                String name = base + " (" + ii + ")";
-                if (!names.containsKey(name)) {
-                    return name;
-                }
-            }
-        }
-
-        /**
-         * Returns the index at which the specified node should be inserted to maintain the sort
-         * order.
-         */
-        public int getInsertionIndex (ConfigTreeNode child)
-        {
-            if (children == null) {
-                return 0;
-            }
-            String name = (String)child.getUserObject();
-            boolean folder = child.getAllowsChildren();
-            for (int ii = 0, nn = children.size(); ii < nn; ii++) {
-                ConfigTreeNode ochild = (ConfigTreeNode)children.get(ii);
-                String oname = (String)ochild.getUserObject();
-                boolean ofolder = ochild.getAllowsChildren();
-                if ((folder == ofolder) ? (name.compareTo(oname) <= 0) : folder) {
-                    return ii;
-                }
-            }
-            return children.size();
-        }
-
-        /**
-         * Expands paths according to the {@link #expanded} field.
-         */
-        public void expandPaths (JTree tree)
-        {
-            if (expanded) {
-                tree.expandPath(new TreePath(getPath()));
-            }
-            if (children != null) {
-                for (Object child : children) {
-                    ((ConfigTreeNode)child).expandPaths(tree);
-                }
-            }
-        }
-
-        /**
-         * Writes the exportable fields of the object.
-         */
-        public void writeFields (Exporter out)
-            throws IOException
-        {
-            out.defaultWriteFields();
-            out.write("name", (String)userObject, (String)null);
-            out.write("parent", parent, null, MutableTreeNode.class);
-            out.write("children", children, null, Vector.class);
-        }
-
-        /**
-         * Reads the exportable fields of the object.
-         */
-        public void readFields (Importer in)
-            throws IOException
-        {
-            in.defaultReadFields();
-            userObject = in.read("name", (String)null);
-            parent = in.read("parent", null, MutableTreeNode.class);
-            children = in.read("children", null, Vector.class);
-            if (children != null) {
-                names = new HashMap<String, ConfigTreeNode>();
-                for (Object child : children) {
-                    ConfigTreeNode node = (ConfigTreeNode)child;
-                    names.put((String)node.getUserObject(), node);
-                }
-            }
-            allowsChildren = (config == null);
-        }
-
-        @Override // documentation inherited
-        public void insert (MutableTreeNode child, int index)
-        {
-            super.insert(child, index);
-            if (names == null) {
-                names = new HashMap<String, ConfigTreeNode>();
-            }
-            ConfigTreeNode node = (ConfigTreeNode)child;
-            names.put((String)node.getUserObject(), node);
-        }
-
-        @Override // documentation inherited
-        public void remove (int index)
-        {
-            ConfigTreeNode child = (ConfigTreeNode)children.get(index);
-            names.remove((String)child.getUserObject());
-            if (names.isEmpty()) {
-                names = null;
-            }
-            super.remove(index);
-        }
-
-        @Override // documentation inherited
-        public Object clone ()
-        {
-            ConfigTreeNode cnode = (ConfigTreeNode)super.clone();
-            cnode.parent = null;
-            if (cnode.config != null) {
-                cnode.config = (ManagedConfig)config.clone();
-
-            } else if (children != null) {
-                cnode.children = new Vector();
-                for (int ii = 0, nn = children.size(); ii < nn; ii++) {
-                    ConfigTreeNode child = (ConfigTreeNode)children.get(ii);
-                    cnode.insert((ConfigTreeNode)child.clone(), ii);
-                }
-            }
-            return cnode;
-        }
+        /** The configuration tree. */
+        protected ConfigTree _tree;
     }
 
     /** The resource manager. */
@@ -964,6 +584,9 @@ public class ConfigEditor
 
     /** The main frame. */
     protected JFrame _frame;
+
+    /** The configuration export menu item. */
+    protected JMenuItem _exportConfigs;
 
     /** The edit menu items. */
     protected JMenuItem _cut, _copy, _paste, _delete;
@@ -994,22 +617,4 @@ public class ConfigEditor
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigEditor.class);
-
-    /** A data flavor that provides access to the actual transfer object. */
-    protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR;
-    static {
-        DataFlavor flavor = null;
-        try {
-            flavor = new DataFlavor(
-                DataFlavor.javaJVMLocalObjectMimeType +
-                ";class=" + NodeTransfer.class.getName());
-        } catch (ClassNotFoundException e) {
-             // won't happen
-        }
-        LOCAL_NODE_TRANSFER_FLAVOR = flavor;
-    }
-
-    /** The flavors available for node transfer. */
-    protected static final DataFlavor[] NODE_TRANSFER_FLAVORS =
-        { LOCAL_NODE_TRANSFER_FLAVOR, ToolUtil.SERIALIZED_WRAPPED_FLAVOR };
 }

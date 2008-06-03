@@ -95,6 +95,16 @@ public class ConfigManager
     }
 
     /**
+     * Reverts the configurations in all groups to their last saved state.
+     */
+    public void revertAll ()
+    {
+        for (ConfigGroup group : _groups.values()) {
+            group.revert();
+        }
+    }
+
+    /**
      * Returns a reference to the resource manager used to load configurations.
      */
     protected ResourceManager getResourceManager ()

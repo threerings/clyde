@@ -7,13 +7,14 @@ import org.lwjgl.opengl.GL11;
 
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
 
 /**
  * A single pass
  */
-public class PassConfig
+public class PassConfig extends DeepObject
     implements Exportable
 {
     /** Alpha test functions. */

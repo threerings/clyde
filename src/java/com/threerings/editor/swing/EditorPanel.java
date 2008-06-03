@@ -226,6 +226,17 @@ public class EditorPanel extends BasePropertyEditor
         return _object;
     }
 
+    /**
+     * Refreshes the editor state in response to an external change in the object's state.
+     */
+    public void refresh ()
+    {
+        // TODO: this is not fully implemented
+        for (PropertyEditor editor : _editors) {
+            editor.setObject(_object);
+        }
+    }
+
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {

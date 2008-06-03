@@ -14,6 +14,7 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.ObserverList;
@@ -126,23 +127,44 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /**
+     * Notes that a configuration has changed.
+     */
+    public void updateConfig (T config)
+    {
+        fireConfigUpdated(config);
+    }
+
+    /**
      * Saves this group's configurations.
      */
     public void save ()
     {
+        save(getConfigFile(true));
+    }
+
+    /**
+     * Saves this group's configurations to the specified file.
+     */
+    public void save (File file)
+    {
+        save(_configsByName.values(), file);
+    }
+
+    /**
+     * Saves the provided collection of configurations to a file.
+     */
+    public void save (Collection<T> configs, File file)
+    {
         // put all the configs into an array and sort them by name
         @SuppressWarnings("unchecked") T[] array =
-            (T[])Array.newInstance(_cclass, _configsByName.size());
-        _configsByName.values().toArray(array);
+            (T[])Array.newInstance(_cclass, configs.size());
+        configs.toArray(array);
         QuickSort.sort(array, new Comparator<T>() {
             public int compare (T c1, T c2) {
                 return c1.getName().compareTo(c2.getName());
             }
         });
 
-        // write them out to the file
-        String name = _cfgmgr.getConfigPath() + _name + ".xml";
-        File file = _cfgmgr.getResourceManager().getResourceFile(name);
         try {
             Exporter out = new XMLExporter(new FileOutputStream(file));
             out.writeObject(array);
@@ -150,6 +172,71 @@ public class ConfigGroup<T extends ManagedConfig>
 
         } catch (IOException e) {
             log.warning("Error writing configurations [file=" + file + "].", e);
+        }
+    }
+
+    /**
+     * Reverts to the last saved configurations.
+     */
+    public void revert ()
+    {
+        load(getConfigFile(true));
+    }
+
+    /**
+     * Loads the configurations from the specified file.
+     */
+    public void load (File file)
+    {
+        load(file, false);
+    }
+
+    /**
+     * Loads the configurations from the specified file.
+     *
+     * @param merge if true, merge with the existing configurations; do not delete configurations
+     * that do not exist in the file.
+     */
+    public void load (File file, boolean merge)
+    {
+        // read in the array of configurations
+        Object array;
+        try {
+            Importer in = new XMLImporter(new FileInputStream(file));
+            array = in.readObject();
+            in.close();
+
+        } catch (IOException e) {
+            log.warning("Error reading configurations [file=" + file + "].", e);
+            return;
+        }
+        @SuppressWarnings("unchecked") T[] nconfigs = (T[])array;
+
+        // add any configurations that don't already exist and update those that do
+        HashSet<String> names = new HashSet<String>();
+        for (T nconfig : nconfigs) {
+            String name = nconfig.getName();
+            names.add(name);
+            T oconfig = _configsByName.get(name);
+            if (oconfig == null) {
+                addConfig(nconfig);
+            } else if (!nconfig.equals(oconfig)) {
+                nconfig.copy(oconfig);
+                updateConfig(oconfig);
+            }
+        }
+        if (merge) {
+            return;
+        }
+
+        // remove any configurations not present in the array (if not merging)
+        @SuppressWarnings("unchecked") T[] oconfigs =
+            (T[])Array.newInstance(_cclass, _configsByName.size());
+        _configsByName.values().toArray(oconfigs);
+        for (T oconfig : oconfigs) {
+            if (!names.contains(oconfig.getName())) {
+                removeConfig(oconfig);
+            }
         }
     }
 
@@ -180,8 +267,7 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     protected boolean readConfigs (boolean xml)
     {
-        String base = _cfgmgr.getConfigPath() + _name;
-        File file = _cfgmgr.getResourceManager().getResourceFile(base + (xml ? ".xml" : ".dat"));
+        File file = getConfigFile(xml);
         if (!file.exists()) {
             return false;
         }
@@ -202,6 +288,15 @@ public class ConfigGroup<T extends ManagedConfig>
             log.warning("Error reading configurations [file=" + file + "].", e);
             return false;
         }
+    }
+
+    /**
+     * Returns the configuration file.
+     */
+    protected File getConfigFile (boolean xml)
+    {
+        String name = _cfgmgr.getConfigPath() + _name + (xml ? ".xml" : ".dat");
+        return _cfgmgr.getResourceManager().getResourceFile(name);
     }
 
     /**
