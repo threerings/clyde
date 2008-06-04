@@ -11,13 +11,13 @@ import java.io.InputStream;
 
 import java.lang.reflect.Array;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import com.samskivert.util.HashIntMap;
-import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.StringUtil;
 import com.samskivert.util.QuickSort;
@@ -111,8 +111,13 @@ public class ConfigGroup<T extends ManagedConfig>
         _configsByName.put(config.getName(), config);
         if (_configsById != null) {
             int id = config.getId();
-            if (id == 0) {
+            if (id == 0 || _configsById.containsKey(id)) {
+                // no id or id in use; assign new id
                 config.setId(id = assignId());
+            } else {
+                // make sure we don't assign this id
+                _highestId = Math.max(_highestId, id);
+                _freeIds.remove(Integer.valueOf(id));
             }
             _configsById.put(id, config);
         }
@@ -126,10 +131,7 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         _configsByName.remove(config.getName());
         if (_configsById != null) {
-            int id = config.getId();
-            if (_configsById.get(id) == config) {
-                _configsById.remove(id);
-            }
+            _configsById.remove(config.getId());
         }
         fireConfigRemoved(config);
     }
@@ -260,6 +262,7 @@ public class ConfigGroup<T extends ManagedConfig>
         // create the id map if specified
         if (ids) {
             _configsById = new HashIntMap<T>();
+            _freeIds = new ArrayList<Integer>();
         }
 
         // load the existing configurations (first checking for a binary file, then an xml file)
@@ -291,9 +294,9 @@ public class ConfigGroup<T extends ManagedConfig>
                     _configsById.put(id, config);
                 }
             }
-            for (int id = 1; id < _highestId; id++) {
+            for (int id = _highestId - 1; id >= 1; id--) {
                 if (!_configsById.containsKey(id)) {
-                    _freeIds = IntListUtil.add(_freeIds, id);
+                    _freeIds.add(id);
                 }
             }
             in.close();
@@ -319,14 +322,9 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     protected int assignId ()
     {
-        if (_freeIds != null) {
-            for (int ii = 0; ii < _freeIds.length; ii++) {
-                int id = _freeIds[ii];
-                if (id > 0) {
-                    _freeIds[ii] = 0;
-                    return id;
-                }
-            }
+        int size = _freeIds.size();
+        if (size > 0) {
+            return _freeIds.remove(size - 1);
         }
         return ++_highestId;
     }
@@ -392,7 +390,7 @@ public class ConfigGroup<T extends ManagedConfig>
     protected int _highestId;
 
     /** Free ids below the highest. */
-    protected int[] _freeIds;
+    protected ArrayList<Integer> _freeIds;
 
     /** Configuration event listeners. */
     protected ObserverList<ConfigListener<T>> _listeners =

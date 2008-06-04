@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.config;
+package com.threerings.opengl.material.config;
 
 import org.lwjgl.opengl.ARBTextureEnvCombine;
 import org.lwjgl.opengl.ARBTextureEnvDot3;
@@ -17,7 +17,7 @@ import com.threerings.opengl.renderer.Color4f;
 /**
  * Describes the configuration of a single texture unit.
  */
-public class TextureUnitConfig extends DeepObject
+public class Unit extends DeepObject
     implements Exportable
 {
     /** Environment mode constants. */

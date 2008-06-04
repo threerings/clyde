@@ -55,6 +55,7 @@ public abstract class BasePropertyEditor extends JPanel
      */
     protected String getLabel (String name)
     {
+        name = (name.length() == 0) ? "default" : name;
         String key = "m." + name;
         return _msgs.exists(key) ? _msgs.get(key) : name;
     }

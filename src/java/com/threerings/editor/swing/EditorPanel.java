@@ -165,13 +165,19 @@ public class EditorPanel extends BasePropertyEditor
         } else if (_catmode == CategoryMode.PANELS) {
             JPanel inner = addScrollPanel();
             for (String cat : cats) {
-                CollapsiblePanel cpanel = new CollapsiblePanel();
-                JButton trigger = new JButton(getLabel(cat));
-                cpanel.setTrigger(trigger, null, null);
-                cpanel.setTriggerContainer(trigger);
-                cpanel.setCollapsed(false);
-                inner.add(cpanel);
-                JPanel content = cpanel.getContent();
+                JPanel content;
+                if (cat.length() > 0) {
+                    CollapsiblePanel cpanel = new CollapsiblePanel();
+                    inner.add(cpanel);
+                    JButton trigger = new JButton(getLabel(cat));
+                    cpanel.setTrigger(trigger, null, null);
+                    cpanel.setTriggerContainer(trigger);
+                    cpanel.setCollapsed(false);
+                    cpanel.setBackground(null);
+                    content = cpanel.getContent();
+                } else {
+                    inner.add(content = new JPanel());
+                }
                 content.setLayout(new VGroupLayout(
                     GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
                 content.setBackground(null);

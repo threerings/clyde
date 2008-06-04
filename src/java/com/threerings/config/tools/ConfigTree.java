@@ -55,15 +55,14 @@ public class ConfigTree extends JTree
         _group = mgroup;
         setModel(new DefaultTreeModel(new ConfigTreeNode(null, null), true) {
             public void valueForPathChanged (TreePath path, Object newValue) {
-                super.valueForPathChanged(path, newValue);
-
                 // save selection
                 TreePath selection = getSelectionPath();
 
-                // remove and reinsert in sorted order
+                // remove and reinsert with a unique name in sorted order
                 ConfigTreeNode node = (ConfigTreeNode)path.getLastPathComponent();
                 ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
                 removeNodeFromParent(node);
+                node.setUserObject(parent.findNameForChild((String)newValue));
                 insertNodeInto(node, parent, parent.getInsertionIndex(node));
 
                 // re-expand paths, reapply the selection
@@ -163,9 +162,10 @@ public class ConfigTree extends JTree
                 String name = (String)node.getUserObject();
                 node.setUserObject(parent.findNameForChild(name));
 
-                // unless we're moving within the tree, we have to clear the ids
-                if (onode == null) {
-                    node.clearConfigIds();
+                // if we're moving within the tree, remove the original node here so that we
+                // can reuse our identifiers
+                if (onode != null && onode.getRoot() == parent.getRoot()) {
+                    ((DefaultTreeModel)getModel()).removeNodeFromParent(onode);
                 }
 
                 // insert, re-expand, select
@@ -182,7 +182,9 @@ public class ConfigTree extends JTree
             protected void exportDone (JComponent source, Transferable data, int action) {
                 if (action == MOVE) {
                     ConfigTreeNode onode = ((NodeTransfer)data).onode;
-                    ((DefaultTreeModel)getModel()).removeNodeFromParent(onode);
+                    if (onode.getParent() != null) {
+                        ((DefaultTreeModel)getModel()).removeNodeFromParent(onode);
+                    }
                 }
             }
         });

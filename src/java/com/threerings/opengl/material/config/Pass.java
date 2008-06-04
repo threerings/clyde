@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.config;
+package com.threerings.opengl.material.config;
 
 import org.lwjgl.opengl.GL11;
 
@@ -12,9 +12,9 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.renderer.Color4f;
 
 /**
- * A single pass
+ * Describes a single render pass.
  */
-public class PassConfig extends DeepObject
+public class Pass extends DeepObject
     implements Exportable
 {
     /** Alpha test functions. */
@@ -119,66 +119,66 @@ public class PassConfig extends DeepObject
     }
 
     /** The ambient reflectivity. */
-    @Editable(mode="alpha")
+    @Editable(mode="alpha", category="material", hgroup="m1")
     public Color4f ambient = new Color4f(Color4f.DARK_GRAY);
 
-    /** The diffuse reflectivity. */
-    @Editable(mode="alpha")
-    public Color4f diffuse = new Color4f(Color4f.GRAY);
-
     /** The specular reflectivity. */
-    @Editable(mode="alpha")
+    @Editable(mode="alpha", category="material", hgroup="m1")
     public Color4f specular = new Color4f(Color4f.BLACK);
 
+    /** The diffuse reflectivity. */
+    @Editable(mode="alpha", category="material", hgroup="m2")
+    public Color4f diffuse = new Color4f(Color4f.GRAY);
+
     /** The emissive color. */
-    @Editable(mode="alpha")
+    @Editable(mode="alpha", category="material", hgroup="m2")
     public Color4f emission = new Color4f(Color4f.BLACK);
 
     /** The specular exponent. */
-    @Editable(min=0, max=128, step=0.1)
+    @Editable(min=0, max=128, step=0.1, category="material")
     public float shininess;
 
     /** The alpha test function. */
-    @Editable
+    @Editable(category="alpha_test", hgroup="at")
     public AlphaTestFunc alphaTestFunc = AlphaTestFunc.ALWAYS;
 
     /** The alpha test reference value. */
-    @Editable(min=0.0, max=1.0, step=0.01)
+    @Editable(min=0.0, max=1.0, step=0.01, category="alpha_test", hgroup="at")
     public float alphaTestRef;
 
     /** The source blend factor. */
-    @Editable
+    @Editable(category="blend", hgroup="b")
     public SourceBlendFactor srcBlendFactor = SourceBlendFactor.ONE;
 
     /** The dest blend factor. */
-    @Editable
+    @Editable(category="blend", hgroup="b")
     public DestBlendFactor destBlendFactor = DestBlendFactor.ZERO;
 
     /** The depth test function. */
-    @Editable
+    @Editable(category="depth", hgroup="d")
     public DepthTestFunc depthTestFunc = DepthTestFunc.ALWAYS;
 
     /** Whether or not to write to the depth buffer. */
-    @Editable
+    @Editable(category="depth", hgroup="d")
     public boolean depthMask = true;
 
     /** Whether to write to the red channel. */
-    @Editable
+    @Editable(category="color_mask", hgroup="cm")
     public boolean redMask = true;
 
     /** Whether to write to the green channel. */
-    @Editable
+    @Editable(category="color_mask", hgroup="cm")
     public boolean greenMask = true;
 
     /** Whether to write to the blue channel. */
-    @Editable
+    @Editable(category="color_mask", hgroup="cm")
     public boolean blueMask = true;
 
     /** Whether to write to the alpha channel. */
-    @Editable
+    @Editable(category="color_mask", hgroup="cm")
     public boolean alphaMask = true;
 
     /** The texture units to use in this pass. */
-    @Editable
-    public TextureUnitConfig[] units = new TextureUnitConfig[0];
+    @Editable(nullable=false)
+    public Unit[] units = new Unit[0];
 }

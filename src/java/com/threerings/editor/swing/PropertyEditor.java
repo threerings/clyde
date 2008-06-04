@@ -3,10 +3,13 @@
 
 package com.threerings.editor.swing;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -24,6 +27,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -31,12 +35,20 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.TransferHandler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 import javax.swing.filechooser.FileFilter;
 
 import com.samskivert.swing.GroupLayout;
@@ -57,6 +69,7 @@ import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
+import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 
 import static com.threerings.editor.Log.*;
@@ -93,7 +106,12 @@ public abstract class PropertyEditor extends BasePropertyEditor
         } else if (type.isEnum()) {
             editor = new EnumEditor();
         } else if (type.isArray() || List.class.isAssignableFrom(type)) {
-            editor = new ArrayListEditor();
+            if (property.getAnnotation().mode().equals("table") ||
+                    isTableCellType(property.getComponentType())) {
+                editor = new TableArrayListEditor();
+            } else {
+                editor = new PanelArrayListEditor();
+            }
         } else {
             editor = new ObjectEditor();
         }
@@ -274,6 +292,80 @@ public abstract class PropertyEditor extends BasePropertyEditor
             }
         }
         return +Integer.MAX_VALUE;
+    }
+
+    /**
+     * Checks whether the supplied type can be edited in the cell of a table.
+     */
+    protected static boolean isTableCellType (Class type)
+    {
+        return type.isPrimitive() || Number.class.isAssignableFrom(type) ||
+            type == Boolean.class || type == Character.class ||
+            type == String.class || type.isEnum();
+    }
+
+    /**
+     * Returns a default instance for the supplied type, either by instantiating it with its no-arg
+     * constructor or by obtaining some type-specific default;
+     */
+    protected static Object getDefaultInstance (Class type)
+    {
+        if (type == Boolean.class || type == Boolean.TYPE) {
+            return Boolean.valueOf(false);
+        } else if (type == Byte.class || type == Byte.TYPE) {
+            return Byte.valueOf((byte)0);
+        } else if (type == Character.class || type == Character.TYPE) {
+            return Character.valueOf(' ');
+        } else if (type == Double.class || type == Double.TYPE) {
+            return Double.valueOf(0.0);
+        } else if (type == Float.class || type == Float.TYPE) {
+            return Float.valueOf(0f);
+        } else if (type == Integer.class || type == Integer.TYPE) {
+            return Integer.valueOf(0);
+        } else if (type == Long.class || type == Long.TYPE) {
+            return Long.valueOf(0L);
+        } else if (type == Short.class || type == Short.TYPE) {
+            return Short.valueOf((short)0);
+        } else if (type == String.class) {
+            return "";
+        } else if (type.isEnum()) {
+            return type.getEnumConstants()[0];
+        } else if (type.isArray()) {
+            return Array.newInstance(type.getComponentType(), 0);
+        }
+        try {
+            return type.newInstance();
+        } catch (Exception e) {
+            log.warning("Failed to obtain default instance [class=" + type + "].", e);
+            return null;
+        }
+    }
+
+    /**
+     * Returns the wrapper class for the supplied type, if it is a primitive type (otherwise
+     * returns the type itself).
+     */
+    protected static Class getWrapperClass (Class type)
+    {
+        if (type == Boolean.TYPE) {
+            return Boolean.class;
+        } else if (type == Byte.TYPE) {
+            return Byte.class;
+        } else if (type == Character.TYPE) {
+            return Character.class;
+        } else if (type == Double.TYPE) {
+            return Double.class;
+        } else if (type == Float.TYPE) {
+            return Float.class;
+        } else if (type == Integer.TYPE) {
+            return Integer.class;
+        } else if (type == Long.TYPE) {
+            return Long.class;
+        } else if (type == Short.TYPE) {
+            return Short.class;
+        } else {
+            return type;
+        }
     }
 
     /**
@@ -817,36 +909,19 @@ public abstract class PropertyEditor extends BasePropertyEditor
     }
 
     /**
-     * An editor for arrays or lists of objects.
+     * Superclass of the array/list editors.
      */
-    protected static class ArrayListEditor extends PropertyEditor
-        implements ActionListener, ChangeListener
+    protected static abstract class ArrayListEditor extends PropertyEditor
+        implements ActionListener
     {
         // documentation inherited from interface ActionListener
         public void actionPerformed (ActionEvent event)
         {
-            Class[] types = _property.getComponentSubtypes();
-            Class type = (types[0] == null) ? types[1] : types[0];
-            try {
-                addValue(type.newInstance());
-            } catch (Exception e) {
-                log.warning("Failed to instantiate component [class=" + type + "].", e);
+            if (event.getSource() == _add) {
+                Class[] types = _property.getComponentSubtypes();
+                Class type = (types[0] == null) ? types[1] : types[0];
+                addValue(getDefaultInstance(type));
             }
-        }
-
-        // documentation inherited from interface ChangeListener
-        public void stateChanged (ChangeEvent event)
-        {
-            ObjectPanel panel = (ObjectPanel)event.getSource();
-            int idx = getPanelIndex(panel);
-            if (_property.getType().isArray()) {
-                Array.set(_property.get(_object), idx, panel.getValue());
-            } else {
-                @SuppressWarnings("unchecked") List<Object> values =
-                    (List<Object>)_property.get(_object);
-                values.set(idx, panel.getValue());
-            }
-            fireStateChanged();
         }
 
         @Override // documentation inherited
@@ -857,38 +932,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
             setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
             setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
-
-            add(_panels = GroupLayout.makeVBox(
-                GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
-            _panels.setBackground(null);
-
-            JPanel bpanel = new JPanel();
-            bpanel.setBackground(null);
-            add(bpanel);
-            bpanel.add(_addButton = new JButton(_msgs.get("m.add")));
-            _addButton.addActionListener(this);
-        }
-
-        @Override // documentation inherited
-        protected void update ()
-        {
-            int pcount = _panels.getComponentCount();
-            int length = getLength();
-            for (int ii = 0; ii < length; ii++) {
-                Object value = getValue(ii);
-                if (ii < pcount) {
-                    ObjectPanel panel = (ObjectPanel)_panels.getComponent(ii);
-                    panel.removeChangeListener(this);
-                    panel.setValue(value);
-                    panel.addChangeListener(this);
-                } else {
-                    addPanel(value);
-                }
-            }
-            while (pcount > length) {
-                _panels.remove(--pcount);
-            }
-            _panels.revalidate();
         }
 
         /**
@@ -908,6 +951,20 @@ public abstract class PropertyEditor extends BasePropertyEditor
         {
             Object values = _property.get(_object);
             return values.getClass().isArray() ? Array.get(values, idx) : ((List)values).get(idx);
+        }
+
+        /**
+         * Sets the element at the specified index of the array or list.
+         */
+        protected void setValue (int idx, Object value)
+        {
+            Object values = _property.get(_object);
+            if (values.getClass().isArray()) {
+                Array.set(values, idx, value);
+            } else {
+                @SuppressWarnings("unchecked") List<Object> list = (List<Object>)values;
+                list.set(idx, value);
+            }
         }
 
         /**
@@ -939,9 +996,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 @SuppressWarnings("unchecked") List<Object> list = values;
                 list.add(value);
             }
-            addPanel(value);
-            _panels.revalidate();
-            _addButton.setEnabled(getLength() < _max);
+            _add.setEnabled(getLength() < _max);
             fireStateChanged();
         }
 
@@ -963,10 +1018,90 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 List values = (List)_property.get(_object);
                 values.remove(idx);
             }
+            _add.setEnabled(getLength() < _max);
+            fireStateChanged();
+        }
+
+        /** The minimum and maximum sizes of the list. */
+        protected int _min, _max;
+
+        /** The add value button. */
+        protected JButton _add;
+    }
+
+    /**
+     * An editor for arrays or lists of objects.  Uses embedded panels.
+     */
+    protected static class PanelArrayListEditor extends ArrayListEditor
+        implements ChangeListener
+    {
+        // documentation inherited from interface ChangeListener
+        public void stateChanged (ChangeEvent event)
+        {
+            ObjectPanel panel = (ObjectPanel)event.getSource();
+            int idx = getPanelIndex(panel);
+            if (_property.getType().isArray()) {
+                Array.set(_property.get(_object), idx, panel.getValue());
+            } else {
+                @SuppressWarnings("unchecked") List<Object> values =
+                    (List<Object>)_property.get(_object);
+                values.set(idx, panel.getValue());
+            }
+            fireStateChanged();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+
+            add(_panels = GroupLayout.makeVBox(
+                GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
+            _panels.setBackground(null);
+
+            JPanel bpanel = new JPanel();
+            bpanel.setBackground(null);
+            add(bpanel);
+            bpanel.add(_add = new JButton(_msgs.get("m.add")));
+            _add.addActionListener(this);
+        }
+
+        @Override // documentation inherited
+        protected void update ()
+        {
+            int pcount = _panels.getComponentCount();
+            int length = getLength();
+            for (int ii = 0; ii < length; ii++) {
+                Object value = getValue(ii);
+                if (ii < pcount) {
+                    ObjectPanel panel = (ObjectPanel)_panels.getComponent(ii);
+                    panel.removeChangeListener(this);
+                    panel.setValue(value);
+                    panel.addChangeListener(this);
+                } else {
+                    addPanel(value);
+                }
+            }
+            while (pcount > length) {
+                _panels.remove(--pcount);
+            }
+            _panels.revalidate();
+        }
+
+        @Override // documentation inherited
+        protected void addValue (Object value)
+        {
+            super.addValue(value);
+            addPanel(value);
+            _panels.revalidate();
+        }
+
+        @Override // documentation inherited
+        protected void removeValue (int idx)
+        {
+            super.removeValue(idx);
             _panels.remove(idx);
             _panels.revalidate();
-            _addButton.setEnabled(getLength() < _max);
-            fireStateChanged();
         }
 
         /**
@@ -1013,9 +1148,293 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
         /** The container holding the panels. */
         protected JPanel _panels;
+    }
 
-        /** The add-value button. */
-        protected JButton _addButton;
+    /**
+     * An editor for objects or lists of objects or primitives.  Uses a table.
+     */
+    protected static class TableArrayListEditor extends ArrayListEditor
+        implements TableModel, ListSelectionListener
+    {
+        // documentation inherited from interface TableModel
+        public int getRowCount ()
+        {
+            return getLength();
+        }
+
+        // documentation inherited from interface TableModel
+        public int getColumnCount ()
+        {
+            return _columns.length;
+        }
+
+        // documentation inherited from interface TableModel
+        public String getColumnName (int column)
+        {
+            return _columns[column].getName();
+        }
+
+        // documentation inherited from interface TableModel
+        public Class<?> getColumnClass (int column)
+        {
+            return _columns[column].getColumnClass();
+        }
+
+        // documentation inherited from interface TableModel
+        public boolean isCellEditable (int row, int column)
+        {
+            return true;
+        }
+
+        // documentation inherited from interface TableModel
+        public Object getValueAt (int row, int column)
+        {
+            return _columns[column].getColumnValue(row);
+        }
+
+        // documentation inherited from interface TableModel
+        public void setValueAt (Object value, int row, int column)
+        {
+            _columns[column].setColumnValue(row, value);
+            fireTableChanged(row, row, column, TableModelEvent.UPDATE);
+            fireStateChanged();
+        }
+
+        // documentation inherited from interface TableModel
+        public void addTableModelListener (TableModelListener listener)
+        {
+            listenerList.add(TableModelListener.class, listener);
+        }
+
+        // documentation inherited from interface TableModel
+        public void removeTableModelListener (TableModelListener listener)
+        {
+            listenerList.add(TableModelListener.class, listener);
+        }
+
+        // documentation inherited from interface ListSelectionListener
+        public void valueChanged (ListSelectionEvent event)
+        {
+            updateSelected();
+        }
+
+        @Override // documentation inherited
+        public void actionPerformed (ActionEvent event)
+        {
+            if (event.getSource() == _delete) {
+                removeValue(_table.getSelectedRow());
+            } else {
+                super.actionPerformed(event);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+
+            // determine the column model
+            final Class ctype = _property.getComponentType();
+            if (isTableCellType(ctype)) {
+                _columns = new Column[] { new Column() {
+                    public String getName () {
+                        return null;
+                    }
+                    public Class getColumnClass () {
+                        return getWrapperClass(ctype);
+                    }
+                    public Object getColumnValue (int row) {
+                        return getValue(row);
+                    }
+                    public void setColumnValue (int row, Object value) {
+                        setValue(row, value);
+                    }
+                }};
+            } else {
+                Property[] properties = Introspector.getProperties(ctype);
+                _columns = new Column[properties.length];
+                for (int ii = 0; ii < properties.length; ii++) {
+                    final Property property = properties[ii];
+                    _columns[ii] = new Column() {
+                        public String getName () {
+                            return getLabel(property.getName());
+                        }
+                        public Class getColumnClass () {
+                            return getWrapperClass(property.getType());
+                        }
+                        public Object getColumnValue (int row) {
+                            return property.get(getValue(row));
+                        }
+                        public void setColumnValue (int row, Object value) {
+                            property.set(getValue(row), value);
+                        }
+                    };
+                }
+            }
+
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setBackground(null);
+            add(panel);
+            panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            _table = new JTable(this);
+            if (!isTableCellType(ctype)) {
+                panel.add(_table.getTableHeader(), BorderLayout.NORTH);
+            }
+            panel.add(_table, BorderLayout.CENTER);
+            _table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            _table.getSelectionModel().addListSelectionListener(this);
+
+            // hacky transferable lets us move rows around in the array
+            _table.setDragEnabled(true);
+            final DataFlavor cflavor = new DataFlavor(ctype, null);
+            _table.setTransferHandler(new TransferHandler() {
+                public int getSourceActions (JComponent comp) {
+                    return MOVE;
+                }
+                public boolean canImport (JComponent comp, DataFlavor[] flavors) {
+                    return ListUtil.containsRef(flavors, cflavor);
+                }
+                public boolean importData (JComponent comp, Transferable t) {
+                    try {
+                        int row = (Integer)t.getTransferData(cflavor);
+                        moveValue(row);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }
+                protected Transferable createTransferable (JComponent c) {
+                    final int row = _table.getSelectedRow();
+                    return new Transferable() {
+                        public Object getTransferData (DataFlavor flavor) {
+                            return row;
+                        }
+                        public DataFlavor[] getTransferDataFlavors () {
+                            return new DataFlavor[] { cflavor };
+                        }
+                        public boolean isDataFlavorSupported (DataFlavor flavor) {
+                            return flavor == cflavor;
+                        }
+                    };
+                }
+            });
+
+            JPanel bpanel = new JPanel();
+            bpanel.setBackground(null);
+            add(bpanel);
+            bpanel.add(_add = new JButton(_msgs.get("m.add")));
+            _add.addActionListener(this);
+            bpanel.add(_delete = new JButton(_msgs.get("m.delete")));
+            _delete.addActionListener(this);
+        }
+
+        @Override // documentation inherited
+        protected void update ()
+        {
+            fireTableChanged(
+                0, Integer.MAX_VALUE, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            updateSelected();
+        }
+
+        @Override // documentation inherited
+        protected void addValue (Object value)
+        {
+            super.addValue(value);
+            int row = getLength() - 1;
+            fireTableChanged(row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT);
+            _table.getSelectionModel().setSelectionInterval(row, row);
+        }
+
+        @Override // documentation inherited
+        protected void removeValue (int idx)
+        {
+            super.removeValue(idx);
+            fireTableChanged(idx, idx, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE);
+            int row = Math.min(idx, getLength() - 1);
+            _table.getSelectionModel().setSelectionInterval(row, row);
+        }
+
+        /**
+         * Moves the specified row to the selected row.
+         */
+        protected void moveValue (int row)
+        {
+            int selected = _table.getSelectedRow();
+            if (selected == row) {
+                return;
+            }
+            // store the value at the original row and shift the intermediate values up/down
+            Object value = getValue(row);
+            int dir = (selected < row) ? -1 : +1;
+            for (int ii = row; ii != selected; ii += dir) {
+                setValue(ii, getValue(ii + dir));
+            }
+            setValue(selected, value);
+            fireTableChanged(
+                Math.min(selected, row), Math.max(selected, row),
+                TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            fireStateChanged();
+        }
+
+        /**
+         * Updates based on the selection state.
+         */
+        protected void updateSelected ()
+        {
+            _delete.setEnabled(_table.getSelectedRow() >= 0 && getLength() > _min);
+        }
+
+        /**
+         * Fires a {@link TableModelEvent}.
+         */
+        protected void fireTableChanged (int firstRow, int lastRow, int column, int type)
+        {
+            Object[] listeners = listenerList.getListenerList();
+            TableModelEvent event = null;
+            for (int ii = listeners.length - 2; ii >= 0; ii -= 2) {
+                if (listeners[ii] == TableModelListener.class) {
+                    if (event == null) {
+                        event = new TableModelEvent(this, firstRow, lastRow, column, type);
+                    }
+                    ((TableModelListener)listeners[ii + 1]).tableChanged(event);
+                }
+            }
+        }
+
+        /**
+         * Represents a column in the table.
+         */
+        protected abstract class Column
+        {
+            /**
+             * Returns the name of this column.
+             */
+            public abstract String getName ();
+
+            /**
+             * Returns the class of this column.
+             */
+            public abstract Class getColumnClass ();
+
+            /**
+             * Returns the value of this column at the specified row.
+             */
+            public abstract Object getColumnValue (int row);
+
+            /**
+             * Sets the value at the specified row.
+             */
+            public abstract void setColumnValue (int row, Object value);
+        }
+
+        /** The column info. */
+        protected Column[] _columns;
+
+        /** The table containing the array data. */
+        protected JTable _table;
+
+        /** The delete button. */
+        protected JButton _delete;
 
         /** The minimum and maximum sizes of the list. */
         protected int _min, _max;
