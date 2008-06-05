@@ -55,6 +55,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
 import com.samskivert.util.ArrayUtil;
+import com.samskivert.util.IntTuple;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.StringUtil;
@@ -106,8 +107,11 @@ public abstract class PropertyEditor extends BasePropertyEditor
         } else if (type.isEnum()) {
             editor = new EnumEditor();
         } else if (type.isArray() || List.class.isAssignableFrom(type)) {
-            if (property.getAnnotation().mode().equals("table") ||
-                    isTableCellType(property.getComponentType())) {
+            // use the table editor when explicitly requested, when the array components are
+            // primitives (or similar, or arrays thereof)
+            Class ctype = property.getComponentType();
+            if (property.getAnnotation().mode().equals("table") || isTableCellType(ctype) ||
+                    (ctype.isArray() && isTableCellType(ctype.getComponentType()))) {
                 editor = new TableArrayListEditor();
             } else {
                 editor = new PanelArrayListEditor();
@@ -1221,8 +1225,26 @@ public abstract class PropertyEditor extends BasePropertyEditor
         @Override // documentation inherited
         public void actionPerformed (ActionEvent event)
         {
-            if (event.getSource() == _delete) {
-                removeValue(_table.getSelectedRow());
+            Object source = event.getSource();
+            if (source == _add && is2DArray()) {
+                // create a new row of the required type, populated with default instances
+                Class cctype = _property.getComponentType().getComponentType();
+                Object value = Array.newInstance(cctype, _columns.length);
+                for (int ii = 0; ii < _columns.length; ii++) {
+                    Array.set(value, ii, getDefaultInstance(cctype));
+                }
+                addValue(value);
+
+            } else if (source == _addColumn) {
+                addColumn();
+
+            } else if (source == _delete) {
+                IntTuple selection = getSelection();
+                if (selection.right == -1) {
+                    removeValue(selection.left);
+                } else {
+                    removeColumn(selection.right);
+                }
             } else {
                 super.actionPerformed(event);
             }
@@ -1235,7 +1257,10 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
             // determine the column model
             final Class ctype = _property.getComponentType();
-            if (isTableCellType(ctype)) {
+            if (is2DArray()) {
+                _columns = new Column[0]; // actual columns will be created on update
+
+            } else if (isTableCellType(ctype)) {
                 _columns = new Column[] { new Column() {
                     public String getName () {
                         return null;
@@ -1248,6 +1273,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
                     }
                     public void setColumnValue (int row, Object value) {
                         setValue(row, value);
+                    }
+                    public int getWidth () {
+                        return _property.getAnnotation().width();
                     }
                 }};
             } else {
@@ -1268,9 +1296,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
                         public void setColumnValue (int row, Object value) {
                             property.set(getValue(row), value);
                         }
+                        public int getWidth () {
+                           return property.getAnnotation().width();
+                        }
                     };
                 }
             }
+
+            ((GroupLayout)getLayout()).setOffAxisPolicy(GroupLayout.NONE);
 
             JPanel panel = new JPanel(new BorderLayout());
             panel.setBackground(null);
@@ -1278,15 +1311,23 @@ public abstract class PropertyEditor extends BasePropertyEditor
             panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             _table = new JTable(this);
             if (!isTableCellType(ctype)) {
+                _table.getTableHeader().setReorderingAllowed(false);
                 panel.add(_table.getTableHeader(), BorderLayout.NORTH);
             }
+            updateColumnWidths();
             panel.add(_table, BorderLayout.CENTER);
-            _table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            if (is2DArray()) {
+                _table.setColumnSelectionAllowed(true);
+                _table.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+            } else {
+                _table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            }
             _table.getSelectionModel().addListSelectionListener(this);
+            _table.getColumnModel().getSelectionModel().addListSelectionListener(this);
 
             // hacky transferable lets us move rows around in the array
             _table.setDragEnabled(true);
-            final DataFlavor cflavor = new DataFlavor(ctype, null);
+            final DataFlavor cflavor = new DataFlavor(IntTuple.class, null);
             _table.setTransferHandler(new TransferHandler() {
                 public int getSourceActions (JComponent comp) {
                     return MOVE;
@@ -1296,18 +1337,35 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 }
                 public boolean importData (JComponent comp, Transferable t) {
                     try {
-                        int row = (Integer)t.getTransferData(cflavor);
-                        moveValue(row);
+                        IntTuple selection = (IntTuple)t.getTransferData(cflavor);
+                        if (selection.left == -1) {
+                            moveColumn(selection.right);
+                        } else if (selection.right == -1) {
+                            moveValue(selection.left);
+                        } else {
+                            moveCell(selection.left, selection.right);
+                        }
                         return true;
                     } catch (Exception e) {
                         return false;
                     }
                 }
                 protected Transferable createTransferable (JComponent c) {
-                    final int row = _table.getSelectedRow();
+                    final IntTuple selection = getSelection();
+                    if (selection == null) {
+                        return null;
+                    }
+                    // set the selection mode depending on the selection type
+                    if (is2DArray()) {
+                        if (selection.left == -1) {
+                            _table.setRowSelectionAllowed(false);
+                        } else if (selection.right == -1) {
+                            _table.setColumnSelectionAllowed(false);
+                        }
+                    }
                     return new Transferable() {
                         public Object getTransferData (DataFlavor flavor) {
-                            return row;
+                            return selection;
                         }
                         public DataFlavor[] getTransferDataFlavors () {
                             return new DataFlavor[] { cflavor };
@@ -1317,13 +1375,23 @@ public abstract class PropertyEditor extends BasePropertyEditor
                         }
                     };
                 }
+                protected void exportDone (JComponent source, Transferable data, int action) {
+                    // restore the selection mode
+                    if (is2DArray()) {
+                        _table.setCellSelectionEnabled(true);
+                    }
+                }
             });
 
             JPanel bpanel = new JPanel();
             bpanel.setBackground(null);
             add(bpanel);
-            bpanel.add(_add = new JButton(_msgs.get("m.add")));
+            bpanel.add(_add = new JButton(_msgs.get(is2DArray() ? "m.add_row" : "m.add")));
             _add.addActionListener(this);
+            if (is2DArray()) {
+                bpanel.add(_addColumn = new JButton(_msgs.get("m.add_column")));
+                _addColumn.addActionListener(this);
+            }
             bpanel.add(_delete = new JButton(_msgs.get("m.delete")));
             _delete.addActionListener(this);
         }
@@ -1331,8 +1399,15 @@ public abstract class PropertyEditor extends BasePropertyEditor
         @Override // documentation inherited
         protected void update ()
         {
-            fireTableChanged(
-                0, Integer.MAX_VALUE, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            int min = 0, max = Integer.MAX_VALUE;
+            if (is2DArray()) {
+                createArrayColumns();
+                min = max = TableModelEvent.HEADER_ROW;
+            }
+            fireTableChanged(min, max, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            if (min == TableModelEvent.HEADER_ROW) {
+                updateColumnWidths();
+            }
             updateSelected();
         }
 
@@ -1342,7 +1417,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
             super.addValue(value);
             int row = getLength() - 1;
             fireTableChanged(row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT);
-            _table.getSelectionModel().setSelectionInterval(row, row);
+            if (_columns.length > 0) {
+                setSelection(row, -1);
+            }
         }
 
         @Override // documentation inherited
@@ -1350,8 +1427,121 @@ public abstract class PropertyEditor extends BasePropertyEditor
         {
             super.removeValue(idx);
             fireTableChanged(idx, idx, TableModelEvent.ALL_COLUMNS, TableModelEvent.DELETE);
-            int row = Math.min(idx, getLength() - 1);
-            _table.getSelectionModel().setSelectionInterval(row, row);
+            setSelection(Math.min(idx, getLength() - 1), -1);
+        }
+
+        /**
+         * Adds a new column.
+         */
+        protected void addColumn ()
+        {
+            // update the column model
+            _columns = ArrayUtil.append(_columns, createArrayColumn(_columns.length));
+
+            // expand all rows to include the new column
+            Class cctype = _property.getComponentType().getComponentType();
+            for (int ii = 0, nn = getLength(); ii < nn; ii++) {
+                Object ovalue = getValue(ii);
+                Object nvalue = Array.newInstance(cctype, _columns.length);
+                System.arraycopy(ovalue, 0, nvalue, 0, _columns.length - 1);
+                Array.set(nvalue, _columns.length - 1, getDefaultInstance(cctype));
+                setValue(ii, nvalue);
+            }
+
+            // fire notification events, update selection
+            fireStateChanged();
+            fireTableChanged(
+                TableModelEvent.HEADER_ROW, TableModelEvent.HEADER_ROW,
+                TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            updateColumnWidths();
+            if (getLength() > 0) {
+                setSelection(-1, _columns.length - 1);
+            }
+        }
+
+        /**
+         * Deletes the column at the specified index.
+         */
+        protected void removeColumn (int column)
+        {
+            // update the column model
+            _columns = ArrayUtil.splice(_columns, _columns.length - 1);
+
+            // remove the column from all rows
+            Class cctype = _property.getComponentType().getComponentType();
+            for (int ii = 0, nn = getLength(); ii < nn; ii++) {
+                Object ovalue = getValue(ii);
+                Object nvalue = Array.newInstance(cctype, _columns.length);
+                System.arraycopy(ovalue, 0, nvalue, 0, column);
+                System.arraycopy(ovalue, column + 1, nvalue, column, _columns.length - column);
+                setValue(ii, nvalue);
+            }
+
+            // fire notification events, update selection
+            fireStateChanged();
+            fireTableChanged(
+                TableModelEvent.HEADER_ROW, TableModelEvent.HEADER_ROW,
+                TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            updateColumnWidths();
+            setSelection(-1, Math.min(column, _columns.length - 1));
+        }
+
+        /**
+         * Updates the preferred widths of the columns.
+         */
+        protected void updateColumnWidths ()
+        {
+            for (int ii = 0; ii < _columns.length; ii++) {
+                // the default width is in characters, so fudge it a bit for pixels
+                _table.getColumnModel().getColumn(ii).setPreferredWidth(
+                    _columns[ii].getWidth() * 10);
+            }
+        }
+
+        /**
+         * Determines whether the property is a 2D array.
+         */
+        protected boolean is2DArray ()
+        {
+            Class ctype = _property.getComponentType();
+            return ctype.isArray() && isTableCellType(ctype.getComponentType());
+        }
+
+        /**
+         * (Re)creates the columns for a 2D array property.
+         */
+        protected void createArrayColumns ()
+        {
+            Object element = (getLength() == 0) ? null : getValue(0);
+            _columns = new Column[element == null ? 0 : Array.getLength(element)];
+            for (int ii = 0; ii < _columns.length; ii++) {
+                _columns[ii] = createArrayColumn(ii);
+            }
+        }
+
+        /**
+         * Creates and returns an array column.
+         */
+        protected Column createArrayColumn (final int column)
+        {
+            final Class cctype = _property.getComponentType().getComponentType();
+            return new Column() {
+                public String getName () {
+                    return Integer.toString(column);
+                }
+                public Class getColumnClass () {
+                    return getWrapperClass(cctype);
+                }
+                public Object getColumnValue (int row) {
+                    return Array.get(getValue(row), column);
+                }
+                public void setColumnValue (int row, Object value) {
+                    Array.set(getValue(row), column, value);
+                }
+                public int getWidth () {
+                    return _property.getAnnotation().width();
+                }
+            };
         }
 
         /**
@@ -1374,6 +1564,67 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 Math.min(selected, row), Math.max(selected, row),
                 TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
             fireStateChanged();
+            setSelection(selected, -1);
+        }
+
+        /**
+         * Moves a column to the selected column.
+         */
+        protected void moveColumn (int column)
+        {
+            int selected = _table.getSelectedColumn();
+            if (selected == column) {
+                return;
+            }
+            for (int ii = 0, nn = getLength(); ii < nn; ii++) {
+                moveWithinArray(getValue(ii), column, selected);
+            }
+            fireTableChanged(
+                0, Integer.MAX_VALUE, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            fireStateChanged();
+            setSelection(-1, selected);
+        }
+
+        /**
+         * Moves a single cell to the selected cell.
+         */
+        protected void moveCell (int row, int col)
+        {
+            int srow = _table.getSelectedRow();
+            int scol = _table.getSelectedColumn();
+            if (!(srow == row ^ scol == col)) {
+                return; // must move within same column or same row
+            }
+            if (srow == row) {
+                moveWithinArray(getValue(row), col, scol);
+                fireTableChanged(row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            } else { // scol == col
+                Column column = _columns[col];
+                Object value = column.getColumnValue(row);
+                int dir = (srow < row) ? -1 : +1;
+                for (int ii = row; ii != srow; ii += dir) {
+                    column.setColumnValue(ii, column.getColumnValue(ii + dir));
+                }
+                column.setColumnValue(srow, value);
+                fireTableChanged(
+                    Math.min(srow, row), Math.max(srow, row), col, TableModelEvent.UPDATE);
+            }
+            fireStateChanged();
+        }
+
+        /**
+         * Moves the value at <code>source</code> to <code>dest</code>, shifting values left
+         * or right to make room.
+         */
+        protected void moveWithinArray (Object array, int source, int dest)
+        {
+            Object value = Array.get(array, source);
+            if (dest < source) {
+                System.arraycopy(array, dest, array, dest + 1, source - dest);
+            } else {
+                System.arraycopy(array, source + 1, array, source, dest - source);
+            }
+            Array.set(array, dest, value);
         }
 
         /**
@@ -1381,7 +1632,62 @@ public abstract class PropertyEditor extends BasePropertyEditor
          */
         protected void updateSelected ()
         {
-            _delete.setEnabled(_table.getSelectedRow() >= 0 && getLength() > _min);
+            IntTuple selection = getSelection();
+            _delete.setEnabled(selection != null && (selection.left == -1 ||
+                (selection.right == -1 && getLength() > _min)));
+        }
+
+        /**
+         * Returns the selection as a (row, column) pair.  If an entire row is selected, column
+         * will be -1.  If an entire column is selected, row will be -1.  If both numbers are
+         * valid, a single cell at that location is selected.  Otherwise, the method returns
+         * <code>null</code> to indicate that there is no usable selection.
+         */
+        protected IntTuple getSelection ()
+        {
+            if (!_table.getColumnSelectionAllowed()) {
+                int row = _table.getSelectedRow();
+                return (row == -1) ? null : new IntTuple(row, -1);
+            } else if (!_table.getRowSelectionAllowed()) {
+                int column = _table.getSelectedColumn();
+                return (column == -1) ? null : new IntTuple(-1, column);
+            }
+            int[] rows = _table.getSelectedRows();
+            int[] cols = _table.getSelectedColumns();
+            if (rows.length == 1) {
+                if (cols.length == 1) {
+                    return new IntTuple(rows[0], cols[0]);
+                } else if (cols.length == _columns.length) {
+                    return new IntTuple(rows[0], -1);
+                }
+            } else if (cols.length == 1 && rows.length == getLength()) {
+                return new IntTuple(-1, cols[0]);
+            }
+            return null;
+        }
+
+        /**
+         * Sets the selection in using the convention of {@link #getSelection}.
+         */
+        protected void setSelection (int row, int column)
+        {
+            if (row == -1 && column == -1) {
+                _table.clearSelection();
+                return;
+            }
+            if (row == -1) {
+                _table.setRowSelectionInterval(0, getLength() - 1);
+            } else {
+                _table.setRowSelectionInterval(row, row);
+            }
+            if (!is2DArray()) {
+                return;
+            }
+            if (column == -1) {
+                _table.setColumnSelectionInterval(0, _columns.length - 1);
+            } else {
+                _table.setColumnSelectionInterval(column, column);
+            }
         }
 
         /**
@@ -1425,6 +1731,11 @@ public abstract class PropertyEditor extends BasePropertyEditor
              * Sets the value at the specified row.
              */
             public abstract void setColumnValue (int row, Object value);
+
+            /**
+             * Returns the preferred width of the column.
+             */
+            public abstract int getWidth ();
         }
 
         /** The column info. */
@@ -1432,6 +1743,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
         /** The table containing the array data. */
         protected JTable _table;
+
+        /** The add column button. */
+        protected JButton _addColumn;
 
         /** The delete button. */
         protected JButton _delete;
