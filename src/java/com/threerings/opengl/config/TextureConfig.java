@@ -170,43 +170,43 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     /** The minification filter. */
-    @Editable
+    @Editable(category="filter", hgroup="f")
     public MinFilter minFilter = MinFilter.NEAREST_MIPMAP_LINEAR;
 
     /** The magnification filter. */
-    @Editable
+    @Editable(category="filter", hgroup="f")
     public MagFilter magFilter = MagFilter.LINEAR;
 
     /** The maximum degree of anisotropy. */
-    @Editable(min=1.0, step=0.01)
+    @Editable(min=1.0, step=0.01, category="filter")
     public float maxAnisotropy = 1f;
 
     /** The s wrap mode. */
-    @Editable
+    @Editable(category="wrap", hgroup="w")
     public Wrap wrapS = Wrap.REPEAT;
 
     /** The t wrap mode. */
-    @Editable
+    @Editable(category="wrap", hgroup="w")
     public Wrap wrapT = Wrap.REPEAT;
 
     /** The r wrap mode. */
-    @Editable
+    @Editable(category="wrap", hgroup="w")
     public Wrap wrapR = Wrap.REPEAT;
 
     /** The border color. */
-    @Editable(mode="alpha")
+    @Editable(mode="alpha", category="wrap")
     public Color4f borderColor = new Color4f(0f, 0f, 0f, 0f);
 
     /** The texture compare mode. */
-    @Editable
+    @Editable(category="compare", hgroup="c")
     public CompareMode compareMode = CompareMode.NONE;
 
     /** The texture compare function. */
-    @Editable
+    @Editable(category="compare", hgroup="c")
     public CompareFunc compareFunc = CompareFunc.LEQUAL;
 
     /** The depth texture mode. */
-    @Editable
+    @Editable(category="compare")
     public DepthMode depthMode = DepthMode.LUMINANCE;
 
     /**

@@ -18,4 +18,16 @@ public class TileConfig extends ManagedConfig
     /** The height of the tile. */
     @Editable(min=1)
     public int height = 1;
+
+    /** Indicates where the tile is passable. */
+    @Editable(width=3)
+    public boolean[][] passable = new boolean[][] { { false } };
+
+    /** Indicates where the tile is penetrable. */
+    @Editable(width=3)
+    public boolean[][] penetrable = new boolean[][] { { false } };
+
+    /** Whether or not to render drop shadows on this tile. */
+    @Editable
+    public boolean receivesDropShadows;
 }

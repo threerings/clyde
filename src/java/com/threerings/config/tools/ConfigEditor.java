@@ -190,7 +190,7 @@ public class ConfigEditor
         cpanel.add(_pane = new JScrollPane());
 
         // create the editor panel
-        _epanel = new EditorPanel(_msgs, EditorPanel.CategoryMode.TABS, null);
+        _epanel = new EditorPanel(_msgs);
         _frame.add(_epanel, BorderLayout.CENTER);
         _epanel.addChangeListener(this);
 
