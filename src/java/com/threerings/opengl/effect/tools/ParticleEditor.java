@@ -240,7 +240,7 @@ public class ParticleEditor extends GlCanvasTool
         // create the editor panel
         JPanel ipanel = GroupLayout.makeVStretchBox(5);
         epanel.add(ipanel);
-        ipanel.add(_editor = new EditorPanel(_msgs, EditorPanel.CategoryMode.CHOOSER, null));
+        ipanel.add(_editor = new EditorPanel(this, EditorPanel.CategoryMode.CHOOSER, null));
         _editor.setVisible(false);
 
         // create the reset button

@@ -9,7 +9,11 @@ import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.util.MessageBundle;
+
+import com.threerings.editor.util.EditorContext;
 
 /**
  * Abstract base class for {@link PropertyEditor} and {@link EditorPanel}.
@@ -36,6 +40,18 @@ public abstract class BasePropertyEditor extends JPanel
     public void removeChangeListener (ChangeListener listener)
     {
         listenerList.remove(ChangeListener.class, listener);
+    }
+
+    /**
+     * Returns a label for the supplied type.
+     */
+    public String getLabel (Class type)
+    {
+        String name = (type == null) ? "none" : type.getName();
+        name = name.substring(
+            Math.max(name.lastIndexOf('$'), name.lastIndexOf('.')) + 1);
+        name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(name));
+        return getLabel(name);
     }
 
     /**
@@ -85,6 +101,9 @@ public abstract class BasePropertyEditor extends JPanel
         int value = BASE_BACKGROUND - shades*SHADE_DECREMENT;
         return new Color(value, value, value);
     }
+
+    /** Provides access to common services. */
+    protected EditorContext _ctx;
 
     /** The message bundle used for property translations. */
     protected MessageBundle _msgs;

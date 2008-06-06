@@ -38,6 +38,7 @@ import com.threerings.util.MessageBundle;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
+import com.threerings.editor.util.EditorContext;
 
 import static com.threerings.editor.Log.*;
 
@@ -57,23 +58,24 @@ public class EditorPanel extends BasePropertyEditor
      * Creates and returns a simple dialog for editing the supplied object.
      */
     public static JDialog createDialog (
-        Component parentComponent, MessageBundle msgs, String title, Object object)
+        Component parentComponent, EditorContext ctx, String title, Object object)
     {
-        return createDialog(parentComponent, msgs, CategoryMode.TABS, title, object);
+        return createDialog(parentComponent, ctx, CategoryMode.TABS, title, object);
     }
 
     /**
      * Creates and returns a simple dialog for editing the supplied object.
      */
     public static JDialog createDialog (
-        Component parentComponent, MessageBundle msgs, CategoryMode catmode,
+        Component parentComponent, EditorContext ctx, CategoryMode catmode,
         String title, Object object)
     {
         Component root = SwingUtilities.getRoot(parentComponent);
+        MessageBundle msgs = ctx.getMessageBundle();
         final JDialog dialog = (root instanceof Dialog) ?
             new JDialog((Dialog)root, msgs.get(title)) :
                 new JDialog((Frame)(root instanceof Frame ? root : null), msgs.get(title));
-        EditorPanel epanel = new EditorPanel(msgs, catmode, null);
+        EditorPanel epanel = new EditorPanel(ctx, catmode, null);
         dialog.add(epanel, BorderLayout.CENTER);
         epanel.setObject(object);
         JPanel bpanel = new JPanel();
@@ -100,9 +102,9 @@ public class EditorPanel extends BasePropertyEditor
     /**
      * Creates an empty editor panel.
      */
-    public EditorPanel (MessageBundle msgs)
+    public EditorPanel (EditorContext ctx)
     {
-        this(msgs, CategoryMode.PANELS, null);
+        this(ctx, CategoryMode.PANELS, null);
     }
 
     /**
@@ -112,9 +114,10 @@ public class EditorPanel extends BasePropertyEditor
      * @param ancestors the ancestor properties from which constraints are inherited.  If this is
      * non-null, the panel is assumed to be embedded within another.
      */
-    public EditorPanel (MessageBundle msgs, CategoryMode catmode, Property[] ancestors)
+    public EditorPanel (EditorContext ctx, CategoryMode catmode, Property[] ancestors)
     {
-        _msgs = msgs;
+        _ctx = ctx;
+        _msgs = ctx.getMessageBundle();
         _catmode = catmode;
         _ancestors = ancestors;
 
@@ -304,7 +307,7 @@ public class EditorPanel extends BasePropertyEditor
      */
     protected PropertyEditor createEditor (Property prop)
     {
-        PropertyEditor editor = PropertyEditor.createEditor(_msgs, prop, _ancestors);
+        PropertyEditor editor = PropertyEditor.createEditor(_ctx, prop, _ancestors);
         editor.setObject(_object);
         editor.addChangeListener(this);
         _editors.add(editor);

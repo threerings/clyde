@@ -72,6 +72,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
+import com.threerings.editor.util.EditorContext;
 
 import static com.threerings.editor.Log.*;
 
@@ -86,7 +87,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      * @param ancestors the ancestor properties from which to inherit constraints, if any.
      */
     public static PropertyEditor createEditor (
-        MessageBundle msgs, Property property, Property[] ancestors)
+        EditorContext ctx, Property property, Property[] ancestors)
     {
         // look first by name, if a custom editor is specified
         String name = property.getAnnotation().editor();
@@ -107,10 +108,10 @@ public abstract class PropertyEditor extends BasePropertyEditor
         } else if (type.isEnum()) {
             editor = new EnumEditor();
         } else if (type.isArray() || List.class.isAssignableFrom(type)) {
-            // use the table editor when explicitly requested, when the array components are
-            // primitives (or similar, or arrays thereof)
+            // use the table editor when the array components are primitives (or similar, or
+            // arrays thereof)
             Class ctype = property.getComponentType();
-            if (property.getAnnotation().mode().equals("table") || isTableCellType(ctype) ||
+            if (isTableCellType(ctype) ||
                     (ctype.isArray() && isTableCellType(ctype.getComponentType()))) {
                 editor = new TableArrayListEditor();
             } else {
@@ -119,7 +120,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         } else {
             editor = new ObjectEditor();
         }
-        editor.init(msgs, property, ancestors);
+        editor.init(ctx, property, ancestors);
         return editor;
     }
 
@@ -142,9 +143,10 @@ public abstract class PropertyEditor extends BasePropertyEditor
     /**
      * Initializes the editor with its object and property references.
      */
-    public void init (MessageBundle msgs, Property property, Property[] ancestors)
+    public void init (EditorContext ctx, Property property, Property[] ancestors)
     {
-        _msgs = msgs;
+        _ctx = ctx;
+        _msgs = ctx.getMessageBundle();
         _property = property;
         _lineage = (ancestors == null) ?
             new Property[] { _property } : ArrayUtil.append(ancestors, _property);
@@ -684,7 +686,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     }
 
     /**
-     * Editor for file properties.
+     * Edits file properties.
      */
     protected static class FileEditor extends PropertyEditor
         implements ActionListener
@@ -698,7 +700,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 String key = (constraints == null || constraints.directory().length() == 0) ?
                     null : constraints.directory();
                 if (_chooser == null) {
-                    _chooser = new JFileChooser(key == null ? null : _prefs.get(key, null));
+                    String ddir = getDefaultDirectory();
+                    _chooser = new JFileChooser(key == null ? ddir : _prefs.get(key, ddir));
                     if (getMode().equals("directory")) {
                         _chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
@@ -722,7 +725,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
                         });
                     }
                 }
-                _chooser.setSelectedFile((File)_property.get(_object));
+                _chooser.setSelectedFile(getPropertyFile());
                 int result = _chooser.showOpenDialog(this);
                 if (key != null) {
                     _prefs.put(key, _chooser.getCurrentDirectory().toString());
@@ -735,8 +738,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
             } else { // event.getSource() == _clear
                 value = null;
             }
-            if (!ObjectUtil.equals(_property.get(_object), value)) {
-                _property.set(_object, value);
+            if (!ObjectUtil.equals(getPropertyFile(), value)) {
+                setPropertyFile(value);
                 updateButtons(value);
                 fireStateChanged();
             }
@@ -758,7 +761,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         @Override // documentation inherited
         protected void update ()
         {
-            updateButtons((File)_property.get(_object));
+            updateButtons(getPropertyFile());
         }
 
         /**
@@ -772,6 +775,30 @@ public abstract class PropertyEditor extends BasePropertyEditor
             }
         }
 
+        /**
+         * Returns the default directory to start in, if there is no stored preference.
+         */
+        protected String getDefaultDirectory ()
+        {
+            return null;
+        }
+
+        /**
+         * Returns the value of the property as a {@link File}.
+         */
+        protected File getPropertyFile ()
+        {
+            return (File)_property.get(_object);
+        }
+
+        /**
+         * Sets the value of the property as a {@link File}.
+         */
+        protected void setPropertyFile (File file)
+        {
+            _property.set(_object, file);
+        }
+
         /** The file button. */
         protected JButton _file;
 
@@ -780,6 +807,43 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
         /** The file chooser. */
         protected JFileChooser _chooser;
+    }
+
+    /**
+     * Editor for resource references, which are set as files but stored as string paths relative
+     * to the resource directory.
+     */
+    protected static class ResourceEditor extends FileEditor
+    {
+        @Override // documentation inherited
+        protected String getDefaultDirectory ()
+        {
+            return _ctx.getResourceManager().getResourceFile("").toString();
+        }
+
+        @Override // documentation inherited
+        protected File getPropertyFile ()
+        {
+            String path = (String)_property.get(_object);
+            return (path == null) ? null : _ctx.getResourceManager().getResourceFile(path);
+        }
+
+        @Override // documentation inherited
+        protected void setPropertyFile (File file)
+        {
+            String path = null;
+            if (file != null) {
+                String parent = _ctx.getResourceManager().getResourceFile("").toString();
+                if (!parent.endsWith(File.separator)) {
+                    parent += File.separator;
+                }
+                String child = file.toString();
+                if (child.startsWith(parent)) {
+                    path = child.substring(parent.length()).replace(File.separatorChar, '/');
+                }
+            }
+            _property.set(_object, path);
+        }
     }
 
     /**
@@ -896,7 +960,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
             setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
             add(_panel = new ObjectPanel(
-                _msgs, _property.getTypeLabel(), _property.getSubtypes(), _lineage));
+                _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage));
             _panel.addChangeListener(this);
         }
 
@@ -936,6 +1000,26 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
             setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
             setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+        }
+
+        /**
+         * Returns a label for the specified action.
+         */
+        protected String getActionLabel (String action)
+        {
+            return getActionLabel(action, null);
+        }
+
+        /**
+         * Returns a label for the specified action.
+         *
+         * @param units an optional override for the units parameter.
+         */
+        protected String getActionLabel (String action, String units)
+        {
+            units = (units == null) ? _property.getAnnotation().units() : units;
+            return _msgs.get("m." + action + "_entry", (units.length() > 0) ?
+                getLabel(units) : getLabel(_property.getComponentType()));
         }
 
         /**
@@ -1066,7 +1150,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             JPanel bpanel = new JPanel();
             bpanel.setBackground(null);
             add(bpanel);
-            bpanel.add(_add = new JButton(_msgs.get("m.add")));
+            bpanel.add(_add = new JButton(getActionLabel("new")));
             _add.addActionListener(this);
         }
 
@@ -1114,7 +1198,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         protected void addPanel (Object value)
         {
             final ObjectPanel panel = new ObjectPanel(
-                _msgs, _property.getComponentTypeLabel(),
+                _ctx, _property.getComponentTypeLabel(),
                 _property.getComponentSubtypes(), _lineage);
             _panels.add(panel);
             panel.setValue(value);
@@ -1124,7 +1208,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             bpanel.setBackground(null);
             panel.add(bpanel);
             if (getLength() > _min) {
-                JButton delete = new JButton(_msgs.get("m.delete"));
+                JButton delete = new JButton(getActionLabel("delete"));
                 bpanel.add(delete);
                 delete.addActionListener(new ActionListener() {
                     public void actionPerformed (ActionEvent event) {
@@ -1386,10 +1470,11 @@ public abstract class PropertyEditor extends BasePropertyEditor
             JPanel bpanel = new JPanel();
             bpanel.setBackground(null);
             add(bpanel);
-            bpanel.add(_add = new JButton(_msgs.get(is2DArray() ? "m.add_row" : "m.add")));
+            bpanel.add(_add = new JButton(is2DArray() ?
+                getActionLabel("new", "row") : _msgs.get("m.new")));
             _add.addActionListener(this);
             if (is2DArray()) {
-                bpanel.add(_addColumn = new JButton(_msgs.get("m.add_column")));
+                bpanel.add(_addColumn = new JButton(getActionLabel("new", "column")));
                 _addColumn.addActionListener(this);
             }
             bpanel.add(_delete = new JButton(_msgs.get("m.delete")));
@@ -1771,6 +1856,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
     protected static HashMap<Class, Class<? extends PropertyEditor>> _classesByType =
         new HashMap<Class, Class<? extends PropertyEditor>>();
     static {
+        registerEditorClass("resource", ResourceEditor.class);
+        registerEditorClass("table", TableArrayListEditor.class);
+
         registerEditorClass(Boolean.class, BooleanEditor.class);
         registerEditorClass(Boolean.TYPE, BooleanEditor.class);
         registerEditorClass(Byte.class, NumberEditor.class);

@@ -19,11 +19,9 @@ import javax.swing.event.ChangeListener;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.util.ListUtil;
-import com.samskivert.util.StringUtil;
-
-import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Property;
+import com.threerings.editor.util.EditorContext;
 
 import static com.threerings.editor.Log.*;
 
@@ -33,9 +31,10 @@ import static com.threerings.editor.Log.*;
 public class ObjectPanel extends BasePropertyEditor
     implements ActionListener, ChangeListener
 {
-    public ObjectPanel (MessageBundle msgs, String tlabel, Class[] types, Property[] ancestors)
+    public ObjectPanel (EditorContext ctx, String tlabel, Class[] types, Property[] ancestors)
     {
-        _msgs = msgs;
+        _ctx = ctx;
+        _msgs = ctx.getMessageBundle();
         _types = types;
 
         setBackground(getDarkerBackground(ancestors.length));
@@ -48,18 +47,13 @@ public class ObjectPanel extends BasePropertyEditor
             tpanel.add(new JLabel(getLabel(tlabel) + ":"));
             String[] labels = new String[_types.length];
             for (int ii = 0; ii < _types.length; ii++) {
-                Class type = _types[ii];
-                String name = (type == null) ? "none" : type.getName();
-                name = name.substring(
-                    Math.max(name.lastIndexOf('$'), name.lastIndexOf('.')) + 1);
-                name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(name));
-                labels[ii] = getLabel(name);
+                labels[ii] = getLabel(_types[ii]);
             }
             tpanel.add(_box = new JComboBox(labels));
             _box.addActionListener(this);
             _values = new Object[_types.length];
         }
-        add(_panel = new EditorPanel(_msgs, EditorPanel.CategoryMode.PANELS, ancestors));
+        add(_panel = new EditorPanel(_ctx, EditorPanel.CategoryMode.PANELS, ancestors));
         _panel.addChangeListener(this);
     }
 

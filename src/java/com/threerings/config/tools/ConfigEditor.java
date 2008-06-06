@@ -56,6 +56,7 @@ import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.util.EditorContext;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
@@ -68,7 +69,7 @@ import static com.threerings.ClydeLog.*;
  * another application.
  */
 public class ConfigEditor
-    implements ActionListener, ItemListener, ChangeListener, ClipboardOwner
+    implements EditorContext, ActionListener, ItemListener, ChangeListener, ClipboardOwner
 {
     /**
      * The program entry point.
@@ -190,7 +191,7 @@ public class ConfigEditor
         cpanel.add(_pane = new JScrollPane());
 
         // create the editor panel
-        _epanel = new EditorPanel(_msgs);
+        _epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null);
         _frame.add(_epanel, BorderLayout.CENTER);
         _epanel.addChangeListener(this);
 
@@ -216,6 +217,24 @@ public class ConfigEditor
         } else {
             _frame.setVisible(false);
         }
+    }
+
+    // documentation inherited from interface EditorContext
+    public ResourceManager getResourceManager ()
+    {
+        return _rsrcmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public MessageBundle getMessageBundle ()
+    {
+        return _msgs;
     }
 
     // documentation inherited from interface ActionListener
@@ -251,7 +270,7 @@ public class ConfigEditor
             gstate.deleteNode();
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(_frame, _msgs, "t.preferences", _eprefs);
+                _pdialog = EditorPanel.createDialog(_frame, this, "t.preferences", _eprefs);
             }
             _pdialog.setVisible(true);
         } else if (action.equals("save_all")) {

@@ -20,6 +20,7 @@ import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.util.EditorContext;
 
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.MouseOrbiter;
@@ -33,7 +34,7 @@ import com.threerings.opengl.util.Grid;
  * A base class for the OpenGL tool applications, such as the model viewer and the particle editor.
  */
 public abstract class GlCanvasTool extends GlCanvasApp
-    implements ActionListener
+    implements EditorContext, ActionListener
 {
     /**
      * Creates a new tool application.
@@ -45,6 +46,12 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _msgs = _msgmgr.getBundle(msgs);
     }
 
+    // documentation inherited from interface EditorContext
+    public MessageBundle getMessageBundle ()
+    {
+        return _msgs;
+    }
+
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
@@ -53,7 +60,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
             shutdown();
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(_canvas, _msgs, "t.preferences", _eprefs);
+                _pdialog = EditorPanel.createDialog(_canvas, this, "t.preferences", _eprefs);
             }
             _pdialog.setVisible(true);
         } else if (action.equals("toggle_bounds")) {
