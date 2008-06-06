@@ -74,12 +74,22 @@ public abstract class Property
         if (type.isArray()) {
             return type.getComponentType();
         } else if (Collection.class.isAssignableFrom(type)) {
-            Type gtype = getGenericType();
-            if (gtype instanceof ParameterizedType) {
-                Type[] args = ((ParameterizedType)gtype).getActualTypeArguments();
-                if (args.length > 0 && args[0] instanceof Class) {
-                    return (Class)args[0];
-                }
+            return getArgumentType();
+        }
+        return null;
+    }
+
+    /**
+     * Returns the class of the first type argument, or <code>null</code> if there is no such
+     * argument or it isn't a normal class.
+     */
+    public Class getArgumentType ()
+    {
+        Type gtype = getGenericType();
+        if (gtype instanceof ParameterizedType) {
+            Type[] args = ((ParameterizedType)gtype).getActualTypeArguments();
+            if (args.length > 0 && args[0] instanceof Class) {
+                return (Class)args[0];
             }
         }
         return null;

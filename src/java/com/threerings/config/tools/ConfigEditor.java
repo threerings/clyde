@@ -61,6 +61,8 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.swing.ConfigTree;
+import com.threerings.config.swing.ConfigTreeNode;
 
 import static com.threerings.ClydeLog.*;
 

@@ -58,19 +58,18 @@ public class EditorPanel extends BasePropertyEditor
      * Creates and returns a simple dialog for editing the supplied object.
      */
     public static JDialog createDialog (
-        Component parentComponent, EditorContext ctx, String title, Object object)
+        Component parent, EditorContext ctx, String title, Object object)
     {
-        return createDialog(parentComponent, ctx, CategoryMode.TABS, title, object);
+        return createDialog(parent, ctx, CategoryMode.TABS, title, object);
     }
 
     /**
      * Creates and returns a simple dialog for editing the supplied object.
      */
     public static JDialog createDialog (
-        Component parentComponent, EditorContext ctx, CategoryMode catmode,
-        String title, Object object)
+        Component parent, EditorContext ctx, CategoryMode catmode, String title, Object object)
     {
-        Component root = SwingUtilities.getRoot(parentComponent);
+        Component root = SwingUtilities.getRoot(parent);
         MessageBundle msgs = ctx.getMessageBundle();
         final JDialog dialog = (root instanceof Dialog) ?
             new JDialog((Dialog)root, msgs.get(title)) :
@@ -88,13 +87,13 @@ public class EditorPanel extends BasePropertyEditor
             }
         });
         dialog.pack();
-        if (parentComponent == null || !parentComponent.isShowing()) {
+        if (parent == null || !parent.isShowing()) {
             SwingUtil.centerWindow(dialog);
         } else {
-            Point pt = parentComponent.getLocationOnScreen();
+            Point pt = parent.getLocationOnScreen();
             dialog.setLocation(
-                pt.x + (parentComponent.getWidth() - dialog.getWidth()) / 2,
-                pt.y + (parentComponent.getHeight() - dialog.getHeight()) / 2);
+                pt.x + (parent.getWidth() - dialog.getWidth()) / 2,
+                pt.y + (parent.getHeight() - dialog.getHeight()) / 2);
         }
         return dialog;
     }

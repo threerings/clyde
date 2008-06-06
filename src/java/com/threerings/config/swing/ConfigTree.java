@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.config.tools;
+package com.threerings.config.swing;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -226,6 +226,21 @@ public class ConfigTree extends JTree
     {
         TreePath path = getSelectionPath();
         return (path == null) ? null : (ConfigTreeNode)path.getLastPathComponent();
+    }
+
+    /**
+     * Selects a node by name (if it exists).
+     */
+    public void setSelectedNode (String name)
+    {
+        if (name == null) {
+            clearSelection();
+            return;
+        }
+        ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
+        if (node != null) {
+            setSelectionPath(new TreePath(node.getPath()));
+        }
     }
 
     /**

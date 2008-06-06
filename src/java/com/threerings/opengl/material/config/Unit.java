@@ -9,6 +9,9 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.math.Transform;
 
+import com.threerings.config.ConfigReference;
+
+import com.threerings.opengl.config.TextureConfig;
 import com.threerings.opengl.renderer.Color4f;
 
 /**
@@ -17,6 +20,10 @@ import com.threerings.opengl.renderer.Color4f;
 public class Unit extends DeepObject
     implements Exportable
 {
+    /** A reference to the texture to bind to the unit. */
+    @Editable
+    public ConfigReference<TextureConfig> texture;
+
     /** The texture environment. */
     @Editable
     public Environment env = new Environment.Modulate();

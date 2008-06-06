@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.config.tools;
+package com.threerings.config.swing;
 
 import java.io.IOException;
 

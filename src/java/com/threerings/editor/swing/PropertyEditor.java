@@ -62,6 +62,10 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
+import com.threerings.config.swing.ConfigChooser;
+
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform;
 import com.threerings.math.Vector3f;
@@ -844,6 +848,84 @@ public abstract class PropertyEditor extends BasePropertyEditor
             }
             _property.set(_object, path);
         }
+    }
+
+    /**
+     * An editor for configuration references.
+     */
+    protected static class ConfigReferenceEditor extends PropertyEditor
+        implements ActionListener
+    {
+        // documentation inherited from interface ActionListener
+        public void actionPerformed (ActionEvent event)
+        {
+            ConfigReference ovalue = (ConfigReference)_property.get(_object);
+            ConfigReference nvalue;
+            if (event.getSource() == _config) {
+                if (_chooser == null) {
+                    @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
+                        (Class<ManagedConfig>)_property.getArgumentType();
+                    _chooser = new ConfigChooser(_msgs, _ctx.getConfigManager().getGroup(clazz));
+                }
+                _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
+                if (!_chooser.showDialog(this)) {
+                    return;
+                }
+                nvalue = new ConfigReference(_chooser.getSelectedConfig());
+
+            } else { // event.getSource() == _clear
+                nvalue = null;
+            }
+            if (!ObjectUtil.equals(ovalue, nvalue)) {
+                _property.set(_object, nvalue);
+                updateButtons(nvalue);
+                fireStateChanged();
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            add(new JLabel(getPropertyLabel() + ":"));
+            add(_config = new JButton(" "));
+            _config.setPreferredSize(new Dimension(75, _config.getPreferredSize().height));
+            _config.addActionListener(this);
+            if (_property.getAnnotation().nullable()) {
+                add(_clear = new JButton(_msgs.get("m.clear")));
+                _clear.addActionListener(this);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void update ()
+        {
+            updateButtons((ConfigReference)_property.get(_object));
+        }
+
+        /**
+         * Updates the state of the buttons.
+         */
+        protected void updateButtons (ConfigReference value)
+        {
+            if (value != null) {
+                String name = value.getName();
+                _config.setText(name.substring(name.lastIndexOf('/') + 1));
+            } else {
+                _config.setText(_msgs.get("m.none"));
+            }
+            if (_clear != null) {
+                _clear.setEnabled(value != null);
+            }
+        }
+
+        /** The config button. */
+        protected JButton _config;
+
+        /** The clear button. */
+        protected JButton _clear;
+
+        /** The config chooser. */
+        protected ConfigChooser _chooser;
     }
 
     /**
@@ -1864,6 +1946,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass(Byte.class, NumberEditor.class);
         registerEditorClass(Byte.TYPE, NumberEditor.class);
         registerEditorClass(Color4f.class, Color4fEditor.class);
+        registerEditorClass(ConfigReference.class, ConfigReferenceEditor.class);
         registerEditorClass(Double.class, NumberEditor.class);
         registerEditorClass(Double.TYPE, NumberEditor.class);
         registerEditorClass(File.class, FileEditor.class);
