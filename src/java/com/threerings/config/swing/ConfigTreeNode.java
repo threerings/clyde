@@ -262,6 +262,22 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     }
 
     /**
+     * Expands all paths up to the specified depth.
+     */
+    public void expandPaths (JTree tree, int depth)
+    {
+        if (!getAllowsChildren()) {
+            return;
+        }
+        tree.expandPath(new TreePath(getPath()));
+        if (depth-- > 0 && children != null) {
+            for (Object child : children) {
+                ((ConfigTreeNode)child).expandPaths(tree, depth);
+            }
+        }
+    }
+
+    /**
      * Writes the exportable fields of the object.
      */
     public void writeFields (Exporter out)

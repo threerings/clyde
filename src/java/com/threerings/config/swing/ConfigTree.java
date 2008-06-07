@@ -196,6 +196,9 @@ public class ConfigTree extends JTree
         }
         ((DefaultTreeModel)getModel()).reload();
 
+        // expand the paths up to a point
+        root.expandPaths(this, 2);
+
         // start listening for updates
         _group.addListener(this);
     }

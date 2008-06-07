@@ -35,7 +35,36 @@ import static com.threerings.ClydeLog.*;
  * Contains a group of managed configurations, all of the same class.
  */
 public class ConfigGroup<T extends ManagedConfig>
+    implements Exportable
 {
+    /**
+     * Creates a new config group for the specified class.
+     */
+    public ConfigGroup (Class<T> clazz)
+    {
+        initConfigClass(clazz);
+    }
+
+    /**
+     * No-arg constructor for deserialization.
+     */
+    public ConfigGroup ()
+    {
+    }
+
+    /**
+     * Initializes this group.
+     */
+    public void init (ConfigManager cfgmgr)
+    {
+        _cfgmgr = cfgmgr;
+
+        // load the existing configurations (first checking for a binary file, then an xml file)
+        if (_cfgmgr.getConfigPath() != null && (readConfigs(false) || readConfigs(true))) {
+            log.debug("Read configurations for group " + _name + ".");
+        }
+    }
+
     /**
      * Returns the name of this group.
      */
@@ -62,7 +91,6 @@ public class ConfigGroup<T extends ManagedConfig>
 
     /**
      * Retrieves a configuration by integer identifier.
-     *
      */
     public T getConfig (int id)
     {
@@ -165,19 +193,9 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     public void save (Collection<T> configs, File file)
     {
-        // put all the configs into an array and sort them by name
-        @SuppressWarnings("unchecked") T[] array =
-            (T[])Array.newInstance(_cclass, configs.size());
-        configs.toArray(array);
-        QuickSort.sort(array, new Comparator<T>() {
-            public int compare (T c1, T c2) {
-                return c1.getName().compareTo(c2.getName());
-            }
-        });
-
         try {
             Exporter out = new XMLExporter(new FileOutputStream(file));
-            out.writeObject(array);
+            out.writeObject(toSortedArray(configs));
             out.close();
 
         } catch (IOException e) {
@@ -251,23 +269,48 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /**
-     * Creates a new configuration group.
+     * Writes the fields of this object.
      */
-    protected ConfigGroup (ConfigManager cfgmgr, String name, Class<T> cclass, boolean ids)
+    public void writeFields (Exporter out)
+        throws IOException
     {
-        _cfgmgr = cfgmgr;
-        _name = name;
-        _cclass = cclass;
+        // write the sorted configs out as a raw object
+        out.write("configs", toSortedArray(_configsByName.values()), null, Object.class);
+    }
 
-        // create the id map if specified
-        if (ids) {
+    /**
+     * Reads the fields of this object.
+     */
+    public void readFields (Importer in)
+        throws IOException
+    {
+        // read in the configs and determine the type
+        @SuppressWarnings("unchecked") T[] configs = (T[])in.read("configs", null, Object.class);
+        @SuppressWarnings("unchecked") Class<T> clazz =
+            (Class<T>)configs.getClass().getComponentType();
+        initConfigClass(clazz);
+
+        // populate the maps
+        initConfigs(configs);
+    }
+
+    /**
+     * Initializes the configuration class immediately after construction or deserialization.
+     */
+    protected void initConfigClass (Class<T> clazz)
+    {
+        _cclass = clazz;
+
+        // derive the group name from the class name
+        String cstr = clazz.getName();
+        cstr = cstr.substring(Math.max(cstr.lastIndexOf('.'), cstr.lastIndexOf('$')) + 1);
+        cstr = cstr.endsWith("Config") ? cstr.substring(0, cstr.length() - 6) : cstr;
+        _name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(cstr));
+
+        // create the id state if appropriate
+        if (IntegerIdentified.class.isAssignableFrom(clazz)) {
             _configsById = new HashIntMap<T>();
             _freeIds = new ArrayList<Integer>();
-        }
-
-        // load the existing configurations (first checking for a binary file, then an xml file)
-        if (readConfigs(false) || readConfigs(true)) {
-            log.debug("Read configurations for group " + _name + ".");
         }
     }
 
@@ -286,19 +329,7 @@ public class ConfigGroup<T extends ManagedConfig>
             FileInputStream fin = new FileInputStream(file);
             Importer in = xml ? new XMLImporter(fin) : new BinaryImporter(fin);
             @SuppressWarnings("unchecked") T[] configs = (T[])in.readObject();
-            for (T config : configs) {
-                _configsByName.put(config.getName(), config);
-                if (_configsById != null) {
-                    int id = config.getId();
-                    _highestId = Math.max(_highestId, id);
-                    _configsById.put(id, config);
-                }
-            }
-            for (int id = _highestId - 1; id >= 1; id--) {
-                if (!_configsById.containsKey(id)) {
-                    _freeIds.add(id);
-                }
-            }
+            initConfigs(configs);
             in.close();
             return true;
 
@@ -309,12 +340,48 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /**
+     * Initializes the set of configs.
+     */
+    protected void initConfigs (T[] configs)
+    {
+        for (T config : configs) {
+            _configsByName.put(config.getName(), config);
+            if (_configsById != null) {
+                int id = config.getId();
+                _highestId = Math.max(_highestId, id);
+                _configsById.put(id, config);
+            }
+        }
+        for (int id = _highestId - 1; id >= 1; id--) {
+            if (!_configsById.containsKey(id)) {
+                _freeIds.add(id);
+            }
+        }
+    }
+
+    /**
      * Returns the configuration file.
      */
     protected File getConfigFile (boolean xml)
     {
         String name = _cfgmgr.getConfigPath() + _name + (xml ? ".xml" : ".dat");
         return _cfgmgr.getResourceManager().getResourceFile(name);
+    }
+
+    /**
+     * Converts the supplied collection of configs to a sorted array.
+     */
+    protected T[] toSortedArray (Collection<T> configs)
+    {
+        @SuppressWarnings("unchecked") T[] array =
+            (T[])Array.newInstance(_cclass, configs.size());
+        configs.toArray(array);
+        QuickSort.sort(array, new Comparator<T>() {
+            public int compare (T c1, T c2) {
+                return c1.getName().compareTo(c2.getName());
+            }
+        });
+        return array;
     }
 
     /**

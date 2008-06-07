@@ -119,16 +119,18 @@ public class ConfigEditor
         nmenu.add(createMenuItem("config", KeyEvent.VK_C, KeyEvent.VK_N));
         nmenu.add(createMenuItem("folder", KeyEvent.VK_F, KeyEvent.VK_F));
         file.addSeparator();
-        file.add(createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
-        file.add(createMenuItem("revert_group", KeyEvent.VK_R, KeyEvent.VK_R));
+        file.add(_save = createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
+        file.add(_revert = createMenuItem("revert_group", KeyEvent.VK_R, KeyEvent.VK_R));
         file.addSeparator();
         file.add(createMenuItem("import_group", KeyEvent.VK_I, KeyEvent.VK_I));
         file.add(createMenuItem("export_group", KeyEvent.VK_E, KeyEvent.VK_E));
         file.addSeparator();
         file.add(createMenuItem("import_configs", KeyEvent.VK_C, -1));
         file.add(_exportConfigs = createMenuItem("export_configs", KeyEvent.VK_X, -1));
-        file.addSeparator();
-        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+        if (standalone) {
+            file.addSeparator();
+            file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+        }
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
@@ -151,8 +153,8 @@ public class ConfigEditor
 
         JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
         menubar.add(gmenu);
-        gmenu.add(createMenuItem("save_all", KeyEvent.VK_S, KeyEvent.VK_A));
-        gmenu.add(createMenuItem("revert_all", KeyEvent.VK_R, KeyEvent.VK_T));
+        gmenu.add(_saveAll = createMenuItem("save_all", KeyEvent.VK_S, KeyEvent.VK_A));
+        gmenu.add(_revertAll = createMenuItem("revert_all", KeyEvent.VK_R, KeyEvent.VK_T));
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("config_dir", null));
@@ -605,6 +607,9 @@ public class ConfigEditor
 
     /** The main frame. */
     protected JFrame _frame;
+
+    /** The save and revert menu items. */
+    protected JMenuItem _save, _revert, _saveAll, _revertAll;
 
     /** The configuration export menu item. */
     protected JMenuItem _exportConfigs;

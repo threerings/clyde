@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.IntegerIdentified;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 
@@ -10,6 +11,7 @@ import com.threerings.editor.Editable;
  * The configuration for a single tile.
  */
 public class TileConfig extends ManagedConfig
+    implements IntegerIdentified
 {
     /** The width of the tile. */
     @Editable(min=1)
