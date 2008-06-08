@@ -6,7 +6,6 @@ package com.threerings.tudey.server;
 import com.samskivert.util.Interval;
 
 import com.threerings.presents.data.ClientObject;
-import com.threerings.presents.server.PresentsServer;
 
 import com.threerings.crowd.data.PlaceObject;
 import com.threerings.crowd.server.PlaceManagerDelegate;
@@ -32,7 +31,7 @@ public class TudeyPlaceManagerDelegate extends PlaceManagerDelegate
 
         // create the timer, start the ticker
         _timer = TimerUtil.createTimer();
-        _ticker = new Interval(PresentsServer.omgr) {
+        _ticker = new Interval(_omgr) {
             public void expired () {
                 tick();
             }
