@@ -5,6 +5,7 @@ package com.threerings.util;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
@@ -12,6 +13,8 @@ import java.io.File;
 
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
@@ -201,15 +204,41 @@ public class ToolUtil
         ActionListener listener, MessageBundle msgs, String action,
         int mnemonic, int accelerator, int modifiers)
     {
-        JMenuItem item = new JMenuItem(msgs.get("m." + action), mnemonic);
-        item.setActionCommand(action);
-        item.addActionListener(listener);
-        if (accelerator != -1) {
-            item.setAccelerator(KeyStroke.getKeyStroke(accelerator, modifiers));
-        }
-        return item;
+        return new JMenuItem(createAction(
+            listener, msgs, action, mnemonic, accelerator, modifiers));
     }
 
+    /**
+     * Creates an action with the specified command, mnemonic, and (optional) accelerator.
+     */
+    public static Action createAction (
+        ActionListener listener, MessageBundle msgs, String command, int mnemonic, int accelerator)
+    {
+        return createAction(listener, msgs, command, mnemonic, accelerator, KeyEvent.CTRL_MASK);
+    }
+    
+    /**
+     * Creates an action with the specified command, mnemonic, and (optional) accelerator
+     * key/modifiers.
+     */
+    public static Action createAction (
+        final ActionListener listener, MessageBundle msgs, String command,
+        int mnemonic, int accelerator, int modifiers)
+    {
+        AbstractAction action = new AbstractAction(msgs.get("m." + command)) {
+            public void actionPerformed (ActionEvent event) {
+                listener.actionPerformed(event);
+            }
+        };
+        action.putValue(Action.ACTION_COMMAND_KEY, command);
+        action.putValue(Action.MNEMONIC_KEY, mnemonic);
+        if (accelerator != -1) {
+            action.putValue(Action.ACCELERATOR_KEY,
+                KeyStroke.getKeyStroke(accelerator, modifiers));
+        }
+        return action;
+    }
+    
     /**
      * Creates a button with the specified action.
      */

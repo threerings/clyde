@@ -24,7 +24,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.prefs.Preferences;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -35,8 +37,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.InputMap;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
@@ -118,8 +120,10 @@ public class ConfigEditor
 
         JMenu nmenu = createMenu("new", KeyEvent.VK_N);
         file.add(nmenu);
-        nmenu.add(createMenuItem("config", KeyEvent.VK_C, KeyEvent.VK_N));
-        nmenu.add(createMenuItem("folder", KeyEvent.VK_F, KeyEvent.VK_F));
+        Action nconfig = createAction("config", KeyEvent.VK_C, KeyEvent.VK_N);
+        nmenu.add(new JMenuItem(nconfig));
+        Action nfolder = createAction("folder", KeyEvent.VK_F, KeyEvent.VK_F);
+        nmenu.add(new JMenuItem(nfolder));
         file.addSeparator();
         file.add(_save = createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
         file.add(_revert = createMenuItem("revert_group", KeyEvent.VK_R, KeyEvent.VK_R));
@@ -136,10 +140,11 @@ public class ConfigEditor
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
-        edit.add(_cut = createMenuItem("cut", KeyEvent.VK_T, KeyEvent.VK_X));
-        edit.add(_copy = createMenuItem("copy", KeyEvent.VK_C, KeyEvent.VK_C));
-        edit.add(_paste = createMenuItem("paste", KeyEvent.VK_P, KeyEvent.VK_V));
-        edit.add(_delete = createMenuItem("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0));
+        edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
+        edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
+        edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
+        edit.add(new JMenuItem(
+            _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
 
         // if running standalone, create and initialize the editable preferences to
         // allow changing the resource dir
@@ -158,6 +163,18 @@ public class ConfigEditor
         gmenu.add(_saveAll = createMenuItem("save_all", KeyEvent.VK_S, KeyEvent.VK_A));
         gmenu.add(_revertAll = createMenuItem("revert_all", KeyEvent.VK_R, KeyEvent.VK_T));
 
+        // create the pop-up menu
+        _popup = new JPopupMenu();
+        nmenu = createMenu("new", KeyEvent.VK_N);
+        _popup.add(nmenu);
+        nmenu.add(new JMenuItem(nconfig));
+        nmenu.add(new JMenuItem(nfolder));
+        _popup.addSeparator();
+        _popup.add(new JMenuItem(_cut));
+        _popup.add(new JMenuItem(_copy));
+        _popup.add(new JMenuItem(_paste));
+        _popup.add(new JMenuItem(_delete));
+        
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("config_dir", null));
         _chooser.setFileFilter(new FileFilter() {
@@ -282,6 +299,23 @@ public class ConfigEditor
     }
 
     /**
+     * Creates an action with the specified command, mnemonic, and (optional) accelerator.
+     */
+    protected Action createAction (String command, int mnemonic, int accelerator)
+    {
+        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator);
+    }
+    
+    /**
+     * Creates an action with the specified command, mnemonic, and (optional) accelerator
+     * key/modifiers.
+     */
+    protected Action createAction (String command, int mnemonic, int accelerator, int modifiers)
+    {
+        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator, modifiers);
+    }
+    
+    /**
      * Creates a button with the specified action.
      */
     protected JButton createButton (String action)
@@ -343,6 +377,7 @@ public class ConfigEditor
                     };
                     _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
                     _tree.addTreeSelectionListener(this);
+                    _tree.setComponentPopupMenu(_popup);
 
                     // remove the mappings for cut/copy/paste since we handle those ourself
                     InputMap imap = _tree.getInputMap();
@@ -655,14 +690,17 @@ public class ConfigEditor
     /** The main frame. */
     protected JFrame _frame;
 
+    /** The config tree pop-up menu. */
+    protected JPopupMenu _popup;
+    
     /** The save and revert menu items. */
     protected JMenuItem _save, _revert, _saveAll, _revertAll;
 
     /** The configuration export menu item. */
     protected JMenuItem _exportConfigs;
 
-    /** The edit menu items. */
-    protected JMenuItem _cut, _copy, _paste, _delete;
+    /** The edit menu actions. */
+    protected Action _cut, _copy, _paste, _delete;
 
     /** The file chooser for opening and saving config files. */
     protected JFileChooser _chooser;
