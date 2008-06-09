@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
@@ -36,6 +37,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.InputMap;
+import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -46,6 +48,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
 import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.samskivert.util.QuickSort;
@@ -71,7 +74,7 @@ import static com.threerings.ClydeLog.*;
  * another application.
  */
 public class ConfigEditor
-    implements EditorContext, ActionListener, ItemListener, ChangeListener, ClipboardOwner
+    implements ActionListener, ClipboardOwner
 {
     /**
      * The program entry point.
@@ -92,7 +95,6 @@ public class ConfigEditor
     {
         _rsrcmgr = rsrcmgr;
         _msgmgr = msgmgr;
-        _cfgmgr = cfgmgr;
         _msgs = _msgmgr.getBundle("config");
         _standalone = standalone;
 
@@ -148,7 +150,7 @@ public class ConfigEditor
             _eprefs.init(_rsrcmgr);
 
             // initialize the configuration manager here, after we have set the resource dir
-            _cfgmgr.init();
+            cfgmgr.init();
         }
 
         JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
@@ -167,40 +169,18 @@ public class ConfigEditor
             }
         });
 
-        // create the chooser panel
-        JPanel cpanel = GroupLayout.makeVStretchBox(5);
-        _frame.add(cpanel, BorderLayout.WEST);
-        cpanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createRaisedBevelBorder(),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-        cpanel.setPreferredSize(new Dimension(250, 1));
-        cpanel.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
-
-        // create the group panel
-        JPanel gpanel = GroupLayout.makeHStretchBox(5);
-        cpanel.add(gpanel, GroupLayout.FIXED);
-        gpanel.add(new JLabel(_msgs.get("m.group")), GroupLayout.FIXED);
-
-        // initialize the list of groups
-        Collection<ConfigGroup> groups = _cfgmgr.getGroups();
-        _gstates = new GroupState[groups.size()];
-        int idx = 0;
-        for (ConfigGroup group : groups) {
-            _gstates[idx++] = new GroupState(group);
+        // create the tabbed pane
+        _frame.add(_tabs = new JTabbedPane(), BorderLayout.WEST);
+        _tabs.setPreferredSize(new Dimension(250, 1));
+        _tabs.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
+        
+        // create the tabs for each configuration manager
+        for (; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
+            _tabs.add(new ManagerPanel(cfgmgr), getLabel(cfgmgr.getName()), 0);
         }
-        QuickSort.sort(_gstates);
-        gpanel.add(_gbox = new JComboBox(_gstates));
-        _gbox.addItemListener(this);
-
-        cpanel.add(_pane = new JScrollPane());
-
-        // create the editor panel
-        _epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null);
-        _frame.add(_epanel, BorderLayout.CENTER);
-        _epanel.addChangeListener(this);
-
-        // activate the first group
-        _gstates[0].activate();
+        
+        // activate the last tab
+        _tabs.setSelectedIndex(_tabs.getTabCount() - 1);
     }
 
     /**
@@ -223,84 +203,56 @@ public class ConfigEditor
         }
     }
 
-    // documentation inherited from interface EditorContext
-    public ResourceManager getResourceManager ()
-    {
-        return _rsrcmgr;
-    }
-
-    // documentation inherited from interface EditorContext
-    public ConfigManager getConfigManager ()
-    {
-        return _cfgmgr;
-    }
-
-    // documentation inherited from interface EditorContext
-    public MessageBundle getMessageBundle ()
-    {
-        return _msgs;
-    }
-
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
-        GroupState gstate = (GroupState)_gbox.getSelectedItem();
+        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+        ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
         if (action.equals("config")) {
-            gstate.newConfig();
+            item.newConfig();
         } else if (action.equals("folder")) {
-            gstate.newFolder();
+            item.newFolder();
         } else if (action.equals("save_group")) {
-            gstate.group.save();
+            item.group.save();
         } else if (action.equals("revert_group")) {
-            gstate.group.revert();
+            item.group.revert();
         } else if (action.equals("import_group")) {
-            importGroup();
+            item.importGroup();
         } else if (action.equals("export_group")) {
-            exportGroup();
+            item.exportGroup();
         } else if (action.equals("import_configs")) {
-            importConfigs();
+            item.importConfigs();
         } else if (action.equals("export_configs")) {
-            exportConfigs();
+            item.exportConfigs();
         } else if (action.equals("quit")) {
             shutdown();
         } else if (action.equals("cut")) {
-            gstate.cutNode();
+            item.cutNode();
         } else if (action.equals("copy")) {
-            gstate.copyNode();
+            item.copyNode();
         } else if (action.equals("paste")) {
-            gstate.pasteNode();
+            item.pasteNode();
         } else if (action.equals("delete")) {
-            gstate.deleteNode();
+            item.deleteNode();
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(_frame, this, "t.preferences", _eprefs);
+                _pdialog = EditorPanel.createDialog(
+                    _frame, (ManagerPanel)_tabs.getComponentAt(0), "t.preferences", _eprefs);
             }
             _pdialog.setVisible(true);
         } else if (action.equals("save_all")) {
-            _cfgmgr.saveAll();
+            panel.cfgmgr.saveAll();
         } else if (action.equals("revert_all")) {
-            _cfgmgr.revertAll();
+            panel.cfgmgr.revertAll();
         }
-    }
-
-    // documentation inherited from interface ItemListener
-    public void itemStateChanged (ItemEvent event)
-    {
-        ((GroupState)_gbox.getSelectedItem()).activate();
-    }
-
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        ((GroupState)_gbox.getSelectedItem()).configChanged();
     }
 
     // documentation inherited from interface ClipboardOwner
     public void lostOwnership (Clipboard clipboard, Transferable contents)
     {
         _paste.setEnabled(false);
-        _clipgroup = null;
+        _clipclass = null;
     }
 
     /**
@@ -354,240 +306,338 @@ public class ConfigEditor
         String key = "m." + name;
         return _msgs.exists(key) ? _msgs.get(key) : name;
     }
-
+    
     /**
-     * Brings up the import group dialog.
+     * The panel for a single manager.
      */
-    protected void importGroup ()
+    protected class ManagerPanel extends JPanel
+        implements EditorContext, ItemListener, ChangeListener
     {
-        if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
-            ((GroupState)_gbox.getSelectedItem()).group.load(_chooser.getSelectedFile());
-        }
-        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-    }
-
-    /**
-     * Brings up the export group dialog.
-     */
-    protected void exportGroup ()
-    {
-        if (_chooser.showSaveDialog(_frame) == JFileChooser.APPROVE_OPTION) {
-            ((GroupState)_gbox.getSelectedItem()).group.save(_chooser.getSelectedFile());
-        }
-        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-    }
-
-    /**
-     * Brings up the import config dialog.
-     */
-    protected void importConfigs ()
-    {
-        if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
-            ((GroupState)_gbox.getSelectedItem()).group.load(_chooser.getSelectedFile(), true);
-        }
-        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-    }
-
-    /**
-     * Brings up the export config dialog.
-     */
-    protected void exportConfigs ()
-    {
-        if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
-            ((GroupState)_gbox.getSelectedItem()).exportNode(_chooser.getSelectedFile());
-        }
-        _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
-    }
-
-    /**
-     * Contains the state of a single group.
-     */
-    protected class GroupState
-        implements TreeSelectionListener, Comparable<GroupState>
-    {
-        /** The actual group reference. */
-        public ConfigGroup<ManagedConfig> group;
-
-        public GroupState (ConfigGroup group)
-        {
-            @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
-                (ConfigGroup<ManagedConfig>)group;
-            this.group = mgroup;
-            _label = getLabel(group.getName());
-        }
-
         /**
-         * Activates this group.
+         * Contains the state of a single group.
          */
-        public void activate ()
+        public class GroupItem
+            implements TreeSelectionListener
         {
-            if (_tree == null) {
-                _tree = new ConfigTree(group, true) {
-                    public void selectedConfigUpdated () {
-                        _epanel.refresh();
-                    }
-                };
-                _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-                _tree.addTreeSelectionListener(this);
+            /** The actual group reference. */
+            public ConfigGroup<ManagedConfig> group;
 
-                // remove the mappings for cut/copy/paste since we handle those ourself
-                InputMap imap = _tree.getInputMap();
-                imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_MASK), "noop");
-                imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK), "noop");
-                imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "noop");
+            public GroupItem (ConfigGroup group)
+            {
+                @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
+                    (ConfigGroup<ManagedConfig>)group;
+                this.group = mgroup;
+                _label = getLabel(group.getName());
             }
-            _pane.setViewportView(_tree);
-            _paste.setEnabled(_clipgroup == this);
-            updateSelection();
-        }
 
-        /**
-         * Creates a new configuration and prepares it for editing.
-         */
-        public void newConfig ()
-        {
-            Class clazz = group.getConfigClass();
-            try {
-                newNode((ManagedConfig)clazz.newInstance());
-            } catch (Exception e) {
-                log.warning("Failed to instantiate config [class=" + clazz + "].", e);
+            /**
+             * Activates this group.
+             */
+            public void activate ()
+            {
+                if (_tree == null) {
+                    _tree = new ConfigTree(group, true) {
+                        public void selectedConfigUpdated () {
+                            _epanel.refresh();
+                        }
+                    };
+                    _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                    _tree.addTreeSelectionListener(this);
+
+                    // remove the mappings for cut/copy/paste since we handle those ourself
+                    InputMap imap = _tree.getInputMap();
+                    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.CTRL_MASK), "noop");
+                    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK), "noop");
+                    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.CTRL_MASK), "noop");
+                }
+                _pane.setViewportView(_tree);
+                _paste.setEnabled(_clipclass == group.getConfigClass());
+                updateSelection();
             }
-        }
 
-        /**
-         * Creates a new folder and prepares it for editing.
-         */
-        public void newFolder ()
-        {
-            newNode(null);
-        }
-
-        /**
-         * Cuts the currently selected node.
-         */
-        public void cutNode ()
-        {
-            copyNode();
-            deleteNode();
-        }
-
-        /**
-         * Copies the currently selected node.
-         */
-        public void copyNode ()
-        {
-            Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
-            clipboard.setContents(_tree.createClipboardTransferable(), ConfigEditor.this);
-            _clipgroup = this;
-            _paste.setEnabled(true);
-        }
-
-        /**
-         * Pastes the node in the clipboard.
-         */
-        public void pasteNode ()
-        {
-            Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
-            _tree.getTransferHandler().importData(_tree, clipboard.getContents(this));
-        }
-
-        /**
-         * Deletes the currently selected node.
-         */
-        public void deleteNode ()
-        {
-            ConfigTreeNode node = _tree.getSelectedNode();
-            ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
-            int index = parent.getIndex(node);
-            ((DefaultTreeModel)_tree.getModel()).removeNodeFromParent(node);
-            int ccount = parent.getChildCount();
-            node = (ccount > 0) ?
-                (ConfigTreeNode)parent.getChildAt(Math.min(index, ccount - 1)) : parent;
-            if (node != _tree.getModel().getRoot()) {
-                _tree.setSelectionPath(new TreePath(node.getPath()));
+            /**
+             * Creates a new configuration and prepares it for editing.
+             */
+            public void newConfig ()
+            {
+                Class clazz = group.getConfigClass();
+                try {
+                    newNode((ManagedConfig)clazz.newInstance());
+                } catch (Exception e) {
+                    log.warning("Failed to instantiate config [class=" + clazz + "].", e);
+                }
             }
-        }
 
-        /**
-         * Exports the configurations under the currently selected node to a file.
-         */
-        public void exportNode (File file)
+            /**
+             * Creates a new folder and prepares it for editing.
+             */
+            public void newFolder ()
+            {
+                newNode(null);
+            }
+
+            /**
+             * Brings up the import group dialog.
+             */
+            public void importGroup ()
+            {
+                if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                    group.load(_chooser.getSelectedFile());
+                }
+                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+            }
+
+            /**
+             * Brings up the export group dialog.
+             */
+            public void exportGroup ()
+            {
+                if (_chooser.showSaveDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                    group.save(_chooser.getSelectedFile());
+                }
+                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+            }
+
+            /**
+             * Brings up the import config dialog.
+             */
+            public void importConfigs ()
+            {
+                if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                    group.load(_chooser.getSelectedFile(), true);
+                }
+                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+            }
+
+            /**
+             * Brings up the export config dialog.
+             */
+            public void exportConfigs ()
+            {
+                if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                    ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
+                    _tree.getSelectedNode().getConfigs(configs);
+                    group.save(configs, _chooser.getSelectedFile());
+                }
+                _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
+            }
+    
+            /**
+             * Cuts the currently selected node.
+             */
+            public void cutNode ()
+            {
+                copyNode();
+                deleteNode();
+            }
+
+            /**
+             * Copies the currently selected node.
+             */
+            public void copyNode ()
+            {
+                Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
+                clipboard.setContents(_tree.createClipboardTransferable(), ConfigEditor.this);
+                _clipclass = group.getConfigClass();
+                _paste.setEnabled(true);
+            }
+
+            /**
+             * Pastes the node in the clipboard.
+             */
+            public void pasteNode ()
+            {
+                Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
+                _tree.getTransferHandler().importData(_tree, clipboard.getContents(this));
+            }
+
+            /**
+             * Deletes the currently selected node.
+             */
+            public void deleteNode ()
+            {
+                ConfigTreeNode node = _tree.getSelectedNode();
+                ConfigTreeNode parent = (ConfigTreeNode)node.getParent();
+                int index = parent.getIndex(node);
+                ((DefaultTreeModel)_tree.getModel()).removeNodeFromParent(node);
+                int ccount = parent.getChildCount();
+                node = (ccount > 0) ?
+                    (ConfigTreeNode)parent.getChildAt(Math.min(index, ccount - 1)) : parent;
+                if (node != _tree.getModel().getRoot()) {
+                    _tree.setSelectionPath(new TreePath(node.getPath()));
+                }
+            }
+
+            /**
+             * Notes that the state of the currently selected configuration has changed.
+             */
+            public void configChanged ()
+            {
+                _tree.selectedConfigChanged();
+            }
+
+            // documentation inherited from interface TreeSelectionListener
+            public void valueChanged (TreeSelectionEvent event)
+            {
+                updateSelection();
+            }
+
+            @Override // documentation inherited
+            public String toString ()
+            {
+                return _label;
+            }
+
+            /**
+             * Updates the state of the UI based on the selection.
+             */
+            protected void updateSelection ()
+            {
+                // find the selected node
+                ConfigTreeNode node = _tree.getSelectedNode();
+
+                // update the editor panel
+                _epanel.setObject(node == null ? null : node.getConfig());
+
+                // enable or disable the menu items
+                boolean enable = (node != null);
+                _exportConfigs.setEnabled(enable);
+                _cut.setEnabled(enable);
+                _copy.setEnabled(enable);
+                _delete.setEnabled(enable);
+            }
+
+            /**
+             * Creates a new node for the supplied configuration (or a folder node, if the
+             * configuration is <code>null</code>).
+             */
+            protected void newNode (ManagedConfig config)
+            {
+                // find the parent under which we want to add the node
+                ConfigTreeNode snode = _tree.getSelectedNode();
+                ConfigTreeNode parent = (ConfigTreeNode)(snode == null ?
+                    _tree.getModel().getRoot() : snode.getParent());
+
+                // create a node with a unique name and start editing it
+                String name = parent.findNameForChild(
+                    _msgs.get(config == null ? "m.new_folder" : "m.new_config"));
+                ConfigTreeNode child = new ConfigTreeNode(name, config);
+                ((DefaultTreeModel)_tree.getModel()).insertNodeInto(
+                    child, parent, parent.getInsertionIndex(child));
+                _tree.startEditingAtPath(new TreePath(child.getPath()));
+            }
+
+            /** The (possibly translated) group label. */
+            protected String _label;
+
+            /** The configuration tree. */
+            protected ConfigTree _tree;
+        }
+        
+        /** The configuration manager. */
+        public ConfigManager cfgmgr;
+
+        /** Determines the selected group. */
+        public JComboBox gbox;
+
+        public ManagerPanel (ConfigManager cfgmgr)
         {
-            ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
-            _tree.getSelectedNode().getConfigs(configs);
-            group.save(configs, file);
-        }
+            super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+            this.cfgmgr = cfgmgr;
+            
+            setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            
+            // create the group panel
+            JPanel gpanel = GroupLayout.makeHStretchBox(5);
+            add(gpanel, GroupLayout.FIXED);
+            gpanel.add(new JLabel(_msgs.get("m.group")), GroupLayout.FIXED);
 
-        /**
-         * Notes that the state of the currently selected configuration has changed.
-         */
-        public void configChanged ()
-        {
-            _tree.selectedConfigChanged();
+            // initialize the list of groups
+            Collection<ConfigGroup> groups = cfgmgr.getGroups();
+            GroupItem[] items = new GroupItem[groups.size()];
+            int idx = 0;
+            for (ConfigGroup group : groups) {
+                items[idx++] = new GroupItem(group);
+            }
+            QuickSort.sort(items, new Comparator<GroupItem>() {
+                public int compare (GroupItem g1, GroupItem g2) {
+                    return g1.toString().compareTo(g2.toString());
+                }
+            });
+            gpanel.add(gbox = new JComboBox(items));
+            gbox.addItemListener(this);
+            
+            // add the pane that will contain the group tree
+            add(_pane = new JScrollPane());
+            
+            // create the editor panel
+            _epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null);
+            _epanel.addChangeListener(this);
         }
-
-        // documentation inherited from interface TreeSelectionListener
-        public void valueChanged (TreeSelectionEvent event)
-        {
-            updateSelection();
-        }
-
-        // documentation inherited from interface Comparable
-        public int compareTo (GroupState other)
-        {
-            return _label.compareTo(other._label);
-        }
-
+        
         @Override // documentation inherited
-        public String toString ()
+        public void addNotify ()
         {
-            return _label;
+            super.addNotify();
+            
+            // add the editor panel
+            _frame.add(_epanel, BorderLayout.CENTER);
+            
+            // activate the selected item
+            ((GroupItem)gbox.getSelectedItem()).activate();
+            
+            // can only save/revert configurations with a config path
+            boolean enable = (cfgmgr.getConfigPath() != null);
+            _save.setEnabled(enable);
+            _revert.setEnabled(enable);
+            _saveAll.setEnabled(enable);
+            _revertAll.setEnabled(enable);
+        }
+        
+        @Override // documentation inherited
+        public void removeNotify ()
+        {
+            super.removeNotify();
+            
+            // remove the editor panel
+            _frame.remove(_epanel);
+        }
+        
+        // documentation inherited from interface EditorContext
+        public ResourceManager getResourceManager ()
+        {
+            return _rsrcmgr;
         }
 
-        /**
-         * Updates the state of the UI based on the selection.
-         */
-        protected void updateSelection ()
+        // documentation inherited from interface EditorContext
+        public ConfigManager getConfigManager ()
         {
-            // find the selected node
-            ConfigTreeNode node = _tree.getSelectedNode();
-
-            // update the editor panel
-            _epanel.setObject(node == null ? null : node.getConfig());
-
-            // enable or disable the menu items
-            boolean enable = (node != null);
-            _exportConfigs.setEnabled(enable);
-            _cut.setEnabled(enable);
-            _copy.setEnabled(enable);
-            _delete.setEnabled(enable);
+            return cfgmgr;
         }
 
-        /**
-         * Creates a new node for the supplied configuration (or a folder node, if the
-         * configuration is <code>null</code>).
-         */
-        protected void newNode (ManagedConfig config)
+        // documentation inherited from interface EditorContext
+        public MessageBundle getMessageBundle ()
         {
-            // find the parent under which we want to add the node
-            ConfigTreeNode snode = _tree.getSelectedNode();
-            ConfigTreeNode parent = (ConfigTreeNode)(snode == null ?
-                _tree.getModel().getRoot() : snode.getParent());
-
-            // create a node with a unique name and start editing it
-            String name = parent.findNameForChild(
-                _msgs.get(config == null ? "m.new_folder" : "m.new_config"));
-            ConfigTreeNode child = new ConfigTreeNode(name, config);
-            ((DefaultTreeModel)_tree.getModel()).insertNodeInto(
-                child, parent, parent.getInsertionIndex(child));
-            _tree.startEditingAtPath(new TreePath(child.getPath()));
+            return _msgs;
+        }
+        
+        // documentation inherited from interface ItemListener
+        public void itemStateChanged (ItemEvent event)
+        {
+            ((GroupItem)gbox.getSelectedItem()).activate();
         }
 
-        /** The (possibly translated) group label. */
-        protected String _label;
-
-        /** The configuration tree. */
-        protected ConfigTree _tree;
+        // documentation inherited from interface ChangeListener
+        public void stateChanged (ChangeEvent event)
+        {
+            ((GroupItem)gbox.getSelectedItem()).configChanged();
+        }
+       
+        /** The scroll pane that holds the group trees. */
+        protected JScrollPane _pane;
+        
+        /** The object editor panel. */
+        protected EditorPanel _epanel;
     }
 
     /** The resource manager. */
@@ -595,9 +645,6 @@ public class ConfigEditor
 
     /** The message manager. */
     protected MessageManager _msgmgr;
-
-    /** The config manager. */
-    protected ConfigManager _cfgmgr;
 
     /** The config message bundle. */
     protected MessageBundle _msgs;
@@ -626,20 +673,11 @@ public class ConfigEditor
     /** The preferences dialog. */
     protected JDialog _pdialog;
 
-    /** The configuration group states. */
-    protected GroupState[] _gstates;
+    /** The tabs for each manager. */
+    protected JTabbedPane _tabs;
 
-    /** The group that owns the clipboard selection, if any. */
-    protected GroupState _clipgroup;
-
-    /** Determines the selected group. */
-    protected JComboBox _gbox;
-
-    /** The scroll pane that holds the group trees. */
-    protected JScrollPane _pane;
-
-    /** The object editor panel. */
-    protected EditorPanel _epanel;
+    /** The class of the clipboard selection. */
+    protected Class _clipclass;
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigEditor.class);
