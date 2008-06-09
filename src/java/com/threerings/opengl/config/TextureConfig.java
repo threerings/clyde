@@ -11,6 +11,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
@@ -238,7 +239,7 @@ public class TextureConfig extends ParameterizedConfig
         {
             return new Class[] {
                 Original1D.class, Original2D.class, OriginalRectangle.class,
-                Original3D.class, OriginalCubeMap.class };
+                Original3D.class, OriginalCubeMap.class, Derived.class };
         }
     }
 
@@ -515,6 +516,16 @@ public class TextureConfig extends ParameterizedConfig
         public Contents contents = new ImageFiles();
     }
 
+    /**
+     * A derived implementation.
+     */
+    public static class Derived extends Implementation
+    {
+        /** The derived reference. */
+        @Editable
+        public ConfigReference<TextureConfig> base;
+    }
+    
     /** The actual texture implementation. */
     @Editable
     public Implementation implementation = new Original2D();

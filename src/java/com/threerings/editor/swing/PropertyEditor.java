@@ -64,6 +64,7 @@ import com.threerings.util.MessageBundle;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.swing.ConfigChooser;
 
 import com.threerings.math.Quaternion;
@@ -875,30 +876,39 @@ public abstract class PropertyEditor extends BasePropertyEditor
             } else { // event.getSource() == _clear
                 nvalue = null;
             }
-            if (!ObjectUtil.equals(ovalue, nvalue)) {
-                _property.set(_object, nvalue);
-                updateButtons(nvalue);
-                fireStateChanged();
-            }
+            _property.set(_object, nvalue);
+            updateButtons(nvalue);
+            fireStateChanged();
         }
 
         @Override // documentation inherited
         protected void didInit ()
         {
-            add(new JLabel(getPropertyLabel() + ":"));
-            add(_config = new JButton(" "));
+            setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+            setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+            
+            JPanel cpanel = new JPanel();
+            cpanel.setBackground(null);
+            add(cpanel);
+            cpanel.add(new JLabel(_msgs.get("m.config") + ":"));
+            cpanel.add(_config = new JButton(" "));
             _config.setPreferredSize(new Dimension(75, _config.getPreferredSize().height));
             _config.addActionListener(this);
             if (_property.getAnnotation().nullable()) {
-                add(_clear = new JButton(_msgs.get("m.clear")));
+                cpanel.add(_clear = new JButton(_msgs.get("m.clear")));
                 _clear.addActionListener(this);
             }
+            add(_params = GroupLayout.makeVBox(
+                GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
+            _params.setBackground(null);
         }
 
         @Override // documentation inherited
         protected void update ()
         {
-            updateButtons((ConfigReference)_property.get(_object));
+            ConfigReference value = (ConfigReference)_property.get(_object);
+            updateButtons(value);
+            updateParameters(value);
         }
 
         /**
@@ -917,12 +927,35 @@ public abstract class PropertyEditor extends BasePropertyEditor
             }
         }
 
+        /**
+         * Updates the parameters.
+         */
+        protected void updateParameters (ConfigReference value)
+        {
+            if (value == null) {
+                _params.removeAll();
+                return;
+            }
+            @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
+                (Class<ManagedConfig>)_property.getArgumentType();
+            ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, value.getName());
+            ParameterizedConfig pconfig;
+            if (!(config instanceof ParameterizedConfig) ||
+                    (pconfig = (ParameterizedConfig)config).parameters.length == 0) {
+                _params.removeAll();
+                return;
+            }
+        }
+        
         /** The config button. */
         protected JButton _config;
 
         /** The clear button. */
         protected JButton _clear;
 
+        /** Holds the parameters. */
+        protected JPanel _params;
+        
         /** The config chooser. */
         protected ConfigChooser _chooser;
     }
