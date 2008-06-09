@@ -863,9 +863,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
             ConfigReference nvalue;
             if (event.getSource() == _config) {
                 if (_chooser == null) {
-                    @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
-                        (Class<ManagedConfig>)_property.getArgumentType();
-                    _chooser = new ConfigChooser(_msgs, _ctx.getConfigManager().getGroup(clazz));
+                    _chooser = new ConfigChooser(
+                        _msgs, _ctx.getConfigManager(), _property.getArgumentType());
                 }
                 _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
                 if (!_chooser.showDialog(this)) {

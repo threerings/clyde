@@ -67,6 +67,22 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     }
 
     /**
+     * Increments the count for this node.
+     */
+    public void incrementCount ()
+    {
+        _count++;
+    }
+    
+    /**
+     * Decrements the count for this node.
+     */
+    public int decrementCount ()
+    {
+        return --_count;
+    }
+    
+    /**
      * Sets whether or not this node is expanded in the tree.
      */
     public void setExpanded (boolean expanded)
@@ -84,7 +100,11 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
         int idx = name.indexOf('/');
         if (idx == -1) {
             // last path component; insert in this node
-            ConfigTreeNode child = new ConfigTreeNode(decode(name), config);
+            String partial = decode(name);
+            ConfigTreeNode child = (_childrenByName == null) ? null : _childrenByName.get(partial);
+            if (child == null) {
+                child = new ConfigTreeNode(partial, config);
+            }
             return new Tuple<ConfigTreeNode, ConfigTreeNode>(this, child);
 
         } else {
@@ -109,9 +129,15 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
         int idx = name.indexOf('/');
         if (idx == -1) {
             // last path component; insert in this node
-            ConfigTreeNode child = new ConfigTreeNode(decode(name), config);
-            insert(child, getInsertionIndex(child));
-
+            String partial = decode(name);
+            ConfigTreeNode child = (_childrenByName == null) ? null : _childrenByName.get(partial);
+            if (child == null) {
+                child = new ConfigTreeNode(partial, config);
+                insert(child, getInsertionIndex(child));
+            } else {
+                child.incrementCount();
+            }
+            
         } else {
             // find (or create) next component in path, pass on the config
             String partial = decode(name.substring(0, idx));
@@ -368,6 +394,9 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     /** The configuration contained in this node, if any. */
     protected ManagedConfig _config;
 
+    /** The number of copies of this node. */
+    protected int _count = 1;
+    
     /** Whether or not this node is expanded in the tree. */
     protected boolean _expanded;
 

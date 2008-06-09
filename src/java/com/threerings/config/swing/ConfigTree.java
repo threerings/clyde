@@ -36,11 +36,11 @@ public class ConfigTree extends JTree
     implements ConfigListener<ManagedConfig>
 {
     /**
-     * Creates a new config tree to display the configurations in the specified group.
+     * Creates a new config tree to display the configurations in the specified groups.
      */
-    public ConfigTree (ConfigGroup group)
+    public ConfigTree (ConfigGroup... groups)
     {
-        this(group, false);
+        this(groups, false);
     }
 
     /**
@@ -50,9 +50,138 @@ public class ConfigTree extends JTree
      */
     public ConfigTree (ConfigGroup group, boolean editable)
     {
-        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
-            (ConfigGroup<ManagedConfig>)group;
-        _group = mgroup;
+        this(new ConfigGroup[] { group }, editable);
+    }
+    
+    /**
+     * Releases the resources held by this tree.  This should be called when the tree is no longer
+     * needed.
+     */
+    public void dispose ()
+    {
+        // stop listening for updates
+        for (ConfigGroup<ManagedConfig> group : _groups) {
+            group.removeListener(this);
+        }
+    }
+
+    /**
+     * Creates a {@link Transferable} containing the selected node for the clipboard.
+     */
+    public Transferable createClipboardTransferable ()
+    {
+        ConfigTreeNode node = getSelectedNode();
+        return (node == null) ? null : new NodeTransfer(node, true);
+    }
+
+    /**
+     * Returns the selected node, or <code>null</code> for none.
+     */
+    public ConfigTreeNode getSelectedNode ()
+    {
+        TreePath path = getSelectionPath();
+        return (path == null) ? null : (ConfigTreeNode)path.getLastPathComponent();
+    }
+
+    /**
+     * Selects a node by name (if it exists).
+     */
+    public void setSelectedNode (String name)
+    {
+        if (name == null) {
+            clearSelection();
+            return;
+        }
+        ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
+        if (node != null) {
+            setSelectionPath(new TreePath(node.getPath()));
+        }
+    }
+
+    /**
+     * Notes that the selected node's configuration has changed.
+     */
+    public void selectedConfigChanged ()
+    {
+        if (!enterChangeBlock()) {
+            return;
+        }
+        try {
+            _groups[0].updateConfig(getSelectedNode().getConfig());
+        } finally {
+            leaveChangeBlock();
+        }
+    }
+
+    // documentation inherited from interface ConfigListener
+    public void configAdded (ConfigEvent<ManagedConfig> event)
+    {
+        if (!enterChangeBlock()) {
+            return;
+        }
+        try {
+            ManagedConfig config = event.getConfig();
+            ConfigTreeNode root = (ConfigTreeNode)getModel().getRoot();
+            Tuple<ConfigTreeNode, ConfigTreeNode> point =
+                root.getInsertionPoint(config, config.getName());
+            if (point.right.getParent() != null) {
+                point.right.incrementCount();
+            } else {
+                ((DefaultTreeModel)getModel()).insertNodeInto(
+                    point.right, point.left, point.left.getInsertionIndex(point.right));
+            }
+        } finally {
+            leaveChangeBlock();
+        }
+    }
+
+    // documentation inherited from interface ConfigListener
+    public void configRemoved (ConfigEvent<ManagedConfig> event)
+    {
+        if (!enterChangeBlock()) {
+            return;
+        }
+        try {
+            String name = event.getConfig().getName();
+            ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
+            if (node != null) {
+                if (node.decrementCount() == 0) {
+                    ((DefaultTreeModel)getModel()).removeNodeFromParent(node);
+                }
+            } else {
+                log.warning("Missing config node [name=" + name + "].");
+            }
+        } finally {
+            leaveChangeBlock();
+        }
+    }
+
+    // documentation inherited from interface ConfigListener
+    public void configUpdated (ConfigEvent<ManagedConfig> event)
+    {
+        ManagedConfig config = event.getConfig();
+        ConfigTreeNode node = getSelectedNode();
+        if (node == null || node.getConfig() != config || !enterChangeBlock()) {
+            return;
+        }
+        try {
+            selectedConfigUpdated();
+        } finally {
+            leaveChangeBlock();
+        }
+    }
+
+    /**
+     * Creates a new config tree to display the configurations in the specified group.
+     *
+     * @param editable if true, the tree will allow editing the configurations (only allowed for
+     * trees depicting a single group).
+     */
+    protected ConfigTree (ConfigGroup[] groups, boolean editable)
+    {
+        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups =
+            (ConfigGroup<ManagedConfig>[])groups;
+        _groups = mgroups;
         setModel(new DefaultTreeModel(new ConfigTreeNode(null, null), true) {
             public void valueForPathChanged (TreePath path, Object newValue) {
                 // save selection
@@ -75,7 +204,7 @@ public class ConfigTree extends JTree
                     return;
                 }
                 try {
-                    ((ConfigTreeNode)child).addConfigs(_group);
+                    ((ConfigTreeNode)child).addConfigs(_groups[0]);
                 } finally {
                     leaveChangeBlock();
                 }
@@ -86,7 +215,7 @@ public class ConfigTree extends JTree
                     return;
                 }
                 try {
-                    ((ConfigTreeNode)node).removeConfigs(_group);
+                    ((ConfigTreeNode)node).removeConfigs(_groups[0]);
                 } finally {
                     leaveChangeBlock();
                 }
@@ -143,7 +272,7 @@ public class ConfigTree extends JTree
                     }
                     node = (ConfigTreeNode)data;
                 }
-                if (!node.verifyConfigClass(_group.getConfigClass())) {
+                if (!node.verifyConfigClass(_groups[0].getConfigClass())) {
                     return false; // some other kind of config
                 }
                 ConfigTreeNode snode = getSelectedNode();
@@ -189,129 +318,18 @@ public class ConfigTree extends JTree
             }
         });
 
-        // build the tree model
+        // build the tree model and listen for updates
         ConfigTreeNode root = (ConfigTreeNode)getModel().getRoot();
-        for (ManagedConfig config : _group.getConfigs()) {
-            root.insertConfig(config, config.getName());
+        for (ConfigGroup<ManagedConfig> group : _groups) {
+            for (ManagedConfig config : group.getConfigs()) {
+                root.insertConfig(config, config.getName());
+            }
+            group.addListener(this);
         }
         ((DefaultTreeModel)getModel()).reload();
 
         // expand the paths up to a point
         root.expandPaths(this, 2);
-
-        // start listening for updates
-        _group.addListener(this);
-    }
-
-    /**
-     * Releases the resources held by this tree.  This should be called when the tree is no longer
-     * needed.
-     */
-    public void dispose ()
-    {
-        // stop listening for updates
-        _group.removeListener(this);
-    }
-
-    /**
-     * Creates a {@link Transferable} containing the selected node for the clipboard.
-     */
-    public Transferable createClipboardTransferable ()
-    {
-        ConfigTreeNode node = getSelectedNode();
-        return (node == null) ? null : new NodeTransfer(node, true);
-    }
-
-    /**
-     * Returns the selected node, or <code>null</code> for none.
-     */
-    public ConfigTreeNode getSelectedNode ()
-    {
-        TreePath path = getSelectionPath();
-        return (path == null) ? null : (ConfigTreeNode)path.getLastPathComponent();
-    }
-
-    /**
-     * Selects a node by name (if it exists).
-     */
-    public void setSelectedNode (String name)
-    {
-        if (name == null) {
-            clearSelection();
-            return;
-        }
-        ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
-        if (node != null) {
-            setSelectionPath(new TreePath(node.getPath()));
-        }
-    }
-
-    /**
-     * Notes that the selected node's configuration has changed.
-     */
-    public void selectedConfigChanged ()
-    {
-        if (!enterChangeBlock()) {
-            return;
-        }
-        try {
-            _group.updateConfig(getSelectedNode().getConfig());
-        } finally {
-            leaveChangeBlock();
-        }
-    }
-
-    // documentation inherited from interface ConfigListener
-    public void configAdded (ConfigEvent<ManagedConfig> event)
-    {
-        if (!enterChangeBlock()) {
-            return;
-        }
-        try {
-            ManagedConfig config = event.getConfig();
-            ConfigTreeNode root = (ConfigTreeNode)getModel().getRoot();
-            Tuple<ConfigTreeNode, ConfigTreeNode> point =
-                root.getInsertionPoint(config, config.getName());
-            ((DefaultTreeModel)getModel()).insertNodeInto(
-                point.right, point.left, point.left.getInsertionIndex(point.right));
-
-        } finally {
-            leaveChangeBlock();
-        }
-    }
-
-    // documentation inherited from interface ConfigListener
-    public void configRemoved (ConfigEvent<ManagedConfig> event)
-    {
-        if (!enterChangeBlock()) {
-            return;
-        }
-        try {
-            String name = event.getConfig().getName();
-            ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
-            if (node != null) {
-                ((DefaultTreeModel)getModel()).removeNodeFromParent(node);
-            } else {
-                log.warning("Missing config node [name=" + name + "].");
-            }
-        } finally {
-            leaveChangeBlock();
-        }
-    }
-
-    // documentation inherited from interface ConfigListener
-    public void configUpdated (ConfigEvent<ManagedConfig> event)
-    {
-        ManagedConfig config = event.getConfig();
-        ConfigTreeNode node = getSelectedNode();
-        if (node == null || node.getConfig() != config || !enterChangeBlock()) {
-            return;
-        }
-        try {
-            selectedConfigUpdated();
-        } finally {
-            leaveChangeBlock();
-        }
     }
 
     /**
@@ -379,8 +397,8 @@ public class ConfigTree extends JTree
         }
     }
 
-    /** The configuration group. */
-    protected ConfigGroup<ManagedConfig> _group;
+    /** The configuration groups. */
+    protected ConfigGroup<ManagedConfig>[] _groups;
 
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
     protected boolean _changing;

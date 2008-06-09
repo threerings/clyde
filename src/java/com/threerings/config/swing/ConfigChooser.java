@@ -11,6 +11,8 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -24,6 +26,7 @@ import com.samskivert.swing.util.SwingUtil;
 import com.threerings.util.MessageBundle;
 
 import com.threerings.config.ConfigGroup;
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
 
 /**
@@ -34,9 +37,9 @@ public class ConfigChooser extends JPanel
     /**
      * Creates a new configuration chooser for the specified group.
      */
-    public ConfigChooser (MessageBundle msgs, ConfigGroup group)
+    public ConfigChooser (MessageBundle msgs, ConfigManager cfgmgr, Class clazz)
     {
-        this(msgs, group, null);
+        this(msgs, cfgmgr, clazz, null);
     }
 
     /**
@@ -44,13 +47,23 @@ public class ConfigChooser extends JPanel
      *
      * @param config the initial selected configuration.
      */
-    public ConfigChooser (MessageBundle msgs, ConfigGroup group, String config)
+    public ConfigChooser (MessageBundle msgs, ConfigManager cfgmgr, Class clazz, String config)
     {
         super(new BorderLayout());
         _msgs = msgs;
-        _group = group;
         _selected = config;
 
+        // get the list of configs
+        ArrayList<ConfigGroup> groups = new ArrayList<ConfigGroup>();
+        @SuppressWarnings("unchecked") Class<ManagedConfig> cclass = (Class<ManagedConfig>)clazz;
+        for (; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
+            ConfigGroup group = cfgmgr.getGroup(cclass);
+            if (group != null) {
+                groups.add(group);
+            }
+        }
+        _groups = groups.toArray(new ConfigGroup[groups.size()]);
+        
         JPanel bpanel = new JPanel();
         add(bpanel, BorderLayout.SOUTH);
         bpanel.add(_ok = new JButton(msgs.get("m.ok")));
@@ -66,7 +79,7 @@ public class ConfigChooser extends JPanel
     {
         // create the dialog
         Component root = SwingUtilities.getRoot(parent);
-        String name = _group.getName();
+        String name = _groups[0].getName();
         String key = "m." + name;
         String title = _msgs.get("m.select_config", _msgs.exists(key) ? _msgs.get(key) : name);
         final JDialog dialog = (root instanceof Dialog) ?
@@ -75,7 +88,7 @@ public class ConfigChooser extends JPanel
         dialog.add(this, BorderLayout.CENTER);
 
         // add the tree of configurations
-        final ConfigTree tree = new ConfigTree(_group);
+        final ConfigTree tree = new ConfigTree(_groups);
         JScrollPane pane = new JScrollPane(tree);
         add(pane, BorderLayout.CENTER);
 
@@ -147,8 +160,8 @@ public class ConfigChooser extends JPanel
     /** The bundle from which we obtain our messages. */
     protected MessageBundle _msgs;
 
-    /** The configuration group. */
-    protected ConfigGroup _group;
+    /** The configuration groups. */
+    protected ConfigGroup[] _groups;
 
     /** The OK button. */
     protected JButton _ok;
