@@ -14,11 +14,11 @@ public class TileConfig extends ManagedConfig
     implements IntegerIdentified
 {
     /** The width of the tile. */
-    @Editable(min=1)
+    @Editable(min=1, hgroup="d")
     public int width = 1;
 
     /** The height of the tile. */
-    @Editable(min=1)
+    @Editable(min=1, hgroup="d")
     public int height = 1;
 
     /** Indicates where the tile is passable. */

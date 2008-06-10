@@ -27,6 +27,14 @@ public class ParameterizedConfig extends ManagedConfig
         /** The reference paths of the properties that this parameter adjusts. */
         @Editable(width=40)
         public String[] paths = new String[0];
+
+        /**
+         * Creates the property
+         */
+        public Property createProperty (ManagedConfig config)
+        {
+            return null;
+        }
     }
 
     /** The parameters of the configuration. */

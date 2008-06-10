@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
@@ -39,6 +40,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -169,6 +171,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
         // give subclasses a chance to update
         update();
+    }
+
+    /**
+     * Returns the property path component corresponding to the specified point.
+     */
+    public String getPathComponent (Point pt)
+    {
+        return _property.getName();
     }
 
     /**
@@ -886,7 +896,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         {
             setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
             setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
-            
+
             JPanel cpanel = new JPanel();
             cpanel.setBackground(null);
             add(cpanel);
@@ -946,7 +956,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 return;
             }
         }
-        
+
         /** The config button. */
         protected JButton _config;
 
@@ -955,7 +965,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
 
         /** Holds the parameters. */
         protected JPanel _params;
-        
+
         /** The config chooser. */
         protected ConfigChooser _chooser;
     }
@@ -1237,6 +1247,15 @@ public abstract class PropertyEditor extends BasePropertyEditor
     protected static class PanelArrayListEditor extends ArrayListEditor
         implements ChangeListener
     {
+        @Override // documentation inherited
+        public String getPathComponent (Point pt)
+        {
+            Component comp = _panels.getComponentAt(
+                SwingUtilities.convertPoint(this, pt, _panels));
+            int idx = _panels.getComponentZOrder(comp);
+            return _property.getName() + (idx == -1 ? "" : ("[" + idx + "]"));
+        }
+
         // documentation inherited from interface ChangeListener
         public void stateChanged (ChangeEvent event)
         {
@@ -1421,6 +1440,16 @@ public abstract class PropertyEditor extends BasePropertyEditor
         }
 
         @Override // documentation inherited
+        public String getPathComponent (Point pt)
+        {
+            pt = SwingUtilities.convertPoint(this, pt, _table);
+            int row = _table.rowAtPoint(pt);
+            int col = _table.columnAtPoint(pt);
+            return _property.getName() + ((row == -1 || col == -1) ? "" :
+                ("[" + row + "]" + _columns[col].getPathComponent()));
+        }
+
+        @Override // documentation inherited
         public void actionPerformed (ActionEvent event)
         {
             Object source = event.getSource();
@@ -1463,6 +1492,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
                     public String getName () {
                         return null;
                     }
+                    public String getPathComponent () {
+                        return "";
+                    }
                     public Class getColumnClass () {
                         return getWrapperClass(ctype);
                     }
@@ -1484,6 +1516,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
                     _columns[ii] = new Column() {
                         public String getName () {
                             return getLabel(property.getName());
+                        }
+                        public String getPathComponent () {
+                            return "/" + property.getName();
                         }
                         public Class getColumnClass () {
                             return getWrapperClass(property.getType());
@@ -1728,6 +1763,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 public String getName () {
                     return Integer.toString(column);
                 }
+                public String getPathComponent () {
+                    return "[" + column + "]";
+                }
                 public Class getColumnClass () {
                     return getWrapperClass(cctype);
                 }
@@ -1915,6 +1953,11 @@ public abstract class PropertyEditor extends BasePropertyEditor
              * Returns the name of this column.
              */
             public abstract String getName ();
+
+            /**
+             * Returns the path component for this column.
+             */
+            public abstract String getPathComponent ();
 
             /**
              * Returns the class of this column.

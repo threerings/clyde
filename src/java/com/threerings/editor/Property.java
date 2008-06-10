@@ -5,6 +5,7 @@ package com.threerings.editor;
 
 import java.lang.annotation.Annotation;
 
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -99,6 +100,24 @@ public abstract class Property
      * Returns the generic property type.
      */
     public abstract Type getGenericType ();
+
+    /**
+     * Returns the generic component type of this (array or collection) type.
+     */
+    public Type getGenericComponentType ()
+    {
+        Type gtype = getGenericType();
+        if (gtype instanceof GenericArrayType) {
+            return ((GenericArrayType)gtype).getGenericComponentType();
+
+        } else if (gtype instanceof Class) {
+            Class clazz = (Class)gtype;
+            if (clazz.isArray()) {
+                return clazz.getComponentType();
+            }
+        }
+        return null;
+    }
 
     /**
      * Returns a reference to the {@link Editable} annotation, which contains simple constraints.

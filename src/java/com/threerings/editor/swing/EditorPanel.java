@@ -6,16 +6,20 @@ package com.threerings.editor.swing;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Point;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -24,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -120,9 +125,47 @@ public class EditorPanel extends BasePropertyEditor
         _catmode = catmode;
         _ancestors = ancestors;
 
+        // add a mapping to copy the path of the property under the mouse cursor to the clipboard
+        if (ancestors == null) {
+            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
+                "copy_path");
+            getActionMap().put("copy_path", new AbstractAction() {
+                public void actionPerformed (ActionEvent event) {
+                    copyPropertyPath();
+                }
+            });
+        }
+
         setLayout(new VGroupLayout(
             isEmbedded() ? GroupLayout.NONE : GroupLayout.STRETCH,
             GroupLayout.STRETCH, 5, GroupLayout.TOP));
+    }
+
+    /**
+     * Copies the path of the property under the mouse cursor to the clipboard.
+     */
+    protected void copyPropertyPath ()
+    {
+        StringBuffer buf = new StringBuffer();
+        for (Container cont = this; cont != null; ) {
+            Point pt = cont.getMousePosition();
+            if (pt == null) {
+                break;
+            }
+            if (cont instanceof PropertyEditor) {
+                if (buf.length() > 0) {
+                    buf.append('/');
+                }
+                buf.append(((PropertyEditor)cont).getPathComponent(pt));
+            }
+            Component comp = cont.getComponentAt(pt);
+            cont = (comp instanceof Container && comp != cont) ? (Container)comp : null;
+        }
+        if (buf.length() > 0) {
+            StringSelection contents = new StringSelection(buf.toString());
+            getToolkit().getSystemClipboard().setContents(contents, contents);
+        }
     }
 
     /**
