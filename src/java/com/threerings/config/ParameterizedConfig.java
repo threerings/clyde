@@ -4,6 +4,7 @@
 package com.threerings.config;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.PathProperty;
 import com.threerings.editor.Property;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -24,7 +25,8 @@ public class ParameterizedConfig extends ManagedConfig
         @Editable
         public String name = "";
 
-        /** The reference paths of the properties that this parameter adjusts. */
+        /** The reference paths of the properties that this parameter adjusts.  The first path
+         * determines the type and default value. */
         @Editable(width=40)
         public String[] paths = new String[0];
 

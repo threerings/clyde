@@ -875,7 +875,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
             if (event.getSource() == _config) {
                 if (_chooser == null) {
                     _chooser = new ConfigChooser(
-                        _msgs, _ctx.getConfigManager(), _property.getArgumentType());
+                        _msgs, _ctx.getConfigManager(),
+                        _property.getArgumentType(ConfigReference.class));
                 }
                 _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
                 if (!_chooser.showDialog(this)) {
@@ -947,7 +948,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
                 return;
             }
             @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
-                (Class<ManagedConfig>)_property.getArgumentType();
+                (Class<ManagedConfig>)_property.getArgumentType(ConfigReference.class);
             ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, value.getName());
             ParameterizedConfig pconfig;
             if (!(config instanceof ParameterizedConfig) ||
