@@ -13,8 +13,6 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
 
-import com.threerings.editor.util.EditorContext;
-
 /**
  * Abstract base class for {@link PropertyEditor} and {@link EditorPanel}.
  */
@@ -102,14 +100,8 @@ public abstract class BasePropertyEditor extends JPanel
         return new Color(value, value, value);
     }
 
-    /** Provides access to common services. */
-    protected EditorContext _ctx;
-
     /** The message bundle used for property translations. */
     protected MessageBundle _msgs;
-
-    /** The object being edited. */
-    protected Object _object;
 
     /** The base background value that we darken to indicate nesting. */
     protected static final int BASE_BACKGROUND = 0xEE;

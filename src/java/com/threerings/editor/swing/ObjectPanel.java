@@ -144,6 +144,9 @@ public class ObjectPanel extends BasePropertyEditor
         return type.newInstance();
     }
 
+    /** Provides access to common services. */
+    protected EditorContext _ctx;
+
     /** The type box. */
     protected JComboBox _box;
 

@@ -143,6 +143,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
     }
 
     /**
+     * Returns a reference to the object being edited.
+     */
+    public Object getObject ()
+    {
+        return _object;
+    }
+
+    /**
      * Returns the property path component corresponding to the specified point.
      */
     public String getPathComponent (Point pt)
@@ -310,11 +318,17 @@ public abstract class PropertyEditor extends BasePropertyEditor
         }
     }
 
+    /** Provides access to common services. */
+    protected EditorContext _ctx;
+
     /** The property being edited. */
     protected Property _property;
 
     /** The ancestors of the property (if any), followed by the property itself. */
     protected Property[] _lineage;
+
+    /** The object being edited. */
+    protected Object _object;
 
     /** Maps names to editor classes. */
     protected static HashMap<String, Class<? extends PropertyEditor>> _classesByName =

@@ -18,12 +18,15 @@ import java.util.HashMap;
 
 import com.samskivert.util.ListUtil;
 
+import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
+
 import static com.threerings.editor.Log.*;
 
 /**
  * Provides access to an editable property of an object.
  */
-public abstract class Property
+public abstract class Property extends DeepObject
 {
     /**
      * Returns the name of the property.
@@ -180,6 +183,15 @@ public abstract class Property
             _genericArgumentTypes.put(clazz, types = getTypeArguments(getGenericType(), clazz));
         }
         return types;
+    }
+
+    /**
+     * Checks the specified value against this property's constraints.  It may be assumed that
+     * the value matches the property's generic type.
+     */
+    public boolean isWithinConstraints (Object value)
+    {
+        return true; // TODO
     }
 
     /**
@@ -431,8 +443,10 @@ public abstract class Property
     protected String _name;
 
     /** Cached argument types. */
+    @DeepOmit
     protected HashMap<Class, Class[]> _argumentTypes;
 
     /** Cached generic argument types. */
+    @DeepOmit
     protected HashMap<Class, Type[]> _genericArgumentTypes;
 }

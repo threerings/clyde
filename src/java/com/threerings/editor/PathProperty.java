@@ -26,11 +26,11 @@ public class PathProperty extends Property
      * Creates a new path property.
      *
      * @param name the name of the property.
-     * @param object the example object from which we derive our property chains.
+     * @param reference the reference object from which we derive our property chains.
      * @param paths the list of paths.
      * @throws InvalidPathsException if none of the supplied paths are valid.
      */
-    public PathProperty (String name, Object object, String... paths)
+    public PathProperty (String name, Object reference, String... paths)
         throws InvalidPathsException
     {
         _name = name;
@@ -38,7 +38,7 @@ public class PathProperty extends Property
         // attempt to resolve each path, storing the successes
         ArrayList<Property[]> list = new ArrayList<Property[]>();
         for (String path : paths) {
-            Property[] props = resolvePath(object, path);
+            Property[] props = resolvePath(reference, path);
             if (props != null) {
                 list.add(props);
             }

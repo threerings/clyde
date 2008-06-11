@@ -356,11 +356,17 @@ public class EditorPanel extends BasePropertyEditor
         return editor;
     }
 
+    /** Provides access to common services. */
+    protected EditorContext _ctx;
+
     /** How to present different categories of properties. */
     protected CategoryMode _catmode;
 
     /** The ancestor properties from which constraints are inherited. */
     protected Property[] _ancestors;
+
+    /** The object being edited. */
+    protected Object _object;
 
     /** The current list of editors. */
     protected ArrayList<PropertyEditor> _editors = new ArrayList<PropertyEditor>();
