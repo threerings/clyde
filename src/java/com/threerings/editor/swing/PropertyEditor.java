@@ -25,6 +25,7 @@ import com.threerings.opengl.renderer.Color4f;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.editor.util.PropertyUtil;
 
 import com.threerings.editor.swing.editors.BooleanEditor;
 import com.threerings.editor.swing.editors.Color4fEditor;
@@ -123,6 +124,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
     }
 
     /**
+     * Returns a reference to the edited property.
+     */
+    public Property getProperty ()
+    {
+        return _property;
+    }
+
+    /**
      * Sets the object being edited.
      */
     public void setObject (Object object)
@@ -168,13 +177,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected String getMode ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            String mode = _lineage[ii].getAnnotation().mode();
-            if (!Editable.INHERIT_STRING.equals(mode)) {
-                return mode;
-            }
-        }
-        return "";
+        return PropertyUtil.getMode(_lineage);
     }
 
     /**
@@ -182,13 +185,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected String getUnits ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            String units = _lineage[ii].getAnnotation().units();
-            if (!Editable.INHERIT_STRING.equals(units)) {
-                return units;
-            }
-        }
-        return "";
+        return PropertyUtil.getUnits(_lineage);
     }
 
     /**
@@ -196,13 +193,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected double getMinimum ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            double min = _lineage[ii].getAnnotation().min();
-            if (min != Editable.INHERIT_DOUBLE) {
-                return min;
-            }
-        }
-        return -Double.MAX_VALUE;
+        return PropertyUtil.getMinimum(_lineage);
     }
 
     /**
@@ -210,13 +201,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected double getMaximum ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            double max = _lineage[ii].getAnnotation().max();
-            if (max != Editable.INHERIT_DOUBLE) {
-                return max;
-            }
-        }
-        return +Double.MAX_VALUE;
+        return PropertyUtil.getMaximum(_lineage);
     }
 
     /**
@@ -224,13 +209,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected double getStep ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            double step = _lineage[ii].getAnnotation().step();
-            if (step != Editable.INHERIT_DOUBLE) {
-                return step;
-            }
-        }
-        return 1.0;
+        return PropertyUtil.getStep(_lineage);
     }
 
     /**
@@ -238,13 +217,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected double getScale ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            double scale = _lineage[ii].getAnnotation().scale();
-            if (scale != Editable.INHERIT_DOUBLE) {
-                return scale;
-            }
-        }
-        return 1.0;
+        return PropertyUtil.getScale(_lineage);
     }
 
     /**
@@ -252,13 +225,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected int getMinSize ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            int min = _lineage[ii].getAnnotation().minsize();
-            if (min != Editable.INHERIT_INTEGER) {
-                return min;
-            }
-        }
-        return 0;
+        return PropertyUtil.getMinSize(_lineage);
     }
 
     /**
@@ -266,13 +233,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected int getMaxSize ()
     {
-        for (int ii = _lineage.length - 1; ii >= 0; ii--) {
-            int max = _lineage[ii].getAnnotation().maxsize();
-            if (max != Editable.INHERIT_INTEGER) {
-                return max;
-            }
-        }
-        return +Integer.MAX_VALUE;
+        return PropertyUtil.getMaxSize(_lineage);
     }
 
     /**

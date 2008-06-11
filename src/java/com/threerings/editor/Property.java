@@ -183,6 +183,71 @@ public abstract class Property
     }
 
     /**
+     * Returns the mode string.  Usually this comes from the property annotation, but derived
+     * classes may inherit values from elsewhere.
+     */
+    public String getMode ()
+    {
+        return getAnnotation().mode();
+    }
+
+    /**
+     * Returns the units string.
+     */
+    public String getUnits ()
+    {
+        return getAnnotation().units();
+    }
+
+    /**
+     * Returns the minimum value.
+     */
+    public double getMinimum ()
+    {
+        return getAnnotation().min();
+    }
+
+    /**
+     * Returns the maximum value.
+     */
+    public double getMaximum ()
+    {
+        return getAnnotation().max();
+    }
+
+    /**
+     * Returns the step value.
+     */
+    public double getStep ()
+    {
+        return getAnnotation().step();
+    }
+
+    /**
+     * Returns the scale value.
+     */
+    public double getScale ()
+    {
+        return getAnnotation().scale();
+    }
+
+    /**
+     * Returns the minimum size.
+     */
+    public int getMinSize ()
+    {
+        return getAnnotation().minsize();
+    }
+
+    /**
+     * Returns the maximum size;
+     */
+    public int getMaxSize ()
+    {
+        return getAnnotation().maxsize();
+    }
+
+    /**
      * Returns a reference to the {@link Editable} annotation, which contains simple constraints.
      */
     public Editable getAnnotation ()
@@ -204,6 +269,12 @@ public abstract class Property
      * Sets the value of the property.
      */
     public abstract void set (Object object, Object value);
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return _name;
+    }
 
     /**
      * Returns the label for subtypes of the specified type.

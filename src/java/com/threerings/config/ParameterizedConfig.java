@@ -4,6 +4,7 @@
 package com.threerings.config;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.InvalidPathsException;
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.Property;
 import com.threerings.export.Exportable;
@@ -25,17 +26,24 @@ public class ParameterizedConfig extends ManagedConfig
         @Editable
         public String name = "";
 
-        /** The reference paths of the properties that this parameter adjusts.  The first path
-         * determines the type and default value. */
+        /** The reference paths of the properties that this parameter adjusts.  The first valid
+         * path determines the type and default value. */
         @Editable(width=40)
         public String[] paths = new String[0];
 
         /**
-         * Creates the property
+         * Creates the property used to manipulate this parameter using the supplied configuration
+         * to resolve the paths.
+         *
+         * @return the property, or <code>null</code> if none of the paths are valid.
          */
         public Property createProperty (ManagedConfig config)
         {
-            return null;
+            try {
+                return new PathProperty(name, config, paths);
+            } catch (InvalidPathsException e) {
+                return null;
+            }
         }
     }
 

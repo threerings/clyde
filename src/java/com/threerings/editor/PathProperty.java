@@ -11,6 +11,10 @@ import java.lang.reflect.Type;
 
 import java.util.ArrayList;
 
+import com.samskivert.util.StringUtil;
+
+import com.threerings.editor.util.PropertyUtil;
+
 import static com.threerings.editor.Log.*;
 
 /**
@@ -24,17 +28,23 @@ public class PathProperty extends Property
      * @param name the name of the property.
      * @param object the example object from which we derive our property chains.
      * @param paths the list of paths.
+     * @throws InvalidPathsException if none of the supplied paths are valid.
      */
     public PathProperty (String name, Object object, String... paths)
+        throws InvalidPathsException
     {
         _name = name;
 
+        // attempt to resolve each path, storing the successes
         ArrayList<Property[]> list = new ArrayList<Property[]>();
         for (String path : paths) {
             Property[] props = resolvePath(object, path);
             if (props != null) {
                 list.add(props);
             }
+        }
+        if (list.isEmpty()) {
+            throw new InvalidPathsException(StringUtil.toString(paths));
         }
         _paths = list.toArray(new Property[list.size()][]);
     }
@@ -49,6 +59,54 @@ public class PathProperty extends Property
     public Type getGenericType ()
     {
         return _paths[0][_paths[0].length - 1].getGenericType();
+    }
+
+    @Override // documentation inherited
+    public String getMode ()
+    {
+        return PropertyUtil.getMode(_paths[0]);
+    }
+
+    @Override // documentation inherited
+    public String getUnits ()
+    {
+        return PropertyUtil.getUnits(_paths[0]);
+    }
+
+    @Override // documentation inherited
+    public double getMinimum ()
+    {
+        return PropertyUtil.getMinimum(_paths[0]);
+    }
+
+    @Override // documentation inherited
+    public double getMaximum ()
+    {
+        return PropertyUtil.getMaximum(_paths[0]);
+    }
+
+    @Override // documentation inherited
+    public double getStep ()
+    {
+        return PropertyUtil.getStep(_paths[0]);
+    }
+
+    @Override // documentation inherited
+    public double getScale ()
+    {
+        return PropertyUtil.getScale(_paths[0]);
+    }
+
+    @Override // documentation inherited
+    public int getMinSize ()
+    {
+        return PropertyUtil.getMinSize(_paths[0]);
+    }
+
+    @Override // documentation inherited
+    public int getMaxSize ()
+    {
+        return PropertyUtil.getMaxSize(_paths[0]);
     }
 
     @Override // documentation inherited
@@ -71,7 +129,7 @@ public class PathProperty extends Property
     {
         for (Property[] path : _paths) {
             Object obj = object;
-            int last = _paths.length - 1;
+            int last = path.length - 1;
             for (int ii = 0; ii < last; ii++) {
                 obj = path[ii].get(obj);
             }

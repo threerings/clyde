@@ -11,6 +11,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -18,15 +20,17 @@ import com.samskivert.swing.VGroupLayout;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.config.ParameterizedConfig.Parameter;
 import com.threerings.config.swing.ConfigChooser;
 
+import com.threerings.editor.Property;
 import com.threerings.editor.swing.PropertyEditor;
 
 /**
  * An editor for configuration references.
  */
 public class ConfigReferenceEditor extends PropertyEditor
-    implements ActionListener
+    implements ActionListener, ChangeListener
 {
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
@@ -50,6 +54,12 @@ public class ConfigReferenceEditor extends PropertyEditor
         }
         _property.set(_object, nvalue);
         updateButtons(nvalue);
+        fireStateChanged();
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
         fireStateChanged();
     }
 
@@ -116,6 +126,18 @@ public class ConfigReferenceEditor extends PropertyEditor
                 (pconfig = (ParameterizedConfig)config).parameters.length == 0) {
             _params.removeAll();
             return;
+        }
+        Parameter[] parameters = pconfig.parameters;
+        for (int ii = 0; ii < parameters.length; ii++) {
+            Parameter parameter = parameters[ii];
+            Property property = parameter.createProperty(config);
+            if (property == null) {
+                continue;
+            }
+            PropertyEditor editor = PropertyEditor.createEditor(_ctx, property, _lineage);
+            editor.setObject(config);
+            editor.addChangeListener(this);
+            _params.add(editor);
         }
     }
 

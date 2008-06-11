@@ -3,6 +3,8 @@
 
 package com.threerings.config;
 
+import java.util.TreeMap;
+
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -37,4 +39,7 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
 
     /** The name of the referenced configuration. */
     protected String _name;
+
+    /** The arguments of the reference, mapped by name. */
+    protected TreeMap<String, Object> _arguments;
 }
