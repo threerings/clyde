@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.ObserverList;
@@ -28,6 +29,8 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
+
+import com.threerings.config.ParameterizedConfig.Parameter;
 
 import static com.threerings.ClydeLog.*;
 
@@ -79,6 +82,35 @@ public class ConfigGroup<T extends ManagedConfig>
     public Class<T> getConfigClass ()
     {
         return _cclass;
+    }
+
+    /**
+     * Retrieves a configuration by reference.
+     */
+    public T getConfig (ConfigReference<T> ref)
+    {
+        String name = ref.getName();
+        T base = _configsByName.get(name);
+        if (base == null) {
+            return null;
+        }
+        Parameter[] parameters;
+        if (!(base instanceof ParameterizedConfig) ||
+                (parameters = ((ParameterizedConfig)base).parameters).length == 0) {
+            return base;
+        }
+        Map<String, Object> args = ref.getArguments();
+        if (args.isEmpty()) {
+            return base;
+        }
+        T derived = _cclass.cast(base.clone());
+        for (Parameter parameter : parameters) {
+            if (!args.containsKey(parameter.name)) {
+                continue;
+            }
+            Object value = args.get(parameter.name);
+        }
+        return derived;
     }
 
     /**

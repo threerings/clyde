@@ -16,6 +16,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.Collection;
 import java.util.HashMap;
 
+import com.samskivert.util.ClassUtil;
 import com.samskivert.util.ListUtil;
 
 import com.threerings.util.DeepObject;
@@ -186,12 +187,26 @@ public abstract class Property extends DeepObject
     }
 
     /**
-     * Checks the specified value against this property's constraints.  It may be assumed that
-     * the value matches the property's generic type.
+     * Determines whether the supplied value is legal for this property.
      */
-    public boolean isWithinConstraints (Object value)
+    public boolean isLegalValue (Object value)
     {
-        return true; // TODO
+        Class type = getType();
+        if (type.isPrimitive()) {
+            if (value == null) {
+                return false;
+            }
+            type = ClassUtil.objectEquivalentOf(type);
+        }
+        if (!(value == null || type.isInstance(value))) {
+            return false;
+        }
+        Editable annotation = getAnnotation();
+        if (value == null && !annotation.nullable()) {
+            return false;
+        }
+        // TODO: check other constraints
+        return true;
     }
 
     /**

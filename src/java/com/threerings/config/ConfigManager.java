@@ -110,6 +110,19 @@ public class ConfigManager
     }
 
     /**
+     * Retrieves a configuration by class and reference.  If the configuration is not found in this
+     * manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, ConfigReference<T> ref)
+    {
+        ConfigGroup<T> group = getGroup(clazz);
+        T config = (group == null) ? null : group.getConfig(ref);
+        return (config == null && _parent != null) ? _parent.getConfig(clazz, ref) : config;
+    }
+
+    /**
      * Retrieves a configuration by class and name.  If the configuration is not found in this
      * manager, the request will be forwarded to the parent, and so on.
      *

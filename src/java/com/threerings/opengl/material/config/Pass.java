@@ -177,8 +177,4 @@ public class Pass extends DeepObject
     /** Whether to write to the alpha channel. */
     @Editable(category="color_mask", hgroup="cm")
     public boolean alphaMask = true;
-
-    /** The texture units to use in this pass. */
-    @Editable(nullable=false)
-    public Unit[] units = new Unit[0];
 }

@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.config;
+package com.threerings.opengl.renderer.config;
 
 import org.lwjgl.opengl.ARBShadow;
 import org.lwjgl.opengl.ARBTextureBorderClamp;
@@ -525,7 +525,7 @@ public class TextureConfig extends ParameterizedConfig
         @Editable
         public ConfigReference<TextureConfig> base;
     }
-    
+
     /** The actual texture implementation. */
     @Editable
     public Implementation implementation = new Original2D();

@@ -158,7 +158,7 @@ public class ConfigReferenceEditor extends PropertyEditor
                     Property oproperty = oeditor.getProperty();
                     if (property.getGenericType().equals(oproperty.getGenericType())) {
                         Object ovalue = oproperty.get(oeditor.getObject());
-                        if (property.isWithinConstraints(ovalue)) {
+                        if (property.isLegalValue(ovalue)) {
                             property.set(nargs, ovalue);
                         }
                     }

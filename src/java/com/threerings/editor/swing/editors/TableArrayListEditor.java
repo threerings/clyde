@@ -27,6 +27,7 @@ import javax.swing.table.TableModel;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ArrayUtil;
+import com.samskivert.util.ClassUtil;
 import com.samskivert.util.IntTuple;
 import com.samskivert.util.ListUtil;
 
@@ -158,7 +159,7 @@ public class TableArrayListEditor extends ArrayListEditor
                     return "";
                 }
                 public Class getColumnClass () {
-                    return getWrapperClass(ctype);
+                    return ClassUtil.objectEquivalentOf(ctype);
                 }
                 public Object getColumnValue (int row) {
                     return getValue(row);
@@ -183,7 +184,7 @@ public class TableArrayListEditor extends ArrayListEditor
                         return "/" + property.getName();
                     }
                     public Class getColumnClass () {
-                        return getWrapperClass(property.getType());
+                        return ClassUtil.objectEquivalentOf(property.getType());
                     }
                     public Object getColumnValue (int row) {
                         return property.get(getValue(row));
@@ -429,7 +430,7 @@ public class TableArrayListEditor extends ArrayListEditor
                 return "[" + column + "]";
             }
             public Class getColumnClass () {
-                return getWrapperClass(cctype);
+                return ClassUtil.objectEquivalentOf(cctype);
             }
             public Object getColumnValue (int row) {
                 return Array.get(getValue(row), column);

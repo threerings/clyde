@@ -291,33 +291,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
         }
     }
 
-    /**
-     * Returns the wrapper class for the supplied type, if it is a primitive type (otherwise
-     * returns the type itself).
-     */
-    protected static Class getWrapperClass (Class type)
-    {
-        if (type == Boolean.TYPE) {
-            return Boolean.class;
-        } else if (type == Byte.TYPE) {
-            return Byte.class;
-        } else if (type == Character.TYPE) {
-            return Character.class;
-        } else if (type == Double.TYPE) {
-            return Double.class;
-        } else if (type == Float.TYPE) {
-            return Float.class;
-        } else if (type == Integer.TYPE) {
-            return Integer.class;
-        } else if (type == Long.TYPE) {
-            return Long.class;
-        } else if (type == Short.TYPE) {
-            return Short.class;
-        } else {
-            return type;
-        }
-    }
-
     /** Provides access to common services. */
     protected EditorContext _ctx;
 
