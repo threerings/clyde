@@ -27,6 +27,8 @@ import com.threerings.opengl.renderer.state.CullState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
+import com.threerings.opengl.renderer.state.LineState;
+import com.threerings.opengl.renderer.state.PolygonState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.ShaderState;
 import com.threerings.opengl.renderer.state.StencilState;
@@ -55,8 +57,8 @@ public abstract class Root
     public static final RenderState[] STATES = new RenderState[] {
         AlphaState.PREMULTIPLIED, ArrayState.DISABLED, null, ColorMaskState.ALL,
         CullState.DISABLED, DepthState.DISABLED, FogState.DISABLED, LightState.DISABLED,
-        null, ShaderState.DISABLED, StencilState.DISABLED,
-        null, TransformState.IDENTITY };
+        LineState.DEFAULT, null, null, PolygonState.DEFAULT, ShaderState.DISABLED,
+        StencilState.DISABLED, null, TransformState.IDENTITY };
 
     public Root (GlContext ctx)
     {

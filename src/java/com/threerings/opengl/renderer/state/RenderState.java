@@ -36,30 +36,40 @@ public abstract class RenderState
     /** The light state. */
     public static final int LIGHT_STATE = 7;
 
+    /** The line state. */
+    public static final int LINE_STATE = 8;
+
     /** The material state. */
-    public static final int MATERIAL_STATE = 8;
+    public static final int MATERIAL_STATE = 9;
+
+    /** The point state. */
+    public static final int POINT_STATE = 10;
+
+    /** The polygon state. */
+    public static final int POLYGON_STATE = 11;
 
     /** The GLSL shader state. */
-    public static final int SHADER_STATE = 9;
+    public static final int SHADER_STATE = 12;
 
     /** The stencil state. */
-    public static final int STENCIL_STATE = 10;
+    public static final int STENCIL_STATE = 13;
 
     /** The texture state. */
-    public static final int TEXTURE_STATE = 11;
+    public static final int TEXTURE_STATE = 14;
 
     /** The transform state. */
-    public static final int TRANSFORM_STATE = 12;
+    public static final int TRANSFORM_STATE = 15;
 
     /** The total number of state types. */
-    public static final int STATE_COUNT = 13;
+    public static final int STATE_COUNT = 16;
 
     /** The OpenGL default states. */
     public static final RenderState[] DEFAULTS = new RenderState[] {
         AlphaState.OPAQUE, ArrayState.DISABLED, ColorState.WHITE, ColorMaskState.ALL,
         CullState.DISABLED, DepthState.WRITE, FogState.DISABLED, LightState.DISABLED,
-        MaterialState.DEFAULT, ShaderState.DISABLED, StencilState.DISABLED,
-        TextureState.DISABLED, TransformState.IDENTITY };
+        LineState.DEFAULT, MaterialState.DEFAULT, PointState.DEFAULT, PolygonState.DEFAULT,
+        ShaderState.DISABLED, StencilState.DISABLED, TextureState.DISABLED,
+        TransformState.IDENTITY };
 
     /**
      * Creates and returns a new, empty render state set.

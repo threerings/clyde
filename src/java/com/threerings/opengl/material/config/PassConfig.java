@@ -14,7 +14,10 @@ import com.threerings.opengl.renderer.config.CullStateConfig;
 import com.threerings.opengl.renderer.config.DepthStateConfig;
 import com.threerings.opengl.renderer.config.FogStateConfig;
 import com.threerings.opengl.renderer.config.LightStateConfig;
+import com.threerings.opengl.renderer.config.LineStateConfig;
 import com.threerings.opengl.renderer.config.MaterialStateConfig;
+import com.threerings.opengl.renderer.config.PointStateConfig;
+import com.threerings.opengl.renderer.config.PolygonStateConfig;
 import com.threerings.opengl.renderer.config.ShaderStateConfig;
 import com.threerings.opengl.renderer.config.StencilStateConfig;
 import com.threerings.opengl.renderer.config.TextureStateConfig;
@@ -55,10 +58,22 @@ public class PassConfig extends DeepObject
         nullable=true)
     public LightStateConfig lightStateOverride;
 
+    /** The line state. */
+    @Editable
+    public LineStateConfig lineState;
+
     /** The material state to use in this pass. */
     @Editable(types={ MaterialStateConfig.OneSided.class, MaterialStateConfig.TwoSided.class },
         nullable=true)
     public MaterialStateConfig materialState = new MaterialStateConfig.OneSided();
+
+    /** The polygon state to use in this pass. */
+    @Editable(nullable=false)
+    public PolygonStateConfig polygonState = new PolygonStateConfig();
+
+    /** The point state. */
+    @Editable
+    public PointStateConfig pointState;
 
     /** The shader state to use in this pass. */
     @Editable

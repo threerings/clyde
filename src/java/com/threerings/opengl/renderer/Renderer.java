@@ -994,6 +994,26 @@ public class Renderer
     }
 
     /**
+     * Sets the line state.
+     */
+    public void setLineState (float lineWidth)
+    {
+        if (_lineWidth != lineWidth) {
+            GL11.glLineWidth(_lineWidth = lineWidth);
+            _states[RenderState.LINE_STATE] = null;
+        }
+    }
+
+    /**
+     * Invalidates the line state, forcing it to be reapplied.
+     */
+    public void invalidateLineState ()
+    {
+        _lineWidth = -1f;
+        _states[RenderState.LINE_STATE] = null;
+    }
+
+    /**
      * Sets the material state.
      */
     public void setMaterialState (
@@ -1086,6 +1106,77 @@ public class Renderer
         _colorMaterialEnabled = _twoSide = _localViewer = _separateSpecular = _flatShading = null;
         _colorMaterialFace = _colorMaterialMode = -1;
         _states[RenderState.MATERIAL_STATE] = null;
+    }
+
+    /**
+     * Sets the point state.
+     */
+    public void setPointState (float pointSize)
+    {
+        if (_pointSize != pointSize) {
+            GL11.glPointSize(_pointSize = pointSize);
+            _states[RenderState.POINT_STATE] = null;
+        }
+    }
+
+    /**
+     * Invalidates the point state, forcing it to be reapplied.
+     */
+    public void invalidatePointState ()
+    {
+        _pointSize = -1f;
+        _states[RenderState.POINT_STATE] = null;
+    }
+
+    /**
+     * Sets the polygon state.
+     */
+    public void setPolygonState (
+        int frontPolygonMode, int backPolygonMode, float polygonOffsetFactor,
+        float polygonOffsetUnits)
+    {
+        // invalidate any cached reference
+        _states[RenderState.POLYGON_STATE] = null;
+
+        if (_frontPolygonMode != frontPolygonMode) {
+            GL11.glPolygonMode(GL11.GL_FRONT, _frontPolygonMode = frontPolygonMode);
+        }
+        if (_backPolygonMode != backPolygonMode) {
+            GL11.glPolygonMode(GL11.GL_BACK, _backPolygonMode = backPolygonMode);
+        }
+        boolean enablePolygonOffset = (polygonOffsetFactor != 0f || polygonOffsetUnits != 0f);
+        if ((frontPolygonMode == GL11.GL_FILL || backPolygonMode == GL11.GL_FILL) &&
+                _polygonOffsetFillEnabled != Boolean.valueOf(enablePolygonOffset)) {
+            setCapability(GL11.GL_POLYGON_OFFSET_FILL,
+                _polygonOffsetFillEnabled = enablePolygonOffset);
+        }
+        if ((frontPolygonMode == GL11.GL_LINE || backPolygonMode == GL11.GL_LINE) &&
+                _polygonOffsetLineEnabled != Boolean.valueOf(enablePolygonOffset)) {
+            setCapability(GL11.GL_POLYGON_OFFSET_LINE,
+                _polygonOffsetLineEnabled = enablePolygonOffset);
+        }
+        if ((frontPolygonMode == GL11.GL_POINT || backPolygonMode == GL11.GL_POINT) &&
+                _polygonOffsetPointEnabled != Boolean.valueOf(enablePolygonOffset)) {
+            setCapability(GL11.GL_POLYGON_OFFSET_POINT,
+                _polygonOffsetPointEnabled = enablePolygonOffset);
+        }
+        if (enablePolygonOffset && (_polygonOffsetFactor != polygonOffsetFactor ||
+                _polygonOffsetUnits != polygonOffsetUnits)) {
+            GL11.glPolygonOffset(
+                _polygonOffsetFactor = polygonOffsetFactor,
+                _polygonOffsetUnits = polygonOffsetUnits);
+        }
+    }
+
+    /**
+     * Invalidates the polygon state, forcing it to be reapplied.
+     */
+    public void invalidatePolygonState ()
+    {
+        _frontPolygonMode = _backPolygonMode = -1;
+        _polygonOffsetFactor = _polygonOffsetUnits = Float.NaN;
+        _polygonOffsetFillEnabled = _polygonOffsetLineEnabled = _polygonOffsetPointEnabled = null;
+        _states[RenderState.POLYGON_STATE] = null;
     }
 
     /**
@@ -2304,6 +2395,9 @@ public class Renderer
     /** One greater than the index of the last light possibly enabled. */
     protected int _lightEnd;
 
+    /** The current line width. */
+    protected float _lineWidth = 1f;
+
     /** The current global ambient intensity. */
     protected Color4f _globalAmbient = new Color4f(0.2f, 0.2f, 0.2f, 1f);
 
@@ -2357,6 +2451,30 @@ public class Renderer
 
     /** Whether or not we are using flat shading. */
     protected Boolean _flatShading = false;
+
+    /** The point size. */
+    protected float _pointSize = 1f;
+
+    /** The polygon mode for front-facing polygons. */
+    protected int _frontPolygonMode = GL11.GL_FILL;
+
+    /** The polygon mode for back-facing polygons. */
+    protected int _backPolygonMode = GL11.GL_FILL;
+
+    /** Whether or not offsets are enabled for filled polygons. */
+    protected Boolean _polygonOffsetFillEnabled = false;
+
+    /** Whether or not offsets are enabled for line polygons. */
+    protected Boolean _polygonOffsetLineEnabled = false;
+
+    /** Whether or not offsets are enabled for point polygons. */
+    protected Boolean _polygonOffsetPointEnabled = false;
+
+    /** The proportional polygon offset. */
+    protected float _polygonOffsetFactor;
+
+    /** The constant polygon offset. */
+    protected float _polygonOffsetUnits;
 
     /** The currently bound shader program. */
     protected Program _program;
