@@ -170,8 +170,8 @@ public abstract class Model
     {
         // copy color to material ambient/diffuse
         _cstate.setDirty(true);
-        _mstate.getAmbient().set(_cstate.getColor());
-        _mstate.getDiffuse().set(_cstate.getColor());
+        _mstate.getFrontAmbient().set(_cstate.getColor());
+        _mstate.getFrontDiffuse().set(_cstate.getColor());
         _mstate.setDirty(true);
     }
 
@@ -256,8 +256,13 @@ public abstract class Model
         omodel._worldBounds = new Box(_worldBounds);
         omodel._cstate = new ColorState(_cstate.getColor());
         omodel._mstate = new MaterialState(
-            _mstate.getAmbient(), _mstate.getDiffuse(), _mstate.getSpecular(),
-            _mstate.getEmission(), _mstate.getShininess());
+            _mstate.getFrontAmbient(), _mstate.getFrontDiffuse(), _mstate.getFrontSpecular(),
+            _mstate.getFrontEmission(), _mstate.getFrontShininess(),
+            _mstate.getBackAmbient(), _mstate.getBackDiffuse(), _mstate.getBackSpecular(),
+            _mstate.getBackEmission(), _mstate.getBackShininess(),
+            _mstate.getColorMaterialMode(), _mstate.getColorMaterialFace(),
+            _mstate.getTwoSide(), _mstate.getLocalViewer(), _mstate.getSeparateSpecular(),
+            _mstate.getFlatShading());
         return omodel;
     }
 

@@ -36,7 +36,7 @@ public abstract class FogStateConfig extends DeepObject
     public static abstract class Enabled extends FogStateConfig
     {
         /** The fog color. */
-        @Editable
+        @Editable(hgroup="p")
         public Color4f color = new Color4f(0f, 0f, 0f, 0f);
     }
 
@@ -46,11 +46,11 @@ public abstract class FogStateConfig extends DeepObject
     public static class Linear extends Enabled
     {
         /** The fog start distance. */
-        @Editable(min=0, step=0.1)
+        @Editable(min=0, step=0.1, hgroup="p")
         public float start;
 
         /** The fog end distance. */
-        @Editable(min=0, step=0.1)
+        @Editable(min=0, step=0.1, hgroup="p")
         public float end = 1f;
 
         public Linear (Enabled other)
@@ -74,16 +74,12 @@ public abstract class FogStateConfig extends DeepObject
      */
     public static class Exponential extends Enabled
     {
-        /** The fog color. */
-        @Editable
-        public Color4f color = new Color4f(0f, 0f, 0f, 0f);
-
         /** The fog density. */
-        @Editable(min=0, step=0.001)
+        @Editable(min=0, step=0.001, hgroup="p")
         public float density = 1f;
 
         /** Whether or not to square the exponential function. */
-        @Editable
+        @Editable(hgroup="p")
         public boolean squared;
 
         public Exponential (Enabled other)

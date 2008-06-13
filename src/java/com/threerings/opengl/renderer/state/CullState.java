@@ -3,6 +3,10 @@
 
 package com.threerings.opengl.renderer.state;
 
+import org.lwjgl.opengl.GL11;
+
+import com.samskivert.util.HashIntMap;
+
 import com.threerings.opengl.renderer.Renderer;
 
 /**
@@ -10,26 +14,45 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public class CullState extends RenderState
 {
-    /** A state that enables back-face culling. */
-    public static final CullState ENABLED = new CullState(true);
-
     /** A state that disables back-face culling. */
-    public static final CullState DISABLED = new CullState(false);
+    public static final CullState DISABLED = getInstance(-1);
+
+    /** A state that enables back-face culling. */
+    public static final CullState BACK_FACE = getInstance(GL11.GL_BACK);
+
+    /** A state that enabled front-face culling. */
+    public static final CullState FRONT_FACE = getInstance(GL11.GL_FRONT);
+
+    /**
+     * If there is a shared instance with the supplied parameters, returns a reference to it;
+     * otherwise, returns a new state with the parameters.
+     */
+    public static CullState getInstance (int cullFace)
+    {
+        if (_instances == null) {
+            _instances = new HashIntMap<CullState>();
+        }
+        CullState instance = _instances.get(cullFace);
+        if (instance == null) {
+            _instances.put(cullFace, instance = new CullState(cullFace));
+        }
+        return instance;
+    }
 
     /**
      * Creates a new back-face culling state.
      */
-    public CullState (boolean cullFaceEnabled)
+    public CullState (int cullFace)
     {
-        _cullFaceEnabled = cullFaceEnabled;
+        _cullFace = cullFace;
     }
 
     /**
-     * Checks whether back-face culling is enabled.
+     * Returns the cull face constant.
      */
-    public boolean isCullFaceEnabled ()
+    public int getCullFace ()
     {
-        return _cullFaceEnabled;
+        return _cullFace;
     }
 
     @Override // documentation inherited
@@ -41,9 +64,19 @@ public class CullState extends RenderState
     @Override // documentation inherited
     public void apply (Renderer renderer)
     {
-        renderer.setCullState(_cullFaceEnabled);
+        renderer.setCullState(_cullFace);
     }
 
-    /** Whether or not back-face culling is enabled. */
-    protected boolean _cullFaceEnabled;
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        return other instanceof CullState &&
+            _cullFace == ((CullState)other)._cullFace;
+    }
+
+    /** The cull face (or -1 if disabled). */
+    protected int _cullFace = -1;
+
+    /** Shared instances. */
+    protected static HashIntMap<CullState> _instances;
 }

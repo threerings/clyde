@@ -57,6 +57,18 @@ public class TextureUnitConfig extends DeepObject
     public Transform transform = new Transform();
 
     /**
+     * Checks whether the unit configuration is supported.
+     */
+    public boolean isSupported ()
+    {
+        return environment.isSupported() &&
+            (coordGenS == null || coordGenS.isSupported()) &&
+            (coordGenT == null || coordGenT.isSupported()) &&
+            (coordGenR == null || coordGenR.isSupported()) &&
+            (coordGenQ == null || coordGenQ.isSupported());
+    }
+
+    /**
      * Creates the texture unit corresponding to this configuration.
      */
     public TextureUnit createUnit ()

@@ -74,8 +74,8 @@ public class NumberEditor extends PropertyEditor
     }
 
     /**
-        * Converts a double value to a value of the property's type.
-        */
+     * Converts a double value to a value of the property's type.
+     */
     protected Number fromDouble (double value)
     {
         Class type = _property.getType();

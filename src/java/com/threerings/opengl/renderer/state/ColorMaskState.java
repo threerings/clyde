@@ -3,10 +3,9 @@
 
 package com.threerings.opengl.renderer.state;
 
-import java.util.HashMap;
+import com.samskivert.util.HashIntMap;
 
 import com.threerings.opengl.renderer.Renderer;
-import com.threerings.opengl.util.GlUtil;
 
 /**
  * Contains the color mask state.
@@ -27,9 +26,10 @@ public class ColorMaskState extends RenderState
         boolean red, boolean green, boolean blue, boolean alpha)
     {
         if (_instances == null) {
-            _instances = new HashMap<Object, ColorMaskState>();
+            _instances = new HashIntMap<ColorMaskState>();
         }
-        Object key = GlUtil.createKey(red, green, blue, alpha);
+        int key = (red ? 1 : 0) << 3 | (green ? 1 : 0) << 2 |
+            (blue ? 1 : 0) << 1 | (alpha ? 1 : 0) << 0;
         ColorMaskState instance = _instances.get(key);
         if (instance == null) {
             _instances.put(key, instance = new ColorMaskState(red, green, blue, alpha));
@@ -96,5 +96,5 @@ public class ColorMaskState extends RenderState
     protected boolean _red, _green, _blue, _alpha;
 
     /** Shared instances. */
-    protected static HashMap<Object, ColorMaskState> _instances;
+    protected static HashIntMap<ColorMaskState> _instances;
 }

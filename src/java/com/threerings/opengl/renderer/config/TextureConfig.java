@@ -45,9 +45,9 @@ public class TextureConfig extends ParameterizedConfig
         COMPRESSED_RGBA(ARBTextureCompression.GL_COMPRESSED_RGBA_ARB, true),
         DEPTH_COMPONENT(GL11.GL_DEPTH_COMPONENT, false, true);
 
-        public int getGLConstant ()
+        public int getConstant ()
         {
-            return _glConstant;
+            return _constant;
         }
 
         public boolean isSupported ()
@@ -56,24 +56,24 @@ public class TextureConfig extends ParameterizedConfig
                 (!_depth || GLContext.getCapabilities().GL_ARB_depth_texture);
         }
 
-        Format (int glConstant)
+        Format (int constant)
         {
-            this(glConstant, false);
+            this(constant, false);
         }
 
-        Format (int glConstant, boolean compressed)
+        Format (int constant, boolean compressed)
         {
-            this(glConstant, compressed, false);
+            this(constant, compressed, false);
         }
 
-        Format (int glConstant, boolean compressed, boolean depth)
+        Format (int constant, boolean compressed, boolean depth)
         {
-            _glConstant = glConstant;
+            _constant = constant;
             _compressed = compressed;
             _depth = depth;
         }
 
-        protected int _glConstant;
+        protected int _constant;
         protected boolean _compressed;
         protected boolean _depth;
     }
@@ -88,17 +88,17 @@ public class TextureConfig extends ParameterizedConfig
         NEAREST_MIPMAP_LINEAR(GL11.GL_NEAREST_MIPMAP_LINEAR),
         LINEAR_MIPMAP_LINEAR(GL11.GL_LINEAR_MIPMAP_LINEAR);
 
-        public int getGLConstant ()
+        public int getConstant ()
         {
-            return _glConstant;
+            return _constant;
         }
 
-        MinFilter (int glConstant)
+        MinFilter (int constant)
         {
-            _glConstant = glConstant;
+            _constant = constant;
         }
 
-        protected int _glConstant;
+        protected int _constant;
     }
 
     /** Magnification filter constants. */
@@ -107,17 +107,17 @@ public class TextureConfig extends ParameterizedConfig
         NEAREST(GL11.GL_NEAREST),
         LINEAR(GL11.GL_LINEAR);
 
-        public int getGLConstant ()
+        public int getConstant ()
         {
-            return _glConstant;
+            return _constant;
         }
 
-        MagFilter (int glConstant)
+        MagFilter (int constant)
         {
-            _glConstant = glConstant;
+            _constant = constant;
         }
 
-        protected int _glConstant;
+        protected int _constant;
     }
 
     /** Wrap constants. */
@@ -141,9 +141,9 @@ public class TextureConfig extends ParameterizedConfig
             }
         };
 
-        public int getGLConstant ()
+        public int getConstant ()
         {
-            return _glConstant;
+            return _constant;
         }
 
         public boolean isSupported ()
@@ -151,12 +151,12 @@ public class TextureConfig extends ParameterizedConfig
             return true;
         }
 
-        Wrap (int glConstant)
+        Wrap (int constant)
         {
-            _glConstant = glConstant;
+            _constant = constant;
         }
 
-        protected int _glConstant;
+        protected int _constant;
     }
 
     /** Compare mode constants. */
@@ -169,9 +169,9 @@ public class TextureConfig extends ParameterizedConfig
             }
         };
 
-        public int getGLConstant ()
+        public int getConstant ()
         {
-            return _glConstant;
+            return _constant;
         }
 
         public boolean isSupported ()
@@ -179,12 +179,12 @@ public class TextureConfig extends ParameterizedConfig
             return true;
         }
 
-        CompareMode (int glConstant)
+        CompareMode (int constant)
         {
-            _glConstant = glConstant;
+            _constant = constant;
         }
 
-        protected int _glConstant;
+        protected int _constant;
     }
 
     /** Compare function constants. */
@@ -193,17 +193,17 @@ public class TextureConfig extends ParameterizedConfig
         LEQUAL(GL11.GL_LEQUAL),
         GEQUAL(GL11.GL_GEQUAL);
 
-        public int getGLConstant ()
+        public int getConstant ()
         {
-            return _glConstant;
+            return _constant;
         }
 
-        CompareFunc (int glConstant)
+        CompareFunc (int constant)
         {
-            _glConstant = glConstant;
+            _constant = constant;
         }
 
-        protected int _glConstant;
+        protected int _constant;
     }
 
     /** Depth mode constants. */
@@ -213,17 +213,17 @@ public class TextureConfig extends ParameterizedConfig
         INTENSITY(GL11.GL_INTENSITY),
         ALPHA(GL11.GL_ALPHA);
 
-        public int getGLConstant ()
+        public int getConstant ()
         {
-            return _glConstant;
+            return _constant;
         }
 
-        DepthMode (int glConstant)
+        DepthMode (int constant)
         {
-            _glConstant = glConstant;
+            _constant = constant;
         }
 
-        protected int _glConstant;
+        protected int _constant;
     }
 
     /**
@@ -241,6 +241,11 @@ public class TextureConfig extends ParameterizedConfig
                 Original1D.class, Original2D.class, OriginalRectangle.class,
                 Original3D.class, OriginalCubeMap.class, Derived.class };
         }
+
+        /**
+         * Determines whether this configuration is supported by the hardware.
+         */
+        public abstract boolean isSupported ();
     }
 
     /**
@@ -296,6 +301,14 @@ public class TextureConfig extends ParameterizedConfig
         /** The depth texture mode. */
         @Editable(category="compare")
         public DepthMode depthMode = DepthMode.LUMINANCE;
+
+        @Override // documentation inherited
+        public boolean isSupported ()
+        {
+            return format.isSupported() &&
+                wrapS.isSupported() && wrapT.isSupported() && wrapR.isSupported() &&
+                compareMode.isSupported();
+        }
     }
 
     /**
@@ -524,6 +537,12 @@ public class TextureConfig extends ParameterizedConfig
         /** The derived reference. */
         @Editable
         public ConfigReference<TextureConfig> base;
+
+        @Override // documentation inherited
+        public boolean isSupported ()
+        {
+            return true;
+        }
     }
 
     /** The actual texture implementation. */

@@ -15,6 +15,15 @@ public class ColorState extends RenderState
     public static final ColorState WHITE = new ColorState(Color4f.WHITE);
 
     /**
+     * If there is a shared instance with the supplied parameters, returns a reference to it;
+     * otherwise, returns a new state with the parameters.
+     */
+    public static ColorState getInstance (Color4f color)
+    {
+        return getInstance(new ColorState(color));
+    }
+
+    /**
      * If there is a shared equivalent to the specified state, this method will return the shared
      * state; otherwise, it will simply return the parameter.
      */

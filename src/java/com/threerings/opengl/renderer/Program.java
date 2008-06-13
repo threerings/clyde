@@ -19,6 +19,8 @@ import org.lwjgl.opengl.GL11;
 import com.samskivert.util.HashIntMap;
 
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Vector3f;
+import com.threerings.math.Vector4f;
 
 import static com.threerings.opengl.Log.*;
 
@@ -68,7 +70,7 @@ public class Program extends ShaderObject
     /**
      * A uniform containing an integer.
      */
-    public static class UniformInteger extends Uniform
+    public static class IntegerUniform extends Uniform
     {
         /** The integer value. */
         public int value;
@@ -76,9 +78,18 @@ public class Program extends ShaderObject
         /**
          * Creates a new integer uniform with the specified location.
          */
-        public UniformInteger (int location)
+        public IntegerUniform (int location)
         {
             super(location);
+        }
+
+        /**
+         * Creates a new integer uniform with the specified location and value.
+         */
+        public IntegerUniform (int location, int value)
+        {
+            super(location);
+            this.value = value;
         }
 
         @Override // documentation inherited
@@ -90,8 +101,8 @@ public class Program extends ShaderObject
         @Override // documentation inherited
         public Uniform clone (Uniform uniform)
         {
-            UniformInteger clone = (uniform instanceof UniformInteger) ?
-                ((UniformInteger)uniform) : new UniformInteger(_location);
+            IntegerUniform clone = (uniform instanceof IntegerUniform) ?
+                ((IntegerUniform)uniform) : new IntegerUniform(_location);
             clone.value = value;
             return clone;
         }
@@ -99,15 +110,159 @@ public class Program extends ShaderObject
         @Override // documentation inherited
         public boolean equals (Object other)
         {
-            return other instanceof UniformInteger &&
-                ((UniformInteger)other).value == value;
+            return other instanceof IntegerUniform &&
+                ((IntegerUniform)other).value == value;
+        }
+    }
+
+    /**
+     * A uniform containing a float.
+     */
+    public static class FloatUniform extends Uniform
+    {
+        /** The float value. */
+        public float value;
+
+        /**
+         * Creates a new float uniform with the specified location.
+         */
+        public FloatUniform (int location)
+        {
+            super(location);
+        }
+
+        /**
+         * Creates a new float uniform with the specified location and value.
+         */
+        public FloatUniform (int location, float value)
+        {
+            super(location);
+            this.value = value;
+        }
+
+        @Override // documentation inherited
+        public void apply ()
+        {
+            ARBShaderObjects.glUniform1fARB(_location, value);
+        }
+
+        @Override // documentation inherited
+        public Uniform clone (Uniform uniform)
+        {
+            FloatUniform clone = (uniform instanceof FloatUniform) ?
+                ((FloatUniform)uniform) : new FloatUniform(_location);
+            clone.value = value;
+            return clone;
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            return other instanceof FloatUniform &&
+                ((FloatUniform)other).value == value;
+        }
+    }
+
+    /**
+     * A uniform containing a three-element vector.
+     */
+    public static class Vector3fUniform extends Uniform
+    {
+        /** The vector value. */
+        public Vector3f value = new Vector3f();
+
+        /**
+         * Creates a new vector uniform with the specified location.
+         */
+        public Vector3fUniform (int location)
+        {
+            super(location);
+        }
+
+        /**
+         * Creates a new vector uniform with the specified location and value.
+         */
+        public Vector3fUniform (int location, Vector3f value)
+        {
+            super(location);
+            this.value.set(value);
+        }
+
+        @Override // documentation inherited
+        public void apply ()
+        {
+            ARBShaderObjects.glUniform3fARB(_location, value.x, value.y, value.z);
+        }
+
+        @Override // documentation inherited
+        public Uniform clone (Uniform uniform)
+        {
+            Vector3fUniform clone = (uniform instanceof Vector3fUniform) ?
+                ((Vector3fUniform)uniform) : new Vector3fUniform(_location);
+            clone.value.set(value);
+            return clone;
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            return other instanceof Vector3fUniform &&
+                ((Vector3fUniform)other).value.equals(value);
+        }
+    }
+
+    /**
+     * A uniform containing a four-element vector.
+     */
+    public static class Vector4fUniform extends Uniform
+    {
+        /** The vector value. */
+        public Vector4f value = new Vector4f();
+
+        /**
+         * Creates a new vector uniform with the specified location.
+         */
+        public Vector4fUniform (int location)
+        {
+            super(location);
+        }
+
+        /**
+         * Creates a new vector uniform with the specified location and value.
+         */
+        public Vector4fUniform (int location, Vector4f value)
+        {
+            super(location);
+            this.value.set(value);
+        }
+
+        @Override // documentation inherited
+        public void apply ()
+        {
+            ARBShaderObjects.glUniform4fARB(_location, value.x, value.y, value.z, value.w);
+        }
+
+        @Override // documentation inherited
+        public Uniform clone (Uniform uniform)
+        {
+            Vector4fUniform clone = (uniform instanceof Vector4fUniform) ?
+                ((Vector4fUniform)uniform) : new Vector4fUniform(_location);
+            clone.value.set(value);
+            return clone;
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            return other instanceof Vector4fUniform &&
+                ((Vector4fUniform)other).value.equals(value);
         }
     }
 
     /**
      * A uniform containing a 4x4 matrix.
      */
-    public static class UniformMatrix4f extends Uniform
+    public static class Matrix4fUniform extends Uniform
     {
         /** The matrix value. */
         public Matrix4f value = new Matrix4f();
@@ -115,9 +270,18 @@ public class Program extends ShaderObject
         /**
          * Creates a new matrix uniform with the specified location.
          */
-        public UniformMatrix4f (int location)
+        public Matrix4fUniform (int location)
         {
             super(location);
+        }
+
+        /**
+         * Creates a new matrix uniform with the specified location and value.
+         */
+        public Matrix4fUniform (int location, Matrix4f value)
+        {
+            super(location);
+            this.value.set(value);
         }
 
         @Override // documentation inherited
@@ -130,8 +294,8 @@ public class Program extends ShaderObject
         @Override // documentation inherited
         public Uniform clone (Uniform uniform)
         {
-            UniformMatrix4f clone = (uniform instanceof UniformMatrix4f) ?
-                ((UniformMatrix4f)uniform) : new UniformMatrix4f(_location);
+            Matrix4fUniform clone = (uniform instanceof Matrix4fUniform) ?
+                ((Matrix4fUniform)uniform) : new Matrix4fUniform(_location);
             clone.value.set(value);
             return clone;
         }
@@ -139,8 +303,8 @@ public class Program extends ShaderObject
         @Override // documentation inherited
         public boolean equals (Object other)
         {
-            return other instanceof UniformMatrix4f &&
-                ((UniformMatrix4f)other).value.equals(value);
+            return other instanceof Matrix4fUniform &&
+                ((Matrix4fUniform)other).value.equals(value);
         }
     }
 

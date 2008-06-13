@@ -35,6 +35,38 @@ public class AlphaState extends RenderState
         new AlphaState(GL11.GL_ALWAYS, 0f, GL11.GL_ONE, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
     /**
+     * If there is a shared instance with the supplied parameters, returns a reference to it;
+     * otherwise, returns a new state with the parameters.
+     */
+    public static AlphaState getInstance (
+        int alphaTestFunc, float alphaTestRef, int srcBlendFactor, int destBlendFactor)
+    {
+        return getInstance(new AlphaState(
+            alphaTestFunc, alphaTestRef, srcBlendFactor, destBlendFactor));
+    }
+
+    /**
+     * If there is a shared equivalent to the specified state, this method will return the shared
+     * state; otherwise, it will simply return the parameter.
+     */
+    public static AlphaState getInstance (AlphaState state)
+    {
+        if (state.equals(OPAQUE)) {
+            return OPAQUE;
+        } else if (state.equals(MASKED)) {
+            return MASKED;
+        } else if (state.equals(TRANSLUCENT)) {
+            return TRANSLUCENT;
+        } else if (state.equals(ADDITIVE)) {
+            return ADDITIVE;
+        } else if (state.equals(PREMULTIPLIED)) {
+            return PREMULTIPLIED;
+        } else {
+            return state;
+        }
+    }
+
+    /**
      * Returns an alpha state that only passes fragments with alpha values greater than or equal to
      * the supplied value, then blends them with the destination.  All requests for instances with
      * the same value will return the same object.
@@ -108,6 +140,17 @@ public class AlphaState extends RenderState
     public void apply (Renderer renderer)
     {
         renderer.setAlphaState(_alphaTestFunc, _alphaTestRef, _srcBlendFactor, _destBlendFactor);
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        AlphaState ostate;
+        return other instanceof AlphaState &&
+            _alphaTestFunc == (ostate = (AlphaState)other)._alphaTestFunc &&
+            _alphaTestRef == ostate._alphaTestRef &&
+            _srcBlendFactor == ostate._srcBlendFactor &&
+            _destBlendFactor == ostate._destBlendFactor;
     }
 
     /** The alpha test function. */

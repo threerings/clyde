@@ -423,11 +423,11 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     }
 
     /** The environment color. */
-    @Editable(mode="alpha")
+    @Editable(mode="alpha", hgroup="cl")
     public Color4f color = new Color4f(0f, 0f, 0f, 0f);
 
     /** The texture level of detail bias. */
-    @Editable(step=0.01)
+    @Editable(step=0.01, hgroup="cl")
     public float lodBias;
 
     public TextureEnvironmentConfig (TextureEnvironmentConfig other)

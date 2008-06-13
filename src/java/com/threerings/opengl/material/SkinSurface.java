@@ -18,7 +18,7 @@ import com.threerings.opengl.model.SkinMesh;
 import com.threerings.opengl.renderer.ClientArray;
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.Uniform;
-import com.threerings.opengl.renderer.Program.UniformMatrix4f;
+import com.threerings.opengl.renderer.Program.Matrix4fUniform;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.ArrayState;
@@ -49,7 +49,7 @@ public class SkinSurface extends DefaultSurface
             Uniform[] uniforms = new Uniform[_bones.length];
             for (int ii = 0; ii < _bones.length; ii++) {
                 int loc = program.getUniformLocation("boneMatrices[" + ii + "]");
-                uniforms[ii] = new UniformMatrix4f(loc);
+                uniforms[ii] = new Matrix4fUniform(loc);
             }
             _bbatch.getStates()[RenderState.SHADER_STATE] = new ShaderState(program, uniforms);
         }
@@ -71,7 +71,7 @@ public class SkinSurface extends DefaultSurface
         for (int ii = 0; ii < _bones.length; ii++) {
             _boneMatrices[ii] = shost.getBoneMatrix(_bones[ii]);
             if (uniforms != null) {
-                ((UniformMatrix4f)uniforms[ii]).value = _boneMatrices[ii];
+                ((Matrix4fUniform)uniforms[ii]).value = _boneMatrices[ii];
             }
         }
     }
@@ -85,7 +85,7 @@ public class SkinSurface extends DefaultSurface
         if (sstate != ShaderState.DISABLED) {
             Uniform[] uniforms = sstate.getUniforms();
             for (Uniform uniform : uniforms) {
-                UniformMatrix4f unif = (UniformMatrix4f)uniform;
+                Matrix4fUniform unif = (Matrix4fUniform)uniform;
                 uniform.dirty = true;
             }
             sstate.setDirty(true);

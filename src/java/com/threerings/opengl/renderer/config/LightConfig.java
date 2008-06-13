@@ -25,7 +25,7 @@ public abstract class LightConfig extends DeepObject
     public static class Directional extends LightConfig
     {
         /** The direction of the light. */
-        @Editable(mode="normalized")
+        @Editable(mode="normalized", hgroup="p")
         public Vector3f direction = new Vector3f(0f, 0f, 1f);
 
         public Directional (LightConfig other)
@@ -52,28 +52,20 @@ public abstract class LightConfig extends DeepObject
     public static class Point extends LightConfig
     {
         /** The location of the light. */
-        @Editable
+        @Editable(hgroup="p")
         public Vector3f position = new Vector3f();
 
-        /** The constant attenutation. */
-        @Editable(min=0)
-        public float constantAttenuation = 1f;
-
-        /** The linear attenuation. */
-        @Editable(min=0)
-        public float linearAttenuation;
-
-        /** The quadratic attenutation. */
-        @Editable(min=0)
-        public float quadraticAttenuation;
+        /** The light's attenuation parameters. */
+        @Editable(nullable=false, hgroup="p")
+        public Attenuation attenuation = new Attenuation();
 
         public Point (Point other)
         {
             super(other);
             position.set(other.position);
-            constantAttenuation = other.constantAttenuation;
-            linearAttenuation = other.linearAttenuation;
-            quadraticAttenuation = other.quadraticAttenuation;
+            attenuation.constant = other.attenuation.constant;
+            attenuation.linear = other.attenuation.linear;
+            attenuation.quadratic = other.attenuation.quadratic;
         }
 
         public Point (LightConfig other)
@@ -90,9 +82,9 @@ public abstract class LightConfig extends DeepObject
         {
             Light light = super.createLight();
             light.position.set(position.x, position.y, position.z, 0f);
-            light.constantAttenuation = constantAttenuation;
-            light.linearAttenuation = linearAttenuation;
-            light.quadraticAttenuation = quadraticAttenuation;
+            light.constantAttenuation = attenuation.constant;
+            light.linearAttenuation = attenuation.linear;
+            light.quadraticAttenuation = attenuation.quadratic;
             return light;
         }
     }
@@ -103,16 +95,12 @@ public abstract class LightConfig extends DeepObject
     public static class Spot extends Point
     {
         /** The spot direction. */
-        @Editable(mode="normalized")
+        @Editable(mode="normalized", hgroup="d")
         public Vector3f direction = new Vector3f(0f, 0f, -1f);
 
-        /** The spot exponent. */
-        @Editable(min=0, max=128)
-        public float exponent;
-
-        /** The spot cutoff. */
-        @Editable(min=0, max=90)
-        public float cutoff;
+        /** The falloff parameters. */
+        @Editable(nullable=false, hgroup="d")
+        public Falloff falloff = new Falloff();
 
         public Spot (Point other)
         {
@@ -133,10 +121,63 @@ public abstract class LightConfig extends DeepObject
         {
             Light light = super.createLight();
             light.spotDirection.set(direction);
-            light.spotExponent = exponent;
-            light.spotCutoff = cutoff;
+            light.spotExponent = falloff.exponent;
+            light.spotCutoff = falloff.cutoff;
             return light;
         }
+    }
+
+    /**
+     * Represents the colors of the light.
+     */
+    public static class Colors extends DeepObject
+        implements Exportable
+    {
+        /** The ambient light color. */
+        @Editable
+        public Color4f ambient = new Color4f(0f, 0f, 0f, 1f);
+
+        /** The diffuse light color. */
+        @Editable
+        public Color4f diffuse = new Color4f(1f, 1f, 1f, 1f);
+
+        /** The specular light color. */
+        @Editable
+        public Color4f specular = new Color4f(1f, 1f, 1f, 1f);
+    }
+
+    /**
+     * Represents the light's attenuation coefficients.
+     */
+    public static class Attenuation extends DeepObject
+        implements Exportable
+    {
+        /** The constant attenutation. */
+        @Editable(min=0, step=0.01)
+        public float constant = 1f;
+
+        /** The linear attenuation. */
+        @Editable(min=0, step=0.01)
+        public float linear;
+
+        /** The quadratic attenutation. */
+        @Editable(min=0, step=0.01)
+        public float quadratic;
+    }
+
+    /**
+     * Represents the spot light falloff.
+     */
+    public static class Falloff extends DeepObject
+        implements Exportable
+    {
+        /** The falloff exponent. */
+        @Editable(min=0, max=128)
+        public float exponent;
+
+        /** The falloff cutoff. */
+        @Editable(min=0, max=90)
+        public float cutoff;
     }
 
     /**
@@ -147,23 +188,15 @@ public abstract class LightConfig extends DeepObject
         return new Class[] { Directional.class, Point.class, Spot.class };
     }
 
-    /** The ambient light intensity. */
-    @Editable
-    public Color4f ambient = new Color4f(0f, 0f, 0f, 1f);
-
-    /** The diffuse light intensity. */
-    @Editable
-    public Color4f diffuse = new Color4f(1f, 1f, 1f, 1f);
-
-    /** The specular light intensity. */
-    @Editable
-    public Color4f specular = new Color4f(1f, 1f, 1f, 1f);
+    /** The color of the light. */
+    @Editable(nullable=false, hgroup="p")
+    public Colors colors = new Colors();
 
     public LightConfig (LightConfig other)
     {
-        ambient.set(other.ambient);
-        diffuse.set(other.diffuse);
-        specular.set(other.specular);
+        colors.ambient.set(other.colors.ambient);
+        colors.diffuse.set(other.colors.diffuse);
+        colors.specular.set(other.colors.specular);
     }
 
     public LightConfig ()
@@ -176,9 +209,9 @@ public abstract class LightConfig extends DeepObject
     public Light createLight ()
     {
         Light light = new Light();
-        light.ambient.set(ambient);
-        light.diffuse.set(diffuse);
-        light.specular.set(specular);
+        light.ambient.set(colors.ambient);
+        light.diffuse.set(colors.diffuse);
+        light.specular.set(colors.specular);
         return light;
     }
 }

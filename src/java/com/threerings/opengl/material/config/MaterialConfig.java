@@ -21,7 +21,7 @@ public class MaterialConfig extends ParameterizedConfig
     {
         /** The passes used to render the material. */
         @Editable(nullable=false)
-        public Pass[] passes = new Pass[0];
+        public PassConfig[] passes = new PassConfig[0];
     }
 
     /** The actual implementation of this material. */

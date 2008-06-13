@@ -43,7 +43,7 @@ public class DefaultSurface extends Surface
         // enable or disable culling for polygonal geometry
         if (geom.isPolygonal()) {
             states[RenderState.CULL_STATE] =
-                geom.isSolid() ? CullState.ENABLED : CullState.DISABLED;
+                geom.isSolid() ? CullState.BACK_FACE : CullState.DISABLED;
         }
 
         // set the batch's state key
@@ -85,7 +85,7 @@ public class DefaultSurface extends Surface
             states[RenderState.MATERIAL_STATE] = null;
         } else {
             MaterialState mstate = _host.getMaterialState();
-            alpha = mstate.getDiffuse().a;
+            alpha = mstate.getFrontDiffuse().a;
             states[RenderState.COLOR_STATE] = null;
             states[RenderState.MATERIAL_STATE] = MaterialState.getInstance(mstate);
         }

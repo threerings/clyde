@@ -764,11 +764,17 @@ public class Renderer
     /**
      * Sets the back-face culling state.
      */
-    public void setCullState (boolean cullFaceEnabled)
+    public void setCullState (int cullFace)
     {
+        // clear any cached reference
+        _states[RenderState.CULL_STATE] = null;
+
+        boolean cullFaceEnabled = (cullFace != -1);
         if (_cullFaceEnabled != Boolean.valueOf(cullFaceEnabled)) {
             setCapability(GL11.GL_CULL_FACE, _cullFaceEnabled = cullFaceEnabled);
-            _states[RenderState.CULL_STATE] = null;
+        }
+        if (cullFaceEnabled && _cullFace != cullFace) {
+            GL11.glCullFace(_cullFace = cullFace);
         }
     }
 
@@ -778,6 +784,7 @@ public class Renderer
     public void invalidateCullState ()
     {
         _cullFaceEnabled = null;
+        _cullFace = -1;
         _states[RenderState.CULL_STATE] = null;
     }
 
@@ -990,29 +997,81 @@ public class Renderer
      * Sets the material state.
      */
     public void setMaterialState (
-        Color4f ambient, Color4f diffuse, Color4f specular, Color4f emission, float shininess)
+        Color4f frontAmbient, Color4f frontDiffuse, Color4f frontSpecular, Color4f frontEmission,
+            float frontShininess,
+        Color4f backAmbient, Color4f backDiffuse, Color4f backSpecular, Color4f backEmission,
+            float backShininess,
+        int colorMaterialMode, int colorMaterialFace,
+        boolean twoSide, boolean localViewer, boolean separateSpecular, boolean flatShading)
     {
         // invalidate any cached reference
         _states[RenderState.MATERIAL_STATE] = null;
 
-        if (!_ambient.equals(ambient)) {
-            _ambient.set(ambient).get(_vbuf).rewind();
+        if (!_frontAmbient.equals(frontAmbient)) {
+            _frontAmbient.set(frontAmbient).get(_vbuf).rewind();
             GL11.glMaterial(GL11.GL_FRONT, GL11.GL_AMBIENT, _vbuf);
         }
-        if (!_diffuse.equals(diffuse)) {
-            _diffuse.set(diffuse).get(_vbuf).rewind();
+        if (!_frontDiffuse.equals(frontDiffuse)) {
+            _frontDiffuse.set(frontDiffuse).get(_vbuf).rewind();
             GL11.glMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE, _vbuf);
         }
-        if (!_specular.equals(specular)) {
-            _specular.set(specular).get(_vbuf).rewind();
+        if (!_frontSpecular.equals(frontSpecular)) {
+            _frontSpecular.set(frontSpecular).get(_vbuf).rewind();
             GL11.glMaterial(GL11.GL_FRONT, GL11.GL_SPECULAR, _vbuf);
         }
-        if (!_emission.equals(emission)) {
-            _emission.set(emission).get(_vbuf).rewind();
+        if (!_frontEmission.equals(frontEmission)) {
+            _frontEmission.set(frontEmission).get(_vbuf).rewind();
             GL11.glMaterial(GL11.GL_FRONT, GL11.GL_EMISSION, _vbuf);
         }
-        if (_shininess != shininess) {
-            GL11.glMaterialf(GL11.GL_FRONT, GL11.GL_SHININESS, _shininess = shininess);
+        if (_frontShininess != frontShininess) {
+            GL11.glMaterialf(GL11.GL_FRONT, GL11.GL_SHININESS, _frontShininess = frontShininess);
+        }
+        if (twoSide) {
+            if (!_backAmbient.equals(backAmbient)) {
+                _backAmbient.set(backAmbient).get(_vbuf).rewind();
+                GL11.glMaterial(GL11.GL_BACK, GL11.GL_AMBIENT, _vbuf);
+            }
+            if (!_backDiffuse.equals(backDiffuse)) {
+                _backDiffuse.set(backDiffuse).get(_vbuf).rewind();
+                GL11.glMaterial(GL11.GL_BACK, GL11.GL_DIFFUSE, _vbuf);
+            }
+            if (!_backSpecular.equals(backSpecular)) {
+                _backSpecular.set(backSpecular).get(_vbuf).rewind();
+                GL11.glMaterial(GL11.GL_BACK, GL11.GL_SPECULAR, _vbuf);
+            }
+            if (!_backEmission.equals(backEmission)) {
+                _backEmission.set(backEmission).get(_vbuf).rewind();
+                GL11.glMaterial(GL11.GL_BACK, GL11.GL_EMISSION, _vbuf);
+            }
+            if (_backShininess != backShininess) {
+                GL11.glMaterialf(GL11.GL_BACK, GL11.GL_SHININESS, _backShininess = backShininess);
+            }
+        }
+
+        boolean colorMaterialEnabled = (colorMaterialMode != -1);
+        if (_colorMaterialEnabled != Boolean.valueOf(colorMaterialEnabled)) {
+            setCapability(GL11.GL_COLOR_MATERIAL, _colorMaterialEnabled = colorMaterialEnabled);
+        }
+        if (colorMaterialEnabled && (_colorMaterialFace != colorMaterialFace ||
+                _colorMaterialMode != colorMaterialMode)) {
+            GL11.glColorMaterial(
+                _colorMaterialFace = colorMaterialFace, _colorMaterialMode = colorMaterialMode);
+        }
+
+        if (_twoSide != Boolean.valueOf(twoSide)) {
+            GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, (_twoSide = twoSide) ? 1 : 0);
+        }
+        if (_localViewer != Boolean.valueOf(localViewer)) {
+            GL11.glLightModeli(GL11.GL_LIGHT_MODEL_LOCAL_VIEWER,
+                (_localViewer = localViewer) ? 1 : 0);
+        }
+        if (_separateSpecular != Boolean.valueOf(separateSpecular)) {
+            GL11.glLightModeli(GL12.GL_LIGHT_MODEL_COLOR_CONTROL,
+                (_separateSpecular = separateSpecular) ?
+                    GL12.GL_SEPARATE_SPECULAR_COLOR : GL12.GL_SINGLE_COLOR);
+        }
+        if (_flatShading != Boolean.valueOf(flatShading)) {
+            GL11.glShadeModel((_flatShading = flatShading) ? GL11.GL_FLAT : GL11.GL_SMOOTH);
         }
     }
 
@@ -1021,7 +1080,11 @@ public class Renderer
      */
     public void invalidateMaterialState ()
     {
-        _ambient.a = _diffuse.a = _specular.a = _emission.a = _shininess = -1f;
+        _frontAmbient.a = _frontDiffuse.a = _frontSpecular.a = _frontEmission.a = -1f;
+        _backAmbient.a = _backDiffuse.a = _backSpecular.a = _backEmission.a = -1f;
+        _frontShininess = _backShininess = -1f;
+        _colorMaterialEnabled = _twoSide = _localViewer = _separateSpecular = _flatShading = null;
+        _colorMaterialFace = _colorMaterialMode = -1;
         _states[RenderState.MATERIAL_STATE] = null;
     }
 
@@ -2199,8 +2262,11 @@ public class Renderer
     /** The current color mask state. */
     protected Boolean _redMask = true, _greenMask = true, _blueMask = true, _alphaMask = true;
 
-    /** Whether or not back-facing polygons are currently being culled. */
+    /** Whether or not face culling is enabled. */
     protected Boolean _cullFaceEnabled = false;
+
+    /** The cull face. */
+    protected int _cullFace = GL11.GL_BACK;
 
     /** Whether or not depth testing is enabled. */
     protected Boolean _depthTestEnabled = false;
@@ -2241,20 +2307,56 @@ public class Renderer
     /** The current global ambient intensity. */
     protected Color4f _globalAmbient = new Color4f(0.2f, 0.2f, 0.2f, 1f);
 
-    /** The current material's ambient color. */
-    protected Color4f _ambient = new Color4f(0.2f, 0.2f, 0.2f, 1f);
+    /** The current material's front ambient color. */
+    protected Color4f _frontAmbient = new Color4f(0.2f, 0.2f, 0.2f, 1f);
 
-    /** The current material's diffuse color. */
-    protected Color4f _diffuse = new Color4f(0.8f, 0.8f, 0.8f, 1f);
+    /** The current material's front diffuse color. */
+    protected Color4f _frontDiffuse = new Color4f(0.8f, 0.8f, 0.8f, 1f);
 
-    /** The current material's specular color. */
-    protected Color4f _specular = new Color4f(0f, 0f, 0f, 1f);
+    /** The current material's front specular color. */
+    protected Color4f _frontSpecular = new Color4f(0f, 0f, 0f, 1f);
 
-    /** The current material's emissive color. */
-    protected Color4f _emission = new Color4f(0f, 0f, 0f, 1f);
+    /** The current material's front emissive color. */
+    protected Color4f _frontEmission = new Color4f(0f, 0f, 0f, 1f);
 
-    /** The current material's shininess. */
-    protected float _shininess = 0f;
+    /** The current material's front shininess. */
+    protected float _frontShininess = 0f;
+
+    /** The current material's back ambient color. */
+    protected Color4f _backAmbient = new Color4f(0.2f, 0.2f, 0.2f, 1f);
+
+    /** The current material's back diffuse color. */
+    protected Color4f _backDiffuse = new Color4f(0.8f, 0.8f, 0.8f, 1f);
+
+    /** The current material's back specular color. */
+    protected Color4f _backSpecular = new Color4f(0f, 0f, 0f, 1f);
+
+    /** The current material's back emissive color. */
+    protected Color4f _backEmission = new Color4f(0f, 0f, 0f, 1f);
+
+    /** The current material's back shininess. */
+    protected float _backShininess = 0f;
+
+    /** Whether or not color material tracking is enabled. */
+    protected Boolean _colorMaterialEnabled = false;
+
+    /** The color material face. */
+    protected int _colorMaterialFace = GL11.GL_FRONT_AND_BACK;
+
+    /** The color material mode. */
+    protected int _colorMaterialMode = GL11.GL_AMBIENT_AND_DIFFUSE;
+
+    /** Whether or not two-sided lighting is enabled. */
+    protected Boolean _twoSide = false;
+
+    /** Whether or not specular colors are calculated using a local viewer model. */
+    protected Boolean _localViewer = false;
+
+    /** Whether or not specular highlights are applied as a separate pass. */
+    protected Boolean _separateSpecular = false;
+
+    /** Whether or not we are using flat shading. */
+    protected Boolean _flatShading = false;
 
     /** The currently bound shader program. */
     protected Program _program;
