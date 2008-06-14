@@ -377,7 +377,7 @@ public class CharacterTextFactory extends TextFactory
         public GlyphTexture (Renderer renderer)
         {
             _texture = new Texture2D(renderer);
-            _texture.setImage(GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE);
+            _texture.setImage(GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false, false);
             _texture.setMinFilter(GL11.GL_LINEAR);
             _units = new TextureUnit[] { new TextureUnit(_texture) };
         }

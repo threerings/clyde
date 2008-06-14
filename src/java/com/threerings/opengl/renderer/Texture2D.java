@@ -54,16 +54,25 @@ public class Texture2D extends Texture
     /**
      * Sets this texture to an empty image with the specified format and dimensions.
      */
-    public void setImage (int format, int width, int height)
+    public void setImage (int format, int width, int height, boolean border, boolean mipmap)
     {
         if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
             width = nextPOT(width);
             height = nextPOT(height);
         }
         _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
         GL11.glTexImage2D(
-            _target, 0, format, _width = width, _height = height,
-            0, _format = format, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            _target, 0, _format = format, (_width = width) + ib2, (_height = height) + ib2, ib,
+            GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+        if (mipmap && !isRectangle()) {
+            int level = 1;
+            while ((width >>= 1) > 0 && (height >>= 1) > 0) {
+                GL11.glTexImage2D(
+                    _target, level++, format, width + ib2, height + ib2, ib,
+                    GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            }
+        }
     }
 
     /**

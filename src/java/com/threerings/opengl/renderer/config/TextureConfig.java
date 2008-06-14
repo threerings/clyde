@@ -3,6 +3,10 @@
 
 package com.threerings.opengl.renderer.config;
 
+import java.awt.image.BufferedImage;
+
+import java.lang.ref.SoftReference;
+
 import org.lwjgl.opengl.ARBShadow;
 import org.lwjgl.opengl.ARBTextureBorderClamp;
 import org.lwjgl.opengl.ARBTextureCompression;
@@ -20,6 +24,11 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Texture;
+import com.threerings.opengl.renderer.Texture1D;
+import com.threerings.opengl.renderer.Texture2D;
+import com.threerings.opengl.renderer.Texture3D;
+import com.threerings.opengl.renderer.TextureCubeMap;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Texture metadata.
@@ -29,8 +38,26 @@ public class TextureConfig extends ParameterizedConfig
     /** Format constants. */
     public enum Format
     {
-        DEFAULT(-1),
-        COMPRESSED_DEFAULT(-1),
+        DEFAULT(-1) {
+            public int getConstant (int comps) {
+                switch (comps) {
+                    case 1: return GL11.GL_LUMINANCE;
+                    case 2: return GL11.GL_LUMINANCE_ALPHA;
+                    case 3: return GL11.GL_RGB;
+                    default: return GL11.GL_RGBA;
+                }
+            }
+        },
+        COMPRESSED_DEFAULT(-1, true) {
+            public int getConstant (int comps) {
+                switch (comps) {
+                    case 1: return ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ARB;
+                    case 2: return ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
+                    case 3: return ARBTextureCompression.GL_COMPRESSED_RGB_ARB;
+                    default: return ARBTextureCompression.GL_COMPRESSED_RGBA_ARB;
+                }
+            }
+        },
         ALPHA(GL11.GL_ALPHA),
         COMPRESSED_ALPHA(ARBTextureCompression.GL_COMPRESSED_ALPHA_ARB, true),
         LUMINANCE(GL11.GL_LUMINANCE),
@@ -45,7 +72,13 @@ public class TextureConfig extends ParameterizedConfig
         COMPRESSED_RGBA(ARBTextureCompression.GL_COMPRESSED_RGBA_ARB, true),
         DEPTH_COMPONENT(GL11.GL_DEPTH_COMPONENT, false, true);
 
-        public int getConstant ()
+        /**
+         * Returns the OpenGL constant associated with this format.
+         *
+         * @param comps the number of components in the source image, or -1 if unknown (used for
+         * the default formats).
+         */
+        public int getConstant (int comps)
         {
             return _constant;
         }
@@ -81,24 +114,31 @@ public class TextureConfig extends ParameterizedConfig
     /** Minification filter constants. */
     public enum MinFilter
     {
-        NEAREST(GL11.GL_NEAREST),
-        LINEAR(GL11.GL_LINEAR),
-        NEAREST_MIPMAP_NEAREST(GL11.GL_NEAREST_MIPMAP_NEAREST),
-        LINEAR_MIPMAP_NEAREST(GL11.GL_LINEAR_MIPMAP_NEAREST),
-        NEAREST_MIPMAP_LINEAR(GL11.GL_NEAREST_MIPMAP_LINEAR),
-        LINEAR_MIPMAP_LINEAR(GL11.GL_LINEAR_MIPMAP_LINEAR);
+        NEAREST(GL11.GL_NEAREST, false),
+        LINEAR(GL11.GL_LINEAR, false),
+        NEAREST_MIPMAP_NEAREST(GL11.GL_NEAREST_MIPMAP_NEAREST, true),
+        LINEAR_MIPMAP_NEAREST(GL11.GL_LINEAR_MIPMAP_NEAREST, true),
+        NEAREST_MIPMAP_LINEAR(GL11.GL_NEAREST_MIPMAP_LINEAR, true),
+        LINEAR_MIPMAP_LINEAR(GL11.GL_LINEAR_MIPMAP_LINEAR, true);
 
         public int getConstant ()
         {
             return _constant;
         }
 
-        MinFilter (int constant)
+        public boolean isMipmapped ()
+        {
+            return _mipmapped;
+        }
+
+        MinFilter (int constant, boolean mipmapped)
         {
             _constant = constant;
+            _mipmapped = mipmapped;
         }
 
         protected int _constant;
+        protected boolean _mipmapped;
     }
 
     /** Magnification filter constants. */
@@ -246,6 +286,11 @@ public class TextureConfig extends ParameterizedConfig
          * Determines whether this configuration is supported by the hardware.
          */
         public abstract boolean isSupported ();
+
+        /**
+         * Returns the texture corresponding to this configuration.
+         */
+        public abstract Texture getTexture (GlContext ctx);
     }
 
     /**
@@ -309,6 +354,44 @@ public class TextureConfig extends ParameterizedConfig
                 wrapS.isSupported() && wrapT.isSupported() && wrapR.isSupported() &&
                 compareMode.isSupported();
         }
+
+        @Override // documentation inherited
+        public Texture getTexture (GlContext ctx)
+        {
+            Texture texture = (_texture == null) ? null : _texture.get();
+            if (texture == null) {
+                _texture = new SoftReference<Texture>(texture = createTexture(ctx));
+                load(ctx, texture);
+                update(texture);
+            }
+            return texture;
+        }
+
+        /**
+         * Creates the texture for this configuration.
+         */
+        protected abstract Texture createTexture (GlContext ctx);
+
+        /**
+         * Loads the texture with its initial contents.
+         */
+        protected abstract void load (GlContext ctx, Texture texture);
+
+        /**
+         * Updates the texture with the configuration parameters.
+         */
+        protected void update (Texture texture)
+        {
+            texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
+            texture.setMaxAnisotropy(maxAnisotropy);
+            texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
+            texture.setBorderColor(borderColor);
+            texture.setCompare(compareMode.getConstant(), compareFunc.getConstant());
+            texture.setDepthMode(depthMode.getConstant());
+        }
+
+        /** The texture corresponding to this configuration. */
+        protected transient SoftReference<Texture> _texture;
     }
 
     /**
@@ -322,6 +405,11 @@ public class TextureConfig extends ParameterizedConfig
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
+            /**
+             * Loads the texture with the contents.
+             */
+            public abstract void load (
+                GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap);
         }
 
         /**
@@ -332,6 +420,13 @@ public class TextureConfig extends ParameterizedConfig
             /** The width of the texture. */
             @Editable(min=1)
             public int width = 1;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap)
+            {
+                texture.setImage(format.getConstant(-1), width, border, mipmap);
+            }
         }
 
         /**
@@ -346,11 +441,34 @@ public class TextureConfig extends ParameterizedConfig
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap)
+            {
+                if (file == null) {
+                    return;
+                }
+                BufferedImage image = ctx.getTextureCache().getImage(file);
+
+            }
         }
 
         /** The initial contents of the texture. */
         @Editable(types={ Blank.class, ImageFile.class }, nullable=false, category="data")
         public Contents contents = new ImageFile();
+
+        @Override // documentation inherited
+        protected Texture createTexture (GlContext ctx)
+        {
+            return new Texture1D(ctx.getRenderer());
+        }
+
+        @Override // documentation inherited
+        protected void load (GlContext ctx, Texture texture)
+        {
+            contents.load(ctx, (Texture1D)texture, format, border, minFilter.isMipmapped());
+        }
     }
 
     /**
@@ -364,6 +482,11 @@ public class TextureConfig extends ParameterizedConfig
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
+            /**
+             * Loads the texture with the contents.
+             */
+            public abstract void load (
+                GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap);
         }
 
         /**
@@ -378,6 +501,13 @@ public class TextureConfig extends ParameterizedConfig
             /** The height of the texture. */
             @Editable(min=1, hgroup="d")
             public int height = 1;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
+            {
+                texture.setImage(format.getConstant(-1), width, height, border, mipmap);
+            }
         }
 
         /**
@@ -392,11 +522,29 @@ public class TextureConfig extends ParameterizedConfig
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
+            {
+            }
         }
 
         /** The initial contents of the texture. */
         @Editable(types={ Blank.class, ImageFile.class }, nullable=false, category="data")
         public Contents contents = new ImageFile();
+
+        @Override // documentation inherited
+        protected Texture createTexture (GlContext ctx)
+        {
+            return new Texture2D(ctx.getRenderer(), false);
+        }
+
+        @Override // documentation inherited
+        protected void load (GlContext ctx, Texture texture)
+        {
+            contents.load(ctx, (Texture2D)texture, format, border, minFilter.isMipmapped());
+        }
     }
 
     /**
@@ -404,6 +552,11 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class OriginalRectangle extends Original2D
     {
+        @Override // documentation inherited
+        protected Texture createTexture (GlContext ctx)
+        {
+            return new Texture2D(ctx.getRenderer(), true);
+        }
     }
 
     /**
@@ -417,6 +570,11 @@ public class TextureConfig extends ParameterizedConfig
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
+            /**
+             * Loads the texture with the contents.
+             */
+            public abstract void load (
+                GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap);
         }
 
         /**
@@ -435,6 +593,13 @@ public class TextureConfig extends ParameterizedConfig
             /** The depth of the texture. */
             @Editable(min=1, hgroup="d")
             public int depth = 1;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
+            {
+                texture.setImage(format.getConstant(-1), width, height, depth, border, mipmap);
+            }
         }
 
         /**
@@ -449,11 +614,29 @@ public class TextureConfig extends ParameterizedConfig
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
+            {
+            }
         }
 
         /** The initial contents of the texture. */
         @Editable(types={ Blank.class, ImageFile.class }, nullable=false, category="data")
         public Contents contents = new ImageFile();
+
+        @Override // documentation inherited
+        protected Texture createTexture (GlContext ctx)
+        {
+            return new Texture3D(ctx.getRenderer());
+        }
+
+        @Override // documentation inherited
+        protected void load (GlContext ctx, Texture texture)
+        {
+            contents.load(ctx, (Texture3D)texture, format, border, minFilter.isMipmapped());
+        }
     }
 
     /**
@@ -467,6 +650,12 @@ public class TextureConfig extends ParameterizedConfig
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
+            /**
+             * Loads the texture with the contents.
+             */
+            public abstract void load (
+                GlContext ctx, TextureCubeMap texture, Format format,
+                boolean border, boolean mipmap);
         }
 
         /**
@@ -477,6 +666,14 @@ public class TextureConfig extends ParameterizedConfig
             /** The size of the textures. */
             @Editable(min=1)
             public int size = 1;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, TextureCubeMap texture, Format format,
+                boolean border, boolean mipmap)
+            {
+                texture.setImages(format.getConstant(-1), size, border, mipmap);
+            }
         }
 
         /**
@@ -491,6 +688,13 @@ public class TextureConfig extends ParameterizedConfig
             /** The positive x, y, and z face files. */
             @Editable(nullable=false, hgroup="f")
             public FileTrio positive = new FileTrio();
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, TextureCubeMap texture, Format format,
+                boolean border, boolean mipmap)
+            {
+            }
         }
 
         /**
@@ -527,6 +731,18 @@ public class TextureConfig extends ParameterizedConfig
         /** The initial contents of the texture. */
         @Editable(types={ Blank.class, ImageFiles.class }, nullable=false, category="data")
         public Contents contents = new ImageFiles();
+
+        @Override // documentation inherited
+        protected Texture createTexture (GlContext ctx)
+        {
+            return new TextureCubeMap(ctx.getRenderer());
+        }
+
+        @Override // documentation inherited
+        protected void load (GlContext ctx, Texture texture)
+        {
+            contents.load(ctx, (TextureCubeMap)texture, format, border, minFilter.isMipmapped());
+        }
     }
 
     /**
@@ -534,18 +750,38 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Derived extends Implementation
     {
-        /** The derived reference. */
+        /** The texture reference. */
         @Editable
-        public ConfigReference<TextureConfig> base;
+        public ConfigReference<TextureConfig> texture;
 
         @Override // documentation inherited
         public boolean isSupported ()
         {
             return true;
         }
+
+        /**
+         * Returns the texture corresponding to this configuration.
+         */
+        public Texture getTexture (GlContext ctx)
+        {
+            if (texture == null) {
+                return null;
+            }
+            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
+            return (config == null) ? null : config.getTexture(ctx);
+        }
     }
 
     /** The actual texture implementation. */
     @Editable
     public Implementation implementation = new Original2D();
+
+    /**
+     * Returns the texture corresponding to this configuration.
+     */
+    public Texture getTexture (GlContext ctx)
+    {
+        return implementation.getTexture(ctx);
+    }
 }

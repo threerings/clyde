@@ -33,19 +33,28 @@ public class TextureCubeMap extends Texture
     }
 
     /**
-     * Sets this texture to an empty image with the specified format and dimensions.
-     *
-     * @param size the size (width and height) of each face.
+     * Sets this texture to a set of empty images with the specified format and dimension.
      */
-    public void setImages (int format, int size)
+    public void setImages (int format, int size, boolean border, boolean mipmap)
     {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             size = nextPOT(size);
         }
         _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
         for (int target : FACE_TARGETS) {
             GL11.glTexImage2D(
-                target, 0, format, size, size, 0, format, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+                target, 0, format, size + ib2, size + ib2, ib,
+                GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            if (mipmap) {
+                int level = 1;
+                int msize = size;
+                while ((msize >>= 1) > 0) {
+                    GL11.glTexImage2D(
+                        target, level++, format, msize + ib2, msize + ib2, ib,
+                        GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+                }
+            }
         }
         _size = size;
         _format = format;

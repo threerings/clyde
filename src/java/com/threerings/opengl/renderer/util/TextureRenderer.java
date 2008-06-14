@@ -46,10 +46,11 @@ public class TextureRenderer
             // attach the texture
             int dbits = pformat.getDepthBits();
             if (type == Type.DEPTH) {
-                _texture.setImage(getDepthFormat(dbits), width, height);
+                _texture.setImage(getDepthFormat(dbits), width, height, false, false);
                 _framebuffer.setDepthAttachment(_texture);
             } else {
-                _texture.setImage(type == Type.RGB ? GL11.GL_RGB : GL11.GL_RGBA, width, height);
+                _texture.setImage(
+                    type == Type.RGB ? GL11.GL_RGB : GL11.GL_RGBA, width, height, false, false);
                 _framebuffer.setColorAttachment(_texture);
             }
 

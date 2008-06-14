@@ -25,7 +25,8 @@ public class Texture3D extends Texture
     /**
      * Sets this texture to an empty image with the specified format and dimensions.
      */
-    public void setImage (int format, int width, int height, int depth)
+    public void setImage (
+        int format, int width, int height, int depth, boolean border, boolean mipmap)
     {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             width = nextPOT(width);
@@ -33,9 +34,19 @@ public class Texture3D extends Texture
             depth = nextPOT(depth);
         }
         _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
         GL12.glTexImage3D(
-            GL12.GL_TEXTURE_3D, 0, format, _width = width, _height = height,
-            _depth = depth, 0, _format = format, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            GL12.GL_TEXTURE_3D, 0, _format = format, (_width = width) + ib2,
+            (_height = height) + ib2, (_depth = depth) + ib2, ib, GL11.GL_RGBA,
+            GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+        if (mipmap) {
+            int level = 1;
+            while ((width >>= 1) > 0 && (height >>= 1) > 0 && (depth >>= 1) > 0) {
+                GL12.glTexImage3D(
+                    GL12.GL_TEXTURE_3D, level++, format, width + ib2, height + ib2, depth + ib2,
+                    ib, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            }
+        }
     }
 
     /**
