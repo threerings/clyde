@@ -46,6 +46,14 @@ public abstract class ManagedConfig extends DeepObject
         return _id;
     }
 
+    /**
+     * Returns the derived instance with the supplied arguments.
+     */
+    public ManagedConfig getInstance (ArgumentMap args)
+    {
+        return this;
+    }
+    
     /** The name of this configuration. */
     protected String _name;
 

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import com.samskivert.util.PropertiesUtil;
@@ -109,18 +110,6 @@ public class ConfigManager
         return _configPath;
     }
 
-    /**
-     * Retrieves a configuration by class and reference.  If the configuration is not found in this
-     * manager, the request will be forwarded to the parent, and so on.
-     *
-     * @return the requested configuration, or <code>null</code> if not found.
-     */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, ConfigReference<T> ref)
-    {
-        ConfigGroup<T> group = getGroup(clazz);
-        T config = (group == null) ? null : group.getConfig(ref);
-        return (config == null && _parent != null) ? _parent.getConfig(clazz, ref) : config;
-    }
 
     /**
      * Retrieves a configuration by class and name.  If the configuration is not found in this
@@ -130,11 +119,51 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
     {
-        ConfigGroup<T> group = getGroup(clazz);
-        T config = (group == null) ? null : group.getConfig(name);
-        return (config == null && _parent != null) ? _parent.getConfig(clazz, name) : config;
+        return getConfig(clazz, name, null);
     }
 
+    /**
+     * Retrieves a configuration by class and reference.  If the configuration is not found in this
+     * manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, ConfigReference<T> ref)
+    {
+        return getConfig(clazz, ref.getName(), ref.getArguments());
+    }
+    
+    /**
+     * Retrieves a configuration by class, name, and arguments.  If the configuration is not found
+     * in this manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (
+        Class<T> clazz, String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        return getConfig(clazz, name, createArgumentMap(firstKey, firstValue, otherArgs));
+    }
+    
+    /**
+     * Retrieves a configuration by class, name, and arguments.  If the configuration is not found
+     * in this manager, the request will be forwarded to the parent, and so on.
+     *
+     * @param args the configuration arguments, or <code>null</code> for none.
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, ArgumentMap args)
+    {
+        ConfigGroup<T> group = getGroup(clazz);
+        if (group != null) {
+            T config = group.getConfig(name);
+            if (config != null) {
+                return clazz.cast(config.getInstance(args));
+            }
+        }
+        return (_parent == null) ? null : _parent.getConfig(clazz, name, args);
+    }
+    
     /**
      * Retrieves a configuration by class and integer identifier.  If the configuration is not
      * found in this manager, the request will be forwarded to the parent, and so on.
@@ -143,9 +172,40 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id)
     {
+        return getConfig(clazz, id, null);
+    }
+    
+    /**
+     * Retrieves a configuration by class, integer identifier, and arguments.  If the
+     * configuration is not found in this manager, the request will be forwarded to the parent,
+     * and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (
+        Class<T> clazz, int id, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        return getConfig(clazz, id, createArgumentMap(firstKey, firstValue, otherArgs));
+    }
+    
+    /**
+     * Retrieves a configuration by class, integer identifier, and arguments.  If the
+     * configuration is not found in this manager, the request will be forwarded to the parent,
+     * and so on.
+     *
+     * @param args the configuration arguments, or <code>null</code> for none.
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id, ArgumentMap args)
+    {
         ConfigGroup<T> group = getGroup(clazz);
-        T config = (group == null) ? null : group.getConfig(id);
-        return (config == null && _parent != null) ? _parent.getConfig(clazz, id) : config;
+        if (group != null) {
+            T config = group.getConfig(id);
+            if (config != null) {
+                return clazz.cast(config.getInstance(args));
+            }
+        }
+        return (_parent == null) ? null : _parent.getConfig(clazz, id, args);
     }
 
     /**
@@ -255,6 +315,20 @@ public class ConfigManager
         _groups.put(clazz, group);
     }
 
+    /**
+     * Creates a new argument map from the supplied parameters.
+     */
+    protected static ArgumentMap createArgumentMap (
+        String firstKey, Object firstValue, Object... otherArgs)
+    {
+        ArgumentMap args = new ArgumentMap();
+        args.put(firstKey, firstValue);
+        for (int ii = 0; ii < otherArgs.length; ii += 2) {
+            args.put((String)otherArgs[ii], otherArgs[ii + 1]);
+        }
+        return args;
+    }
+    
     /** The name of this manager. */
     protected String _name;
 

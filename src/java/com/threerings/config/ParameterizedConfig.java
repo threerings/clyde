@@ -3,6 +3,11 @@
 
 package com.threerings.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.samskivert.util.SoftCache;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.InvalidPathsException;
 import com.threerings.editor.ArgumentPathProperty;
@@ -57,4 +62,23 @@ public class ParameterizedConfig extends ManagedConfig
     /** The parameters of the configuration. */
     @Editable(weight=1, nullable=false)
     public Parameter[] parameters = new Parameter[0];
+    
+    @Override // documentation inherited
+    public ParameterizedConfig getInstance (ArgumentMap args)
+    {
+        if (args == null || args.isEmpty() || parameters.length == 0) {
+            return this;
+        }
+        if (_instances == null) {
+            _instances = new SoftCache<ArgumentMap, ParameterizedConfig>();
+        }
+        ParameterizedConfig instance = _instances.get(args);
+        if (instance == null) {
+            _instances.put(args, instance = (ParameterizedConfig)clone());   
+        }
+        return instance;
+    }
+    
+    /** Maps arguments to derived instances. */
+    protected SoftCache<ArgumentMap, ParameterizedConfig> _instances;
 }
