@@ -39,75 +39,78 @@ public class TextureConfig extends ParameterizedConfig
     public enum Format
     {
         DEFAULT(-1) {
-            public int getConstant (int comps) {
-                switch (comps) {
-                    case 1: return GL11.GL_LUMINANCE;
-                    case 2: return GL11.GL_LUMINANCE_ALPHA;
-                    case 3: return GL11.GL_RGB;
-                    default: return GL11.GL_RGBA;
+            public int getConstant (BufferedImage image) {
+                switch (image == null ? 4 : image.getColorModel().getNumComponents()) {
+                    case 1: return LUMINANCE.getConstant(image);
+                    case 2: return LUMINANCE_ALPHA.getConstant(image);
+                    case 3: return RGB.getConstant(image);
+                    default: return RGBA.getConstant(image);
                 }
             }
         },
-        COMPRESSED_DEFAULT(-1, true) {
-            public int getConstant (int comps) {
-                switch (comps) {
-                    case 1: return ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ARB;
-                    case 2: return ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB;
-                    case 3: return ARBTextureCompression.GL_COMPRESSED_RGB_ARB;
-                    default: return ARBTextureCompression.GL_COMPRESSED_RGBA_ARB;
+        COMPRESSED_DEFAULT(-1) {
+            public int getConstant (BufferedImage image) {
+                switch (image == null ? 4 : image.getColorModel().getNumComponents()) {
+                    case 1: return COMPRESSED_LUMINANCE.getConstant(image);
+                    case 2: return COMPRESSED_LUMINANCE_ALPHA.getConstant(image);
+                    case 3: return COMPRESSED_RGB.getConstant(image);
+                    default: return COMPRESSED_RGBA.getConstant(image);
                 }
             }
         },
         ALPHA(GL11.GL_ALPHA),
-        COMPRESSED_ALPHA(ARBTextureCompression.GL_COMPRESSED_ALPHA_ARB, true),
+        COMPRESSED_ALPHA(ARBTextureCompression.GL_COMPRESSED_ALPHA_ARB, GL11.GL_ALPHA),
         LUMINANCE(GL11.GL_LUMINANCE),
-        COMPRESSED_LUMINANCE(ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ARB, true),
+        COMPRESSED_LUMINANCE(ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ARB, GL11.GL_LUMINANCE),
         LUMINANCE_ALPHA(GL11.GL_LUMINANCE_ALPHA),
-        COMPRESSED_LUMINANCE_ALPHA(ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB, true),
+        COMPRESSED_LUMINANCE_ALPHA(
+            ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB, GL11.GL_LUMINANCE_ALPHA),
         INTENSITY(GL11.GL_INTENSITY),
-        COMPRESSED_INTENSITY(ARBTextureCompression.GL_COMPRESSED_INTENSITY_ARB, true),
+        COMPRESSED_INTENSITY(ARBTextureCompression.GL_COMPRESSED_INTENSITY_ARB, GL11.GL_INTENSITY),
         RGB(GL11.GL_RGB),
-        COMPRESSED_RGB(ARBTextureCompression.GL_COMPRESSED_RGB_ARB, true),
+        COMPRESSED_RGB(ARBTextureCompression.GL_COMPRESSED_RGB_ARB, GL11.GL_RGB),
         RGBA(GL11.GL_RGBA),
-        COMPRESSED_RGBA(ARBTextureCompression.GL_COMPRESSED_RGBA_ARB, true),
-        DEPTH_COMPONENT(GL11.GL_DEPTH_COMPONENT, false, true);
+        COMPRESSED_RGBA(ARBTextureCompression.GL_COMPRESSED_RGBA_ARB, GL11.GL_RGBA),
+        DEPTH_COMPONENT(GL11.GL_DEPTH_COMPONENT, -1, true);
 
         /**
          * Returns the OpenGL constant associated with this format.
          *
-         * @param comps the number of components in the source image, or -1 if unknown (used for
-         * the default formats).
+         * @param image the image used to guess the format if necessary.
          */
-        public int getConstant (int comps)
+        public int getConstant (BufferedImage image)
         {
+            // return the uncompressed equivalent if we don't support texture compression
+            if (_uncompressed != -1 && !GLContext.getCapabilities().GL_ARB_texture_compression) {
+                return _uncompressed;
+            }
             return _constant;
         }
 
         public boolean isSupported ()
         {
-            return (!_compressed || GLContext.getCapabilities().GL_ARB_texture_compression) &&
-                (!_depth || GLContext.getCapabilities().GL_ARB_depth_texture);
+            return (!_depth || GLContext.getCapabilities().GL_ARB_depth_texture);
         }
 
         Format (int constant)
         {
-            this(constant, false);
+            this(constant, -1);
         }
 
-        Format (int constant, boolean compressed)
+        Format (int constant, int uncompressed)
         {
-            this(constant, compressed, false);
+            this(constant, uncompressed, false);
         }
 
-        Format (int constant, boolean compressed, boolean depth)
+        Format (int constant, int uncompressed, boolean depth)
         {
             _constant = constant;
-            _compressed = compressed;
+            _uncompressed = uncompressed;
             _depth = depth;
         }
 
         protected int _constant;
-        protected boolean _compressed;
+        protected int _uncompressed;
         protected boolean _depth;
     }
 
@@ -305,7 +308,7 @@ public class TextureConfig extends ParameterizedConfig
 
         /** The minification filter. */
         @Editable(category="filter", hgroup="f")
-        public MinFilter minFilter = MinFilter.NEAREST_MIPMAP_LINEAR;
+        public MinFilter minFilter = MinFilter.LINEAR_MIPMAP_LINEAR;
 
         /** The magnification filter. */
         @Editable(category="filter", hgroup="f")
@@ -425,7 +428,7 @@ public class TextureConfig extends ParameterizedConfig
             public void load (
                 GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap)
             {
-                texture.setImage(format.getConstant(-1), width, border, mipmap);
+                texture.setImage(format.getConstant(null), width, border, mipmap);
             }
         }
 
@@ -435,12 +438,16 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", hgroup="f")
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
+
+            /** Whether or not the image alpha should be premultiplied. */
+            @Editable(hgroup="f")
+            public boolean premultiply = true;
 
             @Override // documentation inherited
             public void load (
@@ -450,7 +457,8 @@ public class TextureConfig extends ParameterizedConfig
                     return;
                 }
                 BufferedImage image = ctx.getTextureCache().getImage(file);
-
+                texture.setImage(
+                    format.getConstant(image), border, image, premultiply, true, mipmap);
             }
         }
 
@@ -506,7 +514,7 @@ public class TextureConfig extends ParameterizedConfig
             public void load (
                 GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
             {
-                texture.setImage(format.getConstant(-1), width, height, border, mipmap);
+                texture.setImage(format.getConstant(null), width, height, border, mipmap);
             }
         }
 
@@ -516,17 +524,27 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", hgroup="f")
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
 
+            /** Whether or not the image alpha should be premultiplied. */
+            @Editable(hgroup="f")
+            public boolean premultiply = true;
+
             @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
             {
+                if (file == null) {
+                    return;
+                }
+                BufferedImage image = ctx.getTextureCache().getImage(file);
+                texture.setImage(
+                    format.getConstant(image), border, image, premultiply, true, mipmap);
             }
         }
 
@@ -598,7 +616,7 @@ public class TextureConfig extends ParameterizedConfig
             public void load (
                 GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
             {
-                texture.setImage(format.getConstant(-1), width, height, depth, border, mipmap);
+                texture.setImage(format.getConstant(null), width, height, depth, border, mipmap);
             }
         }
 
@@ -608,17 +626,40 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", hgroup="f")
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
 
+            /** Whether or not the image alpha should be premultiplied. */
+            @Editable(hgroup="f")
+            public boolean premultiply = true;
+
+            /** The number of divisions in the S direction. */
+            @Editable(min=1, hgroup="d")
+            public int divisionsS = 1;
+
+            /** The number of divisions in the T direction. */
+            @Editable(min=1, hgroup="d")
+            public int divisionsT = 1;
+
+            /** The depth of the image. */
+            @Editable(min=1, hgroup="d")
+            public int depth = 1;
+
             @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
             {
+                if (file == null) {
+                    return;
+                }
+                BufferedImage image = ctx.getTextureCache().getImage(file);
+                texture.setImages(
+                    format.getConstant(image), border, image, divisionsS, divisionsT,
+                    depth, premultiply, true, mipmap);
             }
         }
 
@@ -672,12 +713,52 @@ public class TextureConfig extends ParameterizedConfig
                 GlContext ctx, TextureCubeMap texture, Format format,
                 boolean border, boolean mipmap)
             {
-                texture.setImages(format.getConstant(-1), size, border, mipmap);
+                texture.setImages(format.getConstant(null), size, border, mipmap);
             }
         }
 
         /**
          * Creates a texture from the specified image.
+         */
+        public static class ImageFile extends Contents
+        {
+            /** The image resource from which to load the texture. */
+            @Editable(editor="resource", hgroup="f")
+            @FileConstraints(
+                description="m.image_files",
+                extensions={".png", ".jpg"},
+                directory="image_dir")
+            public String file;
+
+            /** Whether or not the image alpha should be premultiplied. */
+            @Editable(hgroup="f")
+            public boolean premultiply = true;
+
+            /** The number of divisions in the S direction. */
+            @Editable(min=1, max=6, hgroup="d")
+            public int divisionsS = 3;
+
+            /** The number of divisions in the T direction. */
+            @Editable(min=1, max=6, hgroup="d")
+            public int divisionsT = 2;
+
+            @Override // documentation inherited
+            public void load (
+                GlContext ctx, TextureCubeMap texture, Format format,
+                boolean border, boolean mipmap)
+            {
+                if (file == null) {
+                    return;
+                }
+                BufferedImage image = ctx.getTextureCache().getImage(file);
+                texture.setImages(
+                    format.getConstant(image), border, image, divisionsS, divisionsT,
+                    premultiply, true, mipmap);
+            }
+        }
+
+        /**
+         * Creates a texture from the specified images.
          */
         public static class ImageFiles extends Contents
         {
@@ -689,11 +770,34 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(nullable=false, hgroup="f")
             public FileTrio positive = new FileTrio();
 
+            /** Whether or not the image alpha should be premultiplied. */
+            @Editable
+            public boolean premultiply = true;
+
             @Override // documentation inherited
             public void load (
                 GlContext ctx, TextureCubeMap texture, Format format,
                 boolean border, boolean mipmap)
             {
+                BufferedImage[] images = new BufferedImage[] {
+                    (positive.x == null) ? null : ctx.getTextureCache().getImage(positive.x),
+                    (negative.x == null) ? null : ctx.getTextureCache().getImage(negative.x),
+                    (positive.y == null) ? null : ctx.getTextureCache().getImage(positive.y),
+                    (negative.y == null) ? null : ctx.getTextureCache().getImage(negative.y),
+                    (positive.z == null) ? null : ctx.getTextureCache().getImage(positive.z),
+                    (negative.z == null) ? null : ctx.getTextureCache().getImage(negative.z)
+                };
+                int constant = -1;
+                for (BufferedImage image : images) {
+                    if (image != null) {
+                        constant = format.getConstant(image);
+                        break;
+                    }
+                }
+                if (constant == -1) {
+                    return;
+                }
+                texture.setImages(constant, border, images, premultiply, true, mipmap);
             }
         }
 
@@ -729,7 +833,8 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         /** The initial contents of the texture. */
-        @Editable(types={ Blank.class, ImageFiles.class }, nullable=false, category="data")
+        @Editable(types={ Blank.class, ImageFile.class, ImageFiles.class },
+            nullable=false, category="data")
         public Contents contents = new ImageFiles();
 
         @Override // documentation inherited

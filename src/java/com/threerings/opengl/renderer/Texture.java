@@ -297,6 +297,23 @@ public abstract class Texture
     }
 
     /**
+     * Scales the provided image in half by each dimension for use as a mipmap.
+     */
+    protected static BufferedImage halveImage (BufferedImage image)
+    {
+        int width = Math.max(1, image.getWidth() / 2);
+        int height = Math.max(1, image.getHeight() / 2);
+        BufferedImage dest = new BufferedImage(width, height, image.getType());
+        Graphics2D graphics = dest.createGraphics();
+        try {
+            graphics.drawImage(image, 0, 0, width, height, null);
+        } finally {
+            graphics.dispose();
+        }
+        return dest;
+    }
+
+    /**
      * Converts (and resizes) an image into a buffer of data to be passed to OpenGL.
      */
     protected static ByteBuffer getData (
@@ -333,8 +350,11 @@ public abstract class Texture
         AffineTransform xform = AffineTransform.getScaleInstance(xscale, yscale);
         xform.translate(0.0, -iheight);
         Graphics2D graphics = dest.createGraphics();
-        graphics.drawImage(image, xform, null);
-        graphics.dispose();
+        try {
+            graphics.drawImage(image, xform, null);
+        } finally {
+            graphics.dispose();
+        }
 
         // get the pixel data and copy it to a byte buffer
         byte[] rgba = ((DataBufferByte)dest.getData().getDataBuffer()).getData();

@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.renderer;
 
+import java.awt.image.BufferedImage;
+
 import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.GL11;
@@ -24,29 +26,84 @@ public class Texture3D extends Texture
 
     /**
      * Sets this texture to an empty image with the specified format and dimensions.
+     *
+     * @param mipmap if true, generate a complete mipmap chain.
      */
     public void setImage (
         int format, int width, int height, int depth, boolean border, boolean mipmap)
+    {
+        setImage(0, format, width, height, depth, border);
+        if (mipmap) {
+            for (int ww = _width/2, hh = _height/2, dd = _depth/2, ll = 1;
+                    ww > 0 || hh > 0 || dd > 0; ll++, ww /= 2, hh /= 2, dd /= 2) {
+                setImage(ll, format, Math.max(ww, 1), Math.max(hh, 1), Math.max(dd, 1), border);
+            }
+        }
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImage (int level, int format, int width, int height, int depth, boolean border)
     {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             width = nextPOT(width);
             height = nextPOT(height);
             depth = nextPOT(depth);
         }
+        if (level == 0) {
+            _format = format;
+            _width = width;
+            _height = height;
+            _depth = depth;
+        }
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL12.glTexImage3D(
-            GL12.GL_TEXTURE_3D, 0, _format = format, (_width = width) + ib2,
-            (_height = height) + ib2, (_depth = depth) + ib2, ib, GL11.GL_RGBA,
-            GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            GL12.GL_TEXTURE_3D, level, format, width + ib2, height + ib2, depth + ib2, ib,
+            GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+    }
+
+    /**
+     * Sets this texture to the supplied image.
+     *
+     * @param mipmap if true, generate a complete mipmap chain.
+     */
+    public void setImages (
+        int format, boolean border, BufferedImage image, int sdivs, int tdivs,
+        int depth, boolean premultiply, boolean rescale, boolean mipmap)
+    {
+        setImage(0, format, border, image, sdivs, tdivs, depth, premultiply, rescale);
         if (mipmap) {
-            int level = 1;
-            while ((width >>= 1) > 0 && (height >>= 1) > 0 && (depth >>= 1) > 0) {
-                GL12.glTexImage3D(
-                    GL12.GL_TEXTURE_3D, level++, format, width + ib2, height + ib2, depth + ib2,
-                    ib, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            for (int ww = _width/2, hh = _height/2, dd = _depth/2, ll = 1;
+                    ww > 0 || hh > 0 || dd > 0; ll++, ww /= 2, hh /= 2, dd /= 2) {
+                // TODO
             }
         }
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImage (
+        int level, int format, boolean border, BufferedImage image, int sdivs, int tdivs,
+        int depth, boolean premultiply, boolean rescale)
+    {
+        int width = image.getWidth() / sdivs, height = image.getHeight() / tdivs;
+        if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+            width = nextPOT(width);
+            height = nextPOT(height);
+            depth = nextPOT(depth);
+        }
+        if (level == 0) {
+            _format = format;
+            _width = width;
+            _height = height;
+            _depth = depth;
+        }
+        _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
+        // TODO
     }
 
     /**

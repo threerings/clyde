@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.renderer;
 
+import java.awt.image.BufferedImage;
+
 import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.ARBTextureCubeMap;
@@ -34,30 +36,135 @@ public class TextureCubeMap extends Texture
 
     /**
      * Sets this texture to a set of empty images with the specified format and dimension.
+     *
+     * @param mipmap if true, generate a complete mipmap chain.
      */
     public void setImages (int format, int size, boolean border, boolean mipmap)
+    {
+        setImages(0, format, size, border);
+        if (mipmap) {
+            for (int ss = _size/2, ll = 1; ss > 0; ll++, ss /= 2) {
+                setImages(ll, format, ss, border);
+            }
+        }
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImages (int level, int format, int size, boolean border)
     {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             size = nextPOT(size);
         }
+        if (level == 0) {
+            _format = format;
+            _size = size;
+        }
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
+        int bsize = size + ib2;
         for (int target : FACE_TARGETS) {
             GL11.glTexImage2D(
-                target, 0, format, size + ib2, size + ib2, ib,
+                target, level, format, bsize, bsize, ib,
                 GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-            if (mipmap) {
-                int level = 1;
-                int msize = size;
-                while ((msize >>= 1) > 0) {
-                    GL11.glTexImage2D(
-                        target, level++, format, msize + ib2, msize + ib2, ib,
-                        GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+        }
+    }
+
+    /**
+     * Sets this texture to the supplied images.
+     *
+     * @param mipmap if true, generate a complete mipmap chain.
+     */
+    public void setImages (
+        int format, boolean border, BufferedImage[] images,
+        boolean premultiply, boolean rescale, boolean mipmap)
+    {
+        setImages(0, format, border, images, premultiply, rescale);
+        if (mipmap) {
+            for (int ss = _size/2, ll = 1; ss > 0; ll++, ss /= 2) {
+                for (int ii = 0; ii < images.length; ii++) {
+                    if (images[ii] != null) {
+                        images[ii] = halveImage(images[ii]);
+                    }
                 }
+                setImages(ll, format, border, images, premultiply, rescale);
             }
         }
-        _size = size;
-        _format = format;
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImages (
+        int level, int format, boolean border, BufferedImage[] images,
+        boolean premultiply, boolean rescale)
+    {
+        int size = 1;
+        for (BufferedImage image : images) {
+            if (image != null) {
+                size = Math.max(size, Math.max(image.getWidth(), image.getHeight()));
+            }
+        }
+        if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+            size = nextPOT(size);
+        }
+        if (level == 0) {
+            _format = format;
+            _size = size;
+        }
+        _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
+        int bsize = size + ib2;
+        for (int ii = 0; ii < FACE_TARGETS.length; ii++) {
+            BufferedImage image = images[ii];
+            if (image != null) {
+                GL11.glTexImage2D(
+                    FACE_TARGETS[ii], level, format, bsize, bsize, ib,
+                    getFormat(image), GL11.GL_UNSIGNED_BYTE,
+                    getData(image, premultiply, size, size, rescale));
+            }
+        }
+    }
+
+    /**
+     * Sets this texture to the supplied image.
+     *
+     * @param mipmap if true, generate a complete mipmap chain.
+     */
+    public void setImages (
+        int format, boolean border, BufferedImage image, int sdivs, int tdivs,
+        boolean premultiply, boolean rescale, boolean mipmap)
+    {
+        setImages(0, format, border, image, sdivs, tdivs, premultiply, rescale);
+        if (mipmap) {
+            for (int ss = _size/2, ll = 1; ss > 0; ll++, ss /= 2) {
+                setImages(ll, format, border, image, sdivs, tdivs, premultiply, rescale);
+            }
+        }
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImages (
+        int level, int format, boolean border, BufferedImage image,
+        int sdivs, int tdivs, boolean premultiply, boolean rescale)
+    {
+        int size = Math.max(image.getWidth() / sdivs, image.getHeight() / tdivs);
+        if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
+            size = nextPOT(size);
+        }
+        if (level == 0) {
+            _format = format;
+            _size = size;
+        }
+        _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
+        int bsize = size + ib2;
+        for (int ii = 0; ii < FACE_TARGETS.length; ii++) {
+            // TODO
+        }
     }
 
     /**

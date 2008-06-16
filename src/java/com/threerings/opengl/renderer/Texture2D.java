@@ -53,26 +53,92 @@ public class Texture2D extends Texture
 
     /**
      * Sets this texture to an empty image with the specified format and dimensions.
+     *
+     * @param mipmap if true, generate a complete mipmap chain.
      */
     public void setImage (int format, int width, int height, boolean border, boolean mipmap)
+    {
+        setImage(0, format, width, height, border);
+        if (mipmap && !isRectangle()) {
+            for (int ww = _width/2, hh = _height/2, ll = 1;
+                    ww > 0 || hh > 0; ll++, ww /= 2, hh /= 2) {
+                setImage(ll, format, Math.max(ww, 1), Math.max(hh, 1), border);
+            }
+        }
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImage (int level, int format, int width, int height, boolean border)
     {
         if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
             width = nextPOT(width);
             height = nextPOT(height);
         }
+        if (level == 0) {
+            _format = format;
+            _width = width;
+            _height = height;
+        }
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL11.glTexImage2D(
-            _target, 0, _format = format, (_width = width) + ib2, (_height = height) + ib2, ib,
+            _target, level, format, width + ib2, height + ib2, ib,
             GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-        if (mipmap && !isRectangle()) {
-            int level = 1;
-            while ((width >>= 1) > 0 && (height >>= 1) > 0) {
-                GL11.glTexImage2D(
-                    _target, level++, format, width + ib2, height + ib2, ib,
-                    GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
-            }
+    }
+
+    /**
+     * Sets this texture to the supplied image.
+     *
+     * @param mipmap if true, generate a complete mipmap chain.
+     */
+    public void setImage (
+        int format, boolean border, BufferedImage image, boolean premultiply,
+        boolean rescale, boolean mipmap)
+    {
+        if (!mipmap || isRectangle()) {
+            setImage(0, format, border, image, premultiply, rescale);
+            return;
         }
+        int width = image.getWidth(), height = image.getHeight();
+        if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
+            width = nextPOT(width);
+            height = nextPOT(height);
+        }
+        _format = format;
+        _width = width;
+        _height = height;
+        _renderer.setTexture(this);
+        GLU.gluBuild2DMipmaps(
+            _target, format, width, height,
+            getFormat(image), GL11.GL_UNSIGNED_BYTE,
+            getData(image, premultiply, width, height, rescale));
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImage (
+        int level, int format, boolean border, BufferedImage image,
+        boolean premultiply, boolean rescale)
+    {
+        int width = image.getWidth(), height = image.getHeight();
+        if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
+            width = nextPOT(width);
+            height = nextPOT(height);
+        }
+        if (level == 0) {
+            _format = format;
+            _width = width;
+            _height = height;
+        }
+        _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
+        GL11.glTexImage2D(
+            _target, level, format, width + ib2, height + ib2, ib,
+            getFormat(image), GL11.GL_UNSIGNED_BYTE,
+            getData(image, premultiply, width, height, rescale));
     }
 
     /**
