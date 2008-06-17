@@ -11,6 +11,8 @@ import javax.swing.JTree;
 import javax.swing.TransferHandler;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -23,8 +25,9 @@ import com.threerings.export.SerializableWrapper;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.config.ConfigGroup;
+import com.threerings.config.ConfigGroupListener;
+import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ConfigEvent;
-import com.threerings.config.ConfigListener;
 import com.threerings.config.ManagedConfig;
 
 import static com.threerings.ClydeLog.*;
@@ -33,7 +36,7 @@ import static com.threerings.ClydeLog.*;
  * Displays a tree of configurations.
  */
 public class ConfigTree extends JTree
-    implements ConfigListener<ManagedConfig>
+    implements ConfigGroupListener<ManagedConfig>, ConfigUpdateListener<ManagedConfig>
 {
     /**
      * Creates a new config tree to display the configurations in the specified groups.
@@ -52,7 +55,7 @@ public class ConfigTree extends JTree
     {
         this(new ConfigGroup[] { group }, editable);
     }
-    
+
     /**
      * Releases the resources held by this tree.  This should be called when the tree is no longer
      * needed.
@@ -62,6 +65,10 @@ public class ConfigTree extends JTree
         // stop listening for updates
         for (ConfigGroup<ManagedConfig> group : _groups) {
             group.removeListener(this);
+        }
+        if (_lconfig != null) {
+            _lconfig.removeListener(this);
+            _lconfig = null;
         }
     }
 
@@ -107,13 +114,13 @@ public class ConfigTree extends JTree
             return;
         }
         try {
-            _groups[0].updateConfig(getSelectedNode().getConfig());
+            getSelectedNode().getConfig().wasUpdated();
         } finally {
             leaveChangeBlock();
         }
     }
 
-    // documentation inherited from interface ConfigListener
+    // documentation inherited from interface ConfigGroupListener
     public void configAdded (ConfigEvent<ManagedConfig> event)
     {
         if (!enterChangeBlock()) {
@@ -135,7 +142,7 @@ public class ConfigTree extends JTree
         }
     }
 
-    // documentation inherited from interface ConfigListener
+    // documentation inherited from interface ConfigGroupListener
     public void configRemoved (ConfigEvent<ManagedConfig> event)
     {
         if (!enterChangeBlock()) {
@@ -156,12 +163,10 @@ public class ConfigTree extends JTree
         }
     }
 
-    // documentation inherited from interface ConfigListener
+    // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
-        ManagedConfig config = event.getConfig();
-        ConfigTreeNode node = getSelectedNode();
-        if (node == null || node.getConfig() != config || !enterChangeBlock()) {
+        if (!enterChangeBlock()) {
             return;
         }
         try {
@@ -226,6 +231,20 @@ public class ConfigTree extends JTree
         setRootVisible(false);
         setEditable(editable);
         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+        // the selection listener adds us as a listener for selected configs
+        addTreeSelectionListener(new TreeSelectionListener() {
+            public void valueChanged (TreeSelectionEvent event) {
+                ConfigTreeNode node = getSelectedNode();
+                ManagedConfig config = (node == null) ? null : node.getConfig();
+                if (_lconfig != null) {
+                    _lconfig.removeListener(ConfigTree.this);
+                }
+                if ((_lconfig = config) != null) {
+                    _lconfig.addListener(ConfigTree.this);
+                }
+            }
+        });
 
         // the expansion listener simply notes expansion in the node state
         addTreeExpansionListener(new TreeExpansionListener() {
@@ -402,6 +421,9 @@ public class ConfigTree extends JTree
 
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
     protected boolean _changing;
+
+    /** The configuration that we're listening to, if any. */
+    protected ManagedConfig _lconfig;
 
     /** A data flavor that provides access to the actual transfer object. */
     protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR;

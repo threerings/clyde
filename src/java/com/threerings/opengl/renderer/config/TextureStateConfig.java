@@ -9,6 +9,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.TextureState;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Configurable texture state.
@@ -23,14 +24,14 @@ public class TextureStateConfig extends DeepObject
     /**
      * Returns the corresponding texture state.
      */
-    public TextureState getState ()
+    public TextureState getState (GlContext ctx)
     {
         if (units.length == 0) {
             return TextureState.DISABLED;
         }
         TextureUnit[] sunits = new TextureUnit[units.length];
         for (int ii = 0; ii < units.length; ii++) {
-            sunits[ii] = units[ii].createUnit();
+            sunits[ii] = units[ii].createUnit(ctx);
         }
         return new TextureState(sunits);
     }

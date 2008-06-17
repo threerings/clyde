@@ -12,6 +12,7 @@ import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 
 import com.threerings.opengl.renderer.TextureUnit;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Contains the configuration of a single texture unit.
@@ -71,9 +72,15 @@ public class TextureUnitConfig extends DeepObject
     /**
      * Creates the texture unit corresponding to this configuration.
      */
-    public TextureUnit createUnit ()
+    public TextureUnit createUnit (GlContext ctx)
     {
         TextureUnit unit = new TextureUnit();
+        if (texture != null) {
+            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
+            if (config != null) {
+                unit.texture = config.getTexture(ctx);
+            }
+        }
         environment.configure(unit);
         if (coordGenS != null) {
             unit.genModeS = coordGenS.getModeAndPlane(unit.genPlaneS);

@@ -131,7 +131,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         int idx = 0;
         Object nargs = value.getArguments();
         for (Parameter parameter : ((ParameterizedConfig)config).parameters) {
-            Property property = parameter.createArgumentProperty(config);
+            Property property = parameter.getArgumentProperty(config);
             if (property == null) {
                 continue;
             }

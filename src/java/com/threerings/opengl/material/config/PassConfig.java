@@ -21,6 +21,8 @@ import com.threerings.opengl.renderer.config.PolygonStateConfig;
 import com.threerings.opengl.renderer.config.ShaderStateConfig;
 import com.threerings.opengl.renderer.config.StencilStateConfig;
 import com.threerings.opengl.renderer.config.TextureStateConfig;
+import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Represents a single material pass.
@@ -86,4 +88,30 @@ public class PassConfig extends DeepObject
     /** The texture state to use in this pass. */
     @Editable(nullable=false)
     public TextureStateConfig textureState = new TextureStateConfig();
+
+    /**
+     * Creates the states for this pass.
+     */
+    public RenderState[] createStates (GlContext ctx)
+    {
+        RenderState[] states = RenderState.createEmptySet();
+        states[RenderState.ALPHA_STATE] = alphaState.getState();
+        states[RenderState.COLOR_STATE] = (colorState == null) ? null : colorState.getState();
+        states[RenderState.COLOR_MASK_STATE] = colorMaskState.getState();
+        states[RenderState.CULL_STATE] = cullState.getState();
+        states[RenderState.DEPTH_STATE] = depthState.getState();
+        states[RenderState.FOG_STATE] =
+            (fogStateOverride == null) ? null : fogStateOverride.getState();
+        states[RenderState.LIGHT_STATE] =
+            (lightStateOverride == null) ? null : lightStateOverride.getState();
+        states[RenderState.LINE_STATE] = (lineState == null) ? null : lineState.getState();
+        states[RenderState.MATERIAL_STATE] =
+            (materialState == null) ? null : materialState.getState();
+        states[RenderState.POLYGON_STATE] = polygonState.getState();
+        states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
+        states[RenderState.SHADER_STATE] = shaderState.getState();
+        states[RenderState.STENCIL_STATE] = stencilState.getState();
+        states[RenderState.TEXTURE_STATE] = textureState.getState(ctx);
+        return states;
+    }
 }

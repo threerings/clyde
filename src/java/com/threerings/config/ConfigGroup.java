@@ -108,17 +108,25 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Adds a listener for configuration events.
      */
-    public void addListener (ConfigListener<T> listener)
+    public void addListener (ConfigGroupListener<T> listener)
     {
+        if (_listeners == null) {
+            _listeners = ObserverList.newFastUnsafe();
+        }
         _listeners.add(listener);
     }
 
     /**
      * Removes a configuration event listener.
      */
-    public void removeListener (ConfigListener<T> listener)
+    public void removeListener (ConfigGroupListener<T> listener)
     {
-        _listeners.remove(listener);
+        if (_listeners != null) {
+            _listeners.remove(listener);
+            if (_listeners.isEmpty()) {
+                _listeners = null;
+            }
+        }
     }
 
     /**
@@ -162,14 +170,6 @@ public class ConfigGroup<T extends ManagedConfig>
             _configsById.remove(config.getId());
         }
         fireConfigRemoved(config);
-    }
-
-    /**
-     * Notes that a configuration has changed.
-     */
-    public void updateConfig (T config)
-    {
-        fireConfigUpdated(config);
     }
 
     /**
@@ -250,7 +250,7 @@ public class ConfigGroup<T extends ManagedConfig>
                 addConfig(nconfig);
             } else if (!nconfig.equals(oconfig)) {
                 nconfig.copy(oconfig);
-                updateConfig(oconfig);
+                oconfig.wasUpdated();
             }
         }
         if (merge) {
@@ -401,9 +401,12 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     protected void fireConfigAdded (T config)
     {
-        final ConfigEvent<T> event = new ConfigEvent<T>(this, ConfigEvent.Type.ADDED, config);
-        _listeners.apply(new ObserverList.ObserverOp<ConfigListener<T>>() {
-            public boolean apply (ConfigListener<T> listener) {
+        if (_listeners == null) {
+            return;
+        }
+        final ConfigEvent<T> event = new ConfigEvent<T>(this, config);
+        _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener<T>>() {
+            public boolean apply (ConfigGroupListener<T> listener) {
                 listener.configAdded(event);
                 return true;
             }
@@ -415,24 +418,13 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     protected void fireConfigRemoved (T config)
     {
-        final ConfigEvent<T> event = new ConfigEvent<T>(this, ConfigEvent.Type.REMOVED, config);
-        _listeners.apply(new ObserverList.ObserverOp<ConfigListener<T>>() {
-            public boolean apply (ConfigListener<T> listener) {
+        if (_listeners == null) {
+            return;
+        }
+        final ConfigEvent<T> event = new ConfigEvent<T>(this, config);
+        _listeners.apply(new ObserverList.ObserverOp<ConfigGroupListener<T>>() {
+            public boolean apply (ConfigGroupListener<T> listener) {
                 listener.configRemoved(event);
-                return true;
-            }
-        });
-    }
-
-    /**
-     * Fires a configuration updated event.
-     */
-    protected void fireConfigUpdated (T config)
-    {
-        final ConfigEvent<T> event = new ConfigEvent<T>(this, ConfigEvent.Type.UPDATED, config);
-        _listeners.apply(new ObserverList.ObserverOp<ConfigListener<T>>() {
-            public boolean apply (ConfigListener<T> listener) {
-                listener.configUpdated(event);
                 return true;
             }
         });
@@ -460,6 +452,5 @@ public class ConfigGroup<T extends ManagedConfig>
     protected ArrayList<Integer> _freeIds;
 
     /** Configuration event listeners. */
-    protected ObserverList<ConfigListener<T>> _listeners =
-        new ObserverList<ConfigListener<T>>(ObserverList.FAST_UNSAFE_NOTIFY);
+    protected ObserverList<ConfigGroupListener<T>> _listeners;
 }

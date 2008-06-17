@@ -7,13 +7,25 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.threerings.util.DeepUtil;
+
 /**
  * Stores arguments, extending {@link TreeMap} to implement {@link #hashCode} and {@link #equals}
  * using {@link Arrays#deepHashCode} and {@link Arrays#deepEquals} to provide expected behavior
- * when using arrays as values.
+ * when using arrays as values.  Also implements {@link #clone} to deep-copy values.
  */
 public class ArgumentMap extends TreeMap<String, Object>
 {
+    @Override // documentation inherited
+    public Object clone ()
+    {
+        ArgumentMap cmap = (ArgumentMap)super.clone();
+        for (Map.Entry<String, Object> entry : cmap.entrySet()) {
+            entry.setValue(DeepUtil.copy(entry.getValue(), null));
+        }
+        return cmap;
+    }
+
     @Override // documentation inherited
     public boolean equals (Object other)
     {
@@ -51,7 +63,7 @@ public class ArgumentMap extends TreeMap<String, Object>
         }
         return hash;
     }
-    
+
     /** Used for {@link Arrays#deepHashCode} and {@link Arrays#deepEquals}. */
     protected Object[] _a1 = new Object[1], _a2 = new Object[1];
 }
