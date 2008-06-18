@@ -10,6 +10,9 @@ import java.io.IOException;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.SimpleStreamableObject;
 
+import com.threerings.whirled.data.SceneModel;
+
+import com.threerings.config.ConfigManager;
 import com.threerings.export.Exportable;
 import com.threerings.export.Importer;
 
@@ -19,7 +22,7 @@ import com.threerings.tudey.util.CoordUtil;
 /**
  * Contains a representation of a Tudey scene.
  */
-public class TudeySceneModel extends SimpleStreamableObject
+public class TudeySceneModel extends SceneModel
     implements Exportable
 {
     /**
@@ -28,6 +31,22 @@ public class TudeySceneModel extends SimpleStreamableObject
     public TudeySceneModel ()
     {
         initTransientFields();
+    }
+
+    /**
+     * Initializes the model.
+     */
+    public void init (ConfigManager cfgmgr)
+    {
+        _cfgmgr.init("scene", cfgmgr);
+    }
+
+    /**
+     * Returns a reference to the scene's configuration manager.
+     */
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
     }
 
     /**
@@ -225,6 +244,9 @@ public class TudeySceneModel extends SimpleStreamableObject
             }
         }
     }
+
+    /** The scene configuration manager. */
+    protected ConfigManager _cfgmgr = new ConfigManager();
 
     /** The scene's global environment. */
     protected Environment _environment = new Environment();

@@ -36,7 +36,7 @@ public class ConfigManager
      */
     public ConfigManager (ResourceManager rsrcmgr, String configPath)
     {
-        _name = "global";
+        _type = "global";
         _rsrcmgr = rsrcmgr;
         _configPath = configPath + (configPath.endsWith("/") ? "" : "/");
     }
@@ -53,26 +53,43 @@ public class ConfigManager
      */
     public void init ()
     {
-        // load the manager configuration
+        // load the manager properties
         try {
-            loadManagerConfig();
+            loadManagerProperties();
         } catch (IOException e) {
-            log.warning("Failed to load manager config.", e);
+            log.warning("Failed to load manager properties.", e);
+            return;
+        }
+
+        // register the global groups
+        Class[] classes = _classes.get("global");
+        if (classes == null) {
+            return;
+        }
+        for (Class clazz : classes) {
+            @SuppressWarnings("unchecked") Class<? extends ManagedConfig> cclass =
+                    (Class<? extends ManagedConfig>)clazz;
+            registerGroup(cclass);
         }
     }
 
     /**
      * Initialization method for child configuration managers.
      */
-    public void init (String name, ConfigManager parent, Class... classes)
+    public void init (String type, ConfigManager parent)
     {
-        _name = name;
+        _type = type;
         _parent = parent;
-        _rsrcmgr = parent.getResourceManager();
+        _rsrcmgr = parent._rsrcmgr;
+        _classes = parent._classes;
 
         // copy the groups over (any group not in the list will be silently discarded)
         HashMap<Class, ConfigGroup> ogroups = _groups;
         _groups = new HashMap<Class, ConfigGroup>();
+        Class[] classes = _classes.get(type);
+        if (classes == null) {
+            return;
+        }
         for (Class clazz : classes) {
             ConfigGroup group = ogroups.get(clazz);
             if (group == null) {
@@ -86,11 +103,11 @@ public class ConfigManager
     }
 
     /**
-     * Returns the name of this manager.
+     * Returns the type of this manager.
      */
-    public String getName ()
+    public String getType ()
     {
-        return _name;
+        return _type;
     }
 
     /**
@@ -132,7 +149,7 @@ public class ConfigManager
     {
         return getConfig(clazz, ref.getName(), ref.getArguments());
     }
-    
+
     /**
      * Retrieves a configuration by class, name, and arguments.  If the configuration is not found
      * in this manager, the request will be forwarded to the parent, and so on.
@@ -144,7 +161,7 @@ public class ConfigManager
     {
         return getConfig(clazz, name, createArgumentMap(firstKey, firstValue, otherArgs));
     }
-    
+
     /**
      * Retrieves a configuration by class, name, and arguments.  If the configuration is not found
      * in this manager, the request will be forwarded to the parent, and so on.
@@ -163,7 +180,7 @@ public class ConfigManager
         }
         return (_parent == null) ? null : _parent.getConfig(clazz, name, args);
     }
-    
+
     /**
      * Retrieves a configuration by class and integer identifier.  If the configuration is not
      * found in this manager, the request will be forwarded to the parent, and so on.
@@ -174,7 +191,7 @@ public class ConfigManager
     {
         return getConfig(clazz, id, null);
     }
-    
+
     /**
      * Retrieves a configuration by class, integer identifier, and arguments.  If the
      * configuration is not found in this manager, the request will be forwarded to the parent,
@@ -187,7 +204,7 @@ public class ConfigManager
     {
         return getConfig(clazz, id, createArgumentMap(firstKey, firstValue, otherArgs));
     }
-    
+
     /**
      * Retrieves a configuration by class, integer identifier, and arguments.  If the
      * configuration is not found in this manager, the request will be forwarded to the parent,
@@ -283,25 +300,28 @@ public class ConfigManager
     }
 
     /**
-     * Loads the manager config from the specified path.
+     * Loads the manager properties.
      */
-    protected void loadManagerConfig ()
+    protected void loadManagerProperties ()
         throws IOException
     {
         Properties props = new Properties();
         props.load(_rsrcmgr.getResource(_configPath + "manager.properties"));
 
-        // initialize the config groups
-        String[] classes = StringUtil.parseStringArray(props.getProperty("classes", ""));
-        for (String cname : classes) {
-            try {
-                @SuppressWarnings("unchecked") Class<? extends ManagedConfig> clazz =
-                    (Class<? extends ManagedConfig>)Class.forName(cname);
-                registerGroup(clazz);
-
-            } catch (ClassNotFoundException e) {
-                throw (IOException)new IOException("Error initializing group.").initCause(e);
+        // initialize the types
+        _classes = new HashMap<String, Class[]>();
+        for (String type : StringUtil.parseStringArray(props.getProperty("types", ""))) {
+            Properties tprops = PropertiesUtil.getSubProperties(props, type);
+            String[] names = StringUtil.parseStringArray(tprops.getProperty("classes", ""));
+            Class[] classes = new Class[names.length];
+            for (int ii = 0; ii < names.length; ii++) {
+                try {
+                    classes[ii] = Class.forName(names[ii]);
+                } catch (ClassNotFoundException e) {
+                    throw (IOException)new IOException("Error initializing manager.").initCause(e);
+                }
             }
+            _classes.put(type, classes);
         }
     }
 
@@ -328,9 +348,9 @@ public class ConfigManager
         }
         return args;
     }
-    
-    /** The name of this manager. */
-    protected String _name;
+
+    /** The type of this manager. */
+    protected String _type;
 
     /** The parent of this manager, if any. */
     protected ConfigManager _parent;
@@ -343,4 +363,7 @@ public class ConfigManager
 
     /** Registered configuration groups mapped by config class. */
     protected HashMap<Class, ConfigGroup> _groups = new HashMap<Class, ConfigGroup>();
+
+    /** Maps manager types to their classes (as read from the manager properties). */
+    protected HashMap<String, Class[]> _classes;
 }

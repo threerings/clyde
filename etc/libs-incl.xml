@@ -17,5 +17,6 @@
     <include name="nenya-media.jar"/>
     <include name="nenya-rsrc.jar"/>
     <include name="nenya-openal.jar"/>
+    <include name="vilya-whirled.jar"/>
   </fileset>
 </project>

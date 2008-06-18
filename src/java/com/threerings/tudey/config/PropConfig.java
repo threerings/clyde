@@ -11,11 +11,15 @@ import com.threerings.editor.Editable;
  */
 public class PropConfig extends ManagedConfig
 {
-    /** Whether or not the prop is passable. */
+    /** The shape of the prop. */
     @Editable
+    public ShapeConfig shape = new ShapeConfig.Circle();
+
+    /** Whether or not the prop is passable. */
+    @Editable(hgroup="p")
     public boolean passable;
 
     /** Whether or not the prop is penetrable. */
-    @Editable
+    @Editable(hgroup="p")
     public boolean penetrable;
 }

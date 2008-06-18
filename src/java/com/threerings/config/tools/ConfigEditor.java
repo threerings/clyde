@@ -92,7 +92,87 @@ public class ConfigEditor
     /**
      * Creates a new config editor.
      */
-    public ConfigEditor (
+    public ConfigEditor (ResourceManager rsrcmgr, MessageManager msgmgr, ConfigManager cfgmgr)
+    {
+        this(rsrcmgr, msgmgr, cfgmgr, false);
+    }
+
+    /**
+     * Starts up the editor.
+     */
+    public void start ()
+    {
+        _frame.setVisible(true);
+    }
+
+    /**
+     * Shuts down the editor.
+     */
+    public void shutdown ()
+    {
+        if (_standalone) {
+            System.exit(0);
+        } else {
+            _frame.setVisible(false);
+        }
+    }
+
+    // documentation inherited from interface ActionListener
+    public void actionPerformed (ActionEvent event)
+    {
+        String action = event.getActionCommand();
+        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+        ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
+        if (action.equals("config")) {
+            item.newConfig();
+        } else if (action.equals("folder")) {
+            item.newFolder();
+        } else if (action.equals("save_group")) {
+            item.group.save();
+        } else if (action.equals("revert_group")) {
+            item.group.revert();
+        } else if (action.equals("import_group")) {
+            item.importGroup();
+        } else if (action.equals("export_group")) {
+            item.exportGroup();
+        } else if (action.equals("import_configs")) {
+            item.importConfigs();
+        } else if (action.equals("export_configs")) {
+            item.exportConfigs();
+        } else if (action.equals("quit")) {
+            shutdown();
+        } else if (action.equals("cut")) {
+            item.cutNode();
+        } else if (action.equals("copy")) {
+            item.copyNode();
+        } else if (action.equals("paste")) {
+            item.pasteNode();
+        } else if (action.equals("delete")) {
+            item.deleteNode();
+        } else if (action.equals("preferences")) {
+            if (_pdialog == null) {
+                _pdialog = EditorPanel.createDialog(
+                    _frame, (ManagerPanel)_tabs.getComponentAt(0), "t.preferences", _eprefs);
+            }
+            _pdialog.setVisible(true);
+        } else if (action.equals("save_all")) {
+            panel.cfgmgr.saveAll();
+        } else if (action.equals("revert_all")) {
+            panel.cfgmgr.revertAll();
+        }
+    }
+
+    // documentation inherited from interface ClipboardOwner
+    public void lostOwnership (Clipboard clipboard, Transferable contents)
+    {
+        _paste.setEnabled(false);
+        _clipclass = null;
+    }
+
+    /**
+     * Creates a new config editor.
+     */
+    protected ConfigEditor (
         ResourceManager rsrcmgr, MessageManager msgmgr, ConfigManager cfgmgr, boolean standalone)
     {
         _rsrcmgr = rsrcmgr;
@@ -174,7 +254,7 @@ public class ConfigEditor
         _popup.add(new JMenuItem(_copy));
         _popup.add(new JMenuItem(_paste));
         _popup.add(new JMenuItem(_delete));
-        
+
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("config_dir", null));
         _chooser.setFileFilter(new FileFilter() {
@@ -190,86 +270,25 @@ public class ConfigEditor
         _frame.add(_tabs = new JTabbedPane(), BorderLayout.WEST);
         _tabs.setPreferredSize(new Dimension(250, 1));
         _tabs.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
-        
+
         // create the tabs for each configuration manager
         for (; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
-            _tabs.add(new ManagerPanel(cfgmgr), getLabel(cfgmgr.getName()), 0);
+            _tabs.add(new ManagerPanel(cfgmgr), getLabel(cfgmgr.getType()), 0);
         }
-        
+
         // activate the last tab
-        _tabs.setSelectedIndex(_tabs.getTabCount() - 1);
-    }
+        final ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(_tabs.getTabCount() - 1);
+        _tabs.setSelectedComponent(panel);
+        panel.activate();
 
-    /**
-     * Starts up the editor.
-     */
-    public void start ()
-    {
-        _frame.setVisible(true);
-    }
-
-    /**
-     * Shuts down the editor.
-     */
-    public void shutdown ()
-    {
-        if (_standalone) {
-            System.exit(0);
-        } else {
-            _frame.setVisible(false);
-        }
-    }
-
-    // documentation inherited from interface ActionListener
-    public void actionPerformed (ActionEvent event)
-    {
-        String action = event.getActionCommand();
-        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
-        ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
-        if (action.equals("config")) {
-            item.newConfig();
-        } else if (action.equals("folder")) {
-            item.newFolder();
-        } else if (action.equals("save_group")) {
-            item.group.save();
-        } else if (action.equals("revert_group")) {
-            item.group.revert();
-        } else if (action.equals("import_group")) {
-            item.importGroup();
-        } else if (action.equals("export_group")) {
-            item.exportGroup();
-        } else if (action.equals("import_configs")) {
-            item.importConfigs();
-        } else if (action.equals("export_configs")) {
-            item.exportConfigs();
-        } else if (action.equals("quit")) {
-            shutdown();
-        } else if (action.equals("cut")) {
-            item.cutNode();
-        } else if (action.equals("copy")) {
-            item.copyNode();
-        } else if (action.equals("paste")) {
-            item.pasteNode();
-        } else if (action.equals("delete")) {
-            item.deleteNode();
-        } else if (action.equals("preferences")) {
-            if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(
-                    _frame, (ManagerPanel)_tabs.getComponentAt(0), "t.preferences", _eprefs);
+        // add a listener for tab change
+        _tabs.addChangeListener(new ChangeListener() {
+            public void stateChanged (ChangeEvent event) {
+                _panel.deactivate();
+                (_panel = (ManagerPanel)_tabs.getSelectedComponent()).activate();
             }
-            _pdialog.setVisible(true);
-        } else if (action.equals("save_all")) {
-            panel.cfgmgr.saveAll();
-        } else if (action.equals("revert_all")) {
-            panel.cfgmgr.revertAll();
-        }
-    }
-
-    // documentation inherited from interface ClipboardOwner
-    public void lostOwnership (Clipboard clipboard, Transferable contents)
-    {
-        _paste.setEnabled(false);
-        _clipclass = null;
+            protected ManagerPanel _panel = panel;
+        });
     }
 
     /**
@@ -305,7 +324,7 @@ public class ConfigEditor
     {
         return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator);
     }
-    
+
     /**
      * Creates an action with the specified command, mnemonic, and (optional) accelerator
      * key/modifiers.
@@ -314,7 +333,7 @@ public class ConfigEditor
     {
         return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator, modifiers);
     }
-    
+
     /**
      * Creates a button with the specified action.
      */
@@ -340,7 +359,7 @@ public class ConfigEditor
         String key = "m." + name;
         return _msgs.exists(key) ? _msgs.get(key) : name;
     }
-    
+
     /**
      * The panel for a single manager.
      */
@@ -456,7 +475,7 @@ public class ConfigEditor
                 }
                 _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
             }
-    
+
             /**
              * Cuts the currently selected node.
              */
@@ -568,7 +587,7 @@ public class ConfigEditor
             /** The configuration tree. */
             protected ConfigTree _tree;
         }
-        
+
         /** The configuration manager. */
         public ConfigManager cfgmgr;
 
@@ -579,9 +598,9 @@ public class ConfigEditor
         {
             super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
             this.cfgmgr = cfgmgr;
-            
+
             setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-            
+
             // create the group panel
             JPanel gpanel = GroupLayout.makeHStretchBox(5);
             add(gpanel, GroupLayout.FIXED);
@@ -601,26 +620,27 @@ public class ConfigEditor
             });
             gpanel.add(gbox = new JComboBox(items));
             gbox.addItemListener(this);
-            
+
             // add the pane that will contain the group tree
             add(_pane = new JScrollPane());
-            
+
             // create the editor panel
             _epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null);
             _epanel.addChangeListener(this);
         }
-        
-        @Override // documentation inherited
-        public void addNotify ()
+
+        /**
+         * Called when the panel is shown.
+         */
+        public void activate ()
         {
-            super.addNotify();
-            
             // add the editor panel
             _frame.add(_epanel, BorderLayout.CENTER);
-            
+            _frame.repaint();
+
             // activate the selected item
             ((GroupItem)gbox.getSelectedItem()).activate();
-            
+
             // can only save/revert configurations with a config path
             boolean enable = (cfgmgr.getConfigPath() != null);
             _save.setEnabled(enable);
@@ -628,16 +648,16 @@ public class ConfigEditor
             _saveAll.setEnabled(enable);
             _revertAll.setEnabled(enable);
         }
-        
-        @Override // documentation inherited
-        public void removeNotify ()
+
+        /**
+         * Called when the panel is hidden.
+         */
+        public void deactivate ()
         {
-            super.removeNotify();
-            
             // remove the editor panel
             _frame.remove(_epanel);
         }
-        
+
         // documentation inherited from interface EditorContext
         public ResourceManager getResourceManager ()
         {
@@ -655,7 +675,7 @@ public class ConfigEditor
         {
             return _msgs;
         }
-        
+
         // documentation inherited from interface ItemListener
         public void itemStateChanged (ItemEvent event)
         {
@@ -667,10 +687,10 @@ public class ConfigEditor
         {
             ((GroupItem)gbox.getSelectedItem()).configChanged();
         }
-       
+
         /** The scroll pane that holds the group trees. */
         protected JScrollPane _pane;
-        
+
         /** The object editor panel. */
         protected EditorPanel _epanel;
     }
@@ -692,7 +712,7 @@ public class ConfigEditor
 
     /** The config tree pop-up menu. */
     protected JPopupMenu _popup;
-    
+
     /** The save and revert menu items. */
     protected JMenuItem _save, _revert, _saveAll, _revertAll;
 
