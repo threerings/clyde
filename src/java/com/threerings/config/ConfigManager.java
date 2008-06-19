@@ -13,10 +13,12 @@ import java.util.Properties;
 
 import com.samskivert.util.PropertiesUtil;
 import com.samskivert.util.QuickSort;
+import com.samskivert.util.SoftCache;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
 
+import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
@@ -61,6 +63,9 @@ public class ConfigManager
             return;
         }
 
+        // create the resource cache
+        _resources = new SoftCache<String, ManagedConfig>();
+
         // register the global groups
         Class[] classes = _classes.get("global");
         if (classes == null) {
@@ -81,6 +86,7 @@ public class ConfigManager
         _type = type;
         _parent = parent;
         _rsrcmgr = parent._rsrcmgr;
+        _resources = parent._resources;
         _classes = parent._classes;
 
         // copy the groups over (any group not in the list will be silently discarded)
@@ -119,6 +125,14 @@ public class ConfigManager
     }
 
     /**
+     * Returns a reference to the resource manager used to load configurations.
+     */
+    public ResourceManager getResourceManager ()
+    {
+        return _rsrcmgr;
+    }
+
+    /**
      * Returns the resource path from which configurations are loaded, or <code>null</code> if
      * configurations aren't loaded directly.
      */
@@ -126,7 +140,6 @@ public class ConfigManager
     {
         return _configPath;
     }
-
 
     /**
      * Retrieves a configuration by class and name.  If the configuration is not found in this
@@ -171,6 +184,23 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, ArgumentMap args)
     {
+        // for resource-loaded configs, go through the cache
+        if (ResourceLoaded.class.isAssignableFrom(clazz)) {
+            ManagedConfig config = _resources.get(name);
+            if (config == null) {
+                try {
+                    BinaryImporter in = new BinaryImporter(_rsrcmgr.getResource(name));
+                    _resources.put(name, config = (ManagedConfig)in.readObject());
+                    in.close();
+                } catch (IOException e) {
+                    log.warning("Failed to load config from resource [name=" + name + "].", e);
+                    return null;
+                }
+            }
+            return clazz.cast(config.getInstance(args));
+        }
+
+        // otherwise, look for a group of the desired type
         ConfigGroup<T> group = getGroup(clazz);
         if (group != null) {
             T config = group.getConfig(name);
@@ -292,14 +322,6 @@ public class ConfigManager
     }
 
     /**
-     * Returns a reference to the resource manager used to load configurations.
-     */
-    protected ResourceManager getResourceManager ()
-    {
-        return _rsrcmgr;
-    }
-
-    /**
      * Loads the manager properties.
      */
     protected void loadManagerProperties ()
@@ -363,6 +385,9 @@ public class ConfigManager
 
     /** Registered configuration groups mapped by config class. */
     protected HashMap<Class, ConfigGroup> _groups = new HashMap<Class, ConfigGroup>();
+
+    /** Resource-loaded configs mapped by path. */
+    protected SoftCache<String, ManagedConfig> _resources;
 
     /** Maps manager types to their classes (as read from the manager properties). */
     protected HashMap<String, Class[]> _classes;

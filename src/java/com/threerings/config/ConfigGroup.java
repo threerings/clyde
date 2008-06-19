@@ -38,6 +38,17 @@ public class ConfigGroup<T extends ManagedConfig>
     implements Exportable
 {
     /**
+     * Returns the group name for the specified config class.
+     */
+    public static String getName (Class clazz)
+    {
+        String cstr = clazz.getName();
+        cstr = cstr.substring(Math.max(cstr.lastIndexOf('.'), cstr.lastIndexOf('$')) + 1);
+        cstr = cstr.endsWith("Config") ? cstr.substring(0, cstr.length() - 6) : cstr;
+        return StringUtil.toUSLowerCase(StringUtil.unStudlyName(cstr));
+    }
+
+    /**
      * Creates a new config group for the specified class.
      */
     public ConfigGroup (Class<T> clazz)
@@ -300,12 +311,7 @@ public class ConfigGroup<T extends ManagedConfig>
     protected void initConfigClass (Class<T> clazz)
     {
         _cclass = clazz;
-
-        // derive the group name from the class name
-        String cstr = clazz.getName();
-        cstr = cstr.substring(Math.max(cstr.lastIndexOf('.'), cstr.lastIndexOf('$')) + 1);
-        cstr = cstr.endsWith("Config") ? cstr.substring(0, cstr.length() - 6) : cstr;
-        _name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(cstr));
+        _name = getName(clazz);
 
         // create the id state if appropriate
         if (IntegerIdentified.class.isAssignableFrom(clazz)) {

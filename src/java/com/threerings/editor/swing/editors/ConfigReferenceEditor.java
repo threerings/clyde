@@ -40,7 +40,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         ConfigReference nvalue;
         if (event.getSource() == _config) {
             if (_chooser == null) {
-                _chooser = new ConfigChooser(
+                _chooser = ConfigChooser.createInstance(
                     _msgs, _ctx.getConfigManager(),
                     _property.getArgumentType(ConfigReference.class));
             }

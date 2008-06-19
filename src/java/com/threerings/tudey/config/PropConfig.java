@@ -3,14 +3,21 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
+
+import com.threerings.opengl.model.config.ModelConfig;
 
 /**
  * The configuration for a single type of prop.
  */
 public class PropConfig extends ManagedConfig
 {
+    /** The model to use for the prop. */
+    @Editable
+    public ConfigReference<ModelConfig> model;
+
     /** The shape of the prop. */
     @Editable
     public ShapeConfig shape = new ShapeConfig.Circle();

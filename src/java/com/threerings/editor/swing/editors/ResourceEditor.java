@@ -27,17 +27,7 @@ public class ResourceEditor extends FileEditor
     @Override // documentation inherited
     protected void setPropertyFile (File file)
     {
-        String path = null;
-        if (file != null) {
-            String parent = _ctx.getResourceManager().getResourceFile("").toString();
-            if (!parent.endsWith(File.separator)) {
-                parent += File.separator;
-            }
-            String child = file.toString();
-            if (child.startsWith(parent)) {
-                path = child.substring(parent.length()).replace(File.separatorChar, '/');
-            }
-        }
-        _property.set(_object, path);
+        _property.set(_object, (file == null) ?
+            null : _ctx.getResourceManager().getResourcePath(file));
     }
 }

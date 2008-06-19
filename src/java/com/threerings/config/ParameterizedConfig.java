@@ -133,12 +133,13 @@ public class ParameterizedConfig extends ManagedConfig
                 return this;
             }
         }
-        if (_instances == null) {
-            _instances = new SoftCache<ArgumentMap, ParameterizedConfig>();
+        if (_derived == null) {
+            _derived = new SoftCache<ArgumentMap, ParameterizedConfig>();
         }
-        ParameterizedConfig instance = _instances.get(args);
+        ParameterizedConfig instance = _derived.get(args);
         if (instance == null) {
-            _instances.put((ArgumentMap)args.clone(), instance = (ParameterizedConfig)clone());
+            _derived.put((ArgumentMap)args.clone(), instance = (ParameterizedConfig)clone());
+            instance._base = this;
             applyArguments(instance, args);
         }
         return instance;
@@ -156,11 +157,11 @@ public class ParameterizedConfig extends ManagedConfig
         super.wasUpdated();
 
         // update the derived instances
-        if (_instances == null) {
+        if (_derived == null) {
             return;
         }
         for (Iterator<Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>>> it =
-                _instances.getMap().entrySet().iterator(); it.hasNext(); ) {
+                _derived.getMap().entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>> entry = it.next();
             ParameterizedConfig instance = entry.getValue().get();
             if (instance == null) {
@@ -206,9 +207,14 @@ public class ParameterizedConfig extends ManagedConfig
         return null;
     }
 
+    /** The instance from which the configuration is derived, if any (used to prevent the base
+     * from being garbage-collected). */
+    @DeepOmit
+    protected transient ParameterizedConfig _base;
+
     /** Maps arguments to derived instances. */
     @DeepOmit
-    protected transient SoftCache<ArgumentMap, ParameterizedConfig> _instances;
+    protected transient SoftCache<ArgumentMap, ParameterizedConfig> _derived;
 
     /** Indicates that a property field is invalid and should be (re)created. */
     protected static final Property INVALID_PROPERTY = new Property() {
