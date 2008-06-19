@@ -22,7 +22,7 @@ import com.samskivert.swing.VGroupLayout;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
-import com.threerings.config.ParameterizedConfig.Parameter;
+import com.threerings.config.Parameter;
 import com.threerings.config.swing.ConfigChooser;
 
 import com.threerings.editor.Property;
