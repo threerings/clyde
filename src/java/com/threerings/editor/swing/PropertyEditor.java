@@ -150,10 +150,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
         return _object;
     }
 
-    /**
-     * Returns the property path component corresponding to the specified point.
-     */
-    public String getPathComponent (Point pt)
+    @Override // documentation inherited
+    protected String getPathComponent (Point pt)
     {
         return _property.getName();
     }

@@ -25,7 +25,7 @@ public class ParameterizedConfig extends ManagedConfig
     public Parameter[] parameters = new Parameter[0];
 
     @Override // documentation inherited
-    public ParameterizedConfig getInstance (ArgumentMap args)
+    public ParameterizedConfig getInstance (ConfigManager cfgmgr, ArgumentMap args)
     {
         if (args == null || args.isEmpty() || parameters.length == 0) {
             return this;
@@ -55,6 +55,7 @@ public class ParameterizedConfig extends ManagedConfig
         ParameterizedConfig instance = _derived.get(args);
         if (instance == null) {
             _derived.put((ArgumentMap)args.clone(), instance = (ParameterizedConfig)clone());
+            instance.init(cfgmgr);
             instance._base = this;
             applyArguments(instance, args);
         }
@@ -90,6 +91,12 @@ public class ParameterizedConfig extends ManagedConfig
         }
     }
 
+    @Override // documentation inherited
+    protected void init (ConfigManager cfgmgr)
+    {
+        _cfgmgr = cfgmgr;
+    }
+
     /**
      * Applies the arguments in the provided map to the specified instance.
      */
@@ -122,6 +129,10 @@ public class ParameterizedConfig extends ManagedConfig
         }
         return null;
     }
+
+    /** The config manager that we use to resolve references. */
+    @DeepOmit
+    protected transient ConfigManager _cfgmgr;
 
     /** The instance from which the configuration is derived, if any (used to prevent the base
      * from being garbage-collected). */

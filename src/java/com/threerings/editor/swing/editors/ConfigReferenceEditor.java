@@ -3,7 +3,9 @@
 
 package com.threerings.editor.swing.editors;
 
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -13,6 +15,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -91,6 +94,21 @@ public class ConfigReferenceEditor extends PropertyEditor
     protected void update ()
     {
         update((ConfigReference)_property.get(_object));
+    }
+
+    @Override // documentation inherited
+    protected String getPathComponent (Point pt)
+    {
+        Component comp = _arguments.getComponentAt(
+            SwingUtilities.convertPoint(this, pt, _arguments));
+        return _property.getName() + (comp instanceof PropertyEditor ?
+            ("[" + ((PropertyEditor)comp).getProperty().getName() + "]") : "");
+    }
+
+    @Override // documentation inherited
+    protected boolean skipChildPath (Component comp)
+    {
+        return _arguments.getComponentZOrder(comp) != -1;
     }
 
     /**

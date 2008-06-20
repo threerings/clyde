@@ -51,7 +51,7 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Returns the derived instance with the supplied arguments.
      */
-    public ManagedConfig getInstance (ArgumentMap args)
+    public ManagedConfig getInstance (ConfigManager cfgmgr, ArgumentMap args)
     {
         return this;
     }
@@ -96,6 +96,15 @@ public abstract class ManagedConfig extends DeepObject
                 }
             });
         }
+    }
+
+    /**
+     * Initializes this config with a reference to the config manager that it should use to resolve
+     * references.
+     */
+    protected void init (ConfigManager cfgmgr)
+    {
+        // nothing by default
     }
 
     /** The name of this configuration. */

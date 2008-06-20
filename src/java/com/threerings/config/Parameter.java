@@ -11,6 +11,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.InvalidPathsException;
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.Property;
+import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;

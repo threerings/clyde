@@ -30,15 +30,6 @@ import com.threerings.editor.swing.ObjectPanel;
 public class PanelArrayListEditor extends ArrayListEditor
     implements ChangeListener
 {
-    @Override // documentation inherited
-    public String getPathComponent (Point pt)
-    {
-        Component comp = _panels.getComponentAt(
-            SwingUtilities.convertPoint(this, pt, _panels));
-        int idx = _panels.getComponentZOrder(comp);
-        return _property.getName() + (idx == -1 ? "" : ("[" + idx + "]"));
-    }
-
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
@@ -90,6 +81,15 @@ public class PanelArrayListEditor extends ArrayListEditor
             _panels.remove(--pcount);
         }
         _panels.revalidate();
+    }
+
+    @Override // documentation inherited
+    protected String getPathComponent (Point pt)
+    {
+        Component comp = _panels.getComponentAt(
+            SwingUtilities.convertPoint(this, pt, _panels));
+        int idx = _panels.getComponentZOrder(comp);
+        return _property.getName() + (idx == -1 ? "" : ("[" + idx + "]"));
     }
 
     @Override // documentation inherited

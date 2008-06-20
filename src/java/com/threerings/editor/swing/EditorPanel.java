@@ -6,7 +6,6 @@ package com.threerings.editor.swing;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Point;
@@ -148,20 +147,7 @@ public class EditorPanel extends BasePropertyEditor
     protected void copyPropertyPath ()
     {
         StringBuffer buf = new StringBuffer();
-        for (Container cont = this; cont != null; ) {
-            Point pt = cont.getMousePosition();
-            if (pt == null) {
-                break;
-            }
-            if (cont instanceof PropertyEditor) {
-                if (buf.length() > 0) {
-                    buf.append('/');
-                }
-                buf.append(((PropertyEditor)cont).getPathComponent(pt));
-            }
-            Component comp = cont.getComponentAt(pt);
-            cont = (comp instanceof Container && comp != cont) ? (Container)comp : null;
-        }
+        getMousePath(buf);
         if (buf.length() > 0) {
             StringSelection contents = new StringSelection(buf.toString());
             getToolkit().getSystemClipboard().setContents(contents, contents);

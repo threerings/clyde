@@ -86,7 +86,6 @@ public class ConfigManager
         _type = type;
         _parent = parent;
         _rsrcmgr = parent._rsrcmgr;
-        _resources = parent._resources;
         _classes = parent._classes;
 
         // copy the groups over (any group not in the list will be silently discarded)
@@ -142,17 +141,6 @@ public class ConfigManager
     }
 
     /**
-     * Retrieves a configuration by class and name.  If the configuration is not found in this
-     * manager, the request will be forwarded to the parent, and so on.
-     *
-     * @return the requested configuration, or <code>null</code> if not found.
-     */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
-    {
-        return getConfig(clazz, name, null);
-    }
-
-    /**
      * Retrieves a configuration by class and reference.  If the configuration is not found in this
      * manager, the request will be forwarded to the parent, and so on.
      *
@@ -184,20 +172,40 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, ArgumentMap args)
     {
+        // resource-loaded configs must be loaded from the global manager
+        if (_parent != null && ResourceLoaded.class.isAssignableFrom(clazz)) {
+            return _parent.getConfig(clazz, name, args);
+        }
+        T config = getConfig(clazz, name);
+        return (config == null) ? null : clazz.cast(config.getInstance(this, args));
+    }
+
+    /**
+     * Retrieves a configuration by class and name.  If the configuration is not found in this
+     * manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
+    {
         // for resource-loaded configs, go through the cache
         if (ResourceLoaded.class.isAssignableFrom(clazz)) {
+            if (_parent != null) {
+                return _parent.getConfig(clazz, name);
+            }
             ManagedConfig config = _resources.get(name);
             if (config == null) {
                 try {
                     BinaryImporter in = new BinaryImporter(_rsrcmgr.getResource(name));
                     _resources.put(name, config = (ManagedConfig)in.readObject());
+                    config.init(this);
                     in.close();
                 } catch (IOException e) {
                     log.warning("Failed to load config from resource [name=" + name + "].", e);
                     return null;
                 }
             }
-            return clazz.cast(config.getInstance(args));
+            return clazz.cast(config);
         }
 
         // otherwise, look for a group of the desired type
@@ -205,21 +213,10 @@ public class ConfigManager
         if (group != null) {
             T config = group.getConfig(name);
             if (config != null) {
-                return clazz.cast(config.getInstance(args));
+                return config;
             }
         }
-        return (_parent == null) ? null : _parent.getConfig(clazz, name, args);
-    }
-
-    /**
-     * Retrieves a configuration by class and integer identifier.  If the configuration is not
-     * found in this manager, the request will be forwarded to the parent, and so on.
-     *
-     * @return the requested configuration, or <code>null</code> if not found.
-     */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id)
-    {
-        return getConfig(clazz, id, null);
+        return (_parent == null) ? null : _parent.getConfig(clazz, name);
     }
 
     /**
@@ -245,14 +242,26 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id, ArgumentMap args)
     {
+        T config = getConfig(clazz, id);
+        return (config == null) ? null : clazz.cast(config.getInstance(this, args));
+    }
+
+    /**
+     * Retrieves a configuration by class and integer identifier.  If the configuration is not
+     * found in this manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id)
+    {
         ConfigGroup<T> group = getGroup(clazz);
         if (group != null) {
             T config = group.getConfig(id);
             if (config != null) {
-                return clazz.cast(config.getInstance(args));
+                return config;
             }
         }
-        return (_parent == null) ? null : _parent.getConfig(clazz, id, args);
+        return (_parent == null) ? null : _parent.getConfig(clazz, id);
     }
 
     /**

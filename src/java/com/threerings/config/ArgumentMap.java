@@ -23,6 +23,8 @@ public class ArgumentMap extends TreeMap<String, Object>
         for (Map.Entry<String, Object> entry : cmap.entrySet()) {
             entry.setValue(DeepUtil.copy(entry.getValue(), null));
         }
+        cmap._a1 = new Object[1];
+        cmap._a2 = new Object[1];
         return cmap;
     }
 

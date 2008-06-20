@@ -168,6 +168,7 @@ public class ConfigGroup<T extends ManagedConfig>
             }
             _configsById.put(id, config);
         }
+        config.init(_cfgmgr);
         fireConfigAdded(config);
     }
 
@@ -357,6 +358,7 @@ public class ConfigGroup<T extends ManagedConfig>
                 _highestId = Math.max(_highestId, id);
                 _configsById.put(id, config);
             }
+            config.init(_cfgmgr);
         }
         for (int id = _highestId - 1; id >= 1; id--) {
             if (!_configsById.containsKey(id)) {

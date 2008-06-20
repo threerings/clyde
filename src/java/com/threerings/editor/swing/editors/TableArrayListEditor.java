@@ -103,16 +103,6 @@ public class TableArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
-    public String getPathComponent (Point pt)
-    {
-        pt = SwingUtilities.convertPoint(this, pt, _table);
-        int row = _table.rowAtPoint(pt);
-        int col = _table.columnAtPoint(pt);
-        return _property.getName() + ((row == -1 || col == -1) ? "" :
-            ("[" + row + "]" + _columns[col].getPathComponent()));
-    }
-
-    @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
         Object source = event.getSource();
@@ -306,6 +296,16 @@ public class TableArrayListEditor extends ArrayListEditor
             updateColumnWidths();
         }
         updateSelected();
+    }
+
+    @Override // documentation inherited
+    protected String getPathComponent (Point pt)
+    {
+        pt = SwingUtilities.convertPoint(this, pt, _table);
+        int row = _table.rowAtPoint(pt);
+        int col = _table.columnAtPoint(pt);
+        return _property.getName() + ((row == -1 || col == -1) ? "" :
+            ("[" + row + "]" + _columns[col].getPathComponent()));
     }
 
     @Override // documentation inherited

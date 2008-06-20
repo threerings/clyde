@@ -3,22 +3,11 @@
 
 package com.threerings.opengl.renderer.config;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
-import com.threerings.math.Transform;
-import com.threerings.math.Vector3f;
-import com.threerings.math.Vector4f;
-
-import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.renderer.Program;
-import com.threerings.opengl.renderer.Program.FloatUniform;
-import com.threerings.opengl.renderer.Program.IntegerUniform;
-import com.threerings.opengl.renderer.Program.Vector3fUniform;
-import com.threerings.opengl.renderer.Program.Vector4fUniform;
-import com.threerings.opengl.renderer.Program.Matrix4fUniform;
-import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.state.ShaderState;
 
 /**
@@ -44,107 +33,18 @@ public abstract class ShaderStateConfig extends DeepObject
      */
     public static class Enabled extends ShaderStateConfig
     {
-        /** The uniforms to pass to the shader. */
+        /** The vertex shader to use. */
         @Editable
-        public UniformConfig[] uniforms = new UniformConfig[0];
+        public ConfigReference<ShaderConfig> vertex;
+
+        /** The fragment shader to use. */
+        @Editable
+        public ConfigReference<ShaderConfig> fragment;
 
         @Override // documentation inherited
         public ShaderState getState ()
         {
             return null;
-        }
-    }
-
-    /**
-     * Represents the value of a shader uniform variable.
-     */
-    public static abstract class UniformConfig extends DeepObject
-        implements Exportable
-    {
-        /** The name of the uniform. */
-        @Editable(hgroup="p")
-        public String name = "";
-
-        /**
-         * Returns the subclasses available for selection in the editor.
-         */
-        public static Class[] getEditorTypes ()
-        {
-            return new Class[] {
-                IntegerUniformConfig.class, FloatUniformConfig.class,
-                ColorUniformConfig.class, TransformUniformConfig.class };
-        }
-
-        /**
-         * Creates a uniform object from this configuration.
-         *
-         * @param location the location of the uniform.
-         */
-        public abstract Uniform createUniform (int location);
-    }
-
-    /**
-     * An integer-valued uniform.
-     */
-    public static class IntegerUniformConfig extends UniformConfig
-    {
-        /** The value of the uniform. */
-        @Editable(hgroup="p")
-        public int value;
-
-        @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            return new IntegerUniform(location, value);
-        }
-    }
-
-    /**
-     * A float-valued uniform.
-     */
-    public static class FloatUniformConfig extends UniformConfig
-    {
-        /** The value of the uniform. */
-        @Editable(step=0.01, hgroup="p")
-        public float value;
-
-        @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            return new FloatUniform(location, value);
-        }
-    }
-
-    /**
-     * A color-valued uniform.
-     */
-    public static class ColorUniformConfig extends UniformConfig
-    {
-        /** The value of the uniform. */
-        @Editable(mode="alpha", hgroup="p")
-        public Color4f value = new Color4f();
-
-        @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            return new Vector4fUniform(location, new Vector4f(value.r, value.g, value.b, value.a));
-        }
-    }
-
-    /**
-     * A transform-valued uniform.
-     */
-    public static class TransformUniformConfig extends UniformConfig
-    {
-        /** The value of the uniform. */
-        @Editable(hgroup="p")
-        public Transform transform = new Transform();
-
-        @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            transform.update(Transform.GENERAL);
-            return new Matrix4fUniform(location, transform.getMatrix());
         }
     }
 
