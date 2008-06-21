@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import java.lang.ref.WeakReference;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -117,7 +119,7 @@ public class ShaderCache
         }
         try {
             BufferedReader reader = new BufferedReader(
-                new InputStreamReader(_ctx.getResourceManager().getResource("shader/" + path)));
+                new InputStreamReader(_ctx.getResourceManager().getResource(path)));
             String line;
             while ((line = reader.readLine()) != null) {
                 buf.append(line).append('\n');
@@ -176,29 +178,28 @@ public class ShaderCache
      */
     protected static class ProgramKey
     {
-        /** The vertex and fragment shaders. */
-        public Shader vertex, fragment;
-
         public ProgramKey (Shader vertex, Shader fragment)
         {
-            this.vertex = vertex;
-            this.fragment = fragment;
+            _vertex = new WeakReference<Shader>(vertex);
+            _fragment = new WeakReference<Shader>(fragment);
         }
 
         @Override // documentation inherited
         public int hashCode ()
         {
-            return (vertex == null ? 0 : vertex.hashCode()) ^
-                (fragment == null ? 0 : fragment.hashCode());
+            return System.identityHashCode(_vertex.get()) ^
+                System.identityHashCode(_fragment.get());
         }
 
         @Override // documentation inherited
         public boolean equals (Object other)
         {
             ProgramKey okey = (ProgramKey)other;
-            return ObjectUtil.equals(vertex, okey.vertex) &&
-                ObjectUtil.equals(fragment, okey.fragment);
+            return _vertex.get() == okey._vertex.get() && _fragment.get() == okey._fragment.get();
         }
+
+        /** The vertex and fragment shaders. */
+        protected WeakReference<Shader> _vertex, _fragment;
     }
 
     /** The renderer context. */

@@ -90,7 +90,7 @@ public class PassConfig extends DeepObject
     public TextureStateConfig textureState = new TextureStateConfig();
 
     /**
-     * Creates the states for this pass.
+     * Creates the set of states for this pass.
      */
     public RenderState[] createStates (GlContext ctx)
     {
@@ -109,7 +109,7 @@ public class PassConfig extends DeepObject
             (materialState == null) ? null : materialState.getState();
         states[RenderState.POLYGON_STATE] = polygonState.getState();
         states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
-        states[RenderState.SHADER_STATE] = shaderState.getState();
+        states[RenderState.SHADER_STATE] = shaderState.getState(ctx);
         states[RenderState.STENCIL_STATE] = stencilState.getState();
         states[RenderState.TEXTURE_STATE] = textureState.getState(ctx);
         return states;

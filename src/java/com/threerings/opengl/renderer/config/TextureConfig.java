@@ -865,9 +865,7 @@ public class TextureConfig extends ParameterizedConfig
             return true;
         }
 
-        /**
-         * Returns the texture corresponding to this configuration.
-         */
+        @Override // documentation inherited
         public Texture getTexture (GlContext ctx)
         {
             if (texture == null) {

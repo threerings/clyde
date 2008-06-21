@@ -295,7 +295,7 @@ public class PathProperty extends Property
                 return null;
             }
             prop = new Property () { {
-                    _name = base.getName() + "[\"" + arg + "\"]";
+                    _name = base.getName() + "[\"" + arg.replace("\"", "\\\"") + "\"]";
                 }
                 public Class getType () {
                     return aprop.getType();
