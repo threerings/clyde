@@ -102,7 +102,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         Component comp = _arguments.getComponentAt(
             SwingUtilities.convertPoint(this, pt, _arguments));
         return _property.getName() + (comp instanceof PropertyEditor ?
-            ("[" + ((PropertyEditor)comp).getProperty().getName() + "]") : "");
+            ("[\"" + escapeQuotes(((PropertyEditor)comp).getProperty().getName()) + "\"]") : "");
     }
 
     @Override // documentation inherited
@@ -148,8 +148,9 @@ public class ConfigReferenceEditor extends PropertyEditor
         // scan through the parameters
         int idx = 0;
         Object nargs = value.getArguments();
-        for (Parameter parameter : ((ParameterizedConfig)config).parameters) {
-            Property property = parameter.getArgumentProperty(config);
+        ParameterizedConfig pconfig = (ParameterizedConfig)config;
+        for (Parameter parameter : pconfig.parameters) {
+            Property property = parameter.getArgumentProperty(pconfig);
             if (property == null) {
                 continue;
             }
@@ -189,6 +190,14 @@ public class ConfigReferenceEditor extends PropertyEditor
         while (ocount > idx) {
             _arguments.remove(--ocount);
         }
+    }
+
+    /**
+     * Escapes any quotes in the supplied string.
+     */
+    protected static String escapeQuotes (String string)
+    {
+        return string.replace("\"", "\\\"");
     }
 
     /** The config button. */

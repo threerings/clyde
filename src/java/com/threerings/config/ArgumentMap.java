@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.threerings.util.Copyable;
 import com.threerings.util.DeepUtil;
 
 /**
@@ -15,17 +16,28 @@ import com.threerings.util.DeepUtil;
  * when using arrays as values.  Also implements {@link #clone} to deep-copy values.
  */
 public class ArgumentMap extends TreeMap<String, Object>
+    implements Copyable
 {
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest)
+    {
+        ArgumentMap cmap;
+        if (dest instanceof ArgumentMap) {
+            cmap = (ArgumentMap)dest;
+            cmap.clear();
+        } else {
+            cmap = new ArgumentMap();
+        }
+        for (Map.Entry<String, Object> entry : entrySet()) {
+            cmap.put(entry.getKey(), DeepUtil.copy(entry.getValue()));
+        }
+        return cmap;
+    }
+
     @Override // documentation inherited
     public Object clone ()
     {
-        ArgumentMap cmap = (ArgumentMap)super.clone();
-        for (Map.Entry<String, Object> entry : cmap.entrySet()) {
-            entry.setValue(DeepUtil.copy(entry.getValue(), null));
-        }
-        cmap._a1 = new Object[1];
-        cmap._a2 = new Object[1];
-        return cmap;
+        return copy(null);
     }
 
     @Override // documentation inherited

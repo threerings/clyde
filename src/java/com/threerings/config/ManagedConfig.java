@@ -51,7 +51,7 @@ public abstract class ManagedConfig extends DeepObject
     /**
      * Returns the derived instance with the supplied arguments.
      */
-    public ManagedConfig getInstance (ConfigManager cfgmgr, ArgumentMap args)
+    public ManagedConfig getInstance (ArgumentMap args)
     {
         return this;
     }

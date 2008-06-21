@@ -42,20 +42,21 @@ public abstract class Parameter extends DeepObject
         }
 
         @Override // documentation inherited
-        protected Property createProperty (ManagedConfig reference)
+        protected Property createProperty (ParameterizedConfig reference)
         {
             try {
-                return new PathProperty(name, reference, paths);
+                return new PathProperty(reference.getConfigManager(), name, reference, paths);
             } catch (InvalidPathsException e) {
                 return null;
             }
         }
 
         @Override // documentation inherited
-        protected Property createArgumentProperty (ManagedConfig reference)
+        protected Property createArgumentProperty (ParameterizedConfig reference)
         {
             try {
-                return new ArgumentPathProperty(name, reference, paths);
+                return new ArgumentPathProperty(
+                    reference.getConfigManager(), name, reference, paths);
             } catch (InvalidPathsException e) {
                 return null;
             }
@@ -81,13 +82,13 @@ public abstract class Parameter extends DeepObject
         }
 
         @Override // documentation inherited
-        protected Property createProperty (ManagedConfig reference)
+        protected Property createProperty (ParameterizedConfig reference)
         {
             return null;
         }
 
         @Override // documentation inherited
-        protected Property createArgumentProperty (ManagedConfig reference)
+        protected Property createArgumentProperty (ParameterizedConfig reference)
         {
             return null;
         }
@@ -122,7 +123,7 @@ public abstract class Parameter extends DeepObject
      * @param reference the configuration to use as a reference to resolve paths.
      * @return the property, or <code>null</code> if the parameter is invalid.
      */
-    public Property getProperty (ManagedConfig reference)
+    public Property getProperty (ParameterizedConfig reference)
     {
         if (_property == INVALID_PROPERTY) {
             _property = createProperty(reference);
@@ -143,7 +144,7 @@ public abstract class Parameter extends DeepObject
      * default values.
      * @return the property, or <code>null</code> if the parameter is invalid.
      */
-    public Property getArgumentProperty (ManagedConfig reference)
+    public Property getArgumentProperty (ParameterizedConfig reference)
     {
         if (_argumentProperty == INVALID_PROPERTY) {
             _argumentProperty = createArgumentProperty(reference);
@@ -162,13 +163,13 @@ public abstract class Parameter extends DeepObject
     /**
      * Creates the property used to apply this parameter.
      */
-    protected abstract Property createProperty (ManagedConfig reference);
+    protected abstract Property createProperty (ParameterizedConfig reference);
 
     /**
      * Creates the property used to set and retrieve the argument corresponding to this
      * property.
      */
-    protected abstract Property createArgumentProperty (ManagedConfig reference);
+    protected abstract Property createArgumentProperty (ParameterizedConfig reference);
 
     /** The property corresponding to this parameter. */
     @DeepOmit

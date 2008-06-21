@@ -24,8 +24,31 @@ public class ParameterizedConfig extends ManagedConfig
     @Editable(weight=1)
     public Parameter[] parameters = new Parameter[0];
 
+    /**
+     * Returns a reference to the config manager to use when resolving references within this
+     * config.
+     */
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
+    }
+
+    /**
+     * Returns a reference to the parameter with the supplied name, or <code>null</code> if it
+     * doesn't exist.
+     */
+    public Parameter getParameter (String name)
+    {
+        for (Parameter parameter : parameters) {
+            if (parameter.name.equals(name)) {
+                return parameter;
+            }
+        }
+        return null;
+    }
+
     @Override // documentation inherited
-    public ParameterizedConfig getInstance (ConfigManager cfgmgr, ArgumentMap args)
+    public ParameterizedConfig getInstance (ArgumentMap args)
     {
         if (args == null || args.isEmpty() || parameters.length == 0) {
             return this;
@@ -55,7 +78,7 @@ public class ParameterizedConfig extends ManagedConfig
         ParameterizedConfig instance = _derived.get(args);
         if (instance == null) {
             _derived.put((ArgumentMap)args.clone(), instance = (ParameterizedConfig)clone());
-            instance.init(cfgmgr);
+            instance.init(_cfgmgr);
             instance._base = this;
             applyArguments(instance, args);
         }
@@ -114,20 +137,6 @@ public class ParameterizedConfig extends ManagedConfig
                 }
             }
         }
-    }
-
-    /**
-     * Returns a reference to the parameter with the supplied name, or <code>null</code> if it
-     * doesn't exist.
-     */
-    protected Parameter getParameter (String name)
-    {
-        for (Parameter parameter : parameters) {
-            if (parameter.name.equals(name)) {
-                return parameter;
-            }
-        }
-        return null;
     }
 
     /** The config manager that we use to resolve references. */

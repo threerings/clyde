@@ -172,12 +172,8 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, ArgumentMap args)
     {
-        // resource-loaded configs must be loaded from the global manager
-        if (_parent != null && ResourceLoaded.class.isAssignableFrom(clazz)) {
-            return _parent.getConfig(clazz, name, args);
-        }
         T config = getConfig(clazz, name);
-        return (config == null) ? null : clazz.cast(config.getInstance(this, args));
+        return (config == null) ? null : clazz.cast(config.getInstance(args));
     }
 
     /**
@@ -243,7 +239,7 @@ public class ConfigManager
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id, ArgumentMap args)
     {
         T config = getConfig(clazz, id);
-        return (config == null) ? null : clazz.cast(config.getInstance(this, args));
+        return (config == null) ? null : clazz.cast(config.getInstance(args));
     }
 
     /**
