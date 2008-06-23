@@ -10,7 +10,7 @@ import org.lwjgl.opengl.GL11;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Quaternion;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.effect.Particle;
@@ -152,7 +152,7 @@ public class ParticleSurface extends DefaultSurface
     {
         // get everything in local variables
         float[] vbuf = _vbuf, vertices = _vertices;
-        Transform xform = _xform;
+        Transform3D xform = _xform;
         Quaternion vrot = _vrot, rotation = _rotation;
         Vector3f s = _s, t = _t, r = _r, view = _view;
 
@@ -168,8 +168,8 @@ public class ParticleSurface extends DefaultSurface
 
         } else if (alignment == Alignment.BILLBOARD) {
             // get the inverse of the modelview rotation (better not be a general matrix!)
-            Transform modelview = _host.getModelview();
-            modelview.update(Transform.RIGID);
+            Transform3D modelview = _host.getModelview();
+            modelview.update(Transform3D.RIGID);
             modelview.getRotation().invert(vrot);
         }
 
@@ -219,7 +219,7 @@ public class ParticleSurface extends DefaultSurface
                         vrot.mult(particle.getOrientation(), rotation) :
                         particle.getOrientation(),
                     particle.getSize());
-                xform.update(Transform.AFFINE);
+                xform.update(Transform3D.AFFINE);
                 Matrix4f m = xform.getMatrix();
                 m00 = m.m00; m10 = m.m10; m20 = m.m20; m30 = m.m30;
                 m01 = m.m01; m11 = m.m11; m21 = m.m21; m31 = m.m31;
@@ -307,8 +307,8 @@ public class ParticleSurface extends DefaultSurface
         Alignment alignment = _parthost.getAlignment();
         if (alignment == Alignment.BILLBOARD) {
             // get the inverse of the modelview rotation (better not be a general matrix!)
-            Transform modelview = _host.getModelview();
-            modelview.update(Transform.RIGID);
+            Transform3D modelview = _host.getModelview();
+            modelview.update(Transform3D.RIGID);
             modelview.getRotation().invert(vrot);
         }
 
@@ -426,8 +426,8 @@ public class ParticleSurface extends DefaultSurface
 
         } else if (alignment == Alignment.BILLBOARD) {
             // get the inverse of the modelview rotation (better not be a general matrix!)
-            Transform modelview = _host.getModelview();
-            modelview.update(Transform.RIGID);
+            Transform3D modelview = _host.getModelview();
+            modelview.update(Transform3D.RIGID);
             modelview.getRotation().invert(vrot);
         }
 
@@ -682,7 +682,7 @@ public class ParticleSurface extends DefaultSurface
     protected ParticleGeometry _geom;
 
     /** Used to compose particle transforms. */
-    protected Transform _xform = new Transform();
+    protected Transform3D _xform = new Transform3D();
 
     /** Used to compute particle positions. */
     protected Vector3f _position = new Vector3f(), _last = new Vector3f(), _next = new Vector3f();

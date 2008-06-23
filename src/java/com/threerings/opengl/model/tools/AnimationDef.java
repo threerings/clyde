@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import com.threerings.math.Quaternion;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.model.Animation;
@@ -44,10 +44,10 @@ public class AnimationDef
          */
         public Frame createFrame (String[] targets, float gscale)
         {
-            Transform[] xforms = new Transform[targets.length];
+            Transform3D[] xforms = new Transform3D[targets.length];
             for (int ii = 0; ii < targets.length; ii++) {
                 TransformDef tdef = transforms.get(targets[ii]);
-                xforms[ii] = (tdef == null) ? new Transform() : tdef.createTransform(gscale);
+                xforms[ii] = (tdef == null) ? new Transform3D() : tdef.createTransform(gscale);
             }
             return new Frame(xforms);
         }
@@ -67,9 +67,9 @@ public class AnimationDef
         public float[] scale;
 
         /**
-         * Builds a {@link Transform} from this definition.
+         * Builds a {@link Transform3D} from this definition.
          */
-        public Transform createTransform (float gscale)
+        public Transform3D createTransform (float gscale)
         {
             return ModelDef.createTransform(translation, rotation, scale, gscale);
         }

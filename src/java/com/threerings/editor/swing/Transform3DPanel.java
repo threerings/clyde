@@ -16,12 +16,12 @@ import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.util.MessageBundle;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 /**
- * Allows editing a transform.
+ * Allows editing a 3D transform.
  */
-public class TransformPanel extends BasePropertyEditor
+public class Transform3DPanel extends BasePropertyEditor
     implements ChangeListener
 {
     /** The available editing modes: rigid or uniform. */
@@ -30,7 +30,7 @@ public class TransformPanel extends BasePropertyEditor
     /**
      * Creates a new transform panel with the specified editing mode.
      */
-    public TransformPanel (MessageBundle msgs, Mode mode, float step, float scale)
+    public Transform3DPanel (MessageBundle msgs, Mode mode, float step, float scale)
     {
         _msgs = msgs;
         _mode = mode;
@@ -46,7 +46,7 @@ public class TransformPanel extends BasePropertyEditor
         tcont.setBackground(null);
         tcont.setBorder(BorderFactory.createTitledBorder(getLabel("translation")));
         trpanel.add(tcont);
-        tcont.add(_tpanel = new VectorPanel(msgs, VectorPanel.Mode.CARTESIAN, step, scale));
+        tcont.add(_tpanel = new Vector3fPanel(msgs, Vector3fPanel.Mode.CARTESIAN, step, scale));
         _tpanel.addChangeListener(this);
         JPanel rcont = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.CENTER, GroupLayout.NONE);
@@ -69,7 +69,7 @@ public class TransformPanel extends BasePropertyEditor
     /**
      * Returns a reference to the translation panel.
      */
-    public VectorPanel getTranslationPanel ()
+    public Vector3fPanel getTranslationPanel ()
     {
         return _tpanel;
     }
@@ -85,9 +85,9 @@ public class TransformPanel extends BasePropertyEditor
     /**
      * Sets the value of the transform being edited.
      */
-    public void setValue (Transform value)
+    public void setValue (Transform3D value)
     {
-        value.update(Transform.UNIFORM);
+        value.update(Transform3D.UNIFORM);
         _tpanel.setValue(value.getTranslation());
         _rpanel.setValue(value.getRotation());
         if (_mode == Mode.UNIFORM) {
@@ -98,12 +98,12 @@ public class TransformPanel extends BasePropertyEditor
     /**
      * Returns the current value of the transform being edited.
      */
-    public Transform getValue ()
+    public Transform3D getValue ()
     {
         if (_mode == Mode.RIGID) {
-            return new Transform(_tpanel.getValue(), _rpanel.getValue());
+            return new Transform3D(_tpanel.getValue(), _rpanel.getValue());
         } else { // _mode == Mode.UNIFORM
-            return new Transform(_tpanel.getValue(), _rpanel.getValue(),
+            return new Transform3D(_tpanel.getValue(), _rpanel.getValue(),
                 ((Number)_sspinner.getValue()).floatValue());
         }
     }
@@ -118,7 +118,7 @@ public class TransformPanel extends BasePropertyEditor
     protected Mode _mode;
 
     /** The translation panel. */
-    protected VectorPanel _tpanel;
+    protected Vector3fPanel _tpanel;
 
     /** The rotation panel. */
     protected QuaternionPanel _rpanel;

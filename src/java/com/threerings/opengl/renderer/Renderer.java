@@ -38,7 +38,7 @@ import com.samskivert.util.QuickSort;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
 import com.threerings.math.Quaternion;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 import com.threerings.media.timer.MediaTimer;
@@ -1598,7 +1598,7 @@ public class Renderer
     /**
      * Sets the transform state.
      */
-    public void setTransformState (Transform modelview)
+    public void setTransformState (Transform3D modelview)
     {
         if (!_modelview.equals(modelview)) {
             setMatrixMode(GL11.GL_MODELVIEW);
@@ -1743,7 +1743,7 @@ public class Renderer
     /**
      * Loads the specified transform into the current matrix slot.
      */
-    protected void loadTransformMatrix (Transform transform)
+    protected void loadTransformMatrix (Transform3D transform)
     {
         // supposedly, calling the "typed" matrix functions (glTranslatef, glRotatef, etc.)
         // allows driver optimizations that calling glLoadMatrix doesn't:
@@ -1751,13 +1751,13 @@ public class Renderer
         // (but that's kind of an old document; it's not clear that it's worth the extra native
         // calls)
         int type = transform.getType();
-        if (type >= Transform.AFFINE) {
+        if (type >= Transform3D.AFFINE) {
             transform.getMatrix().get(_vbuf).rewind();
             GL11.glLoadMatrix(_vbuf);
             return;
         }
         GL11.glLoadIdentity();
-        if (type == Transform.IDENTITY) {
+        if (type == Transform3D.IDENTITY) {
             return;
         }
         Vector3f translation = transform.getTranslation();
@@ -1771,7 +1771,7 @@ public class Renderer
             GL11.glRotatef(FloatMath.toDegrees(angle),
                 rotation.x * rsina, rotation.y * rsina, rotation.z * rsina);
         }
-        if (type == Transform.UNIFORM) {
+        if (type == Transform3D.UNIFORM) {
             float scale = transform.getScale();
             if (scale != 1f) {
                 GL11.glScalef(scale, scale, scale);
@@ -2516,7 +2516,7 @@ public class Renderer
     protected int _matrixMode = GL11.GL_MODELVIEW;
 
     /** The current modelview transform. */
-    protected Transform _modelview = new Transform();
+    protected Transform3D _modelview = new Transform3D();
 
     /** The currently bound frame buffer. */
     protected Framebuffer _framebuffer;

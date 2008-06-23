@@ -15,7 +15,7 @@ import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
 import com.threerings.math.Matrix4f;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
@@ -85,7 +85,7 @@ public class ShaderConfig extends ParameterizedConfig
         /** The names of the attributes required by this shader. */
         @Editable(width=15)
         public String[] attributes = new String[0];
-        
+
         /**
          * The initial contents of the shader.
          */
@@ -395,19 +395,19 @@ public class ShaderConfig extends ParameterizedConfig
     {
         /** The value of the variable. */
         @Editable(hgroup="p")
-        public Transform value = new Transform();
+        public Transform3D value = new Transform3D();
 
         @Override // documentation inherited
         public Uniform createUniform (int location)
         {
-            value.update(Transform.GENERAL);
+            value.update(Transform3D.GENERAL);
             return new Matrix4fUniform(location, value.getMatrix());
         }
 
         @Override // documentation inherited
         public String createDefinition ()
         {
-            value.update(Transform.GENERAL);
+            value.update(Transform3D.GENERAL);
             Matrix4f matrix = value.getMatrix();
             return name + " mat4(" +
                 GLSL_FLOAT.format(matrix.m00) + ", " +

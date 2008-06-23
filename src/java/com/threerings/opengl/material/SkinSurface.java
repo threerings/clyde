@@ -11,7 +11,6 @@ import org.lwjgl.opengl.GL11;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.math.Matrix4f;
-import com.threerings.math.Transform;
 
 import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.model.SkinMesh;

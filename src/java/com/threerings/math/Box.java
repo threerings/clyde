@@ -177,7 +177,7 @@ public final class Box
      *
      * @return a reference to this box, for chaining.
      */
-    public Box transformLocal (Transform transform)
+    public Box transformLocal (Transform3D transform)
     {
         return transform(transform, this);
     }
@@ -187,7 +187,7 @@ public final class Box
      *
      * @return a new box containing the result.
      */
-    public Box transform (Transform transform)
+    public Box transform (Transform3D transform)
     {
         return transform(transform, new Box());
     }
@@ -197,13 +197,13 @@ public final class Box
      *
      * @return a reference to the result box, for chaining.
      */
-    public Box transform (Transform transform, Box result)
+    public Box transform (Transform3D transform, Box result)
     {
         // the corners of the box cover the eight permutations of ([minX|maxX], [minY|maxY],
         // [minZ|maxZ]).  to find the new minimum and maximum for each element, we transform
         // selecting either the minimum or maximum for each component based on whether it will
         // increase or decrease the total (which depends on the sign of the matrix element).
-        transform.update(Transform.AFFINE);
+        transform.update(Transform3D.AFFINE);
         Matrix4f matrix = transform.getMatrix();
         float minx =
             matrix.m00 * (matrix.m00 > 0f ? _minExtent.x : _maxExtent.x) +

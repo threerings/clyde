@@ -6,7 +6,7 @@ package com.threerings.opengl.renderer;
 import org.lwjgl.opengl.ARBTextureEnvCombine;
 import org.lwjgl.opengl.GL11;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector4f;
 
 /**
@@ -99,7 +99,7 @@ public class TextureUnit
     public Vector4f genPlaneQ = new Vector4f(0f, 0f, 0f, 0f);
 
     /** The texture transform. */
-    public Transform transform = new Transform();
+    public Transform3D transform = new Transform3D();
 
     /** Set when the state has changed and must be reapplied. */
     public boolean dirty;

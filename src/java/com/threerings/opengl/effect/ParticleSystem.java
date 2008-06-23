@@ -15,7 +15,7 @@ import com.samskivert.util.QuickSort;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.editor.Editable;
@@ -124,7 +124,7 @@ public class ParticleSystem extends Model
 
         /** The emitter transform. */
         @Editable(category="origin", mode="rigid", step=0.01)
-        public Transform transform = new Transform();
+        public Transform3D transform = new Transform3D();
 
         /** Controls the particles' initial positions. */
         @Editable(category="origin")
@@ -438,7 +438,7 @@ public class ParticleSystem extends Model
         /**
          * Enqueues the layer for rendering.
          */
-        public void enqueue (Transform modelview)
+        public void enqueue (Transform3D modelview)
         {
             if (!visible || _living == 0) {
                 return;
@@ -453,7 +453,7 @@ public class ParticleSystem extends Model
 
             // sort by depth if so required (TODO: radix or incremental sort?)
             if (depthSort) {
-                Transform xform = _tstate.getModelview();
+                Transform3D xform = _tstate.getModelview();
                 for (int ii = 0; ii < _living; ii++) {
                     Particle particle = _particles[ii];
                     particle.depth = xform.transformPointZ(particle.getPosition());
@@ -492,7 +492,7 @@ public class ParticleSystem extends Model
         }
 
         // documentation inherited from interface SurfaceHost
-        public Transform getModelview ()
+        public Transform3D getModelview ()
         {
             return _tstate.getModelview();
         }
@@ -612,8 +612,8 @@ public class ParticleSystem extends Model
             olayer._renderMode = _renderMode;
             olayer._count = _count;
             olayer._texture = _texture;
-            olayer._worldTransform = new Transform(_worldTransform);
-            olayer._worldTransformInv = new Transform(_worldTransformInv);
+            olayer._worldTransform = new Transform3D(_worldTransform);
+            olayer._worldTransformInv = new Transform3D(_worldTransformInv);
             olayer._bounds = new Box(_bounds);
             olayer._particles = new Particle[_count];
             for (int ii = 0; ii < _count; ii++) {
@@ -690,11 +690,11 @@ public class ParticleSystem extends Model
 
         /** The system's transform in world space. */
         @DeepOmit
-        protected transient Transform _worldTransform = new Transform();
+        protected transient Transform3D _worldTransform = new Transform3D();
 
         /** The inverse of the world space transform. */
         @DeepOmit
-        protected transient Transform _worldTransformInv = new Transform();
+        protected transient Transform3D _worldTransformInv = new Transform3D();
 
         /** The bounds of the layer. */
         @DeepOmit
@@ -801,7 +801,7 @@ public class ParticleSystem extends Model
     }
 
     // documentation inherited from interface SurfaceHost
-    public Transform getModelview ()
+    public Transform3D getModelview ()
     {
         return _modelview;
     }
@@ -822,7 +822,7 @@ public class ParticleSystem extends Model
     public void enqueue ()
     {
         // update the modelview transform and the transform hierarchy
-        Transform view = _ctx.getRenderer().getCamera().getViewTransform();
+        Transform3D view = _ctx.getRenderer().getCamera().getViewTransform();
         view.compose(_transform, _modelview);
 
         // update the group depths
@@ -896,7 +896,7 @@ public class ParticleSystem extends Model
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
             osystem._layers.add(_layers.get(ii).clone(osystem));
         }
-        osystem._modelview = new Transform(_modelview);
+        osystem._modelview = new Transform3D(_modelview);
         osystem._groups = new LayerGroup[0];
         return osystem;
     }
@@ -911,14 +911,14 @@ public class ParticleSystem extends Model
     }
 
     @Override // documentation inherited
-    protected void enqueue (Transform modelview)
+    protected void enqueue (Transform3D modelview)
     {
         // update the world transform
         Camera camera = _ctx.getRenderer().getCamera();
         camera.getWorldTransform().compose(modelview, _transform);
 
         // update the group depths
-        Transform view = camera.getViewTransform();
+        Transform3D view = camera.getViewTransform();
         for (LayerGroup group : _groups) {
             group.depth = view.transformPointZ(group.bounds.getCenter(_center));
         }
@@ -968,7 +968,7 @@ public class ParticleSystem extends Model
     protected ArrayList<Layer> _layers = new ArrayList<Layer>();
 
     /** The modelview transform. */
-    protected transient Transform _modelview = new Transform();
+    protected transient Transform3D _modelview = new Transform3D();
 
     /** Layer groups mapped by index. */
     protected transient LayerGroup[] _groups = new LayerGroup[0];

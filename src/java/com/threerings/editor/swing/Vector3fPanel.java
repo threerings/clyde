@@ -21,7 +21,7 @@ import com.threerings.math.Vector3f;
 /**
  * Allows editing a vector.
  */
-public class VectorPanel extends BasePropertyEditor
+public class Vector3fPanel extends BasePropertyEditor
     implements ChangeListener
 {
     /** The available editing modes: Cartesian coordinates, spherical coordinates, normalized
@@ -31,7 +31,7 @@ public class VectorPanel extends BasePropertyEditor
     /**
      * Creates a new vector panel with the specified editing mode.
      */
-    public VectorPanel (MessageBundle msgs, Mode mode, float step, float scale)
+    public Vector3fPanel (MessageBundle msgs, Mode mode, float step, float scale)
     {
         _msgs = msgs;
         _mode = mode;

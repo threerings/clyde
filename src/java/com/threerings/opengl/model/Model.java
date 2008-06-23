@@ -12,7 +12,7 @@ import com.samskivert.util.PropertiesUtil;
 import com.threerings.math.Box;
 import com.threerings.math.Frustum;
 import com.threerings.math.Ray;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.export.Exportable;
@@ -62,7 +62,7 @@ public abstract class Model
     {
         _ctx = ctx;
         _path = path;
-        _transform = new Transform(Transform.UNIFORM);
+        _transform = new Transform3D(Transform3D.UNIFORM);
         _localBounds = new Box();
         _worldBounds = new Box();
         _cstate = new ColorState();
@@ -117,7 +117,7 @@ public abstract class Model
     /**
      * Returns a reference to the model's root transform.
      */
-    public Transform getTransform ()
+    public Transform3D getTransform ()
     {
         return _transform;
     }
@@ -251,7 +251,7 @@ public abstract class Model
         } catch (CloneNotSupportedException e) {
             return null; // should never happen
         }
-        omodel._transform = new Transform(_transform);
+        omodel._transform = new Transform3D(_transform);
         omodel._localBounds = new Box(_localBounds);
         omodel._worldBounds = new Box(_worldBounds);
         omodel._cstate = new ColorState(_cstate.getColor());
@@ -301,7 +301,7 @@ public abstract class Model
     /**
      * Enqueues this model with the given modelview transform.  Used to enqueue attached models.
      */
-    protected abstract void enqueue (Transform modelview);
+    protected abstract void enqueue (Transform3D modelview);
 
     /** The model properties. */
     protected Properties _props;
@@ -319,7 +319,7 @@ public abstract class Model
     protected transient Box _localBounds;
 
     /** The model's transform in world space. */
-    protected transient Transform _transform;
+    protected transient Transform3D _transform;
 
     /** The bounds of the model in world space. */
     protected transient Box _worldBounds;

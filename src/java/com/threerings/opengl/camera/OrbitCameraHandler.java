@@ -6,7 +6,7 @@ package com.threerings.opengl.camera;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
 import com.threerings.math.SphereCoords;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.Camera;
@@ -94,7 +94,7 @@ public class OrbitCameraHandler extends CameraHandler
     {
         // update the camera translation and rotation
         Camera camera = _ctx.getRenderer().getCamera();
-        Transform xform = camera.getWorldTransform();
+        Transform3D xform = camera.getWorldTransform();
         float ce = FloatMath.cos(_coords.elevation);
         xform.getTranslation().set(
             FloatMath.sin(_coords.azimuth) * ce,

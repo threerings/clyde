@@ -3,7 +3,7 @@
 
 package com.threerings.opengl.renderer.state;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.renderer.Renderer;
 
@@ -18,14 +18,14 @@ public class TransformState extends RenderState
     /**
      * Creates a new transform state with the values in the supplied transform.
      */
-    public TransformState (Transform modelview)
+    public TransformState (Transform3D modelview)
     {
         _modelview.set(modelview);
     }
 
     /**
-     * Creates a new transform state with the specified transform type ({@link Transform#GENERAL},
-     * {@link Transform#AFFINE}, etc).
+     * Creates a new transform state with the specified transform type
+     * ({@link Transform3D#GENERAL}, {@link Transform3D#AFFINE}, etc).
      */
     public TransformState (int type)
     {
@@ -42,7 +42,7 @@ public class TransformState extends RenderState
     /**
      * Returns a reference to the modelview transformation.
      */
-    public Transform getModelview ()
+    public Transform3D getModelview ()
     {
         return _modelview;
     }
@@ -60,5 +60,5 @@ public class TransformState extends RenderState
     }
 
     /** The modelview transformation. */
-    protected Transform _modelview = new Transform();
+    protected Transform3D _modelview = new Transform3D();
 }

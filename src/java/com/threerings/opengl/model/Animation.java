@@ -5,7 +5,7 @@ package com.threerings.opengl.model;
 
 import java.util.Properties;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 import com.threerings.export.Exportable;
 
@@ -21,7 +21,7 @@ public class Animation
     public static class Frame
         implements Exportable
     {
-        public Frame (Transform[] transforms)
+        public Frame (Transform3D[] transforms)
         {
             _transforms = transforms;
         }
@@ -33,13 +33,13 @@ public class Animation
         /**
          * Returns the transforms for each animation target.
          */
-        public Transform[] getTransforms ()
+        public Transform3D[] getTransforms ()
         {
             return _transforms;
         }
 
         /** The transforms for each animation target. */
-        protected Transform[] _transforms;
+        protected Transform3D[] _transforms;
     }
 
     /**

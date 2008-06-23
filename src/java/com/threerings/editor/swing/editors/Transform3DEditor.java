@@ -13,22 +13,22 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.util.StringUtil;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
-import com.threerings.editor.swing.TransformPanel;
+import com.threerings.editor.swing.Transform3DPanel;
 
 /**
  * Editor for transform properties.
  */
-public class TransformEditor extends PropertyEditor
+public class Transform3DEditor extends PropertyEditor
     implements ChangeListener
 {
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        Transform value = _panel.getValue();
+        Transform3D value = _panel.getValue();
         if (!_property.get(_object).equals(value)) {
             _property.set(_object, value);
             fireStateChanged();
@@ -42,11 +42,11 @@ public class TransformEditor extends PropertyEditor
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
         Editable annotation = _property.getAnnotation();
         String mstr = getMode();
-        TransformPanel.Mode mode = TransformPanel.Mode.UNIFORM;
+        Transform3DPanel.Mode mode = Transform3DPanel.Mode.UNIFORM;
         try {
-            mode = Enum.valueOf(TransformPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
+            mode = Enum.valueOf(Transform3DPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
         } catch (IllegalArgumentException e) { }
-        add(_panel = new TransformPanel(_msgs, mode, (float)getStep(), (float)getScale()));
+        add(_panel = new Transform3DPanel(_msgs, mode, (float)getStep(), (float)getScale()));
         _panel.setBackground(getDarkerBackground(_lineage.length));
         Color ddarker = getDarkerBackground(_lineage.length + 1);
         _panel.getTranslationPanel().setBackground(ddarker);
@@ -57,9 +57,9 @@ public class TransformEditor extends PropertyEditor
     @Override // documentation inherited
     protected void update ()
     {
-        _panel.setValue((Transform)_property.get(_object));
+        _panel.setValue((Transform3D)_property.get(_object));
     }
 
     /** The transform panel. */
-    protected TransformPanel _panel;
+    protected Transform3DPanel _panel;
 }

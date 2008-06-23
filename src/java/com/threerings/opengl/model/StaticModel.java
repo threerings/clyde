@@ -9,7 +9,7 @@ import java.util.Properties;
 
 import com.threerings.math.Box;
 import com.threerings.math.Ray;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.material.Material;
@@ -56,7 +56,7 @@ public class StaticModel extends Model
     }
 
     // documentation inherited from interface SurfaceHost
-    public Transform getModelview ()
+    public Transform3D getModelview ()
     {
         return _tstate.getModelview();
     }
@@ -84,7 +84,7 @@ public class StaticModel extends Model
     public void enqueue ()
     {
         // update the shared transform state
-        Transform modelview = _tstate.getModelview();
+        Transform3D modelview = _tstate.getModelview();
         _ctx.getRenderer().getCamera().getViewTransform().compose(_transform, modelview);
         _tstate.setDirty(true);
 
@@ -157,7 +157,7 @@ public class StaticModel extends Model
     }
 
     @Override // documentation inherited
-    protected void enqueue (Transform modelview)
+    protected void enqueue (Transform3D modelview)
     {
         // update the world transform
         _ctx.getRenderer().getCamera().getWorldTransform().compose(modelview, _transform);

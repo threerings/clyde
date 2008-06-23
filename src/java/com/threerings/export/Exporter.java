@@ -20,7 +20,6 @@ import java.util.HashMap;
 import org.lwjgl.BufferUtils;
 
 import com.threerings.math.Matrix4f;
-import com.threerings.math.Transform;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Quaternion;
 

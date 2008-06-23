@@ -3,7 +3,6 @@
 
 package com.threerings.opengl.material;
 
-import com.threerings.math.Transform;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.geometry.Geometry;

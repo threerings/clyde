@@ -13,7 +13,7 @@ import com.threerings.export.Importer;
  * Represents a 3D transformation in such a way as to accelerate operations such as composition
  * and inversion by keeping track of the nature of the transform.
  */
-public final class Transform
+public final class Transform3D
     implements Exportable
 {
     /** An identity transformation. */
@@ -34,14 +34,14 @@ public final class Transform
     /**
      * Creates an identity transformation.
      */
-    public Transform ()
+    public Transform3D ()
     {
     }
 
     /**
      * Creates an identity transformation of the specified type.
      */
-    public Transform (int type)
+    public Transform3D (int type)
     {
         setType(type);
     }
@@ -49,7 +49,7 @@ public final class Transform
     /**
      * Creates a transformation from the values in the supplied objects.
      */
-    public Transform (Vector3f translation, Quaternion rotation)
+    public Transform3D (Vector3f translation, Quaternion rotation)
     {
         set(translation, rotation);
     }
@@ -57,7 +57,7 @@ public final class Transform
     /**
      * Creates a transformation from the values in the supplied objects.
      */
-    public Transform (Vector3f translation, Quaternion rotation, float scale)
+    public Transform3D (Vector3f translation, Quaternion rotation, float scale)
     {
         set(translation, rotation, scale);
     }
@@ -65,7 +65,7 @@ public final class Transform
     /**
      * Creates a transformation from the values in the supplied objects.
      */
-    public Transform (Vector3f translation, Quaternion rotation, Vector3f scale)
+    public Transform3D (Vector3f translation, Quaternion rotation, Vector3f scale)
     {
         set(translation, rotation, scale);
     }
@@ -73,7 +73,7 @@ public final class Transform
     /**
      * Creates a transformation from the values in the supplied matrix.
      */
-    public Transform (Matrix4f matrix)
+    public Transform3D (Matrix4f matrix)
     {
         set(matrix);
     }
@@ -83,7 +83,7 @@ public final class Transform
      *
      * @param affine whether or not the provided matrix is known to be affine.
      */
-    public Transform (Matrix4f matrix, boolean affine)
+    public Transform3D (Matrix4f matrix, boolean affine)
     {
         set(matrix, affine);
     }
@@ -91,7 +91,7 @@ public final class Transform
     /**
      * Copy constructor.
      */
-    public Transform (Transform transform)
+    public Transform3D (Transform3D transform)
     {
         set(transform);
     }
@@ -169,7 +169,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform invertLocal ()
+    public Transform3D invertLocal ()
     {
         return invert(this);
     }
@@ -179,9 +179,9 @@ public final class Transform
      *
      * @return a new transform containing the result.
      */
-    public Transform invert ()
+    public Transform3D invert ()
     {
-        return invert(new Transform());
+        return invert(new Transform3D());
     }
 
     /**
@@ -189,7 +189,7 @@ public final class Transform
      *
      * @return a reference to the result transform, for chaining.
      */
-    public Transform invert (Transform result)
+    public Transform3D invert (Transform3D result)
     {
         // the method of inversion depends on the type
         switch (_type) {
@@ -227,7 +227,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform composeLocal (Transform other)
+    public Transform3D composeLocal (Transform3D other)
     {
         return compose(other, this);
     }
@@ -237,15 +237,15 @@ public final class Transform
      *
      * @return a new transform containing the result.
      */
-    public Transform compose (Transform other)
+    public Transform3D compose (Transform3D other)
     {
-        return compose(other, new Transform());
+        return compose(other, new Transform3D());
     }
 
     /**
      * Composes this transform with another, storing the result in the object provided.
      */
-    public Transform compose (Transform other, Transform result)
+    public Transform3D compose (Transform3D other, Transform3D result)
     {
         // the common type is the greater of the two
         int ctype = Math.max(getType(), other.getType());
@@ -291,7 +291,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform lerpLocal (Transform other, float t)
+    public Transform3D lerpLocal (Transform3D other, float t)
     {
         return lerp(other, t, this);
     }
@@ -301,9 +301,9 @@ public final class Transform
      *
      * @return a new transform containing the result.
      */
-    public Transform lerp (Transform other, float t)
+    public Transform3D lerp (Transform3D other, float t)
     {
-        return lerp(other, t, new Transform());
+        return lerp(other, t, new Transform3D());
     }
 
     /**
@@ -312,7 +312,7 @@ public final class Transform
      *
      * @return a reference to the result transform, for chaining.
      */
-    public Transform lerp (Transform other, float t, Transform result)
+    public Transform3D lerp (Transform3D other, float t, Transform3D result)
     {
         // the common type is the greater of the two
         int ctype = Math.max(getType(), other.getType());
@@ -355,7 +355,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform set (Transform transform)
+    public Transform3D set (Transform3D transform)
     {
         switch (transform.getType()) {
             default:
@@ -378,7 +378,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform setToIdentity ()
+    public Transform3D setToIdentity ()
     {
         setType(IDENTITY);
         return this;
@@ -389,7 +389,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform set (Vector3f translation, Quaternion rotation)
+    public Transform3D set (Vector3f translation, Quaternion rotation)
     {
         setType(RIGID);
         _translation.set(translation);
@@ -402,7 +402,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform set (Vector3f translation, Quaternion rotation, float scale)
+    public Transform3D set (Vector3f translation, Quaternion rotation, float scale)
     {
         setType(UNIFORM);
         _translation.set(translation);
@@ -416,7 +416,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform set (Vector3f translation, Quaternion rotation, Vector3f scale)
+    public Transform3D set (Vector3f translation, Quaternion rotation, Vector3f scale)
     {
         setType(AFFINE);
         _matrix.setToTransform(translation, rotation, scale);
@@ -428,7 +428,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform set (Matrix4f matrix)
+    public Transform3D set (Matrix4f matrix)
     {
         return set(matrix, false);
     }
@@ -439,7 +439,7 @@ public final class Transform
      * @param affine whether or not the provided matrix is affine.
      * @return a reference to this transform, for chaining.
      */
-    public Transform set (Matrix4f matrix, boolean affine)
+    public Transform3D set (Matrix4f matrix, boolean affine)
     {
         setType(affine ? AFFINE : GENERAL);
         _matrix.set(matrix);
@@ -452,7 +452,7 @@ public final class Transform
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform promote (int type)
+    public Transform3D promote (int type)
     {
         update(type);
         setType(type);
@@ -468,7 +468,7 @@ public final class Transform
      * transform.
      * @return a reference to this transform, for chaining.
      */
-    public Transform update (int utype)
+    public Transform3D update (int utype)
     {
         if (_type == IDENTITY) {
             if (utype >= AFFINE) {
@@ -653,8 +653,8 @@ public final class Transform
     @Override // documentation inherited
     public boolean equals (Object other)
     {
-        Transform otrans = (Transform)other;
-        if (!(other instanceof Transform && _type == otrans.getType())) {
+        Transform3D otrans = (Transform3D)other;
+        if (!(other instanceof Transform3D && _type == otrans.getType())) {
             return false;
         }
         switch (_type) {

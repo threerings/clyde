@@ -5,7 +5,7 @@ package com.threerings.opengl.renderer.config;
 
 import com.threerings.util.DeepObject;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -31,7 +31,7 @@ public class TextureUnitConfig extends DeepObject
     /** The texture coordinate set to use. */
     @Editable(min=0)
     public int coordSet;
-    
+
     /** The texture coordinate generation function for the s coordinate. */
     @Editable(types={
         TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
@@ -59,7 +59,7 @@ public class TextureUnitConfig extends DeepObject
 
     /** The texture transform. */
     @Editable
-    public Transform transform = new Transform();
+    public Transform3D transform = new Transform3D();
 
     /**
      * Checks whether the unit configuration is supported.

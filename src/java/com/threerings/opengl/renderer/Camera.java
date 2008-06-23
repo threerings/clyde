@@ -9,7 +9,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.gui.util.Rectangle;
@@ -39,8 +39,8 @@ public class Camera
         _worldTransform.invert(_viewTransform);
 
         // make sure our matrices are up-to-date
-        _worldTransform.update(Transform.AFFINE);
-        _viewTransform.update(Transform.AFFINE);
+        _worldTransform.update(Transform3D.AFFINE);
+        _viewTransform.update(Transform3D.AFFINE);
 
         // transform the frustum into world space
         _localVolume.transform(_worldTransform, _worldVolume);
@@ -49,7 +49,7 @@ public class Camera
     /**
      * Returns a reference to the camera's current transform in world space.
      */
-    public Transform getWorldTransform ()
+    public Transform3D getWorldTransform ()
     {
         return _worldTransform;
     }
@@ -57,7 +57,7 @@ public class Camera
     /**
      * Returns a reference to the camera view transform (the inverse of the world transform).
      */
-    public Transform getViewTransform ()
+    public Transform3D getViewTransform ()
     {
         return _viewTransform;
     }
@@ -295,10 +295,10 @@ public class Camera
     protected boolean _ortho = true;
 
     /** The camera's current transform in world space. */
-    protected Transform _worldTransform = new Transform(Transform.UNIFORM);
+    protected Transform3D _worldTransform = new Transform3D(Transform3D.UNIFORM);
 
     /** The camera's view transform (the inverse of its world transform). */
-    protected Transform _viewTransform = new Transform(Transform.UNIFORM);
+    protected Transform3D _viewTransform = new Transform3D(Transform3D.UNIFORM);
 
     /** The camera's local view volume. */
     protected Frustum _localVolume = new Frustum();

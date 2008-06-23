@@ -105,7 +105,7 @@ public class Frustum
      *
      * @return a reference to this frustum, for chaining.
      */
-    public Frustum transformLocal (Transform transform)
+    public Frustum transformLocal (Transform3D transform)
     {
         return transform(transform, this);
     }
@@ -115,7 +115,7 @@ public class Frustum
      *
      * @return a new frustum containing the result.
      */
-    public Frustum transform (Transform transform)
+    public Frustum transform (Transform3D transform)
     {
         return transform(transform, new Frustum());
     }
@@ -126,7 +126,7 @@ public class Frustum
      *
      * @return a reference to the result frustum, for chaining.
      */
-    public Frustum transform (Transform transform, Frustum result)
+    public Frustum transform (Transform3D transform, Frustum result)
     {
         // transform all of the vertices
         for (int ii = 0; ii < 8; ii++) {

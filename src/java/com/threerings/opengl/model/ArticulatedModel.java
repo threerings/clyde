@@ -16,7 +16,7 @@ import com.samskivert.util.StringUtil;
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.export.Exportable;
@@ -47,7 +47,7 @@ public class ArticulatedModel extends Model
     public class Node
         implements Exportable
     {
-        public Node (String name, boolean bone, Transform transform, Node[] children)
+        public Node (String name, boolean bone, Transform3D transform, Node[] children)
         {
             _name = name;
             _bone = bone;
@@ -62,14 +62,14 @@ public class ArticulatedModel extends Model
         /**
          * Initializes the node using the provided material map.
          */
-        public void init (Transform parentModelview)
+        public void init (Transform3D parentModelview)
         {
             _nodes.put(_name, this);
             _modelview = parentModelview.compose(_localTransform);
             if (_bone) {
                 _invRefTransform = _modelview.invert();
                 _boneTransform = _modelview.compose(_invRefTransform);
-                _boneTransform.update(Transform.AFFINE);
+                _boneTransform.update(Transform3D.AFFINE);
             }
             for (Node child : _children) {
                 child.init(_modelview);
@@ -79,7 +79,7 @@ public class ArticulatedModel extends Model
         /**
          * Returns a reference to the node's local transform.
          */
-        public Transform getLocalTransform ()
+        public Transform3D getLocalTransform ()
         {
             return _localTransform;
         }
@@ -87,7 +87,7 @@ public class ArticulatedModel extends Model
         /**
          * Returns a reference to the node's modelview transform.
          */
-        public Transform getModelview ()
+        public Transform3D getModelview ()
         {
             return _modelview;
         }
@@ -95,7 +95,7 @@ public class ArticulatedModel extends Model
         /**
          * Returns a reference to the node's bone transform.
          */
-        public Transform getBoneTransform ()
+        public Transform3D getBoneTransform ()
         {
             return _boneTransform;
         }
@@ -126,14 +126,14 @@ public class ArticulatedModel extends Model
          */
         public Vector3f getTranslation (Vector3f result)
         {
-            Transform world = _ctx.getRenderer().getCamera().getWorldTransform();
+            Transform3D world = _ctx.getRenderer().getCamera().getWorldTransform();
             return world.transformPoint(_modelview.getTranslation(), result);
         }
 
         /**
          * Enqueues the node for rendering.
          */
-        public void enqueue (Transform parentModelview)
+        public void enqueue (Transform3D parentModelview)
         {
             // compose parent modelview with local transform
             parentModelview.compose(_localTransform, _modelview);
@@ -141,7 +141,7 @@ public class ArticulatedModel extends Model
             // update bone transform if necessary
             if (_bone) {
                 _modelview.compose(_invRefTransform, _boneTransform);
-                _boneTransform.update(Transform.AFFINE);
+                _boneTransform.update(Transform3D.AFFINE);
             }
 
             // enqueue children
@@ -177,13 +177,13 @@ public class ArticulatedModel extends Model
         public Node clone (ArticulatedModel omodel)
         {
             Node onode = omodel.createNode(
-                _name, _bone, new Transform(_localTransform), cloneChildren(omodel));
+                _name, _bone, new Transform3D(_localTransform), cloneChildren(omodel));
             omodel._nodes.put(_name, onode);
-            onode._modelview = new Transform(_modelview);
+            onode._modelview = new Transform3D(_modelview);
             onode._invRefTransform = _invRefTransform;
             if (_bone) {
-                onode._boneTransform = new Transform(_boneTransform);
-                onode._boneTransform.update(Transform.AFFINE);
+                onode._boneTransform = new Transform3D(_boneTransform);
+                onode._boneTransform.update(Transform3D.AFFINE);
             }
             return onode;
         }
@@ -207,19 +207,19 @@ public class ArticulatedModel extends Model
         protected boolean _bone;
 
         /** The node's transformation relative to its parent. */
-        protected Transform _localTransform;
+        protected Transform3D _localTransform;
 
         /** The children of this node. */
         protected Node[] _children;
 
         /** The node's modelview transformation. */
-        protected transient Transform _modelview;
+        protected transient Transform3D _modelview;
 
         /** For nodes used as bones, the inverse of the reference pose transform. */
-        protected transient Transform _invRefTransform;
+        protected transient Transform3D _invRefTransform;
 
         /** For nodes used as bones, the bone transform. */
-        protected transient Transform _boneTransform;
+        protected transient Transform3D _boneTransform;
 
         /** The value of the update counter at the last update. */
         protected transient int _lastUpdate;
@@ -235,7 +235,7 @@ public class ArticulatedModel extends Model
         implements SurfaceHost
     {
         public MeshNode (
-            String name, boolean bone, Transform transform, Node[] children,
+            String name, boolean bone, Transform3D transform, Node[] children,
             VisibleMesh vmesh, CollisionMesh cmesh)
         {
             super(name, bone, transform, children);
@@ -248,7 +248,7 @@ public class ArticulatedModel extends Model
         }
 
         // documentation inherited from interface SurfaceHost
-        public Transform getModelview ()
+        public Transform3D getModelview ()
         {
             return _modelview;
         }
@@ -284,7 +284,7 @@ public class ArticulatedModel extends Model
         }
 
         @Override // documentation inherited
-        public void init (Transform parentTransform)
+        public void init (Transform3D parentTransform)
         {
             super.init(parentTransform);
             if (_vmesh == null) {
@@ -320,7 +320,7 @@ public class ArticulatedModel extends Model
         }
 
         @Override // documentation inherited
-        public void enqueue (Transform parentModelview)
+        public void enqueue (Transform3D parentModelview)
         {
             super.enqueue(parentModelview);
             if (_surface == null) {
@@ -357,7 +357,7 @@ public class ArticulatedModel extends Model
         public Node clone (ArticulatedModel omodel)
         {
             MeshNode onode = omodel.createNode(
-                _name, _bone, new Transform(_localTransform),
+                _name, _bone, new Transform3D(_localTransform),
                 cloneChildren(omodel), _vmesh, _cmesh);
             omodel._nodes.put(_name, onode);
             onode._tstate = new TransformState(_modelview);
@@ -400,10 +400,10 @@ public class ArticulatedModel extends Model
             }
 
             // create an array to hold the snapshot pose
-            _ttransforms = new Transform[_targets.length];
+            _ttransforms = new Transform3D[_targets.length];
             for (int ii = 0; ii < _targets.length; ii++) {
                 if (_targets[ii] != null) {
-                    _ttransforms[ii] = new Transform();
+                    _ttransforms[ii] = new Transform3D();
                 }
             }
         }
@@ -762,7 +762,7 @@ public class ArticulatedModel extends Model
         public void updateTransforms ()
         {
             Frame[] frames = _anim.getFrames();
-            Transform[] t1, t2;
+            Transform3D[] t1, t2;
             if (_transition > 0f) {
                 t1 = _ttransforms;
                 t2 = frames[0].getTransforms();
@@ -785,7 +785,7 @@ public class ArticulatedModel extends Model
         public void blendTransforms ()
         {
             Frame[] frames = _anim.getFrames();
-            Transform[] t1, t2;
+            Transform3D[] t1, t2;
             if (_transition > 0f) {
                 t1 = _ttransforms;
                 t2 = frames[0].getTransforms();
@@ -920,7 +920,7 @@ public class ArticulatedModel extends Model
         protected int _priority;
 
         /** A snapshot of the original transforms of the targets, for transitioning. */
-        protected Transform[] _ttransforms;
+        protected Transform3D[] _ttransforms;
 
         /** The interval over which to transition into the first frame. */
         protected float _transition;
@@ -960,7 +960,7 @@ public class ArticulatedModel extends Model
         protected boolean _completed;
 
         /** A temporary transform for interpolation. */
-        protected Transform _xform = new Transform();
+        protected Transform3D _xform = new Transform3D();
     }
 
     /**
@@ -982,7 +982,7 @@ public class ArticulatedModel extends Model
      * Creates a non-mesh node for this model.  This method should only be called when forming a
      * model from an XML definition.
      */
-    public Node createNode (String name, boolean bone, Transform transform, Node[] children)
+    public Node createNode (String name, boolean bone, Transform3D transform, Node[] children)
     {
         return new Node(name, bone, transform, children);
     }
@@ -992,7 +992,7 @@ public class ArticulatedModel extends Model
      * should only be called when forming a model from an XML definition.
      */
     public MeshNode createNode (
-        String name, boolean bone, Transform transform, Node[] children, VisibleMesh vmesh,
+        String name, boolean bone, Transform3D transform, Node[] children, VisibleMesh vmesh,
         CollisionMesh cmesh)
     {
         return new MeshNode(name, bone, transform, children, vmesh, cmesh);
@@ -1190,7 +1190,7 @@ public class ArticulatedModel extends Model
     }
 
     // documentation inherited from interface SurfaceHost
-    public Transform getModelview ()
+    public Transform3D getModelview ()
     {
         return _modelview;
     }
@@ -1211,7 +1211,7 @@ public class ArticulatedModel extends Model
     public boolean getIntersection (Ray ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
-        Transform view = _ctx.getRenderer().getCamera().getViewTransform();
+        Transform3D view = _ctx.getRenderer().getCamera().getViewTransform();
         if (_cmesh == null || !_worldBounds.intersects(ray) ||
             !_cmesh.getIntersection(ray.transform(_transform.invert()), result)) {
             return _root.getIntersection(ray.transform(view), result);
@@ -1364,14 +1364,14 @@ public class ArticulatedModel extends Model
      */
     protected void initTransientFields ()
     {
-        _modelview = new Transform();
+        _modelview = new Transform3D();
         _nodes = new HashMap<String, Node>();
         _animobs = new ObserverList<AnimationObserver>(ObserverList.FAST_UNSAFE_NOTIFY);
         _trackarray = new AnimationTrack[0];
     }
 
     @Override // documentation inherited
-    protected void enqueue (Transform modelview)
+    protected void enqueue (Transform3D modelview)
     {
         // update the local transforms based on the animation
         updateTransforms();
@@ -1525,7 +1525,7 @@ public class ArticulatedModel extends Model
     protected transient Surface[] _ssurfaces;
 
     /** The modelview transformation. */
-    protected transient Transform _modelview;
+    protected transient Transform3D _modelview;
 
     /** Maps names to nodes. */
     protected transient HashMap<String, Node> _nodes;

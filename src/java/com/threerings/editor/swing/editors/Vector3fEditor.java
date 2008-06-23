@@ -15,7 +15,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
-import com.threerings.editor.swing.VectorPanel;
+import com.threerings.editor.swing.Vector3fPanel;
 
 /**
  * Editor for vector properties.
@@ -40,11 +40,11 @@ public class Vector3fEditor extends PropertyEditor
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
         Editable annotation = _property.getAnnotation();
         String mstr = getMode();
-        VectorPanel.Mode mode = VectorPanel.Mode.CARTESIAN;
+        Vector3fPanel.Mode mode = Vector3fPanel.Mode.CARTESIAN;
         try {
-            mode = Enum.valueOf(VectorPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
+            mode = Enum.valueOf(Vector3fPanel.Mode.class, StringUtil.toUSUpperCase(mstr));
         } catch (IllegalArgumentException e) { }
-        add(_panel = new VectorPanel(_msgs, mode, (float)getStep(), (float)getScale()));
+        add(_panel = new Vector3fPanel(_msgs, mode, (float)getStep(), (float)getScale()));
         _panel.setBackground(getDarkerBackground(_lineage.length));
         _panel.addChangeListener(this);
     }
@@ -56,5 +56,5 @@ public class Vector3fEditor extends PropertyEditor
     }
 
     /** The vector panel. */
-    protected VectorPanel _panel;
+    protected Vector3fPanel _panel;
 }

@@ -3,7 +3,7 @@
 
 package com.threerings.opengl.material;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.FogState;
@@ -19,7 +19,7 @@ public interface SurfaceHost
     /**
      * Returns a reference to the modelview transform.
      */
-    public Transform getModelview ();
+    public Transform3D getModelview ();
 
     /**
      * Returns a reference to the shared color state.

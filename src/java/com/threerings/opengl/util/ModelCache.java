@@ -13,7 +13,7 @@ import com.google.common.collect.Maps;
 import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.SoftCache;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 import com.threerings.export.BinaryImporter;
 
@@ -40,7 +40,7 @@ public class ModelCache
     {
         _ctx = ctx;
         ERROR_MODEL.setData(
-            ERROR_MODEL.createNode(null, false, new Transform(), new Node[0]),
+            ERROR_MODEL.createNode(null, false, new Transform3D(), new Node[0]),
             new SkinMesh[0], null);
         ERROR_MODEL.init(ctx, "error");
         ERROR_ANIM.init();
@@ -222,5 +222,5 @@ public class ModelCache
     /** An empty animation to return on error. */
     protected static final Animation ERROR_ANIM = new Animation(
         new Properties(), 1f, new String[0],
-        new Frame[] { new Frame(new Transform[0]), new Frame(new Transform[0]) });
+        new Frame[] { new Frame(new Transform3D[0]), new Frame(new Transform3D[0]) });
 }

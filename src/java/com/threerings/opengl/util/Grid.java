@@ -7,7 +7,7 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -77,7 +77,7 @@ public class Grid
     /**
      * Returns a reference to the grid's world transform.
      */
-    public Transform getTransform ()
+    public Transform3D getTransform ()
     {
         return _transform;
     }
@@ -87,7 +87,7 @@ public class Grid
     {
         // update the transform state
         TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
-        Transform modelview = tstate.getModelview();
+        Transform3D modelview = tstate.getModelview();
         Renderer renderer = _ctx.getRenderer();
         renderer.getCamera().getViewTransform().compose(_transform, modelview);
         tstate.setDirty(true);
@@ -103,5 +103,5 @@ public class Grid
     protected SimpleBatch _batch;
 
     /** Our world transform. */
-    protected Transform _transform = new Transform(Transform.UNIFORM);
+    protected Transform3D _transform = new Transform3D(Transform3D.UNIFORM);
 }

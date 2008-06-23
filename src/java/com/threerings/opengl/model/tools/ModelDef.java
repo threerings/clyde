@@ -27,7 +27,7 @@ import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Quaternion;
-import com.threerings.math.Transform;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.model.ArticulatedModel;
@@ -320,8 +320,8 @@ public class ModelDef
         public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
         {
             Node[] children = createChildNodes(model, gscale, haveCollisionMesh);
-            Transform transform = (parentDef == null) ?
-                new Transform() : createTransform(translation, rotation, scale, gscale);
+            Transform3D transform = (parentDef == null) ?
+                new Transform3D() : createTransform(translation, rotation, scale, gscale);
             return (children.length == 0 && !(bone || point)) ?
                 null : model.createNode(name, bone, transform, children);
         }
@@ -928,21 +928,21 @@ public class ModelDef
     }
 
     /**
-     * Creates a {@link Transform} object from the supplied arrays.
+     * Creates a {@link Transform3D} object from the supplied arrays.
      */
-    public static Transform createTransform (
+    public static Transform3D createTransform (
         float[] translation, float[] rotation, float[] scale, float gscale)
     {
         Vector3f trans = new Vector3f(translation).multLocal(gscale);
         Quaternion rot = new Quaternion(rotation);
         if (scale[0] != scale[1] || scale[1] != scale[2]) {
-            return new Transform(trans, rot, new Vector3f(scale));
+            return new Transform3D(trans, rot, new Vector3f(scale));
         } else if (scale[0] != 1f) {
-            return new Transform(trans, rot, scale[0]);
+            return new Transform3D(trans, rot, scale[0]);
         } else if (!(trans.equals(Vector3f.ZERO) && rot.equals(Quaternion.IDENTITY))) {
-            return new Transform(trans, rot);
+            return new Transform3D(trans, rot);
         } else {
-            return new Transform();
+            return new Transform3D();
         }
     }
 

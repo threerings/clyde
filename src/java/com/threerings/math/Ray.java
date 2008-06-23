@@ -53,7 +53,7 @@ public final class Ray
      *
      * @return a reference to this ray, for chaining.
      */
-    public Ray transformLocal (Transform transform)
+    public Ray transformLocal (Transform3D transform)
     {
         return transform(transform, this);
     }
@@ -63,7 +63,7 @@ public final class Ray
      *
      * @return a new ray containing the result.
      */
-    public Ray transform (Transform transform)
+    public Ray transform (Transform3D transform)
     {
         return transform(transform, new Ray());
     }
@@ -73,7 +73,7 @@ public final class Ray
      *
      * @return a reference to the result ray, for chaining.
      */
-    public Ray transform (Transform transform, Ray result)
+    public Ray transform (Transform3D transform, Ray result)
     {
         transform.transformPoint(_origin, result._origin);
         transform.transformVector(_direction, result._direction).normalizeLocal();
