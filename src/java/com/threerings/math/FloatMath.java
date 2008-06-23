@@ -193,6 +193,16 @@ public class FloatMath
     }
 
     /**
+     * Returns the remainder when f1 is divided by f2.
+     *
+     * @see Math#IEEEremainder
+     */
+    public static float IEEEremainder (float f1, float f2)
+    {
+        return (float)Math.IEEEremainder(f1, f2);
+    }
+    
+    /**
      * Clamps a value to the range [lower, upper].
      */
     public static float clamp (float v, float lower, float upper)

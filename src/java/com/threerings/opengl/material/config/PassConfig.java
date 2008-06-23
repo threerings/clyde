@@ -5,6 +5,7 @@ package com.threerings.opengl.material.config;
 
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Binding;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.config.AlphaStateConfig;
@@ -89,6 +90,10 @@ public class PassConfig extends DeepObject
     @Editable(nullable=false)
     public TextureStateConfig textureState = new TextureStateConfig();
 
+    /** The bindings to use in this pass. */
+    @Editable
+    public Binding[] bindings = new Binding[0];
+    
     /**
      * Creates the set of states for this pass.
      */

@@ -82,6 +82,10 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static class Vertex extends Original
     {
+        /** The names of the attributes required by this shader. */
+        @Editable(width=15)
+        public String[] attributes = new String[0];
+        
         /**
          * The initial contents of the shader.
          */

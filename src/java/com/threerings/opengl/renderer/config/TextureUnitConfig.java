@@ -28,6 +28,10 @@ public class TextureUnitConfig extends DeepObject
     @Editable
     public TextureEnvironmentConfig environment = new TextureEnvironmentConfig.Modulate();
 
+    /** The texture coordinate set to use. */
+    @Editable(min=0)
+    public int coordSet;
+    
     /** The texture coordinate generation function for the s coordinate. */
     @Editable(types={
         TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
