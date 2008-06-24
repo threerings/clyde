@@ -5,15 +5,23 @@ package com.threerings.opengl.renderer;
 
 import java.awt.Color;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import java.nio.FloatBuffer;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.io.Streamable;
+
+import com.threerings.export.Encodable;
 
 /**
  * A four-element floating point color value.
  */
 public final class Color4f
-    implements Streamable
+    implements Encodable, Streamable
 {
     /** An opaque white color object. */
     public static final Color4f WHITE = new Color4f(1f, 1f, 1f, 1f);
@@ -249,6 +257,42 @@ public final class Color4f
         return buf.put(r).put(g).put(b).put(a);
     }
 
+    // documentation inherited from interface Encodable
+    public String encodeToString ()
+    {
+        return r + ", " + g + ", " + b + ", " + a;
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromString (String string)
+        throws Exception
+    {
+        set(StringUtil.parseFloatArray(string));
+    }
+
+    // documentation inherited from interface Encodable
+    public void encodeToStream (DataOutputStream out)
+        throws IOException
+    {
+        out.writeFloat(r);
+        out.writeFloat(g);
+        out.writeFloat(b);
+        out.writeFloat(a);
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromStream (DataInputStream in)
+        throws IOException
+    {
+        set(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "[" + r + ", " + g + ", " + b + ", " + a + "]";
+    }
+
     @Override // documentation inherited
     public int hashCode ()
     {
@@ -264,11 +308,5 @@ public final class Color4f
         }
         Color4f ocolor = (Color4f)other;
         return (r == ocolor.r && g == ocolor.g && b == ocolor.b && a == ocolor.a);
-    }
-
-    @Override // documentation inherited
-    public String toString ()
-    {
-        return "[" + r + ", " + g + ", " + b + ", " + a + "]";
     }
 }

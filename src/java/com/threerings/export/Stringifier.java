@@ -20,12 +20,6 @@ import org.lwjgl.BufferUtils;
 
 import com.samskivert.util.StringUtil;
 
-import com.threerings.math.Matrix4f;
-import com.threerings.math.Quaternion;
-import com.threerings.math.Vector3f;
-
-import com.threerings.opengl.renderer.Color4f;
-
 /**
  * Converts objects to and from strings.
  */
@@ -38,17 +32,30 @@ public abstract class Stringifier<T>
     {
         // look for a specific one
         Stringifier stringifier = _stringifiers.get(clazz);
-        if (stringifier == null && clazz.isEnum()) {
-            // any enumerated type can be stringified
-            _stringifiers.put(clazz, stringifier = new Stringifier<Enum>() {
-                public String toString (Enum value) {
-                    return value.name();
-                }
-                public Enum fromString (String string) {
-                    @SuppressWarnings("unchecked") Enum value = Enum.valueOf(clazz, string);
-                    return value;
-                }
-            });
+        if (stringifier == null) {
+            // create custom stringifiers for enums and encodable types
+            if (clazz.isEnum()) {
+                _stringifiers.put(clazz, stringifier = new Stringifier<Enum>() {
+                    public String toString (Enum value) {
+                        return value.name();
+                    }
+                    public Enum fromString (String string) {
+                        @SuppressWarnings("unchecked") Enum value = Enum.valueOf(clazz, string);
+                        return value;
+                    }
+                });
+            } else if (Encodable.class.isAssignableFrom(clazz)) {
+                _stringifiers.put(clazz, stringifier = new Stringifier<Encodable>() {
+                    public String toString (Encodable value) {
+                        return value.encodeToString();
+                    }
+                    public Encodable fromString (String string) throws Exception {
+                        Encodable value = (Encodable)clazz.newInstance();
+                        value.decodeFromString(string);
+                        return value;
+                    }
+                });
+            }
         }
         return stringifier;
     }
@@ -361,46 +368,6 @@ public abstract class Stringifier<T>
                     buf.put(ii, Short.parseShort(tok.nextToken().trim()));
                 }
                 return buf;
-            }
-        });
-
-        // math types
-        _stringifiers.put(Matrix4f.class, new Stringifier<Matrix4f>() {
-            public String toString (Matrix4f value) {
-                return
-                    value.m00 + ", " + value.m10 + ", " + value.m20 + ", " + value.m30 + ", " +
-                    value.m01 + ", " + value.m11 + ", " + value.m21 + ", " + value.m31 + ", " +
-                    value.m02 + ", " + value.m12 + ", " + value.m22 + ", " + value.m32 + ", " +
-                    value.m03 + ", " + value.m13 + ", " + value.m23 + ", " + value.m33;
-            }
-            public Matrix4f fromString (String string) {
-                return new Matrix4f(StringUtil.parseFloatArray(string));
-            }
-        });
-        _stringifiers.put(Quaternion.class, new Stringifier<Quaternion>() {
-            public String toString (Quaternion value) {
-                return value.x + ", " + value.y + ", " + value.z + ", " + value.w;
-            }
-            public Quaternion fromString (String string) {
-                return new Quaternion(StringUtil.parseFloatArray(string));
-            }
-        });
-        _stringifiers.put(Vector3f.class, new Stringifier<Vector3f>() {
-            public String toString (Vector3f value) {
-                return value.x + ", " + value.y + ", " + value.z;
-            }
-            public Vector3f fromString (String string) {
-                return new Vector3f(StringUtil.parseFloatArray(string));
-            }
-        });
-
-        // renderer types
-        _stringifiers.put(Color4f.class, new Stringifier<Color4f>() {
-            public String toString (Color4f value) {
-                return value.r + ", " + value.g + ", " + value.b + ", " + value.a;
-            }
-            public Color4f fromString (String string) {
-                return new Color4f(StringUtil.parseFloatArray(string));
             }
         });
     }

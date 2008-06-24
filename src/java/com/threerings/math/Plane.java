@@ -3,7 +3,17 @@
 
 package com.threerings.math;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import java.nio.DoubleBuffer;
+
+import com.samskivert.util.StringUtil;
+
+import com.threerings.io.Streamable;
+
+import com.threerings.export.Encodable;
 
 /**
  * A plane consisting of a unit normal and a constant.  All points on the plane satisfy the
@@ -11,6 +21,7 @@ import java.nio.DoubleBuffer;
  * constant.
  */
 public class Plane
+    implements Encodable, Streamable
 {
     /** The X/Y plane. */
     public static final Plane XY_PLANE = new Plane(Vector3f.UNIT_Z, 0f);
@@ -30,6 +41,22 @@ public class Plane
     public Plane (Vector3f normal, float constant)
     {
         set(normal, constant);
+    }
+
+    /**
+     * Creates a plane with the specified parameters.
+     */
+    public Plane (float[] values)
+    {
+        set(values);
+    }
+
+    /**
+     * Creates a plane with the specified parameters.
+     */
+    public Plane (float a, float b, float c, float d)
+    {
+        set(a, b, c, d);
     }
 
     /**
@@ -89,8 +116,28 @@ public class Plane
      */
     public Plane set (Vector3f normal, float constant)
     {
-        _normal.set(normal);
-        this.constant = constant;
+        return set(normal.x, normal.y, normal.z, constant);
+    }
+
+    /**
+     * Sets the parameters of the plane.
+     *
+     * @return a reference to this plane (for chaining).
+     */
+    public Plane set (float[] values)
+    {
+        return set(values[0], values[1], values[2], values[3]);
+    }
+
+    /**
+     * Sets the parameters of the plane.
+     *
+     * @return a reference to this plane (for chaining).
+     */
+    public Plane set (float a, float b, float c, float d)
+    {
+        _normal.set(a, b, c);
+        constant = d;
         return this;
     }
 
@@ -144,6 +191,42 @@ public class Plane
     public DoubleBuffer get (DoubleBuffer buf)
     {
         return buf.put(_normal.x).put(_normal.y).put(_normal.z).put(constant);
+    }
+
+    // documentation inherited from interface Encodable
+    public String encodeToString ()
+    {
+        return _normal.x + ", " + _normal.y + ", " + _normal.z + ", " + constant;
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromString (String string)
+        throws Exception
+    {
+        set(StringUtil.parseFloatArray(string));
+    }
+
+    // documentation inherited from interface Encodable
+    public void encodeToStream (DataOutputStream out)
+        throws IOException
+    {
+        out.writeFloat(_normal.x);
+        out.writeFloat(_normal.y);
+        out.writeFloat(_normal.z);
+        out.writeFloat(constant);
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromStream (DataInputStream in)
+        throws IOException
+    {
+        set(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        return _normal.hashCode() ^ Float.floatToIntBits(constant);
     }
 
     @Override // documentation inherited

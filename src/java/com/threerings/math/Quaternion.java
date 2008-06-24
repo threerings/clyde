@@ -3,14 +3,22 @@
 
 package com.threerings.math;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import com.samskivert.util.StringUtil;
+
 import com.threerings.io.Streamable;
+
+import com.threerings.export.Encodable;
 
 /**
  * A unit quaternion.  Many of the formulas come from the
  * <a href="http://www.j3d.org/matrix_faq/matrfaq_latest.html">Matrix and Quaternion FAQ</a>.
  */
 public final class Quaternion
-    implements Streamable
+    implements Encodable, Streamable
 {
     /** The identity quaternion. */
     public static final Quaternion IDENTITY = new Quaternion(0f, 0f, 0f, 1f);
@@ -517,10 +525,47 @@ public final class Quaternion
         values[3] = w;
     }
 
+    // documentation inherited from interface Encodable
+    public String encodeToString ()
+    {
+        return x + ", " + y + ", " + z + ", " + w;
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromString (String string)
+        throws Exception
+    {
+        set(StringUtil.parseFloatArray(string));
+    }
+
+    // documentation inherited from interface Encodable
+    public void encodeToStream (DataOutputStream out)
+        throws IOException
+    {
+        out.writeFloat(x);
+        out.writeFloat(y);
+        out.writeFloat(z);
+        out.writeFloat(w);
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromStream (DataInputStream in)
+        throws IOException
+    {
+        set(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
+    }
+
     @Override // documentation inherited
     public String toString ()
     {
         return "[" + x + ", " + y + ", " + z + ", " + w + "]";
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        return Float.floatToIntBits(x) ^ Float.floatToIntBits(y) ^
+            Float.floatToIntBits(z) ^ Float.floatToIntBits(w);
     }
 
     @Override // documentation inherited

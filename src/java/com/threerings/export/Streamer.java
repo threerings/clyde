@@ -20,11 +20,7 @@ import java.util.HashMap;
 
 import org.lwjgl.BufferUtils;
 
-import com.threerings.math.Matrix4f;
-import com.threerings.math.Quaternion;
-import com.threerings.math.Vector3f;
-
-import com.threerings.opengl.renderer.Color4f;
+import static com.threerings.export.Log.*;
 
 /**
  * Writes objects to and reads objects from a binary stream.
@@ -38,17 +34,37 @@ public abstract class Streamer<T>
     {
         // look for a specific one
         Streamer streamer = _streamers.get(clazz);
-        if (streamer == null && clazz.isEnum()) {
-            // any enumerated type can be streamed
-            _streamers.put(clazz, streamer = new Streamer<Enum>() {
-                public void write (Enum value, DataOutputStream out) throws IOException {
-                    out.writeUTF(value.name());
-                }
-                public Enum read (DataInputStream in) throws IOException {
-                    @SuppressWarnings("unchecked") Enum value = Enum.valueOf(clazz, in.readUTF());
-                    return value;
-                }
-            });
+        if (streamer == null) {
+            // create custom streamers for enums and encodable types
+            if (clazz.isEnum()) {
+                _streamers.put(clazz, streamer = new Streamer<Enum>() {
+                    public void write (Enum value, DataOutputStream out) throws IOException {
+                        out.writeUTF(value.name());
+                    }
+                    public Enum read (DataInputStream in) throws IOException {
+                        @SuppressWarnings("unchecked") Enum value =
+                            Enum.valueOf(clazz, in.readUTF());
+                        return value;
+                    }
+                });
+            } else if (Encodable.class.isAssignableFrom(clazz)) {
+                _streamers.put(clazz, streamer = new Streamer<Encodable>() {
+                    public void write (Encodable value, DataOutputStream out) throws IOException {
+                        value.encodeToStream(out);
+                    }
+                    public Encodable read (DataInputStream in) throws IOException {
+                        Encodable value;
+                        try {
+                            value = (Encodable)clazz.newInstance();
+                        } catch (Exception e) {
+                            log.warning("Failed to create instance.", e);
+                            return null;
+                        }
+                        value.decodeFromStream(in);
+                        return value;
+                    }
+                });
+            }
         }
         return streamer;
     }
@@ -409,73 +425,6 @@ public abstract class Streamer<T>
                     value.put(ii, in.readShort());
                 }
                 return value;
-            }
-        });
-
-        // math types
-        _streamers.put(Matrix4f.class, new Streamer<Matrix4f>() {
-            public void write (Matrix4f value, DataOutputStream out) throws IOException {
-                out.writeFloat(value.m00);
-                out.writeFloat(value.m10);
-                out.writeFloat(value.m20);
-                out.writeFloat(value.m30);
-
-                out.writeFloat(value.m01);
-                out.writeFloat(value.m11);
-                out.writeFloat(value.m21);
-                out.writeFloat(value.m31);
-
-                out.writeFloat(value.m02);
-                out.writeFloat(value.m12);
-                out.writeFloat(value.m22);
-                out.writeFloat(value.m32);
-
-                out.writeFloat(value.m03);
-                out.writeFloat(value.m13);
-                out.writeFloat(value.m23);
-                out.writeFloat(value.m33);
-            }
-            public Matrix4f read (DataInputStream in) throws IOException {
-                return new Matrix4f(
-                    in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat(),
-                    in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat(),
-                    in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat(),
-                    in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
-            }
-        });
-        _streamers.put(Quaternion.class, new Streamer<Quaternion>() {
-            public void write (Quaternion value, DataOutputStream out) throws IOException {
-                out.writeFloat(value.x);
-                out.writeFloat(value.y);
-                out.writeFloat(value.z);
-                out.writeFloat(value.w);
-            }
-            public Quaternion read (DataInputStream in) throws IOException {
-                return new Quaternion(
-                    in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
-            }
-        });
-        _streamers.put(Vector3f.class, new Streamer<Vector3f>() {
-            public void write (Vector3f value, DataOutputStream out) throws IOException {
-                out.writeFloat(value.x);
-                out.writeFloat(value.y);
-                out.writeFloat(value.z);
-            }
-            public Vector3f read (DataInputStream in) throws IOException {
-                return new Vector3f(in.readFloat(), in.readFloat(), in.readFloat());
-            }
-        });
-
-        // renderer types
-        _streamers.put(Color4f.class, new Streamer<Color4f>() {
-            public void write (Color4f value, DataOutputStream out) throws IOException {
-                out.writeFloat(value.r);
-                out.writeFloat(value.g);
-                out.writeFloat(value.b);
-                out.writeFloat(value.a);
-            }
-            public Color4f read (DataInputStream in) throws IOException {
-                return new Color4f(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
             }
         });
     }

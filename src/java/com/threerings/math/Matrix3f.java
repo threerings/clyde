@@ -3,12 +3,23 @@
 
 package com.threerings.math;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import java.nio.FloatBuffer;
+
+import com.samskivert.util.StringUtil;
+
+import com.threerings.io.Streamable;
+
+import com.threerings.export.Encodable;
 
 /**
  * A 3x3 column-major matrix.
  */
 public final class Matrix3f
+    implements Encodable, Streamable
 {
     /** The identity matrix. */
     public static final Matrix3f IDENTITY = new Matrix3f();
@@ -735,6 +746,47 @@ public final class Matrix3f
         return result.set(
             m00*vector.x + m10*vector.y,
             m01*vector.x + m11*vector.y);
+    }
+
+    // documentation inherited from interface Encodable
+    public String encodeToString ()
+    {
+        return m00 + ", " + m10 + ", " + m20 + ", " +
+            m01 + ", " + m11 + ", " + m21 + ", " +
+            m02 + ", " + m12 + ", " + m22;
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromString (String string)
+        throws Exception
+    {
+        set(StringUtil.parseFloatArray(string));
+    }
+
+    // documentation inherited from interface Encodable
+    public void encodeToStream (DataOutputStream out)
+        throws IOException
+    {
+        out.writeFloat(m00);
+        out.writeFloat(m10);
+        out.writeFloat(m20);
+
+        out.writeFloat(m01);
+        out.writeFloat(m11);
+        out.writeFloat(m21);
+
+        out.writeFloat(m02);
+        out.writeFloat(m12);
+        out.writeFloat(m22);
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromStream (DataInputStream in)
+        throws IOException
+    {
+        set(in.readFloat(), in.readFloat(), in.readFloat(),
+            in.readFloat(), in.readFloat(), in.readFloat(),
+            in.readFloat(), in.readFloat(), in.readFloat());
     }
 
     @Override // documentation inherited

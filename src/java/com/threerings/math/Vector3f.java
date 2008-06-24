@@ -3,16 +3,23 @@
 
 package com.threerings.math;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import java.nio.FloatBuffer;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.io.Streamable;
-import com.threerings.export.Exportable;
+
+import com.threerings.export.Encodable;
 
 /**
  * A three element vector.
  */
 public final class Vector3f
-    implements Streamable, Exportable
+    implements Encodable, Streamable
 {
     /** A unit vector in the X+ direction. */
     public static final Vector3f UNIT_X = new Vector3f(1f, 0f, 0f);
@@ -494,6 +501,35 @@ public final class Vector3f
     public FloatBuffer get (FloatBuffer buf)
     {
         return buf.put(x).put(y).put(z);
+    }
+
+    // documentation inherited from interface Encodable
+    public String encodeToString ()
+    {
+        return x + ", " + y + ", " + z;
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromString (String string)
+        throws Exception
+    {
+        set(StringUtil.parseFloatArray(string));
+    }
+
+    // documentation inherited from interface Encodable
+    public void encodeToStream (DataOutputStream out)
+        throws IOException
+    {
+        out.writeFloat(x);
+        out.writeFloat(y);
+        out.writeFloat(z);
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromStream (DataInputStream in)
+        throws IOException
+    {
+        set(in.readFloat(), in.readFloat(), in.readFloat());
     }
 
     @Override // documentation inherited

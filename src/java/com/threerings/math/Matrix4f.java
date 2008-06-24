@@ -3,12 +3,23 @@
 
 package com.threerings.math;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import java.nio.FloatBuffer;
+
+import com.samskivert.util.StringUtil;
+
+import com.threerings.io.Streamable;
+
+import com.threerings.export.Encodable;
 
 /**
  * A 4x4 column-major matrix.
  */
 public final class Matrix4f
+    implements Encodable, Streamable
 {
     /** The identity matrix. */
     public static final Matrix4f IDENTITY = new Matrix4f();
@@ -891,6 +902,57 @@ public final class Matrix4f
             m00*vector.x + m10*vector.y + m20*vector.z,
             m01*vector.x + m11*vector.y + m21*vector.z,
             m02*vector.x + m12*vector.y + m22*vector.z);
+    }
+
+    // documentation inherited from interface Encodable
+    public String encodeToString ()
+    {
+        return m00 + ", " + m10 + ", " + m20 + ", " + m30 + ", " +
+            m01 + ", " + m11 + ", " + m21 + ", " + m31 + ", " +
+            m02 + ", " + m12 + ", " + m22 + ", " + m32 + ", " +
+            m03 + ", " + m13 + ", " + m23 + ", " + m33;
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromString (String string)
+        throws Exception
+    {
+        set(StringUtil.parseFloatArray(string));
+    }
+
+    // documentation inherited from interface Encodable
+    public void encodeToStream (DataOutputStream out)
+        throws IOException
+    {
+        out.writeFloat(m00);
+        out.writeFloat(m10);
+        out.writeFloat(m20);
+        out.writeFloat(m30);
+
+        out.writeFloat(m01);
+        out.writeFloat(m11);
+        out.writeFloat(m21);
+        out.writeFloat(m31);
+
+        out.writeFloat(m02);
+        out.writeFloat(m12);
+        out.writeFloat(m22);
+        out.writeFloat(m32);
+
+        out.writeFloat(m03);
+        out.writeFloat(m13);
+        out.writeFloat(m23);
+        out.writeFloat(m33);
+    }
+
+    // documentation inherited from interface Encodable
+    public void decodeFromStream (DataInputStream in)
+        throws IOException
+    {
+        set(in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat(),
+            in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat(),
+            in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat(),
+            in.readFloat(), in.readFloat(), in.readFloat(), in.readFloat());
     }
 
     @Override // documentation inherited
