@@ -19,7 +19,9 @@ import java.util.HashMap;
 
 import org.lwjgl.BufferUtils;
 
+import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Quaternion;
 
@@ -501,6 +503,24 @@ public abstract class Exporter
     /**
      * Associates a matrix value with the current object (if not equal to the default).
      */
+    public void write (String name, Matrix3f value, Matrix3f defvalue)
+        throws IOException
+    {
+        write(name, value, defvalue, Matrix3f.class);
+    }
+
+    /**
+     * Associates a matrix value with the current object.
+     */
+    public void write (String name, Matrix3f value)
+        throws IOException
+    {
+        write(name, value, Matrix3f.class);
+    }
+
+    /**
+     * Associates a matrix value with the current object (if not equal to the default).
+     */
     public void write (String name, Matrix4f value, Matrix4f defvalue)
         throws IOException
     {
@@ -532,6 +552,24 @@ public abstract class Exporter
         throws IOException
     {
         write(name, value, Quaternion.class);
+    }
+
+    /**
+     * Associates a vector value with the current object (if not equal to the default).
+     */
+    public void write (String name, Vector2f value, Vector2f defvalue)
+        throws IOException
+    {
+        write(name, value, defvalue, Vector2f.class);
+    }
+
+    /**
+     * Associates a vector value with the current object.
+     */
+    public void write (String name, Vector2f value)
+        throws IOException
+    {
+        write(name, value, Vector2f.class);
     }
 
     /**

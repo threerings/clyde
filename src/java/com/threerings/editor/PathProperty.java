@@ -33,6 +33,43 @@ import static com.threerings.editor.Log.*;
 public class PathProperty extends Property
 {
     /**
+     * Attempts to resolve the provided path into a property chain, returning <code>null</code>
+     * on failure.
+     */
+    public static Property[] createPath (ConfigManager cfgmgr, Object object, String path)
+    {
+        // create the tokenizer for the path
+        StreamTokenizer tok = new StreamTokenizer(new StringReader(path));
+        tok.ordinaryChar('/');
+        tok.ordinaryChar('\'');
+        tok.wordChars('_', '_');
+
+        // step through the path components
+        ArrayList<Property> props = new ArrayList<Property>();
+        try {
+            while (tok.nextToken() != StreamTokenizer.TT_EOF) {
+                if (tok.ttype != StreamTokenizer.TT_WORD) {
+                    log.warning("Unexpected token [path=" + path + ", token=" + tok + "].");
+                    return null;
+                }
+                Property prop = getProperty(cfgmgr, object, tok);
+                if (prop == null) {
+                    return null;
+                }
+                props.add(prop);
+                object = prop.get(object);
+            }
+        } catch (IOException e) {
+            log.warning("Error parsing path [path=" + path + "].", e);
+            return null;
+        }
+
+        // do not return a zero-length array
+        int size = props.size();
+        return (size == 0) ? null : props.toArray(new Property[size]);
+    }
+
+    /**
      * Creates a new path property.
      *
      * @param cfgmgr the config manager to use when resolving references.
@@ -49,13 +86,10 @@ public class PathProperty extends Property
         // attempt to resolve each path, storing the successes
         ArrayList<Property[]> list = new ArrayList<Property[]>();
         for (String path : paths) {
-            try {
-                Property[] props = resolvePath(cfgmgr, reference, path);
-                if (props != null) {
-                    list.add(props);
-                }
-            } catch (IOException e) {
-                log.warning("Error parsing path [path=" + path + "].", e);
+            // the final component must be editable
+            Property[] props = createPath(cfgmgr, reference, path);
+            if (props != null && props[props.length - 1].getAnnotation() != null) {
+                list.add(props);
             }
         }
         if (list.isEmpty()) {
@@ -150,40 +184,6 @@ public class PathProperty extends Property
             }
             path[last].set(obj, value);
         }
-    }
-
-    /**
-     * Attempts to resolve the provided path into a property chain, returning <code>null</code>
-     * on failure.
-     */
-    protected static Property[] resolvePath (ConfigManager cfgmgr, Object object, String path)
-        throws IOException
-    {
-        // create the tokenizer for the path
-        StreamTokenizer tok = new StreamTokenizer(new StringReader(path));
-        tok.ordinaryChar('/');
-        tok.ordinaryChar('\'');
-        tok.wordChars('_', '_');
-
-        // step through the path components
-        ArrayList<Property> props = new ArrayList<Property>();
-        while (tok.nextToken() != StreamTokenizer.TT_EOF) {
-            if (tok.ttype != StreamTokenizer.TT_WORD) {
-                log.warning("Unexpected token [path=" + path + ", token=" + tok + "].");
-                return null;
-            }
-            Property prop = getProperty(cfgmgr, object, tok);
-            if (prop == null) {
-                return null;
-            }
-            props.add(prop);
-            object = prop.get(object);
-        }
-
-        // the final component must be editable
-        int size = props.size();
-        return (size == 0 || props.get(size - 1).getAnnotation() == null) ?
-            null : props.toArray(new Property[size]);
     }
 
     /**

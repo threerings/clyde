@@ -291,7 +291,135 @@ public abstract class Property extends DeepObject
     /**
      * Retrieves the value of the property.
      */
+    public boolean getBoolean (Object object)
+    {
+        return (Boolean)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
+    public byte getByte (Object object)
+    {
+        return (Byte)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
+    public char getChar (Object object)
+    {
+        return (Character)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
+    public double getDouble (Object object)
+    {
+        return (Double)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
+    public float getFloat (Object object)
+    {
+        return (Float)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
+    public int getInt (Object object)
+    {
+        return (Integer)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
+    public long getLong (Object object)
+    {
+        return (Long)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
+    public short getShort (Object object)
+    {
+        return (Short)get(object);
+    }
+
+    /**
+     * Retrieves the value of the property.
+     */
     public abstract Object get (Object object);
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setBoolean (Object object, boolean value)
+    {
+        set(object, value);
+    }
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setByte (Object object, byte value)
+    {
+        set(object, value);
+    }
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setChar (Object object, char value)
+    {
+        set(object, value);
+    }
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setDouble (Object object, double value)
+    {
+        set(object, value);
+    }
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setFloat (Object object, float value)
+    {
+        set(object, value);
+    }
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setInt (Object object, int value)
+    {
+        set(object, value);
+    }
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setLong (Object object, long value)
+    {
+        set(object, value);
+    }
+
+    /**
+     * Sets the value of the property.
+     */
+    public void setShort (Object object, short value)
+    {
+        set(object, value);
+    }
 
     /**
      * Sets the value of the property.

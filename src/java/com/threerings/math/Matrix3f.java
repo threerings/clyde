@@ -182,6 +182,101 @@ public final class Matrix3f
     }
 
     /**
+     * Sets this to a matrix that first rotates, then translates.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setToTransform (Vector2f translation, float rotation)
+    {
+        return setToRotation(rotation).setTranslation(translation);
+    }
+
+    /**
+     * Sets this to a matrix that first scales, then rotates, then translates.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setToTransform (Vector2f translation, float rotation, float scale)
+    {
+        return setToRotation(rotation).set(
+            m00 * scale, m10 * scale, translation.x,
+            m01 * scale, m11 * scale, translation.y,
+            0f, 0f, 1f);
+    }
+
+    /**
+     * Sets this to a matrix that first scales, then rotates, then translates.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setToTransform (Vector2f translation, float rotation, Vector2f scale)
+    {
+        return setToRotation(rotation).set(
+            m00 * scale.x, m10 * scale.y, translation.x,
+            m01 * scale.x, m11 * scale.y, translation.y,
+            0f, 0f, 1f);
+    }
+
+    /**
+     * Sets this to a translation matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setToTranslation (Vector2f translation)
+    {
+        return setToTranslation(translation.x, translation.y);
+    }
+
+    /**
+     * Sets this to a translation matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setToTranslation (float x, float y)
+    {
+        return set(
+            1f, 0f, x,
+            0f, 1f, y,
+            0f, 0f, 1f);
+    }
+
+    /**
+     * Sets the translation component of this matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setTranslation (Vector2f translation)
+    {
+        return setTranslation(translation.x, translation.y);
+    }
+
+    /**
+     * Sets the translation component of this matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setTranslation (float x, float y)
+    {
+        m20 = x;
+        m21 = y;
+        return this;
+    }
+
+    /**
+     * Sets this to a rotation matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f setToRotation (float angle)
+    {
+        float sina = FloatMath.sin(angle), cosa = FloatMath.cos(angle);
+        return set(
+            cosa, -sina, 0f,
+            sina, cosa, 0f,
+            0f, 0f, 1f);
+    }
+
+    /**
      * Transposes this matrix in-place.
      *
      * @return a reference to this matrix, for chaining.
@@ -256,6 +351,54 @@ public final class Matrix3f
     }
 
     /**
+     * Determines whether this matrix represents an affine transformation.
+     */
+    public boolean isAffine ()
+    {
+        return (m02 == 0f && m12 == 0f && m22 == 1f);
+    }
+
+    /**
+     * Multiplies this matrix in-place by another, treating the matricees as affine.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f multAffineLocal (Matrix3f other)
+    {
+        return multAffine(other, this);
+    }
+
+    /**
+     * Multiplies this matrix by another, treating the matrices as affine.
+     *
+     * @return a new matrix containing the result.
+     */
+    public Matrix3f multAffine (Matrix3f other)
+    {
+        return multAffine(other, new Matrix3f());
+    }
+
+    /**
+     * Multiplies this matrix by another, treating the matrices as affine, and stores the result
+     * in the object provided.
+     *
+     * @return a reference to the result matrix, for chaining.
+     */
+    public Matrix3f multAffine (Matrix3f other, Matrix3f result)
+    {
+        return result.set(
+            m00*other.m00 + m10*other.m01,
+            m00*other.m10 + m10*other.m11,
+            m00*other.m20 + m10*other.m21 + m20,
+
+            m01*other.m00 + m11*other.m01,
+            m01*other.m10 + m11*other.m11,
+            m01*other.m20 + m11*other.m21 + m21,
+
+            0f, 0f, 1f);
+    }
+
+    /**
      * Inverts this matrix in-place.
      *
      * @return a reference to this matrix, for chaining.
@@ -310,6 +453,53 @@ public final class Matrix3f
     }
 
     /**
+     * Inverts this matrix in-place as an affine matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f invertAffineLocal ()
+    {
+        return invertAffine(this);
+    }
+
+    /**
+     * Inverts this matrix as an affine matrix.
+     *
+     * @return a new matrix containing the result.
+     */
+    public Matrix3f invertAffine ()
+    {
+        return invertAffine(new Matrix3f());
+    }
+
+    /**
+     * Inverts this matrix as an affine matrix and places the result in the given object.
+     *
+     * @return a reference to the result matrix, for chaining.
+     */
+    public Matrix3f invertAffine (Matrix3f result)
+        throws SingularMatrixException
+    {
+        // compute the determinant, storing the subdeterminants for later use
+        float det = m00*m11 - m10*m01;
+        if (Math.abs(det) == 0f) {
+            // determinant is zero; matrix is not invertible
+            throw new SingularMatrixException(this.toString());
+        }
+        float rdet = 1f / det;
+        return result.set(
+            +m11 * rdet,
+            -m10 * rdet,
+            +(m10*m21 - m20*m11) * rdet,
+
+            -m01 * rdet,
+            +m00 * rdet,
+            -(m00*m21 - m20*m01) * rdet,
+
+            0f, 0f, 1f);
+    }
+
+    /**
      * Linearly interpolates between the this and the specified other matrix, placing the result in
      * this matrix.
      *
@@ -350,6 +540,48 @@ public final class Matrix3f
             m02 + t*(other.m02 - m02),
             m12 + t*(other.m12 - m12),
             m22 + t*(other.m22 - m22));
+    }
+
+    /**
+     * Linearly interpolates between this and the specified other matrix (treating the matrices as
+     * affine), placing the result in this matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix3f lerpAffineLocal (Matrix3f other, float t)
+    {
+        return lerpAffine(other, t, this);
+    }
+
+    /**
+     * Linearly interpolates between this and the specified other matrix, treating the matrices as
+     * affine.
+     *
+     * @return a new matrix containing the result.
+     */
+    public Matrix3f lerpAffine (Matrix3f other, float t)
+    {
+        return lerpAffine(other, t, new Matrix3f());
+    }
+
+    /**
+     * Linearly interpolates between this and the specified other matrix (treating the matrices as
+     * affine), placing the result in the object provided.
+     *
+     * @return a reference to the result object, for chaining.
+     */
+    public Matrix3f lerpAffine (Matrix3f other, float t, Matrix3f result)
+    {
+        return result.set(
+            m00 + t*(other.m00 - m00),
+            m10 + t*(other.m10 - m10),
+            m20 + t*(other.m20 - m20),
+
+            m01 + t*(other.m01 - m01),
+            m11 + t*(other.m11 - m11),
+            m21 + t*(other.m21 - m21),
+
+            0f, 0f, 1f);
     }
 
     /**
@@ -438,6 +670,71 @@ public final class Matrix3f
             m00*vector.x + m10*vector.y + m20*vector.z,
             m01*vector.x + m11*vector.y + m21*vector.z,
             m02*vector.x + m12*vector.y + m22*vector.z);
+    }
+
+    /**
+     * Transforms a point in-place by this matrix.
+     *
+     * @return a reference to the point, for chaining.
+     */
+    public Vector2f transformPointLocal (Vector2f point)
+    {
+        return transformPoint(point, point);
+    }
+
+    /**
+     * Transforms a point by this matrix.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector2f transformPoint (Vector2f point)
+    {
+        return transformPoint(point, new Vector2f());
+    }
+
+    /**
+     * Transforms a point by this matrix and places the result in the object provided.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public Vector2f transformPoint (Vector2f point, Vector2f result)
+    {
+        return result.set(
+            m00*point.x + m10*point.y + m20,
+            m01*point.x + m11*point.y + m21);
+    }
+
+    /**
+     * Transforms a vector in-place by the inner 2x2 part of this matrix.
+     *
+     * @return a reference to the vector, for chaining.
+     */
+    public Vector2f transformVectorLocal (Vector2f vector)
+    {
+        return transformVector(vector, vector);
+    }
+
+    /**
+     * Transforms a vector by this inner 2x2 part of this matrix.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector2f transformVector (Vector2f vector)
+    {
+        return transformVector(vector, new Vector2f());
+    }
+
+    /**
+     * Transforms a vector by the inner 2x2 part of this matrix and places the result in the object
+     * provided.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public Vector2f transformVector (Vector2f vector, Vector2f result)
+    {
+        return result.set(
+            m00*vector.x + m10*vector.y,
+            m01*vector.x + m11*vector.y);
     }
 
     @Override // documentation inherited

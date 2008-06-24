@@ -356,6 +356,65 @@ public final class Vector2f
     }
 
     /**
+     * Rotates this vector in-place by the specified angle.
+     *
+     * @return a reference to this vector, for chaining.
+     */
+    public Vector2f rotateLocal (float angle)
+    {
+        return rotate(angle, this);
+    }
+
+    /**
+     * Rotates this vector by the specified angle.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector2f rotate (float angle)
+    {
+        return rotate(angle, new Vector2f());
+    }
+
+    /**
+     * Rotates this vector by the specified angle, storing the result in the vector provided.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector2f rotate (float angle, Vector2f result)
+    {
+        float sina = FloatMath.sin(angle), cosa = FloatMath.cos(angle);
+        return result.set(x*cosa - y*sina, x*sina + y*cosa);
+    }
+
+    /**
+     * Rotates this vector by the specified angle and adds another vector to it, placing the result
+     * in the object provided.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public Vector2f rotateAndAdd (float angle, Vector2f add, Vector2f result)
+    {
+        float sina = FloatMath.sin(angle), cosa = FloatMath.cos(angle);
+        return result.set(
+            x*cosa - y*sina + add.x,
+            x*sina + y*cosa + add.y);
+    }
+
+    /**
+     * Rotates this vector by the specified angle, applies a uniform scale, and adds another vector
+     * to it, placing the result in the object provided.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public Vector2f rotateScaleAndAdd (float angle, float scale, Vector2f add, Vector2f result)
+    {
+        float sina = FloatMath.sin(angle), cosa = FloatMath.cos(angle);
+        return result.set(
+            (x*cosa - y*sina)*scale + add.x,
+            (x*sina + y*cosa)*scale + add.y);
+    }
+
+    /**
      * Linearly interpolates between this and the specified other vector in-place by the supplied
      * amount.
      *

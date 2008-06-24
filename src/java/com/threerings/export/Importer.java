@@ -20,8 +20,10 @@ import java.nio.ShortBuffer;
 
 import java.util.HashMap;
 
+import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Quaternion;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.opengl.renderer.Color4f;
 
@@ -258,6 +260,15 @@ public abstract class Importer
     /**
      * Reads a matrix value associated with the current object.
      */
+    public Matrix3f read (String name, Matrix3f defvalue)
+        throws IOException
+    {
+        return read(name, defvalue, Matrix3f.class);
+    }
+
+    /**
+     * Reads a matrix value associated with the current object.
+     */
     public Matrix4f read (String name, Matrix4f defvalue)
         throws IOException
     {
@@ -271,6 +282,15 @@ public abstract class Importer
         throws IOException
     {
         return read(name, defvalue, Quaternion.class);
+    }
+
+    /**
+     * Reads a vector value associated with the current object.
+     */
+    public Vector2f read (String name, Vector2f defvalue)
+        throws IOException
+    {
+        return read(name, defvalue, Vector2f.class);
     }
 
     /**

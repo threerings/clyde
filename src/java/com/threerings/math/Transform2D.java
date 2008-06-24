@@ -10,38 +10,38 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 
 /**
- * Represents a 3D transformation in such a way as to accelerate operations such as composition
+ * Represents a 2D transformation in such a way as to accelerate operations such as composition
  * and inversion by keeping track of the nature of the transform.
  */
-public final class Transform3D
+public final class Transform2D
     implements Exportable
 {
     /** An identity transformation. */
     public static final int IDENTITY = 0;
 
-    /** A rigid transformation represented by a translation vector and a rotation quaternion. */
+    /** A rigid transformation represented by a translation vector and a rotation value. */
     public static final int RIGID = 1;
 
     /** A transformation represented by translation, rotation, and a uniform scale value. */
     public static final int UNIFORM = 2;
 
-    /** An affine transformation represented by the upper three rows of a 4x4 matrix. */
+    /** An affine transformation represented by the upper two rows of a 3x3 matrix. */
     public static final int AFFINE = 3;
 
-    /** A general transformation represented by a 4x4 matrix. */
+    /** A general transformation represented by a 3x3 matrix. */
     public static final int GENERAL = 4;
 
     /**
      * Creates an identity transformation.
      */
-    public Transform3D ()
+    public Transform2D ()
     {
     }
 
     /**
      * Creates an identity transformation of the specified type.
      */
-    public Transform3D (int type)
+    public Transform2D (int type)
     {
         setType(type);
     }
@@ -49,7 +49,7 @@ public final class Transform3D
     /**
      * Creates a transformation from the values in the supplied objects.
      */
-    public Transform3D (Vector3f translation, Quaternion rotation)
+    public Transform2D (Vector2f translation, float rotation)
     {
         set(translation, rotation);
     }
@@ -57,7 +57,7 @@ public final class Transform3D
     /**
      * Creates a transformation from the values in the supplied objects.
      */
-    public Transform3D (Vector3f translation, Quaternion rotation, float scale)
+    public Transform2D (Vector2f translation, float rotation, float scale)
     {
         set(translation, rotation, scale);
     }
@@ -65,7 +65,7 @@ public final class Transform3D
     /**
      * Creates a transformation from the values in the supplied objects.
      */
-    public Transform3D (Vector3f translation, Quaternion rotation, Vector3f scale)
+    public Transform2D (Vector2f translation, float rotation, Vector2f scale)
     {
         set(translation, rotation, scale);
     }
@@ -73,7 +73,7 @@ public final class Transform3D
     /**
      * Creates a transformation from the values in the supplied matrix.
      */
-    public Transform3D (Matrix4f matrix)
+    public Transform2D (Matrix3f matrix)
     {
         set(matrix);
     }
@@ -83,7 +83,7 @@ public final class Transform3D
      *
      * @param affine whether or not the provided matrix is known to be affine.
      */
-    public Transform3D (Matrix4f matrix, boolean affine)
+    public Transform2D (Matrix3f matrix, boolean affine)
     {
         set(matrix, affine);
     }
@@ -91,7 +91,7 @@ public final class Transform3D
     /**
      * Copy constructor.
      */
-    public Transform3D (Transform3D transform)
+    public Transform2D (Transform2D transform)
     {
         set(transform);
     }
@@ -112,10 +112,9 @@ public final class Transform3D
     public void setType (int type)
     {
         if (((_type = type) == AFFINE || _type == GENERAL) && _matrix == null) {
-            _matrix = new Matrix4f();
+            _matrix = new Matrix3f();
         } else if ((_type == RIGID || _type == UNIFORM) && _translation == null) {
-            _translation = new Vector3f();
-            _rotation = new Quaternion();
+            _translation = new Vector2f();
         }
     }
 
@@ -123,18 +122,28 @@ public final class Transform3D
      * Returns a reference to the translation vector, which is only definitive when the type is
      * {@link #RIGID} or {@link #UNIFORM}.
      */
-    public Vector3f getTranslation ()
+    public Vector2f getTranslation ()
     {
         return _translation;
     }
 
     /**
-     * Returns a reference to the rotation quaternion, which is only definitive when the type is
-     * {@link #RIGID} or {@link #UNIFORM}.
+     * Returns the rotation value, which is only definitive when the type is {@link #RIGID} or
+     * {@link #UNIFORM}.
      */
-    public Quaternion getRotation ()
+    public float getRotation ()
     {
         return _rotation;
+    }
+
+    /**
+     * Sets the rotation.
+     *
+     * @return the rotation value set, for chaining.
+     */
+    public float setRotation (float rotation)
+    {
+        return (_rotation = rotation);
     }
 
     /**
@@ -159,7 +168,7 @@ public final class Transform3D
      * Returns a reference to the transformation matrix, which is only definitive when the type is
      * {@link #AFFINE} or {@link #GENERAL}.
      */
-    public Matrix4f getMatrix ()
+    public Matrix3f getMatrix ()
     {
         return _matrix;
     }
@@ -169,7 +178,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D invertLocal ()
+    public Transform2D invertLocal ()
     {
         return invert(this);
     }
@@ -179,9 +188,9 @@ public final class Transform3D
      *
      * @return a new transform containing the result.
      */
-    public Transform3D invert ()
+    public Transform2D invert ()
     {
-        return invert(new Transform3D());
+        return invert(new Transform2D());
     }
 
     /**
@@ -189,7 +198,7 @@ public final class Transform3D
      *
      * @return a reference to the result transform, for chaining.
      */
-    public Transform3D invert (Transform3D result)
+    public Transform2D invert (Transform2D result)
     {
         // the method of inversion depends on the type
         switch (_type) {
@@ -199,14 +208,14 @@ public final class Transform3D
 
             case RIGID:
                 result.setType(RIGID);
-                _rotation.invert(result.getRotation()).transformLocal(
-                    _translation.negate(result.getTranslation()));
+                _translation.negate(result.getTranslation()).rotateLocal(
+                    result.setRotation(-_rotation));
                 return result;
 
             case UNIFORM:
                 result.setType(UNIFORM);
-                _rotation.invert(result.getRotation()).transformLocal(
-                    _translation.negate(result.getTranslation())).multLocal(
+                _translation.negate(result.getTranslation()).rotateLocal(
+                    result.setRotation(-_rotation)).multLocal(
                         result.setScale(1f / _scale));
                 return result;
 
@@ -227,7 +236,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D composeLocal (Transform3D other)
+    public Transform2D composeLocal (Transform2D other)
     {
         return compose(other, this);
     }
@@ -237,15 +246,15 @@ public final class Transform3D
      *
      * @return a new transform containing the result.
      */
-    public Transform3D compose (Transform3D other)
+    public Transform2D compose (Transform2D other)
     {
-        return compose(other, new Transform3D());
+        return compose(other, new Transform2D());
     }
 
     /**
      * Composes this transform with another, storing the result in the object provided.
      */
-    public Transform3D compose (Transform3D other, Transform3D result)
+    public Transform2D compose (Transform2D other, Transform2D result)
     {
         // the common type is the greater of the two
         int ctype = Math.max(getType(), other.getType());
@@ -260,16 +269,16 @@ public final class Transform3D
 
             case RIGID:
                 result.setType(RIGID);
-                _rotation.transformAndAdd(
-                    other.getTranslation(), _translation, result.getTranslation());
-                _rotation.mult(other.getRotation(), result.getRotation());
+                other.getTranslation().rotateAndAdd(
+                    _rotation, _translation, result.getTranslation());
+                result.setRotation(FloatMath.normalizeAngle(_rotation + other.getRotation()));
                 return result;
 
             case UNIFORM:
                 result.setType(UNIFORM);
-                _rotation.transformScaleAndAdd(
-                    other.getTranslation(), _scale, _translation, result.getTranslation());
-                _rotation.mult(other.getRotation(), result.getRotation());
+                other.getTranslation().rotateScaleAndAdd(
+                    _rotation, _scale, _translation, result.getTranslation());
+                result.setRotation(FloatMath.normalizeAngle(_rotation + other.getRotation()));
                 result.setScale(_scale * other.getScale());
                 return result;
 
@@ -291,7 +300,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D lerpLocal (Transform3D other, float t)
+    public Transform2D lerpLocal (Transform2D other, float t)
     {
         return lerp(other, t, this);
     }
@@ -301,9 +310,9 @@ public final class Transform3D
      *
      * @return a new transform containing the result.
      */
-    public Transform3D lerp (Transform3D other, float t)
+    public Transform2D lerp (Transform2D other, float t)
     {
-        return lerp(other, t, new Transform3D());
+        return lerp(other, t, new Transform2D());
     }
 
     /**
@@ -312,7 +321,7 @@ public final class Transform3D
      *
      * @return a reference to the result transform, for chaining.
      */
-    public Transform3D lerp (Transform3D other, float t, Transform3D result)
+    public Transform2D lerp (Transform2D other, float t, Transform2D result)
     {
         // the common type is the greater of the two
         int ctype = Math.max(getType(), other.getType());
@@ -328,13 +337,13 @@ public final class Transform3D
             case RIGID:
                 result.setType(RIGID);
                 _translation.lerp(other.getTranslation(), t, result.getTranslation());
-                _rotation.slerp(other.getRotation(), t, result.getRotation());
+                result.setRotation(FloatMath.lerpa(_rotation, other.getRotation(), t));
                 return result;
 
             case UNIFORM:
                 result.setType(UNIFORM);
                 _translation.lerp(other.getTranslation(), t, result.getTranslation());
-                _rotation.slerp(other.getRotation(), t, result.getRotation());
+                result.setRotation(FloatMath.lerpa(_rotation, other.getRotation(), t));
                 result.setScale(FloatMath.lerp(_scale, other.getScale(), t));
                 return result;
 
@@ -355,7 +364,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D set (Transform3D transform)
+    public Transform2D set (Transform2D transform)
     {
         switch (transform.getType()) {
             default:
@@ -378,7 +387,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D setToIdentity ()
+    public Transform2D setToIdentity ()
     {
         setType(IDENTITY);
         return this;
@@ -389,11 +398,11 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D set (Vector3f translation, Quaternion rotation)
+    public Transform2D set (Vector2f translation, float rotation)
     {
         setType(RIGID);
         _translation.set(translation);
-        _rotation.set(rotation);
+        _rotation = rotation;
         return this;
     }
 
@@ -402,11 +411,11 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D set (Vector3f translation, Quaternion rotation, float scale)
+    public Transform2D set (Vector2f translation, float rotation, float scale)
     {
         setType(UNIFORM);
         _translation.set(translation);
-        _rotation.set(rotation);
+        _rotation = rotation;
         _scale = scale;
         return this;
     }
@@ -416,7 +425,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D set (Vector3f translation, Quaternion rotation, Vector3f scale)
+    public Transform2D set (Vector2f translation, float rotation, Vector2f scale)
     {
         setType(AFFINE);
         _matrix.setToTransform(translation, rotation, scale);
@@ -428,7 +437,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D set (Matrix4f matrix)
+    public Transform2D set (Matrix3f matrix)
     {
         return set(matrix, false);
     }
@@ -439,7 +448,7 @@ public final class Transform3D
      * @param affine whether or not the provided matrix is affine.
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D set (Matrix4f matrix, boolean affine)
+    public Transform2D set (Matrix3f matrix, boolean affine)
     {
         setType(affine ? AFFINE : GENERAL);
         _matrix.set(matrix);
@@ -452,7 +461,7 @@ public final class Transform3D
      *
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D promote (int type)
+    public Transform2D promote (int type)
     {
         update(type);
         setType(type);
@@ -462,31 +471,31 @@ public final class Transform3D
     /**
      * Updates the transform fields corresponding to the specified type.  For example, if this
      * matrix is {@link #IDENTITY} and <code>type</code> is {@link #RIGID}, then the translation
-     * and rotation fields are set to zero and the identity quaternion, respectively.
+     * and rotation fields are set to zero.
      *
      * @param utype the desired type, which must be greater than or equal to the type of this
      * transform.
      * @return a reference to this transform, for chaining.
      */
-    public Transform3D update (int utype)
+    public Transform2D update (int utype)
     {
         if (_type == IDENTITY) {
             if (utype >= AFFINE) {
-                _matrix = (_matrix == null) ? new Matrix4f() : _matrix;
+                _matrix = (_matrix == null) ? new Matrix3f() : _matrix;
             } else if (utype >= RIGID) {
-                _translation = (_translation == null) ? new Vector3f() : _translation;
-                _rotation = (_rotation == null) ? new Quaternion() : _rotation;
+                _translation = (_translation == null) ? new Vector2f() : _translation;
+                _rotation = 0f;
                 _scale = 1f;
             }
         } else if (_type == RIGID) {
             if (utype >= AFFINE) {
-                (_matrix == null ? (_matrix = new Matrix4f()) : _matrix).setToTransform(
+                (_matrix == null ? (_matrix = new Matrix3f()) : _matrix).setToTransform(
                     _translation, _rotation);
             } else if (utype == UNIFORM) {
                 _scale = 1f;
             }
         } else if (_type == UNIFORM && utype >= AFFINE) {
-            (_matrix == null ? (_matrix = new Matrix4f()) : _matrix).setToTransform(
+            (_matrix == null ? (_matrix = new Matrix3f()) : _matrix).setToTransform(
                 _translation, _rotation, _scale);
         }
         return this;
@@ -497,7 +506,7 @@ public final class Transform3D
      *
      * @return a reference to the point, for chaining.
      */
-    public Vector3f transformPointLocal (Vector3f pt)
+    public Vector2f transformPointLocal (Vector2f pt)
     {
         return transformPoint(pt, pt);
     }
@@ -507,9 +516,9 @@ public final class Transform3D
      *
      * @return a new vector containing the result.
      */
-    public Vector3f transformPoint (Vector3f pt)
+    public Vector2f transformPoint (Vector2f pt)
     {
-        return transformPoint(pt, new Vector3f());
+        return transformPoint(pt, new Vector2f());
     }
 
     /**
@@ -517,38 +526,19 @@ public final class Transform3D
      *
      * @return a reference to the result object, for chaining.
      */
-    public Vector3f transformPoint (Vector3f pt, Vector3f result)
+    public Vector2f transformPoint (Vector2f pt, Vector2f result)
     {
         switch (_type) {
             default:
             case IDENTITY:
                 return result.set(pt);
             case RIGID:
-                return _rotation.transform(pt, result).addLocal(_translation);
+                return pt.rotate(_rotation, result).addLocal(_translation);
             case UNIFORM:
-                return _rotation.transformLocal(pt.mult(_scale, result)).addLocal(_translation);
+                return pt.mult(_scale, result).rotateLocal(_rotation).addLocal(_translation);
             case AFFINE:
             case GENERAL:
                 return _matrix.transformPoint(pt, result);
-        }
-    }
-
-    /**
-     * Transforms a point by this transform and returns the z coordinate of the result.
-     */
-    public float transformPointZ (Vector3f pt)
-    {
-        switch (_type) {
-            default:
-            case IDENTITY:
-                return pt.z;
-            case RIGID:
-                return _rotation.transformZ(pt) + _translation.z;
-            case UNIFORM:
-                return _rotation.transformZ(pt)*_scale + _translation.z;
-            case AFFINE:
-            case GENERAL:
-                return _matrix.transformPointZ(pt);
         }
     }
 
@@ -557,7 +547,7 @@ public final class Transform3D
      *
      * @return a reference to the transformed vector, for chaining.
      */
-    public Vector3f transformVectorLocal (Vector3f vec)
+    public Vector2f transformVectorLocal (Vector2f vec)
     {
         return transformVector(vec, vec);
     }
@@ -567,9 +557,9 @@ public final class Transform3D
      *
      * @return a new vector containing the result.
      */
-    public Vector3f transformVector (Vector3f vec)
+    public Vector2f transformVector (Vector2f vec)
     {
-        return transformVector(vec, new Vector3f());
+        return transformVector(vec, new Vector2f());
     }
 
     /**
@@ -577,16 +567,16 @@ public final class Transform3D
      *
      * @return a reference to the result vector, for chaining.
      */
-    public Vector3f transformVector (Vector3f vec, Vector3f result)
+    public Vector2f transformVector (Vector2f vec, Vector2f result)
     {
         switch (_type) {
             default:
             case IDENTITY:
                 return result.set(vec);
             case RIGID:
-                return _rotation.transform(vec, result);
+                return vec.rotate(_rotation, result);
             case UNIFORM:
-                return _rotation.transformLocal(vec.mult(_scale, result));
+                return vec.mult(_scale, result).rotateLocal(_rotation);
             case AFFINE:
             case GENERAL:
                 return _matrix.transformVector(vec, result);
@@ -602,13 +592,13 @@ public final class Transform3D
         if (_type == IDENTITY) {
             return;
         } else if (_type == AFFINE || _type == GENERAL) {
-            out.write("matrix", _matrix, Matrix4f.IDENTITY);
+            out.write("matrix", _matrix, Matrix3f.IDENTITY);
         } else { // _type == RIGID || _type == UNIFORM
             if (_type == UNIFORM) {
                 out.write("scale", _scale, 1f);
             }
-            out.write("translation", _translation, Vector3f.ZERO);
-            out.write("rotation", _rotation, Quaternion.IDENTITY);
+            out.write("translation", _translation, Vector2f.ZERO);
+            out.write("rotation", _rotation, 0f);
         }
     }
 
@@ -618,15 +608,14 @@ public final class Transform3D
     public void readFields (Importer in)
         throws IOException
     {
-        _translation = in.read("translation", (Vector3f)null);
-        _rotation = in.read("rotation", (Quaternion)null);
+        _translation = in.read("translation", (Vector2f)null);
+        _rotation = in.read("rotation", 0f);
         _scale = in.read("scale", 1f);
-        _matrix = in.read("matrix", (Matrix4f)null);
+        _matrix = in.read("matrix", (Matrix3f)null);
         if (_matrix != null) {
             _type = _matrix.isAffine() ? AFFINE : GENERAL;
-        } else if (_translation != null || _rotation != null || _scale != 1f) {
-            _translation = (_translation == null) ? new Vector3f() : _translation;
-            _rotation = (_rotation == null) ? new Quaternion() : _rotation;
+        } else if (_translation != null || _rotation != 0f || _scale != 1f) {
+            _translation = (_translation == null) ? new Vector2f() : _translation;
             _type = (_scale == 1f) ? RIGID : UNIFORM;
         } else {
             _type = IDENTITY;
@@ -653,8 +642,8 @@ public final class Transform3D
     @Override // documentation inherited
     public boolean equals (Object other)
     {
-        Transform3D otrans = (Transform3D)other;
-        if (!(other instanceof Transform3D && _type == otrans.getType())) {
+        Transform2D otrans = (Transform2D)other;
+        if (!(other instanceof Transform2D && _type == otrans.getType())) {
             return false;
         }
         switch (_type) {
@@ -663,10 +652,10 @@ public final class Transform3D
                 return true;
             case RIGID:
                 return _translation.equals(otrans.getTranslation()) &&
-                    _rotation.equals(otrans.getRotation());
+                    _rotation == otrans.getRotation();
             case UNIFORM:
                 return _translation.equals(otrans.getTranslation()) &&
-                    _rotation.equals(otrans.getRotation()) &&
+                    _rotation == otrans.getRotation() &&
                     _scale == otrans.getScale();
             case AFFINE:
             case GENERAL:
@@ -678,14 +667,14 @@ public final class Transform3D
     protected int _type;
 
     /** For rigid and uniform transforms, the translation vector. */
-    protected Vector3f _translation;
+    protected Vector2f _translation;
 
-    /** For rigid and uniform transforms, the rotation quaternion. */
-    protected Quaternion _rotation;
+    /** For rigid and uniform transforms, the rotation value. */
+    protected float _rotation;
 
     /** For uniform transforms, the uniform scale. */
     protected float _scale = 1f;
 
     /** For affine and general transforms, the transformation matrix. */
-    protected Matrix4f _matrix;
+    protected Matrix3f _matrix;
 }
