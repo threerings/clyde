@@ -7,6 +7,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ResourceLoaded;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -19,16 +20,10 @@ public class AnimationConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the animation.
      */
+    @EditorTypes({ Keyframe.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Returns the subclasses available for selection in the editor.
-         */
-        public static Class[] getEditorTypes ()
-        {
-            return new Class[] { Keyframe.class, Derived.class };
-        }
     }
 
     /**
@@ -44,7 +39,7 @@ public class AnimationConfig extends ParameterizedConfig
     public static class Derived extends Implementation
     {
         /** The animation reference. */
-        @Editable
+        @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
     }
 

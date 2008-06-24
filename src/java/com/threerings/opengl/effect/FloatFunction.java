@@ -6,12 +6,17 @@ package com.threerings.opengl.effect;
 import com.threerings.math.FloatMath;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
 /**
  * Provides a float value based on a parameter ranging from 0 to 1.
  */
+@EditorTypes({
+    FloatFunction.Constant.class, FloatFunction.Linear.class,
+    FloatFunction.InAndOut.class, FloatFunction.ThreePoint.class,
+    FloatFunction.Multipoint.class })
 public abstract class FloatFunction extends DeepObject
     implements Exportable
 {
@@ -346,8 +351,7 @@ public abstract class FloatFunction extends DeepObject
         /** The entries in between the start and end. */
         @Editable(
             min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
-            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE,
-            nullable=false)
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
         public Point[] middle = new Point[0];
 
         /** The final value. */
@@ -433,15 +437,6 @@ public abstract class FloatFunction extends DeepObject
             mresult.end = end;
             return mresult;
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] {
-            Constant.class, Linear.class, InAndOut.class, ThreePoint.class, Multipoint.class };
     }
 
     /**

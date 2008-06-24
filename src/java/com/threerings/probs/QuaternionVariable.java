@@ -4,6 +4,7 @@
 package com.threerings.probs;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -14,6 +15,10 @@ import com.threerings.math.Vector3f;
 /**
  * A quaternion-valued random variable.
  */
+@EditorTypes(value={
+    QuaternionVariable.Constant.class,
+    QuaternionVariable.Uniform.class,
+    QuaternionVariable.Random.class }, label="distribution")
 public abstract class QuaternionVariable extends DeepObject
     implements Exportable
 {
@@ -120,22 +125,6 @@ public abstract class QuaternionVariable extends DeepObject
         {
             return result.set(Quaternion.IDENTITY);
         }
-    }
-
-    /**
-     * Returns the translatable label to use in the editor for selecting subtypes.
-     */
-    public static String getEditorTypeLabel ()
-    {
-        return "distribution";
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Constant.class, Uniform.class, Random.class };
     }
 
     /**

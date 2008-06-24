@@ -15,7 +15,7 @@ import com.threerings.opengl.model.config.ModelConfig;
 public class PropConfig extends ManagedConfig
 {
     /** The model to use for the prop. */
-    @Editable
+    @Editable(nullable=true)
     public ConfigReference<ModelConfig> model;
 
     /** The shape of the prop. */

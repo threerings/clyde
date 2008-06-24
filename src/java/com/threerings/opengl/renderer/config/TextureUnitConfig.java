@@ -9,6 +9,7 @@ import com.threerings.math.Transform3D;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 
 import com.threerings.opengl.renderer.TextureUnit;
@@ -21,7 +22,7 @@ public class TextureUnitConfig extends DeepObject
     implements Exportable
 {
     /** A reference to the texture to bind to the unit. */
-    @Editable
+    @Editable(nullable=true)
     public ConfigReference<TextureConfig> texture;
 
     /** The texture environment. */
@@ -33,27 +34,23 @@ public class TextureUnitConfig extends DeepObject
     public int coordSet;
 
     /** The texture coordinate generation function for the s coordinate. */
-    @Editable(types={
-        TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
-        TextureCoordGenConfig.SphereMap.class, TextureCoordGenConfig.NormalMap.class,
-        TextureCoordGenConfig.ReflectionMap.class })
+    @Editable(nullable=true)
     public TextureCoordGenConfig coordGenS;
 
     /** The texture coordinate generation function for the t coordinate. */
-    @Editable(types={
-        TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
-        TextureCoordGenConfig.SphereMap.class, TextureCoordGenConfig.NormalMap.class,
-        TextureCoordGenConfig.ReflectionMap.class })
+    @Editable(nullable=true)
     public TextureCoordGenConfig coordGenT;
 
     /** The texture coordinate generation function for the r coordinate. */
-    @Editable(types={
+    @Editable(nullable=true)
+    @EditorTypes({
         TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
         TextureCoordGenConfig.NormalMap.class, TextureCoordGenConfig.ReflectionMap.class })
     public TextureCoordGenConfig coordGenR;
 
     /** The texture coordinate generation function for the q coordinate. */
-    @Editable(types={
+    @Editable(nullable=true)
+    @EditorTypes({
         TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class })
     public TextureCoordGenConfig coordGenQ;
 

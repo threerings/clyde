@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
@@ -24,6 +25,9 @@ import static com.threerings.opengl.Log.*;
 /**
  * Determines how particles are rendered.
  */
+@EditorTypes({
+    RenderMode.Points.class, RenderMode.Lines.class,
+    RenderMode.Quads.class, RenderMode.Meshes.class })
 public abstract class RenderMode extends DeepObject
     implements Exportable
 {
@@ -109,7 +113,7 @@ public abstract class RenderMode extends DeepObject
         /**
          * Sets the path to the prototype mesh to use.
          */
-        @Editable
+        @Editable(nullable=true)
         @FileConstraints(
             description="m.model_files",
             extensions={".properties", ".dat"},
@@ -162,14 +166,6 @@ public abstract class RenderMode extends DeepObject
         /** The prototype mesh. */
         @Shallow
         protected VisibleMesh _mesh;
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Points.class, Lines.class, Quads.class, Meshes.class };
     }
 
     /**

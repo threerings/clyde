@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 
 import com.threerings.editor.ArgumentPathProperty;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.editor.InvalidPathsException;
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.Property;
@@ -19,6 +20,7 @@ import com.threerings.util.DeepOmit;
 /**
  * A single configuration parameter.
  */
+@EditorTypes({ Parameter.Direct.class, Parameter.Choice.class })
 public abstract class Parameter extends DeepObject
     implements Exportable
 {
@@ -69,7 +71,7 @@ public abstract class Parameter extends DeepObject
     public static class Choice extends Parameter
     {
         /** The selectable options. */
-        @Editable(nullable=false)
+        @Editable
         public Option[] options = new Option[0];
 
         public Choice (Parameter other)
@@ -103,14 +105,6 @@ public abstract class Parameter extends DeepObject
         /** The name of the option. */
         @Editable
         public String name = "";
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Direct.class, Choice.class };
     }
 
     /** The name of the parameter. */

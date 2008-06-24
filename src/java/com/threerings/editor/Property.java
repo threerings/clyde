@@ -18,6 +18,7 @@ import java.util.HashMap;
 
 import com.samskivert.util.ClassUtil;
 import com.samskivert.util.ListUtil;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -308,20 +309,8 @@ public abstract class Property extends DeepObject
      */
     protected String getTypeLabel (Class<?> type)
     {
-        // look for a static method in the class
-        try {
-            Method method = type.getDeclaredMethod("getEditorTypeLabel");
-            Class rtype = method.getReturnType();
-            if (method.getReturnType() == String.class &&
-                Modifier.isStatic(method.getModifiers())) {
-                return (String)method.invoke(null);
-            }
-        } catch (NoSuchMethodException e) {
-            // fall through
-        } catch (Exception e) {
-            log.warning("Failed to get editor type label [type=" + type + "].", e);
-        }
-        return "type";
+        EditorTypes annotation = getEditorTypes(type);
+        return (annotation == null) ? "type" : annotation.label();
     }
 
     /**
@@ -330,33 +319,30 @@ public abstract class Property extends DeepObject
      */
     protected Class[] getSubtypes (Class<?> type)
     {
-        // first look for subtypes specified in the annotation
-        Editable annotation = getAnnotation();
-        Class[] subtypes = annotation.types();
-        if (subtypes.length > 0) {
-            // prepend the null class if the property is nullable
-            if (!annotation.nullable()) {
-                return subtypes;
-            }
-            Class[] nsubtypes = new Class[subtypes.length + 1];
-            System.arraycopy(subtypes, 0, nsubtypes, 1, subtypes.length);
-            return nsubtypes;
+        // if there's no editor types annotation, just use the type itself
+        boolean nullable = getAnnotation().nullable();
+        EditorTypes annotation = getEditorTypes(type);
+        if (annotation == null) {
+            return nullable ? new Class[] { null, type } : new Class[] { type };
         }
-        // then look for a static method in the class
-        try {
-            Method method = type.getDeclaredMethod("getEditorTypes");
-            Class rtype = method.getReturnType();
-            if (rtype.getComponentType() == Class.class &&
-                Modifier.isStatic(method.getModifiers())) {
-                return (Class[])method.invoke(null);
-            }
-        } catch (NoSuchMethodException e) {
-            // fall through
-        } catch (Exception e) {
-            log.warning("Failed to get editor types [type=" + type + "].", e);
+        // prepend the null class if the property is nullable
+        Class[] types = annotation.value();
+        if (!nullable) {
+            return types;
         }
-        // just use the class itself
-        return annotation.nullable() ? new Class[] { null, type } : new Class[] { type };
+        Class[] ntypes = new Class[types.length + 1];
+        System.arraycopy(types, 0, ntypes, 1, types.length);
+        return ntypes;
+    }
+
+    /**
+     * Returns the editor types annotation on the property, if it exists, or on the specified
+     * type, if that exists, or <code>null</code> if neither one exists.
+     */
+    protected EditorTypes getEditorTypes (Class<?> type)
+    {
+        EditorTypes annotation = getAnnotation(EditorTypes.class);
+        return (annotation == null) ? type.getAnnotation(EditorTypes.class) : annotation;
     }
 
     /**

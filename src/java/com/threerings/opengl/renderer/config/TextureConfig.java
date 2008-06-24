@@ -18,6 +18,7 @@ import org.lwjgl.opengl.GLContext;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -272,19 +273,12 @@ public class TextureConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the texture.
      */
+    @EditorTypes({
+        Original1D.class, Original2D.class, OriginalRectangle.class,
+        Original3D.class, OriginalCubeMap.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Returns the subclasses available for selection in the editor.
-         */
-        public static Class[] getEditorTypes ()
-        {
-            return new Class[] {
-                Original1D.class, Original2D.class, OriginalRectangle.class,
-                Original3D.class, OriginalCubeMap.class, Derived.class };
-        }
-
         /**
          * Determines whether this configuration is supported by the hardware.
          */
@@ -405,6 +399,7 @@ public class TextureConfig extends ParameterizedConfig
         /**
          * The initial contents of the texture.
          */
+        @EditorTypes({ Blank.class, ImageFile.class })
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
@@ -438,7 +433,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", hgroup="f")
+            @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
@@ -463,7 +458,7 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         /** The initial contents of the texture. */
-        @Editable(types={ Blank.class, ImageFile.class }, nullable=false, category="data")
+        @Editable(category="data")
         public Contents contents = new ImageFile();
 
         @Override // documentation inherited
@@ -487,6 +482,7 @@ public class TextureConfig extends ParameterizedConfig
         /**
          * The initial contents of the texture.
          */
+        @EditorTypes({ Blank.class, ImageFile.class })
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
@@ -524,7 +520,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", hgroup="f")
+            @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
@@ -549,7 +545,7 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         /** The initial contents of the texture. */
-        @Editable(types={ Blank.class, ImageFile.class }, nullable=false, category="data")
+        @Editable(category="data")
         public Contents contents = new ImageFile();
 
         @Override // documentation inherited
@@ -585,6 +581,7 @@ public class TextureConfig extends ParameterizedConfig
         /**
          * The initial contents of the texture.
          */
+        @EditorTypes({ Blank.class, ImageFile.class })
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
@@ -626,7 +623,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", hgroup="f")
+            @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
@@ -664,7 +661,7 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         /** The initial contents of the texture. */
-        @Editable(types={ Blank.class, ImageFile.class }, nullable=false, category="data")
+        @Editable(category="data")
         public Contents contents = new ImageFile();
 
         @Override // documentation inherited
@@ -688,6 +685,7 @@ public class TextureConfig extends ParameterizedConfig
         /**
          * The initial contents of the texture.
          */
+        @EditorTypes({ Blank.class, ImageFile.class, ImageFiles.class })
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
@@ -723,7 +721,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", hgroup="f")
+            @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
@@ -763,11 +761,11 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFiles extends Contents
         {
             /** The negative x, y, and z face files. */
-            @Editable(nullable=false, hgroup="f")
+            @Editable(hgroup="f")
             public FileTrio negative = new FileTrio();
 
             /** The positive x, y, and z face files. */
-            @Editable(nullable=false, hgroup="f")
+            @Editable(hgroup="f")
             public FileTrio positive = new FileTrio();
 
             /** Whether or not the image alpha should be premultiplied. */
@@ -808,7 +806,7 @@ public class TextureConfig extends ParameterizedConfig
             implements Exportable
         {
             /** The image resource from which to load the x face. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
@@ -816,7 +814,7 @@ public class TextureConfig extends ParameterizedConfig
             public String x;
 
             /** The image resource from which to load the y face. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
@@ -824,7 +822,7 @@ public class TextureConfig extends ParameterizedConfig
             public String y;
 
             /** The image resource from which to load the y face. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files",
                 extensions={".png", ".jpg"},
@@ -833,8 +831,7 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         /** The initial contents of the texture. */
-        @Editable(types={ Blank.class, ImageFile.class, ImageFiles.class },
-            nullable=false, category="data")
+        @Editable(category="data")
         public Contents contents = new ImageFiles();
 
         @Override // documentation inherited
@@ -856,7 +853,7 @@ public class TextureConfig extends ParameterizedConfig
     public static class Derived extends Implementation
     {
         /** The texture reference. */
-        @Editable
+        @Editable(nullable=true)
         public ConfigReference<TextureConfig> texture;
 
         @Override // documentation inherited

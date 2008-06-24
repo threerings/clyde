@@ -6,6 +6,7 @@ package com.threerings.opengl.renderer.config;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -15,6 +16,9 @@ import com.threerings.opengl.renderer.state.FogState;
 /**
  * Configurable fog state.
  */
+@EditorTypes({
+    FogStateConfig.Disabled.class, FogStateConfig.Linear.class,
+    FogStateConfig.Exponential.class })
 public abstract class FogStateConfig extends DeepObject
     implements Exportable
 {
@@ -96,14 +100,6 @@ public abstract class FogStateConfig extends DeepObject
         {
             return new FogState(squared ? GL11.GL_EXP2 : GL11.GL_EXP, density, color);
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Disabled.class, Linear.class, Exponential.class };
     }
 
     /**

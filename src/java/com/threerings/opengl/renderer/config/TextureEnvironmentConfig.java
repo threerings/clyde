@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -18,6 +19,10 @@ import com.threerings.opengl.renderer.TextureUnit;
 /**
  * Contains the configuration of a texture unit's environment.
  */
+@EditorTypes({
+    TextureEnvironmentConfig.Modulate.class, TextureEnvironmentConfig.Decal.class,
+    TextureEnvironmentConfig.Blend.class, TextureEnvironmentConfig.Replace.class,
+    TextureEnvironmentConfig.Add.class, TextureEnvironmentConfig.Combine.class })
 public abstract class TextureEnvironmentConfig extends DeepObject
     implements Exportable
 {
@@ -284,15 +289,15 @@ public abstract class TextureEnvironmentConfig extends DeepObject
         public RGBCombine rgbCombine = RGBCombine.MODULATE;
 
         /** The first RGB parameter. */
-        @Editable(nullable=false, category="rgb")
+        @Editable(category="rgb")
         public RGBParam rgbParam0 = new RGBParam(Source.TEXTURE, RGBOperand.SRC_COLOR);
 
         /** The second RGB parameter. */
-        @Editable(nullable=false, category="rgb")
+        @Editable(category="rgb")
         public RGBParam rgbParam1 = new RGBParam(Source.PREVIOUS, RGBOperand.SRC_COLOR);
 
         /** The third RGB parameter. */
-        @Editable(nullable=false, category="rgb")
+        @Editable(category="rgb")
         public RGBParam rgbParam2 = new RGBParam(Source.CONSTANT, RGBOperand.SRC_ALPHA);
 
         /** The RGB combine scale. */
@@ -304,15 +309,15 @@ public abstract class TextureEnvironmentConfig extends DeepObject
         public AlphaCombine alphaCombine = AlphaCombine.MODULATE;
 
         /** The first alpha parameter. */
-        @Editable(nullable=false, category="alpha")
+        @Editable(category="alpha")
         public AlphaParam alphaParam0 = new AlphaParam(Source.TEXTURE, AlphaOperand.SRC_ALPHA);
 
         /** The first alpha parameter. */
-        @Editable(nullable=false, category="alpha")
+        @Editable(category="alpha")
         public AlphaParam alphaParam1 = new AlphaParam(Source.PREVIOUS, AlphaOperand.SRC_ALPHA);
 
         /** The first alpha parameter. */
-        @Editable(nullable=false, category="alpha")
+        @Editable(category="alpha")
         public AlphaParam alphaParam2 = new AlphaParam(Source.CONSTANT, AlphaOperand.SRC_ALPHA);
 
         /** The alpha combine scale. */
@@ -411,15 +416,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
         public AlphaParam ()
         {
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] {
-            Modulate.class, Decal.class, Blend.class, Replace.class, Add.class, Combine.class };
     }
 
     /** The environment color. */

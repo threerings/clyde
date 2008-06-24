@@ -56,7 +56,7 @@ public abstract class LightConfig extends DeepObject
         public Vector3f position = new Vector3f();
 
         /** The light's attenuation parameters. */
-        @Editable(nullable=false, hgroup="p")
+        @Editable(hgroup="p")
         public Attenuation attenuation = new Attenuation();
 
         public Point (Point other)
@@ -99,7 +99,7 @@ public abstract class LightConfig extends DeepObject
         public Vector3f direction = new Vector3f(0f, 0f, -1f);
 
         /** The falloff parameters. */
-        @Editable(nullable=false, hgroup="d")
+        @Editable(hgroup="d")
         public Falloff falloff = new Falloff();
 
         public Spot (Point other)
@@ -189,7 +189,7 @@ public abstract class LightConfig extends DeepObject
     }
 
     /** The color of the light. */
-    @Editable(nullable=false, hgroup="p")
+    @Editable(hgroup="p")
     public Colors colors = new Colors();
 
     public LightConfig (LightConfig other)

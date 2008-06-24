@@ -63,9 +63,6 @@ public @interface Editable
     /** For list and array properties, the maximum size. */
     int maxsize () default +Integer.MAX_VALUE;
 
-    /** For object properties, the list of available subtypes. */
-    Class[] types () default {};
-
     /** For object properties, whether or not the property can be null. */
-    boolean nullable () default true;
+    boolean nullable () default false;
 }

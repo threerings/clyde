@@ -4,6 +4,7 @@
 package com.threerings.expr;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
@@ -11,6 +12,14 @@ import com.threerings.util.DeepObject;
 /**
  * A float-valued expression.
  */
+@EditorTypes({
+    FloatExpression.Constant.class, FloatExpression.Variable.class,
+    FloatExpression.Clock.class, FloatExpression.Negate.class,
+    FloatExpression.Add.class, FloatExpression.Subtract.class,
+    FloatExpression.Multiply.class, FloatExpression.Divide.class,
+    FloatExpression.Remainder.class, FloatExpression.Pow.class,
+    FloatExpression.Sin.class, FloatExpression.Cos.class,
+    FloatExpression.Tan.class })
 public abstract class FloatExpression extends DeepObject
     implements Exportable
 {
@@ -22,7 +31,7 @@ public abstract class FloatExpression extends DeepObject
         /** The value of the constant. */
         @Editable(step=0.01)
         public float value;
-        
+
         @Override // documentation inherited
         public Evaluator createEvaluator (ExpressionContext ctx)
         {
@@ -33,7 +42,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * A variable expression.
      */
@@ -42,7 +51,7 @@ public abstract class FloatExpression extends DeepObject
         /** The name of the variable. */
         @Editable
         public String name = "";
-        
+
         @Override // documentation inherited
         public Evaluator createEvaluator (ExpressionContext ctx)
         {
@@ -54,7 +63,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * A clock-based expression.
      */
@@ -63,7 +72,7 @@ public abstract class FloatExpression extends DeepObject
         /** The scope of the clock. */
         @Editable
         public String scope = "";
-        
+
         @Override // documentation inherited
         public Evaluator createEvaluator (ExpressionContext ctx)
         {
@@ -75,7 +84,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * The superclass of the unary operations.
      */
@@ -84,19 +93,19 @@ public abstract class FloatExpression extends DeepObject
         /** The operand expression. */
         @Editable
         public FloatExpression operand = new Constant();
-        
+
         @Override // documentation inherited
         public Evaluator createEvaluator (ExpressionContext ctx)
         {
             return createEvaluator(operand.createEvaluator(ctx));
         }
-        
+
         /**
          * Creates the evaluator for this expression, given the evaluator for its operand.
          */
         protected abstract Evaluator createEvaluator (Evaluator eval);
     }
-    
+
     /**
      * Negates its operand.
      */
@@ -112,7 +121,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Computes the sine of its operand.
      */
@@ -128,7 +137,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Computes the cosine of its operand.
      */
@@ -144,7 +153,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Computes the tangent of its operand.
      */
@@ -160,7 +169,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * The superclass of the binary operations.
      */
@@ -169,24 +178,24 @@ public abstract class FloatExpression extends DeepObject
         /** The first operand expression. */
         @Editable
         public FloatExpression firstOperand = new Constant();
-        
+
         /** The second operand expression. */
         @Editable
         public FloatExpression secondOperand = new Constant();
-        
+
         @Override // documentation inherited
         public Evaluator createEvaluator (ExpressionContext ctx)
         {
             return createEvaluator(
                 firstOperand.createEvaluator(ctx), secondOperand.createEvaluator(ctx));
         }
-        
+
         /**
          * Creates the evaluator for this expression, given the evaluators for its operands.
          */
         protected abstract Evaluator createEvaluator (Evaluator eval1, Evaluator eval2);
     }
-    
+
     /**
      * Adds its operands.
      */
@@ -202,7 +211,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Subtracts the second operand from the first.
      */
@@ -218,7 +227,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Multiplies its operands.
      */
@@ -234,7 +243,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Divides the first operand by the second.
      */
@@ -250,7 +259,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Computes the floating point remainder when the first operand is divided by the second.
      */
@@ -266,7 +275,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Raises the first operand to the power of the second.
      */
@@ -282,7 +291,7 @@ public abstract class FloatExpression extends DeepObject
             };
         }
     }
-    
+
     /**
      * Performs the actual evaluation of the expression.
      */
@@ -293,17 +302,7 @@ public abstract class FloatExpression extends DeepObject
          */
         public abstract float evaluate ();
     }
-    
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Constant.class, Variable.class, Clock.class, Negate.class,
-            Add.class, Subtract.class, Multiply.class, Divide.class, Remainder.class, Pow.class,
-            Sin.class, Cos.class, Tan.class };
-    }
-    
+
     /**
      * Creates an expression evaluator for the supplied context.
      */

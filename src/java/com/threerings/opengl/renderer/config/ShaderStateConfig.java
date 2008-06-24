@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -20,6 +21,7 @@ import com.threerings.opengl.util.GlContext;
 /**
  * Configurable shader state.
  */
+@EditorTypes({ ShaderStateConfig.Disabled.class, ShaderStateConfig.Enabled.class })
 public abstract class ShaderStateConfig extends DeepObject
     implements Exportable
 {
@@ -41,11 +43,11 @@ public abstract class ShaderStateConfig extends DeepObject
     public static class Enabled extends ShaderStateConfig
     {
         /** The vertex shader to use. */
-        @Editable
+        @Editable(nullable=true)
         public ConfigReference<ShaderConfig> vertex;
 
         /** The fragment shader to use. */
-        @Editable
+        @Editable(nullable=true)
         public ConfigReference<ShaderConfig> fragment;
 
         @Override // documentation inherited
@@ -93,14 +95,6 @@ public abstract class ShaderStateConfig extends DeepObject
                 }
             }
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Disabled.class, Enabled.class };
     }
 
     /**

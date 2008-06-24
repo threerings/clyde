@@ -6,6 +6,7 @@ package com.threerings.opengl.effect;
 import com.samskivert.util.RandomUtil;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -19,6 +20,9 @@ import com.threerings.opengl.effect.ParticleSystem.Layer;
 /**
  * Determines the particles' initial positions.
  */
+@EditorTypes({
+    Placer.Point.class, Placer.Line.class, Placer.Box.class,
+    Placer.Ring.class, Placer.Shell.class, Placer.Frustum.class })
 public abstract class Placer extends DeepObject
     implements Exportable
 {
@@ -225,16 +229,6 @@ public abstract class Placer extends DeepObject
             // transform into world space, then into layer space
             layer.pointToLayer(camera.getWorldTransform().transformPointLocal(position), false);
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] {
-            Point.class, Line.class, Box.class,
-            Ring.class, Shell.class, Frustum.class };
     }
 
     /**

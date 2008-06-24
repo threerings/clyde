@@ -3,6 +3,7 @@
 
 package com.threerings.opengl.effect;
 
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -11,6 +12,9 @@ import com.threerings.util.DeepObject;
  * the ones by <a href="http://www.robertpenner.com/easing/">Robert Penner</a> included in the Flex
  * API.  TODO: Allow control over the amount/duration of easing?
  */
+@EditorTypes({
+    Easing.None.class, Easing.QuadraticIn.class,
+    Easing.QuadraticOut.class, Easing.QuadraticInAndOut.class })
 public abstract class Easing extends DeepObject
     implements Exportable
 {
@@ -84,15 +88,6 @@ public abstract class Easing extends DeepObject
         {
             return (result instanceof QuadraticInAndOut) ? result : new QuadraticInAndOut();
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] {
-            None.class, QuadraticIn.class, QuadraticOut.class, QuadraticInAndOut.class };
     }
 
     /**

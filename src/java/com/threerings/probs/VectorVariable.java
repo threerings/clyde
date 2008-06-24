@@ -4,6 +4,7 @@
 package com.threerings.probs;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -13,6 +14,9 @@ import com.threerings.math.Vector3f;
 /**
  * A vector-valued random variable.
  */
+@EditorTypes(value={
+    VectorVariable.Constant.class,
+    VectorVariable.Uniform.class }, label="distribution")
 public abstract class VectorVariable extends DeepObject
     implements Exportable
 {
@@ -95,22 +99,6 @@ public abstract class VectorVariable extends DeepObject
         {
             return minimum.add(maximum, result).multLocal(0.5f);
         }
-    }
-
-    /**
-     * Returns the translatable label to use in the editor for selecting subtypes.
-     */
-    public static String getEditorTypeLabel ()
-    {
-        return "distribution";
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Constant.class, Uniform.class };
     }
 
     /**

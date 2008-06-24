@@ -10,12 +10,17 @@ import org.lwjgl.opengl.GLContext;
 import com.threerings.math.Vector4f;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
 /**
  * Contains a texture coordinate generation function.
  */
+@EditorTypes({
+    TextureCoordGenConfig.ObjectLinear.class, TextureCoordGenConfig.EyeLinear.class,
+    TextureCoordGenConfig.SphereMap.class, TextureCoordGenConfig.NormalMap.class,
+    TextureCoordGenConfig.ReflectionMap.class })
 public abstract class TextureCoordGenConfig extends DeepObject
     implements Exportable
 {

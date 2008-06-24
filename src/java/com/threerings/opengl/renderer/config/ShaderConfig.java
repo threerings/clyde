@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -37,17 +38,10 @@ public class ShaderConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the shader.
      */
+    @EditorTypes({ Vertex.class, Fragment.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Returns the subclasses available for selection in the editor.
-         */
-        public static Class[] getEditorTypes ()
-        {
-            return new Class[] { Vertex.class, Fragment.class, Derived.class };
-        }
-
         /**
          * Returns the shader corresponding to this configuration.
          */
@@ -65,9 +59,10 @@ public class ShaderConfig extends ParameterizedConfig
     public static abstract class Original extends Implementation
     {
         /** The uniform variables to pass to the shader. */
-        @Editable(types={
+        @Editable
+        @EditorTypes({
             ColorVariable.class, FloatVariable.class,
-            IntegerVariable.class, TransformVariable.class }, nullable=false)
+            IntegerVariable.class, TransformVariable.class })
         public Variable[] uniforms = new Variable[0];
 
         @Override // documentation inherited
@@ -89,6 +84,7 @@ public class ShaderConfig extends ParameterizedConfig
         /**
          * The initial contents of the shader.
          */
+        @EditorTypes({ SourceFile.class })
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
@@ -104,7 +100,7 @@ public class ShaderConfig extends ParameterizedConfig
         public static class SourceFile extends Contents
         {
             /** The resource from which to load the shader. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.vertex_shader_files",
                 extensions={".vert" },
@@ -133,7 +129,7 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         /** The initial contents of the shader. */
-        @Editable(types={ SourceFile.class }, nullable=false)
+        @Editable
         public Contents contents = new SourceFile();
 
         @Override // documentation inherited
@@ -151,6 +147,7 @@ public class ShaderConfig extends ParameterizedConfig
         /**
          * The initial contents of the shader.
          */
+        @EditorTypes({ SourceFile.class })
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
@@ -166,7 +163,7 @@ public class ShaderConfig extends ParameterizedConfig
         public static class SourceFile extends Contents
         {
             /** The resource from which to load the shader. */
-            @Editable(editor="resource")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.fragment_shader_files",
                 extensions={".frag" },
@@ -195,7 +192,7 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         /** The initial contents of the shader. */
-        @Editable(types={ SourceFile.class }, nullable=false)
+        @Editable
         public Contents contents = new SourceFile();
 
         @Override // documentation inherited
@@ -211,7 +208,7 @@ public class ShaderConfig extends ParameterizedConfig
     public static class Derived extends Implementation
     {
         /** The shader reference. */
-        @Editable
+        @Editable(nullable=true)
         public ConfigReference<ShaderConfig> shader;
 
         @Override // documentation inherited
@@ -242,19 +239,12 @@ public class ShaderConfig extends ParameterizedConfig
      * Represents the value of a shader variable (used for both preprocessor definitions and
      * uniform variables).
      */
+    @EditorTypes({
+        BooleanVariable.class, ColorVariable.class, FloatVariable.class,
+        IntegerVariable.class, StringVariable.class, TransformVariable.class })
     public static abstract class Variable extends DeepObject
         implements Exportable
     {
-        /**
-         * Returns the subclasses available for selection in the editor.
-         */
-        public static Class[] getEditorTypes ()
-        {
-            return new Class[] {
-                BooleanVariable.class, ColorVariable.class, FloatVariable.class,
-                IntegerVariable.class, StringVariable.class, TransformVariable.class };
-        }
-
         /** The name of the variable. */
         @Editable(hgroup="p")
         public String name = "";

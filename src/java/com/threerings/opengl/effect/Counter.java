@@ -4,6 +4,7 @@
 package com.threerings.opengl.effect;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
@@ -13,6 +14,9 @@ import com.threerings.math.FloatMath;
 /**
  * Determines how many particles to emit at each frame.
  */
+@EditorTypes({
+    Counter.Unlimited.class, Counter.ConstantRate.class,
+    Counter.RandomIntervals.class })
 public abstract class Counter extends DeepObject
     implements Exportable
 {

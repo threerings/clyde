@@ -6,6 +6,7 @@ package com.threerings.opengl.renderer.config;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -15,6 +16,7 @@ import com.threerings.opengl.renderer.state.MaterialState;
 /**
  * Configurable material state.
  */
+@EditorTypes({ MaterialStateConfig.OneSided.class, MaterialStateConfig.TwoSided.class })
 public abstract class MaterialStateConfig extends DeepObject
     implements Exportable
 {
@@ -115,11 +117,11 @@ public abstract class MaterialStateConfig extends DeepObject
     public static class TwoSided extends MaterialStateConfig
     {
         /** The front side. */
-        @Editable(nullable=false, hgroup="s")
+        @Editable(hgroup="s")
         public Side front = new Side();
 
         /** The back side. */
-        @Editable(nullable=false, hgroup="s")
+        @Editable(hgroup="s")
         public Side back = new Side();
 
         /** The color material face. */
@@ -202,14 +204,6 @@ public abstract class MaterialStateConfig extends DeepObject
     /** The flat shading flag. */
     @Editable(hgroup="m3", weight=2)
     public boolean flatShading;
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { OneSided.class, TwoSided.class };
-    }
 
     public MaterialStateConfig (MaterialStateConfig other)
     {

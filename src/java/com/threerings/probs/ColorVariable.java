@@ -4,6 +4,7 @@
 package com.threerings.probs;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -14,6 +15,9 @@ import com.threerings.opengl.renderer.Color4f;
 /**
  * A color-valued random variable.
  */
+@EditorTypes(value={
+    ColorVariable.Constant.class,
+    ColorVariable.Uniform.class }, label="distribution")
 public abstract class ColorVariable extends DeepObject
     implements Exportable
 {
@@ -97,22 +101,6 @@ public abstract class ColorVariable extends DeepObject
         {
             return minimum.add(maximum, result).multLocal(0.5f);
         }
-    }
-
-    /**
-     * Returns the translatable label to use in the editor for selecting subtypes.
-     */
-    public static String getEditorTypeLabel ()
-    {
-        return "distribution";
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Constant.class, Uniform.class };
     }
 
     /**

@@ -7,6 +7,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.ResourceLoaded;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -21,16 +22,10 @@ public class ModelConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the model.
      */
+    @EditorTypes({ Static.class, Articulated.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Returns the subclasses available for selection in the editor.
-         */
-        public static Class[] getEditorTypes ()
-        {
-            return new Class[] { Static.class, Articulated.class, Derived.class };
-        }
     }
 
     /**
@@ -60,7 +55,7 @@ public class ModelConfig extends ParameterizedConfig
     public static class Derived extends Implementation
     {
         /** The model reference. */
-        @Editable
+        @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
     }
 

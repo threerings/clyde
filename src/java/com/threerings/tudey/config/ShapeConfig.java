@@ -4,12 +4,17 @@
 package com.threerings.tudey.config;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
 /**
  * The configuration for a shape.
  */
+@EditorTypes({
+    ShapeConfig.Point.class, ShapeConfig.Line.class, ShapeConfig.Rectangle.class,
+    ShapeConfig.Circle.class, ShapeConfig.Capsule.class, ShapeConfig.Polygon.class,
+    ShapeConfig.Compound.class })
 public abstract class ShapeConfig extends DeepObject
     implements Exportable
 {
@@ -97,15 +102,5 @@ public abstract class ShapeConfig extends DeepObject
         /** The component shapes. */
         @Editable
         public ShapeConfig[] shapes = new ShapeConfig[0];
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] {
-            Point.class, Line.class, Rectangle.class, Circle.class,
-            Capsule.class, Polygon.class, Compound.class };
     }
 }

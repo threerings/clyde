@@ -8,6 +8,7 @@ import java.io.IOException;
 import com.samskivert.util.RandomUtil;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.export.Importer;
 import com.threerings.util.DeepObject;
@@ -19,6 +20,7 @@ import com.threerings.math.Vector3f;
 /**
  * Determines the particles' initial velocities.
  */
+@EditorTypes({ Shooter.Cone.class, Shooter.Outward.class })
 public abstract class Shooter extends DeepObject
     implements Exportable
 {
@@ -122,14 +124,6 @@ public abstract class Shooter extends DeepObject
             }
             return velocity.addLocal(0f, 0f, upwardBias).normalizeLocal();
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Cone.class, Outward.class };
     }
 
     /**

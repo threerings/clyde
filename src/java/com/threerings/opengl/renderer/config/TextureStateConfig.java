@@ -18,7 +18,7 @@ public class TextureStateConfig extends DeepObject
     implements Exportable
 {
     /** The texture unit configurations. */
-    @Editable(nullable=false)
+    @Editable
     public TextureUnitConfig[] units = new TextureUnitConfig[0];
 
     /**

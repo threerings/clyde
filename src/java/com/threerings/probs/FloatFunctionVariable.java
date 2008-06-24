@@ -4,6 +4,7 @@
 package com.threerings.probs;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -13,6 +14,10 @@ import com.threerings.opengl.effect.FloatFunction;
 /**
  * A {@link FloatFunction} random variable.
  */
+@EditorTypes(value={
+    FloatFunctionVariable.Fixed.class,
+    FloatFunctionVariable.VariableConstant.class,
+    FloatFunctionVariable.VariableLinear.class }, label="mode")
 public abstract class FloatFunctionVariable extends DeepObject
     implements Exportable
 {
@@ -101,22 +106,6 @@ public abstract class FloatFunctionVariable extends DeepObject
             lresult.easing = easing.copy(lresult.easing);
             return lresult;
         }
-    }
-
-    /**
-     * Returns the translatable label to use in the editor for selecting subtypes.
-     */
-    public static String getEditorTypeLabel ()
-    {
-        return "mode";
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Fixed.class, VariableConstant.class, VariableLinear.class };
     }
 
     /**

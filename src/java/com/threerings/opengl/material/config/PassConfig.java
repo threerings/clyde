@@ -32,68 +32,65 @@ public class PassConfig extends DeepObject
     implements Exportable
 {
     /** The alpha state to use in this pass. */
-    @Editable(nullable=false)
+    @Editable
     public AlphaStateConfig alphaState = new AlphaStateConfig();
 
     /** The color state to use in this pass. */
-    @Editable
+    @Editable(nullable=true)
     public ColorStateConfig colorState = new ColorStateConfig();
 
     /** The color mask state to use in this pass. */
-    @Editable(nullable=false)
+    @Editable
     public ColorMaskStateConfig colorMaskState = new ColorMaskStateConfig();
 
     /** The cull state to use in this pass. */
-    @Editable(nullable=false)
+    @Editable
     public CullStateConfig cullState = new CullStateConfig();
 
     /** The depth state to use in this pass. */
-    @Editable(nullable=false)
+    @Editable
     public DepthStateConfig depthState = new DepthStateConfig();
 
     /** The fog state to use in this pass (overriding the default). */
-    @Editable(types={ FogStateConfig.Disabled.class, FogStateConfig.Linear.class,
-        FogStateConfig.Exponential.class }, nullable=true)
+    @Editable(nullable=true)
     public FogStateConfig fogStateOverride;
 
     /** The light state to use in this pass (overriding the default). */
-    @Editable(types={ LightStateConfig.Disabled.class, LightStateConfig.Enabled.class },
-        nullable=true)
+    @Editable(nullable=true)
     public LightStateConfig lightStateOverride;
 
     /** The line state. */
-    @Editable
+    @Editable(nullable=true)
     public LineStateConfig lineState;
 
     /** The material state to use in this pass. */
-    @Editable(types={ MaterialStateConfig.OneSided.class, MaterialStateConfig.TwoSided.class },
-        nullable=true)
+    @Editable(nullable=true)
     public MaterialStateConfig materialState = new MaterialStateConfig.OneSided();
 
     /** The polygon state to use in this pass. */
-    @Editable(nullable=false)
+    @Editable
     public PolygonStateConfig polygonState = new PolygonStateConfig();
 
     /** The point state. */
-    @Editable
+    @Editable(nullable=true)
     public PointStateConfig pointState;
 
     /** The shader state to use in this pass. */
-    @Editable
+    @Editable(nullable=true)
     public ShaderStateConfig shaderState;
 
     /** The stencil state to use in this pass. */
-    @Editable(nullable=false)
+    @Editable
     public StencilStateConfig stencilState = new StencilStateConfig();
 
     /** The texture state to use in this pass. */
-    @Editable(nullable=false)
+    @Editable
     public TextureStateConfig textureState = new TextureStateConfig();
 
     /** The bindings to use in this pass. */
     @Editable
     public Binding[] bindings = new Binding[0];
-    
+
     /**
      * Creates the set of states for this pass.
      */

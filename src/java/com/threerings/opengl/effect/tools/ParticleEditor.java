@@ -563,7 +563,7 @@ public class ParticleEditor extends GlCanvasTool
         /**
          * Sets the path to use when resolving textures.
          */
-        @Editable(weight=1, mode="directory", nullable=false)
+        @Editable(weight=1, mode="directory")
         public void setTexturePath (File path)
         {
             _texturePath = path;

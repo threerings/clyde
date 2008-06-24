@@ -4,6 +4,7 @@
 package com.threerings.opengl.effect;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.NoiseUtil;
@@ -18,6 +19,11 @@ import com.threerings.opengl.effect.ParticleSystem.Layer;
 /**
  * Modifies the state of a set of particles.
  */
+@EditorTypes({
+    Influence.Gravity.class, Influence.Wind.class,
+    Influence.LinearDrag.class, Influence.QuadraticDrag.class,
+    Influence.CylindricalVortex.class, Influence.ToroidalVortex.class,
+    Influence.Wander.class, Influence.Jitter.class })
 public abstract class Influence extends DeepObject
     implements Exportable
 {
@@ -363,16 +369,6 @@ public abstract class Influence extends DeepObject
 
         /** The time parameter. */
         protected transient float _time;
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] {
-            Gravity.class, Wind.class, LinearDrag.class, QuadraticDrag.class,
-            CylindricalVortex.class, ToroidalVortex.class, Wander.class, Jitter.class };
     }
 
     /**

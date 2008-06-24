@@ -4,6 +4,7 @@
 package com.threerings.opengl.effect;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -12,6 +13,10 @@ import com.threerings.opengl.renderer.Color4f;
 /**
  * Provides a color based on a parameter ranging from 0 to 1.
  */
+@EditorTypes({
+    ColorFunction.Constant.class, ColorFunction.Linear.class,
+    ColorFunction.InAndOut.class, ColorFunction.ThreePoint.class,
+    ColorFunction.Multipoint.class })
 public abstract class ColorFunction extends DeepObject
     implements Exportable
 {
@@ -308,7 +313,7 @@ public abstract class ColorFunction extends DeepObject
         public Color4f start = new Color4f(1f, 1f, 1f, 1f);
 
         /** The entries in between the start and end. */
-        @Editable(mode=Editable.INHERIT_STRING, nullable=false)
+        @Editable(mode=Editable.INHERIT_STRING)
         public Point[] middle = new Point[0];
 
         /** The final color. */
@@ -392,15 +397,6 @@ public abstract class ColorFunction extends DeepObject
             mresult.end.set(end);
             return mresult;
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] {
-            Constant.class, Linear.class, InAndOut.class, ThreePoint.class, Multipoint.class };
     }
 
     /**

@@ -6,6 +6,7 @@ package com.threerings.opengl.material.config;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -17,16 +18,10 @@ public class MaterialConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the material.
      */
+    @EditorTypes({ Original.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
-        /**
-         * Returns the subclasses available for selection in the editor.
-         */
-        public static Class[] getEditorTypes ()
-        {
-            return new Class[] { Original.class, Derived.class };
-        }
     }
 
     /**
@@ -35,7 +30,7 @@ public class MaterialConfig extends ParameterizedConfig
     public static class Original extends Implementation
     {
         /** The techniques available to render the material. */
-        @Editable(nullable=false)
+        @Editable
         public Technique[] techniques = new Technique[0];
     }
 
@@ -45,7 +40,7 @@ public class MaterialConfig extends ParameterizedConfig
     public static class Derived extends Implementation
     {
         /** The material reference. */
-        @Editable
+        @Editable(nullable=true)
         public ConfigReference<MaterialConfig> material;
     }
 
@@ -56,7 +51,7 @@ public class MaterialConfig extends ParameterizedConfig
         implements Exportable
     {
         /** The passes used to render the material. */
-        @Editable(nullable=false)
+        @Editable
         public PassConfig[] passes = new PassConfig[0];
     }
 

@@ -4,6 +4,7 @@
 package com.threerings.opengl.renderer.config;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -14,6 +15,7 @@ import com.threerings.opengl.renderer.state.LightState;
 /**
  * Configurable light state.
  */
+@EditorTypes({ LightStateConfig.Disabled.class, LightStateConfig.Enabled.class })
 public abstract class LightStateConfig extends DeepObject
     implements Exportable
 {
@@ -51,14 +53,6 @@ public abstract class LightStateConfig extends DeepObject
             }
             return new LightState(slights, globalAmbient);
         }
-    }
-
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Disabled.class, Enabled.class };
     }
 
     /**
