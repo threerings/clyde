@@ -33,7 +33,7 @@ public abstract class FloatExpression extends DeepObject
         public float value;
 
         @Override // documentation inherited
-        public Evaluator createEvaluator (ExpressionContext ctx)
+        public Evaluator createEvaluator (Scope scope)
         {
             return new Evaluator() {
                 public float evaluate () {
@@ -52,10 +52,14 @@ public abstract class FloatExpression extends DeepObject
         @Editable
         public String name = "";
 
+        /** The default value of the variable. */
+        @Editable(step=0.01)
+        public float defvalue;
+
         @Override // documentation inherited
-        public Evaluator createEvaluator (ExpressionContext ctx)
+        public Evaluator createEvaluator (Scope scope)
         {
-            final MutableFloat variable = ctx.getFloatVariable(name);
+            final MutableFloat variable = scope.getVariable(name, defvalue);
             return new Evaluator() {
                 public float evaluate () {
                     return variable.value;
@@ -74,12 +78,12 @@ public abstract class FloatExpression extends DeepObject
         public String scope = "";
 
         @Override // documentation inherited
-        public Evaluator createEvaluator (ExpressionContext ctx)
+        public Evaluator createEvaluator (Scope scope)
         {
-            final long startTime = ctx.getStartTime(scope);
+            final MutableLong epoch = scope.getEpoch(this.scope);
             return new Evaluator() {
                 public float evaluate () {
-                    return (System.currentTimeMillis() - startTime) / 1000f;
+                    return (System.currentTimeMillis() - epoch.value) / 1000f;
                 }
             };
         }
@@ -95,9 +99,9 @@ public abstract class FloatExpression extends DeepObject
         public FloatExpression operand = new Constant();
 
         @Override // documentation inherited
-        public Evaluator createEvaluator (ExpressionContext ctx)
+        public Evaluator createEvaluator (Scope scope)
         {
-            return createEvaluator(operand.createEvaluator(ctx));
+            return createEvaluator(operand.createEvaluator(scope));
         }
 
         /**
@@ -184,10 +188,10 @@ public abstract class FloatExpression extends DeepObject
         public FloatExpression secondOperand = new Constant();
 
         @Override // documentation inherited
-        public Evaluator createEvaluator (ExpressionContext ctx)
+        public Evaluator createEvaluator (Scope scope)
         {
             return createEvaluator(
-                firstOperand.createEvaluator(ctx), secondOperand.createEvaluator(ctx));
+                firstOperand.createEvaluator(scope), secondOperand.createEvaluator(scope));
         }
 
         /**
@@ -306,5 +310,5 @@ public abstract class FloatExpression extends DeepObject
     /**
      * Creates an expression evaluator for the supplied context.
      */
-    public abstract Evaluator createEvaluator (ExpressionContext ctx);
+    public abstract Evaluator createEvaluator (Scope scope);
 }
