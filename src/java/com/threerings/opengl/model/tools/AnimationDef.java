@@ -92,13 +92,7 @@ public class AnimationDef
     public Animation createAnimation (Properties props)
     {
         // find the names of all animation targets
-        HashSet<String> tset = new HashSet<String>();
-        for (FrameDef frame : frames) {
-            for (String target : frame.transforms.keySet()) {
-                tset.add(target);
-            }
-        }
-        String[] targets = tset.toArray(new String[tset.size()]);
+        String[] targets = getTargets();
 
         // see if we should leave out the last frame
         boolean looping = Boolean.parseBoolean(props.getProperty("looping"));
@@ -115,5 +109,27 @@ public class AnimationDef
 
         // create and return the animation
         return new Animation(props, frameRate, targets, aframes);
+    }
+
+    /**
+     * Returns the names of all of the animation targets.
+     */
+    public String[] getTargets ()
+    {
+        HashSet<String> tset = new HashSet<String>();
+        for (FrameDef frame : frames) {
+            for (String target : frame.transforms.keySet()) {
+                tset.add(target);
+            }
+        }
+        return tset.toArray(new String[tset.size()]);
+    }
+
+    /**
+     * Returns the transforms for each target, each frame.
+     */
+    public Transform3D[][] getTransforms (String[] targets)
+    {
+        return null;
     }
 }
