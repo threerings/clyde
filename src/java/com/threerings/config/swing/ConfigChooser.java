@@ -35,7 +35,6 @@ import com.threerings.util.MessageBundle;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
-import com.threerings.config.ResourceLoaded;
 
 /**
  * A simple dialog that allows the user to select a configuration from a tree.
@@ -59,7 +58,7 @@ public abstract class ConfigChooser extends JPanel
     public static ConfigChooser createInstance (
         MessageBundle msgs, ConfigManager cfgmgr, Class clazz, String config)
     {
-        ConfigChooser chooser = ResourceLoaded.class.isAssignableFrom(clazz) ?
+        ConfigChooser chooser = cfgmgr.isResourceClass(clazz) ?
             new ResourceChooser(msgs, cfgmgr.getResourceManager(), clazz) :
                 new TreeChooser(msgs, cfgmgr, clazz);
         if (config != null) {

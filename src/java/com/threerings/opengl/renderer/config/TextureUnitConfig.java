@@ -55,7 +55,7 @@ public class TextureUnitConfig extends DeepObject
     public TextureCoordGenConfig coordGenQ;
 
     /** The texture transform. */
-    @Editable
+    @Editable(step=0.01)
     public Transform3D transform = new Transform3D();
 
     /**

@@ -99,7 +99,7 @@ public class ParticleSystem extends Model
         public boolean depthSort;
 
         /** The render priority (higher priority layers are rendered above lower priority ones). */
-        @Editable(category="appearance")
+        @Editable(category="appearance", nullable=true)
         public GroupPriority priorityMode;
 
         /** Controls the particles' change of color over their lifespans. */

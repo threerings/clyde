@@ -9,12 +9,9 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +24,6 @@ import java.util.prefs.Preferences;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.InputMap;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -75,8 +71,8 @@ import static com.threerings.ClydeLog.*;
  * Allows editing the configuration database.  Can either be invoked standalone or from within
  * another application.
  */
-public class ConfigEditor
-    implements ActionListener, ClipboardOwner
+public class ConfigEditor extends BaseConfigEditor
+    implements ClipboardOwner
 {
     /**
      * The program entry point.
@@ -86,38 +82,25 @@ public class ConfigEditor
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
-        new ConfigEditor(rsrcmgr, msgmgr, cfgmgr, true).start();
+        new ConfigEditor(msgmgr, cfgmgr, true).setVisible(true);
     }
 
     /**
      * Creates a new config editor.
      */
-    public ConfigEditor (ResourceManager rsrcmgr, MessageManager msgmgr, ConfigManager cfgmgr)
+    public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr)
     {
-        this(rsrcmgr, msgmgr, cfgmgr, false);
+        this(msgmgr, cfgmgr, false);
     }
 
-    /**
-     * Starts up the editor.
-     */
-    public void start ()
+    // documentation inherited from interface ClipboardOwner
+    public void lostOwnership (Clipboard clipboard, Transferable contents)
     {
-        _frame.setVisible(true);
+        _paste.setEnabled(false);
+        _clipclass = null;
     }
 
-    /**
-     * Shuts down the editor.
-     */
-    public void shutdown ()
-    {
-        if (_standalone) {
-            System.exit(0);
-        } else {
-            _frame.setVisible(false);
-        }
-    }
-
-    // documentation inherited from interface ActionListener
+    @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -139,8 +122,6 @@ public class ConfigEditor
             item.importConfigs();
         } else if (action.equals("export_configs")) {
             item.exportConfigs();
-        } else if (action.equals("quit")) {
-            shutdown();
         } else if (action.equals("cut")) {
             item.cutNode();
         } else if (action.equals("copy")) {
@@ -152,48 +133,31 @@ public class ConfigEditor
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
                 _pdialog = EditorPanel.createDialog(
-                    _frame, (ManagerPanel)_tabs.getComponentAt(0), "t.preferences", _eprefs);
+                    this, (ManagerPanel)_tabs.getComponentAt(0), "t.preferences", _eprefs);
             }
             _pdialog.setVisible(true);
         } else if (action.equals("save_all")) {
             panel.cfgmgr.saveAll();
         } else if (action.equals("revert_all")) {
             panel.cfgmgr.revertAll();
+        } else {
+            super.actionPerformed(event);
         }
-    }
-
-    // documentation inherited from interface ClipboardOwner
-    public void lostOwnership (Clipboard clipboard, Transferable contents)
-    {
-        _paste.setEnabled(false);
-        _clipclass = null;
     }
 
     /**
      * Creates a new config editor.
      */
-    protected ConfigEditor (
-        ResourceManager rsrcmgr, MessageManager msgmgr, ConfigManager cfgmgr, boolean standalone)
+    protected ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, boolean standalone)
     {
-        _rsrcmgr = rsrcmgr;
-        _msgmgr = msgmgr;
-        _msgs = _msgmgr.getBundle("config");
-        _standalone = standalone;
+        super(cfgmgr.getResourceManager(), msgmgr, "config", standalone);
 
-        _frame = new JFrame(_msgs.get("m.title"));
-        _frame.setSize(800, 600);
-        SwingUtil.centerWindow(_frame);
-
-        // shutdown when the window is closed
-        _frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing (WindowEvent event) {
-                shutdown();
-            }
-        });
+        setSize(800, 600);
+        SwingUtil.centerWindow(this);
 
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
-        _frame.setJMenuBar(menubar);
+        setJMenuBar(menubar);
 
         JMenu file = createMenu("file", KeyEvent.VK_F);
         menubar.add(file);
@@ -211,11 +175,13 @@ public class ConfigEditor
         file.add(createMenuItem("import_group", KeyEvent.VK_I, KeyEvent.VK_I));
         file.add(createMenuItem("export_group", KeyEvent.VK_E, KeyEvent.VK_E));
         file.addSeparator();
-        file.add(createMenuItem("import_configs", KeyEvent.VK_C, -1));
+        file.add(createMenuItem("import_configs", KeyEvent.VK_M, -1));
         file.add(_exportConfigs = createMenuItem("export_configs", KeyEvent.VK_X, -1));
-        if (standalone) {
-            file.addSeparator();
+        file.addSeparator();
+        if (_standalone) {
             file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
+        } else {
+            file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
         }
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
@@ -228,7 +194,7 @@ public class ConfigEditor
 
         // if running standalone, create and initialize the editable preferences to
         // allow changing the resource dir
-        if (standalone) {
+        if (_standalone) {
             edit.addSeparator();
             edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_F));
             _eprefs = new ToolUtil.EditablePrefs(_prefs);
@@ -267,7 +233,7 @@ public class ConfigEditor
         });
 
         // create the tabbed pane
-        _frame.add(_tabs = new JTabbedPane(), BorderLayout.WEST);
+        add(_tabs = new JTabbedPane(), BorderLayout.WEST);
         _tabs.setPreferredSize(new Dimension(250, 1));
         _tabs.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
 
@@ -289,75 +255,6 @@ public class ConfigEditor
             }
             protected ManagerPanel _panel = panel;
         });
-    }
-
-    /**
-     * Creates a menu with the specified name and mnemonic.
-     */
-    protected JMenu createMenu (String name, int mnemonic)
-    {
-        return ToolUtil.createMenu(_msgs, name, mnemonic);
-    }
-
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator.
-     */
-    protected JMenuItem createMenuItem (String action, int mnemonic, int accelerator)
-    {
-        return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator);
-    }
-
-    /**
-     * Creates a menu item with the specified action, mnemonic, and (optional) accelerator
-     * key/modifiers.
-     */
-    protected JMenuItem createMenuItem (
-        String action, int mnemonic, int accelerator, int modifiers)
-    {
-        return ToolUtil.createMenuItem(this, _msgs, action, mnemonic, accelerator, modifiers);
-    }
-
-    /**
-     * Creates an action with the specified command, mnemonic, and (optional) accelerator.
-     */
-    protected Action createAction (String command, int mnemonic, int accelerator)
-    {
-        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator);
-    }
-
-    /**
-     * Creates an action with the specified command, mnemonic, and (optional) accelerator
-     * key/modifiers.
-     */
-    protected Action createAction (String command, int mnemonic, int accelerator, int modifiers)
-    {
-        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator, modifiers);
-    }
-
-    /**
-     * Creates a button with the specified action.
-     */
-    protected JButton createButton (String action)
-    {
-        return ToolUtil.createButton(this, _msgs, action);
-    }
-
-    /**
-     * Creates a button with the specified action and translation key.
-     */
-    protected JButton createButton (String action, String key)
-    {
-        return ToolUtil.createButton(this, _msgs, action, key);
-    }
-
-    /**
-     * Returns a translated label for the supplied one, if one exists; otherwise, simply returns
-     * the untranslated name.
-     */
-    protected String getLabel (String name)
-    {
-        String key = "m." + name;
-        return _msgs.exists(key) ? _msgs.get(key) : name;
     }
 
     /**
@@ -435,7 +332,7 @@ public class ConfigEditor
              */
             public void importGroup ()
             {
-                if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
                     group.load(_chooser.getSelectedFile());
                 }
                 _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
@@ -446,7 +343,7 @@ public class ConfigEditor
              */
             public void exportGroup ()
             {
-                if (_chooser.showSaveDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                if (_chooser.showSaveDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
                     group.save(_chooser.getSelectedFile());
                 }
                 _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
@@ -457,7 +354,7 @@ public class ConfigEditor
              */
             public void importConfigs ()
             {
-                if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
                     group.load(_chooser.getSelectedFile(), true);
                 }
                 _prefs.put("config_dir", _chooser.getCurrentDirectory().toString());
@@ -468,7 +365,7 @@ public class ConfigEditor
              */
             public void exportConfigs ()
             {
-                if (_chooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+                if (_chooser.showOpenDialog(ConfigEditor.this) == JFileChooser.APPROVE_OPTION) {
                     ArrayList<ManagedConfig> configs = new ArrayList<ManagedConfig>();
                     _tree.getSelectedNode().getConfigs(configs);
                     group.save(configs, _chooser.getSelectedFile());
@@ -635,8 +532,8 @@ public class ConfigEditor
         public void activate ()
         {
             // add the editor panel
-            _frame.add(_epanel, BorderLayout.CENTER);
-            _frame.repaint();
+            ConfigEditor.this.add(_epanel, BorderLayout.CENTER);
+            ConfigEditor.this.repaint();
 
             // activate the selected item
             ((GroupItem)gbox.getSelectedItem()).activate();
@@ -655,7 +552,7 @@ public class ConfigEditor
         public void deactivate ()
         {
             // remove the editor panel
-            _frame.remove(_epanel);
+            ConfigEditor.this.remove(_epanel);
         }
 
         // documentation inherited from interface EditorContext
@@ -694,21 +591,6 @@ public class ConfigEditor
         /** The object editor panel. */
         protected EditorPanel _epanel;
     }
-
-    /** The resource manager. */
-    protected ResourceManager _rsrcmgr;
-
-    /** The message manager. */
-    protected MessageManager _msgmgr;
-
-    /** The config message bundle. */
-    protected MessageBundle _msgs;
-
-    /** Whether or not we're running as a standalone application. */
-    protected boolean _standalone;
-
-    /** The main frame. */
-    protected JFrame _frame;
 
     /** The config tree pop-up menu. */
     protected JPopupMenu _popup;

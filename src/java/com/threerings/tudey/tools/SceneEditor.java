@@ -136,9 +136,9 @@ public class SceneEditor extends GlCanvasTool
             exportScene();
         } else if (action.equals("configs")) {
             if (_configEditor == null) {
-                _configEditor = new ConfigEditor(_rsrcmgr, _msgmgr, _scene.getConfigManager());
+                _configEditor = new ConfigEditor(_msgmgr, _scene.getConfigManager());
             }
-            _configEditor.start();
+            _configEditor.setVisible(true);
         } else {
             super.actionPerformed(event);
         }
@@ -293,7 +293,7 @@ public class SceneEditor extends GlCanvasTool
     protected void setScene (TudeySceneModel scene)
     {
         if (_configEditor != null) {
-            _configEditor.shutdown();
+            _configEditor.setVisible(false);
             _configEditor = null;
         }
         _scene = scene;

@@ -25,7 +25,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
     public static class Constant extends Transform3DExpression
     {
         /** The value of the constant. */
-        @Editable
+        @Editable(step=0.01)
         public Transform3D value = new Transform3D();
 
         @Override // documentation inherited
@@ -49,7 +49,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
         public String name = "";
 
         /** The default value of the variable. */
-        @Editable
+        @Editable(step=0.01)
         public Transform3D defvalue = new Transform3D();
 
         @Override // documentation inherited

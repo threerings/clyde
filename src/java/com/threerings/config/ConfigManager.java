@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import com.samskivert.util.ArrayUtil;
+import com.samskivert.util.ListUtil;
 import com.samskivert.util.PropertiesUtil;
 import com.samskivert.util.QuickSort;
 import com.samskivert.util.SoftCache;
@@ -86,6 +88,7 @@ public class ConfigManager
         _type = type;
         _parent = parent;
         _rsrcmgr = parent._rsrcmgr;
+        _resources = parent._resources;
         _classes = parent._classes;
 
         // copy the groups over (any group not in the list will be silently discarded)
@@ -124,6 +127,14 @@ public class ConfigManager
     }
 
     /**
+     * Returns a reference to the root of the manager hierarchy.
+     */
+    public ConfigManager getRoot ()
+    {
+        return (_parent == null) ? this : _parent.getRoot();
+    }
+
+    /**
      * Returns a reference to the resource manager used to load configurations.
      */
     public ResourceManager getResourceManager ()
@@ -138,6 +149,23 @@ public class ConfigManager
     public String getConfigPath ()
     {
         return _configPath;
+    }
+
+    /**
+     * Determines whether configurations of the specified class are loaded from individual
+     * resources.
+     */
+    public boolean isResourceClass (Class clazz)
+    {
+        return ListUtil.contains(getResourceClasses(), clazz);
+    }
+
+    /**
+     * Returns the array of classes representing configurations loaded from individual resources.
+     */
+    public Class[] getResourceClasses ()
+    {
+        return _classes.get("resource");
     }
 
     /**
@@ -185,16 +213,13 @@ public class ConfigManager
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
     {
         // for resource-loaded configs, go through the cache
-        if (ResourceLoaded.class.isAssignableFrom(clazz)) {
-            if (_parent != null) {
-                return _parent.getConfig(clazz, name);
-            }
+        if (isResourceClass(clazz)) {
             ManagedConfig config = _resources.get(name);
             if (config == null) {
                 try {
                     BinaryImporter in = new BinaryImporter(_rsrcmgr.getResource(name));
                     _resources.put(name, config = (ManagedConfig)in.readObject());
-                    config.init(this);
+                    config.init(getRoot());
                     in.close();
                 } catch (IOException e) {
                     log.warning("Failed to load config from resource [name=" + name + "].", e);
@@ -298,6 +323,26 @@ public class ConfigManager
     }
 
     /**
+     * Updates a resource-loaded configuration through the cache.  If the configuration is not in
+     * the cache, the provided configuration will be stored under the specified name and returned.
+     * Otherwise, the cached version will be updated to reflect the provided configuration and
+     * returned.
+     */
+    public ManagedConfig updateResourceConfig (String name, ManagedConfig config)
+    {
+        ManagedConfig oconfig = _resources.get(name);
+        if (oconfig == null) {
+            _resources.put(name, config);
+            config.init(getRoot());
+            return config;
+        } else {
+            config.copy(oconfig);
+            oconfig.wasUpdated();
+            return oconfig;
+        }
+    }
+
+    /**
      * Writes the fields of this object.
      */
     public void writeFields (Exporter out)
@@ -337,7 +382,9 @@ public class ConfigManager
 
         // initialize the types
         _classes = new HashMap<String, Class[]>();
-        for (String type : StringUtil.parseStringArray(props.getProperty("types", ""))) {
+        String[] types = StringUtil.parseStringArray(props.getProperty("types", ""));
+        types = ArrayUtil.append(types, "resource");
+        for (String type : types) {
             Properties tprops = PropertiesUtil.getSubProperties(props, type);
             String[] names = StringUtil.parseStringArray(tprops.getProperty("classes", ""));
             Class[] classes = new Class[names.length];

@@ -23,7 +23,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
     public static class Constant extends Vector3fExpression
     {
         /** The value of the constant. */
-        @Editable
+        @Editable(step=0.01)
         public Vector3f value = new Vector3f();
 
         @Override // documentation inherited
@@ -47,7 +47,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         public String name = "";
 
         /** The default value of the variable. */
-        @Editable
+        @Editable(step=0.01)
         public Vector3f defvalue = new Vector3f();
 
         @Override // documentation inherited
