@@ -52,7 +52,6 @@ import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.QuickSort;
 
 import com.threerings.resource.ResourceManager;
-import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
@@ -133,7 +132,8 @@ public class ConfigEditor extends BaseConfigEditor
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
                 _pdialog = EditorPanel.createDialog(
-                    this, (ManagerPanel)_tabs.getComponentAt(0), "t.preferences", _eprefs);
+                    this, (ManagerPanel)_tabs.getComponentAt(0),
+                    _msgs.get("t.preferences"), _eprefs);
             }
             _pdialog.setVisible(true);
         } else if (action.equals("save_all")) {
@@ -562,15 +562,15 @@ public class ConfigEditor extends BaseConfigEditor
         }
 
         // documentation inherited from interface EditorContext
-        public ConfigManager getConfigManager ()
+        public MessageManager getMessageManager ()
         {
-            return cfgmgr;
+            return _msgmgr;
         }
 
         // documentation inherited from interface EditorContext
-        public MessageBundle getMessageBundle ()
+        public ConfigManager getConfigManager ()
         {
-            return _msgs;
+            return cfgmgr;
         }
 
         // documentation inherited from interface ItemListener

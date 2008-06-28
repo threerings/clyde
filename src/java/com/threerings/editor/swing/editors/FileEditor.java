@@ -18,6 +18,8 @@ import javax.swing.filechooser.FileFilter;
 
 import com.samskivert.util.ObjectUtil;
 
+import com.threerings.util.MessageBundle;
+
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.swing.PropertyEditor;
 
@@ -42,6 +44,7 @@ public class FileEditor extends PropertyEditor
                     _chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
                 } else if (constraints != null) {
+                    final MessageBundle msgs = _msgmgr.getBundle(_property.getMessageBundle());
                     _chooser.setFileFilter(new FileFilter() {
                         public boolean accept (File file) {
                             if (file.isDirectory()) {
@@ -56,7 +59,7 @@ public class FileEditor extends PropertyEditor
                             return false;
                         }
                         public String getDescription () {
-                            return _msgs.get(constraints.description());
+                            return msgs.get(constraints.description());
                         }
                     });
                 }

@@ -3,8 +3,7 @@
 
 package com.threerings.editor;
 
-import java.lang.annotation.Annotation;
-
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -25,6 +24,12 @@ public class MethodProperty extends Property
     }
 
     @Override // documentation inherited
+    public Member getMember ()
+    {
+        return _setter;
+    }
+
+    @Override // documentation inherited
     public Class getType ()
     {
         return _getter.getReturnType();
@@ -34,12 +39,6 @@ public class MethodProperty extends Property
     public Type getGenericType ()
     {
         return _getter.getGenericReturnType();
-    }
-
-    @Override // documentation inherited
-    public <T extends Annotation> T getAnnotation (Class<T> clazz)
-    {
-        return _setter.getAnnotation(clazz);
     }
 
     @Override // documentation inherited

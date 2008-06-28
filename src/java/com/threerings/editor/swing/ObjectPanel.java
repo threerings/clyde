@@ -20,6 +20,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.util.ListUtil;
 
+import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
@@ -34,7 +35,8 @@ public class ObjectPanel extends BasePropertyEditor
     public ObjectPanel (EditorContext ctx, String tlabel, Class[] types, Property[] ancestors)
     {
         _ctx = ctx;
-        _msgs = ctx.getMessageBundle();
+        _msgmgr = ctx.getMessageManager();
+        _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
         _types = types;
 
         setBackground(getDarkerBackground(ancestors.length));

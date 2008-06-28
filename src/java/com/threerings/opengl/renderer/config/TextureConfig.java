@@ -435,7 +435,7 @@ public class TextureConfig extends ParameterizedConfig
             /** The image resource from which to load the texture. */
             @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
-                description="m.image_files",
+                description="m.image_files_desc",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
@@ -522,7 +522,7 @@ public class TextureConfig extends ParameterizedConfig
             /** The image resource from which to load the texture. */
             @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
-                description="m.image_files",
+                description="m.image_files_desc",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
@@ -625,7 +625,7 @@ public class TextureConfig extends ParameterizedConfig
             /** The image resource from which to load the texture. */
             @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
-                description="m.image_files",
+                description="m.image_files_desc",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
@@ -723,7 +723,7 @@ public class TextureConfig extends ParameterizedConfig
             /** The image resource from which to load the texture. */
             @Editable(editor="resource", nullable=true, hgroup="f")
             @FileConstraints(
-                description="m.image_files",
+                description="m.image_files_desc",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
@@ -808,7 +808,7 @@ public class TextureConfig extends ParameterizedConfig
             /** The image resource from which to load the x face. */
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
-                description="m.image_files",
+                description="m.image_files_desc",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String x;
@@ -816,7 +816,7 @@ public class TextureConfig extends ParameterizedConfig
             /** The image resource from which to load the y face. */
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
-                description="m.image_files",
+                description="m.image_files_desc",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String y;
@@ -824,7 +824,7 @@ public class TextureConfig extends ParameterizedConfig
             /** The image resource from which to load the y face. */
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
-                description="m.image_files",
+                description="m.image_files_desc",
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String z;

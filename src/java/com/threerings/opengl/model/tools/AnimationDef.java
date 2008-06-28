@@ -42,14 +42,22 @@ public class AnimationDef
         /**
          * Builds a {@link Frame} from this definition for the identified targets.
          */
-        public Frame createFrame (String[] targets, float gscale)
+        public Frame createFrame (String[] targets, float scale)
+        {
+            return new Frame(getTransforms(targets, scale));
+        }
+
+        /**
+         * Returns the transforms for each target.
+         */
+        public Transform3D[] getTransforms (String[] targets, float scale)
         {
             Transform3D[] xforms = new Transform3D[targets.length];
             for (int ii = 0; ii < targets.length; ii++) {
                 TransformDef tdef = transforms.get(targets[ii]);
-                xforms[ii] = (tdef == null) ? new Transform3D() : tdef.createTransform(gscale);
+                xforms[ii] = (tdef == null) ? new Transform3D() : tdef.createTransform(scale);
             }
-            return new Frame(xforms);
+            return xforms;
         }
     }
 
@@ -128,8 +136,12 @@ public class AnimationDef
     /**
      * Returns the transforms for each target, each frame.
      */
-    public Transform3D[][] getTransforms (String[] targets)
+    public Transform3D[][] getTransforms (String[] targets, float scale)
     {
-        return null;
+        Transform3D[][] transforms = new Transform3D[frames.size()][];
+        for (int ii = 0; ii < transforms.length; ii++) {
+            transforms[ii] = frames.get(ii).getTransforms(targets, scale);
+        }
+        return transforms;
     }
 }

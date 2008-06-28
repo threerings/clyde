@@ -3,7 +3,7 @@
 
 package com.threerings.config;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import com.threerings.editor.ArgumentPathProperty;
@@ -12,7 +12,6 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.InvalidPathsException;
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.Property;
-import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -133,9 +132,9 @@ public abstract class Parameter extends DeepObject
 
     /** Indicates that a property field is invalid and should be (re)created. */
     protected static final Property INVALID_PROPERTY = new Property() {
+        public Member getMember () { return null; }
         public Class getType () { return null; }
         public Type getGenericType () { return null; }
-        public <T extends Annotation> T getAnnotation (Class<T> clazz) { return null; }
         public Object get (Object object) { return null; }
         public void set (Object object, Object value) { }
     };

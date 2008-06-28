@@ -23,6 +23,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.editor.util.PropertyUtil;
@@ -114,7 +115,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
     public void init (EditorContext ctx, Property property, Property[] ancestors)
     {
         _ctx = ctx;
-        _msgs = ctx.getMessageBundle();
+        _msgmgr = ctx.getMessageManager();
+        _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
         _property = property;
         _lineage = (ancestors == null) ?
             new Property[] { _property } : ArrayUtil.append(ancestors, _property);
@@ -175,7 +177,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected String getPropertyLabel ()
     {
-        return getLabel(_property.getName());
+        return getLabel(_property.getName(), _property.getMessageBundle());
     }
 
     /**

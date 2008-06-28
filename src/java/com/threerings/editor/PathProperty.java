@@ -3,9 +3,9 @@
 
 package com.threerings.editor;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
@@ -99,6 +99,12 @@ public class PathProperty extends Property
     }
 
     @Override // documentation inherited
+    public Member getMember ()
+    {
+        return _paths[0][_paths[0].length - 1].getMember();
+    }
+
+    @Override // documentation inherited
     public Class getType ()
     {
         return _paths[0][_paths[0].length - 1].getType();
@@ -156,12 +162,6 @@ public class PathProperty extends Property
     public int getMaxSize ()
     {
         return PropertyUtil.getMaxSize(_paths[0]);
-    }
-
-    @Override // documentation inherited
-    public <T extends Annotation> T getAnnotation (Class<T> clazz)
-    {
-        return _paths[0][_paths[0].length - 1].getAnnotation(clazz);
     }
 
     @Override // documentation inherited
@@ -297,14 +297,14 @@ public class PathProperty extends Property
             prop = new Property () { {
                     _name = base.getName() + "[\"" + arg.replace("\"", "\\\"") + "\"]";
                 }
+                public Member getMember () {
+                    return aprop.getMember();
+                }
                 public Class getType () {
                     return aprop.getType();
                 }
                 public Type getGenericType () {
                     return aprop.getGenericType();
-                }
-                public <T extends Annotation> T getAnnotation (Class<T> clazz) {
-                    return aprop.getAnnotation(clazz);
                 }
                 public Object get (Object object) {
                     ConfigReference<ManagedConfig> ref = getReference(object);
@@ -354,6 +354,12 @@ public class PathProperty extends Property
         }
 
         @Override // documentation inherited
+        public Member getMember ()
+        {
+            return _base.getMember();
+        }
+
+        @Override // documentation inherited
         public Class getType ()
         {
             return _base.getComponentType();
@@ -363,12 +369,6 @@ public class PathProperty extends Property
         public Type getGenericType ()
         {
             return _base.getGenericComponentType();
-        }
-
-        @Override // documentation inherited
-        public <T extends Annotation> T getAnnotation (Class<T> clazz)
-        {
-            return _base.getAnnotation(clazz);
         }
 
         /** The base property. */

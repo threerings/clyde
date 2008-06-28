@@ -46,12 +46,6 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _msgs = _msgmgr.getBundle(msgs);
     }
 
-    // documentation inherited from interface EditorContext
-    public MessageBundle getMessageBundle ()
-    {
-        return _msgs;
-    }
-
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
@@ -60,7 +54,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
             shutdown();
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(_canvas, this, "t.preferences", _eprefs);
+                _pdialog = EditorPanel.createDialog(
+                    _canvas, this, _msgs.get("t.preferences"), _eprefs);
             }
             _pdialog.setVisible(true);
         } else if (action.equals("toggle_bounds")) {

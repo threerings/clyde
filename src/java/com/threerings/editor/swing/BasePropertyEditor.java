@@ -15,6 +15,9 @@ import javax.swing.event.ChangeListener;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
+import com.threerings.util.MessageManager;
+
+import com.threerings.editor.Introspector;
 
 /**
  * Abstract base class for {@link PropertyEditor} and {@link EditorPanel}.
@@ -48,11 +51,14 @@ public abstract class BasePropertyEditor extends JPanel
      */
     public String getLabel (Class type)
     {
-        String name = (type == null) ? "none" : type.getName();
+        if (type == null) {
+            return _msgs.get("m.none");
+        }
+        String name = type.getName();
         name = name.substring(
             Math.max(name.lastIndexOf('$'), name.lastIndexOf('.')) + 1);
         name = StringUtil.toUSLowerCase(StringUtil.unStudlyName(name));
-        return getLabel(name);
+        return getLabel(name, Introspector.getMessageBundle(type));
     }
 
     /**
@@ -60,9 +66,25 @@ public abstract class BasePropertyEditor extends JPanel
      */
     public String[] getLabels (String[] names)
     {
+        return getLabels(names, _msgs);
+    }
+
+    /**
+     * Returns an array of labels for the supplied names, translating those that have translations.
+     */
+    public String[] getLabels (String[] names, String bundle)
+    {
+        return getLabels(names, _msgmgr.getBundle(bundle));
+    }
+
+    /**
+     * Returns an array of labels for the supplied names, translating those that have translations.
+     */
+    public String[] getLabels (String[] names, MessageBundle msgs)
+    {
         String[] labels = new String[names.length];
         for (int ii = 0; ii < names.length; ii++) {
-            labels[ii] = getLabel(names[ii]);
+            labels[ii] = getLabel(names[ii], msgs);
         }
         return labels;
     }
@@ -72,9 +94,25 @@ public abstract class BasePropertyEditor extends JPanel
      */
     protected String getLabel (String name)
     {
+        return getLabel(name, _msgs);
+    }
+
+    /**
+     * Returns a label for the supplied name, translating it if a translation exists.
+     */
+    protected String getLabel (String name, String bundle)
+    {
+        return getLabel(name, _msgmgr.getBundle(bundle));
+    }
+
+    /**
+     * Returns a label for the supplied name, translating it if a translation exists.
+     */
+    protected String getLabel (String name, MessageBundle msgs)
+    {
         name = (name.length() == 0) ? "default" : name;
         String key = "m." + name;
-        return _msgs.exists(key) ? _msgs.get(key) : name;
+        return msgs.exists(key) ? msgs.get(key) : name;
     }
 
     /**
@@ -151,7 +189,10 @@ public abstract class BasePropertyEditor extends JPanel
         return new Color(value, value, value);
     }
 
-    /** The message bundle used for property translations. */
+    /** The message manager to use for translations. */
+    protected MessageManager _msgmgr;
+
+    /** The default message bundle. */
     protected MessageBundle _msgs;
 
     /** The base background value that we darken to indicate nesting. */

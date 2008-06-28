@@ -16,6 +16,7 @@ import javax.swing.JButton;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
+import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.swing.PropertyEditor;
 
 import static com.threerings.editor.Log.*;
@@ -61,9 +62,13 @@ public abstract class ArrayListEditor extends PropertyEditor
      */
     protected String getActionLabel (String action, String units)
     {
-        units = (units == null) ? _property.getAnnotation().units() : units;
+        String bundle = EditorMessageBundle.DEFAULT;
+        if (units == null) {
+            units = _property.getAnnotation().units();
+            bundle = _property.getMessageBundle();
+        }
         return _msgs.get("m." + action + "_entry", (units.length() > 0) ?
-            getLabel(units) : getLabel(_property.getComponentType()));
+            getLabel(units, bundle) : getLabel(_property.getComponentType()));
     }
 
     /**

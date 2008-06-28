@@ -3,9 +3,12 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.config.IntegerIdentified;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
+
+import com.threerings.opengl.model.config.ModelConfig;
 
 /**
  * The configuration for a single tile.
@@ -13,6 +16,10 @@ import com.threerings.editor.Editable;
 public class TileConfig extends ManagedConfig
     implements IntegerIdentified
 {
+    /** The model to use for the tile. */
+    @Editable(nullable=true)
+    public ConfigReference<ModelConfig> model;
+
     /** The width of the tile. */
     @Editable(min=1, hgroup="d")
     public int width = 1;

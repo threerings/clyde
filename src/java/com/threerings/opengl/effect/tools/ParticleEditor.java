@@ -232,7 +232,7 @@ public class ParticleEditor extends GlCanvasTool
         JPanel bpanel = new JPanel();
         lpanel.add(bpanel, GroupLayout.FIXED);
         bpanel.add(createButton("new_layer", "m.new"));
-        bpanel.add(_cloneLayer = createButton("clone_layer", "m.clone"));
+        bpanel.add(_cloneLayer = createButton("clone_layer", "m.copy"));
         _cloneLayer.setEnabled(false);
         bpanel.add(_deleteLayer = createButton("delete_layer", "m.delete"));
         _deleteLayer.setEnabled(false);

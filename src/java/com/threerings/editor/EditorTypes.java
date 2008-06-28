@@ -16,9 +16,12 @@ import java.lang.annotation.Target;
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.TYPE })
 public @interface EditorTypes
 {
+    /** The default type label. */
+    public static final String DEFAULT_LABEL = "type";
+
     /** The subtypes from which to choose. */
-    Class[] value () default {};
+    Class[] value ();
 
     /** The label to use for the type chooser. */
-    String label () default "type";
+    String label () default DEFAULT_LABEL;
 }

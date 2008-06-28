@@ -12,6 +12,9 @@ import javax.swing.JLabel;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.util.MessageBundle;
+
+import com.threerings.editor.Introspector;
 import com.threerings.editor.swing.PropertyEditor;
 
 /**
@@ -34,10 +37,12 @@ public class EnumEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        Enum[] constants = (Enum[])_property.getType().getEnumConstants();
+        Class type = _property.getType();
+        MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(type));
+        Enum[] constants = (Enum[])type.getEnumConstants();
         String[] names = new String[constants.length];
         for (int ii = 0; ii < constants.length; ii++) {
-            names[ii] = getLabel(StringUtil.toUSLowerCase(constants[ii].name()));
+            names[ii] = getLabel(StringUtil.toUSLowerCase(constants[ii].name()), msgs);
         }
         add(_box = new JComboBox(names));
         _box.addActionListener(this);

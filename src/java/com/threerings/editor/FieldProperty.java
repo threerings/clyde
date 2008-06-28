@@ -3,9 +3,8 @@
 
 package com.threerings.editor;
 
-import java.lang.annotation.Annotation;
-
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
 import com.samskivert.util.StringUtil;
@@ -24,6 +23,12 @@ public class FieldProperty extends Property
     }
 
     @Override // documentation inherited
+    public Member getMember ()
+    {
+        return _field;
+    }
+
+    @Override // documentation inherited
     public Class getType ()
     {
         return _field.getType();
@@ -33,12 +38,6 @@ public class FieldProperty extends Property
     public Type getGenericType ()
     {
         return _field.getGenericType();
-    }
-
-    @Override // documentation inherited
-    public <T extends Annotation> T getAnnotation (Class<T> clazz)
-    {
-        return _field.getAnnotation(clazz);
     }
 
     @Override // documentation inherited

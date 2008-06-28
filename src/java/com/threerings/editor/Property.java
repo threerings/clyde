@@ -5,8 +5,10 @@ package com.threerings.editor;
 
 import java.lang.annotation.Annotation;
 
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -70,6 +72,21 @@ public abstract class Property extends DeepObject
     {
         return getTypeLabel(getComponentType());
     }
+
+    /**
+     * Returns the name of the message bundle to use when translating the property name and other
+     * bits.
+     */
+    public String getMessageBundle ()
+    {
+        return Introspector.getMessageBundle(getMember().getDeclaringClass());
+    }
+
+    /**
+     * Returns the underlying member of the property (the field or method that provides the
+     * annotations).
+     */
+    public abstract Member getMember ();
 
     /**
      * Returns the property type.
@@ -286,7 +303,10 @@ public abstract class Property extends DeepObject
     /**
      * Returns a reference to the annotation of the specified class, if it exists.
      */
-    public abstract <T extends Annotation> T getAnnotation (Class<T> clazz);
+    public <T extends Annotation> T getAnnotation (Class<T> clazz)
+    {
+        return ((AnnotatedElement)getMember()).getAnnotation(clazz);
+    }
 
     /**
      * Retrieves the value of the property.

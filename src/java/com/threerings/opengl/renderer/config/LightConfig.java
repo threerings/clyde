@@ -8,6 +8,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.math.Vector3f;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -16,6 +17,10 @@ import com.threerings.opengl.renderer.Light;
 /**
  * Represents the state of a single light.
  */
+@EditorTypes({
+    LightConfig.Directional.class,
+    LightConfig.Point.class,
+    LightConfig.Spot.class })
 public abstract class LightConfig extends DeepObject
     implements Exportable
 {

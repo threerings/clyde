@@ -31,6 +31,8 @@ import com.samskivert.util.ClassUtil;
 import com.samskivert.util.IntTuple;
 import com.samskivert.util.ListUtil;
 
+import com.threerings.util.MessageBundle;
+
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 
@@ -164,11 +166,12 @@ public class TableArrayListEditor extends ArrayListEditor
         } else {
             Property[] properties = Introspector.getProperties(ctype);
             _columns = new Column[properties.length];
+            final MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(ctype));
             for (int ii = 0; ii < properties.length; ii++) {
                 final Property property = properties[ii];
                 _columns[ii] = new Column() {
                     public String getName () {
-                        return getLabel(property.getName());
+                        return getLabel(property.getName(), msgs);
                     }
                     public String getPathComponent () {
                         return "/" + property.getName();

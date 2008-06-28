@@ -40,6 +40,7 @@ import com.samskivert.swing.util.SwingUtil;
 import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
@@ -60,6 +61,8 @@ public class EditorPanel extends BasePropertyEditor
 
     /**
      * Creates and returns a simple dialog for editing the supplied object.
+     *
+     * @param title the translated title of the dialog.
      */
     public static JDialog createDialog (
         Component parent, EditorContext ctx, String title, Object object)
@@ -69,15 +72,17 @@ public class EditorPanel extends BasePropertyEditor
 
     /**
      * Creates and returns a simple dialog for editing the supplied object.
+     *
+     * @param title the translated title of the dialog.
      */
     public static JDialog createDialog (
         Component parent, EditorContext ctx, CategoryMode catmode, String title, Object object)
     {
         Component root = SwingUtilities.getRoot(parent);
-        MessageBundle msgs = ctx.getMessageBundle();
+        MessageBundle msgs = ctx.getMessageManager().getBundle(EditorMessageBundle.DEFAULT);
         final JDialog dialog = (root instanceof Dialog) ?
-            new JDialog((Dialog)root, msgs.get(title)) :
-                new JDialog((Frame)(root instanceof Frame ? root : null), msgs.get(title));
+            new JDialog((Dialog)root, title) :
+                new JDialog((Frame)(root instanceof Frame ? root : null), title);
         EditorPanel epanel = new EditorPanel(ctx, catmode, null);
         dialog.add(epanel, BorderLayout.CENTER);
         epanel.setObject(object);
@@ -120,7 +125,8 @@ public class EditorPanel extends BasePropertyEditor
     public EditorPanel (EditorContext ctx, CategoryMode catmode, Property[] ancestors)
     {
         _ctx = ctx;
-        _msgs = ctx.getMessageBundle();
+        _msgmgr = ctx.getMessageManager();
+        _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
         _catmode = catmode;
         _ancestors = ancestors;
 
@@ -188,6 +194,7 @@ public class EditorPanel extends BasePropertyEditor
         Class clazz = _object.getClass();
         final String[] cats = Introspector.getCategories(clazz);
         Property[] props = Introspector.getProperties(clazz);
+        MessageBundle cmsgs = _msgmgr.getBundle(Introspector.getMessageBundle(clazz));
         if (cats.length <= 1) {
             // if there's only one category, add them in a single scroll panel
             JPanel inner = addScrollPanel();
@@ -200,7 +207,7 @@ public class EditorPanel extends BasePropertyEditor
                 if (cat.length() > 0) {
                     CollapsiblePanel cpanel = new CollapsiblePanel();
                     inner.add(cpanel);
-                    JButton trigger = new JButton(getLabel(cat));
+                    JButton trigger = new JButton(getLabel(cat, cmsgs));
                     cpanel.setTrigger(trigger, null, null);
                     cpanel.setTriggerContainer(trigger);
                     cpanel.setCollapsed(false);
@@ -221,7 +228,7 @@ public class EditorPanel extends BasePropertyEditor
                 JPanel inner = GroupLayout.makeVBox(
                     GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
                 inner.setBackground(null);
-                tabs.addTab(getLabel(cat), isEmbedded() ? inner : new JScrollPane(
+                tabs.addTab(getLabel(cat, cmsgs), isEmbedded() ? inner : new JScrollPane(
                     inner, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
                 addEditors(props, cat, inner);
@@ -230,7 +237,7 @@ public class EditorPanel extends BasePropertyEditor
             JPanel cpanel = new JPanel();
             add(cpanel, GroupLayout.FIXED);
             cpanel.add(new JLabel(_msgs.get("m.category")));
-            final JComboBox cbox = new JComboBox(getLabels(cats));
+            final JComboBox cbox = new JComboBox(getLabels(cats, cmsgs));
             cpanel.add(cbox);
             final CardLayout cards = new CardLayout();
             final JPanel inner = new JPanel(cards);

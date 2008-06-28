@@ -54,6 +54,52 @@ public class Introspector
     }
 
     /**
+     * Returns the message bundle to use when translating the supplied class's properties.
+     */
+    public static String getMessageBundle (Class clazz)
+    {
+        while (clazz.isArray()) {
+            clazz = clazz.getComponentType();
+        }
+        if (clazz.isPrimitive()) {
+            return EditorMessageBundle.DEFAULT;
+        }
+        String bundle = _bundles.get(clazz);
+        if (bundle == null) {
+            _bundles.put(clazz, bundle = findMessageBundle(clazz));
+        }
+        return bundle;
+    }
+
+    /**
+     * Finds the editor message bundle for the supplied class.
+     */
+    protected static String findMessageBundle (Class<?> clazz)
+    {
+        EditorMessageBundle annotation = clazz.getAnnotation(EditorMessageBundle.class);
+        if (annotation != null) {
+            return annotation.value();
+        }
+        Class eclazz = clazz.getEnclosingClass();
+        if (eclazz != null) {
+            return getMessageBundle(eclazz);
+        }
+        String name = clazz.getName();
+        int idx;
+        while ((idx = name.lastIndexOf('.')) != -1) {
+            name = name.substring(0, idx);
+            Package pkg = Package.getPackage(name);
+            if (pkg != null) {
+                annotation = pkg.getAnnotation(EditorMessageBundle.class);
+                if (annotation != null) {
+                    return annotation.value();
+                }
+            }
+        }
+        return EditorMessageBundle.DEFAULT;
+    }
+
+    /**
      * Creates and returns the list of properties for the supplied class.
      */
     protected static Property[] createProperties (Class<?> clazz)
@@ -159,6 +205,9 @@ public class Introspector
 
     /** Cached property lists. */
     protected static HashMap<Class, Property[]> _properties = new HashMap<Class, Property[]>();
+
+    /** Cached editor bundle mappings. */
+    protected static HashMap<Class, String> _bundles = new HashMap<Class, String>();
 
     /** Sorts properties by increasing weight. */
     protected static final Comparator<Property> WEIGHT_COMP = new Comparator<Property>() {

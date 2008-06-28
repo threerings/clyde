@@ -31,6 +31,9 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageBundle;
+import com.threerings.util.MessageManager;
+
+import com.threerings.editor.Introspector;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
@@ -45,9 +48,9 @@ public abstract class ConfigChooser extends JPanel
      * Creates a new configuration chooser for the specified config class.
      */
     public static ConfigChooser createInstance (
-        MessageBundle msgs, ConfigManager cfgmgr, Class clazz)
+        MessageManager msgmgr, ConfigManager cfgmgr, Class clazz)
     {
-        return createInstance(msgs, cfgmgr, clazz, null);
+        return createInstance(msgmgr, cfgmgr, clazz, null);
     }
 
     /**
@@ -56,11 +59,11 @@ public abstract class ConfigChooser extends JPanel
      * @param config the initial selected configuration.
      */
     public static ConfigChooser createInstance (
-        MessageBundle msgs, ConfigManager cfgmgr, Class clazz, String config)
+        MessageManager msgmgr, ConfigManager cfgmgr, Class clazz, String config)
     {
         ConfigChooser chooser = cfgmgr.isResourceClass(clazz) ?
-            new ResourceChooser(msgs, cfgmgr.getResourceManager(), clazz) :
-                new TreeChooser(msgs, cfgmgr, clazz);
+            new ResourceChooser(msgmgr, cfgmgr.getResourceManager(), clazz) :
+                new TreeChooser(msgmgr, cfgmgr, clazz);
         if (config != null) {
             chooser.setSelectedConfig(config);
         }
@@ -85,17 +88,27 @@ public abstract class ConfigChooser extends JPanel
     public abstract String getSelectedConfig ();
 
     /**
+     * Returns the label for the specified class.
+     */
+    protected String getLabel (MessageManager msgmgr, Class clazz, String type)
+    {
+        MessageBundle msgs = msgmgr.getBundle(Introspector.getMessageBundle(clazz));
+        String key = "m." + type;
+        return msgs.exists(key) ? msgs.get(key) : type;
+    }
+
+    /**
      * Selects a resource-loaded configuration using a file chooser.
      */
     protected static class ResourceChooser extends ConfigChooser
     {
-        public ResourceChooser (final MessageBundle msgs, ResourceManager rsrcmgr, Class clazz)
+        public ResourceChooser (final MessageManager msgmgr, ResourceManager rsrcmgr, Class clazz)
         {
             _rsrcmgr = rsrcmgr;
+            final MessageBundle msgs = msgmgr.getBundle("config");
             String ddir = rsrcmgr.getResourceFile("").toString();
             String type = ConfigGroup.getName(clazz);
-            String key = "m." + type;
-            final String label = msgs.exists(key) ? msgs.get(key) : type;
+            final String label = getLabel(msgmgr, clazz, type);
             _chooser = new JFileChooser(_prefs.get(_prefdir = type + "_dir", ddir));
             _chooser.setDialogTitle(msgs.get("m.select_config", label));
             _chooser.setFileFilter(new FileFilter() {
@@ -145,9 +158,10 @@ public abstract class ConfigChooser extends JPanel
      */
     protected static class TreeChooser extends ConfigChooser
     {
-        public TreeChooser (MessageBundle msgs, ConfigManager cfgmgr, Class clazz)
+        public TreeChooser (MessageManager msgmgr, ConfigManager cfgmgr, Class clazz)
         {
-            _msgs = msgs;
+            _msgs = msgmgr.getBundle("config");
+            _label = getLabel(msgmgr, clazz, ConfigGroup.getName(clazz));
 
             // get the list of configs
             ArrayList<ConfigGroup> groups = new ArrayList<ConfigGroup>();
@@ -163,8 +177,8 @@ public abstract class ConfigChooser extends JPanel
             setLayout(new BorderLayout());
             JPanel bpanel = new JPanel();
             add(bpanel, BorderLayout.SOUTH);
-            bpanel.add(_ok = new JButton(msgs.get("m.ok")));
-            bpanel.add(_cancel = new JButton(msgs.get("m.cancel")));
+            bpanel.add(_ok = new JButton(_msgs.get("m.ok")));
+            bpanel.add(_cancel = new JButton(_msgs.get("m.cancel")));
         }
 
         @Override // documentation inherited
@@ -172,9 +186,7 @@ public abstract class ConfigChooser extends JPanel
         {
             // create the dialog
             Component root = SwingUtilities.getRoot(parent);
-            String name = _groups[0].getName();
-            String key = "m." + name;
-            String title = _msgs.get("m.select_config", _msgs.exists(key) ? _msgs.get(key) : name);
+            String title = _msgs.get("m.select_config", _label);
             final JDialog dialog = (root instanceof Dialog) ?
                 new JDialog((Dialog)root, title, true) :
                     new JDialog((Frame)(root instanceof Frame ? root : null), title, true);
@@ -248,6 +260,9 @@ public abstract class ConfigChooser extends JPanel
 
         /** The bundle from which we obtain our messages. */
         protected MessageBundle _msgs;
+
+        /** The group label. */
+        protected String _label;
 
         /** The configuration groups. */
         protected ConfigGroup[] _groups;

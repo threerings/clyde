@@ -59,7 +59,7 @@ public class NumberEditor extends PropertyEditor
         _spinner.addChangeListener(this);
         String units = getUnits();
         if (units.length() > 0) {
-            add(new JLabel(getLabel(units)));
+            add(new JLabel(getLabel(units, _property.getMessageBundle())));
         }
     }
 

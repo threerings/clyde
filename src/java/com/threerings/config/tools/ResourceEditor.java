@@ -81,15 +81,15 @@ public class ResourceEditor extends BaseConfigEditor
     }
 
     // documentation inherited from interface EditorContext
-    public ConfigManager getConfigManager ()
+    public MessageManager getMessageManager ()
     {
-        return _cfgmgr;
+        return _msgmgr;
     }
 
     // documentation inherited from interface EditorContext
-    public MessageBundle getMessageBundle ()
+    public ConfigManager getConfigManager ()
     {
-        return _msgmgr.getBundle("config");
+        return _cfgmgr;
     }
 
     // documentation inherited from interface ChangeListener
@@ -236,7 +236,8 @@ public class ResourceEditor extends BaseConfigEditor
             _configEditor.setVisible(true);
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(this, this, "t.preferences", _eprefs);
+                _pdialog = EditorPanel.createDialog(
+                    this, this, _msgs.get("t.preferences"), _eprefs);
             }
             _pdialog.setVisible(true);
         } else {
