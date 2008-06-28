@@ -32,7 +32,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
@@ -203,22 +202,17 @@ public class EditorPanel extends BasePropertyEditor
         } else if (_catmode == CategoryMode.PANELS) {
             JPanel inner = addScrollPanel();
             for (String cat : cats) {
-                JPanel content;
+                JPanel content = new JPanel();
+                inner.add(content = new JPanel());
                 if (cat.length() > 0) {
-                    CollapsiblePanel cpanel = new CollapsiblePanel();
-                    inner.add(cpanel);
-                    JButton trigger = new JButton(getLabel(cat, cmsgs));
-                    cpanel.setTrigger(trigger, null, null);
-                    cpanel.setTriggerContainer(trigger);
-                    cpanel.setCollapsed(false);
-                    cpanel.setBackground(null);
-                    content = cpanel.getContent();
+                    content.setBorder(BorderFactory.createTitledBorder(getLabel(cat, cmsgs)));
+                    content.setBackground(getDarkerBackground(
+                        (_ancestors == null ? 0 : _ancestors.length) + 0.5f));
                 } else {
-                    inner.add(content = new JPanel());
+                    content.setBackground(null);
                 }
                 content.setLayout(new VGroupLayout(
                     GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-                content.setBackground(null);
                 addEditors(props, cat, content);
             }
         } else if (_catmode == CategoryMode.TABS) {

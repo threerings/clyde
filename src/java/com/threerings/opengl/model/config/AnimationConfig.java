@@ -14,6 +14,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Transform3DExpression;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
+import com.threerings.util.Shallow;
 
 import com.threerings.opengl.model.tools.AnimationDef;
 import com.threerings.opengl.model.tools.xml.AnimationParser;
@@ -35,14 +36,43 @@ public class AnimationConfig extends ParameterizedConfig
     }
 
     /**
+     * Superclass of the original implementations.
+     */
+    public static class Original extends Implementation
+    {
+        /** The priority level of this animation. */
+        @Editable(hgroup="p")
+        public int priority;
+
+        /** Whether or not to override other animations at the same priority level. */
+        @Editable(hgroup="p")
+        public boolean override = true;
+
+        /** The interval over which to transition into the first frame. */
+        @Editable(min=0, step=0.01, hgroup="t")
+        public float transition;
+
+        /** The blend weight of the animation. */
+        @Editable(min=0, max=1, step=0.01, hgroup="t")
+        public float weight = 1f;
+
+        /** The amount of time to spend blending in the animation. */
+        @Editable(min=0, step=0.01, hgroup="b")
+        public float blendIn;
+
+        /** The amount of time to spend blending out the animation. */
+        @Editable(min=0, step=0.01, hgroup="b")
+        public float blendOut;
+    }
+
+    /**
      * A frame-based animation imported from an export file.
      */
-    public static class Imported extends Implementation
+    public static class Imported extends Original
     {
-        /** The animation frame rate.  If left at zero, the animation will use the rate stored in
-         * the export. */
+        /** The speed of the animation. */
         @Editable(min=0, step=0.01, hgroup="r")
-        public float rate;
+        public float speed = 1f;
 
         /** The global animation scale. */
         @Editable(min=0, step=0.01, hgroup="r")
@@ -60,7 +90,7 @@ public class AnimationConfig extends ParameterizedConfig
         /**
          * Sets the source file from which to load the animation data.
          */
-        @Editable(nullable=true)
+        @Editable(weight=-1, nullable=true)
         @FileConstraints(
             description="m.exported_anims",
             extensions={ ".mxml" },
@@ -85,12 +115,17 @@ public class AnimationConfig extends ParameterizedConfig
          */
         public void updateFromSource ()
         {
-            if (_animParser == null) {
-                _animParser = new AnimationParser();
+            if (_source == null) {
+                _targets = new String[0];
+                _transforms = new Transform3D[0][];
+                return;
+            }
+            if (_parser == null) {
+                _parser = new AnimationParser();
             }
             AnimationDef def;
             try {
-                def = _animParser.parseAnimation(_source.toString());
+                def = _parser.parseAnimation(_source.toString());
             } catch (Exception e) {
                 log.warning("Error parsing animation [source=" + _source + "].", e);
                 return;
@@ -107,16 +142,18 @@ public class AnimationConfig extends ParameterizedConfig
         protected float _rate;
 
         /** The targets of the animation. */
+        @Shallow
         protected String[] _targets = new String[0];
 
         /** The transforms for each target, each frame. */
+        @Shallow
         protected Transform3D[][] _transforms = new Transform3D[0][];
     }
 
     /**
      * A procedural animation.
      */
-    public static class Procedural extends Implementation
+    public static class Procedural extends Original
     {
         /** The list of target transforms. */
         @Editable
@@ -153,5 +190,5 @@ public class AnimationConfig extends ParameterizedConfig
     public Implementation implementation = new Imported();
 
     /** Parses animation exports. */
-    protected static AnimationParser _animParser;
+    protected static AnimationParser _parser;
 }

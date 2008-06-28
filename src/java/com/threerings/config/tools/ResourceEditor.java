@@ -45,6 +45,7 @@ import com.threerings.export.XMLImporter;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.ParameterizedConfig;
 
 import static com.threerings.ClydeLog.*;
 
@@ -231,7 +232,12 @@ public class ResourceEditor extends BaseConfigEditor
             exportConfig();
         } else if (action.equals("configs")) {
             if (_configEditor == null) {
-                _configEditor = new ConfigEditor(_msgmgr, _cfgmgr);
+                ConfigManager cfgmgr = _cfgmgr;
+                Object obj = _epanel.getObject();
+                if (obj instanceof ParameterizedConfig) {
+                    cfgmgr = ((ParameterizedConfig)obj).getConfigManager();
+                }
+                _configEditor = new ConfigEditor(_msgmgr, cfgmgr);
             }
             _configEditor.setVisible(true);
         } else if (action.equals("preferences")) {
@@ -251,7 +257,9 @@ public class ResourceEditor extends BaseConfigEditor
     protected void newConfig (Class clazz)
     {
         try {
-            setConfig((ManagedConfig)clazz.newInstance(), null);
+            ManagedConfig config = (ManagedConfig)clazz.newInstance();
+            config.init(_cfgmgr);
+            setConfig(config, null);
         } catch (Exception e) {
             log.warning("Error creating config.", "class", clazz, e);
         }

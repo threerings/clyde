@@ -83,6 +83,15 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /**
+     * Initializes this config with a reference to the config manager that it should use to resolve
+     * references.
+     */
+    public void init (ConfigManager cfgmgr)
+    {
+        // nothing by default
+    }
+
+    /**
      * Notes that this configuration has been updated.
      */
     public void wasUpdated ()
@@ -96,15 +105,6 @@ public abstract class ManagedConfig extends DeepObject
                 }
             });
         }
-    }
-
-    /**
-     * Initializes this config with a reference to the config manager that it should use to resolve
-     * references.
-     */
-    protected void init (ConfigManager cfgmgr)
-    {
-        // nothing by default
     }
 
     /** The name of this configuration. */

@@ -24,13 +24,15 @@ import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
+import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import static com.threerings.ClydeLog.*;
 
 /**
  * Manages the set of loaded configurations.
  */
-public class ConfigManager
+public class ConfigManager extends DeepObject
     implements Exportable
 {
     /**

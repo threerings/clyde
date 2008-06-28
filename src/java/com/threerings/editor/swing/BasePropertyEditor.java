@@ -183,9 +183,9 @@ public abstract class BasePropertyEditor extends JPanel
     /**
      * Returns a background color darkened by the specified number of shades.
      */
-    protected static Color getDarkerBackground (int shades)
+    protected static Color getDarkerBackground (float shades)
     {
-        int value = BASE_BACKGROUND - shades*SHADE_DECREMENT;
+        int value = BASE_BACKGROUND - (int)(shades*SHADE_DECREMENT);
         return new Color(value, value, value);
     }
 

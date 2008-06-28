@@ -28,13 +28,15 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
+import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import static com.threerings.ClydeLog.*;
 
 /**
  * Contains a group of managed configurations, all of the same class.
  */
-public class ConfigGroup<T extends ManagedConfig>
+public class ConfigGroup<T extends ManagedConfig> extends DeepObject
     implements Exportable
 {
     /**
@@ -439,9 +441,11 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /** The configuration manager that created this group. */
+    @DeepOmit
     protected ConfigManager _cfgmgr;
 
     /** The name of this group. */
+    @DeepOmit
     protected String _name;
 
     /** The configuration class. */
@@ -451,14 +455,18 @@ public class ConfigGroup<T extends ManagedConfig>
     protected HashMap<String, T> _configsByName = new HashMap<String, T>();
 
     /** Configurations mapped by integer identifier. */
+    @DeepOmit
     protected HashIntMap<T> _configsById;
 
     /** The highest id in use.  The next id is guaranteed to be available. */
+    @DeepOmit
     protected int _highestId;
 
     /** Free ids below the highest. */
+    @DeepOmit
     protected ArrayList<Integer> _freeIds;
 
     /** Configuration event listeners. */
+    @DeepOmit
     protected ObserverList<ConfigGroupListener<T>> _listeners;
 }
