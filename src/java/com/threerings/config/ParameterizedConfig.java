@@ -115,7 +115,7 @@ public class ParameterizedConfig extends ManagedConfig
     }
 
     @Override // documentation inherited
-    protected void init (ConfigManager cfgmgr)
+    public void init (ConfigManager cfgmgr)
     {
         _cfgmgr = cfgmgr;
     }
