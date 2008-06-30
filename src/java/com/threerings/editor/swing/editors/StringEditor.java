@@ -40,18 +40,18 @@ public class StringEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        _field.setText((String)_property.get(_object));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
         Editable annotation = _property.getAnnotation();
         add(_field = new JTextField(annotation.width()));
         _field.getDocument().addDocumentListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        _field.setText((String)_property.get(_object));
     }
 
     /** The text field. */

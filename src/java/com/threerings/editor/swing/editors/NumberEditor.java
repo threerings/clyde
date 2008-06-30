@@ -39,6 +39,16 @@ public class NumberEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        double value = ((Number)_property.get(_object)).doubleValue() / _scale;
+        _spinner.setValue(value);
+        if (_slider != null) {
+            _slider.setValue((int)Math.round(value / _step));
+        }
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
@@ -60,16 +70,6 @@ public class NumberEditor extends PropertyEditor
         String units = getUnits();
         if (units.length() > 0) {
             add(new JLabel(getLabel(units, _property.getMessageBundle())));
-        }
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        double value = ((Number)_property.get(_object)).doubleValue() / _scale;
-        _spinner.setValue(value);
-        if (_slider != null) {
-            _slider.setValue((int)Math.round(value / _step));
         }
     }
 

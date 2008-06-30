@@ -254,4 +254,27 @@ public class ToolUtil
         button.addActionListener(listener);
         return button;
     }
+
+    /**
+     * Notes that a window has been added.  When the window is removed, it should call
+     * {@link #windowRemoved}.
+     */
+    public static void windowAdded ()
+    {
+        _windowCount++;
+    }
+
+    /**
+     * Notes that a window has been removed.  When the window count reaches zero, the app will
+     * exit.
+     */
+    public static void windowRemoved ()
+    {
+        if (--_windowCount == 0) {
+            System.exit(0);
+        }
+    }
+
+    /** The number of open windows.  When this reaches zero, we can exit the app. */
+    protected static int _windowCount;
 }

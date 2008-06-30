@@ -34,6 +34,13 @@ public class EnumEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        _box.setSelectedIndex(ListUtil.indexOf(
+            _property.getType().getEnumConstants(), _property.get(_object)));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
@@ -46,13 +53,6 @@ public class EnumEditor extends PropertyEditor
         }
         add(_box = new JComboBox(names));
         _box.addActionListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        _box.setSelectedIndex(ListUtil.indexOf(
-            _property.getType().getEnumConstants(), _property.get(_object)));
     }
 
     /** The combo box. */

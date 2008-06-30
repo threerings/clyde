@@ -40,6 +40,16 @@ public class Color4fEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        Color4f color = (Color4f)_property.get(_object);
+        _chooser.setColor(color.getColor(false));
+        _button.setBackground(_chooser.getColor());
+        if (_spinner != null) {
+            _spinner.setValue(color.a);
+        }
+    }
+    @Override // documentation inherited
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
@@ -57,17 +67,6 @@ public class Color4fEditor extends PropertyEditor
         if (getMode().equals("alpha")) {
             add(_spinner = new DraggableSpinner(1f, 0f, 1f, 0.01f));
             _spinner.addChangeListener(this);
-        }
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        Color4f color = (Color4f)_property.get(_object);
-        _chooser.setColor(color.getColor(false));
-        _button.setBackground(_chooser.getColor());
-        if (_spinner != null) {
-            _spinner.setValue(color.a);
         }
     }
 

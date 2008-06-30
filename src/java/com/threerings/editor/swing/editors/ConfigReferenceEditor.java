@@ -85,6 +85,12 @@ public class ConfigReferenceEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        update((ConfigReference)_property.get(_object));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
@@ -110,12 +116,6 @@ public class ConfigReferenceEditor extends PropertyEditor
         add(_arguments = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         _arguments.setBackground(null);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        update((ConfigReference)_property.get(_object));
     }
 
     @Override // documentation inherited

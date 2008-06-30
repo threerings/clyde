@@ -40,6 +40,26 @@ public class PanelArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        int pcount = _panels.getComponentCount();
+        int length = getLength();
+        for (int ii = 0; ii < length; ii++) {
+            Object value = getValue(ii);
+            if (ii < pcount) {
+                ObjectPanel panel = (ObjectPanel)_panels.getComponent(ii);
+                panel.setValue(value);
+            } else {
+                addPanel(value);
+            }
+        }
+        while (pcount > length) {
+            _panels.remove(--pcount);
+        }
+        _panels.revalidate();
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();
@@ -53,28 +73,6 @@ public class PanelArrayListEditor extends ArrayListEditor
         add(bpanel);
         bpanel.add(_add = new JButton(getActionLabel("new")));
         _add.addActionListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        int pcount = _panels.getComponentCount();
-        int length = getLength();
-        for (int ii = 0; ii < length; ii++) {
-            Object value = getValue(ii);
-            if (ii < pcount) {
-                ObjectPanel panel = (ObjectPanel)_panels.getComponent(ii);
-                panel.removeChangeListener(this);
-                panel.setValue(value);
-                panel.addChangeListener(this);
-            } else {
-                addPanel(value);
-            }
-        }
-        while (pcount > length) {
-            _panels.remove(--pcount);
-        }
-        _panels.revalidate();
     }
 
     @Override // documentation inherited

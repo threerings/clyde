@@ -34,6 +34,12 @@ public class Vector3fEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        _panel.setValue((Vector3f)_property.get(_object));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
@@ -47,12 +53,6 @@ public class Vector3fEditor extends PropertyEditor
         add(_panel = new Vector3fPanel(_msgs, mode, (float)getStep(), (float)getScale()));
         _panel.setBackground(getDarkerBackground(_lineage.length));
         _panel.addChangeListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        _panel.setValue((Vector3f)_property.get(_object));
     }
 
     /** The vector panel. */

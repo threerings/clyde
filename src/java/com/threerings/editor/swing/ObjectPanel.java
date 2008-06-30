@@ -86,11 +86,6 @@ public class ObjectPanel extends BasePropertyEditor
      */
     public void setValue (Object value)
     {
-        // make sure it's not the same object
-        Object ovalue = _panel.getObject();
-        if (value == ovalue) {
-            return;
-        }
         if (_box != null) {
             // clear out the old entries
             Arrays.fill(_values, null);
@@ -100,7 +95,11 @@ public class ObjectPanel extends BasePropertyEditor
             _values[nidx] = value;
             _box.setSelectedIndex(nidx);
         }
-        _panel.setObject(_lvalue = value);
+        if (_panel.getObject() == (_lvalue = value)) {
+            _panel.update();
+        } else {
+            _panel.setObject(value);
+        }
     }
 
     /**

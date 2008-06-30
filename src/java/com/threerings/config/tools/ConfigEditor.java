@@ -245,6 +245,15 @@ public class ConfigEditor extends BaseConfigEditor
         }
     }
 
+    @Override // documentation inherited
+    public void removeNotify ()
+    {
+        super.removeNotify();
+        for (int ii = 0, nn = _tabs.getComponentCount(); ii < nn; ii++) {
+            ((ManagerPanel)_tabs.getComponentAt(ii)).dispose();
+        }
+    }
+
     /**
      * Selects a configuration.
      */
@@ -289,7 +298,7 @@ public class ConfigEditor extends BaseConfigEditor
                 if (_tree == null) {
                     _tree = new ConfigTree(group, true) {
                         public void selectedConfigUpdated () {
-                            _epanel.refresh();
+                            _epanel.update();
                         }
                     };
                     _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -442,6 +451,17 @@ public class ConfigEditor extends BaseConfigEditor
                 return true;
             }
 
+            /**
+             * Disposes of the resources held by this item.
+             */
+            public void dispose ()
+            {
+                if (_tree != null) {
+                    _tree.dispose();
+                    _tree = null;
+                }
+            }
+
             // documentation inherited from interface TreeSelectionListener
             public void valueChanged (TreeSelectionEvent event)
             {
@@ -582,6 +602,16 @@ public class ConfigEditor extends BaseConfigEditor
                 }
             }
             return false;
+        }
+
+        /**
+         * Disposes of the resources held by this manager.
+         */
+        public void dispose ()
+        {
+            for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+                ((GroupItem)gbox.getItemAt(ii)).dispose();
+            }
         }
 
         // documentation inherited from interface EditorContext

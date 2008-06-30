@@ -28,6 +28,12 @@ public class BooleanEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        _box.setSelected((Boolean)_property.get(_object));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         add(_box = new JCheckBox(getPropertyLabel()));
@@ -35,12 +41,6 @@ public class BooleanEditor extends PropertyEditor
         Dimension size = _box.getPreferredSize();
         _box.setPreferredSize(new Dimension(size.width, 16));
         _box.addActionListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        _box.setSelected((Boolean)_property.get(_object));
     }
 
     /** The check box. */

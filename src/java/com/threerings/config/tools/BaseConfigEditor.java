@@ -107,6 +107,20 @@ public abstract class BaseConfigEditor extends JFrame
         }
     }
 
+    @Override // documentation inherited
+    public void addNotify ()
+    {
+        super.addNotify();
+        ToolUtil.windowAdded();
+    }
+
+    @Override // documentation inherited
+    public void removeNotify ()
+    {
+        super.removeNotify();
+        ToolUtil.windowRemoved();
+    }
+
     /**
      * Creates a menu with the specified name and mnemonic.
      */

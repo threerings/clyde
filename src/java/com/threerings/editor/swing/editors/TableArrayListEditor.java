@@ -147,6 +147,21 @@ public class TableArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        int min = 0, max = Integer.MAX_VALUE;
+        if (is2DArray()) {
+            createArrayColumns();
+            min = max = TableModelEvent.HEADER_ROW;
+        }
+        fireTableChanged(min, max, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+        if (min == TableModelEvent.HEADER_ROW) {
+            updateColumnWidths();
+        }
+        updateSelected();
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();
@@ -344,21 +359,6 @@ public class TableArrayListEditor extends ArrayListEditor
         if (_opanel != null) {
             add(_opanel);
         }
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        int min = 0, max = Integer.MAX_VALUE;
-        if (is2DArray()) {
-            createArrayColumns();
-            min = max = TableModelEvent.HEADER_ROW;
-        }
-        fireTableChanged(min, max, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
-        if (min == TableModelEvent.HEADER_ROW) {
-            updateColumnWidths();
-        }
-        updateSelected();
     }
 
     @Override // documentation inherited

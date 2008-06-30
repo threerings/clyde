@@ -36,6 +36,12 @@ public class Transform3DEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        _panel.setValue((Transform3D)_property.get(_object));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
@@ -52,12 +58,6 @@ public class Transform3DEditor extends PropertyEditor
         _panel.getTranslationPanel().setBackground(ddarker);
         _panel.getRotationPanel().setBackground(ddarker);
         _panel.addChangeListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        _panel.setValue((Transform3D)_property.get(_object));
     }
 
     /** The transform panel. */

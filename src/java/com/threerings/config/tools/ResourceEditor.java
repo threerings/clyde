@@ -38,8 +38,10 @@ import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 
+import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
 
@@ -49,7 +51,7 @@ import static com.threerings.ClydeLog.*;
  * Allows editing single configurations stored as resources.
  */
 public class ResourceEditor extends BaseConfigEditor
-    implements ChangeListener
+    implements ChangeListener, ConfigUpdateListener<ManagedConfig>
 {
     /**
      * The program entry point.
@@ -178,7 +180,27 @@ public class ResourceEditor extends BaseConfigEditor
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        ((ManagedConfig)_epanel.getObject()).wasUpdated();
+        if (!enterChangeBlock()) {
+            return;
+        }
+        try {
+            ((ManagedConfig)_epanel.getObject()).wasUpdated();
+        } finally {
+            leaveChangeBlock();
+        }
+    }
+
+    // documentation inherited from interface ConfigUpdateListener
+    public void configUpdated (ConfigEvent<ManagedConfig> event)
+    {
+        if (!enterChangeBlock()) {
+            return;
+        }
+        try {
+            _epanel.update();
+        } finally {
+            leaveChangeBlock();
+        }
     }
 
     @Override // documentation inherited
@@ -214,6 +236,13 @@ public class ResourceEditor extends BaseConfigEditor
         } else {
             super.actionPerformed(event);
         }
+    }
+
+    @Override // documentation inherited
+    public void removeNotify ()
+    {
+        super.removeNotify();
+        setConfig(null, null);
     }
 
     /**
@@ -312,7 +341,9 @@ public class ResourceEditor extends BaseConfigEditor
             File file = _exportChooser.getSelectedFile();
             try {
                 XMLImporter in = new XMLImporter(new FileInputStream(file));
-                setConfig((ManagedConfig)in.readObject(), null);
+                ManagedConfig config = (ManagedConfig)in.readObject();
+                config.init(_cfgmgr);
+                setConfig(config, null);
                 in.close();
             } catch (IOException e) {
                 log.warning("Failed to import config [file=" + file +"].", e);
@@ -344,13 +375,39 @@ public class ResourceEditor extends BaseConfigEditor
      */
     protected void setConfig (ManagedConfig config, File file)
     {
+        ManagedConfig oconfig = (ManagedConfig)_epanel.getObject();
+        if (oconfig != null) {
+            oconfig.removeListener(this);
+        }
         _epanel.setObject(config);
+        boolean enable = (config != null);
+        if (enable) {
+            config.addListener(this);
+        }
         _file = file;
-        _save.setEnabled(true);
-        _saveAs.setEnabled(true);
+        _save.setEnabled(enable);
+        _saveAs.setEnabled(enable);
         _revert.setEnabled(file != null);
-        _export.setEnabled(true);
+        _export.setEnabled(enable);
         setTitle(_msgs.get("m.title") + (file == null ? "" : (": " + file)));
+    }
+
+    /**
+     * Attempts to enter the change block.
+     *
+     * @return true if we have entered, false if we are already within a change block.
+     */
+    protected boolean enterChangeBlock ()
+    {
+        return _changing ? false : (_changing = true);
+    }
+
+    /**
+     * Leaves the change block.
+     */
+    protected void leaveChangeBlock ()
+    {
+        _changing = false;
     }
 
     /** The file menu items. */
@@ -368,6 +425,6 @@ public class ResourceEditor extends BaseConfigEditor
     /** The loaded config file. */
     protected File _file;
 
-    /** The resource path of the loaded config file. */
-    protected String _path;
+    /** Indicates that we should ignore any changes, because we're the one effecting them. */
+    protected boolean _changing;
 }

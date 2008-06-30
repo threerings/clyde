@@ -88,6 +88,12 @@ public class FileEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        updateButtons(getPropertyFile());
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
@@ -103,12 +109,6 @@ public class FileEditor extends PropertyEditor
             add(_clear = new JButton(_msgs.get("m.clear")));
             _clear.addActionListener(this);
         }
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        updateButtons(getPropertyFile());
     }
 
     /**

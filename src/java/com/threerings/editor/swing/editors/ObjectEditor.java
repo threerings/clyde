@@ -27,20 +27,18 @@ public class ObjectEditor extends PropertyEditor
     }
 
     @Override // documentation inherited
+    public void update ()
+    {
+        _panel.setValue(_property.get(_object));
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
         add(_panel = new ObjectPanel(
             _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage));
-        _panel.addChangeListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void update ()
-    {
-        _panel.removeChangeListener(this);
-        _panel.setValue(_property.get(_object));
         _panel.addChangeListener(this);
     }
 
