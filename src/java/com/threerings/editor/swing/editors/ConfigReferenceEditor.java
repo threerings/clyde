@@ -28,6 +28,7 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.swing.ConfigChooser;
 
+import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
 import com.threerings.editor.swing.PropertyEditor;
 
@@ -40,19 +41,27 @@ public class ConfigReferenceEditor extends PropertyEditor
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
+        ConfigReference ovalue = (ConfigReference)_property.get(_object);
         ConfigReference nvalue;
-        if (event.getSource() == _config) {
+        Object source = event.getSource();
+        if (source == _config) {
             if (_chooser == null) {
                 _chooser = ConfigChooser.createInstance(
                     _msgmgr, _ctx.getConfigManager(),
                     _property.getArgumentType(ConfigReference.class));
             }
-            ConfigReference ovalue = (ConfigReference)_property.get(_object);
             _chooser.setSelectedConfig(ovalue == null ? null : ovalue.getName());
             if (!_chooser.showDialog(this)) {
                 return;
             }
             nvalue = new ConfigReference(_chooser.getSelectedConfig());
+
+        } else if (source == _edit) {
+            // TODO
+            return;
+
+        } else if (source == _reload) {
+            nvalue = ovalue;
 
         } else { // event.getSource() == _clear
             nvalue = null;
@@ -81,6 +90,12 @@ public class ConfigReferenceEditor extends PropertyEditor
         cpanel.add(_config = new JButton(" "));
         _config.setPreferredSize(new Dimension(75, _config.getPreferredSize().height));
         _config.addActionListener(this);
+        if (!getMode().equals("compact")) {
+            cpanel.add(_edit = new JButton(_msgs.get("m.edit")));
+            _edit.addActionListener(this);
+            cpanel.add(_reload = new JButton(_msgs.get("m.reload")));
+            _reload.addActionListener(this);
+        }
         if (_property.getAnnotation().nullable()) {
             cpanel.add(_clear = new JButton(_msgs.get("m.clear")));
             _clear.addActionListener(this);
@@ -119,10 +134,15 @@ public class ConfigReferenceEditor extends PropertyEditor
     protected void update (ConfigReference value)
     {
         // update the button states
-        if (_clear != null) {
-            _clear.setEnabled(value != null);
+        boolean enable = (value != null);
+        if (_edit != null) {
+            _edit.setEnabled(enable);
+            _reload.setEnabled(enable);
         }
-        if (value == null) {
+        if (_clear != null) {
+            _clear.setEnabled(enable);
+        }
+        if (!enable) {
             _config.setText(_msgs.get("m.none"));
             _arguments.removeAll();
             return;
@@ -197,8 +217,8 @@ public class ConfigReferenceEditor extends PropertyEditor
     /** The config button. */
     protected JButton _config;
 
-    /** The clear button. */
-    protected JButton _clear;
+    /** The reload, edit, and clear buttons. */
+    protected JButton _edit, _reload, _clear;
 
     /** Holds the argument panels. */
     protected JPanel _arguments;

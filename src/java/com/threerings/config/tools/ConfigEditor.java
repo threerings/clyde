@@ -19,13 +19,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.prefs.Preferences;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -53,7 +51,6 @@ import com.samskivert.util.QuickSort;
 
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
-import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.util.EditorContext;
@@ -81,7 +78,7 @@ public class ConfigEditor extends BaseConfigEditor
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
-        new ConfigEditor(msgmgr, cfgmgr, true).setVisible(true);
+        new ConfigEditor(msgmgr, cfgmgr).setVisible(true);
     }
 
     /**
@@ -89,69 +86,7 @@ public class ConfigEditor extends BaseConfigEditor
      */
     public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr)
     {
-        this(msgmgr, cfgmgr, false);
-    }
-
-    // documentation inherited from interface ClipboardOwner
-    public void lostOwnership (Clipboard clipboard, Transferable contents)
-    {
-        _paste.setEnabled(false);
-        _clipclass = null;
-    }
-
-    @Override // documentation inherited
-    public void actionPerformed (ActionEvent event)
-    {
-        String action = event.getActionCommand();
-        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
-        ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
-        if (action.equals("config")) {
-            item.newConfig();
-        } else if (action.equals("folder")) {
-            item.newFolder();
-        } else if (action.equals("save_group")) {
-            item.group.save();
-        } else if (action.equals("revert_group")) {
-            item.group.revert();
-        } else if (action.equals("import_group")) {
-            item.importGroup();
-        } else if (action.equals("export_group")) {
-            item.exportGroup();
-        } else if (action.equals("import_configs")) {
-            item.importConfigs();
-        } else if (action.equals("export_configs")) {
-            item.exportConfigs();
-        } else if (action.equals("cut")) {
-            item.cutNode();
-        } else if (action.equals("copy")) {
-            item.copyNode();
-        } else if (action.equals("paste")) {
-            item.pasteNode();
-        } else if (action.equals("delete")) {
-            item.deleteNode();
-        } else if (action.equals("preferences")) {
-            if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(
-                    this, (ManagerPanel)_tabs.getComponentAt(0),
-                    _msgs.get("t.preferences"), _eprefs);
-            }
-            _pdialog.setVisible(true);
-        } else if (action.equals("save_all")) {
-            panel.cfgmgr.saveAll();
-        } else if (action.equals("revert_all")) {
-            panel.cfgmgr.revertAll();
-        } else {
-            super.actionPerformed(event);
-        }
-    }
-
-    /**
-     * Creates a new config editor.
-     */
-    protected ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, boolean standalone)
-    {
-        super(cfgmgr.getResourceManager(), msgmgr, "config", standalone);
-
+        super(msgmgr, cfgmgr, "config");
         setSize(800, 600);
         SwingUtil.centerWindow(this);
 
@@ -164,9 +99,11 @@ public class ConfigEditor extends BaseConfigEditor
 
         JMenu nmenu = createMenu("new", KeyEvent.VK_N);
         file.add(nmenu);
-        Action nconfig = createAction("config", KeyEvent.VK_C, KeyEvent.VK_N);
+        nmenu.add(createMenuItem("window", KeyEvent.VK_W, KeyEvent.VK_N));
+        nmenu.addSeparator();
+        Action nconfig = createAction("config", KeyEvent.VK_C, KeyEvent.VK_F);
         nmenu.add(new JMenuItem(nconfig));
-        Action nfolder = createAction("folder", KeyEvent.VK_F, KeyEvent.VK_F);
+        Action nfolder = createAction("folder", KeyEvent.VK_F, KeyEvent.VK_D);
         nmenu.add(new JMenuItem(nfolder));
         file.addSeparator();
         file.add(_save = createMenuItem("save_group", KeyEvent.VK_S, KeyEvent.VK_S));
@@ -178,11 +115,8 @@ public class ConfigEditor extends BaseConfigEditor
         file.add(createMenuItem("import_configs", KeyEvent.VK_M, -1));
         file.add(_exportConfigs = createMenuItem("export_configs", KeyEvent.VK_X, -1));
         file.addSeparator();
-        if (_standalone) {
-            file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
-        } else {
-            file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
-        }
+        file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
+        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
@@ -191,18 +125,9 @@ public class ConfigEditor extends BaseConfigEditor
         edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
         edit.add(new JMenuItem(
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
-
-        // if running standalone, create and initialize the editable preferences to
-        // allow changing the resource dir
-        if (_standalone) {
-            edit.addSeparator();
-            edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_F));
-            _eprefs = new ToolUtil.EditablePrefs(_prefs);
-            _eprefs.init(_rsrcmgr);
-
-            // initialize the configuration manager here, after we have set the resource dir
-            cfgmgr.init();
-        }
+        edit.addSeparator();
+        edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
+        edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_F));
 
         JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
         menubar.add(gmenu);
@@ -255,6 +180,56 @@ public class ConfigEditor extends BaseConfigEditor
             }
             protected ManagerPanel _panel = panel;
         });
+    }
+
+    // documentation inherited from interface ClipboardOwner
+    public void lostOwnership (Clipboard clipboard, Transferable contents)
+    {
+        _paste.setEnabled(false);
+        _clipclass = null;
+    }
+
+    @Override // documentation inherited
+    public void actionPerformed (ActionEvent event)
+    {
+        String action = event.getActionCommand();
+        ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
+        ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
+        if (action.equals("window")) {
+            showFrame(new ConfigEditor(_msgmgr, _cfgmgr));
+        } else if (action.equals("config")) {
+            item.newConfig();
+        } else if (action.equals("folder")) {
+            item.newFolder();
+        } else if (action.equals("save_group")) {
+            item.group.save();
+        } else if (action.equals("revert_group")) {
+            item.group.revert();
+        } else if (action.equals("import_group")) {
+            item.importGroup();
+        } else if (action.equals("export_group")) {
+            item.exportGroup();
+        } else if (action.equals("import_configs")) {
+            item.importConfigs();
+        } else if (action.equals("export_configs")) {
+            item.exportConfigs();
+        } else if (action.equals("cut")) {
+            item.cutNode();
+        } else if (action.equals("copy")) {
+            item.copyNode();
+        } else if (action.equals("paste")) {
+            item.pasteNode();
+        } else if (action.equals("delete")) {
+            item.deleteNode();
+        } else if (action.equals("resources")) {
+            showFrame(new ResourceEditor(_msgmgr, _cfgmgr));
+        } else if (action.equals("save_all")) {
+            panel.cfgmgr.saveAll();
+        } else if (action.equals("revert_all")) {
+            panel.cfgmgr.revertAll();
+        } else {
+            super.actionPerformed(event);
+        }
     }
 
     /**
@@ -607,18 +582,9 @@ public class ConfigEditor extends BaseConfigEditor
     /** The file chooser for opening and saving config files. */
     protected JFileChooser _chooser;
 
-    /** The editable preferences object. */
-    protected ToolUtil.EditablePrefs _eprefs;
-
-    /** The preferences dialog. */
-    protected JDialog _pdialog;
-
     /** The tabs for each manager. */
     protected JTabbedPane _tabs;
 
     /** The class of the clipboard selection. */
     protected Class _clipclass;
-
-    /** The application preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigEditor.class);
 }

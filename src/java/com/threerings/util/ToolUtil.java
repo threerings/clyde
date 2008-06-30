@@ -77,7 +77,7 @@ public class ToolUtil
         public void init (ResourceManager rsrcmgr)
         {
             _rsrcmgr = rsrcmgr;
-            String dstr = _prefs.get("resource_dir", null);
+            String dstr = ResourceUtil.getPreferredResourceDir();
             _resourceDir = (dstr == null) ? null : new File(dstr);
             _rsrcmgr.initResourceDir(dstr);
         }
@@ -85,16 +85,12 @@ public class ToolUtil
         /**
          * Sets the resource directory.
          */
-        @Editable(mode="directory")
+        @Editable(mode="directory", nullable=true)
         public void setResourceDir (File dir)
         {
             _resourceDir = dir;
             String dstr = (dir == null) ? null : dir.toString();
-            if (dstr == null) {
-                _prefs.remove("resource_dir");
-            } else {
-                _prefs.put("resource_dir", dstr);
-            }
+            ResourceUtil.setPreferredResourceDir(dstr);
             _rsrcmgr.initResourceDir(dstr);
         }
 
@@ -216,7 +212,7 @@ public class ToolUtil
     {
         return createAction(listener, msgs, command, mnemonic, accelerator, KeyEvent.CTRL_MASK);
     }
-    
+
     /**
      * Creates an action with the specified command, mnemonic, and (optional) accelerator
      * key/modifiers.
@@ -238,7 +234,7 @@ public class ToolUtil
         }
         return action;
     }
-    
+
     /**
      * Creates a button with the specified action.
      */

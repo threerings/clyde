@@ -55,6 +55,14 @@ public class ConfigManager extends DeepObject
     }
 
     /**
+     * Determines whether the config manager has been initialized.
+     */
+    public boolean isInitialized ()
+    {
+        return (_resources != null);
+    }
+
+    /**
      * Initialization method for the global configuration manager.
      */
     public void init ()

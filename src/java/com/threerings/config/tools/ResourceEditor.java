@@ -13,9 +13,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import java.util.prefs.Preferences;
-
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -33,10 +30,9 @@ import com.samskivert.util.ObjectUtil;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
-import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.swing.EditorPanel;
-import com.threerings.editor.util.EditorContext;
+
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
@@ -53,7 +49,7 @@ import static com.threerings.ClydeLog.*;
  * Allows editing single configurations stored as resources.
  */
 public class ResourceEditor extends BaseConfigEditor
-    implements EditorContext, ChangeListener
+    implements ChangeListener
 {
     /**
      * The program entry point.
@@ -64,7 +60,7 @@ public class ResourceEditor extends BaseConfigEditor
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
         new ResourceEditor(
-            msgmgr, cfgmgr, true, args.length > 0 ? args[0] : null).setVisible(true);
+            msgmgr, cfgmgr, args.length > 0 ? args[0] : null).setVisible(true);
     }
 
     /**
@@ -72,42 +68,15 @@ public class ResourceEditor extends BaseConfigEditor
      */
     public ResourceEditor (MessageManager msgmgr, ConfigManager cfgmgr)
     {
-        this(msgmgr, cfgmgr, false, null);
-    }
-
-    // documentation inherited from interface EditorContext
-    public ResourceManager getResourceManager ()
-    {
-        return _rsrcmgr;
-    }
-
-    // documentation inherited from interface EditorContext
-    public MessageManager getMessageManager ()
-    {
-        return _msgmgr;
-    }
-
-    // documentation inherited from interface EditorContext
-    public ConfigManager getConfigManager ()
-    {
-        return _cfgmgr;
-    }
-
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        ((ManagedConfig)_epanel.getObject()).wasUpdated();
+        this(msgmgr, cfgmgr, null);
     }
 
     /**
-     * Creates a new config editor.
+     * Creates a new resource editor.
      */
-    protected ResourceEditor (
-        MessageManager msgmgr, ConfigManager cfgmgr, boolean standalone, String config)
+    public ResourceEditor (MessageManager msgmgr, ConfigManager cfgmgr, String config)
     {
-        super(cfgmgr.getResourceManager(), msgmgr, "resource", standalone);
-        _cfgmgr = cfgmgr;
-
+        super(msgmgr, cfgmgr, "resource");
         setSize(550, 600);
         SwingUtil.centerWindow(this);
 
@@ -120,6 +89,8 @@ public class ResourceEditor extends BaseConfigEditor
 
         JMenu nmenu = createMenu("new", KeyEvent.VK_N);
         file.add(nmenu);
+        nmenu.add(createMenuItem("window", KeyEvent.VK_W, KeyEvent.VK_N));
+        nmenu.addSeparator();
         file.add(createMenuItem("open", KeyEvent.VK_O, KeyEvent.VK_O));
         file.addSeparator();
         file.add(_save = createMenuItem("save", KeyEvent.VK_S, KeyEvent.VK_S));
@@ -133,28 +104,17 @@ public class ResourceEditor extends BaseConfigEditor
         file.add(_export = createMenuItem("export", KeyEvent.VK_E, -1));
         _export.setEnabled(false);
         file.addSeparator();
-        if (_standalone) {
-            file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
-        } else {
-            file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
-        }
+        file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
+        file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
         edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
-
-        // add the edit preferences option if running standalone
-        if (_standalone) {
-            edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
-            _eprefs = new ToolUtil.EditablePrefs(_prefs);
-            _eprefs.init(_rsrcmgr);
-
-            // initialize the configuration manager here, after we have set the resource dir
-            cfgmgr.init();
-        }
+        edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
 
         // add the new items now that we've initialized the config manager
         ArrayIntSet mnems = new ArrayIntSet();
+        mnems.add('w');
         int idx = 0;
         MessageBundle cmsgs = _msgmgr.getBundle("config");
         for (final Class clazz : cfgmgr.getResourceClasses()) {
@@ -210,11 +170,19 @@ public class ResourceEditor extends BaseConfigEditor
         _epanel.addChangeListener(this);
     }
 
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+        ((ManagedConfig)_epanel.getObject()).wasUpdated();
+    }
+
     @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
-        if (action.equals("open")) {
+        if (action.equals("window")) {
+            showFrame(new ResourceEditor(_msgmgr, _cfgmgr));
+        } else if (action.equals("open")) {
             open();
         } else if (action.equals("save")) {
             if (_file != null) {
@@ -231,21 +199,13 @@ public class ResourceEditor extends BaseConfigEditor
         } else if (action.equals("export")) {
             exportConfig();
         } else if (action.equals("configs")) {
-            if (_configEditor == null) {
-                ConfigManager cfgmgr = _cfgmgr;
-                Object obj = _epanel.getObject();
-                if (obj instanceof ParameterizedConfig) {
-                    cfgmgr = ((ParameterizedConfig)obj).getConfigManager();
-                }
-                _configEditor = new ConfigEditor(_msgmgr, cfgmgr);
+            ConfigManager cfgmgr = _cfgmgr;
+            Object config = _epanel.getObject();
+            if (config instanceof ParameterizedConfig) {
+                cfgmgr = ((ParameterizedConfig)config).getConfigManager();
             }
-            _configEditor.setVisible(true);
-        } else if (action.equals("preferences")) {
-            if (_pdialog == null) {
-                _pdialog = EditorPanel.createDialog(
-                    this, this, _msgs.get("t.preferences"), _eprefs);
-            }
-            _pdialog.setVisible(true);
+            showFrame(new ConfigEditor(_msgmgr, cfgmgr));
+
         } else {
             super.actionPerformed(event);
         }
@@ -290,12 +250,10 @@ public class ResourceEditor extends BaseConfigEditor
             log.warning("Failed to open config [file=" + file + "].", e);
             return;
         }
-        // if not running standalone, we must retrieve the instance through the cache
-        if (!_standalone) {
-            String path = _rsrcmgr.getResourcePath(file);
-            if (path != null) {
-                config = _cfgmgr.updateResourceConfig(path, config);
-            }
+        // retrieve the instance through the cache
+        String path = _rsrcmgr.getResourcePath(file);
+        if (path != null) {
+            config = _cfgmgr.updateResourceConfig(path, config);
         }
         setConfig(config, file);
     }
@@ -326,18 +284,15 @@ public class ResourceEditor extends BaseConfigEditor
             log.warning("Failed to save config [file=" + file + "].", e);
             return;
         }
-        // if not running standalone, we must do some special handling to make sure we
-        // play nice with the cache
-        if (!_standalone) {
-            String opath = (_file == null) ? null : _rsrcmgr.getResourcePath(_file);
-            String npath = _rsrcmgr.getResourcePath(file);
-            if (!ObjectUtil.equals(opath, npath)) {
-                if (opath != null) {
-                    config = (ManagedConfig)config.clone();
-                }
-                if (npath != null) {
-                    config = _cfgmgr.updateResourceConfig(npath, config);
-                }
+        // do some special handling to make sure we play nice with the cache
+        String opath = (_file == null) ? null : _rsrcmgr.getResourcePath(_file);
+        String npath = _rsrcmgr.getResourcePath(file);
+        if (!ObjectUtil.equals(opath, npath)) {
+            if (opath != null) {
+                config = (ManagedConfig)config.clone();
+            }
+            if (npath != null) {
+                config = _cfgmgr.updateResourceConfig(npath, config);
             }
         }
         setConfig(config, file);
@@ -393,9 +348,6 @@ public class ResourceEditor extends BaseConfigEditor
         setTitle(_msgs.get("m.title") + (file == null ? "" : (": " + file)));
     }
 
-    /** The config manager. */
-    protected ConfigManager _cfgmgr;
-
     /** The file menu items. */
     protected JMenuItem _save, _saveAs, _revert, _export;
 
@@ -405,15 +357,6 @@ public class ResourceEditor extends BaseConfigEditor
     /** The file chooser for opening and saving export files. */
     protected JFileChooser _exportChooser;
 
-    /** The config editor. */
-    protected ConfigEditor _configEditor;
-
-    /** The editable preferences object. */
-    protected ToolUtil.EditablePrefs _eprefs;
-
-    /** The preferences dialog. */
-    protected JDialog _pdialog;
-
     /** The editor panel. */
     protected EditorPanel _epanel;
 
@@ -422,7 +365,4 @@ public class ResourceEditor extends BaseConfigEditor
 
     /** The resource path of the loaded config file. */
     protected String _path;
-
-    /** The application preferences. */
-    protected static Preferences _prefs = Preferences.userNodeForPackage(ResourceEditor.class);
 }

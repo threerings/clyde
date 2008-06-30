@@ -5,11 +5,12 @@ package com.threerings.config.tools;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+
+import java.util.prefs.Preferences;
 
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -19,53 +20,74 @@ import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
+import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.util.EditorContext;
+
+import com.threerings.config.ConfigManager;
+
 /**
  * The superclass of {@link ConfigEditor} and {@link ConfigResourceEditor}.
  */
 public abstract class BaseConfigEditor extends JFrame
-    implements ActionListener
+    implements EditorContext, ActionListener
 {
     /**
      * Creates a new config editor.
      */
-    public BaseConfigEditor (
-        ResourceManager rsrcmgr, MessageManager msgmgr, String msgs, boolean standalone)
+    public BaseConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, String msgs)
     {
-        _rsrcmgr = rsrcmgr;
+        _rsrcmgr = cfgmgr.getResourceManager();
         _msgmgr = msgmgr;
+        _cfgmgr = cfgmgr;
         _msgs = _msgmgr.getBundle(msgs);
-        _standalone = standalone;
 
         setTitle(_msgs.get("m.title"));
 
-        // shutdown when the window is closed
-        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            public void windowClosing (WindowEvent event) {
-                BaseConfigEditor.this.windowClosing();
-            }
-        });
+        // dispose when the window is closed
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        // create and init the editable prefs, which also (re)sets the resource directory
+        _eprefs = new ToolUtil.EditablePrefs(_prefs);
+        _eprefs.init(_rsrcmgr);
+
+        // initialize the configuration manager if not yet initialized
+        if (!cfgmgr.isInitialized()) {
+            cfgmgr.init();
+        }
+    }
+
+    // documentation inherited from interface EditorContext
+    public ResourceManager getResourceManager ()
+    {
+        return _rsrcmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public MessageManager getMessageManager ()
+    {
+        return _msgmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
     }
 
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
-        if (action.equals("quit") || action.equals("close")) {
-            windowClosing();
-        }
-    }
-
-    /**
-     * Called when the user closes the window to give the editor a chance to pop up a confirm
-     * dialog.
-     */
-    protected void windowClosing ()
-    {
-        if (_standalone) {
+        if (action.equals("close")) {
+            dispose();
+        } else if (action.equals("quit")) {
             System.exit(0);
-        } else {
-            setVisible(false);
+        } else if (action.equals("preferences")) {
+            if (_pdialog == null) {
+                _pdialog = EditorPanel.createDialog(
+                    this, this, _msgs.get("t.preferences"), _eprefs);
+            }
+            _pdialog.setVisible(true);
         }
     }
 
@@ -138,15 +160,33 @@ public abstract class BaseConfigEditor extends JFrame
         return _msgs.exists(key) ? _msgs.get(key) : name;
     }
 
+    /**
+     * Shows a frame slightly offset from this one.
+     */
+    protected void showFrame (JFrame frame)
+    {
+        frame.setLocation(getX() + 16, getY() + 16);
+        frame.setVisible(true);
+    }
+
     /** The resource manager. */
     protected ResourceManager _rsrcmgr;
 
     /** The message manager. */
     protected MessageManager _msgmgr;
 
+    /** The config manager. */
+    protected ConfigManager _cfgmgr;
+
     /** The config message bundle. */
     protected MessageBundle _msgs;
 
-    /** Whether or not we're running as a standalone application. */
-    protected boolean _standalone;
+    /** The editable preferences object. */
+    protected ToolUtil.EditablePrefs _eprefs;
+
+    /** The preferences dialog. */
+    protected JDialog _pdialog;
+
+    /** The package preferences. */
+    protected static Preferences _prefs = Preferences.userNodeForPackage(BaseConfigEditor.class);
 }

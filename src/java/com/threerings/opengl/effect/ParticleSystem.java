@@ -228,7 +228,7 @@ public class ParticleSystem extends Model
         /**
          * Sets the texture to use.
          */
-        @Editable(category="appearance", nullable=true, weight=-1)
+        @Editable(category="appearance", mode="compact", nullable=true, weight=-1)
         @FileConstraints(
             description="m.texture_files",
             extensions={".properties", ".png", ".jpg"},

@@ -20,6 +20,7 @@ import com.samskivert.util.ObjectUtil;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.swing.PropertyEditor;
 
@@ -33,7 +34,8 @@ public class FileEditor extends PropertyEditor
     public void actionPerformed (ActionEvent event)
     {
         File value;
-        if (event.getSource() == _file) {
+        Object source = event.getSource();
+        if (source == _file) {
             final FileConstraints constraints = _property.getAnnotation(FileConstraints.class);
             String key = (constraints == null || constraints.directory().length() == 0) ?
                 null : constraints.directory();
@@ -74,14 +76,15 @@ public class FileEditor extends PropertyEditor
             }
             value = _chooser.getSelectedFile();
 
-        } else { // event.getSource() == _clear
+        } else if (source == _reload) {
+            value = getPropertyFile();
+
+        } else { // source == _clear
             value = null;
         }
-        if (!ObjectUtil.equals(getPropertyFile(), value)) {
-            setPropertyFile(value);
-            updateButtons(value);
-            fireStateChanged();
-        }
+        setPropertyFile(value);
+        updateButtons(value);
+        fireStateChanged();
     }
 
     @Override // documentation inherited
@@ -91,6 +94,11 @@ public class FileEditor extends PropertyEditor
         add(_file = new JButton(" "));
         _file.setPreferredSize(new Dimension(75, _file.getPreferredSize().height));
         _file.addActionListener(this);
+        String mode = getMode();
+        if (!(mode.equals("compact") || mode.equals("directory"))) {
+            add(_reload = new JButton(_msgs.get("m.reload")));
+            _reload.addActionListener(this);
+        }
         if (_property.getAnnotation().nullable()) {
             add(_clear = new JButton(_msgs.get("m.clear")));
             _clear.addActionListener(this);
@@ -108,9 +116,13 @@ public class FileEditor extends PropertyEditor
      */
     protected void updateButtons (File value)
     {
-        _file.setText(value == null ? _msgs.get("m.none") : value.getName());
+        boolean enable = (value != null);
+        _file.setText(enable ? value.getName() : _msgs.get("m.none"));
+        if (_reload != null) {
+            _reload.setEnabled(enable);
+        }
         if (_clear != null) {
-            _clear.setEnabled(value != null);
+            _clear.setEnabled(enable);
         }
     }
 
@@ -140,6 +152,9 @@ public class FileEditor extends PropertyEditor
 
     /** The file button. */
     protected JButton _file;
+
+    /** The reload button. */
+    protected JButton _reload;
 
     /** The clear button. */
     protected JButton _clear;
