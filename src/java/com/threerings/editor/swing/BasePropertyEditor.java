@@ -135,7 +135,7 @@ public abstract class BasePropertyEditor extends JPanel
     /**
      * Gets the path of the property under the mouse cursor.
      */
-    protected void getMousePath (StringBuffer buf)
+    protected void getMousePath (StringBuilder buf)
     {
         Point pt = getMousePosition();
         if (pt == null) {

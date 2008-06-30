@@ -32,7 +32,28 @@ import static com.threerings.editor.Log.*;
 public class ObjectPanel extends BasePropertyEditor
     implements ActionListener, ChangeListener
 {
+    /**
+     * Creates a new object panel.
+     *
+     * @param tlabel the translatable label to use for the type chooser.
+     * @param types the selectable subtypes.
+     * @param ancestors the ancestor properties from which constraints are inherited.
+     */
     public ObjectPanel (EditorContext ctx, String tlabel, Class[] types, Property[] ancestors)
+    {
+        this(ctx, tlabel, types, ancestors, false);
+    }
+
+    /**
+     * Creates a new object panel.
+     *
+     * @param tlabel the translatable label to use for the type chooser.
+     * @param types the selectable subtypes.
+     * @param ancestors the ancestor properties from which constraints are inherited.
+     * @param omitColumns if true, do not add editors for the properties flagged as columns.
+     */
+    public ObjectPanel (
+        EditorContext ctx, String tlabel, Class[] types, Property[] ancestors, boolean omitColumns)
     {
         _ctx = ctx;
         _msgmgr = ctx.getMessageManager();
@@ -55,7 +76,8 @@ public class ObjectPanel extends BasePropertyEditor
             _box.addActionListener(this);
             _values = new Object[_types.length];
         }
-        add(_panel = new EditorPanel(_ctx, EditorPanel.CategoryMode.PANELS, ancestors));
+        add(_panel = new EditorPanel(
+            _ctx, EditorPanel.CategoryMode.PANELS, ancestors, omitColumns));
         _panel.addChangeListener(this);
     }
 

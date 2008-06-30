@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 
 import java.lang.reflect.Array;
 
+import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -19,6 +21,8 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -35,12 +39,13 @@ import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
+import com.threerings.editor.swing.ObjectPanel;
 
 /**
  * An editor for objects or lists of objects or primitives.  Uses a table.
  */
 public class TableArrayListEditor extends ArrayListEditor
-    implements TableModel, ListSelectionListener
+    implements TableModel, ListSelectionListener, ChangeListener
 {
     // documentation inherited from interface TableModel
     public int getRowCount ()
@@ -69,7 +74,7 @@ public class TableArrayListEditor extends ArrayListEditor
     // documentation inherited from interface TableModel
     public boolean isCellEditable (int row, int column)
     {
-        return true;
+        return _columns[column].isEditable();
     }
 
     // documentation inherited from interface TableModel
@@ -102,6 +107,15 @@ public class TableArrayListEditor extends ArrayListEditor
     public void valueChanged (ListSelectionEvent event)
     {
         updateSelected();
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+        int row = _table.getSelectedRow();
+        setValue(row, _opanel.getValue());
+        fireTableChanged(row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+        fireStateChanged();
     }
 
     @Override // documentation inherited
@@ -139,6 +153,7 @@ public class TableArrayListEditor extends ArrayListEditor
 
         // determine the column model
         final Class ctype = _property.getComponentType();
+        boolean showHeader = true;
         if (is2DArray()) {
             _columns = new Column[0]; // actual columns will be created on update
 
@@ -163,43 +178,84 @@ public class TableArrayListEditor extends ArrayListEditor
                     return _property.getAnnotation().width();
                 }
             }};
+            showHeader = false;
+
         } else {
             Property[] properties = Introspector.getProperties(ctype);
-            _columns = new Column[properties.length];
-            final MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(ctype));
-            for (int ii = 0; ii < properties.length; ii++) {
-                final Property property = properties[ii];
-                _columns[ii] = new Column() {
+            if (!_property.getAnnotation().nullable()) {
+                ArrayList<Column> columns = new ArrayList<Column>();
+                final MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(ctype));
+                for (int ii = 0; ii < properties.length; ii++) {
+                    final Property property = properties[ii];
+                    if (!property.getAnnotation().column()) {
+                        continue;
+                    }
+                    columns.add(new Column() {
+                        public String getName () {
+                            return getLabel(property.getName(), msgs);
+                        }
+                        public String getPathComponent () {
+                            return "/" + property.getName();
+                        }
+                        public Class getColumnClass () {
+                            return ClassUtil.objectEquivalentOf(property.getType());
+                        }
+                        public Object getColumnValue (int row) {
+                            return property.get(getValue(row));
+                        }
+                        public void setColumnValue (int row, Object value) {
+                            property.set(getValue(row), value);
+                        }
+                        public int getWidth () {
+                            return property.getAnnotation().width();
+                        }
+                    });
+                }
+                _columns = columns.toArray(new Column[columns.size()]);
+            }
+            int ncols = (_columns == null) ? 0 : _columns.length;
+            if (ncols == 0) {
+                _columns = new Column[] { new Column() {
                     public String getName () {
-                        return getLabel(property.getName(), msgs);
+                        return "";
                     }
                     public String getPathComponent () {
-                        return "/" + property.getName();
+                        return "";
                     }
                     public Class getColumnClass () {
-                        return ClassUtil.objectEquivalentOf(property.getType());
+                        return String.class;
+                    }
+                    public boolean isEditable () {
+                        return false;
                     }
                     public Object getColumnValue (int row) {
-                        return property.get(getValue(row));
+                        Object value = getValue(row);
+                        return getLabel(value == null ? null : value.getClass());
                     }
                     public void setColumnValue (int row, Object value) {
-                        property.set(getValue(row), value);
+                        // no-op
                     }
                     public int getWidth () {
-                        return property.getAnnotation().width();
+                        return 20;
                     }
-                };
+                }};
+                showHeader = false;
             }
+            Class[] types = _property.getComponentSubtypes();
+            _opanel = new ObjectPanel(
+                _ctx, _property.getComponentTypeLabel(), types, _lineage, ncols > 0);
+            _opanel.addChangeListener(this);
         }
 
-        ((GroupLayout)getLayout()).setOffAxisPolicy(GroupLayout.NONE);
-
+        JPanel outer = new JPanel();
+        outer.setBackground(null);
+        add(outer);
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(null);
-        add(panel);
+        outer.add(panel);
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         _table = new JTable(this);
-        if (!isTableCellType(ctype)) {
+        if (showHeader) {
             _table.getTableHeader().setReorderingAllowed(false);
             panel.add(_table.getTableHeader(), BorderLayout.NORTH);
         }
@@ -284,6 +340,10 @@ public class TableArrayListEditor extends ArrayListEditor
         }
         bpanel.add(_delete = new JButton(_msgs.get("m.delete")));
         _delete.addActionListener(this);
+
+        if (_opanel != null) {
+            add(_opanel);
+        }
     }
 
     @Override // documentation inherited
@@ -304,6 +364,9 @@ public class TableArrayListEditor extends ArrayListEditor
     @Override // documentation inherited
     protected String getPathComponent (Point pt)
     {
+        if (getComponentAt(pt) == _opanel) {
+            return _property.getName() + "[" + _table.getSelectedRow() + "]";
+        }
         pt = SwingUtilities.convertPoint(this, pt, _table);
         int row = _table.rowAtPoint(pt);
         int col = _table.columnAtPoint(pt);
@@ -399,8 +462,8 @@ public class TableArrayListEditor extends ArrayListEditor
     }
 
     /**
-        * Determines whether the property is a 2D array.
-        */
+     * Determines whether the property is a 2D array.
+     */
     protected boolean is2DArray ()
     {
         Class ctype = _property.getComponentType();
@@ -468,6 +531,7 @@ public class TableArrayListEditor extends ArrayListEditor
             TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
         fireStateChanged();
         setSelection(selected, -1);
+        updateSelected();
     }
 
     /**
@@ -486,6 +550,7 @@ public class TableArrayListEditor extends ArrayListEditor
             0, Integer.MAX_VALUE, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
         fireStateChanged();
         setSelection(-1, selected);
+        updateSelected();
     }
 
     /**
@@ -513,6 +578,7 @@ public class TableArrayListEditor extends ArrayListEditor
                 Math.min(srow, row), Math.max(srow, row), col, TableModelEvent.UPDATE);
         }
         fireStateChanged();
+        updateSelected();
     }
 
     /**
@@ -538,6 +604,14 @@ public class TableArrayListEditor extends ArrayListEditor
         IntTuple selection = getSelection();
         _delete.setEnabled(selection != null && (selection.left == -1 ||
             (selection.right == -1 && getLength() > _min)));
+        if (_opanel != null) {
+            if (selection == null) {
+                _opanel.setVisible(false);
+            } else {
+                _opanel.setVisible(true);
+                _opanel.setValue(getValue(selection.left));
+            }
+        }
     }
 
     /**
@@ -631,6 +705,14 @@ public class TableArrayListEditor extends ArrayListEditor
         public abstract Class getColumnClass ();
 
         /**
+         * Determines whether cells in this column are editable.
+         */
+        public boolean isEditable ()
+        {
+            return true;
+        }
+
+        /**
          * Returns the value of this column at the specified row.
          */
         public abstract Object getColumnValue (int row);
@@ -657,4 +739,7 @@ public class TableArrayListEditor extends ArrayListEditor
 
     /** The delete button. */
     protected JButton _delete;
+
+    /** The object panel used to edit the non-inline properties. */
+    protected ObjectPanel _opanel;
 }

@@ -39,6 +39,9 @@ public @interface Editable
     /** Generic editing "mode" whose interpretation depends on the editor. */
     String mode () default "";
 
+    /** Whether or not this property should be displayed as a column when editing in table mode. */
+    boolean column () default false;
+
     /** A translatable string describing the units of the property, if any. */
     String units () default "";
 

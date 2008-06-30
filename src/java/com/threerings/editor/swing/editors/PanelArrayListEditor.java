@@ -35,13 +35,7 @@ public class PanelArrayListEditor extends ArrayListEditor
     {
         ObjectPanel panel = (ObjectPanel)event.getSource();
         int idx = _panels.getComponentZOrder(panel);
-        if (_property.getType().isArray()) {
-            Array.set(_property.get(_object), idx, panel.getValue());
-        } else {
-            @SuppressWarnings("unchecked") List<Object> values =
-                (List<Object>)_property.get(_object);
-            values.set(idx, panel.getValue());
-        }
+        setValue(idx, panel.getValue());
         fireStateChanged();
     }
 

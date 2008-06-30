@@ -82,7 +82,7 @@ public class EditorPanel extends BasePropertyEditor
         final JDialog dialog = (root instanceof Dialog) ?
             new JDialog((Dialog)root, title) :
                 new JDialog((Frame)(root instanceof Frame ? root : null), title);
-        EditorPanel epanel = new EditorPanel(ctx, catmode, null);
+        EditorPanel epanel = new EditorPanel(ctx, catmode);
         dialog.add(epanel, BorderLayout.CENTER);
         epanel.setObject(object);
         JPanel bpanel = new JPanel();
@@ -111,7 +111,17 @@ public class EditorPanel extends BasePropertyEditor
      */
     public EditorPanel (EditorContext ctx)
     {
-        this(ctx, CategoryMode.PANELS, null);
+        this(ctx, CategoryMode.PANELS);
+    }
+
+    /**
+     * Creates an empty editor panel.
+     *
+     * @param catmode determines how different property categories will be displayed.
+     */
+    public EditorPanel (EditorContext ctx, CategoryMode catmode)
+    {
+        this(ctx, catmode, null);
     }
 
     /**
@@ -123,11 +133,26 @@ public class EditorPanel extends BasePropertyEditor
      */
     public EditorPanel (EditorContext ctx, CategoryMode catmode, Property[] ancestors)
     {
+        this(ctx, catmode, ancestors, false);
+    }
+
+    /**
+     * Creates an empty editor panel.
+     *
+     * @param catmode determines how different property categories will be displayed.
+     * @param ancestors the ancestor properties from which constraints are inherited.  If this is
+     * non-null, the panel is assumed to be embedded within another.
+     * @param omitColumns if true, do not add editors for the properties flagged as columns.
+     */
+    public EditorPanel (
+        EditorContext ctx, CategoryMode catmode, Property[] ancestors, boolean omitColumns)
+    {
         _ctx = ctx;
         _msgmgr = ctx.getMessageManager();
         _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
         _catmode = catmode;
         _ancestors = ancestors;
+        _omitColumns = omitColumns;
 
         // add a mapping to copy the path of the property under the mouse cursor to the clipboard
         if (ancestors == null) {
@@ -151,7 +176,7 @@ public class EditorPanel extends BasePropertyEditor
      */
     protected void copyPropertyPath ()
     {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         getMousePath(buf);
         if (buf.length() > 0) {
             StringSelection contents = new StringSelection(buf.toString());
@@ -313,7 +338,8 @@ public class EditorPanel extends BasePropertyEditor
         String hgroup = null;
         for (Property prop : props) {
             Editable annotation = prop.getAnnotation();
-            if (category == null || annotation.category().equals(category)) {
+            if ((category == null || annotation.category().equals(category)) &&
+                    !(_omitColumns && annotation.column())) {
                 String ahgroup = annotation.hgroup();
                 if (ahgroup.length() > 0) {
                     if (hpanel == null || !ahgroup.equals(hgroup)) {
@@ -351,6 +377,9 @@ public class EditorPanel extends BasePropertyEditor
 
     /** The ancestor properties from which constraints are inherited. */
     protected Property[] _ancestors;
+
+    /** If true, do not add editors for the properties flagged as columns. */
+    protected boolean _omitColumns;
 
     /** The object being edited. */
     protected Object _object;
