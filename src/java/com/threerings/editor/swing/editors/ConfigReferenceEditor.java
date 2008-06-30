@@ -27,6 +27,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.swing.ConfigChooser;
+import com.threerings.config.tools.BaseConfigEditor;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
@@ -57,7 +58,13 @@ public class ConfigReferenceEditor extends PropertyEditor
             nvalue = new ConfigReference(_chooser.getSelectedConfig());
 
         } else if (source == _edit) {
-            // TODO
+            BaseConfigEditor editor = BaseConfigEditor.createEditor(
+                _ctx, _property.getArgumentType(ConfigReference.class), ovalue.getName());
+            Point pt = getLocationOnScreen();
+            editor.setLocation(
+                pt.x + (getWidth() - editor.getWidth()) / 2,
+                pt.y + (getHeight() - editor.getHeight()) / 2);
+            editor.setVisible(true);
             return;
 
         } else if (source == _reload) {
@@ -153,7 +160,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         // resolve the configuration reference
         @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
             (Class<ManagedConfig>)_property.getArgumentType(ConfigReference.class);
-        ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, value.getName());
+        ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, name);
         if (!(config instanceof ParameterizedConfig)) {
             _arguments.removeAll();
             return;

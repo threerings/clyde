@@ -168,6 +168,11 @@ public class ResourceEditor extends BaseConfigEditor
         add(_epanel = new EditorPanel(this, EditorPanel.CategoryMode.TABS, null),
             BorderLayout.CENTER);
         _epanel.addChangeListener(this);
+
+        // open the initial config, if one was specified
+        if (config != null) {
+            open(new File(config));
+        }
     }
 
     // documentation inherited from interface ChangeListener

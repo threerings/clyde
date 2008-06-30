@@ -32,6 +32,22 @@ public abstract class BaseConfigEditor extends JFrame
     implements EditorContext, ActionListener
 {
     /**
+     * Utility method to create an editor for the identified config.
+     */
+    public static BaseConfigEditor createEditor (EditorContext ctx, Class clazz, String name)
+    {
+        MessageManager msgmgr = ctx.getMessageManager();
+        ConfigManager cfgmgr = ctx.getConfigManager();
+        if (cfgmgr.isResourceClass(clazz)) {
+            return new ResourceEditor(
+                msgmgr, cfgmgr.getRoot(),
+                ctx.getResourceManager().getResourceFile(name).toString());
+        } else {
+            return new ConfigEditor(msgmgr, cfgmgr, clazz, name);
+        }
+    }
+
+    /**
      * Creates a new config editor.
      */
     public BaseConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, String msgs)

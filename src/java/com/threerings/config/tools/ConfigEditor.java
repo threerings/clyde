@@ -86,6 +86,14 @@ public class ConfigEditor extends BaseConfigEditor
      */
     public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr)
     {
+        this(msgmgr, cfgmgr, null, null);
+    }
+
+    /**
+     * Creates a new config editor.
+     */
+    public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, Class clazz, String name)
+    {
         super(msgmgr, cfgmgr, "config");
         setSize(800, 600);
         SwingUtil.centerWindow(this);
@@ -180,6 +188,11 @@ public class ConfigEditor extends BaseConfigEditor
             }
             protected ManagerPanel _panel = panel;
         });
+
+        // open the initial config, if one was specified
+        if (clazz != null) {
+            select(clazz, name);
+        }
     }
 
     // documentation inherited from interface ClipboardOwner
@@ -229,6 +242,19 @@ public class ConfigEditor extends BaseConfigEditor
             panel.cfgmgr.revertAll();
         } else {
             super.actionPerformed(event);
+        }
+    }
+
+    /**
+     * Selects a configuration.
+     */
+    protected void select (Class clazz, String name)
+    {
+        for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
+            ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(ii);
+            if (panel.select(clazz, name)) {
+                return;
+            }
         }
     }
 
@@ -402,6 +428,20 @@ public class ConfigEditor extends BaseConfigEditor
                 _tree.selectedConfigChanged();
             }
 
+            /**
+             * Attempts to select the specified config within this group.
+             */
+            public boolean select (String name)
+            {
+                if (group.getConfig(name) == null) {
+                    return false;
+                }
+                _tabs.setSelectedComponent(ManagerPanel.this);
+                gbox.setSelectedItem(this);
+                _tree.setSelectedNode(name);
+                return true;
+            }
+
             // documentation inherited from interface TreeSelectionListener
             public void valueChanged (TreeSelectionEvent event)
             {
@@ -528,6 +568,20 @@ public class ConfigEditor extends BaseConfigEditor
         {
             // remove the editor panel
             ConfigEditor.this.remove(_epanel);
+        }
+
+        /**
+         * Attempts to select the specified config.
+         */
+        public boolean select (Class clazz, String name)
+        {
+            for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
+                GroupItem item = (GroupItem)gbox.getItemAt(ii);
+                if (item.group.getConfigClass() == clazz) {
+                    return item.select(name);
+                }
+            }
+            return false;
         }
 
         // documentation inherited from interface EditorContext
