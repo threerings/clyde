@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.lang.reflect.Array;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,16 +29,15 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
-import com.threerings.util.DeepObject;
-import com.threerings.util.DeepOmit;
+import com.threerings.util.Copyable;
 
 import static com.threerings.ClydeLog.*;
 
 /**
  * Contains a group of managed configurations, all of the same class.
  */
-public class ConfigGroup<T extends ManagedConfig> extends DeepObject
-    implements Exportable
+public class ConfigGroup<T extends ManagedConfig>
+    implements Copyable, Exportable
 {
     /**
      * Returns the group name for the specified config class.
@@ -75,6 +75,11 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
         // load the existing configurations (first checking for a binary file, then an xml file)
         if (_cfgmgr.getConfigPath() != null && (readConfigs(false) || readConfigs(true))) {
             log.debug("Read configurations for group " + _name + ".");
+        }
+
+        // provide the configurations with a reference to the manager
+        for (T config : _configsByName.values()) {
+            config.init(_cfgmgr);
         }
     }
 
@@ -253,33 +258,7 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
             return;
         }
         @SuppressWarnings("unchecked") T[] nconfigs = (T[])array;
-
-        // add any configurations that don't already exist and update those that do
-        HashSet<String> names = new HashSet<String>();
-        for (T nconfig : nconfigs) {
-            String name = nconfig.getName();
-            names.add(name);
-            T oconfig = _configsByName.get(name);
-            if (oconfig == null) {
-                addConfig(nconfig);
-            } else if (!nconfig.equals(oconfig)) {
-                nconfig.copy(oconfig);
-                oconfig.wasUpdated();
-            }
-        }
-        if (merge) {
-            return;
-        }
-
-        // remove any configurations not present in the array (if not merging)
-        @SuppressWarnings("unchecked") T[] oconfigs =
-            (T[])Array.newInstance(_cclass, _configsByName.size());
-        _configsByName.values().toArray(oconfigs);
-        for (T oconfig : oconfigs) {
-            if (!names.contains(oconfig.getName())) {
-                removeConfig(oconfig);
-            }
-        }
+        load(Arrays.asList(nconfigs), merge, false);
     }
 
     /**
@@ -306,6 +285,15 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
 
         // populate the maps
         initConfigs(configs);
+    }
+
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest)
+    {
+        @SuppressWarnings("unchecked") ConfigGroup<T> other =
+            (dest instanceof ConfigGroup) ? (ConfigGroup<T>)dest : new ConfigGroup<T>(_cclass);
+        other.load(_configsByName.values(), false, true);
+        return other;
     }
 
     /**
@@ -349,7 +337,7 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
     }
 
     /**
-     * Initializes the set of configs.
+     * Sets the initial set of configs.
      */
     protected void initConfigs (T[] configs)
     {
@@ -360,7 +348,6 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
                 _highestId = Math.max(_highestId, id);
                 _configsById.put(id, config);
             }
-            config.init(_cfgmgr);
         }
         for (int id = _highestId - 1; id >= 1; id--) {
             if (!_configsById.containsKey(id)) {
@@ -376,6 +363,43 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
     {
         String name = _cfgmgr.getConfigPath() + _name + (xml ? ".xml" : ".dat");
         return _cfgmgr.getResourceManager().getResourceFile(name);
+    }
+
+    /**
+     * Loads the specified configurations.
+     *
+     * @param merge if true, merge with the existing configurations; do not delete configurations
+     * that do not exist in the collection.
+     * @param clone if true, we must clone configurations that do not yet exist in the group.
+     */
+    protected void load (Collection<T> nconfigs, boolean merge, boolean clone)
+    {
+        // add any configurations that don't already exist and update those that do
+        HashSet<String> names = new HashSet<String>();
+        for (T nconfig : nconfigs) {
+            String name = nconfig.getName();
+            names.add(name);
+            T oconfig = _configsByName.get(name);
+            if (oconfig == null) {
+                addConfig(clone ? _cclass.cast(nconfig.clone()) : nconfig);
+            } else if (!nconfig.equals(oconfig)) {
+                nconfig.copy(oconfig);
+                oconfig.wasUpdated();
+            }
+        }
+        if (merge) {
+            return;
+        }
+
+        // remove any configurations not present in the array (if not merging)
+        @SuppressWarnings("unchecked") T[] oconfigs =
+            (T[])Array.newInstance(_cclass, _configsByName.size());
+        _configsByName.values().toArray(oconfigs);
+        for (T oconfig : oconfigs) {
+            if (!names.contains(oconfig.getName())) {
+                removeConfig(oconfig);
+            }
+        }
     }
 
     /**
@@ -441,11 +465,9 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
     }
 
     /** The configuration manager that created this group. */
-    @DeepOmit
     protected ConfigManager _cfgmgr;
 
     /** The name of this group. */
-    @DeepOmit
     protected String _name;
 
     /** The configuration class. */
@@ -455,18 +477,14 @@ public class ConfigGroup<T extends ManagedConfig> extends DeepObject
     protected HashMap<String, T> _configsByName = new HashMap<String, T>();
 
     /** Configurations mapped by integer identifier. */
-    @DeepOmit
     protected HashIntMap<T> _configsById;
 
     /** The highest id in use.  The next id is guaranteed to be available. */
-    @DeepOmit
     protected int _highestId;
 
     /** Free ids below the highest. */
-    @DeepOmit
     protected ArrayList<Integer> _freeIds;
 
     /** Configuration event listeners. */
-    @DeepOmit
     protected ObserverList<ConfigGroupListener<T>> _listeners;
 }

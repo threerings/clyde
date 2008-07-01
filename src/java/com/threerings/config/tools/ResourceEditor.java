@@ -279,6 +279,7 @@ public class ResourceEditor extends BaseConfigEditor
         try {
             BinaryImporter in = new BinaryImporter(new FileInputStream(file));
             config = (ManagedConfig)in.readObject();
+            config.init(_cfgmgr);
             in.close();
         } catch (IOException e) {
             log.warning("Failed to open config [file=" + file + "].", e);
@@ -324,6 +325,7 @@ public class ResourceEditor extends BaseConfigEditor
         if (!ObjectUtil.equals(opath, npath)) {
             if (opath != null) {
                 config = (ManagedConfig)config.clone();
+                config.init(_cfgmgr);
             }
             if (npath != null) {
                 config = _cfgmgr.updateResourceConfig(npath, config);

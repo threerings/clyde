@@ -86,6 +86,12 @@ public class ParameterizedConfig extends ManagedConfig
     }
 
     @Override // documentation inherited
+    public void init (ConfigManager cfgmgr)
+    {
+        _cfgmgr = cfgmgr;
+    }
+
+    @Override // documentation inherited
     public void wasUpdated ()
     {
         // invalidate the parameter properties
@@ -112,12 +118,6 @@ public class ParameterizedConfig extends ManagedConfig
             applyArguments(instance, entry.getKey());
             instance.wasUpdated();
         }
-    }
-
-    @Override // documentation inherited
-    public void init (ConfigManager cfgmgr)
-    {
-        _cfgmgr = cfgmgr;
     }
 
     /**

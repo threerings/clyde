@@ -24,16 +24,15 @@ import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
-import com.threerings.util.DeepObject;
-import com.threerings.util.DeepOmit;
+import com.threerings.util.Copyable;
 
 import static com.threerings.ClydeLog.*;
 
 /**
  * Manages the set of loaded configurations.
  */
-public class ConfigManager extends DeepObject
-    implements Exportable
+public class ConfigManager
+    implements Copyable, Exportable
 {
     /**
      * Creates a new global configuration manager.
@@ -343,7 +342,6 @@ public class ConfigManager extends DeepObject
         ManagedConfig oconfig = _resources.get(name);
         if (oconfig == null) {
             _resources.put(name, config);
-            config.init(getRoot());
             return config;
         } else {
             config.copy(oconfig);
@@ -379,6 +377,19 @@ public class ConfigManager extends DeepObject
         for (ConfigGroup group : groups) {
             _groups.put(group.getConfigClass(), group);
         }
+    }
+
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest)
+    {
+        ConfigManager other = (dest instanceof ConfigManager) ?
+            (ConfigManager)dest : new ConfigManager();
+        for (ConfigGroup group : _groups.values()) {
+            Class clazz = group.getConfigClass();
+            ConfigGroup ogroup = other._groups.get(clazz);
+            other._groups.put(clazz, (ConfigGroup)group.copy(ogroup));
+        }
+        return other;
     }
 
     /**
