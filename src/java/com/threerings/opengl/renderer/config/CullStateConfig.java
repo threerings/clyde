@@ -39,14 +39,20 @@ public class CullStateConfig extends DeepObject
     }
 
     /** The cull face. */
-    @Editable
+    @Editable(hgroup="f")
     public Face face = Face.DISABLED;
+
+    /** If true, do not use a shared instance. */
+    @Editable(hgroup="f")
+    public boolean uniqueInstance;
 
     /**
      * Returns the corresponding color state.
      */
     public CullState getState ()
     {
-        return CullState.getInstance(face.getConstant());
+        return uniqueInstance ?
+            new CullState(face.getConstant()) :
+            CullState.getInstance(face.getConstant());
     }
 }

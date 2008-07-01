@@ -17,14 +17,18 @@ public class ColorStateConfig extends DeepObject
     implements Exportable
 {
     /** The color. */
-    @Editable(mode="alpha")
+    @Editable(mode="alpha", hgroup="c")
     public Color4f color = new Color4f(Color4f.WHITE);
+
+    /** If true, do not use a shared instance. */
+    @Editable(hgroup="c")
+    public boolean uniqueInstance;
 
     /**
      * Returns the corresponding color state.
      */
     public ColorState getState ()
     {
-        return ColorState.getInstance(color);
+        return uniqueInstance ? new ColorState(color) : ColorState.getInstance(color);
     }
 }

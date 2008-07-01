@@ -50,11 +50,17 @@ public class DepthStateConfig extends DeepObject
     @Editable(hgroup="d")
     public boolean mask = true;
 
+    /** If true, do not use a shared instance. */
+    @Editable
+    public boolean uniqueInstance;
+
     /**
      * Returns the corresponding depth state.
      */
     public DepthState getState ()
     {
-        return DepthState.getInstance(testFunc.getConstant(), mask);
+        return uniqueInstance ?
+            new DepthState(testFunc.getConstant(), mask) :
+            DepthState.getInstance(testFunc.getConstant(), mask);
     }
 }

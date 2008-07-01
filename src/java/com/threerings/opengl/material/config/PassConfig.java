@@ -67,13 +67,13 @@ public class PassConfig extends DeepObject
     @Editable(nullable=true)
     public MaterialStateConfig materialState = new MaterialStateConfig.OneSided();
 
-    /** The polygon state to use in this pass. */
-    @Editable
-    public PolygonStateConfig polygonState = new PolygonStateConfig();
-
     /** The point state. */
     @Editable(nullable=true)
     public PointStateConfig pointState;
+
+    /** The polygon state to use in this pass. */
+    @Editable
+    public PolygonStateConfig polygonState = new PolygonStateConfig();
 
     /** The shader state to use in this pass. */
     @Editable(nullable=true)
@@ -109,8 +109,8 @@ public class PassConfig extends DeepObject
         states[RenderState.LINE_STATE] = (lineState == null) ? null : lineState.getState();
         states[RenderState.MATERIAL_STATE] =
             (materialState == null) ? null : materialState.getState();
-        states[RenderState.POLYGON_STATE] = polygonState.getState();
         states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
+        states[RenderState.POLYGON_STATE] = polygonState.getState();
         states[RenderState.SHADER_STATE] = shaderState.getState(ctx);
         states[RenderState.STENCIL_STATE] = stencilState.getState();
         states[RenderState.TEXTURE_STATE] = textureState.getState(ctx);

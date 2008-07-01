@@ -15,6 +15,7 @@ import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
+import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.model.tools.xml.ModelParser;
 
@@ -108,6 +109,8 @@ public class ModelConfig extends ParameterizedConfig
      */
     public static class Static extends Imported
     {
+        /** The model's collision mesh. */
+        protected CollisionMesh _cmesh;
     }
 
     /**

@@ -109,13 +109,21 @@ public class AlphaStateConfig extends DeepObject
     @Editable(hgroup="b")
     public DestBlendFactor destBlendFactor = DestBlendFactor.ZERO;
 
+    /** If true, do not use a shared instance. */
+    @Editable
+    public boolean uniqueInstance;
+
     /**
      * Returns the corresponding alpha state.
      */
     public AlphaState getState ()
     {
-        return AlphaState.getInstance(
-            testFunc.getConstant(), testRef, srcBlendFactor.getConstant(),
-            destBlendFactor.getConstant());
+        return uniqueInstance ?
+            new AlphaState(
+                testFunc.getConstant(), testRef, srcBlendFactor.getConstant(),
+                destBlendFactor.getConstant()) :
+            AlphaState.getInstance(
+                testFunc.getConstant(), testRef, srcBlendFactor.getConstant(),
+                destBlendFactor.getConstant());
     }
 }

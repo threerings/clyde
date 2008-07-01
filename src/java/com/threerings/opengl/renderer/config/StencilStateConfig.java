@@ -93,13 +93,21 @@ public class StencilStateConfig extends DeepObject
     @Editable(hgroup="m")
     public int writeMask = 0x7FFFFFFF;
 
+    /** If true, do not use a shared instance. */
+    @Editable
+    public boolean uniqueInstance;
+
     /**
      * Returns the corresponding stencil state.
      */
     public StencilState getState ()
     {
-        return StencilState.getInstance(
-            testFunc.getConstant(), testRef, testMask, failOp.getConstant(),
-            depthFailOp.getConstant(), passOp.getConstant(), writeMask);
+        return uniqueInstance ?
+            new StencilState(
+                testFunc.getConstant(), testRef, testMask, failOp.getConstant(),
+                depthFailOp.getConstant(), passOp.getConstant(), writeMask) :
+            StencilState.getInstance(
+                testFunc.getConstant(), testRef, testMask, failOp.getConstant(),
+                depthFailOp.getConstant(), passOp.getConstant(), writeMask);
     }
 }

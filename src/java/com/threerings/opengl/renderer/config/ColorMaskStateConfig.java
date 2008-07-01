@@ -31,11 +31,17 @@ public class ColorMaskStateConfig extends DeepObject
     @Editable(hgroup="m")
     public boolean alpha = true;
 
+    /** If true, do not use a shared instance. */
+    @Editable
+    public boolean uniqueInstance;
+
     /**
      * Returns the corresponding color mask state.
      */
     public ColorMaskState getState ()
     {
-        return ColorMaskState.getInstance(red, green, blue, alpha);
+        return uniqueInstance ?
+            new ColorMaskState(red, green, blue, alpha) :
+            ColorMaskState.getInstance(red, green, blue, alpha);
     }
 }

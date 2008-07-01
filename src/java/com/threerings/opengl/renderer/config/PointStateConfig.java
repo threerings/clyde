@@ -16,14 +16,18 @@ public class PointStateConfig extends DeepObject
     implements Exportable
 {
     /** The point size. */
-    @Editable(min=1)
+    @Editable(min=1, hgroup="p")
     public float pointSize = 1f;
+
+    /** If true, do not use a shared instance. */
+    @Editable(hgroup="p")
+    public boolean uniqueInstance;
 
     /**
      * Returns the corresponding point state.
      */
     public PointState getState ()
     {
-        return PointState.getInstance(pointSize);
+        return uniqueInstance ? new PointState(pointSize) : PointState.getInstance(pointSize);
     }
 }

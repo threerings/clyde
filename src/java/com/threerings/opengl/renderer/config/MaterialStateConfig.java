@@ -105,9 +105,13 @@ public abstract class MaterialStateConfig extends DeepObject
         @Override // documentation inherited
         public MaterialState getState ()
         {
-            return MaterialState.getInstance(
-                ambient, diffuse, specular, emission, shininess,
-                colorMaterialMode.getConstant(), localViewer, separateSpecular, flatShading);
+            return uniqueInstance ?
+                new MaterialState(
+                    ambient, diffuse, specular, emission, shininess,
+                    colorMaterialMode.getConstant(), localViewer, separateSpecular, flatShading) :
+                MaterialState.getInstance(
+                    ambient, diffuse, specular, emission, shininess,
+                    colorMaterialMode.getConstant(), localViewer, separateSpecular, flatShading);
         }
     }
 
@@ -142,11 +146,17 @@ public abstract class MaterialStateConfig extends DeepObject
         @Override // documentation inherited
         public MaterialState getState ()
         {
-            return MaterialState.getInstance(
-                front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
-                back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
-                colorMaterialMode.getConstant(), colorMaterialFace.getConstant(),
-                localViewer, separateSpecular, flatShading);
+            return uniqueInstance ?
+                new MaterialState(
+                    front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
+                    back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
+                    colorMaterialMode.getConstant(), colorMaterialFace.getConstant(),
+                    localViewer, separateSpecular, flatShading) :
+                MaterialState.getInstance(
+                    front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
+                    back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
+                    colorMaterialMode.getConstant(), colorMaterialFace.getConstant(),
+                    localViewer, separateSpecular, flatShading);
         }
     }
 
@@ -204,6 +214,10 @@ public abstract class MaterialStateConfig extends DeepObject
     /** The flat shading flag. */
     @Editable(hgroup="m3", weight=2)
     public boolean flatShading;
+
+    /** If true, do not use a shared instance. */
+    @Editable(weight=2)
+    public boolean uniqueInstance;
 
     public MaterialStateConfig (MaterialStateConfig other)
     {

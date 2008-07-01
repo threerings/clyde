@@ -16,14 +16,18 @@ public class LineStateConfig extends DeepObject
     implements Exportable
 {
     /** The line width. */
-    @Editable(min=1)
+    @Editable(min=1, hgroup="l")
     public float lineWidth = 1f;
+
+    /** If true, do not use a shared instance. */
+    @Editable(hgroup="l")
+    public boolean uniqueInstance;
 
     /**
      * Returns the corresponding line state.
      */
     public LineState getState ()
     {
-        return LineState.getInstance(lineWidth);
+        return uniqueInstance ? new LineState(lineWidth) : LineState.getInstance(lineWidth);
     }
 }

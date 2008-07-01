@@ -53,12 +53,19 @@ public class PolygonStateConfig extends DeepObject
     @Editable(hgroup="o")
     public float offsetUnits;
 
+    /** If true, do not use a shared instance. */
+    @Editable
+    public boolean uniqueInstance;
+
     /**
      * Returns the corresponding polygon state.
      */
     public PolygonState getState ()
     {
-        return PolygonState.getInstance(
-            frontMode.getConstant(), backMode.getConstant(), offsetFactor, offsetUnits);
+        return uniqueInstance ?
+            new PolygonState(
+                frontMode.getConstant(), backMode.getConstant(), offsetFactor, offsetUnits) :
+            PolygonState.getInstance(
+                frontMode.getConstant(), backMode.getConstant(), offsetFactor, offsetUnits);
     }
 }
