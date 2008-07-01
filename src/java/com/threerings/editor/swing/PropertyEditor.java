@@ -5,20 +5,14 @@ package com.threerings.editor.swing;
 
 import java.awt.Point;
 
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 
 import java.io.File;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.google.common.collect.Maps;
-
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.ObjectUtil;
 
 import com.threerings.config.ConfigReference;
 
@@ -295,86 +289,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
         }
     }
 
-    /**
-     * A key for pooled property editor instances.
-     */
-    protected static class EditorKey
-    {
-        public EditorKey (EditorContext ctx, Property property, Property[] ancestors)
-        {
-            _ctx = new WeakReference<EditorContext>(ctx);
-            _property = new WeakReference<Property>(property);
-            @SuppressWarnings("unchecked") WeakReference<Property>[] array =
-                (WeakReference<Property>[])new WeakReference[ancestors.length];
-            _ancestors = array;
-            for (int ii = 0; ii < ancestors.length; ii++) {
-                _ancestors[ii] = new WeakReference<Property>(ancestors[ii]);
-            }
-        }
-
-        /**
-         * Checks whether this key is still valid (that is, whether none of its fields have been
-         * collected).
-         */
-        public boolean isValid ()
-        {
-            if (_ctx.get() == null || _property.get() == null) {
-                return false;
-            }
-            for (WeakReference<Property> ancestor : _ancestors) {
-                if (ancestor.get() == null) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override // documentation inherited
-        public int hashCode ()
-        {
-            int hash = System.identityHashCode(_ctx.get())*31 + hashCode(_property);
-            for (WeakReference<Property> ancestor : _ancestors) {
-                hash = hash*31 + hashCode(ancestor);
-            }
-            return hash;
-        }
-
-        @Override // documentation inherited
-        public boolean equals (Object other)
-        {
-            EditorKey okey = (EditorKey)other;
-            if (_ctx.get() != okey._ctx.get() ||
-                    !ObjectUtil.equals(_property.get(), okey._property.get()) ||
-                    _ancestors.length != okey._ancestors.length) {
-                return false;
-            }
-            for (int ii = 0; ii < _ancestors.length; ii++) {
-                if (!ObjectUtil.equals(_ancestors[ii].get(), okey._ancestors[ii].get())) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        /**
-         * Returns the hash code for the referenced property.
-         */
-        protected int hashCode (WeakReference<Property> ref)
-        {
-            Property prop = ref.get();
-            return (prop == null) ? 0 : prop.hashCode();
-        }
-
-        /** The context in which to create the editor. */
-        protected WeakReference<EditorContext> _ctx;
-
-        /** The property to edit. */
-        protected WeakReference<Property> _property;
-
-        /** The property's ancestors. */
-        protected WeakReference<Property>[] _ancestors;
-    }
-
     /** Provides access to common services. */
     protected EditorContext _ctx;
 
@@ -420,8 +334,4 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass(Transform3D.class, Transform3DEditor.class);
         registerEditorClass(Vector3f.class, Vector3fEditor.class);
     }
-
-    /** The pool of property editor instances. */
-    protected static HashMap<EditorKey, ArrayList<SoftReference<PropertyEditor>>> _pool =
-        Maps.newHashMap();
 }
