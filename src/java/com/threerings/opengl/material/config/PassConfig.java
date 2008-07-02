@@ -8,6 +8,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Binding;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.geom.config.PassDescriptor;
 import com.threerings.opengl.renderer.config.AlphaStateConfig;
 import com.threerings.opengl.renderer.config.ColorMaskStateConfig;
 import com.threerings.opengl.renderer.config.ColorStateConfig;
@@ -17,6 +18,7 @@ import com.threerings.opengl.renderer.config.FogStateConfig;
 import com.threerings.opengl.renderer.config.LightStateConfig;
 import com.threerings.opengl.renderer.config.LineStateConfig;
 import com.threerings.opengl.renderer.config.MaterialStateConfig;
+import com.threerings.opengl.renderer.config.MaterialStateConfig.ColorMaterialMode;
 import com.threerings.opengl.renderer.config.PointStateConfig;
 import com.threerings.opengl.renderer.config.PolygonStateConfig;
 import com.threerings.opengl.renderer.config.ShaderStateConfig;
@@ -76,8 +78,8 @@ public class PassConfig extends DeepObject
     public PolygonStateConfig polygonState = new PolygonStateConfig();
 
     /** The shader state to use in this pass. */
-    @Editable(nullable=true)
-    public ShaderStateConfig shaderState;
+    @Editable
+    public ShaderStateConfig shaderState = new ShaderStateConfig.Disabled();
 
     /** The stencil state to use in this pass. */
     @Editable
@@ -90,6 +92,20 @@ public class PassConfig extends DeepObject
     /** The bindings to use in this pass. */
     @Editable
     public Binding[] bindings = new Binding[0];
+
+    /**
+     * Returns a descriptor for this pass that can be used to configure a geometry instance.
+     */
+    public PassDescriptor createDescriptor (GlContext ctx)
+    {
+        PassDescriptor desc = new PassDescriptor();
+        shaderState.populateDescriptor(ctx, desc);
+        textureState.populateDescriptor(desc);
+        desc.colors |= !(lightStateOverride instanceof LightStateConfig.Enabled) ||
+            materialState == null || materialState.colorMaterialMode != ColorMaterialMode.DISABLED;
+        desc.normals |= !(lightStateOverride instanceof LightStateConfig.Disabled);
+        return desc;
+    }
 
     /**
      * Creates the set of states for this pass.

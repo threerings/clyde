@@ -20,6 +20,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
+import com.threerings.opengl.geom.config.PassDescriptor;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Program.FloatUniform;
 import com.threerings.opengl.renderer.Program.IntegerUniform;
@@ -42,6 +43,11 @@ public class ShaderConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
+        /**
+         * Populates the relevant portion of the supplied descriptor.
+         */
+        public abstract void populateDescriptor (GlContext ctx, PassDescriptor desc);
+
         /**
          * Returns the shader corresponding to this configuration.
          */
@@ -77,9 +83,21 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static class Vertex extends Original
     {
+        /** Hints to pass to the geometry handler. */
+        @Editable(width=15)
+        public String[] hints = new String[0];
+
         /** The names of the attributes required by this shader. */
         @Editable(width=15)
         public String[] attributes = new String[0];
+
+        /** Whether or not the shader uses the color state. */
+        @Editable(hgroup="t")
+        public boolean colors = true;
+
+        /** Whether or not the shader uses the normal state. */
+        @Editable(hgroup="t")
+        public boolean normals = true;
 
         /**
          * The initial contents of the shader.
@@ -131,6 +149,15 @@ public class ShaderConfig extends ParameterizedConfig
         /** The initial contents of the shader. */
         @Editable
         public Contents contents = new SourceFile();
+
+        @Override // documentation inherited
+        public void populateDescriptor (GlContext ctx, PassDescriptor desc)
+        {
+            desc.hints = hints;
+            desc.vertexAttribs = attributes;
+            desc.colors |= colors;
+            desc.normals |= normals;
+        }
 
         @Override // documentation inherited
         public Shader getShader (GlContext ctx)
@@ -196,6 +223,12 @@ public class ShaderConfig extends ParameterizedConfig
         public Contents contents = new SourceFile();
 
         @Override // documentation inherited
+        public void populateDescriptor (GlContext ctx, PassDescriptor desc)
+        {
+            // no-op
+        }
+
+        @Override // documentation inherited
         public Shader getShader (GlContext ctx)
         {
             return contents.getShader(ctx);
@@ -210,6 +243,15 @@ public class ShaderConfig extends ParameterizedConfig
         /** The shader reference. */
         @Editable(nullable=true)
         public ConfigReference<ShaderConfig> shader;
+
+        @Override // documentation inherited
+        public void populateDescriptor (GlContext ctx, PassDescriptor desc)
+        {
+            ShaderConfig config = getConfig(ctx);
+            if (config != null) {
+                config.populateDescriptor(ctx, desc);
+            }
+        }
 
         @Override // documentation inherited
         public Shader getShader (GlContext ctx)
@@ -425,6 +467,14 @@ public class ShaderConfig extends ParameterizedConfig
     /** The actual shader implementation. */
     @Editable
     public Implementation implementation = new Vertex();
+
+    /**
+     * Populates the relevant portion of the supplied descriptor.
+     */
+    public void populateDescriptor (GlContext ctx, PassDescriptor desc)
+    {
+        implementation.populateDescriptor(ctx, desc);
+    }
 
     /**
      * Returns the shader corresponding to this configuration.

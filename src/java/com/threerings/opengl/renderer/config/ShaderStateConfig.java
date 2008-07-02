@@ -11,6 +11,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.geom.config.PassDescriptor;
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.Shader;
@@ -49,6 +50,17 @@ public abstract class ShaderStateConfig extends DeepObject
         /** The fragment shader to use. */
         @Editable(nullable=true)
         public ConfigReference<ShaderConfig> fragment;
+
+        @Override // documentation inherited
+        public void populateDescriptor (GlContext ctx, PassDescriptor desc)
+        {
+            ShaderConfig vconfig = getShaderConfig(ctx, vertex);
+            if (vconfig != null) {
+                vconfig.populateDescriptor(ctx, desc);
+            } else {
+                super.populateDescriptor(ctx, desc);
+            }
+        }
 
         @Override // documentation inherited
         public ShaderState getState (GlContext ctx)
@@ -95,6 +107,15 @@ public abstract class ShaderStateConfig extends DeepObject
                 }
             }
         }
+    }
+
+    /**
+     * Populates the relevant portion of the supplied descriptor.
+     */
+    public void populateDescriptor (GlContext ctx, PassDescriptor desc)
+    {
+        desc.hints = new String[0];
+        desc.vertexAttribs = new String[0];
     }
 
     /**
