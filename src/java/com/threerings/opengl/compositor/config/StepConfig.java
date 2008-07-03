@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.compositor.config;
 
+import org.lwjgl.opengl.GL11;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -11,6 +13,10 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.renderer.state.ColorMaskState;
+import com.threerings.opengl.renderer.state.DepthState;
+import com.threerings.opengl.renderer.state.StencilState;
 
 /**
  * Represents a single step in the process of updating a target.
@@ -83,6 +89,32 @@ public abstract class StepConfig extends DeepObject
         /** Stencil buffer clear parameters. */
         @Editable
         public Stencil stencil = new Stencil();
+
+        /**
+         * Performs the clear operation.
+         */
+        public void execute (Renderer renderer)
+        {
+            int bits = 0;
+            if (color.clear) {
+                bits |= GL11.GL_COLOR_BUFFER_BIT;
+                renderer.setClearColor(color.value);
+                renderer.setState(ColorMaskState.ALL);
+            }
+            if (depth.clear) {
+                bits |= GL11.GL_DEPTH_BUFFER_BIT;
+                renderer.setClearDepth(depth.value);
+                renderer.setState(DepthState.TEST_WRITE);
+            }
+            if (stencil.clear) {
+                bits |= GL11.GL_STENCIL_BUFFER_BIT;
+                renderer.setClearStencil(stencil.value);
+                renderer.setState(StencilState.DISABLED);
+            }
+            if (bits != 0) {
+                GL11.glClear(bits);
+            }
+        }
     }
 
     /**

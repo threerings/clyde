@@ -433,7 +433,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", nullable=true, hgroup="f")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
                 extensions={".png", ".jpg"},
@@ -441,7 +441,7 @@ public class TextureConfig extends ParameterizedConfig
             public String file;
 
             /** Whether or not the image alpha should be premultiplied. */
-            @Editable(hgroup="f")
+            @Editable
             public boolean premultiply = true;
 
             @Override // documentation inherited
@@ -520,7 +520,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", nullable=true, hgroup="f")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
                 extensions={".png", ".jpg"},
@@ -528,7 +528,7 @@ public class TextureConfig extends ParameterizedConfig
             public String file;
 
             /** Whether or not the image alpha should be premultiplied. */
-            @Editable(hgroup="f")
+            @Editable
             public boolean premultiply = true;
 
             @Override // documentation inherited
@@ -623,7 +623,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", nullable=true, hgroup="f")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
                 extensions={".png", ".jpg"},
@@ -631,7 +631,7 @@ public class TextureConfig extends ParameterizedConfig
             public String file;
 
             /** Whether or not the image alpha should be premultiplied. */
-            @Editable(hgroup="f")
+            @Editable
             public boolean premultiply = true;
 
             /** The number of divisions in the S direction. */
@@ -721,7 +721,7 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFile extends Contents
         {
             /** The image resource from which to load the texture. */
-            @Editable(editor="resource", nullable=true, hgroup="f")
+            @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
                 extensions={".png", ".jpg"},
@@ -729,7 +729,7 @@ public class TextureConfig extends ParameterizedConfig
             public String file;
 
             /** Whether or not the image alpha should be premultiplied. */
-            @Editable(hgroup="f")
+            @Editable
             public boolean premultiply = true;
 
             /** The number of divisions in the S direction. */
@@ -761,11 +761,11 @@ public class TextureConfig extends ParameterizedConfig
         public static class ImageFiles extends Contents
         {
             /** The negative x, y, and z face files. */
-            @Editable(hgroup="f")
+            @Editable
             public FileTrio negative = new FileTrio();
 
             /** The positive x, y, and z face files. */
-            @Editable(hgroup="f")
+            @Editable
             public FileTrio positive = new FileTrio();
 
             /** Whether or not the image alpha should be premultiplied. */

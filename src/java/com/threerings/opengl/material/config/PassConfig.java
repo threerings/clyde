@@ -33,6 +33,13 @@ import com.threerings.opengl.util.GlContext;
 public class PassConfig extends DeepObject
     implements Exportable
 {
+    /** The basic pass types. */
+    public enum Type { OPAQUE, TRANSPARENT };
+
+    /** Identifies the type of the pass. */
+    @Editable
+    public Type type = Type.OPAQUE;
+
     /** The alpha state to use in this pass. */
     @Editable
     public AlphaStateConfig alphaState = new AlphaStateConfig();
