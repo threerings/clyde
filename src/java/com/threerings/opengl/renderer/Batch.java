@@ -20,9 +20,6 @@ public abstract class Batch
     /** A comparable representation of the batch's state. */
     public int[] key;
 
-    /** The batch's ortho queue layer. */
-    public int layer;
-
     /**
      * Draws this batch using the specified renderer.
      *

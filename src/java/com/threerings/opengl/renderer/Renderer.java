@@ -10,7 +10,6 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBBufferObject;
@@ -35,7 +34,6 @@ import com.samskivert.util.ComparableArrayList;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ObjectUtil;
-import com.samskivert.util.QuickSort;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
@@ -356,8 +354,7 @@ public class Renderer
             queue.render(this);
         }
 
-        // sort the ortho queue by layer, load the ortho matrix, and render
-        QuickSort.sort(_ortho, BY_LAYER);
+        // load the ortho matrix and render
         setMatrixMode(GL11.GL_PROJECTION);
         GL11.glPushMatrix();
         GL11.glLoadIdentity();
@@ -2622,13 +2619,6 @@ public class Renderer
 
     /** A buffer for double values. */
     protected DoubleBuffer _dbuf = BufferUtils.createDoubleBuffer(16);
-
-    /** Sorts batches by layer, back-to-front. */
-    protected static final Comparator<Batch> BY_LAYER = new Comparator<Batch>() {
-        public int compare (Batch b1, Batch b2) {
-            return (b1.layer == b2.layer) ? 0 : (b1.layer < b2.layer ? -1 : +1);
-        }
-    };
 
     /** An invalid buffer to force reapplication. */
     protected static final BufferObject INVALID_BUFFER = new BufferObject();
