@@ -31,6 +31,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
+import com.samskivert.util.ComparableArrayList;
+import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.QuickSort;
@@ -202,19 +204,87 @@ public class Renderer
     }
 
     /**
-     * Enqueues a batch for rendering in the opaque queue.
+     * Convenience method for enqueuing an opaque batch in the default layer with the default
+     * priority.
      */
     public void enqueueOpaque (Batch batch)
     {
-        _opaque.add(batch);
+        getQueue(0).addOpaque(batch, 0);
     }
 
     /**
-     * Enqueues a batch for rendering in the transparent queue.
+     * Convenience method for enqueuing an opaque batch in the specified layer with the default
+     * priority.
+     */
+    public void enqueueOpaque (Batch batch, int layer)
+    {
+        getQueue(layer).addOpaque(batch, 0);
+    }
+
+    /**
+     * Convenience method for enqueuing an opaque batch in the specified layer with the given
+     * priority.
+     */
+    public void enqueueOpaque (Batch batch, int layer, int priority)
+    {
+        getQueue(layer).addOpaque(batch, priority);
+    }
+
+    /**
+     * Convenience method for enqueuing a transparent batch in the default layer with the default
+     * priority.
      */
     public void enqueueTransparent (Batch batch)
     {
-        _transparent.add(batch);
+        getQueue(0).addTransparent(batch, 0);
+    }
+
+    /**
+     * Convenience method for enqueuing a transparent batch in the specified layer with the default
+     * priority.
+     */
+    public void enqueueTransparent (Batch batch, int layer)
+    {
+        getQueue(layer).addTransparent(batch, 0);
+    }
+
+    /**
+     * Convenience method for enqueuing a transparent batch in the specified layer with the given
+     * priority.
+     */
+    public void enqueueTransparent (Batch batch, int layer, int priority)
+    {
+        getQueue(layer).addTransparent(batch, priority);
+    }
+
+    /**
+     * Returns the render queue for the default layer.
+     */
+    public RenderQueue getQueue ()
+    {
+        return getQueue(0);
+    }
+
+    /**
+     * Returns a reference to the render queue for the specified layer.
+     */
+    public RenderQueue getQueue (int layer)
+    {
+        RenderQueue queue = _layers.get(layer);
+        if (queue == null) {
+            _layers.put(layer, queue = new RenderQueue(layer));
+            _queues.insertSorted(queue);
+        }
+        return queue;
+    }
+
+    /**
+     * Resets the set of render queues.
+     */
+    public void resetQueues ()
+    {
+        _layers.clear();
+        _queues.clear();
     }
 
     /**
@@ -247,15 +317,15 @@ public class Renderer
             if (_showStats) {
                 int fps = (int)((_frameCount * 1000) / interval);
                 _stats = _textFactory.createText(
-                    fps + " fps (" +
-                    "batches: " + _opaque.size() + " opaque, " + _transparent.size() + " transparent; " +
-                    "primitives: " + _primitiveCount + "; textures: " + _textureCount + ")",
+                    fps + " fps (" + "batches: " + _batchCount + "; " + "primitives: " +
+                    _primitiveCount + "; textures: " + _textureCount + ")",
                     Color4f.WHITE, 0, 0, Color4f.BLACK, true);
             }
             _timer.reset();
             _frameCount = 0;
         }
         _textureCount = 0;
+        _batchCount = 0;
         _primitiveCount = 0;
 
         // do the actual rendering
@@ -266,17 +336,25 @@ public class Renderer
     }
 
     /**
+     * Sorts the queues in preparation for rendering.
+     */
+    public void sortQueues ()
+    {
+        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+            _queues.get(ii).sort();
+        }
+    }
+
+    /**
      * Renders the contents of the queues.
      */
     public void renderQueues ()
     {
-        // sort the opaque queue by state and render
-        QuickSort.sort(_opaque, BY_KEY);
-        render(_opaque);
-
-        // sort the transparent queue by depth and render
-        QuickSort.sort(_transparent, BACK_TO_FRONT);
-        render(_transparent);
+        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+            RenderQueue queue = _queues.get(ii);
+            queue.sort();
+            queue.render(this);
+        }
 
         // sort the ortho queue by layer, load the ortho matrix, and render
         QuickSort.sort(_ortho, BY_LAYER);
@@ -293,10 +371,18 @@ public class Renderer
         setMatrixMode(GL11.GL_PROJECTION);
         GL11.glPopMatrix();
 
-        // clear the queues
-        _opaque.clear();
-        _transparent.clear();
+        clearQueues();
         _ortho.clear();
+    }
+
+    /**
+     * Clears the contents of the queues.
+     */
+    public void clearQueues ()
+    {
+        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+            _queues.get(ii).clear();
+        }
     }
 
     /**
@@ -1640,6 +1726,7 @@ public class Renderer
                 invalidateColorState();
             }
             if (_showStats) {
+                _batchCount++;
                 _primitiveCount += batch.getPrimitiveCount();
             }
         }
@@ -2003,24 +2090,6 @@ public class Renderer
     }
 
     /**
-     * Compares two packed state keys.
-     */
-    protected static int compareKeys (int[] k1, int[] k2)
-    {
-        int l1 = (k1 == null) ? 0 : k1.length;
-        int l2 = (k2 == null) ? 0 : k2.length;
-        int v1, v2, comp;
-        for (int ii = 0, nn = Math.max(l1, l2); ii < nn; ii++) {
-            v1 = (ii < l1) ? k1[ii] : 0;
-            v2 = (ii < l2) ? k2[ii] : 0;
-            if ((comp = v1 - v2) != 0) {
-                return comp;
-            }
-        }
-        return 0;
-    }
-
-    /**
      * Represents the state of a single clip plane.
      */
     protected static class ClipPlaneRecord extends Plane
@@ -2227,14 +2296,14 @@ public class Renderer
     /** The camera object. */
     protected Camera _camera;
 
-    /** The opaque render queue. */
-    protected ArrayList<Batch> _opaque = new ArrayList<Batch>();
-
-    /** The transparent render queue. */
-    protected ArrayList<Batch> _transparent = new ArrayList<Batch>();
-
     /** The ortho render queue. */
     protected ArrayList<Batch> _ortho = new ArrayList<Batch>();
+
+    /** Maps layers to their corresponding queues. */
+    protected HashIntMap<RenderQueue> _layers = new HashIntMap<RenderQueue>();
+
+    /** The set of render queues, sorted by layer. */
+    protected ComparableArrayList<RenderQueue> _queues = new ComparableArrayList<RenderQueue>();
 
     /** Used to create text objects for stats display. */
     protected CharacterTextFactory _textFactory;
@@ -2256,6 +2325,9 @@ public class Renderer
 
     /** The number of textures used in the current frame. */
     protected int _textureCount;
+
+    /** The number of batches rendered in the current frame. */
+    protected int _batchCount;
 
     /** The number of primitives rendered in the current frame. */
     protected int _primitiveCount;
@@ -2550,22 +2622,6 @@ public class Renderer
 
     /** A buffer for double values. */
     protected DoubleBuffer _dbuf = BufferUtils.createDoubleBuffer(16);
-
-    /** Sorts batches by state. */
-    protected static final Comparator<Batch> BY_KEY = new Comparator<Batch>() {
-        public int compare (Batch b1, Batch b2) {
-            // if keys are the same, sort front-to-back
-            int comp = compareKeys(b1.key, b2.key);
-            return (comp == 0) ? Float.compare(b2.depth, b1.depth) : comp;
-        }
-    };
-
-    /** Sorts batches by depth, back-to-front. */
-    protected static final Comparator<Batch> BACK_TO_FRONT = new Comparator<Batch>() {
-        public int compare (Batch b1, Batch b2) {
-            return Float.compare(b1.depth, b2.depth);
-        }
-    };
 
     /** Sorts batches by layer, back-to-front. */
     protected static final Comparator<Batch> BY_LAYER = new Comparator<Batch>() {

@@ -6,19 +6,38 @@ package com.threerings.opengl.renderer;
 import java.util.ArrayList;
 import java.util.Comparator;
 
+import com.samskivert.util.ComparableArrayList;
+import com.samskivert.util.HashIntMap;
 import com.samskivert.util.QuickSort;
 
 /**
  * Stores a group of {@link Batch}es enqueued for rendering.
  */
 public class RenderQueue
+    implements Comparable<RenderQueue>
 {
+    /**
+     * Creates a new render queue for the specified layer.
+     */
+    public RenderQueue (int layer)
+    {
+        _layer = layer;
+    }
+
     /**
      * Adds an opaque batch to the queue.
      */
     public void addOpaque (Batch batch)
     {
-        _opaque.add(batch);
+        _opaque.add(batch, 0);
+    }
+
+    /**
+     * Adds an opaque batch to the queue with the specified priority.
+     */
+    public void addOpaque (Batch batch, int priority)
+    {
+        _opaque.add(batch, priority);
     }
 
     /**
@@ -26,7 +45,15 @@ public class RenderQueue
      */
     public void addTransparent (Batch batch)
     {
-        _transparent.add(batch);
+        _transparent.add(batch, 0);
+    }
+
+    /**
+     * Adds a transparent batch to the queue with the specified priority.
+     */
+    public void addTransparent (Batch batch, int priority)
+    {
+        _transparent.add(batch, priority);
     }
 
     /**
@@ -34,10 +61,12 @@ public class RenderQueue
      */
     public RenderQueue getTransparentQueue (int group)
     {
-        for (int size = _groups.size(); size <= group; size++) {
-            _groups.add(new QueueBatch());
+        QueueBatch batch = _groups.get(group);
+        if (batch == null) {
+            _groups.put(group, batch = new QueueBatch());
+            _batches.add(batch);
         }
-        return _groups.get(group).queue;
+        return batch.queue;
     }
 
     /**
@@ -46,18 +75,19 @@ public class RenderQueue
     public void sort ()
     {
         // sort the opaque batches by state
-        QuickSort.sort(_opaque, BY_KEY);
+        _opaque.sort(BY_KEY);
 
         // update and insert the transparency group subqueues
-        for (int ii = 0, nn = _groups.size(); ii < nn; ii++) {
-            QueueBatch batch = _groups.get(ii);
-            if (batch.update()) {
-                _transparent.add(batch);
+        for (int ii = 0, nn = _batches.size(); ii < nn; ii++) {
+            QueueBatch batch = _batches.get(ii);
+            int priority = batch.update();
+            if (priority != Integer.MIN_VALUE) {
+                _transparent.add(batch, priority);
             }
         }
 
         // sort the transparent batches by depth
-        QuickSort.sort(_transparent, BACK_TO_FRONT);
+        _transparent.sort(BACK_TO_FRONT);
     }
 
     /**
@@ -65,8 +95,8 @@ public class RenderQueue
      */
     public void render (Renderer renderer)
     {
-        renderer.render(_opaque);
-        renderer.render(_transparent);
+        _opaque.render(renderer);
+        _transparent.render(renderer);
     }
 
     /**
@@ -76,9 +106,15 @@ public class RenderQueue
     {
         _opaque.clear();
         _transparent.clear();
-        for (int ii = 0, nn = _groups.size(); ii < nn; ii++) {
-            _groups.get(ii).queue.clear();
+        for (int ii = 0, nn = _batches.size(); ii < nn; ii++) {
+            _batches.get(ii).queue.clear();
         }
+    }
+
+    // documentation inherited from interface Comparable
+    public int compareTo (RenderQueue other)
+    {
+        return _layer - other._layer;
     }
 
     /**
@@ -105,32 +141,26 @@ public class RenderQueue
     protected static class QueueBatch extends Batch
     {
         /** The render queue for this batch. */
-        public RenderQueue queue = new RenderQueue();
+        public RenderQueue queue = new RenderQueue(0);
 
         /**
-         * Updates the batch's depth value and sorts the batches in the queue.
+         * Updates the batch in preparation for rendering.
          *
-         * @return true if updated, false if there are no batches in the queue.
+         * @return the highest priority of any batch in the queue, or {@link Integer#MIN_VALUE}
+         * if the queue is empty.
          */
-        public boolean update ()
+        public int update ()
         {
-            ArrayList<Batch> opaque = queue._opaque;
-            ArrayList<Batch> transparent = queue._transparent;
-            int osize = opaque.size();
-            int tsize = transparent.size();
-            if (osize == 0 && tsize == 0) {
-                return false;
+            depth = 0f;
+            _total = 0;
+            _priority = Integer.MIN_VALUE;
+            process(queue._opaque);
+            process(queue._transparent);
+            if (_total > 0) {
+                depth /= _total;
+                queue.sort();
             }
-            float tdepth = 0f;
-            for (int ii = 0; ii < osize; ii++) {
-                tdepth += opaque.get(ii).depth;
-            }
-            for (int ii = 0; ii < tsize; ii++) {
-                tdepth += transparent.get(ii).depth;
-            }
-            depth = tdepth / (osize + tsize);
-            queue.sort();
-            return true;
+            return _priority;
         }
 
         @Override // documentation inherited
@@ -139,16 +169,129 @@ public class RenderQueue
             queue.render(renderer);
             return false;
         }
+
+        /**
+         * Processes the specified list of batches to obtain the batch count, highest priority,
+         * and depth total.
+         */
+        protected void process (BatchList batches)
+        {
+            ComparableArrayList<PriorityList> lists = batches._lists;
+            for (int ii = 0, nn = lists.size(); ii < nn; ii++) {
+                PriorityList list = lists.get(ii);
+                int size = list.size();
+                if (size > 0) {
+                    _total += size;
+                    _priority = Math.max(_priority, list._priority);
+                }
+                for (int jj = 0; jj < size; jj++) {
+                    Batch batch = list.get(jj);
+                    depth += batch.depth;
+                }
+            }
+        }
+
+        /** The total number of batches. */
+        protected int _total;
+
+        /** The highest priority of any batch. */
+        protected int _priority;
     }
 
+    /**
+     * Contains a list of batches.
+     */
+    protected static class BatchList
+    {
+        /**
+         * Adds a batch to the list.
+         */
+        public void add (Batch batch, int priority)
+        {
+            PriorityList list = _priorities.get(priority);
+            if (list == null) {
+                _priorities.put(priority, list = new PriorityList(priority));
+                _lists.insertSorted(list);
+            }
+            list.add(batch);
+        }
+
+        /**
+         * Sorts the batches in the list.
+         */
+        public void sort (Comparator<Batch> comparator)
+        {
+            for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
+                QuickSort.sort(_lists.get(ii), comparator);
+            }
+        }
+
+        /**
+         * Renders the batches in the list.
+         */
+        public void render (Renderer renderer)
+        {
+            for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
+                renderer.render(_lists.get(ii));
+            }
+        }
+
+        /**
+         * Clears the batches from the list.
+         */
+        public void clear ()
+        {
+            for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
+                _lists.get(ii).clear();
+            }
+        }
+
+        /** Maps priorities to batch lists. */
+        protected HashIntMap<PriorityList> _priorities = new HashIntMap<PriorityList>();
+
+        /** The set of batch lists, sorted by priority. */
+        protected ComparableArrayList<PriorityList> _lists =
+            new ComparableArrayList<PriorityList>();
+    }
+
+    /**
+     * A list of batches at the same priority level.
+     */
+    protected static class PriorityList extends ArrayList<Batch>
+        implements Comparable<PriorityList>
+    {
+        /**
+         * Creates a new list with the supplied priority.
+         */
+        public PriorityList (int priority)
+        {
+            _priority = priority;
+        }
+
+        // documentation inherited from interface Comparable
+        public int compareTo (PriorityList other)
+        {
+            return _priority - other._priority;
+        }
+
+        /** The priority level of this list. */
+        protected int _priority;
+    }
+
+    /** The layer that this queue represents. */
+    protected int _layer;
+
     /** The set of opaque batches. */
-    protected ArrayList<Batch> _opaque = new ArrayList<Batch>();
+    protected BatchList _opaque = new BatchList();
 
     /** The set of transparent batches. */
-    protected ArrayList<Batch> _transparent = new ArrayList<Batch>();
+    protected BatchList _transparent = new BatchList();
 
-    /** The transparency group subqueues. */
-    protected ArrayList<QueueBatch> _groups = new ArrayList<QueueBatch>();
+    /** Maps transparency groups to their batches. */
+    protected HashIntMap<QueueBatch> _groups = new HashIntMap<QueueBatch>();
+
+    /** The set of transparency group batches. */
+    protected ArrayList<QueueBatch> _batches = new ArrayList<QueueBatch>();
 
     /** Sorts batches by state. */
     protected static final Comparator<Batch> BY_KEY = new Comparator<Batch>() {
