@@ -4,13 +4,15 @@
 package com.threerings.expr;
 
 /**
- * Provides access to variables.
+ * Provides a means to resolve symbols in a dynamic, hierarchical fashion.  Symbols can be mapped
+ * to {@link Function}s, {@link Variable}s, or arbitrary objects (often mutable ones, so that
+ * values can change after resolution).
  */
 public interface Scope
 {
     /**
      * Returns the name of this scope for purposes of qualification.  Can return <code>null</code>
-     * if qualified variables cannot specifically address this scope.
+     * if qualified symbols cannot specifically address this scope.
      */
     public String getScopeName ();
     
@@ -20,14 +22,15 @@ public interface Scope
     public Scope getParentScope ();
         
     /**
-     * Looks up a variable in this scope.
+     * Looks up a symbol in this scope.
      *
-     * @return the value of the requested variable, or <code>null</code> if not found.
+     * @return the mapping for the requested symbol, or <code>null</code> if not found.
      */
     public <T> T get (String name, Class<T> clazz);
     
     /**
-     * Adds a listener for changes in scope.
+     * Adds a listener for changes in scope.  The listener will be notified when symbols are
+     * added or removed and whenever the scope hierarchy changes.
      */
     public void addListener (ScopeUpdateListener listener);
     

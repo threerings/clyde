@@ -14,7 +14,7 @@ import com.threerings.expr.util.ScopeUtil;
  */
 @EditorTypes({
     Vector3fExpression.Constant.class,
-    Vector3fExpression.Variable.class,
+    Vector3fExpression.Reference.class,
     Vector3fExpression.Cartesian.class })
 public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
 {
@@ -39,9 +39,9 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
     }
 
     /**
-     * A variable expression.
+     * A reference expression.
      */
-    public static class Variable extends Vector3fExpression
+    public static class Reference extends Vector3fExpression
     {
         /** The name of the variable. */
         @Editable

@@ -6,7 +6,7 @@ package com.threerings.expr;
 /**
  * A general-purpose function object.
  */
-public interface Function
+public abstract class Function
 {
     /** A function that does nothing and returns <code>null</code>. */
     public static final Function NOOP = new Function() {
@@ -18,5 +18,5 @@ public interface Function
     /**
      * Calls the function.
      */
-    public Object call (Object... args);
+    public abstract Object call (Object... args);
 }

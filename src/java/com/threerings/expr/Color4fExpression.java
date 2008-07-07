@@ -14,7 +14,7 @@ import com.threerings.expr.util.ScopeUtil;
  */
 @EditorTypes({
     Color4fExpression.Constant.class,
-    Color4fExpression.Variable.class,
+    Color4fExpression.Reference.class,
     Color4fExpression.Blend.class })
 public abstract class Color4fExpression extends ObjectExpression<Color4f>
 {
@@ -39,9 +39,9 @@ public abstract class Color4fExpression extends ObjectExpression<Color4f>
     }
 
     /**
-     * A variable expression.
+     * A reference expression.
      */
-    public static class Variable extends Color4fExpression
+    public static class Reference extends Color4fExpression
     {
         /** The name of the variable. */
         @Editable

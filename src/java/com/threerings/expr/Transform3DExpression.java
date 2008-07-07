@@ -16,7 +16,7 @@ import com.threerings.expr.util.ScopeUtil;
  */
 @EditorTypes({
     Transform3DExpression.Constant.class,
-    Transform3DExpression.Variable.class,
+    Transform3DExpression.Reference.class,
     Transform3DExpression.Uniform.class })
 public abstract class Transform3DExpression extends ObjectExpression<Transform3D>
 {
@@ -41,9 +41,9 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
     }
 
     /**
-     * A variable expression.
+     * A reference expression.
      */
-    public static class Variable extends Transform3DExpression
+    public static class Reference extends Transform3DExpression
     {
         /** The name of the variable. */
         @Editable

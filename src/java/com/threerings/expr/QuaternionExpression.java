@@ -14,7 +14,7 @@ import com.threerings.expr.util.ScopeUtil;
  */
 @EditorTypes({
     QuaternionExpression.Constant.class,
-    QuaternionExpression.Variable.class,
+    QuaternionExpression.Reference.class,
     QuaternionExpression.Angles.class })
 public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
 {
@@ -39,9 +39,9 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
     }
 
     /**
-     * A variable expression.
+     * A reference expression.
      */
-    public static class Variable extends QuaternionExpression
+    public static class Reference extends QuaternionExpression
     {
         /** The name of the variable. */
         @Editable

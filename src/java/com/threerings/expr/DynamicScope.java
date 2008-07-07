@@ -7,19 +7,13 @@ import java.util.HashMap;
 
 import com.samskivert.util.ObserverList;
 
-import com.threerings.math.Quaternion;
-import com.threerings.math.Transform3D;
-import com.threerings.math.Vector3f;
-
-import com.threerings.opengl.renderer.Color4f;
-
 import com.threerings.expr.util.ScopeUtil;
 
 /**
- * A {@link Scope} that allows dynamic reparenting and the addition and removal of variables.
+ * A {@link Scope} that allows dynamic reparenting and the addition and removal of symbols.
  */
 public class DynamicScope
-    implements Scope
+    implements Scope, ScopeUpdateListener
 {
     /**
      * Creates a new scope.
@@ -44,25 +38,30 @@ public class DynamicScope
      */
     public void setParent (Scope parent)
     {
-        _parent = parent;
+        if (_parent != null) {
+            _parent.removeListener(this);
+        }
+        if ((_parent = parent) != null) {
+            _parent.addListener(this);
+        }
         wasUpdated(); 
     }
 
     /**
-     * Sets the value of the named variable in this scope.
+     * Sets the mapping for the named symbol in this scope.
      */
     public void put (String name, Object value)
     {
-        _variables.put(name, value);
+        _symbols.put(name, value);
         wasUpdated();
     }
     
     /**
-     * Removes the named variable from this scope.
+     * Removes the named symbol from this scope.
      */
     public void remove (String name)
     {
-        _variables.remove(name);
+        _symbols.remove(name);
         wasUpdated();
     }
     
@@ -85,38 +84,6 @@ public class DynamicScope
         }
     }
     
-    // documentation inherited from interface Scope
-    public String getScopeName ()
-    {
-        return _name;
-    }
-    
-    // documentation inherited from interface Scope
-    public Scope getParentScope ()
-    {
-        return _parent;
-    }
-    
-    // documentation inherited from interface Scope
-    public <T> T get (String name, Class<T> clazz)
-    {
-        // first try the dynamic variables, then the reflective ones
-        Object value = _variables.get(name);
-        return clazz.isInstance(value) ? clazz.cast(value) : ScopeUtil.get(_owner, name, clazz);
-    }
-    
-    // documentation inherited from interface Scope
-    public void addListener (ScopeUpdateListener listener)
-    {
-        _listeners.add(listener);
-    }
-    
-    // documentation inherited from interface Scope
-    public void removeListener (ScopeUpdateListener listener)
-    {
-        _listeners.remove(listener);
-    }
-    
     /**
      * Notes that this scope has been updated.
      */
@@ -133,6 +100,44 @@ public class DynamicScope
         }
     }
     
+    // documentation inherited from interface Scope
+    public String getScopeName ()
+    {
+        return _name;
+    }
+    
+    // documentation inherited from interface Scope
+    public Scope getParentScope ()
+    {
+        return _parent;
+    }
+    
+    // documentation inherited from interface Scope
+    public <T> T get (String name, Class<T> clazz)
+    {
+        // first try the dynamic symbols, then the reflective ones
+        Object value = _symbols.get(name);
+        return clazz.isInstance(value) ? clazz.cast(value) : ScopeUtil.get(_owner, name, clazz);
+    }
+    
+    // documentation inherited from interface Scope
+    public void addListener (ScopeUpdateListener listener)
+    {
+        _listeners.add(listener);
+    }
+    
+    // documentation inherited from interface Scope
+    public void removeListener (ScopeUpdateListener listener)
+    {
+        _listeners.remove(listener);
+    }
+    
+    // documentation inherited from interface ScopeUpdateListener
+    public void scopeUpdated (ScopeEvent event)
+    {
+        wasUpdated();
+    }
+    
     /** The owner of this scope. */
     protected Object _owner;
     
@@ -145,8 +150,8 @@ public class DynamicScope
     /** The compound update depth. */
     protected int _compoundDepth;
     
-    /** The dynamic variables in this scope. */
-    protected HashMap<String, Object> _variables = new HashMap<String, Object>();
+    /** The mappings for the dynamic symbols in this scope. */
+    protected HashMap<String, Object> _symbols = new HashMap<String, Object>();
 
     /** The listeners to this scope. */
     protected ObserverList<ScopeUpdateListener> _listeners = ObserverList.newFastUnsafe();

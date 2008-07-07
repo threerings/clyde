@@ -19,6 +19,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.expr.Function;
+import com.threerings.expr.Variable;
 import com.threerings.expr.MutableFloat;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
@@ -31,7 +32,7 @@ import static com.threerings.ClydeLog.*;
 public class ScopeUtil
 {
     /**
-     * Attempts to resolve a quaternion variable.
+     * Attempts to resolve a quaternion symbol.
      */
     public static Quaternion resolve (Scope scope, String name, Quaternion defvalue)
     {
@@ -39,14 +40,14 @@ public class ScopeUtil
     }
     
     /**
-     * Attempts to resolve a transform variable.
+     * Attempts to resolve a transform symbol.
      */
     public static Transform3D resolve (Scope scope, String name, Transform3D defvalue)
     {
         return resolve(scope, name, defvalue, Transform3D.class);
     }
     /**
-     * Attempts to resolve a vector variable.
+     * Attempts to resolve a vector symbol.
      */
     public static Vector3f resolve (Scope scope, String name, Vector3f defvalue)
     {
@@ -54,7 +55,7 @@ public class ScopeUtil
     }
     
     /**
-     * Attempts to resolve a color variable.
+     * Attempts to resolve a color symbol.
      */
     public static Color4f resolve (Scope scope, String name, Color4f defvalue)
     {
@@ -62,7 +63,7 @@ public class ScopeUtil
     }
     
     /**
-     * Attempts to resolve a function variable.
+     * Attempts to resolve a function symbol.
      */
     public static Function resolve (Scope scope, String name, Function defvalue)
     {
@@ -70,7 +71,15 @@ public class ScopeUtil
     }
     
     /**
-     * Attempts to resolve a mutable float variable.
+     * Attempts to resolve a variable symbol.
+     */
+    public static Variable resolve (Scope scope, String name, Variable defvalue)
+    {
+        return resolve(scope, name, defvalue, Variable.class);
+    }
+    
+    /**
+     * Attempts to resolve a mutable float symbol.
      */
     public static MutableFloat resolve (Scope scope, String name, MutableFloat defvalue)
     {
@@ -78,7 +87,7 @@ public class ScopeUtil
     }
     
     /**
-     * Attempts to resolve a mutable long variable.
+     * Attempts to resolve a mutable long symbol.
      */
     public static MutableLong resolve (Scope scope, String name, MutableLong defvalue)
     {
@@ -86,10 +95,11 @@ public class ScopeUtil
     }
     
     /**
-     * Attempts to resolve the identified variable in the given scope.  If not found there,
+     * Attempts to resolve the identified symbol in the given scope.  If not found there,
      * searches the parent of that scope, and so on.
      *
-     * @return the variable value, or <code>defvalue</code> if not found anywhere in the chain.
+     * @return the mapping for the symbol, or <code>defvalue</code> if not found anywhere in the
+     * chain.
      */
     public static <T> T resolve (Scope scope, String name, T defvalue, Class<T> clazz)
     {
@@ -103,7 +113,7 @@ public class ScopeUtil
             }
         }
         
-        // rise up through the scopes looking for the requested variable
+        // rise up through the scopes looking for the requested symbol
         for (; scope != null; scope = scope.getParentScope()) {
             T value = scope.get(name, clazz);
             if (value != null) {
@@ -116,23 +126,168 @@ public class ScopeUtil
     }
     
     /**
-     * Attempts to retrieve the value of the identified variable using reflection.
+     * Attempts to retrieve the value of the identified symbol using reflection.
      *
      * @param object the object upon which to reflect.
-     * @return the variable value, or <code>null</code> if not found.
+     * @return the symbol value, or <code>null</code> if not found.
      */
     public static <T> T get (final Object object, String name, Class<T> clazz)
     {
         Member member = getMembers(object.getClass()).get(name);
         if (member instanceof Field) {
-            try {
-                Object value = ((Field)member).get(object);
-                if (clazz.isInstance(value)) {
-                    return clazz.cast(value);
+            if (clazz.isAssignableFrom(Variable.class)) {
+                final Field field = (Field)member;
+                return clazz.cast(new Variable() {
+                    public boolean getBoolean () {
+                        try {
+                            return field.getBoolean(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return false;
+                        } 
+                    }
+                    public byte getByte () {
+                        try {
+                            return field.getByte(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return 0;
+                        } 
+                    }
+                    public char getChar () {
+                        try {
+                            return field.getChar(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return 0;
+                        } 
+                    }
+                    public double getDouble () {
+                        try {
+                            return field.getDouble(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return 0.0;
+                        } 
+                    }
+                    public float getFloat () {
+                        try {
+                            return field.getFloat(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return 0f;
+                        } 
+                    }
+                    public int getInt () {
+                        try {
+                            return field.getInt(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return 0;
+                        } 
+                    }
+                    public long getLong () {
+                        try {
+                            return field.getLong(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return 0L;
+                        } 
+                    }
+                    public short getShort () {
+                        try {
+                            return field.getShort(object);
+                        } catch (Exception e) {
+                            logWarning(e);
+                            return 0;
+                        } 
+                    }
+                    public Object get () {
+                        try {
+                            return field.get(object);
+                        } catch (IllegalAccessException e) {
+                            logWarning(e);
+                            return null;
+                        }
+                    }
+                    public void setBoolean (boolean value) {
+                        try {
+                            field.setBoolean(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void setByte (byte value) {
+                        try {
+                            field.setByte(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void setChar (char value) {
+                        try {
+                            field.setChar(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void setDouble (double value) {
+                        try {
+                            field.setDouble(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void setFloat (float value) {
+                        try {
+                            field.setFloat(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void setInt (int value) {
+                        try {
+                            field.setInt(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void setLong (long value) {
+                        try {
+                            field.setLong(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void setShort (short value) {
+                        try {
+                            field.setShort(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    public void set (Object value) {
+                        try {
+                            field.set(object, value);
+                        } catch (Exception e) {
+                            logWarning(e);
+                        }
+                    }
+                    protected void logWarning (Exception e) {
+                        log.warning("Error accessing field.", "class",
+                            object.getClass(), "field", field, e);
+                    }
+                });
+            } else {
+                try {
+                    Object value = ((Field)member).get(object);
+                    if (clazz.isInstance(value)) {
+                        return clazz.cast(value);
+                    }
+                } catch (IllegalAccessException e) {
+                    log.warning("Error accessing field.", "class",
+                        object.getClass(), "field", member, e);
                 }
-            } catch (IllegalAccessException e) {
-                log.warning("Couldn't access field.", "class",
-                    object.getClass(), "field", member, e);
             }
         } else if (member instanceof Method && clazz.isAssignableFrom(Function.class)) {
             final Method method = (Method)member;

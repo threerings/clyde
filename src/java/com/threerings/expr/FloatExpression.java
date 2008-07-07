@@ -15,7 +15,7 @@ import com.threerings.expr.util.ScopeUtil;
  * A float-valued expression.
  */
 @EditorTypes({
-    FloatExpression.Constant.class, FloatExpression.Variable.class,
+    FloatExpression.Constant.class, FloatExpression.Reference.class,
     FloatExpression.Clock.class, FloatExpression.Negate.class,
     FloatExpression.Add.class, FloatExpression.Subtract.class,
     FloatExpression.Multiply.class, FloatExpression.Divide.class,
@@ -46,9 +46,9 @@ public abstract class FloatExpression extends DeepObject
     }
 
     /**
-     * A variable expression.
+     * A reference expression.
      */
-    public static class Variable extends FloatExpression
+    public static class Reference extends FloatExpression
     {
         /** The name of the variable. */
         @Editable
@@ -61,11 +61,11 @@ public abstract class FloatExpression extends DeepObject
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
-            final MutableFloat variable = ScopeUtil.resolve(
+            final MutableFloat reference = ScopeUtil.resolve(
                 scope, name, new MutableFloat(defvalue));
             return new Evaluator() {
                 public float evaluate () {
-                    return variable.value;
+                    return reference.value;
                 }
             };
         }
@@ -76,15 +76,15 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Clock extends FloatExpression
     {
-        /** The name of the epoch variable. */
+        /** The name of the epoch reference. */
         @Editable
-        public String epochVariable = "epoch";
+        public String epochReference = "epoch";
 
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
             final MutableLong epoch = ScopeUtil.resolve(
-                scope, epochVariable, new MutableLong(System.currentTimeMillis()));
+                scope, epochReference, new MutableLong(System.currentTimeMillis()));
             return new Evaluator() {
                 public float evaluate () {
                     return (System.currentTimeMillis() - epoch.value) / 1000f;
