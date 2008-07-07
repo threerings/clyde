@@ -12,13 +12,13 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.renderer.config.TextureConfig;
 
 /**
- * Represents a single target to update within the compositor.
+ * Represents a single target to update within the post effect.
  */
 @EditorTypes({ TargetConfig.Texture.class })
 public abstract class TargetConfig extends DeepObject
     implements Exportable
 {
-    /** The available target inputs: either nothing or the result of the previous compositor. */
+    /** The available target inputs: either nothing or the result of the previous post effect. */
     public enum Input { NONE, PREVIOUS };
 
     /**
@@ -32,7 +32,7 @@ public abstract class TargetConfig extends DeepObject
     }
 
     /**
-     * Renders to the compositor output.
+     * Renders to the post effect output.
      */
     public static class Output extends TargetConfig
     {

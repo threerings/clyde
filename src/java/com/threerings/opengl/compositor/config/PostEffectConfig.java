@@ -11,12 +11,12 @@ import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
 /**
- * Describes a compositor.
+ * Describes a post effect.
  */
-public class CompositorConfig extends ParameterizedConfig
+public class PostEffectConfig extends ParameterizedConfig
 {
     /**
-     * Contains the actual implementation of the compositor.
+     * Contains the actual implementation of the post effect.
      */
     @EditorTypes({ Original.class, Derived.class })
     public static abstract class Implementation extends DeepObject
@@ -29,7 +29,7 @@ public class CompositorConfig extends ParameterizedConfig
      */
     public static class Original extends Implementation
     {
-        /** The techniques available to render the compositor. */
+        /** The techniques available to render the post effect. */
         @Editable
         public Technique[] techniques = new Technique[0];
     }
@@ -39,13 +39,13 @@ public class CompositorConfig extends ParameterizedConfig
      */
     public static class Derived extends Implementation
     {
-        /** The compositor reference. */
+        /** The post effect reference. */
         @Editable(nullable=true)
-        public ConfigReference<CompositorConfig> compositor;
+        public ConfigReference<PostEffectConfig> postEffect;
     }
 
     /**
-     * A technique available to render the compositor.
+     * A technique available to render the post effect.
      */
     public static class Technique extends DeepObject
         implements Exportable
@@ -59,7 +59,7 @@ public class CompositorConfig extends ParameterizedConfig
         public TargetConfig.Output output = new TargetConfig.Output();
     }
 
-    /** The actual compositor implementation. */
+    /** The actual post effect implementation. */
     @Editable
     public Implementation implementation = new Original();
 }
