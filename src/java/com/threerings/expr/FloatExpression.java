@@ -9,6 +9,8 @@ import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 
+import com.threerings.expr.util.ScopeUtil;
+
 /**
  * A float-valued expression.
  */
@@ -59,7 +61,8 @@ public abstract class FloatExpression extends DeepObject
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
-            final MutableFloat variable = scope.getVariable(name, defvalue);
+            final MutableFloat variable = ScopeUtil.resolve(
+                scope, name, new MutableFloat(defvalue));
             return new Evaluator() {
                 public float evaluate () {
                     return variable.value;
@@ -73,14 +76,15 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Clock extends FloatExpression
     {
-        /** The scope of the clock. */
+        /** The name of the epoch variable. */
         @Editable
-        public String scope = "";
+        public String epochVariable = "epoch";
 
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
-            final MutableLong epoch = scope.getEpoch(this.scope);
+            final MutableLong epoch = ScopeUtil.resolve(
+                scope, epochVariable, new MutableLong(System.currentTimeMillis()));
             return new Evaluator() {
                 public float evaluate () {
                     return (System.currentTimeMillis() - epoch.value) / 1000f;

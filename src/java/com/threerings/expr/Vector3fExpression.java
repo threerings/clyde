@@ -5,8 +5,9 @@ package com.threerings.expr;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
-
 import com.threerings.math.Vector3f;
+
+import com.threerings.expr.util.ScopeUtil;
 
 /**
  * A vector-valued expression.
@@ -53,7 +54,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         @Override // documentation inherited
         public Evaluator<Vector3f> createEvaluator (Scope scope)
         {
-            final Vector3f value = scope.getVariable(name, defvalue);
+            final Vector3f value = ScopeUtil.resolve(scope, name, defvalue);
             return new Evaluator<Vector3f>() {
                 public Vector3f evaluate () {
                     return value;

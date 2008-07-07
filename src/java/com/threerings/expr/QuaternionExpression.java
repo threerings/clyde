@@ -5,8 +5,9 @@ package com.threerings.expr;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
-
 import com.threerings.math.Quaternion;
+
+import com.threerings.expr.util.ScopeUtil;
 
 /**
  * A color-valued expression.
@@ -53,7 +54,7 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
         @Override // documentation inherited
         public Evaluator<Quaternion> createEvaluator (Scope scope)
         {
-            final Quaternion value = scope.getVariable(name, defvalue);
+            final Quaternion value = ScopeUtil.resolve(scope, name, defvalue);
             return new Evaluator<Quaternion>() {
                 public Quaternion evaluate () {
                     return value;

@@ -5,8 +5,9 @@ package com.threerings.expr;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
-
 import com.threerings.opengl.renderer.Color4f;
+
+import com.threerings.expr.util.ScopeUtil;
 
 /**
  * A color-valued expression.
@@ -53,7 +54,7 @@ public abstract class Color4fExpression extends ObjectExpression<Color4f>
         @Override // documentation inherited
         public Evaluator<Color4f> createEvaluator (Scope scope)
         {
-            final Color4f value = scope.getVariable(name, defvalue);
+            final Color4f value = ScopeUtil.resolve(scope, name, defvalue);
             return new Evaluator<Color4f>() {
                 public Color4f evaluate () {
                     return value;

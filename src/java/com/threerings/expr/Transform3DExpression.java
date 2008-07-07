@@ -5,10 +5,11 @@ package com.threerings.expr;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
-
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
+
+import com.threerings.expr.util.ScopeUtil;
 
 /**
  * A transform-valued expression.
@@ -55,7 +56,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
         @Override // documentation inherited
         public Evaluator<Transform3D> createEvaluator (Scope scope)
         {
-            final Transform3D value = scope.getVariable(name, defvalue);
+            final Transform3D value = ScopeUtil.resolve(scope, name, defvalue);
             return new Evaluator<Transform3D>() {
                 public Transform3D evaluate () {
                     return value;
