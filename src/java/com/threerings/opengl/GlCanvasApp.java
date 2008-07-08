@@ -54,7 +54,7 @@ public abstract class GlCanvasApp extends GlApp
         JPanel panel = new JPanel(new BorderLayout());
         _frame.add(panel, BorderLayout.CENTER);
         try {
-            panel.add(_canvas = new GlCanvas(new PixelFormat(0, 8, 0)) {
+            panel.add(_canvas = new GlCanvas(new PixelFormat(8, 8, 8)) {
                 public void didInit () {
                     initRenderer();
                 }

@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.compositor;
 
+import org.lwjgl.opengl.GL11;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -11,6 +13,11 @@ import com.google.common.collect.Maps;
 import com.samskivert.util.ComparableArrayList;
 
 import com.threerings.opengl.compositor.config.RenderQueueConfig;
+import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.renderer.state.ColorMaskState;
+import com.threerings.opengl.renderer.state.DepthState;
+import com.threerings.opengl.renderer.state.StencilState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
@@ -25,6 +32,14 @@ public class Compositor
     public Compositor (GlContext ctx)
     {
         _ctx = ctx;
+    }
+
+    /**
+     * Returns a reference to the background color.
+     */
+    public Color4f getBackgroundColor ()
+    {
+        return _backgroundColor;
     }
 
     /**
@@ -48,8 +63,26 @@ public class Compositor
      */
     public void renderScene ()
     {
-        // first pass: collect dependencies
         enqueueRoots();
+        sortQueues();
+
+        // clear the depth and stencil buffers (and the color buffer, provided that none of the
+        // queues do it for us)
+        Renderer renderer = _ctx.getRenderer();
+        int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
+        if (!queueClearsColor()) {
+            bits |= GL11.GL_COLOR_BUFFER_BIT;
+            renderer.setClearColor(_backgroundColor);
+            renderer.setState(ColorMaskState.ALL);
+        }
+        renderer.setClearDepth(1f);
+        renderer.setState(DepthState.TEST_WRITE);
+        renderer.setClearStencil(0);
+        renderer.setState(StencilState.DISABLED);
+        GL11.glClear(bits);
+
+        renderQueues();
+        clearQueues();
     }
 
     /**
@@ -67,21 +100,21 @@ public class Compositor
     /**
      * Returns a reference to the default render queue.
      */
-    public RenderQueue getRenderQueue ()
+    public RenderQueue getQueue ()
     {
-        return getRenderQueue("default");
+        return getQueue("default");
     }
 
     /**
      * Retrieves a reference to a render queue.
      */
-    public RenderQueue getRenderQueue (String name)
+    public RenderQueue getQueue (String name)
     {
         RenderQueue queue = _queuesByName.get(name);
         if (queue == null) {
             RenderQueueConfig config = _ctx.getConfigManager().getConfig(
                 RenderQueueConfig.class, name);
-            queue = (config == null) ? null : config.createRenderQueue(_ctx);
+            queue = (config == null) ? null : config.createQueue(_ctx);
             queue = (queue == null) ? new RenderQueue(0) : queue;
             _queuesByName.put(name, queue);
             _queues.insertSorted(queue);
@@ -92,7 +125,7 @@ public class Compositor
     /**
      * Resets the list of render queues.
      */
-    public void resetRenderQueues ()
+    public void resetQueues ()
     {
         _queues.clear();
     }
@@ -108,8 +141,57 @@ public class Compositor
         }
     }
 
+    /**
+     * Sorts the queues in preparation for rendering.
+     */
+    protected void sortQueues ()
+    {
+        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+            _queues.get(ii).sort();
+        }
+    }
+
+    /**
+     * Determines whether any of the populated render queues are flagged as clearing the color
+     * buffer.
+     */
+    protected boolean queueClearsColor ()
+    {
+        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+            RenderQueue queue = _queues.get(ii);
+            if (queue.clearsColor() && queue.size() > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Renders the contents of the queues.
+     */
+    protected void renderQueues ()
+    {
+        Renderer renderer = _ctx.getRenderer();
+        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+            _queues.get(ii).render(renderer);
+        }
+    }
+
+    /**
+     * Clears out the contents of the queues.
+     */
+    protected void clearQueues ()
+    {
+        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+            _queues.get(ii).clear();
+        }
+    }
+
     /** The application context. */
     protected GlContext _ctx;
+
+    /** The background color. */
+    protected Color4f _backgroundColor = new Color4f(0f, 0f, 0f, 0f);
 
     /** The roots of the view. */
     protected ArrayList<Renderable> _roots = new ArrayList<Renderable>();

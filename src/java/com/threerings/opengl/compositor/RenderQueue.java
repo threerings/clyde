@@ -24,7 +24,27 @@ public class RenderQueue
      */
     public RenderQueue (int priority)
     {
+        this(priority, false);
+    }
+
+    /**
+     * Creates a new render queue with the specified priority.
+     *
+     * @param clearsColor if true, this queue effectively clears the color buffer.
+     */
+    public RenderQueue (int priority, boolean clearsColor)
+    {
         _priority = priority;
+        _clearsColor = clearsColor;
+    }
+
+    /**
+     * Returns true if this queue will effectively clear the color buffer if there's anything
+     * in it (because it will be overwritten completely, as by a sky box).
+     */
+    public boolean clearsColor ()
+    {
+        return _clearsColor;
     }
 
     /**
@@ -303,6 +323,9 @@ public class RenderQueue
 
     /** The priority of this queue. */
     protected int _priority;
+
+    /** Whether or not this queue effectively clears the color buffer. */
+    protected boolean _clearsColor;
 
     /** The set of opaque batches. */
     protected BatchList _opaque = new BatchList();

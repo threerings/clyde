@@ -32,7 +32,7 @@ public class RenderQueueConfig extends ParameterizedConfig
         /**
          * Creates the render queue corresponding to this configuration.
          */
-        public abstract RenderQueue createRenderQueue (GlContext ctx);
+        public abstract RenderQueue createQueue (GlContext ctx);
     }
 
     /**
@@ -43,6 +43,11 @@ public class RenderQueueConfig extends ParameterizedConfig
         /** The priority of the queue. */
         @Editable
         public int priority;
+
+        /** If true, this queue will effectively clear the color buffer if there's anything in
+         * it (because it will be totally overwritten, as by a sky box). */
+        @Editable
+        public boolean clearsColor;
     }
 
     /**
@@ -51,9 +56,9 @@ public class RenderQueueConfig extends ParameterizedConfig
     public static class Normal extends Original
     {
         @Override // documentation inherited
-        public RenderQueue createRenderQueue (GlContext ctx)
+        public RenderQueue createQueue (GlContext ctx)
         {
-            return new RenderQueue(priority);
+            return new RenderQueue(priority, clearsColor);
         }
     }
 
@@ -63,9 +68,9 @@ public class RenderQueueConfig extends ParameterizedConfig
     public static class Ortho extends Original
     {
         @Override // documentation inherited
-        public RenderQueue createRenderQueue (GlContext ctx)
+        public RenderQueue createQueue (GlContext ctx)
         {
-            return new RenderQueue(priority) {
+            return new RenderQueue(priority, clearsColor) {
                 public void render (Renderer renderer) {
                     // make sure we have something to render
                     if (size() == 0) {
@@ -100,14 +105,14 @@ public class RenderQueueConfig extends ParameterizedConfig
         public ConfigReference<RenderQueueConfig> renderQueue;
 
         @Override // documentation inherited
-        public RenderQueue createRenderQueue (GlContext ctx)
+        public RenderQueue createQueue (GlContext ctx)
         {
             if (renderQueue == null) {
                 return null;
             }
             RenderQueueConfig config = ctx.getConfigManager().getConfig(
                 RenderQueueConfig.class, renderQueue);
-            return (config == null) ? null : config.createRenderQueue(ctx);
+            return (config == null) ? null : config.createQueue(ctx);
         }
     }
 
@@ -118,8 +123,8 @@ public class RenderQueueConfig extends ParameterizedConfig
     /**
      * Creates the render queue corresponding to this configuration.
      */
-    public RenderQueue createRenderQueue (GlContext ctx)
+    public RenderQueue createQueue (GlContext ctx)
     {
-        return implementation.createRenderQueue(ctx);
+        return implementation.createQueue(ctx);
     }
 }

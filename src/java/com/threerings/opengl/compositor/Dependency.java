@@ -3,9 +3,8 @@
 
 package com.threerings.opengl.compositor;
 
-import java.awt.geom.Rectangle2D;
-
 import com.threerings.math.Plane;
+import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.renderer.Light;
@@ -26,12 +25,12 @@ public abstract class Dependency
         public Plane plane = new Plane();
 
         /** The bounds of the affected region in normalized device coordinates. */
-        public Rectangle2D.Float bounds = new Rectangle2D.Float();
+        public Rect bounds = new Rect();
 
         @Override // documentation inherited
         public void merge (Dependency dependency)
         {
-            bounds.add(((Planar)dependency).bounds);
+            bounds.addLocal(((Planar)dependency).bounds);
         }
 
         @Override // documentation inherited

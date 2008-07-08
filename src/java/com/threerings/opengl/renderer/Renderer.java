@@ -44,6 +44,7 @@ import com.threerings.math.Vector4f;
 import com.threerings.media.timer.MediaTimer;
 import com.threerings.util.TimerUtil;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.state.ColorMaskState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.RenderState;
@@ -70,8 +71,16 @@ public class Renderer
     {
         _drawable = drawable;
 
-        // find out how many user clip planes the driver supports
+        // find out how many alpha bit planes are in the frame buffer
         IntBuffer buf = BufferUtils.createIntBuffer(16);
+        GL11.glGetInteger(GL11.GL_ALPHA_BITS, buf);
+        _alphaBits = buf.get(0);
+
+        // how many stencil bit planes
+        GL11.glGetInteger(GL11.GL_STENCIL_BITS, buf);
+        _stencilBits = buf.get(0);
+
+        // how many user clip planes
         GL11.glGetInteger(GL11.GL_MAX_CLIP_PLANES, buf);
         _maxClipPlanes = buf.get(0);
 
@@ -2274,6 +2283,12 @@ public class Renderer
 
     /** The drawable with which this renderer is being used. */
     protected Drawable _drawable;
+
+    /** The number of alpha bit planes in the frame buffer. */
+    protected int _alphaBits;
+
+    /** The number of stencil bit planes in the frame buffer. */
+    protected int _stencilBits;
 
     /** The maximum number of clip planes supported. */
     protected int _maxClipPlanes;
