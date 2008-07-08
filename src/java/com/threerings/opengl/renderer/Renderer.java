@@ -1712,7 +1712,7 @@ public class Renderer
     /**
      * Renders the provided list of batches.
      */
-    protected void render (ArrayList<Batch> batches)
+    public void render (ArrayList<Batch> batches)
     {
         // for each batch, set the states and call its draw command
         for (int ii = 0, nn = batches.size(); ii < nn; ii++) {

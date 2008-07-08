@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.compositor;
 
+import java.awt.geom.Rectangle2D;
+
 import com.threerings.math.Plane;
 import com.threerings.math.Transform3D;
 
@@ -22,6 +24,15 @@ public abstract class Dependency
     {
         /** The eye space plane of reflection or refraction. */
         public Plane plane = new Plane();
+
+        /** The bounds of the affected region in normalized device coordinates. */
+        public Rectangle2D.Float bounds = new Rectangle2D.Float();
+
+        @Override // documentation inherited
+        public void merge (Dependency dependency)
+        {
+            bounds.add(((Planar)dependency).bounds);
+        }
 
         @Override // documentation inherited
         public int hashCode ()
@@ -174,5 +185,13 @@ public abstract class Dependency
                 bottom == oproj.bottom && top == oproj.top && near == oproj.near &&
                 far == oproj.far && transform.equals(oproj.transform);
         }
+    }
+
+    /**
+     * Merges another dependency (for which {@link #equals} returns true) into this one.
+     */
+    public void merge (Dependency dependency)
+    {
+        // nothing by default
     }
 }

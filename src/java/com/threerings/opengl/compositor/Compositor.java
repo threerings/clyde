@@ -4,9 +4,13 @@
 package com.threerings.opengl.compositor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
-import com.threerings.util.ArrayHashSet;
+import com.google.common.collect.Maps;
 
+import com.samskivert.util.ComparableArrayList;
+
+import com.threerings.opengl.compositor.config.RenderQueueConfig;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
@@ -53,7 +57,44 @@ public class Compositor
      */
     public void addDependency (Dependency dependency)
     {
-        _dependencies.add(dependency);
+        // if we displace another dependency, merge it in
+        Dependency previous = _dependencies.put(dependency, dependency);
+        if (previous != null) {
+            dependency.merge(previous);
+        }
+    }
+
+    /**
+     * Returns a reference to the default render queue.
+     */
+    public RenderQueue getRenderQueue ()
+    {
+        return getRenderQueue("default");
+    }
+
+    /**
+     * Retrieves a reference to a render queue.
+     */
+    public RenderQueue getRenderQueue (String name)
+    {
+        RenderQueue queue = _queuesByName.get(name);
+        if (queue == null) {
+            RenderQueueConfig config = _ctx.getConfigManager().getConfig(
+                RenderQueueConfig.class, name);
+            queue = (config == null) ? null : config.createRenderQueue(_ctx);
+            queue = (queue == null) ? new RenderQueue(0) : queue;
+            _queuesByName.put(name, queue);
+            _queues.insertSorted(queue);
+        }
+        return queue;
+    }
+
+    /**
+     * Resets the list of render queues.
+     */
+    public void resetRenderQueues ()
+    {
+        _queues.clear();
     }
 
     /**
@@ -61,6 +102,7 @@ public class Compositor
      */
     protected void enqueueRoots ()
     {
+        _dependencies.clear();
         for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
             _roots.get(ii).enqueue();
         }
@@ -73,5 +115,11 @@ public class Compositor
     protected ArrayList<Renderable> _roots = new ArrayList<Renderable>();
 
     /** The current set of dependencies. */
-    protected ArrayHashSet<Dependency> _dependencies = new ArrayHashSet<Dependency>();
+    protected HashMap<Dependency, Dependency> _dependencies = Maps.newHashMap();
+
+    /** Maps render queue names to the created queues. */
+    protected HashMap<String, RenderQueue> _queuesByName = Maps.newHashMap();
+
+    /** The set of render queues, sorted by priority. */
+    protected ComparableArrayList<RenderQueue> _queues = new ComparableArrayList<RenderQueue>();
 }
