@@ -965,6 +965,19 @@ public final class Matrix4f
     }
 
     @Override // documentation inherited
+    public int hashCode ()
+    {
+        return Float.floatToIntBits(m00) ^ Float.floatToIntBits(m10) ^
+                Float.floatToIntBits(m20) ^ Float.floatToIntBits(m30) ^
+            Float.floatToIntBits(m01) ^ Float.floatToIntBits(m11) ^
+                Float.floatToIntBits(m21) ^ Float.floatToIntBits(m31) ^
+            Float.floatToIntBits(m02) ^ Float.floatToIntBits(m12) ^
+                Float.floatToIntBits(m22) ^ Float.floatToIntBits(m32) ^
+            Float.floatToIntBits(m03) ^ Float.floatToIntBits(m13) ^
+                Float.floatToIntBits(m23) ^ Float.floatToIntBits(m33);
+    }
+
+    @Override // documentation inherited
     public boolean equals (Object other)
     {
         if (!(other instanceof Matrix4f)) {

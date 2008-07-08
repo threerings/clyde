@@ -798,6 +798,14 @@ public final class Matrix3f
     }
 
     @Override // documentation inherited
+    public int hashCode ()
+    {
+        return Float.floatToIntBits(m00) ^ Float.floatToIntBits(m10) ^ Float.floatToIntBits(m20) ^
+            Float.floatToIntBits(m01) ^ Float.floatToIntBits(m11) ^ Float.floatToIntBits(m21) ^
+            Float.floatToIntBits(m02) ^ Float.floatToIntBits(m12) ^ Float.floatToIntBits(m22);
+    }
+
+    @Override // documentation inherited
     public boolean equals (Object other)
     {
         if (!(other instanceof Matrix3f)) {

@@ -10,6 +10,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
 import com.threerings.opengl.camera.CameraHandler;
+import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
@@ -27,6 +28,7 @@ public abstract class GlApp
     public GlApp ()
     {
         _renderer = new Renderer();
+        _compositor = new Compositor(this);
         _rsrcmgr = new ResourceManager("rsrc/");
         _msgmgr = new MessageManager("rsrc.i18n");
         _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
@@ -53,6 +55,12 @@ public abstract class GlApp
     public Renderer getRenderer ()
     {
         return _renderer;
+    }
+
+    // documentation inherited from interface GlContext
+    public Compositor getCompositor ()
+    {
+        return _compositor;
     }
 
     // documentation inherited from interface GlContext
@@ -99,6 +107,9 @@ public abstract class GlApp
 
     /** The OpenGL renderer. */
     protected Renderer _renderer;
+
+    /** The view compositor. */
+    protected Compositor _compositor;
 
     /** The camera handler. */
     protected CameraHandler _camhand;

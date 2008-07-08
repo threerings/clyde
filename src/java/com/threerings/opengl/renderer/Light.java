@@ -43,4 +43,7 @@ public class Light
 
     /** Set when the light has changed and must be reapplied. */
     public boolean dirty;
+
+    /** A hint as to whether or not this light should cast shadows. */
+    public boolean castsShadows;
 }

@@ -640,6 +640,24 @@ public final class Transform2D
     }
 
     @Override // documentation inherited
+    public int hashCode ()
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+                return _type;
+            case RIGID:
+            case UNIFORM:
+                int hash = 31*_type + _translation.hashCode();
+                hash = 31*hash + Float.floatToIntBits(_rotation);
+                return (_type == UNIFORM) ? (31*hash + Float.floatToIntBits(_scale)) : hash;
+            case AFFINE:
+            case GENERAL:
+                return 31*_type + _matrix.hashCode();
+        }
+    }
+
+    @Override // documentation inherited
     public boolean equals (Object other)
     {
         Transform2D otrans = (Transform2D)other;
