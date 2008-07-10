@@ -3,14 +3,13 @@
 
 package com.threerings.opengl.util;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.RenderState;
-import com.threerings.opengl.renderer.state.TransformState;
 
 /**
- * A base class for {@link Renderable} objects that simply require a set of states and a call to
- * their own {@link #draw} method (which draws its geometry in world space).
+ * A base class for {@link Renderable} objects based on {@link SimpleBatch}es.
  */
 public abstract class SimpleRenderable
     implements Renderable
@@ -20,42 +19,50 @@ public abstract class SimpleRenderable
      */
     public SimpleRenderable (GlContext ctx)
     {
-        this(ctx, false);
+        this(ctx, RenderQueue.DEFAULT);
     }
 
     /**
      * Creates a new simple renderable.
      *
-     * @param transparent if true, render the object in the transparent queue.
+     * @param queue the name of the queue into which we place the batch.
      */
-    public SimpleRenderable (GlContext ctx, boolean transparent)
+    public SimpleRenderable (GlContext ctx, String queue)
     {
-        this(ctx, transparent, false, 0);
+        this(ctx, queue, false, 0);
     }
 
     /**
      * Creates a new simple renderable.
      *
-     * @param transparent if true, render the object in the transparent queue.
+     * @param queue the name of the queue into which we place the batch.
+     * @param transparent if true, enqueue the batch as transparent.
+     * @param priority the priority level at which to enqueue the batch.
+     */
+    public SimpleRenderable (GlContext ctx, String queue, boolean transparent, int priority)
+    {
+        this(ctx, queue, transparent, priority, false, 0);
+    }
+
+    /**
+     * Creates a new simple renderable.
+     *
+     * @param queue the name of the queue into which we place the batch.
+     * @param transparent if true, enqueue the batch as transparent.
+     * @param priority the priority level at which to enqueue the batch.
      * @param modifiesColorState if true, invalidate the color state after calling the
      * {@link #draw} method.
      * @param primitiveCount the primitive count to report to the renderer.
      */
     public SimpleRenderable (
-        GlContext ctx, boolean transparent, final boolean modifiesColorState,
-        final int primitiveCount)
+        GlContext ctx, String queue, boolean transparent, int priority,
+        boolean modifiesColorState, int primitiveCount)
     {
         _ctx = ctx;
+        _queue = ctx.getCompositor().getQueue(queue);
+        _batch = createBatch(modifiesColorState, primitiveCount);
         _transparent = transparent;
-        _batch = new SimpleBatch(createStates(), new SimpleBatch.DrawCommand() {
-            public boolean call () {
-                draw();
-                return modifiesColorState;
-            }
-            public int getPrimitiveCount () {
-                return primitiveCount;
-            }
-        });
+        _priority = priority;
     }
 
     /**
@@ -69,17 +76,30 @@ public abstract class SimpleRenderable
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        // update the transform state
-        TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
-        tstate.getModelview().set(_ctx.getRenderer().getCamera().getViewTransform());
-        tstate.setDirty(true);
+        _queue.add(_batch, _transparent, _priority);
+    }
 
-        // queue up the batch
-        if (_transparent) {
-            _ctx.getRenderer().enqueueTransparent(_batch);
-        } else {
-            _ctx.getRenderer().enqueueOpaque(_batch);
-        }
+    /**
+     * Creates an uninitialized renderable.
+     */
+    protected SimpleRenderable ()
+    {
+    }
+
+    /**
+     * Creates the batch to draw.
+     */
+    protected SimpleBatch createBatch (final boolean modifiesColorState, final int primitiveCount)
+    {
+        return new SimpleBatch(createStates(), new SimpleBatch.DrawCommand() {
+            public boolean call () {
+                draw();
+                return modifiesColorState;
+            }
+            public int getPrimitiveCount () {
+                return primitiveCount;
+            }
+        });
     }
 
     /**
@@ -88,22 +108,32 @@ public abstract class SimpleRenderable
     protected RenderState[] createStates ()
     {
         RenderState[] states = RenderState.DEFAULTS.clone();
+        states[RenderState.ARRAY_STATE] = null;
         states[RenderState.DEPTH_STATE] = DepthState.TEST_WRITE;
-        states[RenderState.TRANSFORM_STATE] = new TransformState();
+        states[RenderState.MATERIAL_STATE] = null;
         return states;
     }
 
     /**
-     * Draws the geometry in world space.
+     * Draws the geometry in immediate mode.
      */
-    protected abstract void draw ();
+    protected void draw ()
+    {
+        throw new RuntimeException("Override draw method to render.");
+    }
 
     /** The renderer context. */
     protected GlContext _ctx;
 
-    /** Whether to add the batch to the transparent queue. */
-    protected boolean _transparent;
+    /** The queue into which we place our batch. */
+    protected RenderQueue _queue;
 
     /** The batch that we submit to the renderer. */
     protected SimpleBatch _batch;
+
+    /** Whether to enqueue the batch as transparent. */
+    protected boolean _transparent;
+
+    /** The priority level of the batch. */
+    protected int _priority;
 }

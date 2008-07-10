@@ -10,26 +10,22 @@ import org.lwjgl.opengl.GL11;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.gui.text.CharacterTextFactory;
 import com.threerings.opengl.gui.text.Text;
-import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Renderer;
 
 /**
  * A compass that displays the coordinate system axes.
  */
-public class Compass
-    implements Renderable
+public class Compass extends SimpleOverlay
 {
     /**
      * Creates a new compass.
      */
     public Compass (GlContext ctx)
     {
-        _ctx = ctx;
+        super(ctx);
 
         // create the axis labels
         CharacterTextFactory factory = CharacterTextFactory.getInstance(
@@ -37,28 +33,14 @@ public class Compass
         _x = factory.createText("x", new Color4f(0.75f, 0f, 0f, 1f));
         _y = factory.createText("y", new Color4f(0f, 0.75f, 0f, 1f));
         _z = factory.createText("z", Color4f.BLUE);
-
-        _batch = new Batch() {
-            public boolean draw (Renderer renderer) {
-                renderer.setStates(Root.STATES);
-                Compass.this.draw(renderer);
-                return true;
-            }
-        };
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    @Override // documentation inherited
+    protected void draw ()
     {
-        _ctx.getRenderer().enqueueOrtho(_batch);
-    }
+        Renderer renderer = _ctx.getRenderer();
+        Quaternion rotation = _ctx.getCompositor().getCamera().getViewTransform().getRotation();
 
-    /**
-     * Draws the compass.
-     */
-    protected void draw (Renderer renderer)
-    {
-        Quaternion rotation = renderer.getCamera().getViewTransform().getRotation();
         rotation.transformUnitX(_vector);
         drawAxis(renderer, _x, _vector.x, _vector.y);
 
@@ -88,14 +70,8 @@ public class Compass
         GL11.glEnd();
     }
 
-    /** The renderer context. */
-    protected GlContext _ctx;
-
     /** The axis labels. */
     protected Text _x, _y, _z;
-
-    /** The batch to enqueue for rendering. */
-    protected Batch _batch;
 
     /** Temporary vector used to determine where the axes lie. */
     protected Vector3f _vector = new Vector3f();

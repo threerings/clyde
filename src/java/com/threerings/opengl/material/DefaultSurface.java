@@ -5,6 +5,7 @@ package com.threerings.opengl.material;
 
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Color4f;
@@ -31,6 +32,7 @@ public class DefaultSurface extends Surface
     {
         _ctx = ctx;
         _material = material;
+        _queue = ctx.getCompositor().getQueue();
 
         // start with the geometry batch
         _bbatch = createBaseBatch(geom);
@@ -110,11 +112,7 @@ public class DefaultSurface extends Surface
     public void enqueue ()
     {
         _batch.depth = _host.getModelview().transformPointZ(_center);
-        if (_transparent) {
-            _ctx.getRenderer().enqueueTransparent(_batch);
-        } else {
-            _ctx.getRenderer().enqueueOpaque(_batch);
-        }
+        _queue.add(_batch, _transparent);
     }
 
     @Override // documentation inherited
@@ -164,6 +162,9 @@ public class DefaultSurface extends Surface
 
     /** Whether or not the mesh is to be rendered as transparent. */
     protected boolean _transparent;
+
+    /** The queue into which we enqueue our batch. */
+    protected RenderQueue _queue;
 
     /** The base batch, which contains the geometry. */
     protected SimpleBatch _bbatch;

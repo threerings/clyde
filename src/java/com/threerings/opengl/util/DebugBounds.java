@@ -8,13 +8,14 @@ import org.lwjgl.opengl.GL11;
 import com.threerings.math.Box;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.RenderState;
 
 /**
  * Renders bounding boxes for debugging purposes.
  */
-public abstract class DebugBounds extends SimpleRenderable
+public abstract class DebugBounds extends SimpleTransformable
 {
     /**
      * Draws a single bounding box in the specified color.
@@ -62,7 +63,7 @@ public abstract class DebugBounds extends SimpleRenderable
      */
     public DebugBounds (GlContext ctx)
     {
-        super(ctx, false, true, 0);
+        super(ctx, RenderQueue.DEFAULT, false, 0, true, 0);
     }
 
     @Override // documentation inherited
@@ -70,7 +71,6 @@ public abstract class DebugBounds extends SimpleRenderable
     {
         RenderState[] states = super.createStates();
         states[RenderState.COLOR_STATE] = null;
-        states[RenderState.MATERIAL_STATE] = null;
         return states;
     }
 }

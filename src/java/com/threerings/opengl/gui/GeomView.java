@@ -5,7 +5,7 @@ package com.threerings.opengl.gui;
 
 import org.lwjgl.opengl.GL11;
 
-import com.threerings.opengl.renderer.Camera;
+import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;

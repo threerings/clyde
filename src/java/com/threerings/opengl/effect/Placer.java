@@ -13,7 +13,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.renderer.Camera;
+import com.threerings.opengl.camera.Camera;
 
 import com.threerings.opengl.effect.ParticleSystem.Layer;
 

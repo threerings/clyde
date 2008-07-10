@@ -126,7 +126,7 @@ public class ArticulatedModel extends Model
          */
         public Vector3f getTranslation (Vector3f result)
         {
-            Transform3D world = _ctx.getRenderer().getCamera().getWorldTransform();
+            Transform3D world = _ctx.getCompositor().getCamera().getWorldTransform();
             return world.transformPoint(_modelview.getTranslation(), result);
         }
 
@@ -1211,7 +1211,7 @@ public class ArticulatedModel extends Model
     public boolean getIntersection (Ray ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
-        Transform3D view = _ctx.getRenderer().getCamera().getViewTransform();
+        Transform3D view = _ctx.getCompositor().getCamera().getViewTransform();
         if (_cmesh == null || !_worldBounds.intersects(ray) ||
             !_cmesh.getIntersection(ray.transform(_transform.invert()), result)) {
             return _root.getIntersection(ray.transform(view), result);
@@ -1235,7 +1235,7 @@ public class ArticulatedModel extends Model
         updateTransforms();
 
         // update the modelview transform and the transform hierarchy
-        _ctx.getRenderer().getCamera().getViewTransform().compose(_transform, _modelview);
+        _ctx.getCompositor().getCamera().getViewTransform().compose(_transform, _modelview);
         _root.enqueue(_modelview);
 
         // enqueue the skinned surfaces
@@ -1377,7 +1377,7 @@ public class ArticulatedModel extends Model
         updateTransforms();
 
         // update the world transform and the transform hierarchy
-        _ctx.getRenderer().getCamera().getWorldTransform().compose(modelview, _transform);
+        _ctx.getCompositor().getCamera().getWorldTransform().compose(modelview, _transform);
         _root.enqueue(modelview);
 
         // enqueue the skinned surfaces

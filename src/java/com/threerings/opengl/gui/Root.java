@@ -16,25 +16,11 @@ import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;
 
-import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
-import com.threerings.opengl.renderer.state.AlphaState;
-import com.threerings.opengl.renderer.state.ArrayState;
-import com.threerings.opengl.renderer.state.ColorMaskState;
-import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.renderer.state.CullState;
-import com.threerings.opengl.renderer.state.DepthState;
-import com.threerings.opengl.renderer.state.FogState;
-import com.threerings.opengl.renderer.state.LightState;
-import com.threerings.opengl.renderer.state.LineState;
-import com.threerings.opengl.renderer.state.PolygonState;
-import com.threerings.opengl.renderer.state.RenderState;
-import com.threerings.opengl.renderer.state.ShaderState;
-import com.threerings.opengl.renderer.state.StencilState;
-import com.threerings.opengl.renderer.state.TransformState;
+
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.util.SimpleOverlay;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.opengl.gui.event.Event;
@@ -50,19 +36,12 @@ import static com.threerings.opengl.gui.Log.*;
 /**
  * Connects the BUI system into the JME scene graph.
  */
-public abstract class Root
-    implements Tickable, Renderable
+public abstract class Root extends SimpleOverlay
+    implements Tickable
 {
-    /** The baseline render states. */
-    public static final RenderState[] STATES = new RenderState[] {
-        AlphaState.PREMULTIPLIED, ArrayState.DISABLED, null, ColorMaskState.ALL,
-        CullState.DISABLED, DepthState.DISABLED, FogState.DISABLED, LightState.DISABLED,
-        LineState.DEFAULT, null, null, PolygonState.DEFAULT, ShaderState.DISABLED,
-        StencilState.DISABLED, null, TransformState.IDENTITY };
-
     public Root (GlContext ctx)
     {
-        _ctx = ctx;
+        super(ctx);
     }
 
     /**
@@ -512,16 +491,8 @@ public abstract class Root
         _tipwin.validate();
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
-    {
-        _ctx.getRenderer().enqueueOrtho(_batch);
-    }
-
-    /**
-     * Renders the contents of the UI.
-     */
-    protected void render (Renderer renderer)
+    @Override // documentation inherited
+    protected void draw ()
     {
         Window modalWin = null;
         if (_modalShade != null) {
@@ -534,10 +505,8 @@ public abstract class Root
             }
         }
 
-        // apply our baseline render states
-        renderer.setStates(STATES);
-
         // make sure we're in modelview matrix mode
+        Renderer renderer = _ctx.getRenderer();
         renderer.setMatrixMode(GL11.GL_MODELVIEW);
 
         // render all of our windows
@@ -823,15 +792,6 @@ public abstract class Root
         protected KeyEvent _press;
         protected long _nextRepeat;
     }
-
-    protected GlContext _ctx;
-
-    protected Batch _batch = new Batch() {
-        public boolean draw (Renderer renderer) {
-            render(renderer);
-            return false;
-        }
-    };
 
     protected long _tickStamp;
     protected int _modifiers;

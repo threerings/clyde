@@ -152,7 +152,7 @@ public abstract class Model
      */
     public boolean boundsIntersectFrustum ()
     {
-        Frustum frustum = _ctx.getRenderer().getCamera().getWorldVolume();
+        Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
         return frustum.getIntersectionType(_worldBounds) != Frustum.IntersectionType.NONE;
     }
 

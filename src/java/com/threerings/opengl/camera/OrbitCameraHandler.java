@@ -9,7 +9,6 @@ import com.threerings.math.SphereCoords;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.renderer.Camera;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -62,7 +61,7 @@ public class OrbitCameraHandler extends CameraHandler
      */
     public void pan (float x, float y)
     {
-        Quaternion rot = _ctx.getRenderer().getCamera().getWorldTransform().getRotation();
+        Quaternion rot = _ctx.getCompositor().getCamera().getWorldTransform().getRotation();
         _target.addLocal(rot.transformLocal(_pan.set(x, y, 0f)));
     }
 
@@ -93,7 +92,7 @@ public class OrbitCameraHandler extends CameraHandler
     public void updatePosition ()
     {
         // update the camera translation and rotation
-        Camera camera = _ctx.getRenderer().getCamera();
+        Camera camera = _ctx.getCompositor().getCamera();
         Transform3D xform = camera.getWorldTransform();
         float ce = FloatMath.cos(_coords.elevation);
         xform.getTranslation().set(

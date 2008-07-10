@@ -83,9 +83,10 @@ public class SceneEditor extends GlCanvasTool
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
-        view.add(createMenuItem("toggle_bounds", KeyEvent.VK_B, KeyEvent.VK_B));
-        view.add(createMenuItem("toggle_compass", KeyEvent.VK_O, KeyEvent.VK_M));
-        view.add(createMenuItem("toggle_stats", KeyEvent.VK_S, KeyEvent.VK_T));
+        view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
+        view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
+        _showCompass.setEnabled(true);
+        view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
         view.addSeparator();
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
 
@@ -186,26 +187,9 @@ public class SceneEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void renderScene ()
+    protected void enqueueScene ()
     {
-        // clear the previous frame
-        _renderer.clearFrame();
-
-        // and the grid
-        _grid.enqueue();
-
-        // and maybe the bounding box(es)
-        if (_bounds != null) {
-            _bounds.enqueue();
-        }
-
-        // and maybe the compass
-        if (_compass != null) {
-            _compass.enqueue();
-        }
-
-        // render the contents of the queues
-        _renderer.renderFrame();
+        super.enqueueScene();
     }
 
     /**

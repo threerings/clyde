@@ -31,12 +31,12 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.DeepUtil;
 
+import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.material.Material;
 import com.threerings.opengl.material.ParticleHost;
 import com.threerings.opengl.material.ParticleHost.Alignment;
 import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.model.Model;
-import com.threerings.opengl.renderer.Camera;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.FogState;
@@ -255,7 +255,7 @@ public class ParticleSystem extends Model
          */
         public Camera getCamera ()
         {
-            return _ctx.getRenderer().getCamera();
+            return _ctx.getCompositor().getCamera();
         }
 
         /**
@@ -447,7 +447,7 @@ public class ParticleSystem extends Model
             if (moveParticlesWithEmitter) {
                 modelview.compose(transform, _tstate.getModelview());
             } else {
-                _tstate.getModelview().set(_ctx.getRenderer().getCamera().getViewTransform());
+                _tstate.getModelview().set(_ctx.getCompositor().getCamera().getViewTransform());
             }
             _tstate.setDirty(true);
 
@@ -464,7 +464,8 @@ public class ParticleSystem extends Model
             // update the depth of the layer
             if (priorityMode == null) {
                 _bounds.getCenter(_center);
-                _depth = _ctx.getRenderer().getCamera().getViewTransform().transformPointZ(_center);
+                _depth = _ctx.getCompositor().getCamera().getViewTransform().transformPointZ(
+                    _center);
             } else {
                 _depth = _groups[priorityMode.group].depth + priorityMode.priority*0.0001f;
             }
@@ -822,7 +823,7 @@ public class ParticleSystem extends Model
     public void enqueue ()
     {
         // update the modelview transform and the transform hierarchy
-        Transform3D view = _ctx.getRenderer().getCamera().getViewTransform();
+        Transform3D view = _ctx.getCompositor().getCamera().getViewTransform();
         view.compose(_transform, _modelview);
 
         // update the group depths
@@ -914,7 +915,7 @@ public class ParticleSystem extends Model
     protected void enqueue (Transform3D modelview)
     {
         // update the world transform
-        Camera camera = _ctx.getRenderer().getCamera();
+        Camera camera = _ctx.getCompositor().getCamera();
         camera.getWorldTransform().compose(modelview, _transform);
 
         // update the group depths

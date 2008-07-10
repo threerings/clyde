@@ -29,6 +29,7 @@ import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.Renderable;
 
 import static com.threerings.opengl.Log.*;
 
@@ -135,6 +136,7 @@ public abstract class GlCanvasApp extends GlApp
     protected void initRenderer ()
     {
         _renderer.init(_canvas, _canvas.getWidth(), _canvas.getHeight());
+        _compositor.init();
         _camhand = createCameraHandler();
         _camhand.updatePerspective();
 
@@ -150,6 +152,13 @@ public abstract class GlCanvasApp extends GlApp
 
         // enable the keyboard manager
         _keymgr.setEnabled(true);
+
+        // add a root to call the enqueueScene method
+        _compositor.addRoot(new Renderable() {
+            public void enqueue () {
+                enqueueScene();
+            }
+        });
 
         // give subclasses a chance to init
         didInit();
@@ -187,14 +196,24 @@ public abstract class GlCanvasApp extends GlApp
     /**
      * Renders the entire scene.
      */
-    protected abstract void renderScene ();
+    protected void renderScene ()
+    {
+        _compositor.renderScene();
+    }
+
+    /**
+     * Gives the application a chance to enqueue anything it might want rendered.
+     */
+    protected void enqueueScene ()
+    {
+    }
 
     /**
      * Called when the canvas has been resized.
      */
     protected void canvasResized (int width, int height)
     {
-        _renderer.getCamera().setViewport(0, 0, width, height);
+        _compositor.getCamera().getViewport().set(0, 0, width, height);
         _camhand.updatePerspective();
     }
 

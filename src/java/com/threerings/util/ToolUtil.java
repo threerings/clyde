@@ -16,6 +16,7 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -201,6 +202,29 @@ public class ToolUtil
         int mnemonic, int accelerator, int modifiers)
     {
         return new JMenuItem(createAction(
+            listener, msgs, action, mnemonic, accelerator, modifiers));
+    }
+
+    /**
+     * Creates a check box menu item with the specified action, mnemonic, and (optional)
+     * accelerator.
+     */
+    public static JCheckBoxMenuItem createCheckBoxMenuItem (
+        ActionListener listener, MessageBundle msgs, String action, int mnemonic, int accelerator)
+    {
+        return createCheckBoxMenuItem(
+            listener, msgs, action, mnemonic, accelerator, KeyEvent.CTRL_MASK);
+    }
+
+    /**
+     * Creates a check box menu item with the specified action, mnemonic, and (optional)
+     * accelerator key/modifiers.
+     */
+    public static JCheckBoxMenuItem createCheckBoxMenuItem (
+        ActionListener listener, MessageBundle msgs, String action,
+        int mnemonic, int accelerator, int modifiers)
+    {
+        return new JCheckBoxMenuItem(createAction(
             listener, msgs, action, mnemonic, accelerator, modifiers));
     }
 

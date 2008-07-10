@@ -71,8 +71,8 @@ public class CharacterTextFactory extends TextFactory
         GlyphVector vector = _font.createGlyphVector(ctx, "J");
         java.awt.Rectangle bounds = vector.getPixelBounds(ctx, 0f, 0f);
 
-        // allow up to three times the sample dimensions for descenders, effects, etc.
-        _scratch = new BufferedImage(bounds.width*3, bounds.height*3, BufferedImage.TYPE_INT_ARGB);
+        // allow up to four times the sample dimensions for descenders, effects, etc.
+        _scratch = new BufferedImage(bounds.width*4, bounds.height*4, BufferedImage.TYPE_INT_ARGB);
         _graphics.dispose();
         _graphics = _scratch.createGraphics();
         _graphics.setFont(font);

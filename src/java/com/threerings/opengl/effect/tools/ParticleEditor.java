@@ -29,6 +29,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -74,8 +75,7 @@ import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.util.DebugBounds;
-import com.threerings.opengl.util.Grid;
-import com.threerings.opengl.util.SimpleRenderable;
+import com.threerings.opengl.util.SimpleTransformable;
 
 import static com.threerings.opengl.Log.*;
 
@@ -131,10 +131,10 @@ public class ParticleEditor extends GlCanvasTool
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
-        view.add(createMenuItem("toggle_ground", KeyEvent.VK_G, KeyEvent.VK_G));
-        view.add(createMenuItem("toggle_bounds", KeyEvent.VK_B, KeyEvent.VK_B));
-        view.add(createMenuItem("toggle_compass", KeyEvent.VK_O, KeyEvent.VK_M));
-        view.add(createMenuItem("toggle_stats", KeyEvent.VK_S, KeyEvent.VK_T));
+        view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_G));
+        view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
+        view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
+        view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
         view.addSeparator();
         view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
@@ -286,8 +286,6 @@ public class ParticleEditor extends GlCanvasTool
             exportParticles();
         } else if (action.equals("import_layers")) {
             importLayers();
-        } else if (action.equals("toggle_ground")) {
-            _ground = (_ground == null) ? createGround() : null;
         } else if (action.equals("reset")) {
             _particles.reset();
         } else if (action.equals("new_layer")) {
@@ -301,12 +299,13 @@ public class ParticleEditor extends GlCanvasTool
         }
     }
 
-    /**
-     * (Re)creates the ground plane.
-     */
-    protected SimpleRenderable createGround ()
+    @Override // documentation inherited
+    protected void didInit ()
     {
-        return new SimpleRenderable(this) {
+        super.didInit();
+
+        // create the ground plane
+        _ground = new SimpleTransformable(this) {
             protected RenderState[] createStates () {
                 RenderState[] states = super.createStates();
                 states[RenderState.COLOR_STATE] = new ColorState(
@@ -322,6 +321,18 @@ public class ParticleEditor extends GlCanvasTool
                 GL11.glEnd();
             }
         };
+
+        // initialize the table
+        _ltable.setModel(new LayerTableModel());
+        _ltable.getColumnModel().getColumn(1).setMaxWidth(60);
+
+        // attempt to load the particle file specified on the command line if any
+        // (otherwise, create an empty particle system)
+        if (_initParticles != null) {
+            open(_initParticles);
+        } else {
+            newParticles();
+        }
     }
 
     @Override // documentation inherited
@@ -341,24 +352,6 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void didInit ()
-    {
-        super.didInit();
-
-        // initialize the table
-        _ltable.setModel(new LayerTableModel());
-        _ltable.getColumnModel().getColumn(1).setMaxWidth(60);
-
-        // attempt to load the particle file specified on the command line if any
-        // (otherwise, create an empty particle system)
-        if (_initParticles != null) {
-            open(_initParticles);
-        } else {
-            newParticles();
-        }
-    }
-
-    @Override // documentation inherited
     protected void updateScene ()
     {
         long time = System.currentTimeMillis();
@@ -368,34 +361,13 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void renderScene ()
+    protected void enqueueScene ()
     {
-        // clear the previous frame
-        _renderer.clearFrame();
-
-        // queue up the ground
-        if (_ground != null) {
+        super.enqueueScene();
+        if (_showGround.isSelected()) {
             _ground.enqueue();
         }
-
-        // and the grid
-        _grid.enqueue();
-
-        // and the particles
         _particles.enqueue();
-
-        // and maybe the bounding box(es)
-        if (_bounds != null) {
-            _bounds.enqueue();
-        }
-
-        // and maybe the compass
-        if (_compass != null) {
-            _compass.enqueue();
-        }
-
-        // render the contents of the queues
-        _renderer.renderFrame();
     }
 
     /**
@@ -739,6 +711,9 @@ public class ParticleEditor extends GlCanvasTool
     /** The revert menu item. */
     protected JMenuItem _revert;
 
+    /** The toggle for the ground view. */
+    protected JCheckBoxMenuItem _showGround;
+
     /** The file chooser for opening and saving particle files. */
     protected JFileChooser _chooser;
 
@@ -758,7 +733,7 @@ public class ParticleEditor extends GlCanvasTool
     protected EditorPanel _editor;
 
     /** The ground plane. */
-    protected SimpleRenderable _ground;
+    protected SimpleTransformable _ground;
 
     /** The loaded particle file. */
     protected File _file;

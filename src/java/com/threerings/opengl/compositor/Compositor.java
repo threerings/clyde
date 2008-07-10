@@ -3,15 +3,16 @@
 
 package com.threerings.opengl.compositor;
 
-import org.lwjgl.opengl.GL11;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.ComparableArrayList;
 
+import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.config.RenderQueueConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -32,6 +33,22 @@ public class Compositor
     public Compositor (GlContext ctx)
     {
         _ctx = ctx;
+    }
+
+    /**
+     * Initializes the compositor once the renderer has been initialized.
+     */
+    public void init ()
+    {
+        _camera.getViewport().set(_ctx.getRenderer().getViewport());
+    }
+
+    /**
+     * Returns a reference to the camera.
+     */
+    public Camera getCamera ()
+    {
+        return _camera;
     }
 
     /**
@@ -66,9 +83,12 @@ public class Compositor
         enqueueRoots();
         sortQueues();
 
+        // reset the renderer stats
+        Renderer renderer = _ctx.getRenderer();
+        renderer.resetStats();
+
         // clear the depth and stencil buffers (and the color buffer, provided that none of the
         // queues do it for us)
-        Renderer renderer = _ctx.getRenderer();
         int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
         if (!queueClearsColor()) {
             bits |= GL11.GL_COLOR_BUFFER_BIT;
@@ -81,8 +101,12 @@ public class Compositor
         renderer.setState(StencilState.DISABLED);
         GL11.glClear(bits);
 
+        _camera.apply(renderer);
         renderQueues();
         clearQueues();
+
+        // allow the renderer to clean up
+        renderer.cleanup();
     }
 
     /**
@@ -102,7 +126,7 @@ public class Compositor
      */
     public RenderQueue getQueue ()
     {
-        return getQueue("default");
+        return getQueue(RenderQueue.DEFAULT);
     }
 
     /**
@@ -189,6 +213,9 @@ public class Compositor
 
     /** The application context. */
     protected GlContext _ctx;
+
+    /** The camera. */
+    protected Camera _camera = new Camera();
 
     /** The background color. */
     protected Color4f _backgroundColor = new Color4f(0f, 0f, 0f, 0f);

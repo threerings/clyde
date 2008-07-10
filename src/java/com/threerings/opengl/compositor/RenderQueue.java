@@ -19,6 +19,12 @@ import com.threerings.opengl.renderer.Renderer;
 public class RenderQueue
     implements Comparable<RenderQueue>
 {
+    /** The name of the default queue. */
+    public static final String DEFAULT = "Default";
+
+    /** The name of the overlay queue. */
+    public static final String OVERLAY = "Overlay";
+
     /**
      * Creates a new render queue with the specified priority.
      */
@@ -45,6 +51,22 @@ public class RenderQueue
     public boolean clearsColor ()
     {
         return _clearsColor;
+    }
+
+    /**
+     * Adds a batch to the queue.
+     */
+    public void add (Batch batch, boolean transparent)
+    {
+        (transparent ? _transparent : _opaque).add(batch, 0);
+    }
+
+    /**
+     * Adds a batch to the queue with the specified priority.
+     */
+    public void add (Batch batch, boolean transparent, int priority)
+    {
+        (transparent ? _transparent : _opaque).add(batch, priority);
     }
 
     /**

@@ -5,7 +5,6 @@ package com.threerings.opengl.camera;
 
 import com.threerings.math.FloatMath;
 
-import com.threerings.opengl.renderer.Camera;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.util.Rectangle;
@@ -60,7 +59,7 @@ public abstract class CameraHandler
      */
     public void updatePerspective ()
     {
-        Camera camera = _ctx.getRenderer().getCamera();
+        Camera camera = _ctx.getCompositor().getCamera();
         Rectangle viewport = camera.getViewport();
         camera.setPerspective(_fovy, (float)viewport.width / viewport.height, _near, _far);
     }

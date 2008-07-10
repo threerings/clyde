@@ -85,7 +85,7 @@ public class StaticModel extends Model
     {
         // update the shared transform state
         Transform3D modelview = _tstate.getModelview();
-        _ctx.getRenderer().getCamera().getViewTransform().compose(_transform, modelview);
+        _ctx.getCompositor().getCamera().getViewTransform().compose(_transform, modelview);
         _tstate.setDirty(true);
 
         // enqueue the surfaces
@@ -160,7 +160,7 @@ public class StaticModel extends Model
     protected void enqueue (Transform3D modelview)
     {
         // update the world transform
-        _ctx.getRenderer().getCamera().getWorldTransform().compose(modelview, _transform);
+        _ctx.getCompositor().getCamera().getWorldTransform().compose(modelview, _transform);
 
         // update the shared transform state
         _tstate.getModelview().set(modelview);

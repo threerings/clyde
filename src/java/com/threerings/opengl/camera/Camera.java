@@ -1,17 +1,17 @@
 //
 // $Id$
 
-package com.threerings.opengl.renderer;
-
-import org.lwjgl.opengl.GL11;
+package com.threerings.opengl.camera;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray;
+import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
@@ -19,33 +19,6 @@ import com.threerings.opengl.gui.util.Rectangle;
  */
 public class Camera
 {
-    /**
-     * Creates a camera for the specified renderer.
-     *
-     * @param width the initial viewport width.
-     * @param height the initial viewport height.
-     */
-    public Camera (int width, int height)
-    {
-        _viewport.set(0, 0, width, height);
-    }
-
-    /**
-     * Updates the camera transform.
-     */
-    public void updateTransform ()
-    {
-        // the view transform is the inverse of the world transform
-        _worldTransform.invert(_viewTransform);
-
-        // make sure our matrices are up-to-date
-        _worldTransform.update(Transform3D.AFFINE);
-        _viewTransform.update(Transform3D.AFFINE);
-
-        // transform the frustum into world space
-        _localVolume.transform(_worldTransform, _worldVolume);
-    }
-
     /**
      * Returns a reference to the camera's current transform in world space.
      */
@@ -68,17 +41,6 @@ public class Camera
     public Frustum getWorldVolume ()
     {
         return _worldVolume;
-    }
-
-    /**
-     * Sets the camera viewport.
-     */
-    public void setViewport (int x, int y, int width, int height)
-    {
-        _viewport.set(x, y, width, height);
-        if (_renderer != null) {
-            _renderer.setViewport(_viewport);
-        }
     }
 
     /**
@@ -130,9 +92,6 @@ public class Camera
             _projection.setToOrtho(left, right, bottom, top, near, far);
         } else {
             _projection.setToFrustum(left, right, bottom, top, near, far);
-        }
-        if (_renderer != null) {
-            _renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _ortho);
         }
     }
 
@@ -198,6 +157,31 @@ public class Camera
     public boolean isOrtho ()
     {
         return _ortho;
+    }
+
+    /**
+     * Updates the camera transform.
+     */
+    public void updateTransform ()
+    {
+        // the view transform is the inverse of the world transform
+        _worldTransform.invert(_viewTransform);
+
+        // make sure our matrices are up-to-date
+        _worldTransform.update(Transform3D.AFFINE);
+        _viewTransform.update(Transform3D.AFFINE);
+
+        // transform the frustum into world space
+        _localVolume.transform(_worldTransform, _worldVolume);
+    }
+
+    /**
+     * Applies the camera state to the specified renderer.
+     */
+    public void apply (Renderer renderer)
+    {
+        renderer.setViewport(_viewport);
+        renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _ortho);
     }
 
     /**
@@ -268,31 +252,17 @@ public class Camera
         result.transformLocal(_worldTransform);
     }
 
-    /**
-     * Notifies this camera that it has been set in the renderer.
-     */
-    protected void setRenderer (Renderer renderer)
-    {
-        if ((_renderer = renderer) != null) {
-            _renderer.setViewport(_viewport);
-            _renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _ortho);
-        }
-    }
-
-    /** The renderer with which this camera is registered, if any. */
-    protected Renderer _renderer;
-
     /** The camera viewport. */
     protected Rectangle _viewport = new Rectangle();
 
     /** The camera frustum parameters. */
     protected float _left = -1f, _right = +1f, _bottom = -1f, _top = +1f, _near = +1f, _far = -1f;
 
-    /** The cached projection matrix. */
-    protected Matrix4f _projection = new Matrix4f();
-
     /** Whether or not the camera is set to an orthographic projection. */
     protected boolean _ortho = true;
+
+    /** The cached projection matrix. */
+    protected Matrix4f _projection = new Matrix4f();
 
     /** The camera's current transform in world space. */
     protected Transform3D _worldTransform = new Transform3D(Transform3D.UNIFORM);

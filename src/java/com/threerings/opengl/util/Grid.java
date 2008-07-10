@@ -7,27 +7,16 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
-import com.threerings.math.Transform3D;
-
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.SimpleBatch;
-import com.threerings.opengl.renderer.state.AlphaState;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.renderer.state.DepthState;
-import com.threerings.opengl.renderer.state.FogState;
-import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.renderer.state.RenderState;
-import com.threerings.opengl.renderer.state.ShaderState;
-import com.threerings.opengl.renderer.state.TextureState;
-import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.renderer.util.BatchFactory;
 
 /**
  * Renders an unlit reference grid on the XY plane, centered about the origin.
  */
-public class Grid
-    implements Renderable
+public class Grid extends SimpleTransformable
 {
     /**
      * Creates a new grid with the specified number of lines in each direction and the given
@@ -36,6 +25,7 @@ public class Grid
     public Grid (GlContext ctx, int lines, float spacing)
     {
         _ctx = ctx;
+        _queue = ctx.getCompositor().getQueue();
 
         // create the batch containing the grid lines
         FloatBuffer vbuf = BufferUtils.createFloatBuffer(lines * 2 * 2 * 3);
@@ -51,18 +41,8 @@ public class Grid
             vbuf.put(x).put(+extent).put(0f);
         }
         vbuf.rewind();
-        _batch = BatchFactory.createLineBatch(ctx.getRenderer(), vbuf);
-
-        // set the required render states
-        RenderState[] states = _batch.getStates();
-        states[RenderState.ALPHA_STATE] = AlphaState.OPAQUE;
-        states[RenderState.COLOR_STATE] = new ColorState();
-        states[RenderState.DEPTH_STATE] = DepthState.TEST_WRITE;
-        states[RenderState.FOG_STATE] = FogState.DISABLED;
-        states[RenderState.LIGHT_STATE] = LightState.DISABLED;
-        states[RenderState.SHADER_STATE] = ShaderState.DISABLED;
-        states[RenderState.TEXTURE_STATE] = TextureState.DISABLED;
-        states[RenderState.TRANSFORM_STATE] = new TransformState();
+        _batch = BatchFactory.createLineBatch(_ctx.getRenderer(), vbuf);
+        RenderState.copy(createStates(), _batch.getStates());
     }
 
     /**
@@ -74,34 +54,11 @@ public class Grid
         return cstate.getColor();
     }
 
-    /**
-     * Returns a reference to the grid's world transform.
-     */
-    public Transform3D getTransform ()
+    @Override // documentation inherited
+    protected RenderState[] createStates ()
     {
-        return _transform;
+        RenderState[] states = super.createStates();
+        states[RenderState.COLOR_STATE] = new ColorState();
+        return states;
     }
-
-    // documentation inherited from interface Renderable
-    public void enqueue ()
-    {
-        // update the transform state
-        TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
-        Transform3D modelview = tstate.getModelview();
-        Renderer renderer = _ctx.getRenderer();
-        renderer.getCamera().getViewTransform().compose(_transform, modelview);
-        tstate.setDirty(true);
-
-        // queue up the batch
-        renderer.enqueueOpaque(_batch);
-    }
-
-    /** The renderer context. */
-    protected GlContext _ctx;
-
-    /** The batch that we submit to the renderer. */
-    protected SimpleBatch _batch;
-
-    /** Our world transform. */
-    protected Transform3D _transform = new Transform3D(Transform3D.UNIFORM);
 }

@@ -3,8 +3,6 @@
 
 package com.threerings.opengl.renderer;
 
-import java.awt.Font;
-
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -30,10 +28,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
-import com.samskivert.util.ComparableArrayList;
-import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntListUtil;
-import com.samskivert.util.ObjectUtil;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
@@ -41,17 +36,9 @@ import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
-import com.threerings.media.timer.MediaTimer;
-import com.threerings.util.TimerUtil;
 
-import com.threerings.opengl.compositor.RenderQueue;
-import com.threerings.opengl.renderer.state.ColorMaskState;
-import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.TransformState;
-import com.threerings.opengl.gui.Root;
-import com.threerings.opengl.gui.text.CharacterTextFactory;
-import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
@@ -116,9 +103,6 @@ public class Renderer
         // to make things easier for texture loading, we just keep this at one (default is four)
         GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
 
-        // create the default camera
-        setCamera(new Camera(width, height));
-
         // initialize the viewport
         _viewport.set(0, 0, width, height);
 
@@ -152,14 +136,6 @@ public class Renderer
         for (int ii = 0; ii < _maxTextureImageUnits; ii++) {
             _units[ii] = new TextureUnitRecord();
         }
-
-        // get the text factory for stats rendering
-        _textFactory = CharacterTextFactory.getInstance(
-            new Font("Dialog", Font.PLAIN, 12), true);
-        _stats = _textFactory.createText("", Color4f.WHITE, 0, 0, Color4f.BLACK, true);
-
-        // and create the timer
-        _timer = TimerUtil.createTimer();
     }
 
     /**
@@ -171,224 +147,46 @@ public class Renderer
     }
 
     /**
-     * Sets the camera state.
+     * Returns the number of texture changes since the last call to {@link #resetStats}.
      */
-    public void setCamera (Camera camera)
+    public int getTextureCount ()
     {
-        if (_camera == camera) {
-            return;
-        }
-        if (_camera != null) {
-            _camera.setRenderer(null);
-        }
-        if ((_camera = camera) != null) {
-            _camera.setRenderer(this);
-        }
+        return _textureCount;
     }
 
     /**
-     * Returns a reference to the camera object.
+     * Returns the number of batches rendered since the last call to {@link #resetStats}.
      */
-    public Camera getCamera ()
+    public int getBatchCount ()
     {
-        return _camera;
+        return _batchCount;
     }
 
     /**
-     * Sets whether or not to show rendering statistics (fps, batch counts).
+     * Returns the number of primitives rendered since the last call to {@link #resetStats}.
      */
-    public void setShowStats (boolean showStats)
+    public int getPrimitiveCount ()
     {
-        _showStats = showStats;
+        return _primitiveCount;
     }
 
     /**
-     * Checks whether or not stats are being shown.
+     * Resets the per-frame stats.
      */
-    public boolean getShowStats ()
+    public void resetStats ()
     {
-        return _showStats;
-    }
-
-    /**
-     * Convenience method for enqueuing an opaque batch in the default layer with the default
-     * priority.
-     */
-    public void enqueueOpaque (Batch batch)
-    {
-        getQueue(0).addOpaque(batch, 0);
-    }
-
-    /**
-     * Convenience method for enqueuing an opaque batch in the specified layer with the default
-     * priority.
-     */
-    public void enqueueOpaque (Batch batch, int layer)
-    {
-        getQueue(layer).addOpaque(batch, 0);
-    }
-
-    /**
-     * Convenience method for enqueuing an opaque batch in the specified layer with the given
-     * priority.
-     */
-    public void enqueueOpaque (Batch batch, int layer, int priority)
-    {
-        getQueue(layer).addOpaque(batch, priority);
-    }
-
-    /**
-     * Convenience method for enqueuing a transparent batch in the default layer with the default
-     * priority.
-     */
-    public void enqueueTransparent (Batch batch)
-    {
-        getQueue(0).addTransparent(batch, 0);
-    }
-
-    /**
-     * Convenience method for enqueuing a transparent batch in the specified layer with the default
-     * priority.
-     */
-    public void enqueueTransparent (Batch batch, int layer)
-    {
-        getQueue(layer).addTransparent(batch, 0);
-    }
-
-    /**
-     * Convenience method for enqueuing a transparent batch in the specified layer with the given
-     * priority.
-     */
-    public void enqueueTransparent (Batch batch, int layer, int priority)
-    {
-        getQueue(layer).addTransparent(batch, priority);
-    }
-
-    /**
-     * Returns the render queue for the default layer.
-     */
-    public RenderQueue getQueue ()
-    {
-        return getQueue(0);
-    }
-
-    /**
-     * Returns a reference to the render queue for the specified layer.
-     */
-    public RenderQueue getQueue (int layer)
-    {
-        RenderQueue queue = _layers.get(layer);
-        if (queue == null) {
-            _layers.put(layer, queue = new RenderQueue(layer));
-            _queues.insertSorted(queue);
-        }
-        return queue;
-    }
-
-    /**
-     * Resets the set of render queues.
-     */
-    public void resetQueues ()
-    {
-        _layers.clear();
-        _queues.clear();
-    }
-
-    /**
-     * Enqueues a batch for rendering in the ortho queue.
-     */
-    public void enqueueOrtho (Batch batch)
-    {
-        _ortho.add(batch);
-    }
-
-    /**
-     * Clears the frame.
-     */
-    public void clearFrame ()
-    {
-        setState(ColorMaskState.ALL);
-        setState(DepthState.TEST_WRITE);
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-    }
-
-    /**
-     * Renders a single frame.
-     */
-    public void renderFrame ()
-    {
-        // update the stats
-        long interval = _timer.getElapsedMillis();
-        _frameCount++;
-        if (interval >= REPORT_INTERVAL) {
-            if (_showStats) {
-                int fps = (int)((_frameCount * 1000) / interval);
-                _stats = _textFactory.createText(
-                    fps + " fps (" + "batches: " + _batchCount + "; " + "primitives: " +
-                    _primitiveCount + "; textures: " + _textureCount + ")",
-                    Color4f.WHITE, 0, 0, Color4f.BLACK, true);
-            }
-            _timer.reset();
-            _frameCount = 0;
-        }
         _textureCount = 0;
         _batchCount = 0;
         _primitiveCount = 0;
+    }
 
-        // do the actual rendering
-        renderQueues();
-
+    /**
+     * Gives the renderer a chance to perform any periodic cleanup necessary.
+     */
+    public void cleanup ()
+    {
         // delete any finalized objects
         deleteFinalizedObjects();
-    }
-
-    /**
-     * Sorts the queues in preparation for rendering.
-     */
-    public void sortQueues ()
-    {
-        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
-            _queues.get(ii).sort();
-        }
-    }
-
-    /**
-     * Renders the contents of the queues.
-     */
-    public void renderQueues ()
-    {
-        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
-            RenderQueue queue = _queues.get(ii);
-            queue.sort();
-            queue.render(this);
-        }
-
-        // load the ortho matrix and render
-        setMatrixMode(GL11.GL_PROJECTION);
-        GL11.glPushMatrix();
-        GL11.glLoadIdentity();
-        Rectangle viewport = _camera.getViewport();
-        GL11.glOrtho(0f, viewport.width, 0f, viewport.height, -1f, +1f);
-        render(_ortho);
-        if (_showStats) {
-            setStates(Root.STATES);
-            _stats.render(this, 16, 16, 1f);
-        }
-        setMatrixMode(GL11.GL_PROJECTION);
-        GL11.glPopMatrix();
-
-        clearQueues();
-        _ortho.clear();
-    }
-
-    /**
-     * Clears the contents of the queues.
-     */
-    public void clearQueues ()
-    {
-        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
-            _queues.get(ii).clear();
-        }
     }
 
     /**
@@ -1724,18 +1522,17 @@ public class Renderer
     public void render (ArrayList<Batch> batches)
     {
         // for each batch, set the states and call its draw command
-        for (int ii = 0, nn = batches.size(); ii < nn; ii++) {
+        int size = batches.size();
+        for (int ii = 0; ii < size; ii++) {
             Batch batch = batches.get(ii);
             if (batch.draw(this) || _colorArray.enabled != Boolean.FALSE) {
                 // invalidate the color state if we used a color array or a display list
                 // with color info
                 invalidateColorState();
             }
-            if (_showStats) {
-                _batchCount++;
-                _primitiveCount += batch.getPrimitiveCount();
-            }
+            _primitiveCount += batch.getPrimitiveCount();
         }
+        _batchCount += size;
     }
 
     /**
@@ -2305,36 +2102,6 @@ public class Renderer
     /** The maximum number of vertex attributes available to vertex shaders. */
     protected int _maxVertexAttribs;
 
-    /** The camera object. */
-    protected Camera _camera;
-
-    /** The ortho render queue. */
-    protected ArrayList<Batch> _ortho = new ArrayList<Batch>();
-
-    /** Maps layers to their corresponding queues. */
-    protected HashIntMap<RenderQueue> _layers = new HashIntMap<RenderQueue>();
-
-    /** The set of render queues, sorted by layer. */
-    protected ComparableArrayList<RenderQueue> _queues = new ComparableArrayList<RenderQueue>();
-
-    /** Used to create text objects for stats display. */
-    protected CharacterTextFactory _textFactory;
-
-    /** Whether or not to show rendering statistics. */
-    protected boolean _showStats;
-
-    /** A timer for the stats display. */
-    protected MediaTimer _timer;
-
-    /** The stats display text. */
-    protected Text _stats;
-
-    /** The time of the last stats report. */
-    protected long _lastReport;
-
-    /** The number of frames rendered since the last report. */
-    protected int _frameCount;
-
     /** The number of textures used in the current frame. */
     protected int _textureCount;
 
@@ -2643,7 +2410,4 @@ public class Renderer
 
     /** An invalid texture to force reapplication. */
     protected static final Texture INVALID_TEXTURE = new Texture() {};
-
-    /** The interval at which we update the stats. */
-    protected static final long REPORT_INTERVAL = 1000L;
 }
