@@ -49,6 +49,7 @@ import com.samskivert.swing.util.SwingUtil;
 
 import com.samskivert.util.QuickSort;
 
+import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
@@ -78,23 +79,26 @@ public class ConfigEditor extends BaseConfigEditor
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
-        new ConfigEditor(msgmgr, cfgmgr).setVisible(true);
+        ColorPository colorpos = ColorPository.loadColorPository(rsrcmgr);
+        new ConfigEditor(msgmgr, cfgmgr, colorpos).setVisible(true);
     }
 
     /**
      * Creates a new config editor.
      */
-    public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr)
+    public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
     {
-        this(msgmgr, cfgmgr, null, null);
+        this(msgmgr, cfgmgr, colorpos, null, null);
     }
 
     /**
      * Creates a new config editor.
      */
-    public ConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, Class clazz, String name)
+    public ConfigEditor (
+        MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos,
+        Class clazz, String name)
     {
-        super(msgmgr, cfgmgr, "config");
+        super(msgmgr, cfgmgr, colorpos, "config");
         setSize(800, 600);
         SwingUtil.centerWindow(this);
 
@@ -209,7 +213,7 @@ public class ConfigEditor extends BaseConfigEditor
         ManagerPanel panel = (ManagerPanel)_tabs.getSelectedComponent();
         ManagerPanel.GroupItem item = (ManagerPanel.GroupItem)panel.gbox.getSelectedItem();
         if (action.equals("window")) {
-            showFrame(new ConfigEditor(_msgmgr, _cfgmgr));
+            showFrame(new ConfigEditor(_msgmgr, _cfgmgr, _colorpos));
         } else if (action.equals("config")) {
             item.newConfig();
         } else if (action.equals("folder")) {
@@ -235,7 +239,7 @@ public class ConfigEditor extends BaseConfigEditor
         } else if (action.equals("delete")) {
             item.deleteNode();
         } else if (action.equals("resources")) {
-            showFrame(new ResourceEditor(_msgmgr, _cfgmgr));
+            showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
         } else if (action.equals("save_all")) {
             panel.cfgmgr.saveAll();
         } else if (action.equals("revert_all")) {
@@ -630,6 +634,12 @@ public class ConfigEditor extends BaseConfigEditor
         public ConfigManager getConfigManager ()
         {
             return cfgmgr;
+        }
+
+        // documentation inherited from interface EditorContext
+        public ColorPository getColorPository ()
+        {
+            return _colorpos;
         }
 
         // documentation inherited from interface ItemListener

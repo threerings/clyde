@@ -440,6 +440,10 @@ public class TextureConfig extends ParameterizedConfig
                 directory="image_dir")
             public String file;
 
+            /** The colorizations to apply to the texture. */
+            @Editable
+            public ColorizationReference[] colorizations = new ColorizationReference[0];
+
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
             public boolean premultiply = true;
@@ -526,6 +530,10 @@ public class TextureConfig extends ParameterizedConfig
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String file;
+
+            /** The colorizations to apply to the texture. */
+            @Editable
+            public ColorizationReference[] colorizations = new ColorizationReference[0];
 
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
@@ -630,6 +638,10 @@ public class TextureConfig extends ParameterizedConfig
                 directory="image_dir")
             public String file;
 
+            /** The colorizations to apply to the texture. */
+            @Editable
+            public ColorizationReference[] colorizations = new ColorizationReference[0];
+
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
             public boolean premultiply = true;
@@ -728,6 +740,10 @@ public class TextureConfig extends ParameterizedConfig
                 directory="image_dir")
             public String file;
 
+            /** The colorizations to apply to the texture. */
+            @Editable
+            public ColorizationReference[] colorizations = new ColorizationReference[0];
+
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
             public boolean premultiply = true;
@@ -767,6 +783,10 @@ public class TextureConfig extends ParameterizedConfig
             /** The positive x, y, and z face files. */
             @Editable
             public FileTrio positive = new FileTrio();
+
+            /** The colorizations to apply to the textures. */
+            @Editable
+            public ColorizationReference[] colorizations = new ColorizationReference[0];
 
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
@@ -871,6 +891,17 @@ public class TextureConfig extends ParameterizedConfig
             TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
             return (config == null) ? null : config.getTexture(ctx);
         }
+    }
+
+    /**
+     * A reference to a colorization.
+     */
+    public static class ColorizationReference extends DeepObject
+        implements Exportable
+    {
+        /** The colorization reference. */
+        @Editable(editor="colorization")
+        public int colorization;
     }
 
     /** The actual texture implementation. */

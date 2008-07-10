@@ -6,6 +6,8 @@ package com.threerings.opengl;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.editor.util.EditorContext;
+import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
@@ -23,7 +25,7 @@ import com.threerings.opengl.util.TextureCache;
  * A base class for OpenGL-based applications.
  */
 public abstract class GlApp
-    implements GlContext, RunQueue
+    implements GlContext, EditorContext, RunQueue
 {
     public GlApp ()
     {
@@ -32,6 +34,7 @@ public abstract class GlApp
         _rsrcmgr = new ResourceManager("rsrc/");
         _msgmgr = new MessageManager("rsrc.i18n");
         _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
+        _colorpos = ColorPository.loadColorPository(_rsrcmgr);
         _texcache = new TextureCache(this);
         _shadcache = new ShaderCache(this);
         _matcache = new MaterialCache(this);
@@ -63,22 +66,28 @@ public abstract class GlApp
         return _compositor;
     }
 
-    // documentation inherited from interface GlContext
+    // documentation inherited from interfaces GlContext, EditorContext
     public ResourceManager getResourceManager ()
     {
         return _rsrcmgr;
     }
 
-    // documentation inherited from interface GlContext
+    // documentation inherited from interfaces GlContext, EditorContext
     public MessageManager getMessageManager ()
     {
         return _msgmgr;
     }
 
-    // documentation inherited from interface GlContext
+    // documentation inherited from interfaces GlContext, EditorContext
     public ConfigManager getConfigManager ()
     {
         return _cfgmgr;
+    }
+
+    // documentation inherited from interface GlContext, EditorContext
+    public ColorPository getColorPository ()
+    {
+        return _colorpos;
     }
 
     // documentation inherited from interface GlContext
@@ -122,6 +131,9 @@ public abstract class GlApp
 
     /** The configuration manager. */
     protected ConfigManager _cfgmgr;
+
+    /** The color pository. */
+    protected ColorPository _colorpos;
 
     /** The texture cache. */
     protected TextureCache _texcache;

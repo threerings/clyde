@@ -15,6 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
@@ -38,23 +39,26 @@ public abstract class BaseConfigEditor extends JFrame
     {
         MessageManager msgmgr = ctx.getMessageManager();
         ConfigManager cfgmgr = ctx.getConfigManager();
+        ColorPository colorpos = ctx.getColorPository();
         if (cfgmgr.isResourceClass(clazz)) {
             return new ResourceEditor(
-                msgmgr, cfgmgr.getRoot(),
+                msgmgr, cfgmgr.getRoot(), colorpos,
                 ctx.getResourceManager().getResourceFile(name).toString());
         } else {
-            return new ConfigEditor(msgmgr, cfgmgr, clazz, name);
+            return new ConfigEditor(msgmgr, cfgmgr, colorpos, clazz, name);
         }
     }
 
     /**
      * Creates a new config editor.
      */
-    public BaseConfigEditor (MessageManager msgmgr, ConfigManager cfgmgr, String msgs)
+    public BaseConfigEditor (
+        MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos, String msgs)
     {
         _rsrcmgr = cfgmgr.getResourceManager();
         _msgmgr = msgmgr;
         _cfgmgr = cfgmgr;
+        _colorpos = colorpos;
         _msgs = _msgmgr.getBundle(msgs);
 
         setTitle(_msgs.get("m.title"));
@@ -88,6 +92,12 @@ public abstract class BaseConfigEditor extends JFrame
     public ConfigManager getConfigManager ()
     {
         return _cfgmgr;
+    }
+
+    // documentation inherited from interface EditorContext
+    public ColorPository getColorPository ()
+    {
+        return _colorpos;
     }
 
     // documentation inherited from interface ActionListener
@@ -207,6 +217,9 @@ public abstract class BaseConfigEditor extends JFrame
 
     /** The config manager. */
     protected ConfigManager _cfgmgr;
+
+    /** The color pository. */
+    protected ColorPository _colorpos;
 
     /** The config message bundle. */
     protected MessageBundle _msgs;

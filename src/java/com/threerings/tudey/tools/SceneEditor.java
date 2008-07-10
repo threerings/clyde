@@ -136,10 +136,7 @@ public class SceneEditor extends GlCanvasTool
         } else if (action.equals("export")) {
             exportScene();
         } else if (action.equals("configs")) {
-            if (_configEditor == null) {
-                _configEditor = new ConfigEditor(_msgmgr, _scene.getConfigManager());
-            }
-            _configEditor.setVisible(true);
+            new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
         } else {
             super.actionPerformed(event);
         }
@@ -276,10 +273,6 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void setScene (TudeySceneModel scene)
     {
-        if (_configEditor != null) {
-            _configEditor.setVisible(false);
-            _configEditor = null;
-        }
         _scene = scene;
         _scene.init(_cfgmgr);
     }
@@ -346,9 +339,6 @@ public class SceneEditor extends GlCanvasTool
 
     /** The file chooser for importing and exporting scene files. */
     protected JFileChooser _exportChooser;
-
-    /** The configuration editor. */
-    protected ConfigEditor _configEditor;
 
     /** The loaded scene file. */
     protected File _file;

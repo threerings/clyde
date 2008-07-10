@@ -27,6 +27,7 @@ import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayIntSet;
 import com.samskivert.util.ObjectUtil;
 
+import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
@@ -61,24 +62,26 @@ public class ResourceEditor extends BaseConfigEditor
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
+        ColorPository colorpos = ColorPository.loadColorPository(rsrcmgr);
         new ResourceEditor(
-            msgmgr, cfgmgr, args.length > 0 ? args[0] : null).setVisible(true);
+            msgmgr, cfgmgr, colorpos, args.length > 0 ? args[0] : null).setVisible(true);
     }
 
     /**
      * Creates a new resource editor.
      */
-    public ResourceEditor (MessageManager msgmgr, ConfigManager cfgmgr)
+    public ResourceEditor (MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos)
     {
-        this(msgmgr, cfgmgr, null);
+        this(msgmgr, cfgmgr, colorpos, null);
     }
 
     /**
      * Creates a new resource editor.
      */
-    public ResourceEditor (MessageManager msgmgr, ConfigManager cfgmgr, String config)
+    public ResourceEditor (
+        MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos, String config)
     {
-        super(msgmgr, cfgmgr, "resource");
+        super(msgmgr, cfgmgr, colorpos, "resource");
         setSize(550, 600);
         SwingUtil.centerWindow(this);
 
@@ -208,7 +211,7 @@ public class ResourceEditor extends BaseConfigEditor
     {
         String action = event.getActionCommand();
         if (action.equals("window")) {
-            showFrame(new ResourceEditor(_msgmgr, _cfgmgr));
+            showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
         } else if (action.equals("open")) {
             open();
         } else if (action.equals("save")) {
@@ -231,7 +234,7 @@ public class ResourceEditor extends BaseConfigEditor
             if (config instanceof ParameterizedConfig) {
                 cfgmgr = ((ParameterizedConfig)config).getConfigManager();
             }
-            showFrame(new ConfigEditor(_msgmgr, cfgmgr));
+            showFrame(new ConfigEditor(_msgmgr, cfgmgr, _colorpos));
 
         } else {
             super.actionPerformed(event);
