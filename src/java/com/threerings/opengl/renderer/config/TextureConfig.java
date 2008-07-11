@@ -21,6 +21,8 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.media.image.Colorization;
+import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -455,7 +457,7 @@ public class TextureConfig extends ParameterizedConfig
                 if (file == null) {
                     return;
                 }
-                BufferedImage image = ctx.getTextureCache().getImage(file);
+                BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImage(
                     format.getConstant(image), border, image, premultiply, true, mipmap);
             }
@@ -546,7 +548,7 @@ public class TextureConfig extends ParameterizedConfig
                 if (file == null) {
                     return;
                 }
-                BufferedImage image = ctx.getTextureCache().getImage(file);
+                BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImage(
                     format.getConstant(image), border, image, premultiply, true, mipmap);
             }
@@ -665,7 +667,7 @@ public class TextureConfig extends ParameterizedConfig
                 if (file == null) {
                     return;
                 }
-                BufferedImage image = ctx.getTextureCache().getImage(file);
+                BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImages(
                     format.getConstant(image), border, image, divisionsS, divisionsT,
                     depth, premultiply, true, mipmap);
@@ -764,7 +766,7 @@ public class TextureConfig extends ParameterizedConfig
                 if (file == null) {
                     return;
                 }
-                BufferedImage image = ctx.getTextureCache().getImage(file);
+                BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImages(
                     format.getConstant(image), border, image, divisionsS, divisionsT,
                     premultiply, true, mipmap);
@@ -798,12 +800,12 @@ public class TextureConfig extends ParameterizedConfig
                 boolean border, boolean mipmap)
             {
                 BufferedImage[] images = new BufferedImage[] {
-                    (positive.x == null) ? null : ctx.getTextureCache().getImage(positive.x),
-                    (negative.x == null) ? null : ctx.getTextureCache().getImage(negative.x),
-                    (positive.y == null) ? null : ctx.getTextureCache().getImage(positive.y),
-                    (negative.y == null) ? null : ctx.getTextureCache().getImage(negative.y),
-                    (positive.z == null) ? null : ctx.getTextureCache().getImage(positive.z),
-                    (negative.z == null) ? null : ctx.getTextureCache().getImage(negative.z)
+                    (positive.x == null) ? null : getImage(ctx, positive.x, colorizations),
+                    (negative.x == null) ? null : getImage(ctx, negative.x, colorizations),
+                    (positive.y == null) ? null : getImage(ctx, positive.y, colorizations),
+                    (negative.y == null) ? null : getImage(ctx, negative.y, colorizations),
+                    (positive.z == null) ? null : getImage(ctx, positive.z, colorizations),
+                    (negative.z == null) ? null : getImage(ctx, negative.z, colorizations)
                 };
                 int constant = -1;
                 for (BufferedImage image : images) {
@@ -914,5 +916,23 @@ public class TextureConfig extends ParameterizedConfig
     public Texture getTexture (GlContext ctx)
     {
         return implementation.getTexture(ctx);
+    }
+
+    /**
+     * Gets the requested image from the cache and applies the specified colorizations.
+     */
+    protected static BufferedImage getImage (
+        GlContext ctx, String file, ColorizationReference[] colorizations)
+    {
+        BufferedImage image = ctx.getTextureCache().getImage(file);
+        if (colorizations.length == 0) {
+            return image;
+        }
+        Colorization[] zations = new Colorization[colorizations.length];
+        for (int ii = 0; ii < zations.length; ii++) {
+            zations[ii] = ctx.getColorPository().getColorization(
+                colorizations[ii].colorization);
+        }
+        return ImageUtil.recolorImage(image, zations);
     }
 }

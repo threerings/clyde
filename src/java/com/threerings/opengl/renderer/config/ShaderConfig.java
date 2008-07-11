@@ -121,7 +121,7 @@ public class ShaderConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.vertex_shader_files",
-                extensions={".vert" },
+                extensions={ ".vert" },
                 directory="shader_dir")
             public String file;
 
