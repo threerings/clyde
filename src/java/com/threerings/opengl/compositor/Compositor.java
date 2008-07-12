@@ -81,6 +81,7 @@ public class Compositor
      */
     public void renderScene ()
     {
+        _skipColorClear = false;
         enqueueRoots();
         _group.sortQueues();
 
@@ -90,7 +91,7 @@ public class Compositor
 
         // clear the depth and stencil buffers (and the color buffer, if necessary)
         int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
-        if (true) {
+        if (!_skipColorClear) {
             bits |= GL11.GL_COLOR_BUFFER_BIT;
             renderer.setClearColor(_backgroundColor);
             renderer.setState(ColorMaskState.ALL);
@@ -119,6 +120,15 @@ public class Compositor
         if (previous != null) {
             dependency.merge(previous);
         }
+    }
+
+    /**
+     * Sets the flag indicating that we need not clear the color buffer before rendering the
+     * frame.
+     */
+    public void setSkipColorClear ()
+    {
+        _skipColorClear = true;
     }
 
     /**
@@ -161,6 +171,9 @@ public class Compositor
 
     /** The current set of dependencies. */
     protected HashMap<Dependency, Dependency> _dependencies = Maps.newHashMap();
+
+    /** When set, indicates that we need not clear the color buffer. */
+    protected boolean _skipColorClear;
 
     /** The base render queue group. */
     protected RenderQueue.Group _group;
