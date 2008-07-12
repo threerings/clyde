@@ -92,7 +92,7 @@ public class ParticleSurface extends DefaultSurface
 
         // enqueue the batch for rendering
         _batch.depth = _parthost.getDepth();
-        _queue.addTransparent(_batch);
+        _tqueue.add(_batch);
     }
 
     @Override // documentation inherited

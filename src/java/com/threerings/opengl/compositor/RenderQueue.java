@@ -4,14 +4,18 @@
 package com.threerings.opengl.compositor;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashMap;
+
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.ComparableArrayList;
 import com.samskivert.util.HashIntMap;
-import com.samskivert.util.QuickSort;
 
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
+
+import com.threerings.opengl.compositor.config.RenderQueueConfig;
 
 /**
  * Stores a group of {@link Batch}es enqueued for rendering.
@@ -19,99 +23,125 @@ import com.threerings.opengl.renderer.Renderer;
 public class RenderQueue
     implements Comparable<RenderQueue>
 {
-    /** The name of the default queue. */
-    public static final String DEFAULT = "Default";
+    /** The name of the opaque queue. */
+    public static final String OPAQUE = "Opaque";
+
+    /** The name of the transparent queue. */
+    public static final String TRANSPARENT = "Transparent";
 
     /** The name of the overlay queue. */
     public static final String OVERLAY = "Overlay";
 
     /**
-     * Creates a new render queue with the specified priority.
+     * Contains a group of render queues.
      */
-    public RenderQueue (int priority)
+    public static class Group
     {
-        this(priority, false);
+        /**
+         * Creates a new group.
+         */
+        public Group (GlContext ctx)
+        {
+            _ctx = ctx;
+        }
+
+        /**
+         * Retrieves a reference to a render queue.
+         */
+        public RenderQueue getQueue (String name)
+        {
+            RenderQueue queue = _queuesByName.get(name);
+            if (queue == null) {
+                _queuesByName.put(name, queue = new RenderQueue(_ctx, name));
+                _queues.insertSorted(queue);
+            }
+            return queue;
+        }
+
+        /**
+         * Sorts the queues in preparation for rendering.
+         */
+        public void sortQueues ()
+        {
+            for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+                _queues.get(ii).sort();
+            }
+        }
+
+        /**
+         * Renders the contents of the queues.
+         */
+        public void renderQueues ()
+        {
+            for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+                _queues.get(ii).render();
+            }
+        }
+
+        /**
+         * Clears out the contents of the queues.
+         */
+        public void clearQueues ()
+        {
+            for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+                _queues.get(ii).clear();
+            }
+        }
+
+        /** The application context. */
+        protected GlContext _ctx;
+
+        /** Maps render queue names to the created queues. */
+        protected HashMap<String, RenderQueue> _queuesByName = Maps.newHashMap();
+
+        /** The set of render queues, sorted by priority. */
+        protected ComparableArrayList<RenderQueue> _queues =
+            new ComparableArrayList<RenderQueue>();
     }
 
     /**
-     * Creates a new render queue with the specified priority.
-     *
-     * @param clearsColor if true, this queue effectively clears the color buffer.
+     * Creates a new render queue.
      */
-    public RenderQueue (int priority, boolean clearsColor)
+    public RenderQueue (GlContext ctx, String name)
     {
-        _priority = priority;
-        _clearsColor = clearsColor;
+        _ctx = ctx;
+        if ((_config = ctx.getConfigManager().getConfig(RenderQueueConfig.class, name)) == null) {
+            _config = new RenderQueueConfig();
+        }
     }
 
     /**
-     * Returns true if this queue will effectively clear the color buffer if there's anything
-     * in it (because it will be overwritten completely, as by a sky box).
+     * Adds a batch to the queue at the default priority.
      */
-    public boolean clearsColor ()
+    public void add (Batch batch)
     {
-        return _clearsColor;
-    }
-
-    /**
-     * Adds a batch to the queue.
-     */
-    public void add (Batch batch, boolean transparent)
-    {
-        (transparent ? _transparent : _opaque).add(batch, 0);
+        add(batch, 0);
     }
 
     /**
      * Adds a batch to the queue with the specified priority.
      */
-    public void add (Batch batch, boolean transparent, int priority)
+    public void add (Batch batch, int priority)
     {
-        (transparent ? _transparent : _opaque).add(batch, priority);
+        PriorityList list = _priorities.get(priority);
+        if (list == null) {
+            _priorities.put(priority, list = new PriorityList(priority));
+            _lists.insertSorted(list);
+        }
+        list.add(batch);
     }
 
     /**
-     * Adds an opaque batch to the queue.
+     * Returns the identified group within this queue.
      */
-    public void addOpaque (Batch batch)
+    public Group getGroup (int group)
     {
-        _opaque.add(batch, 0);
-    }
-
-    /**
-     * Adds an opaque batch to the queue with the specified priority.
-     */
-    public void addOpaque (Batch batch, int priority)
-    {
-        _opaque.add(batch, priority);
-    }
-
-    /**
-     * Adds a transparent batch to the queue.
-     */
-    public void addTransparent (Batch batch)
-    {
-        _transparent.add(batch, 0);
-    }
-
-    /**
-     * Adds a transparent batch to the queue with the specified priority.
-     */
-    public void addTransparent (Batch batch, int priority)
-    {
-        _transparent.add(batch, priority);
-    }
-
-    /**
-     * Returns the identified transparency group subqueue.
-     */
-    public RenderQueue getTransparentQueue (int group)
-    {
-        QueueBatch batch = _groups.get(group);
+        GroupBatch batch = _groups.get(group);
         if (batch == null) {
-            _groups.put(group, batch = new QueueBatch());
+            _groups.put(group, batch = new GroupBatch(_ctx));
             _batches.add(batch);
         }
-        return batch.queue;
+        return batch.group;
     }
 
     /**
@@ -119,37 +149,39 @@ public class RenderQueue
      */
     public void sort ()
     {
-        // sort the opaque batches by state
-        _opaque.sort(BY_KEY);
-
-        // update and insert the transparency group subqueues
+        // update and insert the group batches
         for (int ii = 0, nn = _batches.size(); ii < nn; ii++) {
-            QueueBatch batch = _batches.get(ii);
-            int priority = batch.update();
-            if (priority != Integer.MIN_VALUE) {
-                _transparent.add(batch, priority);
+            GroupBatch batch = _batches.get(ii);
+            if (batch.update()) {
+                add(batch);
             }
         }
 
-        // sort the transparent batches by depth
-        _transparent.sort(BACK_TO_FRONT);
+        // sort each list
+        for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
+            _config.sortMode.sort(_lists.get(ii));
+        }
     }
 
     /**
-     * Returns the total number of batches in the queue (after sorting).
+     * Determines whether this queue is empty (after sorting).
      */
-    public int size ()
+    public boolean isEmpty ()
     {
-        return _opaque.size() + _transparent.size();
+        for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
+            if (!_lists.get(ii).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
      * Renders the contents of the queue.
      */
-    public void render (Renderer renderer)
+    public void render ()
     {
-        _opaque.render(renderer);
-        _transparent.render(renderer);
+        _config.renderMode.render(_ctx.getRenderer(), this);
     }
 
     /**
@@ -157,166 +189,29 @@ public class RenderQueue
      */
     public void clear ()
     {
-        _opaque.clear();
-        _transparent.clear();
+        for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
+            _lists.get(ii).clear();
+        }
         for (int ii = 0, nn = _batches.size(); ii < nn; ii++) {
-            _batches.get(ii).queue.clear();
+            _batches.get(ii).group.clearQueues();
+        }
+    }
+
+    /**
+     * Renders the contents of the lists.  This is called by the
+     * {@link RenderQueueConfig.RenderMode}.
+     */
+    public void renderLists (Renderer renderer)
+    {
+        for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
+            renderer.render(_lists.get(ii));
         }
     }
 
     // documentation inherited from interface Comparable
     public int compareTo (RenderQueue other)
     {
-        return _priority - other._priority;
-    }
-
-    /**
-     * Compares two packed state keys.
-     */
-    protected static int compareKeys (int[] k1, int[] k2)
-    {
-        int l1 = (k1 == null) ? 0 : k1.length;
-        int l2 = (k2 == null) ? 0 : k2.length;
-        int v1, v2, comp;
-        for (int ii = 0, nn = Math.max(l1, l2); ii < nn; ii++) {
-            v1 = (ii < l1) ? k1[ii] : 0;
-            v2 = (ii < l2) ? k2[ii] : 0;
-            if ((comp = v1 - v2) != 0) {
-                return comp;
-            }
-        }
-        return 0;
-    }
-
-    /**
-     * A batch that contains its own {@link RenderQueue}.
-     */
-    protected static class QueueBatch extends Batch
-    {
-        /** The render queue for this batch. */
-        public RenderQueue queue = new RenderQueue(0);
-
-        /**
-         * Updates the batch in preparation for rendering.
-         *
-         * @return the highest priority of any batch in the queue, or {@link Integer#MIN_VALUE}
-         * if the queue is empty.
-         */
-        public int update ()
-        {
-            depth = 0f;
-            _total = 0;
-            _priority = Integer.MIN_VALUE;
-            process(queue._opaque);
-            process(queue._transparent);
-            if (_total > 0) {
-                depth /= _total;
-                queue.sort();
-            }
-            return _priority;
-        }
-
-        @Override // documentation inherited
-        public boolean draw (Renderer renderer)
-        {
-            queue.render(renderer);
-            return false;
-        }
-
-        /**
-         * Processes the specified list of batches to obtain the batch count, highest priority,
-         * and depth total.
-         */
-        protected void process (BatchList batches)
-        {
-            ComparableArrayList<PriorityList> lists = batches._lists;
-            for (int ii = 0, nn = lists.size(); ii < nn; ii++) {
-                PriorityList list = lists.get(ii);
-                int size = list.size();
-                if (size > 0) {
-                    _total += size;
-                    _priority = Math.max(_priority, list._priority);
-                }
-                for (int jj = 0; jj < size; jj++) {
-                    Batch batch = list.get(jj);
-                    depth += batch.depth;
-                }
-            }
-        }
-
-        /** The total number of batches. */
-        protected int _total;
-
-        /** The highest priority of any batch. */
-        protected int _priority;
-    }
-
-    /**
-     * Contains a list of batches.
-     */
-    protected static class BatchList
-    {
-        /**
-         * Adds a batch to the list.
-         */
-        public void add (Batch batch, int priority)
-        {
-            PriorityList list = _priorities.get(priority);
-            if (list == null) {
-                _priorities.put(priority, list = new PriorityList(priority));
-                _lists.insertSorted(list);
-            }
-            list.add(batch);
-        }
-
-        /**
-         * Returns the total number of batches in the list.
-         */
-        public int size ()
-        {
-            int total = 0;
-            for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
-                total += _lists.get(ii).size();
-            }
-            return total;
-        }
-
-        /**
-         * Sorts the batches in the list.
-         */
-        public void sort (Comparator<Batch> comparator)
-        {
-            for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
-                QuickSort.sort(_lists.get(ii), comparator);
-            }
-        }
-
-        /**
-         * Renders the batches in the list.
-         */
-        public void render (Renderer renderer)
-        {
-            for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
-                renderer.render(_lists.get(ii));
-            }
-        }
-
-        /**
-         * Clears the batches from the list.
-         */
-        public void clear ()
-        {
-            for (int ii = 0, nn = _lists.size(); ii < nn; ii++) {
-                _lists.get(ii).clear();
-            }
-        }
-
-        /** Maps priorities to batch lists. */
-        protected HashIntMap<PriorityList> _priorities = new HashIntMap<PriorityList>();
-
-        /** The set of batch lists, sorted by priority. */
-        protected ComparableArrayList<PriorityList> _lists =
-            new ComparableArrayList<PriorityList>();
+        return _config.priority - other._config.priority;
     }
 
     /**
@@ -343,37 +238,78 @@ public class RenderQueue
         protected int _priority;
     }
 
-    /** The priority of this queue. */
-    protected int _priority;
+    /**
+     * A batch that contains its own {@link Group}.
+     */
+    protected static class GroupBatch extends Batch
+    {
+        /** The queue group for this batch. */
+        public Group group;
 
-    /** Whether or not this queue effectively clears the color buffer. */
-    protected boolean _clearsColor;
-
-    /** The set of opaque batches. */
-    protected BatchList _opaque = new BatchList();
-
-    /** The set of transparent batches. */
-    protected BatchList _transparent = new BatchList();
-
-    /** Maps transparency groups to their batches. */
-    protected HashIntMap<QueueBatch> _groups = new HashIntMap<QueueBatch>();
-
-    /** The set of transparency group batches. */
-    protected ArrayList<QueueBatch> _batches = new ArrayList<QueueBatch>();
-
-    /** Sorts batches by state. */
-    protected static final Comparator<Batch> BY_KEY = new Comparator<Batch>() {
-        public int compare (Batch b1, Batch b2) {
-            // if keys are the same, sort front-to-back
-            int comp = compareKeys(b1.key, b2.key);
-            return (comp == 0) ? Float.compare(b2.depth, b1.depth) : comp;
+        /**
+         * Creates a new group batch.
+         */
+        public GroupBatch (GlContext ctx)
+        {
+            group = new Group(ctx);
         }
-    };
 
-    /** Sorts batches by depth, back-to-front. */
-    protected static final Comparator<Batch> BACK_TO_FRONT = new Comparator<Batch>() {
-        public int compare (Batch b1, Batch b2) {
-            return Float.compare(b1.depth, b2.depth);
+        /**
+         * Updates the batch in preparation for rendering.
+         *
+         * @return true if the group contains batches for rendering, false if it is empty.
+         */
+        public boolean update ()
+        {
+            int total = 0;
+            depth = 0f;
+            key = null;
+
+            group.sortQueues();
+            ComparableArrayList<RenderQueue> queues = group._queues;
+            for (int ii = 0, nn = queues.size(); ii < nn; ii++) {
+                ComparableArrayList<PriorityList> lists = queues.get(ii)._lists;
+                for (int jj = 0, mm = lists.size(); jj < mm; jj++) {
+                    PriorityList list = lists.get(jj);
+                    for (int kk = 0, ll = list.size(); kk < ll; kk++) {
+                        Batch batch = list.get(kk);
+                        depth += batch.depth;
+                        key = (batch.key == null) ? key : batch.key;
+                        total++;
+                    }
+                }
+            }
+            if (total > 0) {
+                depth /= total;
+                return true;
+            } else {
+                return false;
+            }
         }
-    };
+
+        @Override // documentation inherited
+        public boolean draw (Renderer renderer)
+        {
+            group.renderQueues();
+            return false;
+        }
+    }
+
+    /** The application context. */
+    protected GlContext _ctx;
+
+    /** The queue configuration. */
+    protected RenderQueueConfig _config;
+
+    /** Maps priorities to batch lists. */
+    protected HashIntMap<PriorityList> _priorities = new HashIntMap<PriorityList>();
+
+    /** The set of batch lists, sorted by priority. */
+    protected ComparableArrayList<PriorityList> _lists = new ComparableArrayList<PriorityList>();
+
+    /** Maps group ids to their batches. */
+    protected HashIntMap<GroupBatch> _groups = new HashIntMap<GroupBatch>();
+
+    /** The set of group batches. */
+    protected ArrayList<GroupBatch> _batches = new ArrayList<GroupBatch>();
 }

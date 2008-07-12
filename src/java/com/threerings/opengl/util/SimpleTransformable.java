@@ -21,7 +21,7 @@ public abstract class SimpleTransformable extends SimpleRenderable
      */
     public SimpleTransformable (GlContext ctx)
     {
-        this(ctx, RenderQueue.DEFAULT);
+        this(ctx, RenderQueue.OPAQUE);
     }
 
     /**
@@ -31,36 +31,33 @@ public abstract class SimpleTransformable extends SimpleRenderable
      */
     public SimpleTransformable (GlContext ctx, String queue)
     {
-        this(ctx, queue, false, 0);
+        this(ctx, queue, 0);
     }
 
     /**
      * Creates a new simple transformable.
      *
      * @param queue the name of the queue into which we place the batch.
-     * @param transparent if true, enqueue the batch as transparent.
      * @param priority the priority level at which to enqueue the batch.
      */
-    public SimpleTransformable (GlContext ctx, String queue, boolean transparent, int priority)
+    public SimpleTransformable (GlContext ctx, String queue, int priority)
     {
-        this(ctx, queue, transparent, priority, false, 0);
+        this(ctx, queue, priority, false, 0);
     }
 
     /**
      * Creates a new simple transformable.
      *
      * @param queue the name of the queue into which we place the batch.
-     * @param transparent if true, enqueue the batch as transparent.
      * @param priority the priority level at which to enqueue the batch.
      * @param modifiesColorState if true, invalidate the color state after calling the
      * {@link #draw} method.
      * @param primitiveCount the primitive count to report to the renderer.
      */
     public SimpleTransformable (
-        GlContext ctx, String queue, boolean transparent, int priority,
-        boolean modifiesColorState, int primitiveCount)
+        GlContext ctx, String queue, int priority, boolean modifiesColorState, int primitiveCount)
     {
-        super(ctx, queue, transparent, priority, modifiesColorState, primitiveCount);
+        super(ctx, queue, priority, modifiesColorState, primitiveCount);
     }
 
     /**

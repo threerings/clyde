@@ -19,7 +19,7 @@ public abstract class SimpleRenderable
      */
     public SimpleRenderable (GlContext ctx)
     {
-        this(ctx, RenderQueue.DEFAULT);
+        this(ctx, RenderQueue.OPAQUE);
     }
 
     /**
@@ -29,39 +29,35 @@ public abstract class SimpleRenderable
      */
     public SimpleRenderable (GlContext ctx, String queue)
     {
-        this(ctx, queue, false, 0);
+        this(ctx, queue, 0);
     }
 
     /**
      * Creates a new simple renderable.
      *
      * @param queue the name of the queue into which we place the batch.
-     * @param transparent if true, enqueue the batch as transparent.
      * @param priority the priority level at which to enqueue the batch.
      */
-    public SimpleRenderable (GlContext ctx, String queue, boolean transparent, int priority)
+    public SimpleRenderable (GlContext ctx, String queue, int priority)
     {
-        this(ctx, queue, transparent, priority, false, 0);
+        this(ctx, queue, priority, false, 0);
     }
 
     /**
      * Creates a new simple renderable.
      *
      * @param queue the name of the queue into which we place the batch.
-     * @param transparent if true, enqueue the batch as transparent.
      * @param priority the priority level at which to enqueue the batch.
      * @param modifiesColorState if true, invalidate the color state after calling the
      * {@link #draw} method.
      * @param primitiveCount the primitive count to report to the renderer.
      */
     public SimpleRenderable (
-        GlContext ctx, String queue, boolean transparent, int priority,
-        boolean modifiesColorState, int primitiveCount)
+        GlContext ctx, String queue, int priority, boolean modifiesColorState, int primitiveCount)
     {
         _ctx = ctx;
         _queue = ctx.getCompositor().getQueue(queue);
         _batch = createBatch(modifiesColorState, primitiveCount);
-        _transparent = transparent;
         _priority = priority;
     }
 
@@ -76,7 +72,7 @@ public abstract class SimpleRenderable
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        _queue.add(_batch, _transparent, _priority);
+        _queue.add(_batch, _priority);
     }
 
     /**
@@ -130,9 +126,6 @@ public abstract class SimpleRenderable
 
     /** The batch that we submit to the renderer. */
     protected SimpleBatch _batch;
-
-    /** Whether to enqueue the batch as transparent. */
-    protected boolean _transparent;
 
     /** The priority level of the batch. */
     protected int _priority;

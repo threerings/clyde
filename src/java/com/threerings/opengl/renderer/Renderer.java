@@ -7,7 +7,7 @@ import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBBufferObject;
@@ -1519,7 +1519,7 @@ public class Renderer
     /**
      * Renders the provided list of batches.
      */
-    public void render (ArrayList<Batch> batches)
+    public void render (List<Batch> batches)
     {
         // for each batch, set the states and call its draw command
         int size = batches.size();

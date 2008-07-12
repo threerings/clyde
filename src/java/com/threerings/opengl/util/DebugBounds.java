@@ -63,7 +63,7 @@ public abstract class DebugBounds extends SimpleTransformable
      */
     public DebugBounds (GlContext ctx)
     {
-        super(ctx, RenderQueue.DEFAULT, false, 0, true, 0);
+        super(ctx, RenderQueue.OPAQUE, 0, true, 0);
     }
 
     @Override // documentation inherited

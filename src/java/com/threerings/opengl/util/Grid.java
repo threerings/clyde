@@ -7,6 +7,7 @@ import java.nio.FloatBuffer;
 
 import org.lwjgl.BufferUtils;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.state.ColorState;
@@ -25,7 +26,7 @@ public class Grid extends SimpleTransformable
     public Grid (GlContext ctx, int lines, float spacing)
     {
         _ctx = ctx;
-        _queue = ctx.getCompositor().getQueue();
+        _queue = ctx.getCompositor().getQueue(RenderQueue.OPAQUE);
 
         // create the batch containing the grid lines
         FloatBuffer vbuf = BufferUtils.createFloatBuffer(lines * 2 * 2 * 3);

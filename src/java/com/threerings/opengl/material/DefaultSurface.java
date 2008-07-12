@@ -32,7 +32,8 @@ public class DefaultSurface extends Surface
     {
         _ctx = ctx;
         _material = material;
-        _queue = ctx.getCompositor().getQueue();
+        _oqueue = ctx.getCompositor().getQueue(RenderQueue.OPAQUE);
+        _tqueue = ctx.getCompositor().getQueue(RenderQueue.TRANSPARENT);
 
         // start with the geometry batch
         _bbatch = createBaseBatch(geom);
@@ -112,7 +113,7 @@ public class DefaultSurface extends Surface
     public void enqueue ()
     {
         _batch.depth = _host.getModelview().transformPointZ(_center);
-        _queue.add(_batch, _transparent);
+        (_transparent ? _tqueue : _oqueue).add(_batch);
     }
 
     @Override // documentation inherited
@@ -164,7 +165,7 @@ public class DefaultSurface extends Surface
     protected boolean _transparent;
 
     /** The queue into which we enqueue our batch. */
-    protected RenderQueue _queue;
+    protected RenderQueue _oqueue, _tqueue;
 
     /** The base batch, which contains the geometry. */
     protected SimpleBatch _bbatch;

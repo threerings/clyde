@@ -33,6 +33,7 @@ public class Compositor
     public Compositor (GlContext ctx)
     {
         _ctx = ctx;
+        _group = new RenderQueue.Group(ctx);
     }
 
     /**
@@ -81,16 +82,15 @@ public class Compositor
     public void renderScene ()
     {
         enqueueRoots();
-        sortQueues();
+        _group.sortQueues();
 
         // reset the renderer stats
         Renderer renderer = _ctx.getRenderer();
         renderer.resetStats();
 
-        // clear the depth and stencil buffers (and the color buffer, provided that none of the
-        // queues do it for us)
+        // clear the depth and stencil buffers (and the color buffer, if necessary)
         int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
-        if (!queueClearsColor()) {
+        if (true) {
             bits |= GL11.GL_COLOR_BUFFER_BIT;
             renderer.setClearColor(_backgroundColor);
             renderer.setState(ColorMaskState.ALL);
@@ -102,8 +102,8 @@ public class Compositor
         GL11.glClear(bits);
 
         _camera.apply(renderer);
-        renderQueues();
-        clearQueues();
+        _group.renderQueues();
+        _group.clearQueues();
 
         // allow the renderer to clean up
         renderer.cleanup();
@@ -122,28 +122,11 @@ public class Compositor
     }
 
     /**
-     * Returns a reference to the default render queue.
-     */
-    public RenderQueue getQueue ()
-    {
-        return getQueue(RenderQueue.DEFAULT);
-    }
-
-    /**
      * Retrieves a reference to a render queue.
      */
     public RenderQueue getQueue (String name)
     {
-        RenderQueue queue = _queuesByName.get(name);
-        if (queue == null) {
-            RenderQueueConfig config = _ctx.getConfigManager().getConfig(
-                RenderQueueConfig.class, name);
-            queue = (config == null) ? null : config.createQueue(_ctx);
-            queue = (queue == null) ? new RenderQueue(0) : queue;
-            _queuesByName.put(name, queue);
-            _queues.insertSorted(queue);
-        }
-        return queue;
+        return _group.getQueue(name);
     }
 
     /**
@@ -151,7 +134,7 @@ public class Compositor
      */
     public void resetQueues ()
     {
-        _queues.clear();
+        _group = new RenderQueue.Group(_ctx);
     }
 
     /**
@@ -159,55 +142,8 @@ public class Compositor
      */
     protected void enqueueRoots ()
     {
-        _dependencies.clear();
         for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
             _roots.get(ii).enqueue();
-        }
-    }
-
-    /**
-     * Sorts the queues in preparation for rendering.
-     */
-    protected void sortQueues ()
-    {
-        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
-            _queues.get(ii).sort();
-        }
-    }
-
-    /**
-     * Determines whether any of the populated render queues are flagged as clearing the color
-     * buffer.
-     */
-    protected boolean queueClearsColor ()
-    {
-        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
-            RenderQueue queue = _queues.get(ii);
-            if (queue.clearsColor() && queue.size() > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Renders the contents of the queues.
-     */
-    protected void renderQueues ()
-    {
-        Renderer renderer = _ctx.getRenderer();
-        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
-            _queues.get(ii).render(renderer);
-        }
-    }
-
-    /**
-     * Clears out the contents of the queues.
-     */
-    protected void clearQueues ()
-    {
-        for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
-            _queues.get(ii).clear();
         }
     }
 
@@ -226,9 +162,6 @@ public class Compositor
     /** The current set of dependencies. */
     protected HashMap<Dependency, Dependency> _dependencies = Maps.newHashMap();
 
-    /** Maps render queue names to the created queues. */
-    protected HashMap<String, RenderQueue> _queuesByName = Maps.newHashMap();
-
-    /** The set of render queues, sorted by priority. */
-    protected ComparableArrayList<RenderQueue> _queues = new ComparableArrayList<RenderQueue>();
+    /** The base render queue group. */
+    protected RenderQueue.Group _group;
 }
