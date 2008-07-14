@@ -60,6 +60,7 @@ public abstract class GlCanvasApp extends GlApp
                     initRenderer();
                 }
                 public void updateScene () {
+                    _now.value = System.currentTimeMillis();
                     GlCanvasApp.this.updateScene();
                 }
                 public void renderScene () {

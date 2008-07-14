@@ -10,6 +10,14 @@ package com.threerings.expr;
  */
 public interface Scope
 {
+    /** The name of a special symbol that we expect to map to a {@link MutableLong} containing the
+     * current time as sampled at the beginning of each frame. */
+    public static final String NOW = "now";
+    
+    /** The name of a special symbol that we expect to map to a {@link MutableLong} containing the
+     * base time of the scope's owner (such at the time at which an animation started). */
+    public static final String EPOCH = "epoch";
+    
     /**
      * Returns the name of this scope for purposes of qualification.  Can return <code>null</code>
      * if qualified symbols cannot specifically address this scope.

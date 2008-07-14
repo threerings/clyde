@@ -193,4 +193,11 @@ public abstract class Dependency
     {
         // nothing by default
     }
+    
+    /**
+     * Resolves this dependency.
+     */
+    public void resolve ()
+    {
+    }
 }

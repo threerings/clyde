@@ -7,6 +7,9 @@ import com.samskivert.util.RunQueue;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.expr.DynamicScope;
+import com.threerings.expr.MutableLong;
+import com.threerings.expr.Scoped;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
@@ -29,6 +32,7 @@ public abstract class GlApp
 {
     public GlApp ()
     {
+        _scope = new DynamicScope(this, "app");
         _renderer = new Renderer();
         _compositor = new Compositor(this);
         _rsrcmgr = new ResourceManager("rsrc/");
@@ -54,6 +58,12 @@ public abstract class GlApp
         return _camhand;
     }
 
+    // documentation inherited from interface GlContext
+    public DynamicScope getScope ()
+    {
+        return _scope;
+    }
+    
     // documentation inherited from interface GlContext
     public Renderer getRenderer ()
     {
@@ -114,6 +124,9 @@ public abstract class GlApp
         return _modcache;
     }
 
+    /** The expression scope. */
+    protected DynamicScope _scope;
+    
     /** The OpenGL renderer. */
     protected Renderer _renderer;
 
@@ -146,4 +159,12 @@ public abstract class GlApp
 
     /** The model cache. */
     protected ModelCache _modcache;
+    
+    /** A container for the current time as sampled at the beginning of the frame. */
+    @Scoped
+    protected MutableLong _now = new MutableLong(System.currentTimeMillis());
+    
+    /** A container for the application epoch. */
+    @Scoped
+    protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
 }

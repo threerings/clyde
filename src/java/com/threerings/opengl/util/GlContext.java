@@ -4,6 +4,7 @@
 package com.threerings.opengl.util;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.expr.DynamicScope;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
@@ -17,6 +18,11 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public interface GlContext
 {
+    /**
+     * Returns a reference to the scope.
+     */
+    public DynamicScope getScope ();
+    
     /**
      * Returns a reference to the renderer.
      */

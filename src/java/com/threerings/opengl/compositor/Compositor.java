@@ -81,17 +81,30 @@ public class Compositor
      */
     public void renderScene ()
     {
+        // start by requesting that the roots enqueue themselves and register their dependencies
+        for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
+            _roots.get(ii).enqueue();
+        }
+        // store and reset the color clear setting
+        boolean skipColorClear = _skipColorClear;
         _skipColorClear = false;
-        enqueueRoots();
-        _group.sortQueues();
-
+        
         // reset the renderer stats
         Renderer renderer = _ctx.getRenderer();
         renderer.resetStats();
+        
+        // resolve and clear the set of dependencies
+        for (Dependency dependency : _dependencies.values()) {
+            dependency.resolve();
+        }
+        _dependencies.clear();
+        
+        // sort the queues in preparation for rendering
+        _group.sortQueues();
 
         // clear the depth and stencil buffers (and the color buffer, if necessary)
         int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
-        if (!_skipColorClear) {
+        if (!skipColorClear) {
             bits |= GL11.GL_COLOR_BUFFER_BIT;
             renderer.setClearColor(_backgroundColor);
             renderer.setState(ColorMaskState.ALL);
@@ -102,6 +115,7 @@ public class Compositor
         renderer.setState(StencilState.DISABLED);
         GL11.glClear(bits);
 
+        // apply the camera state, render and clear the queues
         _camera.apply(renderer);
         _group.renderQueues();
         _group.clearQueues();
@@ -146,17 +160,7 @@ public class Compositor
     {
         _group = new RenderQueue.Group(_ctx);
     }
-
-    /**
-     * Enqueues all of the scene roots using the present state.
-     */
-    protected void enqueueRoots ()
-    {
-        for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
-            _roots.get(ii).enqueue();
-        }
-    }
-
+    
     /** The application context. */
     protected GlContext _ctx;
 

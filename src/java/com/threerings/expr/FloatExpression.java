@@ -76,18 +76,21 @@ public abstract class FloatExpression extends DeepObject
      */
     public static class Clock extends FloatExpression
     {
-        /** The name of the epoch reference. */
+        /** The scope of the epoch reference. */
         @Editable
-        public String epochReference = "epoch";
+        public String scope = "";
 
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
-            final MutableLong epoch = ScopeUtil.resolve(
-                scope, epochReference, new MutableLong(System.currentTimeMillis()));
+            String name = this.scope.trim();
+            name = (name.length() > 0) ? (name + ":" + Scope.EPOCH) : Scope.EPOCH;
+            MutableLong defvalue = new MutableLong(System.currentTimeMillis());
+            final MutableLong epoch = ScopeUtil.resolve(scope, name, defvalue);
+            final MutableLong now = ScopeUtil.resolve(scope, Scope.NOW, defvalue);
             return new Evaluator() {
                 public float evaluate () {
-                    return (System.currentTimeMillis() - epoch.value) / 1000f;
+                    return (now.value - epoch.value) / 1000f;
                 }
             };
         }
