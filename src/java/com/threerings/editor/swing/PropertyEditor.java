@@ -29,6 +29,7 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.editor.util.PropertyUtil;
 
 import com.threerings.editor.swing.editors.BooleanEditor;
+import com.threerings.editor.swing.editors.ChoiceEditor;
 import com.threerings.editor.swing.editors.Color4fEditor;
 import com.threerings.editor.swing.editors.ColorizationEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
@@ -310,6 +311,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     protected static HashMap<Class, Class<? extends PropertyEditor>> _classesByType =
         new HashMap<Class, Class<? extends PropertyEditor>>();
     static {
+        registerEditorClass("choice", ChoiceEditor.class);
         registerEditorClass("colorization", ColorizationEditor.class);
         registerEditorClass("resource", ResourceEditor.class);
         registerEditorClass("table", TableArrayListEditor.class);

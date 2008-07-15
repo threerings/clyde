@@ -5,6 +5,8 @@ package com.threerings.opengl.model.config;
 
 import java.io.File;
 
+import java.util.HashMap;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
@@ -20,6 +22,7 @@ import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.model.tools.xml.ModelParser;
 
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
+import com.threerings.opengl.geom.config.GeometryConfig;
 import com.threerings.opengl.material.config.MaterialConfig;
 
 import static com.threerings.opengl.Log.*;
@@ -52,6 +55,10 @@ public class ModelConfig extends ParameterizedConfig
         /** If true, ignore the transforms of the top-level children. */
         @Editable
         public boolean ignoreRootTransforms;
+
+        /** If true, generate tangent attributes for meshes. */
+        @Editable
+        public boolean generateTangents;
 
         /** The mappings from texture name to material. */
         @Editable
@@ -98,7 +105,13 @@ public class ModelConfig extends ParameterizedConfig
                 log.warning("Error parsing model [source=" + _source + "].", e);
                 return;
             }
+            updateFromSource(def);
         }
+
+        /**
+         * Updates from a parsed model definition.
+         */
+        protected abstract void updateFromSource (ModelDef def);
 
         /** The file from which we read the model data. */
         protected File _source;
@@ -109,8 +122,14 @@ public class ModelConfig extends ParameterizedConfig
      */
     public static class Static extends Imported
     {
-        /** The model's collision mesh. */
-        protected CollisionMesh _cmesh;
+        @Override // documentation inherited
+        protected void updateFromSource (ModelDef def)
+        {
+
+        }
+
+        /** The model's visible meshes. */
+        protected StaticMeshes _meshes;
     }
 
     /**
@@ -118,6 +137,18 @@ public class ModelConfig extends ParameterizedConfig
      */
     public static class StaticSet extends Imported
     {
+        /** The model within the set. */
+        @Editable(editor="choice")
+        public String model;
+
+        @Override // documentation inherited
+        protected void updateFromSource (ModelDef def)
+        {
+
+        }
+
+        /** Maps top-level node names to meshes. */
+        protected HashMap<String, StaticMeshes> _meshes;
     }
 
     /**
@@ -132,6 +163,12 @@ public class ModelConfig extends ParameterizedConfig
         /** The model's attachment points. */
         @Editable
         public AttachmentPoint[] attachmentPoints = new AttachmentPoint[0];
+
+        @Override // documentation inherited
+        protected void updateFromSource (ModelDef def)
+        {
+
+        }
     }
 
     /**
@@ -142,6 +179,32 @@ public class ModelConfig extends ParameterizedConfig
         /** The model reference. */
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
+    }
+
+    /**
+     * Contains a set of static meshes.
+     */
+    public static class StaticMeshes extends DeepObject
+        implements Exportable
+    {
+        /** The visible meshes. */
+        public VisibleMesh[] visible;
+
+        /** The collision mesh. */
+        public CollisionMesh collision;
+    }
+
+    /**
+     * Pairs a texture name with a geometry config.
+     */
+    public static class VisibleMesh extends DeepObject
+        implements Exportable
+    {
+        /** The name of the texture associated with the mesh. */
+        public String texture;
+
+        /** The mesh geometry. */
+        public GeometryConfig geometry;
     }
 
     /**

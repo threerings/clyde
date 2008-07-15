@@ -9,6 +9,7 @@ import java.nio.ShortBuffer;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.export.Exportable;
+import com.threerings.math.Box;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
@@ -51,35 +52,56 @@ public abstract class GeometryConfig extends DeepObject
         protected int _constant;
     }
 
+    /** Type constants. */
+    public enum Type
+    {
+        BYTE(GL11.GL_BYTE),
+        UNSIGNED_BYTE(GL11.GL_UNSIGNED_BYTE),
+        SHORT(GL11.GL_SHORT),
+        UNSIGNED_SHORT(GL11.GL_UNSIGNED_SHORT),
+        INT(GL11.GL_INT),
+        UNSIGNED_INT(GL11.GL_UNSIGNED_INT),
+        FLOAT(GL11.GL_FLOAT),
+        DOUBLE(GL11.GL_DOUBLE);
+
+        public int getConstant ()
+        {
+            return _constant;
+        }
+
+        Type (int constant)
+        {
+            _constant = constant;
+        }
+
+        protected int _constant;
+    }
+
     /**
      * Superclass of configurations with stored geometry.
      */
     public static abstract class Stored extends GeometryConfig
     {
+        /** The bounds of the geometry. */
+        public Box bounds;
+
         /** The type of primitives to render. */
-        protected Mode _mode = Mode.TRIANGLES;
-
-        /** The array containing the interleaved vertex data. */
-        @Shallow
-        protected FloatBuffer _array;
-
-        /** The stride between adjacent vertices. */
-        protected int _stride;
+        public Mode mode;
 
         /** The vertex attribute arrays. */
-        protected AttributeArrayConfig[] _vertexAttribArrays;
+        public AttributeArrayConfig[] vertexAttribArrays;
 
         /** The texture coordinate arrays. */
-        protected ArrayConfig[] _texCoordArrays;
+        public ClientArrayConfig[] texCoordArrays;
 
         /** The color array. */
-        protected ArrayConfig _colorArray;
+        public ClientArrayConfig colorArray;
 
         /** The normal array. */
-        protected ArrayConfig _normalArray;
+        public ClientArrayConfig normalArray;
 
         /** The vertex array. */
-        protected ArrayConfig _vertexArray;
+        public ClientArrayConfig vertexArray;
     }
 
     /**
@@ -87,6 +109,12 @@ public abstract class GeometryConfig extends DeepObject
      */
     public static class ArrayStored extends Stored
     {
+        /** The starting array index. */
+        public int first;
+
+        /** The number of indices to render. */
+        public int count;
+
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, PassDescriptor[] passes)
         {
@@ -99,34 +127,68 @@ public abstract class GeometryConfig extends DeepObject
      */
     public static class IndexedStored extends Stored
     {
+        /** The minimum index. */
+        public int start;
+
+        /** The maximum index. */
+        public int end;
+
+        /** The index buffer. */
+        @Shallow
+        public ShortBuffer indices;
+
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, PassDescriptor[] passes)
         {
             return null;
         }
+    }
 
-        /** The index buffer. */
-        @Shallow
-        protected ShortBuffer _indices;
+    /**
+     * Skinned indexed geometry.
+     */
+    public static class SkinnedIndexStored extends IndexedStored
+    {
+        /** The names of the bones referenced by the <code>boneIndices</code> attribute. */
+        public String[] bones;
+
+        @Override // documentation inherited
+        public Geometry createGeometry (GlContext ctx, PassDescriptor[] passes)
+        {
+            return null;
+        }
     }
 
     /**
      * Describes an interleaved array.
      */
-    public static class ArrayConfig extends DeepObject
+    public static class ClientArrayConfig extends DeepObject
         implements Exportable
     {
         /** The number of components in each element. */
         public int size;
 
+        /** The type of the components. */
+        public Type type;
+
+        /** Whether or not to normalize the components. */
+        public boolean normalized;
+
+        /** The stride between adjacent elements. */
+        public int stride;
+
         /** The offset of the first component. */
         public int offset;
+
+        /** The float array, if using one. */
+        @Shallow
+        public FloatBuffer floatArray;
     }
 
     /**
      * Describes an interleaved attribute array.
      */
-    public static class AttributeArrayConfig extends ArrayConfig
+    public static class AttributeArrayConfig extends ClientArrayConfig
     {
         /** The name of the attribute. */
         public String name;

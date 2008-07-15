@@ -165,6 +165,16 @@ public class PathProperty extends Property
     }
 
     @Override // documentation inherited
+    public Object getMemberObject (Object object)
+    {
+        Property[] path = _paths[0];
+        for (int ii = 0, nn = path.length - 1; ii < nn; ii++) {
+            object = path[ii].get(object);
+        }
+        return object;
+    }
+
+    @Override // documentation inherited
     public Object get (Object object)
     {
         for (Property property : _paths[0]) {
@@ -305,6 +315,11 @@ public class PathProperty extends Property
                 }
                 public Type getGenericType () {
                     return aprop.getGenericType();
+                }
+                public Object getMemberObject (Object object) {
+                    ConfigReference<ManagedConfig> ref = getReference(object);
+                    Property prop = getArgumentProperty(ref);
+                    return (prop == null) ? null : prop.getMemberObject(ref.getArguments());
                 }
                 public Object get (Object object) {
                     ConfigReference<ManagedConfig> ref = getReference(object);

@@ -34,6 +34,12 @@ public class ArgumentPathProperty extends PathProperty
     }
 
     @Override // documentation inherited
+    public Object getMemberObject (Object object)
+    {
+        return super.getMemberObject(_reference);
+    }
+
+    @Override // documentation inherited
     public Object get (Object object)
     {
         @SuppressWarnings("unchecked") Map<Object, Object> map =

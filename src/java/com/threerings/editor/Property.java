@@ -309,6 +309,15 @@ public abstract class Property extends DeepObject
     }
 
     /**
+     * Returns a reference to the member object: the object with the member returned by
+     * {@link #getMember}.
+     */
+    public Object getMemberObject (Object object)
+    {
+        return object;
+    }
+
+    /**
      * Retrieves the value of the property.
      */
     public boolean getBoolean (Object object)

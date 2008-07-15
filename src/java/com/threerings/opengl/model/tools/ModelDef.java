@@ -30,6 +30,7 @@ import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.geom.config.GeometryConfig;
 import com.threerings.opengl.model.ArticulatedModel;
 import com.threerings.opengl.model.ArticulatedModel.Node;
 import com.threerings.opengl.model.CollisionMesh;
@@ -37,6 +38,7 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.SkinMesh;
 import com.threerings.opengl.model.StaticModel;
 import com.threerings.opengl.model.VisibleMesh;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlUtil;
 
 import static com.threerings.opengl.Log.*;
@@ -962,18 +964,8 @@ public class ModelDef
      */
     public Model createModel (Properties props)
     {
-        // resolve parent references and find top-level children
-        ArrayList<SpatialDef> tops = resolveReferences();
-
-        // create a top-level node to hold the entire model
-        NodeDef node = new NodeDef();
-        node.childDefs = tops;
-        for (SpatialDef top : tops) {
-            top.parentDef = node;
-        }
-
         // create and return the model
-        return node.createModel(spatials, props);
+        return createRootNode().createModel(spatials, props);
     }
 
     /**
@@ -997,6 +989,23 @@ public class ModelDef
             }
         }
         return models;
+    }
+
+    /**
+     * Resolves the node references and returns a root node containing the hierarchy.
+     */
+    protected NodeDef createRootNode ()
+    {
+        // resolve parent references and find top-level children
+        ArrayList<SpatialDef> tops = resolveReferences();
+
+        // create a top-level node to hold the entire model
+        NodeDef node = new NodeDef();
+        node.childDefs = tops;
+        for (SpatialDef top : tops) {
+            top.parentDef = node;
+        }
+        return node;
     }
 
     /**
