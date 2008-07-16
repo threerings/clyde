@@ -38,7 +38,7 @@ public class ObjectEditor extends PropertyEditor
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
         add(_panel = new ObjectPanel(
-            _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage));
+            _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
         _panel.addChangeListener(this);
     }
 

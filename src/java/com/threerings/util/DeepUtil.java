@@ -60,6 +60,29 @@ public class DeepUtil
     }
 
     /**
+     * Transfers the state in the shared ancestry of the two arguments from the source
+     * to the destination.  If the two objects are instances of the same class, then
+     * this is equivalent to {@link #copy}.
+     *
+     * @return a reference to the destination object.
+     */
+    public static <T> T transfer (T source, T dest)
+    {
+        Class clazz = source.getClass();
+        while (clazz != null && !clazz.isInstance(dest)) {
+            clazz = clazz.getSuperclass();
+        }
+        @SuppressWarnings("unchecked") ObjectHandler<T> handler =
+            (ObjectHandler<T>)getObjectHandler(clazz);
+        try {
+            return handler.copy(source, dest);
+        } catch (IllegalAccessException e) {
+            log.warning("Couldn't access fields for deep copy.", e);
+        }
+        return dest;
+    }
+
+    /**
      * Compares two objects for deep equality.
      */
     public static <T> boolean equals (T o1, T o2)

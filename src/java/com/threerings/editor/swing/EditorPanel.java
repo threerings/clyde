@@ -277,6 +277,24 @@ public class EditorPanel extends BasePropertyEditor
             });
         }
 
+        // add listeners for dependencies
+        for (final PropertyEditor editor : _editors) {
+            String[] depends = editor.getProperty().getAnnotation().depends();
+            if (depends.length > 0) {
+                ChangeListener cl = new ChangeListener() {
+                    public void stateChanged (ChangeEvent event) {
+                        editor.update();
+                    }
+                };
+                for (String depend : depends) {
+                    PropertyEditor deditor = getEditor(depend);
+                    if (deditor != null) {
+                        deditor.addChangeListener(cl);
+                    }
+                }
+            }
+        }
+
         // update the layout
         revalidate();
     }
@@ -366,6 +384,19 @@ public class EditorPanel extends BasePropertyEditor
         editor.addChangeListener(this);
         _editors.add(editor);
         return editor;
+    }
+
+    /**
+     * Returns the editor with the given property name.
+     */
+    protected PropertyEditor getEditor (String name)
+    {
+        for (PropertyEditor editor : _editors) {
+            if (editor.getProperty().getName().equals(name)) {
+                return editor;
+            }
+        }
+        return null;
     }
 
     /** Provides access to common services. */

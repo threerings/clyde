@@ -127,7 +127,7 @@ public class TableArrayListEditor extends ArrayListEditor
             Class cctype = _property.getComponentType().getComponentType();
             Object value = Array.newInstance(cctype, _columns.length);
             for (int ii = 0; ii < _columns.length; ii++) {
-                Array.set(value, ii, getDefaultInstance(cctype));
+                Array.set(value, ii, getDefaultInstance(cctype, _object));
             }
             addValue(value);
 
@@ -258,7 +258,7 @@ public class TableArrayListEditor extends ArrayListEditor
             }
             Class[] types = _property.getComponentSubtypes();
             _opanel = new ObjectPanel(
-                _ctx, _property.getComponentTypeLabel(), types, _lineage, ncols > 0);
+                _ctx, _property.getComponentTypeLabel(), types, _lineage, _object, ncols > 0);
             _opanel.addChangeListener(this);
         }
 
@@ -407,7 +407,7 @@ public class TableArrayListEditor extends ArrayListEditor
             Object ovalue = getValue(ii);
             Object nvalue = Array.newInstance(cctype, _columns.length);
             System.arraycopy(ovalue, 0, nvalue, 0, _columns.length - 1);
-            Array.set(nvalue, _columns.length - 1, getDefaultInstance(cctype));
+            Array.set(nvalue, _columns.length - 1, getDefaultInstance(cctype, _object));
             setValue(ii, nvalue);
         }
 

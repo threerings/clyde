@@ -19,7 +19,7 @@ import com.threerings.util.DeepOmit;
 /**
  * A single configuration parameter.
  */
-@EditorTypes({ Parameter.Direct.class })
+@EditorTypes({ Parameter.Direct.class, Parameter.Choice.class })
 public abstract class Parameter extends DeepObject
     implements Exportable
 {
@@ -61,6 +61,28 @@ public abstract class Parameter extends DeepObject
             } catch (InvalidPathsException e) {
                 return null;
             }
+        }
+    }
+
+    /**
+     * A parameter that allows choosing between several options.
+     */
+    public static class Choice extends Parameter
+    {
+        /** The direct controls for each option. */
+        @Editable
+        public Direct[] directs = new Direct[0];
+
+        @Override // documentation inherited
+        protected Property createProperty (ParameterizedConfig reference)
+        {
+            return null;
+        }
+
+        @Override // documentation inherited
+        protected Property createArgumentProperty (ParameterizedConfig reference)
+        {
+            return null;
         }
     }
 

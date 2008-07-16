@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
 import java.util.Arrays;
 
@@ -19,6 +20,9 @@ import javax.swing.event.ChangeListener;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.util.ListUtil;
+
+import com.threerings.util.DeepUtil;
+import com.threerings.util.ReflectionUtil;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
@@ -38,10 +42,12 @@ public class ObjectPanel extends BasePropertyEditor
      * @param tlabel the translatable label to use for the type chooser.
      * @param types the selectable subtypes.
      * @param ancestors the ancestor properties from which constraints are inherited.
+     * @param outer the outer object to use when instantiating inner classes.
      */
-    public ObjectPanel (EditorContext ctx, String tlabel, Class[] types, Property[] ancestors)
+    public ObjectPanel (
+        EditorContext ctx, String tlabel, Class[] types, Property[] ancestors, Object outer)
     {
-        this(ctx, tlabel, types, ancestors, false);
+        this(ctx, tlabel, types, ancestors, outer, false);
     }
 
     /**
@@ -50,14 +56,17 @@ public class ObjectPanel extends BasePropertyEditor
      * @param tlabel the translatable label to use for the type chooser.
      * @param types the selectable subtypes.
      * @param ancestors the ancestor properties from which constraints are inherited.
+     * @param outer the outer object to use when instantiating inner classes.
      * @param omitColumns if true, do not add editors for the properties flagged as columns.
      */
     public ObjectPanel (
-        EditorContext ctx, String tlabel, Class[] types, Property[] ancestors, boolean omitColumns)
+        EditorContext ctx, String tlabel, Class[] types,
+        Property[] ancestors, Object outer, boolean omitColumns)
     {
         _ctx = ctx;
         _msgmgr = ctx.getMessageManager();
         _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
+        _outer = outer;
         _types = types;
 
         setBackground(getDarkerBackground(ancestors.length));
@@ -126,6 +135,10 @@ public class ObjectPanel extends BasePropertyEditor
                     log.warning("Failed to create instance [type=" + type + "].", e);
                 }
             }
+            if (_lvalue != null && value != null) {
+                // transfer state from shared ancestry
+                DeepUtil.transfer(_lvalue, value);
+            }
         }
         _panel.setObject(value);
         if (value != null) {
@@ -148,23 +161,30 @@ public class ObjectPanel extends BasePropertyEditor
     {
         // find the most specific constructor that can take the last value
         if (_lvalue != null) {
+            Class oclazz = ReflectionUtil.getOuterClass(type);
             Class ltype = _lvalue.getClass();
             Constructor cctor = null;
             Class<?> cptype = null;
             for (Constructor ctor : type.getConstructors()) {
                 Class<?>[] ptypes = ctor.getParameterTypes();
-                if (ptypes.length == 1 && ptypes[0].isInstance(_lvalue) &&
-                        (cctor == null || cptype.isAssignableFrom(ptypes[0]))) {
+                if (oclazz == null ? (ptypes.length != 1) :
+                        (ptypes.length != 2 || ptypes[0] != oclazz)) {
+                    continue;
+                }
+                Class<?> ptype = ptypes[ptypes.length - 1];
+                if (ptype.isInstance(_lvalue) &&
+                        (cctor == null || cptype.isAssignableFrom(ptype))) {
                     cctor = ctor;
-                    cptype = ptypes[0];
+                    cptype = ptype;
                 }
             }
             if (cctor != null) {
-                return cctor.newInstance(_lvalue);
+                return (oclazz == null) ?
+                    cctor.newInstance(_lvalue) : cctor.newInstance(_outer, _lvalue);
             }
         }
         // fall back on default constructor
-        return type.newInstance();
+        return ReflectionUtil.newInstance(type, _outer);
     }
 
     /** Provides access to common services. */
@@ -175,6 +195,9 @@ public class ObjectPanel extends BasePropertyEditor
 
     /** The editor panel. */
     protected EditorPanel _panel;
+
+    /** The outer object reference. */
+    protected Object _outer;
 
     /** The list of available types. */
     protected Class[] _types;

@@ -107,7 +107,7 @@ public class PanelArrayListEditor extends ArrayListEditor
     {
         final ObjectPanel panel = new ObjectPanel(
             _ctx, _property.getComponentTypeLabel(),
-            _property.getComponentSubtypes(), _lineage);
+            _property.getComponentSubtypes(), _lineage, _object);
         _panels.add(panel);
         panel.setValue(value);
         panel.addChangeListener(this);

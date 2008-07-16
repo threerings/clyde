@@ -15,6 +15,7 @@ import java.util.List;
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.util.ReflectionUtil;
 
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
@@ -258,7 +259,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      * Returns a default instance for the supplied type, either by instantiating it with its no-arg
      * constructor or by obtaining some type-specific default;
      */
-    protected static Object getDefaultInstance (Class type)
+    protected static Object getDefaultInstance (Class type, Object outer)
     {
         if (type == Boolean.class || type == Boolean.TYPE) {
             return Boolean.valueOf(false);
@@ -282,12 +283,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
             return type.getEnumConstants()[0];
         } else if (type.isArray()) {
             return Array.newInstance(type.getComponentType(), 0);
-        }
-        try {
-            return type.newInstance();
-        } catch (Exception e) {
-            log.warning("Failed to obtain default instance [class=" + type + "].", e);
-            return null;
+        } else {
+            return ReflectionUtil.newInstance(type, outer);
         }
     }
 

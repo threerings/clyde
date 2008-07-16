@@ -137,9 +137,17 @@ public class ModelConfig extends ParameterizedConfig
      */
     public static class StaticSet extends Imported
     {
-        /** The model within the set. */
-        @Editable(editor="choice")
+        /** The selected model. */
+        @Editable(editor="choice", depends={ "source" })
         public String model;
+
+        /**
+         * Returns the options for the model field.
+         */
+        public String[] getModelOptions ()
+        {
+            return new String[] { "one", "two", "three" };
+        }
 
         @Override // documentation inherited
         protected void updateFromSource (ModelDef def)

@@ -33,6 +33,9 @@ public @interface Editable
     /** Neighboring properties with the same hgroup will be grouped into horizontal sublayouts. */
     String hgroup () default "";
 
+    /** The names of any properties upon whose values this property depends. */
+    String[] depends () default {};
+
     /** The custom editor to use (empty string for the default editor for the type). */
     String editor () default "";
 

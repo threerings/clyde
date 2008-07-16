@@ -17,36 +17,6 @@ import static com.threerings.ClydeLog.*;
 public class ReflectionUtil
 {
     /**
-     * Returns a reference to an inner object's outer class reference, or <code>null</code> if
-     * the object represents an instance of a static class.
-     */
-    public static Object getOuter (Object object)
-    {
-        Class clazz = object.getClass();
-        Class eclazz = clazz.getEnclosingClass();
-        if (eclazz == null || Modifier.isStatic(clazz.getModifiers())) {
-            return null;
-        }
-        Field field = _outers.get(clazz);
-        if (field == null) {
-            for (Field ofield : clazz.getDeclaredFields()) {
-                if (ofield.isSynthetic() && ofield.getType() == eclazz &&
-                        ofield.getName().startsWith("this")) {
-                    field = ofield;
-                    break;
-                }
-            }
-            field.setAccessible(true);
-            _outers.put(clazz, field);
-        }
-        try {
-            return field.get(object);
-        } catch (IllegalAccessException e) {
-            return null; // shouldn't happen
-        }
-    }
-
-    /**
      * Creates a new instance of the named class.
      *
      * @param classname the name of the class to instantiate.
@@ -65,7 +35,7 @@ public class ReflectionUtil
     public static Object newInstance (String classname, Object outer)
     {
         try {
-            return createNewInstance(Class.forName(classname), outer);
+            return newInstance(Class.forName(classname), outer);
         } catch (Exception e) {
             log.warning("Failed to get class by name [class=" + classname + "].", e);
             return null;
@@ -83,17 +53,6 @@ public class ReflectionUtil
     }
 
     /**
-     * Creates a new instance of the specified inner class.
-     *
-     * @param clazz the class to instantiate.
-     * @param outer an instance of the enclosing class.
-     */
-    public static Object newInstance (Class clazz, Object outer)
-    {
-        return createNewInstance(clazz, outer);
-    }
-
-    /**
      * Creates a new instance of the specified (possibly inner) class.
      *
      * @param clazz the class to instantiate.
@@ -102,15 +61,18 @@ public class ReflectionUtil
      * @return the newly created object, or <code>null</code> if there was some error
      * (in which case a message will be logged).
      */
-    protected static Object createNewInstance (Class clazz, Object outer)
+    public static Object newInstance (Class clazz, Object outer)
     {
+        if (!isInner(clazz)) {
+            outer = null;
+        }
         Constructor ctor = _ctors.get(clazz);
         if (ctor == null) {
             Class eclazz = clazz.getEnclosingClass();
             for (Constructor octor : clazz.getDeclaredConstructors()) {
                 Class[] ptypes = octor.getParameterTypes();
-                if ((outer == null && ptypes.length == 0) ||
-                    (outer != null && ptypes.length == 1 && ptypes[0] == eclazz)) {
+                if (outer == null ? (ptypes.length == 0) :
+                        (ptypes.length == 1 && ptypes[0] == eclazz)) {
                     ctor = octor;
                     break;
                 }
@@ -128,6 +90,53 @@ public class ReflectionUtil
             log.warning("Failed to create new instance [class=" + clazz + "].", e);
             return null;
         }
+    }
+
+    /**
+     * Determines whether the specified class is a non-static inner class.
+     */
+    public static boolean isInner (Class clazz)
+    {
+        return clazz.isMemberClass() && !Modifier.isStatic(clazz.getModifiers());
+    }
+
+    /**
+     * Returns a reference to an inner object's outer class reference, or <code>null</code> if
+     * the object represents an instance of a static class.
+     */
+    public static Object getOuter (Object object)
+    {
+        Class clazz = object.getClass();
+        Class oclazz = getOuterClass(clazz);
+        if (oclazz == null) {
+            return null;
+        }
+        Field field = _outers.get(clazz);
+        if (field == null) {
+            for (Field ofield : clazz.getDeclaredFields()) {
+                if (ofield.isSynthetic() && ofield.getType() == oclazz &&
+                        ofield.getName().startsWith("this")) {
+                    field = ofield;
+                    break;
+                }
+            }
+            field.setAccessible(true);
+            _outers.put(clazz, field);
+        }
+        try {
+            return field.get(object);
+        } catch (IllegalAccessException e) {
+            return null; // shouldn't happen
+        }
+    }
+
+    /**
+     * Returns a reference to the specified inner class's outer class, or <code>null</code>
+     * if the class is not an inner class.
+     */
+    public static Class getOuterClass (Class clazz)
+    {
+        return Modifier.isStatic(clazz.getModifiers()) ? null : clazz.getEnclosingClass();
     }
 
     /** Maps inner classes to their outer class reference fields. */

@@ -89,6 +89,15 @@ public abstract class Property extends DeepObject
     public abstract Member getMember ();
 
     /**
+     * Returns a reference to the member object (the object to whose member {@link #getMember}
+     * refers, given the object one would pass to {@link #get} or {@link #set}).
+     */
+    public Object getMemberObject (Object object)
+    {
+        return object;
+    }
+
+    /**
      * Returns the property type.
      */
     public abstract Class getType ();
@@ -306,15 +315,6 @@ public abstract class Property extends DeepObject
     public <T extends Annotation> T getAnnotation (Class<T> clazz)
     {
         return ((AnnotatedElement)getMember()).getAnnotation(clazz);
-    }
-
-    /**
-     * Returns a reference to the member object: the object with the member returned by
-     * {@link #getMember}.
-     */
-    public Object getMemberObject (Object object)
-    {
-        return object;
     }
 
     /**

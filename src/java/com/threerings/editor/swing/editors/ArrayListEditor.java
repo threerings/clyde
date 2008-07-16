@@ -33,7 +33,7 @@ public abstract class ArrayListEditor extends PropertyEditor
         if (event.getSource() == _add) {
             Class[] types = _property.getComponentSubtypes();
             Class type = (types[0] == null) ? types[1] : types[0];
-            addValue(getDefaultInstance(type));
+            addValue(getDefaultInstance(type, _object));
         }
     }
 
