@@ -34,13 +34,6 @@ public class ArgumentMap extends TreeMap<String, Object>
         return cmap;
     }
 
-    @Override
-    public Object put (String key, Object value)
-    {
-        Object previous = super.put(key, value);
-        return previous;
-    }
-
     @Override // documentation inherited
     public Object clone ()
     {
