@@ -39,15 +39,6 @@ public abstract class Parameter extends DeepObject
         @Editable(width=40)
         public String[] paths = new String[0];
 
-        public Direct (Parameter other)
-        {
-            name = other.name;
-        }
-
-        public Direct ()
-        {
-        }
-
         @Override // documentation inherited
         protected Property createProperty (ParameterizedConfig reference)
         {
@@ -86,10 +77,18 @@ public abstract class Parameter extends DeepObject
             @Editable
             public String name = "";
 
+            /**
+             * Applies this option to the specified instance.
+             */
+            public void apply (ParameterizedConfig instance)
+            {
+                _outer.applyArguments(instance, _arguments, directs);
+            }
+
             // documentation inherited from interface DynamicallyEditable
             public Property[] getDynamicProperties ()
             {
-                return getOptionArgumentProperties();
+                return getOptionProperties();
             }
 
             /** The arguments for this option. */
@@ -138,13 +137,31 @@ public abstract class Parameter extends DeepObject
             for (Direct direct : directs) {
                 direct.invalidateProperties();
             }
-            _optionArgumentProperties = null;
+            _optionProperties = null;
         }
 
         @Override // documentation inherited
         protected Property createProperty (ParameterizedConfig reference)
         {
-
+            int idx = ListUtil.indexOfRef(reference.parameters, this);
+            if (idx == -1) {
+                return null;
+            }
+            try {
+                return new PathProperty(
+                    reference.getConfigManager(), name, reference,
+                    "parameters[" + idx + "].choice") {
+                    public void set (Object object, Object value) {
+                        super.set(object, value);
+                        Option option = getOption((String)value);
+                        if (option != null) {
+                            option.apply((ParameterizedConfig)object);
+                        }
+                    }
+                };
+            } catch (InvalidPathsException e) {
+                return null;
+            }
         }
 
         @Override // documentation inherited
@@ -164,11 +181,24 @@ public abstract class Parameter extends DeepObject
         }
 
         /**
+         * Retrieves an option by name.
+         */
+        protected Option getOption (String name)
+        {
+            for (Option option : options) {
+                if (option.name.equals(name)) {
+                    return option;
+                }
+            }
+            return null;
+        }
+
+        /**
          * Returns the array of option argument properties.
          */
-        protected Property[] getOptionArgumentProperties ()
+        protected Property[] getOptionProperties ()
         {
-            if (_optionArgumentProperties == null) {
+            if (_optionProperties == null) {
                 ArrayList<Property> props = new ArrayList<Property>();
                 for (Direct direct : directs) {
                     final Property aprop = direct.getArgumentProperty(_outer);
@@ -191,18 +221,16 @@ public abstract class Parameter extends DeepObject
                             return aprop.getGenericType();
                         }
                         public Object get (Object object) {
-                            Option option = (Option)object;
                             return aprop.get(((Option)object)._arguments);
                         }
                         public void set (Object object, Object value) {
-                            Option option = (Option)object;
                             aprop.set(((Option)object)._arguments, value);
                         }
                     });
                 }
-                _optionArgumentProperties = props.toArray(new Property[props.size()]);
+                _optionProperties = props.toArray(new Property[props.size()]);
             }
-            return _optionArgumentProperties;
+            return _optionProperties;
         }
 
         /** The outer config reference. */
@@ -211,7 +239,7 @@ public abstract class Parameter extends DeepObject
 
         /** The cached option properties. */
         @DeepOmit
-        protected transient Property[] _optionArgumentProperties;
+        protected transient Property[] _optionProperties;
     }
 
     /** The name of the parameter. */

@@ -74,7 +74,7 @@ public class ConfigReferenceEditor extends PropertyEditor
             nvalue = null;
         }
         _property.set(_object, nvalue);
-        update(nvalue);
+        update(nvalue, true);
         fireStateChanged();
     }
 
@@ -87,7 +87,7 @@ public class ConfigReferenceEditor extends PropertyEditor
     @Override // documentation inherited
     public void update ()
     {
-        update((ConfigReference)_property.get(_object));
+        update((ConfigReference)_property.get(_object), false);
     }
 
     @Override // documentation inherited
@@ -137,8 +137,11 @@ public class ConfigReferenceEditor extends PropertyEditor
 
     /**
      * Updates the state of the interface based on the current value.
+     *
+     * @param transfer if true, attempt to transfer values from the existing set of editors into
+     * the current arguments.
      */
-    protected void update (ConfigReference value)
+    protected void update (ConfigReference value, boolean transfer)
     {
         // update the button states
         boolean enable = (value != null);
@@ -169,9 +172,11 @@ public class ConfigReferenceEditor extends PropertyEditor
         // store the existing editors mapped by name in case we want to reuse their values
         int ocount = _arguments.getComponentCount();
         HashMap<String, PropertyEditor> oeditors = new HashMap<String, PropertyEditor>();
-        for (int ii = 0; ii < ocount; ii++) {
-            PropertyEditor editor = (PropertyEditor)_arguments.getComponent(ii);
-            oeditors.put(editor.getProperty().getName(), editor);
+        if (transfer) {
+            for (int ii = 0; ii < ocount; ii++) {
+                PropertyEditor editor = (PropertyEditor)_arguments.getComponent(ii);
+                oeditors.put(editor.getProperty().getName(), editor);
+            }
         }
 
         // scan through the parameters
@@ -188,7 +193,9 @@ public class ConfigReferenceEditor extends PropertyEditor
                 // see if we can copy the argument to the new set and reuse the editor
                 PropertyEditor oeditor = (PropertyEditor)_arguments.getComponent(idx);
                 if (oeditor.getProperty().equals(property)) {
-                    property.set(nargs, property.get(oeditor.getObject()));
+                    if (transfer) {
+                        property.set(nargs, property.get(oeditor.getObject()));
+                    }
                     editor = oeditor;
                 } else {
                     _arguments.remove(idx);

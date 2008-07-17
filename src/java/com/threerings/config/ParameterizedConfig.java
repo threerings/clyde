@@ -13,6 +13,7 @@ import com.samskivert.util.SoftCache;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
 import com.threerings.util.DeepOmit;
+import com.threerings.util.DeepUtil;
 
 /**
  * A configuration that may include a number of parameters to be configured when the configuration
@@ -39,12 +40,7 @@ public class ParameterizedConfig extends ManagedConfig
      */
     public Parameter getParameter (String name)
     {
-        for (Parameter parameter : parameters) {
-            if (parameter.name.equals(name)) {
-                return parameter;
-            }
-        }
-        return null;
+        return getParameter(parameters, name);
     }
 
     @Override // documentation inherited
@@ -125,18 +121,41 @@ public class ParameterizedConfig extends ManagedConfig
      */
     protected void applyArguments (ParameterizedConfig instance, ArgumentMap args)
     {
+        applyArguments(instance, args, parameters);
+    }
+
+    /**
+     * Applies the arguments in the provided map to the specified instance.
+     */
+    protected void applyArguments (
+        ParameterizedConfig instance, ArgumentMap args, Parameter[] params)
+    {
         for (Map.Entry<String, Object> entry : args.entrySet()) {
-            Parameter param = getParameter(entry.getKey());
+            Parameter param = getParameter(params, entry.getKey());
             if (param != null) {
                 Property prop = param.getProperty(this);
                 if (prop != null) {
                     Object value = entry.getValue();
                     if (prop.isLegalValue(value)) {
-                        prop.set(instance, value);
+                        prop.set(instance, DeepUtil.copy(value));
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Returns a reference to the parameter with the supplied name, or <code>null</code> if it
+     * doesn't exist.
+     */
+    protected static Parameter getParameter (Parameter[] params, String name)
+    {
+        for (Parameter param : params) {
+            if (param.name.equals(name)) {
+                return param;
+            }
+        }
+        return null;
     }
 
     /** The config manager that we use to resolve references. */

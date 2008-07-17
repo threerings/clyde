@@ -98,12 +98,13 @@ public class ObjectPanel extends BasePropertyEditor
         if (_box != null) {
             // clear out the old entries
             Arrays.fill(_values, null);
-            _lvalue = null;
 
             // put in the new entry
             int nidx = (value == null) ? 0 : ListUtil.indexOfRef(_types, value.getClass());
             _values[nidx] = value;
+            _box.removeActionListener(this);
             _box.setSelectedIndex(nidx);
+            _box.addActionListener(this);
         }
         if (_panel.getObject() == (_lvalue = value)) {
             _panel.update();
