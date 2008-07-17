@@ -14,6 +14,8 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.threerings.util.ReflectionUtil;
+
 /**
  * Used to read and write object fields.
  */
@@ -112,15 +114,15 @@ public class ObjectMarshaller
 
         // create the prototype
         try {
-            Class<?> eclazz = clazz.getEnclosingClass();
-            if (eclazz == null || Modifier.isStatic(clazz.getModifiers())) {
+            Class<?> oclazz = ReflectionUtil.getOuterClass(clazz);
+            if (oclazz == null) {
                 // static classes can use the no-arg constructor
                 _prototype = clazz.newInstance();
             } else {
                 // inner classes must pass the prototype of the outer class
-                Constructor constructor = clazz.getConstructor(eclazz);
-                Object eproto = getObjectMarshaller(eclazz)._prototype;
-                _prototype = constructor.newInstance(eproto);
+                Constructor constructor = clazz.getConstructor(oclazz);
+                Object oproto = getObjectMarshaller(oclazz)._prototype;
+                _prototype = constructor.newInstance(oproto);
             }
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create object prototype [class=" +

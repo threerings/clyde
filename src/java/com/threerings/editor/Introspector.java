@@ -36,6 +36,11 @@ public class Introspector
                     categories = ArrayUtil.append(categories, category);
                 }
             }
+            if (DynamicallyEditable.class.isAssignableFrom(clazz)) {
+                if (!ListUtil.contains(categories, "")) {
+                    categories = ArrayUtil.append(categories, "");
+                }
+            }
             _categories.put(clazz, categories);
         }
         return categories;

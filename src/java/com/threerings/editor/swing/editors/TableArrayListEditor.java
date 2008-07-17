@@ -210,7 +210,7 @@ public class TableArrayListEditor extends ArrayListEditor
                             return getLabel(property.getName(), msgs);
                         }
                         public String getPathComponent () {
-                            return "/" + property.getName();
+                            return "." + property.getName();
                         }
                         public Class getColumnClass () {
                             return ClassUtil.objectEquivalentOf(property.getType());

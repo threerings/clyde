@@ -332,7 +332,7 @@ public class BinaryExporter extends Exporter
         if (Modifier.isFinal(mods)) {
             flags |= FINAL_CLASS_FLAG;
         }
-        if (clazz.isMemberClass() && !Modifier.isStatic(mods)) {
+        if (ReflectionUtil.isInner(clazz)) {
             flags |= INNER_CLASS_FLAG;
         }
         if (Collection.class.isAssignableFrom(clazz)) {

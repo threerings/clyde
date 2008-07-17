@@ -144,7 +144,7 @@ public abstract class BasePropertyEditor extends JPanel
         String own = getPathComponent(pt);
         if (own != null) {
             if (buf.length() > 0) {
-                buf.append('/');
+                buf.append('.');
             }
             buf.append(own);
         }

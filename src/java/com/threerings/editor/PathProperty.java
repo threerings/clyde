@@ -41,6 +41,7 @@ public class PathProperty extends Property
         // create the tokenizer for the path
         StreamTokenizer tok = new StreamTokenizer(new StringReader(path));
         tok.ordinaryChar('/');
+        tok.ordinaryChar('.');
         tok.ordinaryChar('\'');
         tok.wordChars('_', '_');
 

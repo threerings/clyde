@@ -229,9 +229,7 @@ public class XMLExporter extends Exporter
             // write the outer class information, if applicable
             Object outer = ReflectionUtil.getOuter(value);
             if (outer != null) {
-                @SuppressWarnings("unchecked") Class<Object> eclazz =
-                    (Class<Object>)cclazz.getEnclosingClass();
-                write("outer", outer, eclazz);
+                write("outer", outer, Object.class);
             }
             if (value instanceof Exportable) {
                 writeFields((Exportable)value);

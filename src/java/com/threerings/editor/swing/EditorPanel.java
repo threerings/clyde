@@ -38,6 +38,7 @@ import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.editor.DynamicallyEditable;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Introspector;
@@ -202,6 +203,7 @@ public class EditorPanel extends BasePropertyEditor
             for (PropertyEditor editor : _editors) {
                 editor.setObject(_object);
             }
+            updateDynamicProperties();
             return;
         }
 
@@ -295,6 +297,9 @@ public class EditorPanel extends BasePropertyEditor
             }
         }
 
+        // update the dynamic properties
+        updateDynamicProperties();
+
         // update the layout
         revalidate();
     }
@@ -315,6 +320,7 @@ public class EditorPanel extends BasePropertyEditor
         for (PropertyEditor editor : _editors) {
             editor.update();
         }
+        updateDynamicProperties();
     }
 
     // documentation inherited from interface ChangeListener
@@ -372,6 +378,11 @@ public class EditorPanel extends BasePropertyEditor
                 }
             }
         }
+        if (_object instanceof DynamicallyEditable && (category == null || category.equals(""))) {
+            panel.add(_dynamic = GroupLayout.makeVBox(
+                GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
+            _dynamic.setBackground(null);
+        }
     }
 
     /**
@@ -399,6 +410,42 @@ public class EditorPanel extends BasePropertyEditor
         return null;
     }
 
+    /**
+     * Updates the dynamic properties.
+     */
+    protected void updateDynamicProperties ()
+    {
+        if (!(_object instanceof DynamicallyEditable)) {
+            return;
+        }
+        int ocount = _dynamic.getComponentCount();
+        Property[] properties = ((DynamicallyEditable)_object).getDynamicProperties();
+        int idx = 0;
+        for (; idx < properties.length; idx++) {
+            Property property = properties[idx];
+            PropertyEditor editor = null;
+            if (idx < ocount) {
+                // see if we can reuse the existing editor
+                PropertyEditor oeditor = (PropertyEditor)_dynamic.getComponent(idx);
+                if (oeditor.getProperty().equals(property)) {
+                    editor = oeditor;
+                } else {
+                    _dynamic.remove(idx);
+                }
+            }
+            if (editor == null) {
+                editor = PropertyEditor.createEditor(_ctx, property, _ancestors);
+                editor.addChangeListener(this);
+                _dynamic.add(editor, idx);
+            }
+            editor.setObject(_object);
+        }
+        // remove the remaining editors
+        while (ocount > idx) {
+            _dynamic.remove(--ocount);
+        }
+    }
+
     /** Provides access to common services. */
     protected EditorContext _ctx;
 
@@ -416,4 +463,7 @@ public class EditorPanel extends BasePropertyEditor
 
     /** The current list of editors. */
     protected ArrayList<PropertyEditor> _editors = new ArrayList<PropertyEditor>();
+
+    /** A container for the dynamic properties. */
+    protected JPanel _dynamic;
 }

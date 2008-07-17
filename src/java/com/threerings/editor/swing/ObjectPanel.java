@@ -98,6 +98,7 @@ public class ObjectPanel extends BasePropertyEditor
         if (_box != null) {
             // clear out the old entries
             Arrays.fill(_values, null);
+            _lvalue = null;
 
             // put in the new entry
             int nidx = (value == null) ? 0 : ListUtil.indexOfRef(_types, value.getClass());
@@ -161,14 +162,14 @@ public class ObjectPanel extends BasePropertyEditor
     {
         // find the most specific constructor that can take the last value
         if (_lvalue != null) {
-            Class oclazz = ReflectionUtil.getOuterClass(type);
+            boolean inner = ReflectionUtil.isInner(type);
             Class ltype = _lvalue.getClass();
             Constructor cctor = null;
             Class<?> cptype = null;
             for (Constructor ctor : type.getConstructors()) {
                 Class<?>[] ptypes = ctor.getParameterTypes();
-                if (oclazz == null ? (ptypes.length != 1) :
-                        (ptypes.length != 2 || ptypes[0] != oclazz)) {
+                if (inner ? (ptypes.length != 2 || !ptypes[0].isInstance(_outer)) :
+                        (ptypes.length != 1)) {
                     continue;
                 }
                 Class<?> ptype = ptypes[ptypes.length - 1];
@@ -179,8 +180,7 @@ public class ObjectPanel extends BasePropertyEditor
                 }
             }
             if (cctor != null) {
-                return (oclazz == null) ?
-                    cctor.newInstance(_lvalue) : cctor.newInstance(_outer, _lvalue);
+                return inner ? cctor.newInstance(_outer, _lvalue) : cctor.newInstance(_lvalue);
             }
         }
         // fall back on default constructor

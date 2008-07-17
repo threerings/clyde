@@ -68,11 +68,10 @@ public class ReflectionUtil
         }
         Constructor ctor = _ctors.get(clazz);
         if (ctor == null) {
-            Class eclazz = clazz.getEnclosingClass();
             for (Constructor octor : clazz.getDeclaredConstructors()) {
                 Class[] ptypes = octor.getParameterTypes();
                 if (outer == null ? (ptypes.length == 0) :
-                        (ptypes.length == 1 && ptypes[0] == eclazz)) {
+                        (ptypes.length == 1 && ptypes[0].isInstance(outer))) {
                     ctor = octor;
                     break;
                 }
@@ -93,28 +92,23 @@ public class ReflectionUtil
     }
 
     /**
-     * Determines whether the specified class is a non-static inner class.
-     */
-    public static boolean isInner (Class clazz)
-    {
-        return clazz.isMemberClass() && !Modifier.isStatic(clazz.getModifiers());
-    }
-
-    /**
      * Returns a reference to an inner object's outer class reference, or <code>null</code> if
      * the object represents an instance of a static class.
      */
     public static Object getOuter (Object object)
     {
         Class clazz = object.getClass();
-        Class oclazz = getOuterClass(clazz);
-        if (oclazz == null) {
+        if (!isInner(clazz)) {
             return null;
+        }
+        if (object instanceof Inner) {
+            return ((Inner)object).getOuter();
         }
         Field field = _outers.get(clazz);
         if (field == null) {
+            Class eclazz = clazz.getEnclosingClass();
             for (Field ofield : clazz.getDeclaredFields()) {
-                if (ofield.isSynthetic() && ofield.getType() == oclazz &&
+                if (ofield.isSynthetic() && ofield.getType() == eclazz &&
                         ofield.getName().startsWith("this")) {
                     field = ofield;
                     break;
@@ -131,16 +125,44 @@ public class ReflectionUtil
     }
 
     /**
-     * Returns a reference to the specified inner class's outer class, or <code>null</code>
-     * if the class is not an inner class.
+     * Returns the outer class for the given inner class (or <code>null</code> if not an inner
+     * class).
      */
     public static Class getOuterClass (Class clazz)
     {
-        return Modifier.isStatic(clazz.getModifiers()) ? null : clazz.getEnclosingClass();
+        if (!isInner(clazz)) {
+            return null;
+        }
+        if (!Inner.class.isAssignableFrom(clazz)) {
+            return clazz.getEnclosingClass();
+        }
+        Class outer = _oclasses.get(clazz);
+        if (outer == null) {
+            for (Constructor ctor : clazz.getDeclaredConstructors()) {
+                Class[] ptypes = ctor.getParameterTypes();
+                if (ptypes.length > 0) {
+                    _oclasses.put(clazz, outer = ptypes[0]);
+                    break;
+                }
+            }
+        }
+        return outer;
+    }
+
+    /**
+     * Determines whether the specified class is a non-static inner class.
+     */
+    public static boolean isInner (Class clazz)
+    {
+        return (clazz.isMemberClass() && !Modifier.isStatic(clazz.getModifiers())) ||
+            Inner.class.isAssignableFrom(clazz);
     }
 
     /** Maps inner classes to their outer class reference fields. */
     protected static HashMap<Class, Field> _outers = new HashMap<Class, Field>();
+
+    /** Maps {@link Inner} classes to their outer classes. */
+    protected static HashMap<Class, Class> _oclasses = new HashMap<Class, Class>();
 
     /** Maps classes to their default constructors. */
     protected static HashMap<Class, Constructor> _ctors = new HashMap<Class, Constructor>();

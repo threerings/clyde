@@ -155,7 +155,7 @@ public class DeepUtil
         for (Field field : clazz.getDeclaredFields()) {
             int mods = field.getModifiers();
             if (!(Modifier.isStatic(mods) || field.isSynthetic() ||
-                    field.getAnnotation(DeepOmit.class) != null)) {
+                    field.isAnnotationPresent(DeepOmit.class))) {
                 field.setAccessible(true);
                 fields.add(field);
             }

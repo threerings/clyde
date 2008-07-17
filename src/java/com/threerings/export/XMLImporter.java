@@ -253,10 +253,8 @@ public class XMLImporter extends Importer
             if (cclazz.isArray()) {
                 value = Array.newInstance(cclazz.getComponentType(), countEntries());
             } else {
-                Class<?> eclazz = cclazz.getEnclosingClass();
                 value = ReflectionUtil.newInstance(cclazz,
-                    (eclazz == null || Modifier.isStatic(cclazz.getModifiers())) ?
-                        null : read("outer", null, eclazz));
+                    ReflectionUtil.isInner(cclazz) ? read("outer", null, Object.class) : null);
             }
             if (id.length() > 0) {
                 _objects.put(id, value);
