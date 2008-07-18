@@ -15,9 +15,11 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.lwjgl.BufferUtils;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.PropertiesUtil;
 import com.samskivert.util.StringUtil;
@@ -31,6 +33,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.geom.config.GeometryConfig;
+import com.threerings.opengl.geom.config.GeometryConfig.AttributeArrayConfig;
 import com.threerings.opengl.model.ArticulatedModel;
 import com.threerings.opengl.model.ArticulatedModel.Node;
 import com.threerings.opengl.model.CollisionMesh;
@@ -39,6 +42,7 @@ import com.threerings.opengl.model.SkinMesh;
 import com.threerings.opengl.model.StaticModel;
 import com.threerings.opengl.model.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.renderer.config.ClientArrayConfig;
 import com.threerings.opengl.util.GlUtil;
 
 import static com.threerings.opengl.Log.*;
@@ -78,6 +82,102 @@ public class ModelDef
         public boolean point;
 
         /**
+         * Creates a set of meshes for this node.
+         */
+        public ModelConfig.MeshSet createMeshes (ModelConfig.Imported config)
+        {
+            clearTransforms(config);
+
+            // flatten transforms and merge meshes with same properties
+            HashMap<Object, TriMeshDef> meshes = new HashMap<Object, TriMeshDef>();
+            mergeMeshes(meshes);
+
+            // if there are no meshes, there's no model
+            if (meshes.isEmpty()) {
+                return null;
+            }
+
+            // create visible mesh list
+            ArrayList<ModelConfig.VisibleMesh> visible = new ArrayList<ModelConfig.VisibleMesh>();
+            CollisionMesh collision = null;
+            for (Map.Entry<Object, TriMeshDef> entry : meshes.entrySet()) {
+                TriMeshDef mesh = entry.getValue();
+                if ("collision".equals(entry.getKey())) {
+                    collision = mesh.createCollisionMesh();
+                } else {
+                    visible.add(mesh.createVisibleMesh(config));
+                }
+            }
+
+            // if there's no explicit collision mesh, create one from the normal meshes
+            if (collision == null) {
+                TriMeshDef mesh = new TriMeshDef();
+                mergeMeshes(mesh);
+                collision = mesh.createCollisionMesh();
+            }
+
+            // create and return the set
+            return new ModelConfig.MeshSet(
+                visible.toArray(new ModelConfig.VisibleMesh[visible.size()]), collision);
+        }
+
+        /**
+         * Updates the supplied configuration with the contents of this node.
+         */
+        public void update (ModelConfig.Articulated config)
+        {
+            clearTransforms(config);
+
+            // merge skin meshes
+            HashMap<Object, SkinMeshDef> meshes = new HashMap<Object, SkinMeshDef>();
+            HashSet<String> bones = new HashSet<String>();
+            mergeSkinMeshes(meshes, bones);
+
+            // create the transformation hierarchy
+            boolean haveCollisionMesh = containsCollisionMesh();
+            config.root = createNode(config, haveCollisionMesh);
+
+            // create the skin meshes
+            ArrayList<ModelConfig.VisibleMesh> visible = new ArrayList<ModelConfig.VisibleMesh>();
+            CollisionMesh collision = null;
+            for (Map.Entry<Object, SkinMeshDef> entry : meshes.entrySet()) {
+                SkinMeshDef mesh = entry.getValue();
+                if ("collision".equals(entry.getKey())) {
+                    collision = mesh.createCollisionMesh();
+                } else {
+                    mesh.createSkinMeshes(config, visible);
+                }
+            }
+
+            // if there's no explicit collision mesh, create one from the skinned meshes
+            if (!haveCollisionMesh && !visible.isEmpty()) {
+                TriMeshDef mesh = new TriMeshDef();
+                mergeSkinMeshes(mesh);
+                collision = mesh.createCollisionMesh();
+            }
+
+            // initialize the skin
+            config.skin = new ModelConfig.MeshSet(
+                visible.toArray(new ModelConfig.VisibleMesh[visible.size()]), collision);
+        }
+
+        /**
+         * Clears the transforms according to the supplied config.
+         */
+        protected void clearTransforms (ModelConfig.Imported config)
+        {
+            // clear to the global scale value
+            clearTransform(config.scale);
+
+            // if the "ignore root transforms" flag is set, clear child transforms
+            if (config.ignoreRootTransforms) {
+                for (SpatialDef child : childDefs) {
+                    child.clearTransform(1f);
+                }
+            }
+        }
+
+        /**
          * Creates a model containing the meshes in this node.
          */
         public Model createModel (HashMap<String, SpatialDef> spatials, Properties props)
@@ -107,7 +207,7 @@ public class ModelDef
             // merge skin meshes
             HashMap<Object, SkinMeshDef> meshes = new HashMap<Object, SkinMeshDef>();
             HashSet<String> bones = new HashSet<String>();
-            mergeSkinMeshes(meshes, bones, props);
+            mergeSkinMeshes(meshes, bones);
 
             // flag bone nodes, remove influences from missing ones
             for (String bone : bones) {
@@ -164,11 +264,10 @@ public class ModelDef
          * Finds the names of all nodes referenced as bones, merges skin meshes with the same
          * properties.
          */
-        public void mergeSkinMeshes (
-            HashMap<Object, SkinMeshDef> meshes, HashSet<String> bones, Properties props)
+        public void mergeSkinMeshes (HashMap<Object, SkinMeshDef> meshes, HashSet<String> bones)
         {
             for (SpatialDef childDef : childDefs) {
-                childDef.mergeSkinMeshes(meshes, bones, props);
+                childDef.mergeSkinMeshes(meshes, bones);
             }
         }
 
@@ -190,6 +289,25 @@ public class ModelDef
             for (SpatialDef child : childDefs) {
                 child.mergeSkinMeshes(mesh);
             }
+        }
+
+        /**
+         * Creates an articulation node.
+         */
+        public abstract ModelConfig.NodeConfig createNode (
+            ModelConfig.Articulated config, boolean haveCollisionMesh);
+
+        /**
+         * Creates nodes for the children of this one.
+         */
+        public ModelConfig.NodeConfig[] createChildNodes (
+            ModelConfig.Articulated config, boolean haveCollisionMesh)
+        {
+            ModelConfig.NodeConfig[] children = new ModelConfig.NodeConfig[childDefs.size()];
+            for (int ii = 0; ii < children.length; ii++) {
+                children[ii] = childDefs.get(ii).createNode(config, haveCollisionMesh);
+            }
+            return children;
         }
 
         /**
@@ -221,7 +339,7 @@ public class ModelDef
         {
             // flatten transforms and merge meshes with same properties
             HashMap<Object, TriMeshDef> meshes = new HashMap<Object, TriMeshDef>();
-            mergeMeshes(meshes, props);
+            mergeMeshes(meshes);
 
             // if there are no meshes, there's no model
             if (meshes.isEmpty()) {
@@ -255,10 +373,10 @@ public class ModelDef
         /**
          * Merges meshes with the same properties under this node.
          */
-        public void mergeMeshes (HashMap<Object, TriMeshDef> meshes, Properties props)
+        public void mergeMeshes (HashMap<Object, TriMeshDef> meshes)
         {
             for (SpatialDef child : childDefs) {
-                child.mergeMeshes(meshes, props);
+                child.mergeMeshes(meshes);
             }
         }
 
@@ -319,6 +437,16 @@ public class ModelDef
     public static class NodeDef extends SpatialDef
     {
         @Override // documentation inherited
+        public ModelConfig.NodeConfig createNode (
+            ModelConfig.Articulated config, boolean haveCollisionMesh)
+        {
+            ModelConfig.NodeConfig[] children = createChildNodes(config, haveCollisionMesh);
+            Transform3D transform = (parentDef == null) ?
+                new Transform3D() : createTransform(translation, rotation, scale, config.scale);
+            return new ModelConfig.NodeConfig(name, transform, children);
+        }
+
+        @Override // documentation inherited
         public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
         {
             Node[] children = createChildNodes(model, gscale, haveCollisionMesh);
@@ -369,6 +497,24 @@ public class ModelDef
         }
 
         @Override // documentation inherited
+        public ModelConfig.NodeConfig createNode (
+            ModelConfig.Articulated config, boolean haveCollisionMesh)
+        {
+            // transform by offset matrix
+            transformVertices(
+                createMatrix(offsetTranslation, offsetRotation, offsetScale, config.scale));
+
+            // create the node with the appropriate meshes
+            boolean isCollisionMesh = name.contains("collision");
+            return new ModelConfig.MeshNodeConfig(
+                name,
+                createTransform(translation, rotation, scale, config.scale),
+                createChildNodes(config, haveCollisionMesh),
+                isCollisionMesh ? null : createVisibleMesh(config),
+                (haveCollisionMesh && !isCollisionMesh) ? null : createCollisionMesh());
+        }
+
+        @Override // documentation inherited
         public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
         {
             // transform by offset matrix
@@ -387,7 +533,7 @@ public class ModelDef
         }
 
         @Override // documentation inherited
-        public void mergeMeshes (HashMap<Object, TriMeshDef> meshes, Properties props)
+        public void mergeMeshes (HashMap<Object, TriMeshDef> meshes)
         {
             // multiply world times offset to form vertex transform
             Matrix4f vtrans = getTransformMatrix().mult(
@@ -397,7 +543,7 @@ public class ModelDef
             transformVertices(vtrans);
 
             // add a new entry if necessary; otherwise, merge with existing
-            Object key = getConfigurationKey(props);
+            Object key = getConfigurationKey();
             TriMeshDef omesh = meshes.get(key);
             if (omesh == null) {
                 meshes.put(key, this);
@@ -406,7 +552,7 @@ public class ModelDef
             }
 
             // merge any children
-            super.mergeMeshes(meshes, props);
+            super.mergeMeshes(meshes);
         }
 
         @Override // documentation inherited
@@ -423,13 +569,12 @@ public class ModelDef
          * Returns a key representing the configuration of this mesh that will be compared to
          * others in order to determine which meshes can be merged.
          */
-        public Object getConfigurationKey (Properties props)
+        public Object getConfigurationKey ()
         {
             if (name.contains("collision")) {
                 return "collision";
             } else {
-                return GlUtil.createKey(getClass(), solid, texture, transparent,
-                    PropertiesUtil.getSubProperties(props, name));
+                return GlUtil.createKey(getClass(), texture);
             }
         }
 
@@ -450,7 +595,7 @@ public class ModelDef
         public VisibleMesh createVisibleMesh ()
         {
             // optimize the vertex order
-            optimizeVertexOrder();
+            optimizeVertexOrder(false);
 
             // populate the vertex buffer
             Box bounds = new Box(Vector3f.MAX_VALUE, Vector3f.MIN_VALUE);
@@ -466,6 +611,64 @@ public class ModelDef
         }
 
         /**
+         * Creates and returns a visible mesh config for this mesh.
+         */
+        public ModelConfig.VisibleMesh createVisibleMesh (ModelConfig.Imported config)
+        {
+            // optimize the vertex order
+            optimizeVertexOrder(config.generateTangents);
+
+            // create the base arrays
+            AttributeArrayConfig[] vertexAttribArrays = createVertexAttribArrays(config);
+            ClientArrayConfig[] texCoordArrays =
+                new ClientArrayConfig[] { new ClientArrayConfig(2) };
+            ClientArrayConfig colorArray = null;
+            ClientArrayConfig normalArray = new ClientArrayConfig(3);
+            ClientArrayConfig vertexArray = new ClientArrayConfig(3);
+
+            // put them all in a list
+            ArrayList<ClientArrayConfig> arrays = new ArrayList<ClientArrayConfig>();
+            if (vertexAttribArrays != null) {
+                Collections.addAll(arrays, vertexAttribArrays);
+            }
+            Collections.addAll(arrays, texCoordArrays);
+            if (colorArray != null) {
+                arrays.add(colorArray);
+            }
+            arrays.add(normalArray);
+            arrays.add(vertexArray);
+
+            // compute the offsets and stride
+            int offset = 0;
+            for (ClientArrayConfig array : arrays) {
+                array.offset = offset;
+                offset += array.getElementBytes();
+            }
+
+            // allocate the buffer and update the arrays
+            int stride = offset;
+            int vsize = stride / 4;
+            FloatBuffer vbuf = BufferUtils.createFloatBuffer(vertices.size() * vsize);
+            for (ClientArrayConfig array : arrays) {
+                array.stride = stride;
+                array.floatArray = vbuf;
+            }
+
+            // compute the bounds
+            Box bounds = new Box(Vector3f.MAX_VALUE, Vector3f.MIN_VALUE);
+            for (Vertex vertex : vertices) {
+                bounds.addLocal(new Vector3f(vertex.location));
+            }
+
+            // create and return the mesh
+            return new ModelConfig.VisibleMesh(
+                texture,
+                createGeometry(
+                    bounds, vertexAttribArrays, texCoordArrays,
+                    colorArray, normalArray, vertexArray));
+        }
+
+        /**
          * Creates and returns a collision mesh object for this mesh.
          */
         public CollisionMesh createCollisionMesh ()
@@ -477,6 +680,36 @@ public class ModelDef
                 vectors[ii] = new Vector3f(vertex.location);
             }
             return new CollisionMesh(vectors);
+        }
+
+        /**
+         * Creates the attribute arrays.
+         */
+        protected AttributeArrayConfig[] createVertexAttribArrays (ModelConfig.Imported config)
+        {
+            return config.generateTangents ?
+                new AttributeArrayConfig[] { new AttributeArrayConfig(3, "tangent") } : null;
+        }
+
+        /**
+         * Creates the geometry for this node.
+         */
+        protected GeometryConfig createGeometry (
+            Box bounds, AttributeArrayConfig[] vertexAttribArrays,
+            ClientArrayConfig[] texCoordArrays, ClientArrayConfig colorArray,
+            ClientArrayConfig normalArray, ClientArrayConfig vertexArray)
+        {
+            // get the vertex data
+            FloatBuffer vbuf = vertexArray.floatArray;
+            for (Vertex vertex : vertices) {
+                vertex.get(vbuf);
+            }
+            vbuf.rewind();
+
+            // create the geometry
+            return new GeometryConfig.IndexedStored(
+                bounds, GeometryConfig.Mode.TRIANGLES, vertexAttribArrays, texCoordArrays,
+                colorArray, normalArray, vertexArray, 0, vertices.size() - 1, createIndexBuffer());
         }
 
         @Override // documentation inherited
@@ -504,7 +737,7 @@ public class ModelDef
          * <a href="http://home.comcast.net/~tom_forsyth/papers/fast_vert_cache_opt.html">
          * Linear-Speed Vertex Cache Optimization</a>.
          */
-        protected void optimizeVertexOrder ()
+        protected void optimizeVertexOrder (boolean generateTangents)
         {
             // start by compiling a list of triangles cross-linked with the vertices they use
             // (we use a linked hash set to ensure consistent iteration order for serialization)
@@ -523,6 +756,13 @@ public class ModelDef
                     tvert.triangles.add(triangle);
                 }
                 triangles.add(triangle);
+            }
+
+            // generate the tangents with that information
+            if (generateTangents) {
+                for (Vertex vertex : vertices) {
+                    vertex.generateTangent();
+                }
             }
 
             // init the scores
@@ -624,8 +864,7 @@ public class ModelDef
         }
 
         @Override // documentation inherited
-        public void mergeSkinMeshes (
-            HashMap<Object, SkinMeshDef> meshes, HashSet<String> bones, Properties props)
+        public void mergeSkinMeshes (HashMap<Object, SkinMeshDef> meshes, HashSet<String> bones)
         {
             // multiply world times offset to form vertex transform
             Matrix4f vtrans = getTransformMatrix().mult(
@@ -635,7 +874,7 @@ public class ModelDef
             transformVertices(vtrans);
 
             // add a new entry if necessary; otherwise, merge with existing
-            Object key = getConfigurationKey(props);
+            Object key = getConfigurationKey();
             SkinMeshDef omesh = meshes.get(key);
             if (omesh == null) {
                 meshes.put(key, this);
@@ -647,7 +886,7 @@ public class ModelDef
             bones.addAll(mbones);
 
             // merge any children
-            super.mergeSkinMeshes(meshes, bones, props);
+            super.mergeSkinMeshes(meshes, bones);
         }
 
         @Override // documentation inherited
@@ -676,6 +915,39 @@ public class ModelDef
             return (children.length == 0 && !bone) ? null :
                 model.createNode(
                     name, bone, createTransform(translation, rotation, scale, gscale), children);
+        }
+
+        /**
+         * Creates a set of skin meshes based on this definition and adds them to the list
+         * provided.
+         */
+        public void createSkinMeshes (
+            ModelConfig.Articulated config, ArrayList<ModelConfig.VisibleMesh> meshes)
+        {
+            // copy the vertices into a dummy mesh, adding a mesh to the list when we
+            // reach the bone limit (or the end)
+            SkinMeshDef mesh = new SkinMeshDef(this);
+            for (int ii = 0, nn = indices.size(); ii < nn; ii += 3) {
+                SkinVertex s1 = (SkinVertex)vertices.get(indices.get(ii)),
+                    s2 = (SkinVertex)vertices.get(indices.get(ii+1)),
+                    s3 = (SkinVertex)vertices.get(indices.get(ii+2));
+                HashSet<String> tbones = new HashSet<String>();
+                tbones.addAll(s1.getBones());
+                tbones.addAll(s2.getBones());
+                tbones.addAll(s3.getBones());
+                HashSet<String> nbones = new HashSet<String>(mesh.mbones);
+                nbones.addAll(tbones);
+                if (nbones.size() > SkinMesh.MAX_BONE_COUNT) {
+                    meshes.add(mesh.createVisibleMesh(config));
+                    mesh = new SkinMeshDef(this);
+                }
+                mesh.addVertex(s1);
+                mesh.addVertex(s2);
+                mesh.addVertex(s3);
+            }
+            if (!mesh.indices.isEmpty()) {
+                meshes.add(mesh.createVisibleMesh(config));
+            }
         }
 
         /**
@@ -714,7 +986,7 @@ public class ModelDef
         public VisibleMesh createVisibleMesh ()
         {
             // optimize the vertex order
-            optimizeVertexOrder();
+            optimizeVertexOrder(false);
 
             // find the names of all bones influencing the mesh
             String[] bones = mbones.toArray(new String[mbones.size()]);
@@ -730,6 +1002,39 @@ public class ModelDef
 
             // create and return the mesh
             return new SkinMesh(texture, solid, bounds, vbuf, createIndexBuffer(), bones);
+        }
+
+        @Override // documentation inherited
+        protected AttributeArrayConfig[] createVertexAttribArrays (ModelConfig.Imported config)
+        {
+            AttributeArrayConfig[] arrays = new AttributeArrayConfig[] {
+                new AttributeArrayConfig(4, "boneIndices"),
+                new AttributeArrayConfig(4, "boneWeights") };
+            AttributeArrayConfig[] sarrays = super.createVertexAttribArrays(config);
+            return (sarrays == null) ? arrays : ArrayUtil.concatenate(arrays, sarrays);
+        }
+
+        @Override // documentation inherited
+        protected GeometryConfig createGeometry (
+            Box bounds, AttributeArrayConfig[] vertexAttribArrays,
+            ClientArrayConfig[] texCoordArrays, ClientArrayConfig colorArray,
+            ClientArrayConfig normalArray, ClientArrayConfig vertexArray)
+        {
+            // find the names of all bones influencing the mesh
+            String[] bones = mbones.toArray(new String[mbones.size()]);
+
+            // get the vertex data
+            FloatBuffer vbuf = vertexArray.floatArray;
+            for (Vertex vertex : vertices) {
+                ((SkinVertex)vertex).get(vbuf, bones);
+            }
+            vbuf.rewind();
+
+            // create the geometry
+            return new GeometryConfig.SkinnedIndexedStored(
+                bounds, GeometryConfig.Mode.TRIANGLES, vertexAttribArrays, texCoordArrays,
+                colorArray, normalArray, vertexArray, 0, vertices.size() - 1, createIndexBuffer(),
+                bones);
         }
     }
 
@@ -749,6 +1054,9 @@ public class ModelDef
         /** When reordering vertices, the last computed score of the vertex. */
         public float score;
 
+        /** The tangent vector, if computed. */
+        public Vector3f tangent;
+
         /**
          * Transforms this vertex in-place by the given vertex and normal matrices.
          */
@@ -759,10 +1067,45 @@ public class ModelDef
         }
 
         /**
+         * Generates the tangent vector for this vertex (after its triangle list has been
+         * initialized).
+         */
+        public void generateTangent ()
+        {
+            tangent = new Vector3f();
+            Vector3f normal = new Vector3f(this.normal), vec = new Vector3f();
+            Quaternion rot = new Quaternion();
+            for (Triangle triangle : triangles) {
+                for (Vertex vertex : triangle.vertices) {
+                    if (vertex == this) {
+                        continue;
+                    }
+                    vec.set(
+                        vertex.location[0] - location[0],
+                        vertex.location[1] - location[1],
+                        vertex.location[2] - location[2]).crossLocal(normal);
+                    if (vec.length() < FloatMath.EPSILON) {
+                        continue;
+                    }
+                    float angle = FloatMath.atan2(
+                        vertex.tcoords[0] - tcoords[0], vertex.tcoords[1] - tcoords[1]);
+                    rot.fromAngleAxis(angle, normal).transformLocal(vec).normalizeLocal();
+                    tangent.addLocal(vec);
+                }
+            }
+            if (tangent.length() > 0f) {
+                tangent.normalizeLocal();
+            }
+        }
+
+        /**
          * Puts the contents of this vertex into the specified buffer.
          */
         public void get (FloatBuffer vbuf)
         {
+            if (tangent != null) {
+                tangent.get(vbuf);
+            }
             vbuf.put(tcoords);
             vbuf.put(normal);
             vbuf.put(location);
@@ -874,9 +1217,7 @@ public class ModelDef
             for (int ii = 0; ii < 4; ii++) {
                 vbuf.put(ii < weights.length ? weights[ii].weight : 0f);
             }
-            vbuf.put(tcoords);
-            vbuf.put(normal);
-            vbuf.put(location);
+            super.get(vbuf);
         }
 
         @Override // documentation inherited
@@ -957,6 +1298,40 @@ public class ModelDef
     public void addSpatial (SpatialDef spatial)
     {
         spatials.put(spatial.name, spatial);
+    }
+
+    /**
+     * Updates the supplied configuration with the model data in this definition.
+     */
+    public void update (ModelConfig.Static config)
+    {
+        config.meshes = createRootNode().createMeshes(config);
+    }
+
+    /**
+     * Updates the supplied configuration with the model data in this definition.
+     */
+    public void update (ModelConfig.StaticSet config)
+    {
+        // resolve parent/child references and find top-level children
+        ArrayList<SpatialDef> tops = resolveReferences();
+
+        // create and map a mesh set for each top-level child
+        config.meshes = new TreeMap<String, ModelConfig.MeshSet>();
+        for (SpatialDef top : tops) {
+            ModelConfig.MeshSet meshes = top.createMeshes(config);
+            if (meshes != null) {
+                config.meshes.put(top.name, meshes);
+            }
+        }
+    }
+
+    /**
+     * Updates the supplied configuration with the model data in this definition.
+     */
+    public void update (ModelConfig.Articulated config)
+    {
+        createRootNode().update(config);
     }
 
     /**

@@ -120,9 +120,8 @@ public class ObjectMarshaller
                 _prototype = clazz.newInstance();
             } else {
                 // inner classes must pass the prototype of the outer class
-                Constructor constructor = clazz.getConstructor(oclazz);
                 Object oproto = getObjectMarshaller(oclazz)._prototype;
-                _prototype = constructor.newInstance(oproto);
+                _prototype = ReflectionUtil.newInstance(clazz, oproto);
             }
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create object prototype [class=" +

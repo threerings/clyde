@@ -14,6 +14,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
 import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.renderer.config.ClientArrayConfig;
 import com.threerings.opengl.renderer.config.LightStateConfig;
 import com.threerings.opengl.renderer.config.ShaderConfig;
 import com.threerings.opengl.renderer.config.ShaderStateConfig;
@@ -52,31 +53,6 @@ public abstract class GeometryConfig extends DeepObject
         protected int _constant;
     }
 
-    /** Type constants. */
-    public enum Type
-    {
-        BYTE(GL11.GL_BYTE),
-        UNSIGNED_BYTE(GL11.GL_UNSIGNED_BYTE),
-        SHORT(GL11.GL_SHORT),
-        UNSIGNED_SHORT(GL11.GL_UNSIGNED_SHORT),
-        INT(GL11.GL_INT),
-        UNSIGNED_INT(GL11.GL_UNSIGNED_INT),
-        FLOAT(GL11.GL_FLOAT),
-        DOUBLE(GL11.GL_DOUBLE);
-
-        public int getConstant ()
-        {
-            return _constant;
-        }
-
-        Type (int constant)
-        {
-            _constant = constant;
-        }
-
-        protected int _constant;
-    }
-
     /**
      * Superclass of configurations with stored geometry.
      */
@@ -102,6 +78,24 @@ public abstract class GeometryConfig extends DeepObject
 
         /** The vertex array. */
         public ClientArrayConfig vertexArray;
+
+        public Stored (
+            Box bounds, Mode mode, AttributeArrayConfig[] vertexAttribArrays,
+            ClientArrayConfig[] texCoordArrays, ClientArrayConfig colorArray,
+            ClientArrayConfig normalArray, ClientArrayConfig vertexArray)
+        {
+            this.bounds = bounds;
+            this.mode = mode;
+            this.vertexAttribArrays = vertexAttribArrays;
+            this.texCoordArrays = texCoordArrays;
+            this.colorArray = colorArray;
+            this.normalArray = normalArray;
+            this.vertexArray = vertexArray;
+        }
+
+        public Stored ()
+        {
+        }
     }
 
     /**
@@ -114,6 +108,22 @@ public abstract class GeometryConfig extends DeepObject
 
         /** The number of indices to render. */
         public int count;
+
+        public ArrayStored (
+            Box bounds, Mode mode, AttributeArrayConfig[] vertexAttribArrays,
+            ClientArrayConfig[] texCoordArrays, ClientArrayConfig colorArray,
+            ClientArrayConfig normalArray, ClientArrayConfig vertexArray,
+            int first, int count)
+        {
+            super(bounds, mode, vertexAttribArrays, texCoordArrays,
+                colorArray, normalArray, vertexArray);
+            this.first = first;
+            this.count = count;
+        }
+
+        public ArrayStored ()
+        {
+        }
 
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, PassDescriptor[] passes)
@@ -137,6 +147,23 @@ public abstract class GeometryConfig extends DeepObject
         @Shallow
         public ShortBuffer indices;
 
+        public IndexedStored (
+            Box bounds, Mode mode, AttributeArrayConfig[] vertexAttribArrays,
+            ClientArrayConfig[] texCoordArrays, ClientArrayConfig colorArray,
+            ClientArrayConfig normalArray, ClientArrayConfig vertexArray,
+            int start, int end, ShortBuffer indices)
+        {
+            super(bounds, mode, vertexAttribArrays, texCoordArrays,
+                colorArray, normalArray, vertexArray);
+            this.start = start;
+            this.end = end;
+            this.indices = indices;
+        }
+
+        public IndexedStored ()
+        {
+        }
+
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, PassDescriptor[] passes)
         {
@@ -147,10 +174,25 @@ public abstract class GeometryConfig extends DeepObject
     /**
      * Skinned indexed geometry.
      */
-    public static class SkinnedIndexStored extends IndexedStored
+    public static class SkinnedIndexedStored extends IndexedStored
     {
         /** The names of the bones referenced by the <code>boneIndices</code> attribute. */
         public String[] bones;
+
+        public SkinnedIndexedStored (
+            Box bounds, Mode mode, AttributeArrayConfig[] vertexAttribArrays,
+            ClientArrayConfig[] texCoordArrays, ClientArrayConfig colorArray,
+            ClientArrayConfig normalArray, ClientArrayConfig vertexArray,
+            int start, int end, ShortBuffer indices, String[] bones)
+        {
+            super(bounds, mode, vertexAttribArrays, texCoordArrays,
+                colorArray, normalArray, vertexArray, start, end, indices);
+            this.bones = bones;
+        }
+
+        public SkinnedIndexedStored ()
+        {
+        }
 
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, PassDescriptor[] passes)
@@ -160,38 +202,29 @@ public abstract class GeometryConfig extends DeepObject
     }
 
     /**
-     * Describes an interleaved array.
-     */
-    public static class ClientArrayConfig extends DeepObject
-        implements Exportable
-    {
-        /** The number of components in each element. */
-        public int size;
-
-        /** The type of the components. */
-        public Type type;
-
-        /** Whether or not to normalize the components. */
-        public boolean normalized;
-
-        /** The stride between adjacent elements. */
-        public int stride;
-
-        /** The offset of the first component. */
-        public int offset;
-
-        /** The float array, if using one. */
-        @Shallow
-        public FloatBuffer floatArray;
-    }
-
-    /**
      * Describes an interleaved attribute array.
      */
     public static class AttributeArrayConfig extends ClientArrayConfig
     {
         /** The name of the attribute. */
         public String name;
+
+        public AttributeArrayConfig (int size, String name)
+        {
+            super(size);
+            this.name = name;
+        }
+
+        public AttributeArrayConfig (
+            int size, int stride, int offset, FloatBuffer floatArray, String name)
+        {
+            super(size, stride, offset, floatArray);
+            this.name = name;
+        }
+
+        public AttributeArrayConfig ()
+        {
+        }
     }
 
     /**

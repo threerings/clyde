@@ -5,7 +5,11 @@ package com.threerings.opengl.model.config;
 
 import java.io.File;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import com.samskivert.util.QuickSort;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
@@ -14,6 +18,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
@@ -44,10 +49,37 @@ public class ModelConfig extends ParameterizedConfig
     }
 
     /**
-     * Superclass of the imported implementations.
+     * Superclass of the imported implementations (this is not abstract because in order for the
+     * exporter to create a prototype of MaterialMapping, it must be able to instantiate this
+     * class).
      */
-    public static abstract class Imported extends Implementation
+    public static class Imported extends Implementation
     {
+        /**
+         * Represents a mapping from texture name to material.
+         */
+        public class MaterialMapping extends DeepObject
+            implements Exportable
+        {
+            /** The name of the texture. */
+            @Editable(editor="choice")
+            public String name;
+
+            /** The corresponding material. */
+            @Editable(nullable=true)
+            public ConfigReference<MaterialConfig> material;
+
+            /**
+             * Returns the options available for the name field.
+             */
+            public String[] getNameOptions ()
+            {
+                TreeSet<String> names = new TreeSet<String>();
+                getTextures(names);
+                return names.toArray(new String[names.size()]);
+            }
+        }
+
         /** The model scale. */
         @Editable(min=0, step=0.01, hgroup="r")
         public float scale = 0.01f;
@@ -61,7 +93,7 @@ public class ModelConfig extends ParameterizedConfig
         public boolean generateTangents;
 
         /** The mappings from texture name to material. */
-        @Editable
+        @Editable(depends={"source"})
         public MaterialMapping[] materialMappings = new MaterialMapping[0];
 
         /**
@@ -70,7 +102,7 @@ public class ModelConfig extends ParameterizedConfig
         @Editable(nullable=true)
         @FileConstraints(
             description="m.exported_models",
-            extensions={ ".mxml" },
+            extensions={".mxml"},
             directory="exported_model_dir")
         public void setSource (File source)
         {
@@ -93,25 +125,34 @@ public class ModelConfig extends ParameterizedConfig
         public void updateFromSource ()
         {
             if (_source == null) {
+                updateFromSource(null);
                 return;
             }
             if (_parser == null) {
                 _parser = new ModelParser();
             }
-            ModelDef def;
             try {
-                def = _parser.parseModel(_source.toString());
+                updateFromSource(_parser.parseModel(_source.toString()));
             } catch (Exception e) {
                 log.warning("Error parsing model [source=" + _source + "].", e);
-                return;
             }
-            updateFromSource(def);
         }
 
         /**
          * Updates from a parsed model definition.
          */
-        protected abstract void updateFromSource (ModelDef def);
+        protected void updateFromSource (ModelDef def)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Populates the supplied set with the names of all referenced textures.
+         */
+        protected void getTextures (TreeSet<String> textures)
+        {
+            // nothing by default
+        }
 
         /** The file from which we read the model data. */
         protected File _source;
@@ -122,41 +163,69 @@ public class ModelConfig extends ParameterizedConfig
      */
     public static class Static extends Imported
     {
+        /** The meshes comprising this model. */
+        public MeshSet meshes;
+
         @Override // documentation inherited
         protected void updateFromSource (ModelDef def)
         {
-
+            if (def == null) {
+                meshes = null;
+            } else {
+                def.update(this);
+            }
         }
 
-        /** The model's visible meshes. */
-        protected StaticMeshes _meshes;
+        @Override // documentation inherited
+        protected void getTextures (TreeSet<String> textures)
+        {
+            if (meshes != null) {
+                meshes.getTextures(textures);
+            }
+        }
     }
 
     /**
-     * A set of models all loaded from the same source.
+     * A set of static models all loaded from the same source.
      */
     public static class StaticSet extends Imported
     {
         /** The selected model. */
-        @Editable(editor="choice", depends={ "source" })
+        @Editable(editor="choice", depends={"source"})
         public String model;
+
+        /** Maps top-level node names to meshes. */
+        public TreeMap<String, MeshSet> meshes;
 
         /**
          * Returns the options for the model field.
          */
         public String[] getModelOptions ()
         {
-            return new String[] { "one", "two", "three" };
+            return (meshes == null) ?
+                new String[0] : meshes.keySet().toArray(new String[meshes.size()]);
         }
 
         @Override // documentation inherited
         protected void updateFromSource (ModelDef def)
         {
-
+            if (def == null) {
+                model = null;
+                meshes = null;
+            } else {
+                def.update(this);
+            }
         }
 
-        /** Maps top-level node names to meshes. */
-        protected HashMap<String, StaticMeshes> _meshes;
+        @Override // documentation inherited
+        protected void getTextures (TreeSet<String> textures)
+        {
+            if (meshes != null) {
+                for (MeshSet set : meshes.values()) {
+                    set.getTextures(textures);
+                }
+            }
+        }
     }
 
     /**
@@ -164,18 +233,69 @@ public class ModelConfig extends ParameterizedConfig
      */
     public static class Articulated extends Imported
     {
+        /**
+         * Represents an attachment point on an articulated model.
+         */
+        public class AttachmentPoint extends DeepObject
+            implements Exportable
+        {
+            /** The name of the node representing the attachment point. */
+            @Editable(editor="choice")
+            public String node;
+
+            /** The model to attach to the node. */
+            @Editable(nullable=true)
+            public ConfigReference<ModelConfig> attachment;
+
+            /**
+             * Returns the options available for the node field.
+             */
+            public String[] getNodeOptions ()
+            {
+                if (root == null) {
+                    return new String[0];
+                }
+                ArrayList<String> names = new ArrayList<String>();
+                root.getNames(names);
+                QuickSort.sort(names);
+                return names.toArray(new String[names.size()]);
+            }
+        }
+
         /** The model's animation mappings. */
         @Editable
         public AnimationMapping[] animationMappings = new AnimationMapping[0];
 
         /** The model's attachment points. */
-        @Editable
+        @Editable(depends={"source"})
         public AttachmentPoint[] attachmentPoints = new AttachmentPoint[0];
+
+        /** The root node. */
+        public NodeConfig root;
+
+        /** The skin meshes. */
+        public MeshSet skin;
 
         @Override // documentation inherited
         protected void updateFromSource (ModelDef def)
         {
+            if (def == null) {
+                root = null;
+                skin = null;
+            } else {
+                def.update(this);
+            }
+        }
 
+        @Override // documentation inherited
+        protected void getTextures (TreeSet<String> textures)
+        {
+            if (root != null) {
+                root.getTextures(textures);
+            }
+            if (skin != null) {
+                skin.getTextures(textures);
+            }
         }
     }
 
@@ -190,9 +310,91 @@ public class ModelConfig extends ParameterizedConfig
     }
 
     /**
-     * Contains a set of static meshes.
+     * A node within an {@link Articulated} model.
      */
-    public static class StaticMeshes extends DeepObject
+    public static class NodeConfig extends DeepObject
+        implements Exportable
+    {
+        /** The name of the node. */
+        public String name;
+
+        /** The initial transform of the node. */
+        public Transform3D transform;
+
+        /** The children of the node. */
+        public NodeConfig[] children;
+
+        public NodeConfig (String name, Transform3D transform, NodeConfig[] children)
+        {
+            this.name = name;
+            this.transform = transform;
+            this.children = children;
+        }
+
+        public NodeConfig ()
+        {
+        }
+
+        /**
+         * Populates the supplied list with the names of all nodes.
+         */
+        public void getNames (ArrayList<String> names)
+        {
+            names.add(name);
+            for (NodeConfig child : children) {
+                child.getNames(names);
+            }
+        }
+
+        /**
+         * Populates the supplied set with the names of all textures.
+         */
+        public void getTextures (TreeSet<String> textures)
+        {
+            for (NodeConfig child : children) {
+                child.getTextures(textures);
+            }
+        }
+    }
+
+    /**
+     * A node containing a mesh.
+     */
+    public static class MeshNodeConfig extends NodeConfig
+    {
+        /** The node's visible mesh. */
+        public VisibleMesh visible;
+
+        /** The collision mesh. */
+        public CollisionMesh collision;
+
+        public MeshNodeConfig (
+            String name, Transform3D transform, NodeConfig[] children,
+            VisibleMesh visible, CollisionMesh collision)
+        {
+            super(name, transform, children);
+            this.visible = visible;
+            this.collision = collision;
+        }
+
+        public MeshNodeConfig ()
+        {
+        }
+
+        @Override // documentation inherited
+        public void getTextures (TreeSet<String> textures)
+        {
+            super.getTextures(textures);
+            if (visible != null) {
+                textures.add(visible.texture);
+            }
+        }
+    }
+
+    /**
+     * Contains a set of meshes.
+     */
+    public static class MeshSet extends DeepObject
         implements Exportable
     {
         /** The visible meshes. */
@@ -200,6 +402,26 @@ public class ModelConfig extends ParameterizedConfig
 
         /** The collision mesh. */
         public CollisionMesh collision;
+
+        public MeshSet (VisibleMesh[] visible, CollisionMesh collision)
+        {
+            this.visible = visible;
+            this.collision = collision;
+        }
+
+        public MeshSet ()
+        {
+        }
+
+        /**
+         * Populates the supplied set with the names of all referenced textures.
+         */
+        public void getTextures (TreeSet<String> textures)
+        {
+            for (VisibleMesh mesh : visible) {
+                textures.add(mesh.texture);
+            }
+        }
     }
 
     /**
@@ -213,21 +435,16 @@ public class ModelConfig extends ParameterizedConfig
 
         /** The mesh geometry. */
         public GeometryConfig geometry;
-    }
 
-    /**
-     * Represents a mapping from texture name to material.
-     */
-    public static class MaterialMapping extends DeepObject
-        implements Exportable
-    {
-        /** The name of the texture. */
-        @Editable
-        public String name = "";
+        public VisibleMesh (String texture, GeometryConfig geometry)
+        {
+            this.texture = texture;
+            this.geometry = geometry;
+        }
 
-        /** The corresponding material. */
-        @Editable(nullable=true)
-        public ConfigReference<MaterialConfig> material;
+        public VisibleMesh ()
+        {
+        }
     }
 
     /**
@@ -247,21 +464,6 @@ public class ModelConfig extends ParameterizedConfig
         /** The animation associated with the name. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
-    }
-
-    /**
-     * Represents an attachment point on an articulated model.
-     */
-    public static class AttachmentPoint extends DeepObject
-        implements Exportable
-    {
-        /** The name of the node representing the attachment point. */
-        @Editable
-        public String node = "";
-
-        /** The model to attach to the node. */
-        @Editable(nullable=true)
-        public ConfigReference<ModelConfig> attachment;
     }
 
     /** The actual model implementation. */
