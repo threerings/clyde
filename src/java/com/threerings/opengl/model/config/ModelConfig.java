@@ -18,10 +18,13 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
+import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.mod.StaticImpl;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.model.tools.xml.ModelParser;
@@ -29,6 +32,7 @@ import com.threerings.opengl.model.tools.xml.ModelParser;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.geom.config.GeometryConfig;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.*;
 
@@ -46,6 +50,19 @@ public class ModelConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
+        /**
+         * Creates or updates a model implementation for this configuration.
+         *
+         * @param scope the model's expression scope.
+         * @param impl an existing implementation to reuse, if possible.
+         * @return either a reference to the existing implementation (if reused), a new
+         * implementation, or <code>null</code> if no implementation could be created.
+         */
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            return null;
+        }
     }
 
     /**
@@ -167,6 +184,21 @@ public class ModelConfig extends ParameterizedConfig
         public MeshSet meshes;
 
         @Override // documentation inherited
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            if (meshes == null) {
+                return null;
+            }
+            if (impl instanceof StaticImpl) {
+                ((StaticImpl)impl).setMeshes(meshes);
+            } else {
+                impl = new StaticImpl(ctx, scope, meshes);
+            }
+            return impl;
+        }
+
+        @Override // documentation inherited
         protected void updateFromSource (ModelDef def)
         {
             if (def == null) {
@@ -204,6 +236,22 @@ public class ModelConfig extends ParameterizedConfig
         {
             return (meshes == null) ?
                 new String[0] : meshes.keySet().toArray(new String[meshes.size()]);
+        }
+
+        @Override // documentation inherited
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            MeshSet mset = (meshes == null) ? null : meshes.get(model);
+            if (mset == null) {
+                return null;
+            }
+            if (impl instanceof StaticImpl) {
+                ((StaticImpl)impl).setMeshes(mset);
+            } else {
+                impl = new StaticImpl(ctx, scope, mset);
+            }
+            return impl;
         }
 
         @Override // documentation inherited
@@ -277,6 +325,13 @@ public class ModelConfig extends ParameterizedConfig
         public MeshSet skin;
 
         @Override // documentation inherited
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            return null;
+        }
+
+        @Override // documentation inherited
         protected void updateFromSource (ModelDef def)
         {
             if (def == null) {
@@ -307,6 +362,17 @@ public class ModelConfig extends ParameterizedConfig
         /** The model reference. */
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
+
+        @Override // documentation inherited
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            if (model == null) {
+                return null;
+            }
+            ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
+            return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
+        }
     }
 
     /**
@@ -469,6 +535,20 @@ public class ModelConfig extends ParameterizedConfig
     /** The actual model implementation. */
     @Editable
     public Implementation implementation = new Static();
+
+    /**
+     * Creates or updates a model implementation for this configuration.
+     *
+     * @param scope the model's expression scope.
+     * @param impl an existing implementation to reuse, if possible.
+     * @return either a reference to the existing implementation (if reused), a new
+     * implementation, or <code>null</code> if no implementation could be created.
+     */
+    public Model.Implementation getModelImplementation (
+        GlContext ctx, Scope scope, Model.Implementation impl)
+    {
+        return implementation.getModelImplementation(ctx, scope, impl);
+    }
 
     @Override // documentation inherited
     public void init (ConfigManager cfgmgr)
