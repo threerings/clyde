@@ -17,12 +17,12 @@ import com.threerings.opengl.util.GlContext;
 /**
  * A static model implementation.
  */
-public class StaticImpl extends Model.Implementation
+public class Static extends Model.Implementation
 {
     /**
      * Creates a new static implementation.
      */
-    public StaticImpl (GlContext ctx, Scope parentScope, ModelConfig.MeshSet meshes)
+    public Static (GlContext ctx, Scope parentScope, ModelConfig.MeshSet meshes)
     {
         super(parentScope);
         _ctx = ctx;

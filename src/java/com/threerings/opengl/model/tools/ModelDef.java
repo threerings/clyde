@@ -41,7 +41,10 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.SkinMesh;
 import com.threerings.opengl.model.StaticModel;
 import com.threerings.opengl.model.VisibleMesh;
+import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.model.config.StaticConfig;
+import com.threerings.opengl.model.config.StaticSetConfig;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
 import com.threerings.opengl.util.GlUtil;
 
@@ -124,7 +127,7 @@ public class ModelDef
         /**
          * Updates the supplied configuration with the contents of this node.
          */
-        public void update (ModelConfig.Articulated config)
+        public void update (ArticulatedConfig config)
         {
             clearTransforms(config);
 
@@ -294,16 +297,16 @@ public class ModelDef
         /**
          * Creates an articulation node.
          */
-        public abstract ModelConfig.NodeConfig createNode (
-            ModelConfig.Articulated config, boolean haveCollisionMesh);
+        public abstract ArticulatedConfig.Node createNode (
+            ArticulatedConfig config, boolean haveCollisionMesh);
 
         /**
          * Creates nodes for the children of this one.
          */
-        public ModelConfig.NodeConfig[] createChildNodes (
-            ModelConfig.Articulated config, boolean haveCollisionMesh)
+        public ArticulatedConfig.Node[] createChildNodes (
+            ArticulatedConfig config, boolean haveCollisionMesh)
         {
-            ModelConfig.NodeConfig[] children = new ModelConfig.NodeConfig[childDefs.size()];
+            ArticulatedConfig.Node[] children = new ArticulatedConfig.Node[childDefs.size()];
             for (int ii = 0; ii < children.length; ii++) {
                 children[ii] = childDefs.get(ii).createNode(config, haveCollisionMesh);
             }
@@ -437,13 +440,13 @@ public class ModelDef
     public static class NodeDef extends SpatialDef
     {
         @Override // documentation inherited
-        public ModelConfig.NodeConfig createNode (
-            ModelConfig.Articulated config, boolean haveCollisionMesh)
+        public ArticulatedConfig.Node createNode (
+            ArticulatedConfig config, boolean haveCollisionMesh)
         {
-            ModelConfig.NodeConfig[] children = createChildNodes(config, haveCollisionMesh);
+            ArticulatedConfig.Node[] children = createChildNodes(config, haveCollisionMesh);
             Transform3D transform = (parentDef == null) ?
                 new Transform3D() : createTransform(translation, rotation, scale, config.scale);
-            return new ModelConfig.NodeConfig(name, transform, children);
+            return new ArticulatedConfig.Node(name, transform, children);
         }
 
         @Override // documentation inherited
@@ -497,8 +500,8 @@ public class ModelDef
         }
 
         @Override // documentation inherited
-        public ModelConfig.NodeConfig createNode (
-            ModelConfig.Articulated config, boolean haveCollisionMesh)
+        public ArticulatedConfig.Node createNode (
+            ArticulatedConfig config, boolean haveCollisionMesh)
         {
             // transform by offset matrix
             transformVertices(
@@ -506,7 +509,7 @@ public class ModelDef
 
             // create the node with the appropriate meshes
             boolean isCollisionMesh = name.contains("collision");
-            return new ModelConfig.MeshNodeConfig(
+            return new ArticulatedConfig.MeshNode(
                 name,
                 createTransform(translation, rotation, scale, config.scale),
                 createChildNodes(config, haveCollisionMesh),
@@ -922,7 +925,7 @@ public class ModelDef
          * provided.
          */
         public void createSkinMeshes (
-            ModelConfig.Articulated config, ArrayList<ModelConfig.VisibleMesh> meshes)
+            ArticulatedConfig config, ArrayList<ModelConfig.VisibleMesh> meshes)
         {
             // copy the vertices into a dummy mesh, adding a mesh to the list when we
             // reach the bone limit (or the end)
@@ -1303,7 +1306,7 @@ public class ModelDef
     /**
      * Updates the supplied configuration with the model data in this definition.
      */
-    public void update (ModelConfig.Static config)
+    public void update (StaticConfig config)
     {
         config.meshes = createRootNode().createMeshes(config);
     }
@@ -1311,7 +1314,7 @@ public class ModelDef
     /**
      * Updates the supplied configuration with the model data in this definition.
      */
-    public void update (ModelConfig.StaticSet config)
+    public void update (StaticSetConfig config)
     {
         // resolve parent/child references and find top-level children
         ArrayList<SpatialDef> tops = resolveReferences();
@@ -1329,7 +1332,7 @@ public class ModelDef
     /**
      * Updates the supplied configuration with the model data in this definition.
      */
-    public void update (ModelConfig.Articulated config)
+    public void update (ArticulatedConfig config)
     {
         createRootNode().update(config);
     }
