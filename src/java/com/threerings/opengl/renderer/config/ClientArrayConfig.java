@@ -10,6 +10,8 @@ import org.lwjgl.opengl.GL11;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.renderer.ClientArray;
+
 /**
  * Contains the configuration of a single client array.
  */
@@ -94,5 +96,37 @@ public class ClientArrayConfig extends DeepObject
     public int getElementBytes ()
     {
         return size * type.getBytes();
+    }
+
+    /**
+     * Creates an uninitialized client array from this config.
+     */
+    public ClientArray createClientArray ()
+    {
+        return new ClientArray(size, (FloatBuffer)null);
+    }
+
+    /**
+     * Populates the supplied client array (created with {@link #createClientArray}) with the data
+     * in this config.
+     */
+    public void populateClientArray (ClientArray array)
+    {
+        FloatBuffer src = floatArray, dest = array.floatArray;
+        int sstride = stride / 4, dstride = array.stride / 4;
+        int sidx = offset / 4, didx = (int)array.offset / 4;
+        float[] value = new float[size];
+        for (int ii = 0, nn = src.capacity() / sstride; ii < nn; ii++) {
+            src.position(sidx);
+            src.get(value);
+
+            dest.position(didx);
+            dest.put(value);
+
+            sidx += sstride;
+            didx += dstride;
+        }
+        src.rewind();
+        dest.rewind();
     }
 }

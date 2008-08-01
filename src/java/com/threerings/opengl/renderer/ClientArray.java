@@ -41,9 +41,7 @@ public class ClientArray
      */
     public ClientArray (int size, int type, BufferObject arrayBuffer)
     {
-        this.size = size;
-        this.type = type;
-        this.arrayBuffer = arrayBuffer;
+        this(size, type, 0, 0L, arrayBuffer);
     }
 
     /**
@@ -51,11 +49,7 @@ public class ClientArray
      */
     public ClientArray (int size, int type, int stride, long offset, BufferObject arrayBuffer)
     {
-        this.size = size;
-        this.type = type;
-        this.stride = stride;
-        this.offset = offset;
-        this.arrayBuffer = arrayBuffer;
+        this(size, type, false, stride, offset, arrayBuffer, null);
     }
 
     /**
@@ -63,9 +57,7 @@ public class ClientArray
      */
     public ClientArray (int size, FloatBuffer floatArray)
     {
-        this.size = size;
-        this.type = GL11.GL_FLOAT;
-        this.floatArray = floatArray;
+        this(size, 0, 0L, floatArray);
     }
 
     /**
@@ -73,11 +65,17 @@ public class ClientArray
      */
     public ClientArray (int size, int stride, long offset, FloatBuffer floatArray)
     {
-        this.size = size;
-        this.type = GL11.GL_FLOAT;
-        this.stride = stride;
-        this.offset = offset;
-        this.floatArray = floatArray;
+        this(size, GL11.GL_FLOAT, false, stride, offset, null, floatArray);
+    }
+
+    /**
+     * Creates an array.
+     */
+    public ClientArray (
+        int size, int type, boolean normalized, int stride, long offset,
+        BufferObject arrayBuffer, FloatBuffer floatArray)
+    {
+        set(size, type, normalized, stride, offset, arrayBuffer, floatArray);
     }
 
     /**
@@ -94,14 +92,50 @@ public class ClientArray
      */
     public ClientArray set (ClientArray array)
     {
-        size = array.size;
-        type = array.type;
-        normalized = array.normalized;
-        stride = array.stride;
-        offset = array.offset;
-        arrayBuffer = array.arrayBuffer;
-        floatArray = array.floatArray;
+        return set(
+            array.size, array.type, array.normalized, array.stride,
+            array.offset, array.arrayBuffer, array.floatArray);
+    }
+
+    /**
+     * Sets all fields at once.
+     *
+     * @return a reference to the array, for chaining.
+     */
+    public ClientArray set (
+        int size, int type, boolean normalized, int stride, long offset,
+        BufferObject arrayBuffer, FloatBuffer floatArray)
+    {
+        this.size = size;
+        this.type = type;
+        this.normalized = normalized;
+        this.stride = stride;
+        this.offset = offset;
+        this.arrayBuffer = arrayBuffer;
+        this.floatArray = floatArray;
         return this;
+    }
+
+    /**
+     * Returns the number of bytes in each element.
+     */
+    public int getElementBytes ()
+    {
+        return size * getComponentBytes();
+    }
+
+    /**
+     * Returns the number of bytes in each component.
+     */
+    public int getComponentBytes ()
+    {
+        switch (type) {
+            case GL11.GL_BYTE: case GL11.GL_UNSIGNED_BYTE: return 1;
+            case GL11.GL_SHORT: case GL11.GL_UNSIGNED_SHORT: return 2;
+            case GL11.GL_INT: case GL11.GL_UNSIGNED_INT: case GL11.GL_FLOAT: return 4;
+            case GL11.GL_DOUBLE: return 8;
+        }
+        return -1;
     }
 
     @Override // documentation inherited
