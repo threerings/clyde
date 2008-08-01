@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.mod;
 
+import java.util.Map;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.DynamicScope;
@@ -16,7 +18,11 @@ import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.mat.Surface;
+import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
+import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Renderable;
@@ -80,6 +86,62 @@ public class Model
         public boolean getIntersection (Ray ray, Vector3f result)
         {
             return false;
+        }
+
+        /**
+         * Creates a set of surfaces.
+         */
+        protected Surface[] createSurfaces (
+            GlContext ctx, Scope scope, VisibleMesh[] meshes, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
+        {
+            Surface[] surfaces = new Surface[meshes.length];
+            for (int ii = 0; ii < meshes.length; ii++) {
+                surfaces[ii] = createSurface(
+                    ctx, scope, meshes[ii], materialMappings, materialConfigs);
+            }
+            return surfaces;
+        }
+
+        /**
+         * Creates a single surface.
+         */
+        protected static Surface createSurface (
+            GlContext ctx, Scope scope, VisibleMesh mesh, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
+        {
+            return new Surface(ctx, scope, mesh.geometry,
+                getMaterialConfig(ctx, mesh.texture, materialMappings, materialConfigs));
+        }
+
+        /**
+         * Resolves a material config through a cache.
+         */
+        protected static MaterialConfig getMaterialConfig (
+            GlContext ctx, String texture, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
+        {
+            MaterialConfig config = materialConfigs.get(texture);
+            if (config == null) {
+                materialConfigs.put(
+                    texture, config = getMaterialConfig(ctx, texture, materialMappings));
+            }
+            return config;
+        }
+
+        /**
+         * Resolves a material config.
+         */
+        protected static MaterialConfig getMaterialConfig (
+            GlContext ctx, String texture, MaterialMapping[] materialMappings)
+        {
+            for (MaterialMapping mapping : materialMappings) {
+                if (texture.equals(mapping.texture)) {
+                    return (mapping.material == null) ? null :
+                        ctx.getConfigManager().getConfig(MaterialConfig.class, mapping.material);
+                }
+            }
+            return null;
         }
 
         /** A reference to the parent scope. */

@@ -45,9 +45,9 @@ public class StaticSetConfig extends ModelConfig.Imported
             return null;
         }
         if (impl instanceof Static) {
-            ((Static)impl).setMeshes(mset);
+            ((Static)impl).setConfig(mset, materialMappings);
         } else {
-            impl = new Static(ctx, scope, mset);
+            impl = new Static(ctx, scope, mset, materialMappings);
         }
         return impl;
     }

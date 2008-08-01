@@ -15,6 +15,7 @@ import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.mod.Articulated;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
@@ -119,10 +120,6 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Editable
         public String name = "";
 
-        /** Automatically play this animation on startup/reset. */
-        @Editable
-        public boolean playAutomatically;
-
         /** The animation associated with the name. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
@@ -175,7 +172,15 @@ public class ArticulatedConfig extends ModelConfig.Imported
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
-        return null;
+        if (root == null) {
+            return null;
+        }
+        if (impl instanceof Articulated) {
+            ((Articulated)impl).setConfig(this);
+        } else {
+            impl = new Articulated(ctx, scope, this);
+        }
+        return impl;
     }
 
     @Override // documentation inherited

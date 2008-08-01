@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.mod;
 
+import java.util.HashMap;
+
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Ray;
@@ -10,7 +12,10 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.mat.Surface;
-import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.model.config.ModelConfig.MeshSet;
+import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
+import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 
@@ -22,19 +27,22 @@ public class Static extends Model.Implementation
     /**
      * Creates a new static implementation.
      */
-    public Static (GlContext ctx, Scope parentScope, ModelConfig.MeshSet meshes)
+    public Static (
+        GlContext ctx, Scope parentScope, MeshSet meshes, MaterialMapping[] materialMappings)
     {
         super(parentScope);
         _ctx = ctx;
-        setMeshes(meshes);
+        setConfig(meshes, materialMappings);
     }
 
     /**
-     * Sets the set of meshes in this model.
+     * Sets the configuration of this model.
      */
-    public void setMeshes (ModelConfig.MeshSet meshes)
+    public void setConfig (MeshSet meshes, MaterialMapping[] materialMappings)
     {
-
+        _meshes = meshes;
+        _surfaces = createSurfaces(
+            _ctx, this, meshes.visible, materialMappings, new HashMap<String, MaterialConfig>());
     }
 
     // documentation inherited from interface Renderable
@@ -61,7 +69,7 @@ public class Static extends Model.Implementation
     protected GlContext _ctx;
 
     /** The model meshes. */
-    protected ModelConfig.MeshSet _meshes;
+    protected MeshSet _meshes;
 
     /** The surfaces corresponding to each visible mesh. */
     protected Surface[] _surfaces;

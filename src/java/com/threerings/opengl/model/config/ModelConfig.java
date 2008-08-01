@@ -73,20 +73,20 @@ public class ModelConfig extends ParameterizedConfig
         {
             /** The name of the texture. */
             @Editable(editor="choice")
-            public String name;
+            public String texture;
 
             /** The corresponding material. */
             @Editable(nullable=true)
             public ConfigReference<MaterialConfig> material;
 
             /**
-             * Returns the options available for the name field.
+             * Returns the options available for the texture field.
              */
-            public String[] getNameOptions ()
+            public String[] getTextureOptions ()
             {
-                TreeSet<String> names = new TreeSet<String>();
-                getTextures(names);
-                return names.toArray(new String[names.size()]);
+                TreeSet<String> textures = new TreeSet<String>();
+                getTextures(textures);
+                return textures.toArray(new String[textures.size()]);
             }
         }
 

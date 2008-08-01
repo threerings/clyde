@@ -9,7 +9,10 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.ScopeUpdateListener;
 
+import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geom.config.GeometryConfig;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
 /**
@@ -19,15 +22,27 @@ public class Surface
     implements Renderable, ConfigUpdateListener<MaterialConfig>, ScopeUpdateListener
 {
     /**
+     * Creates a new surface.
+     */
+    public Surface (
+        GlContext ctx, Scope scope, GeometryConfig geometryConfig, MaterialConfig materialConfig)
+    {
+        _ctx = ctx;
+        _scope = scope;
+        _geometryConfig = geometryConfig;
+        setMaterialConfig(materialConfig);
+    }
+
+    /**
      * Sets the material configuration of this surface.
      */
-    public void setConfig (MaterialConfig config)
+    public void setMaterialConfig (MaterialConfig config)
     {
-        if (_config != null) {
-            _config.removeListener(this);
+        if (_materialConfig != null) {
+            _materialConfig.removeListener(this);
         }
-        if ((_config = config) != null) {
-            _config.addListener(this);
+        if ((_materialConfig = config) != null) {
+            _materialConfig.addListener(this);
         }
         updateFromConfig();
     }
@@ -35,9 +50,9 @@ public class Surface
     /**
      * Returns a reference to this surface's material configuration.
      */
-    public MaterialConfig getConfig ()
+    public MaterialConfig getMaterialConfig ()
     {
-        return _config;
+        return _materialConfig;
     }
 
     // documentation inherited from interface Renderable
@@ -63,6 +78,18 @@ public class Surface
     {
     }
 
+    /** The application context. */
+    protected GlContext _ctx;
+
+    /** The expression scope. */
+    protected Scope _scope;
+
+    /** The configuration of the surface geometry. */
+    protected GeometryConfig _geometryConfig;
+
     /** The configuration of the surface material. */
-    protected MaterialConfig _config;
+    protected MaterialConfig _materialConfig;
+
+    /** The surface geometry. */
+    protected Geometry _geometry;
 }
