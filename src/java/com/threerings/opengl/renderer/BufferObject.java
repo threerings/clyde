@@ -36,13 +36,37 @@ public class BufferObject
     }
 
     /**
+     * Initializes the data in this buffer.
+     */
+    public void setData (long size)
+    {
+        setData(size, ARBBufferObject.GL_STATIC_DRAW_ARB);
+    }
+
+    /**
+     * Initializes the data in this buffer.
+     */
+    public void setData (long size, int usage)
+    {
+        _renderer.setArrayBuffer(this);
+        ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, size, usage);
+    }
+
+    /**
      * Sets the data in this buffer.
      */
     public void setData (FloatBuffer data)
     {
+        setData(data, ARBBufferObject.GL_STATIC_DRAW_ARB);
+    }
+
+    /**
+     * Sets the data in this buffer.
+     */
+    public void setData (FloatBuffer data, int usage)
+    {
         _renderer.setArrayBuffer(this);
-        ARBBufferObject.glBufferDataARB(
-            ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, ARBBufferObject.GL_STATIC_DRAW_ARB);
+        ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, usage);
     }
 
     /**
@@ -50,9 +74,36 @@ public class BufferObject
      */
     public void setData (ShortBuffer data)
     {
+        setData(data, ARBBufferObject.GL_STATIC_DRAW_ARB);
+    }
+
+    /**
+     * Sets the data in this buffer.
+     */
+    public void setData (ShortBuffer data, int usage)
+    {
         _renderer.setArrayBuffer(this);
-        ARBBufferObject.glBufferDataARB(
-            ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, ARBBufferObject.GL_STATIC_DRAW_ARB);
+        ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, usage);
+    }
+
+    /**
+     * Sets part of the data in this buffer.
+     */
+    public void setSubData (long offset, FloatBuffer data)
+    {
+        _renderer.setArrayBuffer(this);
+        ARBBufferObject.glBufferSubDataARB(
+            ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, offset, data);
+    }
+
+    /**
+     * Sets part of the data in this buffer.
+     */
+    public void setSubData (long offset, ShortBuffer data)
+    {
+        _renderer.setArrayBuffer(this);
+        ARBBufferObject.glBufferSubDataARB(
+            ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, offset, data);
     }
 
     /**

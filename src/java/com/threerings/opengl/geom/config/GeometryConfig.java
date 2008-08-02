@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.geom.config;
 
+import java.lang.ref.SoftReference;
+
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
@@ -29,10 +31,13 @@ import com.threerings.util.Shallow;
 
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
+import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.renderer.ClientArray;
 import com.threerings.opengl.renderer.SimpleBatch;
+import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
 import com.threerings.opengl.renderer.state.ArrayState;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.GlUtil;
 
 /**
  * Geometry configuration.
@@ -245,6 +250,10 @@ public abstract class GeometryConfig extends DeepObject
             return (texCoordArrays != null && texCoordArrays.length > idx) ?
                 texCoordArrays[idx] : null;
         }
+
+        /** Cached array buffers. */
+        protected transient HashMap<Object, SoftReference<BufferObject>> _arrayBuffers =
+            Maps.newHashMap();
     }
 
     /**
@@ -277,7 +286,17 @@ public abstract class GeometryConfig extends DeepObject
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
-            return null;
+            final ArrayState[] arrayStates = new ArrayState[passes.length];
+            final DrawCommand drawCommand = new SimpleBatch.DrawArrays(
+                mode.getConstant(), first, count);
+            return new Geometry() {
+                public ArrayState getArrayState (int pass) {
+                    return arrayStates[pass];
+                }
+                public DrawCommand getDrawCommand (int pass) {
+                    return drawCommand;
+                }
+            };
         }
     }
 
@@ -316,8 +335,36 @@ public abstract class GeometryConfig extends DeepObject
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
-            return null;
+            final ArrayState[] arrayStates = new ArrayState[passes.length];
+            final DrawCommand drawCommand = SimpleBatch.createDrawBufferElements(
+                mode.getConstant(), start, end, indices.capacity(), GL11.GL_UNSIGNED_SHORT, 0L);
+            return new Geometry() {
+                public ArrayState getArrayState (int pass) {
+                    return arrayStates[pass];
+                }
+                public DrawCommand getDrawCommand (int pass) {
+                    return drawCommand;
+                }
+            };
         }
+
+        /**
+         * Retrieves a reference to the cached element array buffer, creating and populating it if
+         * necessary.
+         */
+        protected BufferObject getElementArrayBuffer (GlContext ctx)
+        {
+            BufferObject buffer = (_elementArrayBuffer == null) ? null : _elementArrayBuffer.get();
+            if (buffer == null) {
+                _elementArrayBuffer = new SoftReference<BufferObject>(
+                    buffer = new BufferObject(ctx.getRenderer()));
+                buffer.setData(indices);
+            }
+            return buffer;
+        }
+
+        /** The cached element array buffer. */
+        protected transient SoftReference<BufferObject> _elementArrayBuffer;
     }
 
     /**
