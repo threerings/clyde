@@ -123,27 +123,27 @@ public abstract class GeometryConfig extends DeepObject
         {
             // assume static geometry
             if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
-                return createBufferGeometry(ctx, passes);
+                final ArrayState[] arrayStates = createArrayStates(ctx, passes, true, true);
+                final DrawCommand drawCommand = createDrawCommand(true);
+                return new Geometry() {
+                    public ArrayState getArrayState (int pass) {
+                        return arrayStates[pass];
+                    }
+                    public DrawCommand getDrawCommand (int pass) {
+                        return drawCommand;
+                    }
+                };
             } else {
-                return createListGeometry(ctx, passes);
+                final DrawCommand[] drawCommands = getListCommands(ctx, passes);
+                return new Geometry () {
+                    public ArrayState getArrayState (int pass) {
+                        return ArrayState.DISABLED;
+                    }
+                    public DrawCommand getDrawCommand (int pass) {
+                        return drawCommands[pass];
+                    }
+                };
             }
-        }
-
-        /**
-         * Creates a geometry object that uses buffer objects to render each pass.
-         */
-        protected Geometry createBufferGeometry (GlContext ctx, PassDescriptor[] passes)
-        {
-            final ArrayState[] arrayStates = createArrayStates(ctx, passes, true, true);
-            final DrawCommand drawCommand = createDrawCommand(true);
-            return new Geometry() {
-                public ArrayState getArrayState (int pass) {
-                    return arrayStates[pass];
-                }
-                public DrawCommand getDrawCommand (int pass) {
-                    return drawCommand;
-                }
-            };
         }
 
         /**
@@ -287,11 +287,11 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /**
-         * Creates a geometry object that uses display lists to render each pass.
+         * Retrieves a set of display list draw commands for this geometry.
          */
-        protected Geometry createListGeometry (GlContext ctx, PassDescriptor[] passes)
+        protected DrawCommand[] getListCommands (GlContext ctx, PassDescriptor[] passes)
         {
-            final DrawCommand[] drawCommands = new DrawCommand[passes.length];
+            DrawCommand[] commands = new DrawCommand[passes.length];
             for (int ii = 0; ii < passes.length; ii++) {
                 PassDescriptor pass = passes[ii];
                 SoftReference<DrawCommand> ref = _listCommands.get(pass);
@@ -300,16 +300,9 @@ public abstract class GeometryConfig extends DeepObject
                     _listCommands.put(pass, new SoftReference<DrawCommand>(
                         command = createListCommand(ctx, pass)));
                 }
-                drawCommands[ii] = command;
+                commands[ii] = command;
             }
-            return new Geometry () {
-                public ArrayState getArrayState (int pass) {
-                    return ArrayState.DISABLED;
-                }
-                public DrawCommand getDrawCommand (int pass) {
-                    return drawCommands[pass];
-                }
-            };
+            return commands;
         }
 
         /**
@@ -524,7 +517,7 @@ public abstract class GeometryConfig extends DeepObject
         @Override // documentation inherited
         public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
-            return null;
+            return super.createGeometry(ctx, scope, passes);
         }
     }
 

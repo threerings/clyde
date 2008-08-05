@@ -16,12 +16,13 @@ import javax.swing.JMenuItem;
 
 import com.threerings.math.Vector3f;
 
-import com.threerings.util.MessageBundle;
-import com.threerings.util.ToolUtil;
-
+import com.threerings.config.tools.ConfigEditor;
+import com.threerings.config.tools.ResourceEditor;
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.util.MessageBundle;
+import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.MouseOrbiter;
@@ -61,6 +62,10 @@ public abstract class GlCanvasTool extends GlCanvasApp
         String action = event.getActionCommand();
         if (action.equals("quit")) {
             shutdown();
+        } else if (action.equals("configs")) {
+            new ConfigEditor(_msgmgr, _cfgmgr, _colorpos).setVisible(true);
+        } else if (action.equals("resources")) {
+            new ResourceEditor(_msgmgr, _cfgmgr, _colorpos).setVisible(true);
         } else if (action.equals("preferences")) {
             if (_pdialog == null) {
                 _pdialog = EditorPanel.createDialog(
@@ -90,6 +95,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _bounds = createBounds();
         _compass = new Compass(this);
         _stats = new Stats(this);
+
+        // note that we've opened a window
+        ToolUtil.windowAdded();
     }
 
     @Override // documentation inherited
