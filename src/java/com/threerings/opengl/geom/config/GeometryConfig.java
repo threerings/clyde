@@ -33,6 +33,8 @@ import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
 import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.renderer.ClientArray;
+import com.threerings.opengl.renderer.DisplayList;
+import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
 import com.threerings.opengl.renderer.state.ArrayState;
@@ -116,40 +118,64 @@ public abstract class GeometryConfig extends DeepObject
         {
         }
 
+        @Override // documentation inherited
+        public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
+        {
+            // assume static geometry
+            if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+                return createBufferGeometry(ctx, passes);
+            } else {
+                return createListGeometry(ctx, passes);
+            }
+        }
+
+        /**
+         * Creates a geometry object that uses buffer objects to render each pass.
+         */
+        protected Geometry createBufferGeometry (GlContext ctx, PassDescriptor[] passes)
+        {
+            final ArrayState[] arrayStates = createArrayStates(ctx, passes, true, true);
+            final DrawCommand drawCommand = createDrawCommand(true);
+            return new Geometry() {
+                public ArrayState getArrayState (int pass) {
+                    return arrayStates[pass];
+                }
+                public DrawCommand getDrawCommand (int pass) {
+                    return drawCommand;
+                }
+            };
+        }
+
         /**
          * Creates a set of array states for this geometry.
+         *
+         * @param vbo if true, use a buffer object for vertex data.
+         * @param ibo if true, use a buffer object for index data.
          */
-        protected ArrayState[] createArrayStates (GlContext ctx, PassDescriptor[] passes)
+        protected ArrayState[] createArrayStates (
+            GlContext ctx, PassDescriptor[] passes, boolean vbo, boolean ibo)
         {
             // find out which attributes the passes use
-            HashSet<String> vertexAttribs = new HashSet<String>();
-            ArrayIntSet texCoordSets = new ArrayIntSet();
-            boolean colors = false, normals = false;
-            for (PassDescriptor pass : passes) {
-                Collections.addAll(vertexAttribs, pass.vertexAttribs);
-                texCoordSets.add(pass.texCoordSets);
-                colors |= pass.colors;
-                normals |= pass.normals;
-            }
+            PassSummary summary = new PassSummary(passes);
 
             // create the base arrays
             HashMap<String, ClientArray> vertexAttribArrays = Maps.newHashMap();
-            for (String attrib : vertexAttribs) {
+            for (String attrib : summary.vertexAttribs) {
                 AttributeArrayConfig vertexAttribArray = getVertexAttribArray(attrib);
                 if (vertexAttribArray != null) {
                     vertexAttribArrays.put(attrib, vertexAttribArray.createClientArray());
                 }
             }
             HashIntMap<ClientArray> texCoordArrays = new HashIntMap<ClientArray>();
-            for (int set : texCoordSets) {
+            for (int set : summary.texCoordSets) {
                 ClientArrayConfig texCoordArray = getTexCoordArray(set);
                 if (texCoordArray != null) {
                     texCoordArrays.put(set, texCoordArray.createClientArray());
                 }
             }
-            ClientArray colorArray = (colors && this.colorArray != null) ?
+            ClientArray colorArray = (summary.colors && this.colorArray != null) ?
                 this.colorArray.createClientArray() : null;
-            ClientArray normalArray = (normals && this.normalArray != null) ?
+            ClientArray normalArray = (summary.normals && this.normalArray != null) ?
                 this.normalArray.createClientArray() : null;
             ClientArray vertexArray = this.vertexArray.createClientArray();
 
@@ -176,31 +202,64 @@ public abstract class GeometryConfig extends DeepObject
             int stride = (Integer.bitCount(offset) > 1) ?
                 (Integer.highestOneBit(offset) << 1) : offset;
 
-            // allocate the buffer and update the arrays
-            int vsize = stride / 4;
-            FloatBuffer vbuf = BufferUtils.createFloatBuffer(getVertexCount() * vsize);
+            // update the arrays with the stride
             for (ClientArray array : arrays) {
                 array.stride = stride;
-                array.floatArray = vbuf;
             }
 
-            // populate the buffer
-            for (Map.Entry<String, ClientArray> entry : vertexAttribArrays.entrySet()) {
-                getVertexAttribArray(entry.getKey()).populateClientArray(entry.getValue());
+            // if we're using a vbo, check for an existing buffer object
+            boolean populateBuffer = true;
+            if (vbo) {
+                SoftReference<BufferObject> ref = _arrayBuffers.get(summary);
+                BufferObject arrayBuffer = (ref == null) ? null : ref.get();
+                if (arrayBuffer == null) {
+                    _arrayBuffers.put(summary, new SoftReference<BufferObject>(
+                        arrayBuffer = new BufferObject(ctx.getRenderer())));
+                } else {
+                    populateBuffer = false;
+                }
+                for (ClientArray array : arrays) {
+                    array.arrayBuffer = arrayBuffer;
+                    array.floatArray = null;
+                }
             }
-            for (Map.Entry<Integer, ClientArray> entry : texCoordArrays.entrySet()) {
-                getTexCoordArray(entry.getKey()).populateClientArray(entry.getValue());
+
+            // populate the buffer if necessary
+            if (populateBuffer) {
+                // create the buffer and update the arrays
+                int vsize = stride / 4;
+                FloatBuffer floatArray = BufferUtils.createFloatBuffer(getVertexCount() * vsize);
+                for (ClientArray array : arrays) {
+                    array.floatArray = floatArray;
+                }
+
+                // populate the buffer
+                for (Map.Entry<String, ClientArray> entry : vertexAttribArrays.entrySet()) {
+                    getVertexAttribArray(entry.getKey()).populateClientArray(entry.getValue());
+                }
+                for (Map.Entry<Integer, ClientArray> entry : texCoordArrays.entrySet()) {
+                    getTexCoordArray(entry.getKey()).populateClientArray(entry.getValue());
+                }
+                if (colorArray != null) {
+                    this.colorArray.populateClientArray(colorArray);
+                }
+                if (normalArray != null) {
+                    this.normalArray.populateClientArray(normalArray);
+                }
+                this.vertexArray.populateClientArray(vertexArray);
+
+                // if it's for a VBO, populate the VBO and clear the references
+                if (vbo) {
+                    vertexArray.arrayBuffer.setData(floatArray);
+                    for (ClientArray array : arrays) {
+                        array.floatArray = null;
+                    }
+                }
             }
-            if (colorArray != null) {
-                this.colorArray.populateClientArray(colorArray);
-            }
-            if (normalArray != null) {
-                this.normalArray.populateClientArray(normalArray);
-            }
-            this.vertexArray.populateClientArray(vertexArray);
 
             // create the states for each pass
             ArrayState[] states = new ArrayState[passes.length];
+            BufferObject elementArrayBuffer = ibo ? getElementArrayBuffer(ctx) : null;
             for (int ii = 0; ii < passes.length; ii++) {
                 PassDescriptor pass = passes[ii];
                 ClientArray[] attribArrays = new ClientArray[pass.vertexAttribs.length];
@@ -214,10 +273,96 @@ public abstract class GeometryConfig extends DeepObject
                 states[ii] = new ArrayState(
                     pass.firstVertexAttribIndex, attribArrays, coordArrays,
                     (pass.colors ? colorArray : null), (pass.normals ? normalArray : null),
-                    vertexArray, null);
+                    vertexArray, elementArrayBuffer);
             }
             return states;
         }
+
+        /**
+         * Retrieves a reference to the element array buffer, if one should be used.
+         */
+        protected BufferObject getElementArrayBuffer (GlContext ctx)
+        {
+            return null;
+        }
+
+        /**
+         * Creates a geometry object that uses display lists to render each pass.
+         */
+        protected Geometry createListGeometry (GlContext ctx, PassDescriptor[] passes)
+        {
+            final DrawCommand[] drawCommands = new DrawCommand[passes.length];
+            for (int ii = 0; ii < passes.length; ii++) {
+                PassDescriptor pass = passes[ii];
+                SoftReference<DrawCommand> ref = _listCommands.get(pass);
+                DrawCommand command = (ref == null) ? null : ref.get();
+                if (command == null) {
+                    _listCommands.put(pass, new SoftReference<DrawCommand>(
+                        command = createListCommand(ctx, pass)));
+                }
+                drawCommands[ii] = command;
+            }
+            return new Geometry () {
+                public ArrayState getArrayState (int pass) {
+                    return ArrayState.DISABLED;
+                }
+                public DrawCommand getDrawCommand (int pass) {
+                    return drawCommands[pass];
+                }
+            };
+        }
+
+        /**
+         * Creates a display list draw command for this geometry.
+         */
+        protected DrawCommand createListCommand (GlContext ctx, PassDescriptor pass)
+        {
+            Renderer renderer = ctx.getRenderer();
+            DisplayList list = new DisplayList(renderer);
+            ArrayState state = createArrayState(pass);
+            DrawCommand command = createDrawCommand(false);
+            state.apply(renderer);
+            list.begin();
+            command.call();
+            list.end();
+            return new SimpleBatch.CallList(
+                list, state.getColorArray() != null, command.getPrimitiveCount());
+        }
+
+        /**
+         * Creates an uncompiled array state for the supplied pass.
+         */
+        protected ArrayState createArrayState (PassDescriptor pass)
+        {
+            ClientArray[] vertexAttribArrays = new ClientArray[pass.vertexAttribs.length];
+            for (int ii = 0; ii < vertexAttribArrays.length; ii++) {
+                AttributeArrayConfig vertexAttribArray =
+                    getVertexAttribArray(pass.vertexAttribs[ii]);
+                vertexAttribArrays[ii] = (vertexAttribArray == null) ?
+                    null : vertexAttribArray.createClientArray();
+            }
+            ClientArray[] texCoordArrays = new ClientArray[pass.texCoordSets.length];
+            for (int ii = 0; ii < texCoordArrays.length; ii++) {
+                ClientArrayConfig texCoordArray = getTexCoordArray(pass.texCoordSets[ii]);
+                texCoordArrays[ii] = (texCoordArray == null) ?
+                    null : texCoordArray.createClientArray();
+            }
+            ClientArray colorArray = (pass.colors && this.colorArray != null) ?
+                this.colorArray.createClientArray() : null;
+            ClientArray normalArray = (pass.normals && this.normalArray != null) ?
+                this.normalArray.createClientArray() : null;
+            ClientArray vertexArray = this.vertexArray.createClientArray();
+            return new ArrayState(
+                pass.firstVertexAttribIndex, vertexAttribArrays, texCoordArrays,
+                colorArray, normalArray, vertexArray, null);
+        }
+
+        /**
+         * Creates the non-list draw command for this geometry.
+         *
+         * @param ibo if true, indices will be read from a buffer object.
+         */
+        protected abstract DrawCommand createDrawCommand (boolean ibo);
 
         /**
          * Returns the number of vertices in the arrays.
@@ -252,7 +397,11 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /** Cached array buffers. */
-        protected transient HashMap<Object, SoftReference<BufferObject>> _arrayBuffers =
+        protected transient HashMap<PassSummary, SoftReference<BufferObject>> _arrayBuffers =
+            Maps.newHashMap();
+
+        /** Cached display list commands. */
+        protected transient HashMap<PassDescriptor, SoftReference<DrawCommand>> _listCommands =
             Maps.newHashMap();
     }
 
@@ -284,19 +433,9 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
+        protected DrawCommand createDrawCommand (boolean ibo)
         {
-            final ArrayState[] arrayStates = new ArrayState[passes.length];
-            final DrawCommand drawCommand = new SimpleBatch.DrawArrays(
-                mode.getConstant(), first, count);
-            return new Geometry() {
-                public ArrayState getArrayState (int pass) {
-                    return arrayStates[pass];
-                }
-                public DrawCommand getDrawCommand (int pass) {
-                    return drawCommand;
-                }
-            };
+            return new SimpleBatch.DrawArrays(mode.getConstant(), first, count);
         }
     }
 
@@ -333,25 +472,6 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
-        {
-            final ArrayState[] arrayStates = new ArrayState[passes.length];
-            final DrawCommand drawCommand = SimpleBatch.createDrawBufferElements(
-                mode.getConstant(), start, end, indices.capacity(), GL11.GL_UNSIGNED_SHORT, 0L);
-            return new Geometry() {
-                public ArrayState getArrayState (int pass) {
-                    return arrayStates[pass];
-                }
-                public DrawCommand getDrawCommand (int pass) {
-                    return drawCommand;
-                }
-            };
-        }
-
-        /**
-         * Retrieves a reference to the cached element array buffer, creating and populating it if
-         * necessary.
-         */
         protected BufferObject getElementArrayBuffer (GlContext ctx)
         {
             BufferObject buffer = (_elementArrayBuffer == null) ? null : _elementArrayBuffer.get();
@@ -361,6 +481,17 @@ public abstract class GeometryConfig extends DeepObject
                 buffer.setData(indices);
             }
             return buffer;
+        }
+
+        @Override // documentation inherited
+        protected DrawCommand createDrawCommand (boolean ibo)
+        {
+            return ibo ?
+                SimpleBatch.createDrawBufferElements(
+                    mode.getConstant(), start, end, indices.capacity(),
+                    GL11.GL_UNSIGNED_SHORT, 0L) :
+                SimpleBatch.createDrawShortElements(
+                    mode.getConstant(), start, end, indices);
         }
 
         /** The cached element array buffer. */
@@ -427,4 +558,32 @@ public abstract class GeometryConfig extends DeepObject
      * Creates an instance of the geometry described by this config.
      */
     public abstract Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes);
+
+    /**
+     * Summarizes the attributes used by a set of passes.
+     */
+    protected static class PassSummary extends DeepObject
+    {
+        /** The names of all vertex attributes used by the passes. */
+        public HashSet<String> vertexAttribs = new HashSet<String>();
+
+        /** All of the texture coordinate sets used by the passes. */
+        public ArrayIntSet texCoordSets = new ArrayIntSet();
+
+        /** Whether or not any of the passes use vertex colors. */
+        public boolean colors;
+
+        /** Whether or not any of the passes use vertex normals. */
+        public boolean normals;
+
+        public PassSummary (PassDescriptor... passes)
+        {
+            for (PassDescriptor pass : passes) {
+                Collections.addAll(vertexAttribs, pass.vertexAttribs);
+                texCoordSets.add(pass.texCoordSets);
+                colors |= pass.colors;
+                normals |= pass.normals;
+            }
+        }
+    }
 }

@@ -99,16 +99,16 @@ public class ClientArrayConfig extends DeepObject
     }
 
     /**
-     * Creates an uninitialized client array from this config.
+     * Creates a client array from this config.
      */
     public ClientArray createClientArray ()
     {
-        return new ClientArray(size, (FloatBuffer)null);
+        return new ClientArray(
+            size, type.getConstant(), normalized, stride, offset, null, floatArray);
     }
 
     /**
-     * Populates the supplied client array (created with {@link #createClientArray}) with the data
-     * in this config.
+     * Populates the supplied client array with the data in this config.
      */
     public void populateClientArray (ClientArray array)
     {

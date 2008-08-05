@@ -3,11 +3,13 @@
 
 package com.threerings.opengl.geom.config;
 
+import com.threerings.util.DeepObject;
+
 /**
  * Describes the elements of state that will be used in a pass for the purpose of configuring
  * the geometry instance.
  */
-public class PassDescriptor
+public class PassDescriptor extends DeepObject
 {
     /** The set of hints specified in the vertex shader config. */
     public String[] hints;
