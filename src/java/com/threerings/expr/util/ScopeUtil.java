@@ -38,7 +38,7 @@ public class ScopeUtil
     {
         return resolve(scope, name, defvalue, Quaternion.class);
     }
-    
+
     /**
      * Attempts to resolve a transform symbol.
      */
@@ -53,7 +53,7 @@ public class ScopeUtil
     {
         return resolve(scope, name, defvalue, Vector3f.class);
     }
-    
+
     /**
      * Attempts to resolve a color symbol.
      */
@@ -61,7 +61,15 @@ public class ScopeUtil
     {
         return resolve(scope, name, defvalue, Color4f.class);
     }
-    
+
+    /**
+     * Attempts to resolve a string symbol.
+     */
+    public static String resolve (Scope scope, String name, String defvalue)
+    {
+        return resolve(scope, name, defvalue, String.class);
+    }
+
     /**
      * Attempts to resolve a function symbol.
      */
@@ -69,7 +77,7 @@ public class ScopeUtil
     {
         return resolve(scope, name, defvalue, Function.class);
     }
-    
+
     /**
      * Attempts to resolve a variable symbol.
      */
@@ -77,7 +85,7 @@ public class ScopeUtil
     {
         return resolve(scope, name, defvalue, Variable.class);
     }
-    
+
     /**
      * Attempts to resolve a mutable float symbol.
      */
@@ -85,7 +93,7 @@ public class ScopeUtil
     {
         return resolve(scope, name, defvalue, MutableFloat.class);
     }
-    
+
     /**
      * Attempts to resolve a mutable long symbol.
      */
@@ -93,7 +101,7 @@ public class ScopeUtil
     {
         return resolve(scope, name, defvalue, MutableLong.class);
     }
-    
+
     /**
      * Attempts to resolve the identified symbol in the given scope.  If not found there,
      * searches the parent of that scope, and so on.
@@ -112,7 +120,7 @@ public class ScopeUtil
                 scope = scope.getParentScope();
             }
         }
-        
+
         // rise up through the scopes looking for the requested symbol
         for (; scope != null; scope = scope.getParentScope()) {
             T value = scope.get(name, clazz);
@@ -120,11 +128,11 @@ public class ScopeUtil
                 return value;
             }
         }
-        
+
         // no luck; return the default value
         return defvalue;
     }
-    
+
     /**
      * Attempts to retrieve the value of the identified symbol using reflection.
      *
@@ -144,7 +152,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return false;
-                        } 
+                        }
                     }
                     public byte getByte () {
                         try {
@@ -152,7 +160,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return 0;
-                        } 
+                        }
                     }
                     public char getChar () {
                         try {
@@ -160,7 +168,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return 0;
-                        } 
+                        }
                     }
                     public double getDouble () {
                         try {
@@ -168,7 +176,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return 0.0;
-                        } 
+                        }
                     }
                     public float getFloat () {
                         try {
@@ -176,7 +184,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return 0f;
-                        } 
+                        }
                     }
                     public int getInt () {
                         try {
@@ -184,7 +192,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return 0;
-                        } 
+                        }
                     }
                     public long getLong () {
                         try {
@@ -192,7 +200,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return 0L;
-                        } 
+                        }
                     }
                     public short getShort () {
                         try {
@@ -200,7 +208,7 @@ public class ScopeUtil
                         } catch (Exception e) {
                             logWarning(e);
                             return 0;
-                        } 
+                        }
                     }
                     public Object get () {
                         try {
@@ -305,7 +313,7 @@ public class ScopeUtil
         }
         return null;
     }
-    
+
     /**
      * Retrieves the mapping from name to member for all scoped members of the specified
      * class.
@@ -318,7 +326,7 @@ public class ScopeUtil
         }
         return members;
     }
-    
+
     /**
      * Creates the mapping from name to member for all scoped members of the specified
      * class.
@@ -348,7 +356,7 @@ public class ScopeUtil
         }
         return members;
     }
-    
+
     /** Cached scoped members. */
     protected static HashMap<Class, HashMap<String, Member>> _members = Maps.newHashMap();
 }

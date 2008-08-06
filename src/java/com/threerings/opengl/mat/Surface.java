@@ -8,10 +8,13 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.ScopeUpdateListener;
+import com.threerings.expr.util.ScopeUtil;
 
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.geom.config.GeometryConfig;
+import com.threerings.opengl.geom.config.PassDescriptor;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
@@ -27,10 +30,15 @@ public class Surface
     public Surface (
         GlContext ctx, Scope scope, GeometryConfig geometryConfig, MaterialConfig materialConfig)
     {
-        _ctx = ctx;
-        _scope = scope;
-        _geometryConfig = geometryConfig;
-        setMaterialConfig(materialConfig);
+        this(ctx, scope, geometryConfig, materialConfig, null);
+    }
+
+    /**
+     * Creates a new surface.
+     */
+    public Surface (GlContext ctx, Scope scope, Geometry geometry, MaterialConfig materialConfig)
+    {
+        this(ctx, scope, null, materialConfig, geometry);
     }
 
     /**
@@ -38,13 +46,9 @@ public class Surface
      */
     public void setMaterialConfig (MaterialConfig config)
     {
-        if (_materialConfig != null) {
-            _materialConfig.removeListener(this);
-        }
-        if ((_materialConfig = config) != null) {
-            _materialConfig.addListener(this);
-        }
-        updateFromConfig();
+        _materialConfig.removeListener(this);
+        (_materialConfig = config).addListener(this);
+        updateFromConfigs();
     }
 
     /**
@@ -58,25 +62,51 @@ public class Surface
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
+        _renderable.enqueue();
     }
 
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<MaterialConfig> event)
     {
-        updateFromConfig();
+        updateFromConfigs();
     }
 
     // documentation inherited from interface ScopeUpdateListener
     public void scopeUpdated (ScopeEvent event)
     {
+        updateFromConfigs();
     }
 
     /**
-     * Updates the surface to match its new or modified configuration.
+     * Creates a new surface.
      */
-    protected void updateFromConfig ()
+    protected Surface (
+        GlContext ctx, Scope scope, GeometryConfig geometryConfig,
+        MaterialConfig materialConfig, Geometry geometry)
     {
-        //_geometry = _geometryConfig.createGeometry(_ctx, _scope, passes);
+        _ctx = ctx;
+        _scope = scope;
+        _geometryConfig = geometryConfig;
+        _materialConfig = materialConfig;
+        _geometry = geometry;
+
+        _scope.addListener(this);
+        _materialConfig.addListener(this);
+        updateFromConfigs();
+    }
+
+    /**
+     * Updates the surface to match its new or modified configurations.
+     */
+    protected void updateFromConfigs ()
+    {
+        String scheme = ScopeUtil.resolve(_scope, "renderScheme", (String)null);
+        TechniqueConfig technique = _materialConfig.getTechnique(_ctx, scheme);
+        if (_geometryConfig != null) {
+            PassDescriptor[] passes = technique.createDescriptors(_ctx);
+            _geometry = _geometryConfig.createGeometry(_ctx, _scope, passes);
+        }
+        _renderable = technique.createRenderable(_ctx, _scope, _geometry);
     }
 
     /** The application context. */
@@ -85,7 +115,8 @@ public class Surface
     /** The expression scope. */
     protected Scope _scope;
 
-    /** The configuration of the surface geometry. */
+    /** The configuration of the surface geometry (or null, if the geometry didn't come from a
+     * config). */
     protected GeometryConfig _geometryConfig;
 
     /** The configuration of the surface material. */
@@ -93,4 +124,7 @@ public class Surface
 
     /** The surface geometry. */
     protected Geometry _geometry;
+
+    /** The renderable created from the configs. */
+    protected Renderable _renderable;
 }

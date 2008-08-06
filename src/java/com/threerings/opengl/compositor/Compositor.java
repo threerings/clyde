@@ -14,6 +14,7 @@ import com.samskivert.util.ComparableArrayList;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.config.RenderQueueConfig;
+import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.ColorMaskState;
@@ -88,17 +89,17 @@ public class Compositor
         // store and reset the color clear setting
         boolean skipColorClear = _skipColorClear;
         _skipColorClear = false;
-        
+
         // reset the renderer stats
         Renderer renderer = _ctx.getRenderer();
         renderer.resetStats();
-        
+
         // resolve and clear the set of dependencies
         for (Dependency dependency : _dependencies.values()) {
             dependency.resolve();
         }
         _dependencies.clear();
-        
+
         // sort the queues in preparation for rendering
         _group.sortQueues();
 
@@ -160,7 +161,7 @@ public class Compositor
     {
         _group = new RenderQueue.Group(_ctx);
     }
-    
+
     /** The application context. */
     protected GlContext _ctx;
 
