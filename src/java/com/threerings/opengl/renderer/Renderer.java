@@ -139,6 +139,62 @@ public class Renderer
     }
 
     /**
+     * Returns the number of alpha bit planes in the frame buffer.
+     */
+    public int getAlphaBits ()
+    {
+        return _alphaBits;
+    }
+
+    /**
+     * Returns the number of stencil bit planes in the frame buffer.
+     */
+    public int getStencilBits ()
+    {
+        return _stencilBits;
+    }
+
+    /**
+     * Returns the maximum number of user clip planes supported.
+     */
+    public int getMaxClipPlanes ()
+    {
+        return _maxClipPlanes;
+    }
+
+    /**
+     * Returns the maximum number of lights supported.
+     */
+    public int getMaxLights ()
+    {
+        return _maxLights;
+    }
+
+    /**
+     * Returns the maximum number of texture units usable with the fixed-function pipeline.
+     */
+    public int getMaxTextureUnits ()
+    {
+        return _maxTextureUnits;
+    }
+
+    /**
+     * Returns the maximum number of texture units usable with the programmable pipeline.
+     */
+    public int getMaxTextureImageUnits ()
+    {
+        return _maxTextureImageUnits;
+    }
+
+    /**
+     * Returns the maximum number of vertex attributes available to vertex shaders.
+     */
+    public int getMaxVertexAttribs ()
+    {
+        return _maxVertexAttribs;
+    }
+
+    /**
      * Returns a reference to the drawable target of this renderer.
      */
     public Drawable getDrawable ()

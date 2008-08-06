@@ -4,6 +4,7 @@
 package com.threerings.opengl.renderer.config;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GLContext;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -90,7 +91,6 @@ public abstract class MaterialStateConfig extends DeepObject
 
         public OneSided (TwoSided other)
         {
-            super(other);
             ambient.set(other.front.ambient);
             diffuse.set(other.front.diffuse);
             specular.set(other.front.specular);
@@ -134,7 +134,6 @@ public abstract class MaterialStateConfig extends DeepObject
 
         public TwoSided (OneSided other)
         {
-            super(other);
             front.set(other);
             back.set(other);
         }
@@ -219,16 +218,12 @@ public abstract class MaterialStateConfig extends DeepObject
     @Editable(weight=2)
     public boolean uniqueInstance;
 
-    public MaterialStateConfig (MaterialStateConfig other)
+    /**
+     * Determines whether this state is supported by the hardware.
+     */
+    public boolean isSupported ()
     {
-        colorMaterialMode = other.colorMaterialMode;
-        localViewer = other.localViewer;
-        separateSpecular = other.separateSpecular;
-        flatShading = other.flatShading;
-    }
-
-    public MaterialStateConfig ()
-    {
+        return !separateSpecular || GLContext.getCapabilities().OpenGL12;
     }
 
     /**

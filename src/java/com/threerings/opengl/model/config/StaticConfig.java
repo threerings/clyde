@@ -6,6 +6,7 @@ package com.threerings.opengl.model.config;
 import java.util.TreeSet;
 
 import com.threerings.expr.Scope;
+import com.threerings.util.Shallow;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.mod.Static;
@@ -19,6 +20,7 @@ import com.threerings.opengl.util.GlContext;
 public class StaticConfig extends ModelConfig.Imported
 {
     /** The meshes comprising this model. */
+    @Shallow
     public MeshSet meshes;
 
     @Override // documentation inherited

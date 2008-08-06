@@ -44,18 +44,6 @@ public abstract class TextureCoordGenConfig extends DeepObject
         /** The w plane coefficient. */
         @Editable(step=0.01, hgroup="p")
         public float w;
-
-        public Linear (Linear other)
-        {
-            x = other.x;
-            y = other.y;
-            z = other.z;
-            w = other.w;
-        }
-
-        public Linear ()
-        {
-        }
     }
 
     /**
@@ -63,15 +51,6 @@ public abstract class TextureCoordGenConfig extends DeepObject
      */
     public static class ObjectLinear extends Linear
     {
-        public ObjectLinear (Linear other)
-        {
-            super(other);
-        }
-
-        public ObjectLinear ()
-        {
-        }
-
         @Override // documentation inherited
         public int getModeAndPlane (Vector4f plane)
         {
@@ -85,15 +64,6 @@ public abstract class TextureCoordGenConfig extends DeepObject
      */
     public static class EyeLinear extends Linear
     {
-        public EyeLinear (Linear other)
-        {
-            super(other);
-        }
-
-        public EyeLinear ()
-        {
-        }
-
         @Override // documentation inherited
         public int getModeAndPlane (Vector4f plane)
         {

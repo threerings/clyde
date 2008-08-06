@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.renderer.config;
 
+import org.lwjgl.opengl.GLContext;
+
 import java.util.ArrayList;
 
 import com.threerings.config.ConfigReference;
@@ -32,6 +34,12 @@ public abstract class ShaderStateConfig extends DeepObject
     public static class Disabled extends ShaderStateConfig
     {
         @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return true;
+        }
+
+        @Override // documentation inherited
         public ShaderState getState (GlContext ctx)
         {
             return ShaderState.DISABLED;
@@ -50,6 +58,13 @@ public abstract class ShaderStateConfig extends DeepObject
         /** The fragment shader to use. */
         @Editable(nullable=true)
         public ConfigReference<ShaderConfig> fragment;
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return (vertex == null || GLContext.getCapabilities().GL_ARB_vertex_shader) &&
+                (fragment == null || GLContext.getCapabilities().GL_ARB_fragment_shader);
+        }
 
         @Override // documentation inherited
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
@@ -108,6 +123,11 @@ public abstract class ShaderStateConfig extends DeepObject
             }
         }
     }
+
+    /**
+     * Determines whether this state is supported by the hardware.
+     */
+    public abstract boolean isSupported (GlContext ctx);
 
     /**
      * Populates the relevant portion of the supplied descriptor.

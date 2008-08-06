@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
+import com.threerings.util.Shallow;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.mod.Static;
@@ -25,6 +26,7 @@ public class StaticSetConfig extends ModelConfig.Imported
     public String model;
 
     /** Maps top-level node names to meshes. */
+    @Shallow
     public TreeMap<String, MeshSet> meshes;
 
     /**

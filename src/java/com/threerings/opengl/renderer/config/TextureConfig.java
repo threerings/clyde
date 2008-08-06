@@ -284,7 +284,7 @@ public class TextureConfig extends ParameterizedConfig
         /**
          * Determines whether this configuration is supported by the hardware.
          */
-        public abstract boolean isSupported ();
+        public abstract boolean isSupported (GlContext ctx);
 
         /**
          * Returns the texture corresponding to this configuration.
@@ -347,7 +347,7 @@ public class TextureConfig extends ParameterizedConfig
         public DepthMode depthMode = DepthMode.LUMINANCE;
 
         @Override // documentation inherited
-        public boolean isSupported ()
+        public boolean isSupported (GlContext ctx)
         {
             return format.isSupported() &&
                 wrapS.isSupported() && wrapT.isSupported() && wrapR.isSupported() &&
@@ -577,6 +577,12 @@ public class TextureConfig extends ParameterizedConfig
     public static class OriginalRectangle extends Original2D
     {
         @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return super.isSupported(ctx) && GLContext.getCapabilities().GL_ARB_texture_rectangle;
+        }
+
+        @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
         {
             return new Texture2D(ctx.getRenderer(), true);
@@ -677,6 +683,12 @@ public class TextureConfig extends ParameterizedConfig
         /** The initial contents of the texture. */
         @Editable(category="data")
         public Contents contents = new ImageFile();
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return super.isSupported(ctx) && GLContext.getCapabilities().OpenGL12;
+        }
 
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
@@ -843,7 +855,7 @@ public class TextureConfig extends ParameterizedConfig
                 directory="image_dir")
             public String y;
 
-            /** The image resource from which to load the y face. */
+            /** The image resource from which to load the z face. */
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
@@ -855,6 +867,12 @@ public class TextureConfig extends ParameterizedConfig
         /** The initial contents of the texture. */
         @Editable(category="data")
         public Contents contents = new ImageFiles();
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return super.isSupported(ctx) && GLContext.getCapabilities().GL_ARB_texture_cube_map;
+        }
 
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
@@ -879,19 +897,26 @@ public class TextureConfig extends ParameterizedConfig
         public ConfigReference<TextureConfig> texture;
 
         @Override // documentation inherited
-        public boolean isSupported ()
+        public boolean isSupported (GlContext ctx)
         {
-            return true;
+            TextureConfig config = getTextureConfig(ctx);
+            return config == null || config.isSupported(ctx);
         }
 
         @Override // documentation inherited
         public Texture getTexture (GlContext ctx)
         {
-            if (texture == null) {
-                return null;
-            }
-            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
+            TextureConfig config = getTextureConfig(ctx);
             return (config == null) ? null : config.getTexture(ctx);
+        }
+
+        /**
+         * Returns the referenced texture configuration.
+         */
+        protected TextureConfig getTextureConfig (GlContext ctx)
+        {
+            return (texture == null) ?
+                null : ctx.getConfigManager().getConfig(TextureConfig.class, texture);
         }
     }
 
@@ -909,6 +934,14 @@ public class TextureConfig extends ParameterizedConfig
     /** The actual texture implementation. */
     @Editable
     public Implementation implementation = new Original2D();
+
+    /**
+     * Checks whether the texture configuration is supported.
+     */
+    public boolean isSupported (GlContext ctx)
+    {
+        return implementation.isSupported(ctx);
+    }
 
     /**
      * Returns the texture corresponding to this configuration.

@@ -14,6 +14,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
+import com.threerings.util.Shallow;
 
 import com.threerings.opengl.mod.Articulated;
 import com.threerings.opengl.mod.Model;
@@ -163,9 +164,11 @@ public class ArticulatedConfig extends ModelConfig.Imported
     public AttachmentPoint[] attachmentPoints = new AttachmentPoint[0];
 
     /** The root node. */
+    @Shallow
     public Node root;
 
     /** The skin meshes. */
+    @Shallow
     public MeshSet skin;
 
     @Override // documentation inherited

@@ -61,13 +61,17 @@ public class TextureUnitConfig extends DeepObject
     /**
      * Checks whether the unit configuration is supported.
      */
-    public boolean isSupported ()
+    public boolean isSupported (GlContext ctx)
     {
-        return environment.isSupported() &&
+        if (!(environment.isSupported() &&
             (coordGenS == null || coordGenS.isSupported()) &&
             (coordGenT == null || coordGenT.isSupported()) &&
             (coordGenR == null || coordGenR.isSupported()) &&
-            (coordGenQ == null || coordGenQ.isSupported());
+            (coordGenQ == null || coordGenQ.isSupported()))) {
+            return false;
+        }
+        TextureConfig config = getTextureConfig(ctx);
+        return config == null || config.isSupported(ctx);
     }
 
     /**
@@ -76,11 +80,9 @@ public class TextureUnitConfig extends DeepObject
     public TextureUnit createUnit (GlContext ctx)
     {
         TextureUnit unit = new TextureUnit();
-        if (texture != null) {
-            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
-            if (config != null) {
-                unit.texture = config.getTexture(ctx);
-            }
+        TextureConfig config = getTextureConfig(ctx);
+        if (config != null) {
+            unit.texture = config.getTexture(ctx);
         }
         environment.configure(unit);
         if (coordGenS != null) {
@@ -97,5 +99,14 @@ public class TextureUnitConfig extends DeepObject
         }
         unit.transform.set(transform);
         return unit;
+    }
+
+    /**
+     * Returns the configuration of the unit texture.
+     */
+    protected TextureConfig getTextureConfig (GlContext ctx)
+    {
+        return (texture == null) ?
+            null : ctx.getConfigManager().getConfig(TextureConfig.class, texture);
     }
 }

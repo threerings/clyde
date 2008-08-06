@@ -173,15 +173,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Modulate extends TextureEnvironmentConfig
     {
-        public Modulate (TextureEnvironmentConfig other)
-        {
-            super(other);
-        }
-
-        public Modulate ()
-        {
-        }
-
         @Override // documentation inherited
         public int getMode ()
         {
@@ -194,15 +185,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Decal extends TextureEnvironmentConfig
     {
-        public Decal (TextureEnvironmentConfig other)
-        {
-            super(other);
-        }
-
-        public Decal ()
-        {
-        }
-
         @Override // documentation inherited
         public int getMode ()
         {
@@ -215,15 +197,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Blend extends TextureEnvironmentConfig
     {
-        public Blend (TextureEnvironmentConfig other)
-        {
-            super(other);
-        }
-
-        public Blend ()
-        {
-        }
-
         @Override // documentation inherited
         public int getMode ()
         {
@@ -236,15 +209,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Replace extends TextureEnvironmentConfig
     {
-        public Replace (TextureEnvironmentConfig other)
-        {
-            super(other);
-        }
-
-        public Replace ()
-        {
-        }
-
         @Override // documentation inherited
         public int getMode ()
         {
@@ -257,15 +221,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
      */
     public static class Add extends TextureEnvironmentConfig
     {
-        public Add (TextureEnvironmentConfig other)
-        {
-            super(other);
-        }
-
-        public Add ()
-        {
-        }
-
         @Override // documentation inherited
         public boolean isSupported ()
         {
@@ -323,15 +278,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
         /** The alpha combine scale. */
         @Editable(category="alpha")
         public Scale alphaScale = Scale.ONE;
-
-        public Combine (TextureEnvironmentConfig other)
-        {
-            super(other);
-        }
-
-        public Combine ()
-        {
-        }
 
         @Override // documentation inherited
         public boolean isSupported ()
@@ -425,16 +371,6 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     /** The texture level of detail bias. */
     @Editable(step=0.01, hgroup="cl")
     public float lodBias;
-
-    public TextureEnvironmentConfig (TextureEnvironmentConfig other)
-    {
-        color.set(other.color);
-        lodBias = other.lodBias;
-    }
-
-    public TextureEnvironmentConfig ()
-    {
-    }
 
     /**
      * Checks whether the mode is supported.

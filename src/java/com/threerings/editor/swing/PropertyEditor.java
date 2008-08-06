@@ -33,6 +33,7 @@ import com.threerings.editor.swing.editors.BooleanEditor;
 import com.threerings.editor.swing.editors.ChoiceEditor;
 import com.threerings.editor.swing.editors.Color4fEditor;
 import com.threerings.editor.swing.editors.ColorizationEditor;
+import com.threerings.editor.swing.editors.ConfigEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
 import com.threerings.editor.swing.editors.EnumEditor;
 import com.threerings.editor.swing.editors.FileEditor;
@@ -310,6 +311,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     static {
         registerEditorClass("choice", ChoiceEditor.class);
         registerEditorClass("colorization", ColorizationEditor.class);
+        registerEditorClass("config", ConfigEditor.class);
         registerEditorClass("resource", ResourceEditor.class);
         registerEditorClass("table", TableArrayListEditor.class);
 

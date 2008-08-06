@@ -304,6 +304,20 @@ public class ConfigManager
     }
 
     /**
+     * Returns the configuration group with the specified name.  If the group is not found in
+     * this manager, the request will be forwarded to the parent, and so on.
+     */
+    public ConfigGroup getGroup (String name)
+    {
+        for (ConfigGroup group : _groups.values()) {
+            if (group.getName().equals(name)) {
+                return group;
+            }
+        }
+        return (_parent == null) ? null : _parent.getGroup(name);
+    }
+
+    /**
      * Returns the collection of all registered groups.
      */
     public Collection<ConfigGroup> getGroups ()

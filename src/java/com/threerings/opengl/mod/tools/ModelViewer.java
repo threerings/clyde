@@ -19,6 +19,7 @@ import javax.swing.event.ChangeListener;
 import com.samskivert.swing.GroupLayout;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.editor.Property;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.util.ToolUtil;
 
@@ -77,7 +78,8 @@ public class ModelViewer extends GlCanvasTool
         JPanel bottom = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
         _frame.add(bottom, BorderLayout.SOUTH);
-        bottom.add(_epanel = new EditorPanel(this));
+        bottom.add(_epanel = new EditorPanel(
+            this, EditorPanel.CategoryMode.PANELS, new Property[0]));
 
         ModelConfig.Derived impl = new ModelConfig.Derived();
         if (model != null) {

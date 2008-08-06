@@ -76,6 +76,7 @@ public class Surface
      */
     protected void updateFromConfig ()
     {
+        //_geometry = _geometryConfig.createGeometry(_ctx, _scope, passes);
     }
 
     /** The application context. */

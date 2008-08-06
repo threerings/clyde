@@ -101,6 +101,16 @@ public class PassConfig extends DeepObject
     public Binding[] bindings = new Binding[0];
 
     /**
+     * Determines whether this pass is supported.
+     */
+    public boolean isSupported (GlContext ctx)
+    {
+        return (materialState == null || materialState.isSupported()) &&
+            shaderState.isSupported(ctx) &&
+            textureState.isSupported(ctx);
+    }
+
+    /**
      * Returns a descriptor for this pass that can be used to configure a geometry instance.
      */
     public PassDescriptor createDescriptor (GlContext ctx)

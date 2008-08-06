@@ -23,6 +23,22 @@ public class TextureStateConfig extends DeepObject
     public TextureUnitConfig[] units = new TextureUnitConfig[0];
 
     /**
+     * Determines whether this state is supported by the hardware.
+     */
+    public boolean isSupported (GlContext ctx)
+    {
+        if (units.length > ctx.getRenderer().getMaxTextureImageUnits()) {
+            return false;
+        }
+        for (TextureUnitConfig unit : units) {
+            if (!unit.isSupported(ctx)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * Populates the relevant portion of the supplied descriptor.
      */
     public void populateDescriptor (PassDescriptor desc)
