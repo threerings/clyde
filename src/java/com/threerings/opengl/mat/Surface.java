@@ -103,7 +103,7 @@ public class Surface
         String scheme = ScopeUtil.resolve(_scope, "renderScheme", (String)null);
         TechniqueConfig technique = _materialConfig.getTechnique(_ctx, scheme);
         if (_geometryConfig != null) {
-            PassDescriptor[] passes = technique.createDescriptors(_ctx);
+            PassDescriptor[] passes = technique.getDescriptors(_ctx);
             _geometry = _geometryConfig.createGeometry(_ctx, _scope, passes);
         }
         _renderable = technique.createRenderable(_ctx, _scope, _geometry);

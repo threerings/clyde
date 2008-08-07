@@ -162,6 +162,14 @@ public class Compositor
         _group = new RenderQueue.Group(_ctx);
     }
 
+    /**
+     * Returns a reference to the base render queue group.
+     */
+    public RenderQueue.Group getGroup ()
+    {
+        return _group;
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 

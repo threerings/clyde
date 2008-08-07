@@ -14,14 +14,6 @@ import com.threerings.opengl.renderer.state.ArrayState;
 public abstract class Geometry
 {
     /**
-     * Returns a reference to the model space bounds of the geometry.
-     */
-    public Box getBounds ()
-    {
-        return _bounds;
-    }
-
-    /**
      * Returns the array state for the specified pass.
      */
     public abstract ArrayState getArrayState (int pass);
@@ -32,13 +24,18 @@ public abstract class Geometry
     public abstract DrawCommand getDrawCommand (int pass);
 
     /**
+     * Checks whether this geometry requires a call to its {@link #update} method before rendering.
+     */
+    public boolean requiresUpdate ()
+    {
+        return false;
+    }
+
+    /**
      * Updates the state of the geometry.
      */
     public void update ()
     {
         // nothing by default
     }
-
-    /** The model space bounds of the geometry. */
-    protected Box _bounds = new Box();
 }
