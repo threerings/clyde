@@ -89,9 +89,13 @@ public class PassConfig extends DeepObject
     @Editable
     public TextureStateConfig textureState = new TextureStateConfig();
 
-    /** The bindings to use in this pass. */
+    /** The static bindings for this pass. */
     @Editable
-    public Binding[] bindings = new Binding[0];
+    public Binding[] staticBindings = new Binding[0];
+
+    /** The dynamic bindings for this pass. */
+    @Editable
+    public Binding[] dynamicBindings = new Binding[0];
 
     /**
      * Determines whether this pass is supported.

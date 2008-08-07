@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Binding;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
@@ -21,7 +23,10 @@ import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.CompoundBatch;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
+import com.threerings.opengl.renderer.state.FogState;
+import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
@@ -55,12 +60,13 @@ public class TechniqueConfig extends DeepObject
         /**
          * Creates the renderable for this enqueuer.
          *
+         * @param update if true, update the geometry before enqueuing it.
          * @param pidx the index of the current pass in the list returned by
          * {@link #getDescriptors} (updated by callees).
          */
         public abstract Renderable createRenderable (
             GlContext ctx, Scope scope, Geometry geometry,
-            RenderQueue.Group group, MutableInteger pidx);
+            boolean update, RenderQueue.Group group, MutableInteger pidx);
     }
 
     /**
@@ -97,29 +103,67 @@ public class TechniqueConfig extends DeepObject
 
         @Override // documentation inherited
         public Renderable createRenderable (
-            GlContext ctx, Scope scope, Geometry geometry,
-            RenderQueue.Group group, MutableInteger pidx)
+            GlContext ctx, Scope scope, final Geometry geometry,
+            boolean update, RenderQueue.Group group, MutableInteger pidx)
         {
             final RenderQueue queue = group.getQueue(this.queue);
+            ArrayList<Binding.Updater> updaters = new ArrayList<Binding.Updater>();
             final Batch batch = (passes.length == 1) ?
-                createBatch(ctx, scope, geometry, passes[0], pidx) :
-                createBatch(ctx, scope, geometry, pidx);
-            return new Renderable() {
-                public void enqueue () {
-                    queue.add(batch, priority);
+                createBatch(ctx, scope, geometry, passes[0], updaters, pidx) :
+                createBatch(ctx, scope, geometry, updaters, pidx);
+            if (update) {
+                if (updaters.isEmpty()) {
+                    return new Renderable() {
+                        public void enqueue () {
+                            geometry.update();
+                            queue.add(batch, priority);
+                        }
+                    };
+                } else {
+                    final Binding.Updater[] updaterArray = updaters.toArray(
+                        new Binding.Updater[updaters.size()]);
+                    return new Renderable() {
+                        public void enqueue () {
+                            geometry.update();
+                            for (Binding.Updater updater : updaterArray) {
+                                updater.update();
+                            }
+                            queue.add(batch, priority);
+                        }
+                    };
                 }
-            };
+            } else {
+                if (updaters.isEmpty()) {
+                    return new Renderable() {
+                        public void enqueue () {
+                            queue.add(batch, priority);
+                        }
+                    };
+                } else {
+                    final Binding.Updater[] updaterArray = updaters.toArray(
+                        new Binding.Updater[updaters.size()]);
+                    return new Renderable() {
+                        public void enqueue () {
+                            for (Binding.Updater updater : updaterArray) {
+                                updater.update();
+                            }
+                            queue.add(batch, priority);
+                        }
+                    };
+                }
+            }
         }
 
         /**
          * Creates a batch to render all of the passes.
          */
         protected CompoundBatch createBatch (
-            GlContext ctx, Scope scope, Geometry geometry, MutableInteger pidx)
+            GlContext ctx, Scope scope, Geometry geometry,
+            ArrayList<Binding.Updater> updaters, MutableInteger pidx)
         {
             CompoundBatch batch = new CompoundBatch();
             for (PassConfig pass : passes) {
-                batch.getBatches().add(createBatch(ctx, scope, geometry, pass, pidx));
+                batch.getBatches().add(createBatch(ctx, scope, geometry, pass, updaters, pidx));
             }
             return batch;
         }
@@ -128,12 +172,34 @@ public class TechniqueConfig extends DeepObject
          * Creates a batch to render the specified pass.
          */
         protected SimpleBatch createBatch (
-            GlContext ctx, Scope scope, Geometry geometry, PassConfig pass, MutableInteger pidx)
+            GlContext ctx, Scope scope, Geometry geometry, PassConfig pass,
+            ArrayList<Binding.Updater> updaters, MutableInteger pidx)
         {
+            // initialize the states and draw command
             RenderState[] states = pass.createStates(ctx);
             states[RenderState.ARRAY_STATE] = geometry.getArrayState(pidx.value);
+            if (states[RenderState.FOG_STATE] == null) {
+                states[RenderState.FOG_STATE] = ScopeUtil.resolve(
+                    scope, "fogState", FogState.DISABLED, FogState.class);
+            }
+            if (states[RenderState.LIGHT_STATE] == null) {
+                states[RenderState.LIGHT_STATE] = ScopeUtil.resolve(
+                    scope, "lightState", LightState.DISABLED, LightState.class);
+            }
+            states[RenderState.TRANSFORM_STATE] = ScopeUtil.resolve(
+                scope, "transformState", TransformState.IDENTITY, TransformState.class);
             DrawCommand command = geometry.getDrawCommand(pidx.value);
             pidx.value++;
+
+            // update the static bindings and add the dynamic updaters to the list
+            StateContainer container = new StateContainer(states);
+            for (Binding binding : pass.staticBindings) {
+                binding.createUpdater(scope, container).update();
+            }
+            for (Binding binding : pass.dynamicBindings) {
+                updaters.add(binding.createUpdater(scope, container));
+            }
+
             return new SimpleBatch(states, command);
         }
     }
@@ -172,22 +238,33 @@ public class TechniqueConfig extends DeepObject
 
         @Override // documentation inherited
         public Renderable createRenderable (
-            GlContext ctx, Scope scope, Geometry geometry,
-            RenderQueue.Group group, MutableInteger pidx)
+            GlContext ctx, Scope scope, final Geometry geometry,
+            boolean update, RenderQueue.Group group, MutableInteger pidx)
         {
             group = group.getQueue(this.queue).getGroup(this.group);
             final Renderable[] renderables = new Renderable[enqueuers.length];
             for (int ii = 0; ii < renderables.length; ii++) {
                 renderables[ii] = enqueuers[ii].createRenderable(
-                    ctx, scope, geometry, group, pidx);
+                    ctx, scope, geometry, false, group, pidx);
             }
-            return new Renderable() {
-                public void enqueue () {
-                    for (Renderable renderable : renderables) {
-                        renderable.enqueue();
+            if (update) {
+                return new Renderable() {
+                    public void enqueue () {
+                        geometry.update();
+                        for (Renderable renderable : renderables) {
+                            renderable.enqueue();
+                        }
                     }
-                }
-            };
+                };
+            } else {
+                return new Renderable() {
+                    public void enqueue () {
+                        for (Renderable renderable : renderables) {
+                            renderable.enqueue();
+                        }
+                    }
+                };
+            }
         }
     }
 
@@ -249,7 +326,8 @@ public class TechniqueConfig extends DeepObject
     public Renderable createRenderable (GlContext ctx, Scope scope, Geometry geometry)
     {
         return enqueuer.createRenderable(
-            ctx, scope, geometry, ctx.getCompositor().getGroup(), new MutableInteger(0));
+            ctx, scope, geometry, geometry.requiresUpdate(),
+            ctx.getCompositor().getGroup(), new MutableInteger(0));
     }
 
     /**
@@ -259,6 +337,20 @@ public class TechniqueConfig extends DeepObject
     {
         _schemeConfig = INVALID_SCHEME_CONFIG;
         _descriptors = null;
+    }
+
+    /**
+     * A simple container for a set of states.
+     */
+    protected static class StateContainer
+    {
+        /** The contained states. */
+        public RenderState[] states;
+
+        public StateContainer (RenderState[] states)
+        {
+            this.states = states;
+        }
     }
 
     /** The cached scheme config. */
