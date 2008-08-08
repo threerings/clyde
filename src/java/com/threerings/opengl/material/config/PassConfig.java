@@ -5,7 +5,7 @@ package com.threerings.opengl.material.config;
 
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
-import com.threerings.expr.Binding;
+import com.threerings.expr.ExpressionBinding;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.geom.config.PassDescriptor;
@@ -89,13 +89,13 @@ public class PassConfig extends DeepObject
     @Editable
     public TextureStateConfig textureState = new TextureStateConfig();
 
-    /** The static bindings for this pass. */
+    /** The static expression bindings for this pass. */
     @Editable
-    public Binding[] staticBindings = new Binding[0];
+    public ExpressionBinding[] staticBindings = new ExpressionBinding[0];
 
-    /** The dynamic bindings for this pass. */
+    /** The dynamic expression bindings for this pass. */
     @Editable
-    public Binding[] dynamicBindings = new Binding[0];
+    public ExpressionBinding[] dynamicBindings = new ExpressionBinding[0];
 
     /**
      * Determines whether this pass is supported.

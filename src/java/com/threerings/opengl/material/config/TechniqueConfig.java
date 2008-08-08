@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.expr.Binding;
+import com.threerings.expr.ExpressionBinding;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
@@ -107,7 +107,8 @@ public class TechniqueConfig extends DeepObject
             boolean update, RenderQueue.Group group, MutableInteger pidx)
         {
             final RenderQueue queue = group.getQueue(this.queue);
-            ArrayList<Binding.Updater> updaters = new ArrayList<Binding.Updater>();
+            ArrayList<ExpressionBinding.Updater> updaters =
+                new ArrayList<ExpressionBinding.Updater>();
             final Batch batch = (passes.length == 1) ?
                 createBatch(ctx, scope, geometry, passes[0], updaters, pidx) :
                 createBatch(ctx, scope, geometry, updaters, pidx);
@@ -120,12 +121,12 @@ public class TechniqueConfig extends DeepObject
                         }
                     };
                 } else {
-                    final Binding.Updater[] updaterArray = updaters.toArray(
-                        new Binding.Updater[updaters.size()]);
+                    final ExpressionBinding.Updater[] updaterArray = updaters.toArray(
+                        new ExpressionBinding.Updater[updaters.size()]);
                     return new Renderable() {
                         public void enqueue () {
                             geometry.update();
-                            for (Binding.Updater updater : updaterArray) {
+                            for (ExpressionBinding.Updater updater : updaterArray) {
                                 updater.update();
                             }
                             queue.add(batch, priority);
@@ -140,11 +141,11 @@ public class TechniqueConfig extends DeepObject
                         }
                     };
                 } else {
-                    final Binding.Updater[] updaterArray = updaters.toArray(
-                        new Binding.Updater[updaters.size()]);
+                    final ExpressionBinding.Updater[] updaterArray = updaters.toArray(
+                        new ExpressionBinding.Updater[updaters.size()]);
                     return new Renderable() {
                         public void enqueue () {
-                            for (Binding.Updater updater : updaterArray) {
+                            for (ExpressionBinding.Updater updater : updaterArray) {
                                 updater.update();
                             }
                             queue.add(batch, priority);
@@ -159,7 +160,7 @@ public class TechniqueConfig extends DeepObject
          */
         protected CompoundBatch createBatch (
             GlContext ctx, Scope scope, Geometry geometry,
-            ArrayList<Binding.Updater> updaters, MutableInteger pidx)
+            ArrayList<ExpressionBinding.Updater> updaters, MutableInteger pidx)
         {
             CompoundBatch batch = new CompoundBatch();
             for (PassConfig pass : passes) {
@@ -173,7 +174,7 @@ public class TechniqueConfig extends DeepObject
          */
         protected SimpleBatch createBatch (
             GlContext ctx, Scope scope, Geometry geometry, PassConfig pass,
-            ArrayList<Binding.Updater> updaters, MutableInteger pidx)
+            ArrayList<ExpressionBinding.Updater> updaters, MutableInteger pidx)
         {
             // initialize the states and draw command
             RenderState[] states = pass.createStates(ctx);
@@ -186,17 +187,24 @@ public class TechniqueConfig extends DeepObject
                 states[RenderState.LIGHT_STATE] = ScopeUtil.resolve(
                     scope, "lightState", LightState.DISABLED, LightState.class);
             }
-            states[RenderState.TRANSFORM_STATE] = ScopeUtil.resolve(
-                scope, "transformState", TransformState.IDENTITY, TransformState.class);
+            Geometry.CoordSpace space = geometry.getCoordSpace(pidx.value);
+            if (space == Geometry.CoordSpace.EYE) {
+                states[RenderState.TRANSFORM_STATE] = TransformState.IDENTITY;
+            } else {
+                String name = (space == Geometry.CoordSpace.OBJECT) ?
+                    "transformState" : "viewTransformState";
+                states[RenderState.TRANSFORM_STATE] = ScopeUtil.resolve(
+                    scope, name, TransformState.IDENTITY, TransformState.class);
+            }
             DrawCommand command = geometry.getDrawCommand(pidx.value);
             pidx.value++;
 
             // update the static bindings and add the dynamic updaters to the list
             StateContainer container = new StateContainer(states);
-            for (Binding binding : pass.staticBindings) {
+            for (ExpressionBinding binding : pass.staticBindings) {
                 binding.createUpdater(scope, container).update();
             }
-            for (Binding binding : pass.dynamicBindings) {
+            for (ExpressionBinding binding : pass.dynamicBindings) {
                 updaters.add(binding.createUpdater(scope, container));
             }
 

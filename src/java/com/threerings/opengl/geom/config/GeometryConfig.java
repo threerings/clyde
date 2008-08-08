@@ -30,6 +30,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
 import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geom.SkinnedGeometry;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
 import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.renderer.ClientArray;

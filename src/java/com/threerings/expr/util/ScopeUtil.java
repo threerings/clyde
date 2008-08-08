@@ -7,6 +7,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import com.google.common.collect.Maps;
@@ -18,6 +20,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.opengl.renderer.Color4f;
 
+import com.threerings.expr.Bound;
 import com.threerings.expr.Function;
 import com.threerings.expr.Variable;
 import com.threerings.expr.MutableFloat;
@@ -31,6 +34,25 @@ import static com.threerings.ClydeLog.*;
  */
 public class ScopeUtil
 {
+    /**
+     * Updates the {@link Bound} fields of the specified object using the provided scope.
+     */
+    public static void updateBound (Object object, Scope scope)
+    {
+        for (Field field : getBound(object.getClass())) {
+            String name = field.getAnnotation(Bound.class).value();
+            if (name.length() == 0) {
+                name = stripUnderscore(field.getName());
+            }
+            @SuppressWarnings("unchecked") Class<Object> type = (Class<Object>)field.getType();
+            try {
+                field.set(object, resolve(scope, name, field.get(object), type));
+            } catch (IllegalAccessException e) {
+                log.warning("Error accessing bound field.", "field", field, e);
+            }
+        }
+    }
+
     /**
      * Attempts to resolve a quaternion symbol.
      */
@@ -141,7 +163,7 @@ public class ScopeUtil
      */
     public static <T> T get (final Object object, String name, Class<T> clazz)
     {
-        Member member = getMembers(object.getClass()).get(name);
+        Member member = getScoped(object.getClass()).get(name);
         if (member instanceof Field) {
             if (clazz.isAssignableFrom(Variable.class)) {
                 final Field field = (Field)member;
@@ -315,14 +337,47 @@ public class ScopeUtil
     }
 
     /**
+     * Retrieves the list of the specified class's bound fields.
+     */
+    protected static Field[] getBound (Class clazz)
+    {
+        Field[] fields = _bound.get(clazz);
+        if (fields == null) {
+            _bound.put(clazz, fields = createBound(clazz));
+        }
+        return fields;
+    }
+
+    /**
+     * Creates the list of bound fields for the specified class.
+     */
+    protected static Field[] createBound (Class clazz)
+    {
+        // add the superclass fields
+        ArrayList<Field> fields = new ArrayList<Field>();
+        Class sclazz = clazz.getSuperclass();
+        if (sclazz != null) {
+            Collections.addAll(fields, getBound(sclazz));
+        }
+        // add all bound fields
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Bound.class)) {
+                field.setAccessible(true);
+                fields.add(field);
+            }
+        }
+        return fields.toArray(new Field[fields.size()]);
+    }
+
+    /**
      * Retrieves the mapping from name to member for all scoped members of the specified
      * class.
      */
-    protected static HashMap<String, Member> getMembers (Class clazz)
+    protected static HashMap<String, Member> getScoped (Class clazz)
     {
-        HashMap<String, Member> members = _members.get(clazz);
+        HashMap<String, Member> members = _scoped.get(clazz);
         if (members == null) {
-            _members.put(clazz, members = createMembers(clazz));
+            _scoped.put(clazz, members = createScoped(clazz));
         }
         return members;
     }
@@ -331,20 +386,19 @@ public class ScopeUtil
      * Creates the mapping from name to member for all scoped members of the specified
      * class.
      */
-    protected static HashMap<String, Member> createMembers (Class clazz)
+    protected static HashMap<String, Member> createScoped (Class clazz)
     {
         // add the superclass members
         HashMap<String, Member> members = new HashMap<String, Member>();
         Class sclazz = clazz.getSuperclass();
         if (sclazz != null) {
-            members.putAll(getMembers(sclazz));
+            members.putAll(getScoped(sclazz));
         }
         // add all scoped fields (stripping off the leading underscore, if present)
         for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(Scoped.class)) {
                 field.setAccessible(true);
-                String name = field.getName();
-                members.put(name.charAt(0) == '_' ? name.substring(1) : name, field);
+                members.put(stripUnderscore(field.getName()), field);
             }
         }
         // add all scoped methods
@@ -357,6 +411,17 @@ public class ScopeUtil
         return members;
     }
 
+    /**
+     * Strips the leading underscore from the specified name, if present.
+     */
+    protected static String stripUnderscore (String name)
+    {
+        return (name.charAt(0) == '_') ? name.substring(1) : name;
+    }
+
+    /** Cached bound fields. */
+    protected static HashMap<Class, Field[]> _bound = Maps.newHashMap();
+
     /** Cached scoped members. */
-    protected static HashMap<Class, HashMap<String, Member>> _members = Maps.newHashMap();
+    protected static HashMap<Class, HashMap<String, Member>> _scoped = Maps.newHashMap();
 }

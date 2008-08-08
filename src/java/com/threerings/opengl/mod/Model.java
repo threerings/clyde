@@ -13,6 +13,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.ScopeUpdateListener;
 import com.threerings.expr.Scoped;
+import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
@@ -23,6 +24,8 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
+import com.threerings.opengl.renderer.state.FogState;
+import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Renderable;
@@ -38,42 +41,12 @@ public class Model
     /**
      * The actual model implementation.
      */
-    public static abstract class Implementation
-        implements Scope, Tickable, Intersectable, Renderable
+    public static abstract class Implementation extends SimpleScope
+        implements Tickable, Intersectable, Renderable
     {
         public Implementation (Scope parentScope)
         {
-            _parentScope = parentScope;
-        }
-
-        // documentation inherited from interface Scope
-        public String getScopeName ()
-        {
-            return "impl";
-        }
-
-        // documentation inherited from interface Scope
-        public Scope getParentScope ()
-        {
-            return _parentScope;
-        }
-
-        // documentation inherited from interface Scope
-        public <T> T get (String name, Class<T> clazz)
-        {
-            return ScopeUtil.get(this, name, clazz);
-        }
-
-        // documentation inherited from interface Scope
-        public void addListener (ScopeUpdateListener listener)
-        {
-            _parentScope.addListener(listener);
-        }
-
-        // documentation inherited from interface Scope
-        public void removeListener (ScopeUpdateListener listener)
-        {
-            _parentScope.removeListener(listener);
+            super(parentScope);
         }
 
         // documentation inherited from interface Tickable
@@ -86,6 +59,12 @@ public class Model
         public boolean getIntersection (Ray ray, Vector3f result)
         {
             return false;
+        }
+
+        @Override // documentation inherited
+        public String getScopeName ()
+        {
+            return "impl";
         }
 
         /**
@@ -143,9 +122,6 @@ public class Model
             }
             return null;
         }
-
-        /** A reference to the parent scope. */
-        protected Scope _parentScope;
     }
 
     /**
@@ -240,6 +216,44 @@ public class Model
     }
 
     /**
+     * Sets the model's fog state.
+     */
+    public void setFogState (FogState state)
+    {
+        if (_fogState != state) {
+            _fogState = state;
+            _scope.wasUpdated();
+        }
+    }
+
+    /**
+     * Returns a reference to the model's fog state.
+     */
+    public FogState getFogState ()
+    {
+        return _fogState;
+    }
+
+    /**
+     * Sets the model's light state.
+     */
+    public void setLightState (LightState state)
+    {
+        if (_lightState != state) {
+            _lightState = state;
+            _scope.wasUpdated();
+        }
+    }
+
+    /**
+     * Returns a reference to the model's light state.
+     */
+    public LightState getLightState ()
+    {
+        return _lightState;
+    }
+
+    /**
      * Resets the state of this model.
      */
     public void reset ()
@@ -316,6 +330,14 @@ public class Model
     /** The model's local transform. */
     @Scoped
     protected Transform3D _localTransform = new Transform3D(Transform3D.UNIFORM);
+
+    /** The model's fog state. */
+    @Scoped
+    protected FogState _fogState;
+
+    /** The model's light state. */
+    @Scoped
+    protected LightState _lightState;
 
     /** An implementation that does nothing. */
     protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {

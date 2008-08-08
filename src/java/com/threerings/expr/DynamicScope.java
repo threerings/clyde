@@ -30,7 +30,7 @@ public class DynamicScope
     {
         _owner = owner;
         _name = name;
-        _parent = parent;
+        setParent(parent);
     }
 
     /**
@@ -44,7 +44,8 @@ public class DynamicScope
         if ((_parent = parent) != null) {
             _parent.addListener(this);
         }
-        wasUpdated(); 
+        ScopeUtil.updateBound(_owner, _parent);
+        wasUpdated();
     }
 
     /**
@@ -55,7 +56,7 @@ public class DynamicScope
         _symbols.put(name, value);
         wasUpdated();
     }
-    
+
     /**
      * Removes the named symbol from this scope.
      */
@@ -64,7 +65,7 @@ public class DynamicScope
         _symbols.remove(name);
         wasUpdated();
     }
-    
+
     /**
      * Starts a compound update.  Update notifications will be deferred until
      * {@link #endCompoundUpdate} is called.
@@ -73,7 +74,7 @@ public class DynamicScope
     {
         _compoundDepth++;
     }
-    
+
     /**
      * Ends a compound update.
      */
@@ -83,7 +84,7 @@ public class DynamicScope
             wasUpdated();
         }
     }
-    
+
     /**
      * Notes that this scope has been updated.
      */
@@ -99,19 +100,19 @@ public class DynamicScope
             });
         }
     }
-    
+
     // documentation inherited from interface Scope
     public String getScopeName ()
     {
         return _name;
     }
-    
+
     // documentation inherited from interface Scope
     public Scope getParentScope ()
     {
         return _parent;
     }
-    
+
     // documentation inherited from interface Scope
     public <T> T get (String name, Class<T> clazz)
     {
@@ -119,28 +120,29 @@ public class DynamicScope
         Object value = _symbols.get(name);
         return clazz.isInstance(value) ? clazz.cast(value) : ScopeUtil.get(_owner, name, clazz);
     }
-    
+
     // documentation inherited from interface Scope
     public void addListener (ScopeUpdateListener listener)
     {
         _listeners.add(listener);
     }
-    
+
     // documentation inherited from interface Scope
     public void removeListener (ScopeUpdateListener listener)
     {
         _listeners.remove(listener);
     }
-    
+
     // documentation inherited from interface ScopeUpdateListener
     public void scopeUpdated (ScopeEvent event)
     {
+        ScopeUtil.updateBound(_owner, _parent);
         wasUpdated();
     }
-    
+
     /** The owner of this scope. */
     protected Object _owner;
-    
+
     /** The name of this scope. */
     protected String _name;
 
@@ -149,7 +151,7 @@ public class DynamicScope
 
     /** The compound update depth. */
     protected int _compoundDepth;
-    
+
     /** The mappings for the dynamic symbols in this scope. */
     protected HashMap<String, Object> _symbols = new HashMap<String, Object>();
 

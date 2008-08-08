@@ -24,19 +24,19 @@ import com.threerings.opengl.renderer.Color4f;
 import static com.threerings.ClydeLog.*;
 
 /**
- * The superclass of the dynamic bindings.
+ * The superclass of the expression bindings.
  */
 @EditorTypes({
-    Binding.FloatBinding.class,
-    Binding.Color4fBinding.class,
-    Binding.Transform3DBinding.class })
-public abstract class Binding extends DeepObject
+    ExpressionBinding.FloatBinding.class,
+    ExpressionBinding.Color4fBinding.class,
+    ExpressionBinding.Transform3DBinding.class })
+public abstract class ExpressionBinding extends DeepObject
     implements Exportable
 {
     /**
      * A float binding.
      */
-    public static class FloatBinding extends Binding
+    public static class FloatBinding extends ExpressionBinding
     {
         /** The expression that determines the value. */
         @Editable
@@ -65,7 +65,7 @@ public abstract class Binding extends DeepObject
     /**
      * A color binding.
      */
-    public static class Color4fBinding extends Binding
+    public static class Color4fBinding extends ExpressionBinding
     {
         /** The expression that determines the value. */
         @Editable
@@ -81,7 +81,7 @@ public abstract class Binding extends DeepObject
     /**
      * A transform binding.
      */
-    public static class Transform3DBinding extends Binding
+    public static class Transform3DBinding extends ExpressionBinding
     {
         /** The expression that determines the value. */
         @Editable
