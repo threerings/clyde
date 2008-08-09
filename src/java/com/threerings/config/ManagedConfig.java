@@ -4,6 +4,7 @@
 package com.threerings.config;
 
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.WeakObserverList;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.export.Exportable;
@@ -62,7 +63,7 @@ public abstract class ManagedConfig extends DeepObject
     public void addListener (ConfigUpdateListener listener)
     {
         if (_listeners == null) {
-            _listeners = ObserverList.newFastUnsafe();
+            _listeners = WeakObserverList.newFastUnsafe();
         }
         @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
             (ConfigUpdateListener<ManagedConfig>)listener;
@@ -115,5 +116,5 @@ public abstract class ManagedConfig extends DeepObject
 
     /** The list of listeners to notify on change or removal. */
     @DeepOmit
-    protected transient ObserverList<ConfigUpdateListener<ManagedConfig>> _listeners;
+    protected transient WeakObserverList<ConfigUpdateListener<ManagedConfig>> _listeners;
 }

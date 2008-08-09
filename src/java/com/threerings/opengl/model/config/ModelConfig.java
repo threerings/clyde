@@ -5,6 +5,8 @@ package com.threerings.opengl.model.config;
 
 import java.io.File;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.TreeSet;
 
 import com.threerings.config.ConfigManager;
@@ -79,6 +81,15 @@ public class ModelConfig extends ParameterizedConfig
             @Editable(nullable=true)
             public ConfigReference<MaterialConfig> material;
 
+            public MaterialMapping (String texture)
+            {
+                this.texture = texture;
+            }
+
+            public MaterialMapping ()
+            {
+            }
+
             /**
              * Returns the options available for the texture field.
              */
@@ -143,6 +154,7 @@ public class ModelConfig extends ParameterizedConfig
             }
             try {
                 updateFromSource(_parser.parseModel(_source.toString()));
+                createDefaultMaterialMappings();
             } catch (Exception e) {
                 log.warning("Error parsing model [source=" + _source + "].", e);
             }
@@ -154,6 +166,36 @@ public class ModelConfig extends ParameterizedConfig
         protected void updateFromSource (ModelDef def)
         {
             // nothing by default
+        }
+
+        /**
+         * Creates default material mappings for any unmapped textures.
+         */
+        protected void createDefaultMaterialMappings ()
+        {
+            TreeSet<String> textures = new TreeSet<String>();
+            getTextures(textures);
+            ArrayList<MaterialMapping> mappings = new ArrayList<MaterialMapping>();
+            Collections.addAll(mappings, materialMappings);
+            for (String texture : textures) {
+                if (getMaterialMapping(texture) == null) {
+                    mappings.add(new MaterialMapping(texture));
+                }
+            }
+            materialMappings = mappings.toArray(new MaterialMapping[mappings.size()]);
+        }
+
+        /**
+         * Returns the material mapping for the specified texture (if any).
+         */
+        protected MaterialMapping getMaterialMapping (String texture)
+        {
+            for (MaterialMapping mapping : materialMappings) {
+                if (texture.equals(mapping.texture)) {
+                    return mapping;
+                }
+            }
+            return null;
         }
 
         /**

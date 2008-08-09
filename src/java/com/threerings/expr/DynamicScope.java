@@ -6,6 +6,7 @@ package com.threerings.expr;
 import java.util.HashMap;
 
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.WeakObserverList;
 
 import com.threerings.expr.util.ScopeUtil;
 
@@ -156,5 +157,5 @@ public class DynamicScope
     protected HashMap<String, Object> _symbols = new HashMap<String, Object>();
 
     /** The listeners to this scope. */
-    protected ObserverList<ScopeUpdateListener> _listeners = ObserverList.newFastUnsafe();
+    protected WeakObserverList<ScopeUpdateListener> _listeners = WeakObserverList.newFastUnsafe();
 }

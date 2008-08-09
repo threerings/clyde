@@ -40,7 +40,8 @@ public class TechniqueConfig extends DeepObject
      * Represents the manner in which we enqueue the technique's batches.
      */
     @EditorTypes({ NormalEnqueuer.class, GroupedEnqueuer.class })
-    public static abstract class Enqueuer
+    public static abstract class Enqueuer extends DeepObject
+        implements Exportable
     {
         /** The queue into which we render. */
         @Editable(editor="config", mode="render_queue", nullable=true, hgroup="q")

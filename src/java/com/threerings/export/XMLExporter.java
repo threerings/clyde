@@ -3,6 +3,7 @@
 
 package com.threerings.export;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -182,19 +183,28 @@ public class XMLExporter extends Exporter
     protected void write (Element element, Object value, Class clazz)
         throws IOException
     {
-        if (value != null) {
-            Element previous = _elements.get(value);
-            if (previous != null) {
-                String id = previous.getAttribute("id");
-                if (id.length() == 0) {
-                    previous.setAttribute("id", id = Integer.toString(++_lastObjectId));
-                }
-                element.setAttribute("ref", id);
-
-            } else {
-                _elements.put(value, element);
-                writeValue(element, value, clazz);
+        if (value == null) {
+            return;
+        }
+        // to help readability, always write the values for certain (immutable) types
+        if (value instanceof Boolean || value instanceof Byte || value instanceof Character ||
+            value instanceof Class || value instanceof Double || value instanceof Enum ||
+            value instanceof Float || value instanceof Integer || value instanceof Long ||
+            value instanceof Short || value instanceof String || value instanceof File) {
+            writeValue(element, value, clazz);
+            return;
+        }
+        Element previous = _elements.get(value);
+        if (previous != null) {
+            String id = previous.getAttribute("id");
+            if (id.length() == 0) {
+                previous.setAttribute("id", id = Integer.toString(++_lastObjectId));
             }
+            element.setAttribute("ref", id);
+
+        } else {
+            _elements.put(value, element);
+            writeValue(element, value, clazz);
         }
     }
 
