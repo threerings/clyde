@@ -7,6 +7,7 @@ import com.samskivert.util.ObserverList;
 import com.samskivert.util.WeakObserverList;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -88,6 +89,16 @@ public abstract class ManagedConfig extends DeepObject
      * references.
      */
     public void init (ConfigManager cfgmgr)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Updates this configuration from its external source, if any.
+     *
+     * @param force if true, reload the source data even if it has already been loaded.
+     */
+    public void updateFromSource (EditorContext ctx, boolean force)
     {
         // nothing by default
     }

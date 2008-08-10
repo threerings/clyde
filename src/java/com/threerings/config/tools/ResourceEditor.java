@@ -187,7 +187,9 @@ public class ResourceEditor extends BaseConfigEditor
             return;
         }
         try {
-            ((ManagedConfig)_epanel.getObject()).wasUpdated();
+            ManagedConfig config = (ManagedConfig)_epanel.getObject();
+            config.updateFromSource(this, false);
+            config.wasUpdated();
         } finally {
             leaveChangeBlock();
         }

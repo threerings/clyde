@@ -3,17 +3,17 @@
 
 package com.threerings.opengl.model.config;
 
-import java.io.File;
-
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
+import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Transform3DExpression;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
 import com.threerings.opengl.model.tools.AnimationDef;
@@ -33,6 +33,15 @@ public class AnimationConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
+        /**
+         * Updates this implementation from its external source, if any.
+         *
+         * @param force if true, reload the source data even if it has already been loaded.
+         */
+        public void updateFromSource (EditorContext ctx, boolean force)
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -90,31 +99,33 @@ public class AnimationConfig extends ParameterizedConfig
         /**
          * Sets the source file from which to load the animation data.
          */
-        @Editable(weight=-1, nullable=true)
+        @Editable(editor="resource", weight=-1, nullable=true)
         @FileConstraints(
             description="m.exported_anims",
-            extensions={ ".mxml" },
+            extensions={".mxml"},
             directory="exported_anim_dir")
-        public void setSource (File source)
+        public void setSource (String source)
         {
             _source = source;
-            updateFromSource();
+            _reload = true;
         }
 
         /**
-         * Returns the source file.
+         * Returns the source resource.
          */
         @Editable
-        public File getSource ()
+        public String getSource ()
         {
             return _source;
         }
 
-        /**
-         * (Re)reads the source data.
-         */
-        public void updateFromSource ()
+        @Override // documentation inherited
+        public void updateFromSource (EditorContext ctx, boolean force)
         {
+            if (!(_reload || force)) {
+                return;
+            }
+            _reload = false;
             if (_source == null) {
                 _targets = new String[0];
                 _transforms = new Transform3D[0][];
@@ -125,7 +136,7 @@ public class AnimationConfig extends ParameterizedConfig
             }
             AnimationDef def;
             try {
-                def = _parser.parseAnimation(_source.toString());
+                def = _parser.parseAnimation(ctx.getResourceManager().getResource(_source));
             } catch (Exception e) {
                 log.warning("Error parsing animation [source=" + _source + "].", e);
                 return;
@@ -135,8 +146,8 @@ public class AnimationConfig extends ParameterizedConfig
             _transforms = def.getTransforms(_targets, scale);
         }
 
-        /** The file from which we read the animation data. */
-        protected File _source;
+        /** The resource from which we read the animation data. */
+        protected String _source;
 
         /** The base animation frame rate. */
         protected float _rate;
@@ -148,6 +159,10 @@ public class AnimationConfig extends ParameterizedConfig
         /** The transforms for each target, each frame. */
         @Shallow
         protected Transform3D[][] _transforms = new Transform3D[0][];
+
+        /** Indicates that {@link #updateFromSource} should reload the data. */
+        @DeepOmit
+        protected transient boolean _reload;
     }
 
     /**
@@ -188,6 +203,12 @@ public class AnimationConfig extends ParameterizedConfig
     /** The actual animation implementation. */
     @Editable
     public Implementation implementation = new Imported();
+
+    @Override // documentation inherited
+    public void updateFromSource (EditorContext ctx, boolean force)
+    {
+        implementation.updateFromSource(ctx, force);
+    }
 
     /** Parses animation exports. */
     protected static AnimationParser _parser;

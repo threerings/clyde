@@ -5,6 +5,7 @@ package com.threerings.opengl.model.tools.xml;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.xml.sax.SAXException;
 import org.apache.commons.digester.Digester;
@@ -72,9 +73,18 @@ public class ModelParser
     public ModelDef parseModel (String path)
         throws IOException, SAXException
     {
+        return parseModel(new FileInputStream(path));
+    }
+
+    /**
+     * Parses the supplied XML stream into a model definition.
+     */
+    public ModelDef parseModel (InputStream in)
+        throws IOException, SAXException
+    {
         _model = null;
         _digester.push(this);
-        _digester.parse(new FileInputStream(path));
+        _digester.parse(in);
         return _model;
     }
 

@@ -297,6 +297,12 @@ public class EditorPanel extends BasePropertyEditor
             }
         }
 
+        // listen for changes (we want these notifications *before* the dependency ones, so because
+        // we iterate backwards through the listener list when notifying, we add them afterwards)
+        for (PropertyEditor editor : _editors) {
+            editor.addChangeListener(this);
+        }
+
         // update the dynamic properties
         updateDynamicProperties();
 
@@ -392,7 +398,6 @@ public class EditorPanel extends BasePropertyEditor
     {
         PropertyEditor editor = PropertyEditor.createEditor(_ctx, prop, _ancestors);
         editor.setObject(_object);
-        editor.addChangeListener(this);
         _editors.add(editor);
         return editor;
     }

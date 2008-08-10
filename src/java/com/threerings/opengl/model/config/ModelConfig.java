@@ -15,9 +15,11 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
+import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.CollisionMesh;
@@ -45,6 +47,16 @@ public class ModelConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
+        /**
+         * Updates this implementation from its external source, if any.
+         *
+         * @param force if true, reload the source data even if it has already been loaded.
+         */
+        public void updateFromSource (EditorContext ctx, boolean force)
+        {
+            // nothing by default
+        }
+
         /**
          * Creates or updates a model implementation for this configuration.
          *
@@ -120,31 +132,33 @@ public class ModelConfig extends ParameterizedConfig
         /**
          * Sets the source file from which to load the animation data.
          */
-        @Editable(nullable=true)
+        @Editable(editor="resource", nullable=true)
         @FileConstraints(
             description="m.exported_models",
             extensions={".mxml"},
             directory="exported_model_dir")
-        public void setSource (File source)
+        public void setSource (String source)
         {
             _source = source;
-            updateFromSource();
+            _reload = true;
         }
 
         /**
          * Returns the source file.
          */
         @Editable
-        public File getSource ()
+        public String getSource ()
         {
             return _source;
         }
 
-        /**
-         * (Re)reads the source data.
-         */
-        public void updateFromSource ()
+        @Override // documentation inherited
+        public void updateFromSource (EditorContext ctx, boolean force)
         {
+            if (!(_reload || force)) {
+                return;
+            }
+            _reload = false;
             if (_source == null) {
                 updateFromSource(null);
                 return;
@@ -153,7 +167,8 @@ public class ModelConfig extends ParameterizedConfig
                 _parser = new ModelParser();
             }
             try {
-                updateFromSource(_parser.parseModel(_source.toString()));
+                updateFromSource(_parser.parseModel(
+                    ctx.getResourceManager().getResource(_source)));
                 createDefaultMaterialMappings();
             } catch (Exception e) {
                 log.warning("Error parsing model [source=" + _source + "].", e);
@@ -206,8 +221,12 @@ public class ModelConfig extends ParameterizedConfig
             // nothing by default
         }
 
-        /** The file from which we read the model data. */
-        protected File _source;
+        /** The resource from which we read the model data. */
+        protected String _source;
+
+        /** Indicates that {@link #updateFromSource} should reload the data. */
+        @DeepOmit
+        protected transient boolean _reload;
     }
 
     /**
@@ -310,6 +329,12 @@ public class ModelConfig extends ParameterizedConfig
     {
         _configs.init("model", cfgmgr);
         super.init(_configs);
+    }
+
+    @Override // documentation inherited
+    public void updateFromSource (EditorContext ctx, boolean force)
+    {
+        implementation.updateFromSource(ctx, force);
     }
 
     /** The model's local config library. */
