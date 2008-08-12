@@ -91,6 +91,10 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable(width=15)
         public String[] attributes = new String[0];
 
+        /** The coordinate space in which the shader operates. */
+        @Editable(hgroup="t")
+        public CoordSpace coordSpace = CoordSpace.OBJECT;
+
         /** Whether or not the shader uses the color state. */
         @Editable(hgroup="t")
         public boolean colors = true;
@@ -121,7 +125,7 @@ public class ShaderConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.vertex_shader_files",
-                extensions={ ".vert" },
+                extensions={".vert"},
                 directory="shader_dir")
             public String file;
 
@@ -153,6 +157,7 @@ public class ShaderConfig extends ParameterizedConfig
         @Override // documentation inherited
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
         {
+            desc.coordSpace = coordSpace;
             desc.hints = hints;
             desc.vertexAttribs = attributes;
             desc.colors |= colors;
@@ -193,7 +198,7 @@ public class ShaderConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.fragment_shader_files",
-                extensions={".frag" },
+                extensions={".frag"},
                 directory="shader_dir")
             public String file;
 

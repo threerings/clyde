@@ -134,6 +134,7 @@ public abstract class ShaderStateConfig extends DeepObject
      */
     public void populateDescriptor (GlContext ctx, PassDescriptor desc)
     {
+        desc.coordSpace = CoordSpace.OBJECT;
         desc.hints = new String[0];
         desc.vertexAttribs = new String[0];
     }

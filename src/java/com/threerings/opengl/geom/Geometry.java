@@ -4,6 +4,7 @@
 package com.threerings.opengl.geom;
 
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
+import com.threerings.opengl.renderer.config.CoordSpace;
 import com.threerings.opengl.renderer.state.ArrayState;
 
 /**
@@ -11,9 +12,6 @@ import com.threerings.opengl.renderer.state.ArrayState;
  */
 public abstract class Geometry
 {
-    /** The coordinate spaces in which geometry may be specified. */
-    public enum CoordSpace { OBJECT, WORLD, EYE };
-
     /**
      * Returns the coordinate space in which the specified pass is given.
      */

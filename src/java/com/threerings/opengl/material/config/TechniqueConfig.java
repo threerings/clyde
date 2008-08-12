@@ -24,6 +24,7 @@ import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.CompoundBatch;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
+import com.threerings.opengl.renderer.config.CoordSpace;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.renderer.state.RenderState;
@@ -189,11 +190,11 @@ public class TechniqueConfig extends DeepObject
                 states[RenderState.LIGHT_STATE] = ScopeUtil.resolve(
                     scope, "lightState", LightState.DISABLED, LightState.class);
             }
-            Geometry.CoordSpace space = geometry.getCoordSpace(pidx.value);
-            if (space == Geometry.CoordSpace.EYE) {
+            CoordSpace space = geometry.getCoordSpace(pidx.value);
+            if (space == CoordSpace.EYE) {
                 states[RenderState.TRANSFORM_STATE] = TransformState.IDENTITY;
             } else {
-                String name = (space == Geometry.CoordSpace.OBJECT) ?
+                String name = (space == CoordSpace.OBJECT) ?
                     "transformState" : "viewTransformState";
                 states[RenderState.TRANSFORM_STATE] = ScopeUtil.resolve(
                     scope, name, TransformState.IDENTITY, TransformState.class);

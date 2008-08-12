@@ -30,8 +30,8 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
 import com.threerings.opengl.geom.Geometry;
-import com.threerings.opengl.geom.SkinnedGeometry;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
+import com.threerings.opengl.renderer.config.CoordSpace;
 import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.renderer.ClientArray;
 import com.threerings.opengl.renderer.DisplayList;
@@ -119,15 +119,27 @@ public abstract class GeometryConfig extends DeepObject
         {
         }
 
-        @Override // documentation inherited
-        public Geometry createGeometry (
-            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        /**
+         * Returns the list of bones influencing this geometry.
+         */
+        public String[] getBones ()
         {
-            // assume static geometry
+            return new String[0];
+        }
+
+        /**
+         * Creates static geometry for the described passes.
+         */
+        public Geometry createStaticGeometry (GlContext ctx, PassDescriptor[] passes)
+        {
+            final CoordSpace[] coordSpaces = getCoordSpaces(passes);
             if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
                 final ArrayState[] arrayStates = createArrayStates(ctx, passes, true, true);
                 final DrawCommand drawCommand = createDrawCommand(true);
                 return new Geometry() {
+                    public CoordSpace getCoordSpace (int pass) {
+                        return coordSpaces[pass];
+                    }
                     public ArrayState getArrayState (int pass) {
                         return arrayStates[pass];
                     }
@@ -137,7 +149,10 @@ public abstract class GeometryConfig extends DeepObject
                 };
             } else {
                 final DrawCommand[] drawCommands = getListCommands(ctx, passes);
-                return new Geometry () {
+                return new Geometry() {
+                    public CoordSpace getCoordSpace (int pass) {
+                        return coordSpaces[pass];
+                    }
                     public ArrayState getArrayState (int pass) {
                         return ArrayState.DISABLED;
                     }
@@ -151,10 +166,10 @@ public abstract class GeometryConfig extends DeepObject
         /**
          * Creates a set of array states for this geometry.
          *
-         * @param vbo if true, use a buffer object for vertex data.
-         * @param ibo if true, use a buffer object for index data.
+         * @param vbo if true, use a shared buffer object for vertex data.
+         * @param ibo if true, use a shared buffer object for index data.
          */
-        protected ArrayState[] createArrayStates (
+        public ArrayState[] createArrayStates (
             GlContext ctx, PassDescriptor[] passes, boolean vbo, boolean ibo)
         {
             // find out which attributes the passes use
@@ -281,6 +296,33 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /**
+         * Creates the non-list draw command for this geometry.
+         *
+         * @param ibo if true, indices will be read from a buffer object.
+         */
+        public abstract DrawCommand createDrawCommand (boolean ibo);
+
+        @Override // documentation inherited
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        {
+            return (deformer == null) ? createStaticGeometry(ctx, passes) :
+                deformer.createGeometry(ctx, scope, this, passes);
+        }
+
+        /**
+         * Extracts the coord spaces from the supplied passes.
+         */
+        protected CoordSpace[] getCoordSpaces (PassDescriptor[] passes)
+        {
+            CoordSpace[] spaces = new CoordSpace[passes.length];
+            for (int ii = 0; ii < spaces.length; ii++) {
+                spaces[ii] = passes[ii].coordSpace;
+            }
+            return spaces;
+        }
+
+        /**
          * Retrieves a reference to the element array buffer, if one should be used.
          */
         protected BufferObject getElementArrayBuffer (GlContext ctx)
@@ -353,13 +395,6 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /**
-         * Creates the non-list draw command for this geometry.
-         *
-         * @param ibo if true, indices will be read from a buffer object.
-         */
-        protected abstract DrawCommand createDrawCommand (boolean ibo);
-
-        /**
          * Returns the number of vertices in the arrays.
          */
         protected int getVertexCount ()
@@ -428,7 +463,7 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        protected DrawCommand createDrawCommand (boolean ibo)
+        public DrawCommand createDrawCommand (boolean ibo)
         {
             return new SimpleBatch.DrawArrays(mode.getConstant(), first, count);
         }
@@ -467,6 +502,17 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
+        public DrawCommand createDrawCommand (boolean ibo)
+        {
+            return ibo ?
+                SimpleBatch.createDrawBufferElements(
+                    mode.getConstant(), start, end, indices.capacity(),
+                    GL11.GL_UNSIGNED_SHORT, 0L) :
+                SimpleBatch.createDrawShortElements(
+                    mode.getConstant(), start, end, indices);
+        }
+
+        @Override // documentation inherited
         protected BufferObject getElementArrayBuffer (GlContext ctx)
         {
             BufferObject buffer = (_elementArrayBuffer == null) ? null : _elementArrayBuffer.get();
@@ -476,17 +522,6 @@ public abstract class GeometryConfig extends DeepObject
                 buffer.setData(indices);
             }
             return buffer;
-        }
-
-        @Override // documentation inherited
-        protected DrawCommand createDrawCommand (boolean ibo)
-        {
-            return ibo ?
-                SimpleBatch.createDrawBufferElements(
-                    mode.getConstant(), start, end, indices.capacity(),
-                    GL11.GL_UNSIGNED_SHORT, 0L) :
-                SimpleBatch.createDrawShortElements(
-                    mode.getConstant(), start, end, indices);
         }
 
         /** The cached element array buffer. */
@@ -514,6 +549,12 @@ public abstract class GeometryConfig extends DeepObject
 
         public SkinnedIndexedStored ()
         {
+        }
+
+        @Override // documentation inherited
+        public String[] getBones ()
+        {
+            return bones;
         }
     }
 
