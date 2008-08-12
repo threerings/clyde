@@ -40,7 +40,7 @@ public class CullStateConfig extends DeepObject
 
     /** The cull face. */
     @Editable(hgroup="f")
-    public Face face = Face.DISABLED;
+    public Face face = Face.BACK;
 
     /** If true, do not use a shared instance. */
     @Editable(hgroup="f")

@@ -18,6 +18,7 @@ import com.threerings.util.DeepOmit;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geom.config.DeformerConfig;
 import com.threerings.opengl.geom.config.PassDescriptor;
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.CompoundBatch;
@@ -280,6 +281,10 @@ public class TechniqueConfig extends DeepObject
     /** The render scheme with which this technique is associated. */
     @Editable(editor="config", mode="render_scheme", nullable=true)
     public String scheme;
+
+    /** The deformer to apply to the geometry. */
+    @Editable(nullable=true)
+    public DeformerConfig deformer;
 
     /** Determines what we actually enqueue for this technique. */
     @Editable

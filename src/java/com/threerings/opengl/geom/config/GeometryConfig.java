@@ -120,7 +120,8 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             // assume static geometry
             if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
@@ -514,12 +515,6 @@ public abstract class GeometryConfig extends DeepObject
         public SkinnedIndexedStored ()
         {
         }
-
-        @Override // documentation inherited
-        public Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
-        {
-            return super.createGeometry(ctx, scope, passes);
-        }
     }
 
     /**
@@ -551,7 +546,8 @@ public abstract class GeometryConfig extends DeepObject
     /**
      * Creates an instance of the geometry described by this config.
      */
-    public abstract Geometry createGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes);
+    public abstract Geometry createGeometry (
+        GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes);
 
     /**
      * Summarizes the attributes used by a set of passes.

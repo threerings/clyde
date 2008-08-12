@@ -47,7 +47,7 @@ public class AnimationConfig extends ParameterizedConfig
     /**
      * Superclass of the original implementations.
      */
-    public static class Original extends Implementation
+    public static abstract class Original extends Implementation
     {
         /** The priority level of this animation. */
         @Editable(hgroup="p")

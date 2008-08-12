@@ -104,7 +104,7 @@ public class Surface
         TechniqueConfig technique = _materialConfig.getTechnique(_ctx, scheme);
         if (_geometryConfig != null) {
             PassDescriptor[] passes = technique.getDescriptors(_ctx);
-            _geometry = _geometryConfig.createGeometry(_ctx, _scope, passes);
+            _geometry = _geometryConfig.createGeometry(_ctx, _scope, technique.deformer, passes);
         }
         _renderable = technique.createRenderable(_ctx, _scope, _geometry);
     }

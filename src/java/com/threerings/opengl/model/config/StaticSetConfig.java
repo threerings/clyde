@@ -6,6 +6,8 @@ package com.threerings.opengl.model.config;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.samskivert.util.ComparableTuple;
+
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 import com.threerings.util.Shallow;
@@ -71,6 +73,16 @@ public class StaticSetConfig extends ModelConfig.Imported
         if (meshes != null) {
             for (MeshSet set : meshes.values()) {
                 set.getTextures(textures);
+            }
+        }
+    }
+
+    @Override // documentation inherited
+    protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
+    {
+        if (meshes != null) {
+            for (MeshSet set : meshes.values()) {
+                set.getTextureTagPairs(pairs);
             }
         }
     }

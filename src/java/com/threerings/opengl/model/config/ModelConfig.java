@@ -3,11 +3,16 @@
 
 package com.threerings.opengl.model.config;
 
-import java.io.File;
-
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.TreeSet;
+
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import com.samskivert.util.ComparableTuple;
+import com.samskivert.util.ObjectUtil;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
@@ -38,6 +43,12 @@ import static com.threerings.opengl.Log.*;
  */
 public class ModelConfig extends ParameterizedConfig
 {
+    /** The default tag for unskinned meshes. */
+    public static final String DEFAULT_TAG = "default";
+
+    /** The default tag for skinned meshes. */
+    public static final String SKINNED_TAG = "skinned";
+
     /**
      * Contains the actual implementation of the model.
      */
@@ -86,16 +97,25 @@ public class ModelConfig extends ParameterizedConfig
             implements Exportable
         {
             /** The name of the texture. */
-            @Editable(editor="choice")
+            @Editable(editor="choice", hgroup="t")
             public String texture;
 
-            /** The corresponding material. */
+            /** The name of the tag. */
+            @Editable(hgroup="t")
+            public String tag = DEFAULT_TAG;
+
+            /** The material for unskinned meshes. */
             @Editable(nullable=true)
             public ConfigReference<MaterialConfig> material;
 
-            public MaterialMapping (String texture)
+            public MaterialMapping (String texture, String tag, String path)
             {
                 this.texture = texture;
+                this.tag = tag;
+
+                String material = DEFAULT_MATERIALS.get(tag);
+                this.material = new ConfigReference<MaterialConfig>(
+                    (material == null) ? DEFAULT_MATERIAL : material, "Texture", path);
             }
 
             public MaterialMapping ()
@@ -188,13 +208,16 @@ public class ModelConfig extends ParameterizedConfig
          */
         protected void createDefaultMaterialMappings ()
         {
-            TreeSet<String> textures = new TreeSet<String>();
-            getTextures(textures);
+            TreeSet<ComparableTuple<String, String>> pairs = Sets.newTreeSet();
+            getTextureTagPairs(pairs);
             ArrayList<MaterialMapping> mappings = new ArrayList<MaterialMapping>();
             Collections.addAll(mappings, materialMappings);
-            for (String texture : textures) {
-                if (getMaterialMapping(texture) == null) {
-                    mappings.add(new MaterialMapping(texture));
+            String pref = _source.substring(0, _source.lastIndexOf('/') + 1);
+            for (ComparableTuple<String, String> pair : pairs) {
+                String texture = pair.left, tag = pair.right;
+                if (getMaterialMapping(texture, tag) == null) {
+                    mappings.add(new MaterialMapping(
+                        texture, tag, (texture == null) ? null : pref + texture));
                 }
             }
             materialMappings = mappings.toArray(new MaterialMapping[mappings.size()]);
@@ -203,10 +226,10 @@ public class ModelConfig extends ParameterizedConfig
         /**
          * Returns the material mapping for the specified texture (if any).
          */
-        protected MaterialMapping getMaterialMapping (String texture)
+        protected MaterialMapping getMaterialMapping (String texture, String tag)
         {
             for (MaterialMapping mapping : materialMappings) {
-                if (texture.equals(mapping.texture)) {
+                if (ObjectUtil.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
                     return mapping;
                 }
             }
@@ -217,6 +240,14 @@ public class ModelConfig extends ParameterizedConfig
          * Populates the supplied set with the names of all referenced textures.
          */
         protected void getTextures (TreeSet<String> textures)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Populates the supplied set with the names of all referenced texture/tag pairs.
+         */
+        protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
         {
             // nothing by default
         }
@@ -281,6 +312,16 @@ public class ModelConfig extends ParameterizedConfig
                 textures.add(mesh.texture);
             }
         }
+
+        /**
+         * Populates the supplied set with the names of all referenced texture/tag pairs.
+         */
+        public void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
+        {
+            for (VisibleMesh mesh : visible) {
+                pairs.add(new ComparableTuple<String, String>(mesh.texture, mesh.tag));
+            }
+        }
     }
 
     /**
@@ -292,12 +333,16 @@ public class ModelConfig extends ParameterizedConfig
         /** The name of the texture associated with the mesh. */
         public String texture;
 
+        /** The mesh tag. */
+        public String tag;
+
         /** The mesh geometry. */
         public GeometryConfig geometry;
 
-        public VisibleMesh (String texture, GeometryConfig geometry)
+        public VisibleMesh (String texture, String tag, GeometryConfig geometry)
         {
             this.texture = texture;
+            this.tag = tag;
             this.geometry = geometry;
         }
 
@@ -342,4 +387,15 @@ public class ModelConfig extends ParameterizedConfig
 
     /** Parses model exports. */
     protected static ModelParser _parser;
+
+    /** The default material for the default tag. */
+    protected static final String DEFAULT_MATERIAL = "Generic/Default";
+
+    /** Maps tags to default materials (each of which we expect to take a single parameter,
+     * "Texture," representing the resource path of the material texture. */
+    protected static final HashMap<String, String> DEFAULT_MATERIALS = Maps.newHashMap();
+    static {
+        DEFAULT_MATERIALS.put(DEFAULT_TAG, DEFAULT_MATERIAL);
+        DEFAULT_MATERIALS.put(SKINNED_TAG, "Generic/Default (Skinned)");
+    }
 }

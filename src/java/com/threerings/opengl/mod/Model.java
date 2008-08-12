@@ -5,6 +5,8 @@ package com.threerings.opengl.mod;
 
 import java.util.Map;
 
+import com.samskivert.util.ObjectUtil;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.DynamicScope;
@@ -90,20 +92,21 @@ public class Model
             Map<String, MaterialConfig> materialConfigs)
         {
             return new Surface(ctx, scope, mesh.geometry,
-                getMaterialConfig(ctx, mesh.texture, materialMappings, materialConfigs));
+                getMaterialConfig(ctx, mesh.texture, mesh.tag, materialMappings, materialConfigs));
         }
 
         /**
          * Resolves a material config through a cache.
          */
         protected static MaterialConfig getMaterialConfig (
-            GlContext ctx, String texture, MaterialMapping[] materialMappings,
+            GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings,
             Map<String, MaterialConfig> materialConfigs)
         {
-            MaterialConfig config = materialConfigs.get(texture);
+            String key = texture + "|" + tag;
+            MaterialConfig config = materialConfigs.get(key);
             if (config == null) {
                 materialConfigs.put(
-                    texture, config = getMaterialConfig(ctx, texture, materialMappings));
+                    key, config = getMaterialConfig(ctx, texture, tag, materialMappings));
             }
             return config;
         }
@@ -112,10 +115,10 @@ public class Model
          * Resolves a material config.
          */
         protected static MaterialConfig getMaterialConfig (
-            GlContext ctx, String texture, MaterialMapping[] materialMappings)
+            GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings)
         {
             for (MaterialMapping mapping : materialMappings) {
-                if (texture.equals(mapping.texture)) {
+                if (ObjectUtil.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
                     return (mapping.material == null) ? null :
                         ctx.getConfigManager().getConfig(MaterialConfig.class, mapping.material);
                 }

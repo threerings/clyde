@@ -6,6 +6,7 @@ package com.threerings.opengl.model.config;
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import com.samskivert.util.ComparableTuple;
 import com.samskivert.util.QuickSort;
 
 import com.threerings.config.ConfigReference;
@@ -75,6 +76,16 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 child.getTextures(textures);
             }
         }
+
+        /**
+         * Populates the supplied set with the names of all texture/tag pairs.
+         */
+        public void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
+        {
+            for (Node child : children) {
+                child.getTextureTagPairs(pairs);
+            }
+        }
     }
 
     /**
@@ -107,6 +118,15 @@ public class ArticulatedConfig extends ModelConfig.Imported
             super.getTextures(textures);
             if (visible != null) {
                 textures.add(visible.texture);
+            }
+        }
+
+        @Override // documentation inherited
+        public void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
+        {
+            super.getTextureTagPairs(pairs);
+            if (visible != null) {
+                pairs.add(new ComparableTuple<String, String>(visible.texture, visible.tag));
             }
         }
     }
@@ -205,6 +225,17 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
         if (skin != null) {
             skin.getTextures(textures);
+        }
+    }
+
+    @Override // documentation inherited
+    protected void getTextureTagPairs (TreeSet<ComparableTuple<String, String>> pairs)
+    {
+        if (root != null) {
+            root.getTextureTagPairs(pairs);
+        }
+        if (skin != null) {
+            skin.getTextureTagPairs(pairs);
         }
     }
 }

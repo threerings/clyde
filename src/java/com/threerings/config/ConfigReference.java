@@ -21,6 +21,18 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
     }
 
     /**
+     * Creates a new reference to the named configuration with the specified arguments.
+     */
+    public ConfigReference (String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        _name = name;
+        _arguments.put(firstKey, firstValue);
+        for (int ii = 0; ii < otherArgs.length; ii += 2) {
+            _arguments.put((String)otherArgs[ii], otherArgs[ii + 1]);
+        }
+    }
+
+    /**
      * No-arg constructor for deserialization.
      */
     public ConfigReference ()

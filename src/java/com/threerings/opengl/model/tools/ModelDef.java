@@ -476,6 +476,9 @@ public class ModelDef
         /** The texture of the mesh, if any. */
         public String texture;
 
+        /** The mesh's tag, if any. */
+        public String tag;
+
         /** Whether or not the mesh is (partially) transparent. */
         public boolean transparent;
 
@@ -577,7 +580,7 @@ public class ModelDef
             if (name.contains("collision")) {
                 return "collision";
             } else {
-                return GlUtil.createKey(getClass(), texture);
+                return GlUtil.createKey(getClass(), texture, tag);
             }
         }
 
@@ -665,7 +668,7 @@ public class ModelDef
 
             // create and return the mesh
             return new ModelConfig.VisibleMesh(
-                texture,
+                texture, StringUtil.isBlank(tag) ? getDefaultTag() : tag,
                 createGeometry(
                     bounds, vertexAttribArrays, texCoordArrays,
                     colorArray, normalArray, vertexArray));
@@ -692,6 +695,14 @@ public class ModelDef
         {
             return config.generateTangents ?
                 new AttributeArrayConfig[] { new AttributeArrayConfig(3, "tangent") } : null;
+        }
+
+        /**
+         * Returns the default tag for this mesh type.
+         */
+        protected String getDefaultTag ()
+        {
+            return ModelConfig.DEFAULT_TAG;
         }
 
         /**
@@ -1015,6 +1026,12 @@ public class ModelDef
                 new AttributeArrayConfig(4, "boneWeights") };
             AttributeArrayConfig[] sarrays = super.createVertexAttribArrays(config);
             return (sarrays == null) ? arrays : ArrayUtil.concatenate(arrays, sarrays);
+        }
+
+        @Override // documentation inherited
+        protected String getDefaultTag ()
+        {
+            return ModelConfig.SKINNED_TAG;
         }
 
         @Override // documentation inherited
