@@ -233,6 +233,9 @@ public abstract class GlApp extends DynamicScope
      */
     protected void enqueueView ()
     {
+        // update the view transform state
+        _viewTransformState.getModelview().set(_viewTransform);
+        _viewTransformState.setDirty(true);
     }
 
     /**

@@ -105,6 +105,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
     @Override // documentation inherited
     protected void enqueueView ()
     {
+        super.enqueueView();
+
+        // enqueue the various renderables
         _grid.enqueue();
         if (_showBounds.isSelected()) {
             _bounds.enqueue();

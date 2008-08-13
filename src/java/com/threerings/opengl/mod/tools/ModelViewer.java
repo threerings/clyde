@@ -95,7 +95,7 @@ public class ModelViewer extends GlCanvasTool
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-
+        _model.getConfig().wasUpdated();
     }
 
     @Override // documentation inherited
