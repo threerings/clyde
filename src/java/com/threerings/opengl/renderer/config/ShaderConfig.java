@@ -13,6 +13,9 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.math.Matrix4f;
@@ -22,6 +25,7 @@ import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.geom.config.PassDescriptor;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.FloatUniform;
 import com.threerings.opengl.renderer.Program.IntegerUniform;
 import com.threerings.opengl.renderer.Program.Vector3fUniform;
@@ -56,7 +60,7 @@ public class ShaderConfig extends ParameterizedConfig
         /**
          * Returns the array of uniforms for this configuration.
          */
-        public abstract Variable[] getUniforms (GlContext ctx);
+        public abstract UniformConfig[] getUniforms (GlContext ctx);
     }
 
     /**
@@ -64,15 +68,12 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static abstract class Original extends Implementation
     {
-        /** The uniform variables to pass to the shader. */
+        /** The uniforms to pass to the shader. */
         @Editable
-        @EditorTypes({
-            ColorVariable.class, FloatVariable.class,
-            IntegerVariable.class, TransformVariable.class })
-        public Variable[] uniforms = new Variable[0];
+        public UniformConfig[] uniforms = new UniformConfig[0];
 
         @Override // documentation inherited
-        public Variable[] getUniforms (GlContext ctx)
+        public UniformConfig[] getUniforms (GlContext ctx)
         {
             return uniforms;
         }
@@ -131,7 +132,7 @@ public class ShaderConfig extends ParameterizedConfig
 
             /** The preprocessor definitions to use. */
             @Editable
-            public Variable[] definitions = new Variable[0];
+            public Definition[] definitions = new Definition[0];
 
             @Override // documentation inherited
             public Shader getShader (GlContext ctx)
@@ -140,8 +141,8 @@ public class ShaderConfig extends ParameterizedConfig
                     return null;
                 }
                 ArrayList<String> defs = new ArrayList<String>();
-                for (Variable var : definitions) {
-                    String def = var.createDefinition();
+                for (Definition definition : definitions) {
+                    String def = definition.getString();
                     if (def != null) {
                         defs.add(def);
                     }
@@ -204,7 +205,7 @@ public class ShaderConfig extends ParameterizedConfig
 
             /** The preprocessor definitions to use. */
             @Editable
-            public Variable[] definitions = new Variable[0];
+            public Definition[] definitions = new Definition[0];
 
             @Override // documentation inherited
             public Shader getShader (GlContext ctx)
@@ -213,8 +214,8 @@ public class ShaderConfig extends ParameterizedConfig
                     return null;
                 }
                 ArrayList<String> defs = new ArrayList<String>();
-                for (Variable var : definitions) {
-                    String def = var.createDefinition();
+                for (Definition definition : definitions) {
+                    String def = definition.getString();
                     if (def != null) {
                         defs.add(def);
                     }
@@ -266,7 +267,7 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Variable[] getUniforms (GlContext ctx)
+        public UniformConfig[] getUniforms (GlContext ctx)
         {
             ShaderConfig config = getConfig(ctx);
             return (config == null) ? null : config.getUniforms(ctx);
@@ -283,40 +284,57 @@ public class ShaderConfig extends ParameterizedConfig
     }
 
     /**
-     * Represents the value of a shader variable (used for both preprocessor definitions and
-     * uniform variables).
+     * Represents the configuration of one or more shader uniforms.
      */
     @EditorTypes({
-        BooleanVariable.class, ColorVariable.class, FloatVariable.class,
-        IntegerVariable.class, StringVariable.class, TransformVariable.class })
-    public static abstract class Variable extends DeepObject
+        BooleanUniformConfig.class, ColorUniformConfig.class,
+        FloatUniformConfig.class, IntegerUniformConfig.class,
+        TransformUniformConfig.class, MatrixArrayRefUniformConfig.class })
+    public static abstract class UniformConfig extends DeepObject
         implements Exportable
     {
-        /** The name of the variable. */
+        /** The name of the uniform. */
         @Editable(hgroup="p")
         public String name = "";
+
+        /**
+         * Creates the uniform objects for this config and adds them to the provided list.
+         */
+        public abstract void createUniforms (
+            Scope scope, Program program, ArrayList<Uniform> uniforms,
+            ArrayList<Updater> updaters);
+    }
+
+    /**
+     * Base class for simple uniforms.
+     */
+    public static abstract class SimpleUniformConfig extends UniformConfig
+    {
+        @Override // documentation inherited
+        public void createUniforms (
+            Scope scope, Program program, ArrayList<Uniform> uniforms,
+            ArrayList<Updater> updaters)
+        {
+            int location = program.getUniformLocation(name);
+            if (location != -1) {
+                uniforms.add(createUniform(location));
+            }
+        }
 
         /**
          * Creates a uniform object from this configuration.
          *
          * @param location the location of the uniform.
          */
-        public abstract Uniform createUniform (int location);
-
-        /**
-         * Creates a preprocessor definition from this configuration.
-         *
-         * @return the definition string, or <code>null</code> to omit the definition.
-         */
-        public abstract String createDefinition ();
+        protected abstract Uniform createUniform (int location);
     }
 
     /**
-     * A boolean-valued variable.
+     * A boolean-valued uniform.
      */
-    public static class BooleanVariable extends Variable
+    public static class BooleanUniformConfig extends SimpleUniformConfig
     {
-        /** The value of the variable. */
+        /** The value of the uniform. */
         @Editable(hgroup="p")
         public boolean value;
 
@@ -325,20 +343,14 @@ public class ShaderConfig extends ParameterizedConfig
         {
             return new IntegerUniform(location, value ? 1 : 0);
         }
-
-        @Override // documentation inherited
-        public String createDefinition ()
-        {
-            return value ? name : null;
-        }
     }
 
     /**
-     * A color-valued variable.
+     * A color-valued uniform.
      */
-    public static class ColorVariable extends Variable
+    public static class ColorUniformConfig extends SimpleUniformConfig
     {
-        /** The value of the variable. */
+        /** The value of the uniform. */
         @Editable(mode="alpha", hgroup="p")
         public Color4f value = new Color4f();
 
@@ -347,9 +359,178 @@ public class ShaderConfig extends ParameterizedConfig
         {
             return new Vector4fUniform(location, new Vector4f(value.r, value.g, value.b, value.a));
         }
+    }
+
+    /**
+     * A float-valued uniform.
+     */
+    public static class FloatUniformConfig extends SimpleUniformConfig
+    {
+        /** The value of the uniform. */
+        @Editable(step=0.01, hgroup="p")
+        public float value;
 
         @Override // documentation inherited
-        public String createDefinition ()
+        public Uniform createUniform (int location)
+        {
+            return new FloatUniform(location, value);
+        }
+    }
+
+    /**
+     * An integer-valued uniform.
+     */
+    public static class IntegerUniformConfig extends SimpleUniformConfig
+    {
+        /** The value of the uniform. */
+        @Editable(hgroup="p")
+        public int value;
+
+        @Override // documentation inherited
+        public Uniform createUniform (int location)
+        {
+            return new IntegerUniform(location, value);
+        }
+    }
+
+    /**
+     * A transform-valued uniform.
+     */
+    public static class TransformUniformConfig extends SimpleUniformConfig
+    {
+        /** The value of the uniform. */
+        @Editable(hgroup="p")
+        public Transform3D value = new Transform3D();
+
+        @Override // documentation inherited
+        public Uniform createUniform (int location)
+        {
+            value.update(Transform3D.GENERAL);
+            return new Matrix4fUniform(location, value.getMatrix());
+        }
+    }
+
+    /**
+     * Base class for configs representing uniform arrays whose values come from references
+     * to scoped variables.
+     */
+    public static abstract class ArrayRefUniformConfig<T> extends UniformConfig
+    {
+        @Override // documentation inherited
+        public void createUniforms (
+            Scope scope, Program program, ArrayList<Uniform> uniforms,
+            ArrayList<Updater> updaters)
+        {
+            // look up the array values
+            T[] values = ScopeUtil.resolve(scope, name, null, getArrayClass());
+            if (values == null) {
+                return;
+            }
+            ArrayList<Uniform> list = new ArrayList<Uniform>();
+            for (int ii = 0; ii < values.length; ii++) {
+                int location = program.getUniformLocation(name + "[" + ii + "]");
+                if (location != -1) {
+                    list.add(createUniform(location, values[ii]));
+                }
+            }
+            if (list.isEmpty()) {
+                return;
+            }
+            uniforms.addAll(list);
+            final Uniform[] array = list.toArray(new Uniform[list.size()]);
+            updaters.add(new Updater() {
+                public void update () {
+                    // dirty the uniforms
+                    for (Uniform uniform : array) {
+                        uniform.dirty = true;
+                    }
+                }
+            });
+        }
+
+        /**
+         * Returns the array class that we're expecting.
+         */
+        protected abstract Class<? extends T[]> getArrayClass ();
+
+        /**
+         * Creates a uniform object from this configuration.
+         *
+         * @param location the location of the uniform.
+         * @param value a reference to the value of the uniform.
+         */
+        protected abstract Uniform createUniform (int location, T value);
+    }
+
+    /**
+     * References an array of matrices.
+     */
+    public static class MatrixArrayRefUniformConfig extends ArrayRefUniformConfig<Matrix4f>
+    {
+        @Override // documentation inherited
+        protected Class<? extends Matrix4f[]> getArrayClass ()
+        {
+            return Matrix4f.EMPTY_ARRAY.getClass();
+        }
+
+        @Override // documentation inherited
+        protected Uniform createUniform (int location, Matrix4f value)
+        {
+            // set the value by reference
+            Matrix4fUniform uniform = new Matrix4fUniform(location);
+            uniform.value = value;
+            return uniform;
+        }
+    }
+
+    /**
+     * Represents a preprocessor definition.
+     */
+    @EditorTypes({
+        BooleanDefinition.class, ColorDefinition.class, FloatDefinition.class,
+        IntegerDefinition.class, StringDefinition.class, TransformDefinition.class })
+    public static abstract class Definition extends DeepObject
+        implements Exportable
+    {
+        /** The name of the definition. */
+        @Editable(hgroup="p")
+        public String name = "";
+
+        /**
+         * Returns the string for this definition.
+         *
+         * @return the definition string, or <code>null</code> to omit the definition.
+         */
+        public abstract String getString ();
+    }
+
+    /**
+     * A boolean definition.
+     */
+    public static class BooleanDefinition extends Definition
+    {
+        /** The value of the definition. */
+        @Editable(hgroup="p")
+        public boolean value;
+
+        @Override // documentation inherited
+        public String getString ()
+        {
+            return value ? name : null;
+        }
+    }
+
+    /**
+     * A color-valued definition.
+     */
+    public static class ColorDefinition extends Definition
+    {
+        /** The value of the definition. */
+        @Editable(mode="alpha", hgroup="p")
+        public Color4f value = new Color4f();
+
+        @Override // documentation inherited
+        public String getString ()
         {
             return name + " vec4(" +
                 GLSL_FLOAT.format(value.r) + ", " +
@@ -360,89 +541,64 @@ public class ShaderConfig extends ParameterizedConfig
     }
 
     /**
-     * A float-valued variable.
+     * A float-valued definition.
      */
-    public static class FloatVariable extends Variable
+    public static class FloatDefinition extends Definition
     {
-        /** The value of the variable. */
+        /** The value of the definition. */
         @Editable(step=0.01, hgroup="p")
         public float value;
 
         @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            return new FloatUniform(location, value);
-        }
-
-        @Override // documentation inherited
-        public String createDefinition ()
+        public String getString ()
         {
             return name + " " + GLSL_FLOAT.format(value);
         }
     }
 
     /**
-     * An integer-valued variable.
+     * An integer-valued definition.
      */
-    public static class IntegerVariable extends Variable
+    public static class IntegerDefinition extends Definition
     {
-        /** The value of the variable. */
+        /** The value of the definition. */
         @Editable(hgroup="p")
         public int value;
 
         @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            return new IntegerUniform(location, value);
-        }
-
-        @Override // documentation inherited
-        public String createDefinition ()
+        public String getString ()
         {
             return name + " " + value;
         }
     }
 
     /**
-     * An string-valued variable.
+     * A string-valued definition.
      */
-    public static class StringVariable extends Variable
+    public static class StringDefinition extends Definition
     {
-        /** The value of the variable. */
+        /** The value of the definition. */
         @Editable(hgroup="p")
         public String value = "";
 
         @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            throw new RuntimeException(); // not allowed
-        }
-
-        @Override // documentation inherited
-        public String createDefinition ()
+        public String getString ()
         {
             return name + " " + value;
         }
     }
 
     /**
-     * A transform-valued variable.
+     * A transform-valued definition.
      */
-    public static class TransformVariable extends Variable
+    public static class TransformDefinition extends Definition
     {
-        /** The value of the variable. */
+        /** The value of the definition. */
         @Editable(hgroup="p")
         public Transform3D value = new Transform3D();
 
         @Override // documentation inherited
-        public Uniform createUniform (int location)
-        {
-            value.update(Transform3D.GENERAL);
-            return new Matrix4fUniform(location, value.getMatrix());
-        }
-
-        @Override // documentation inherited
-        public String createDefinition ()
+        public String getString ()
         {
             value.update(Transform3D.GENERAL);
             Matrix4f matrix = value.getMatrix();
@@ -492,7 +648,7 @@ public class ShaderConfig extends ParameterizedConfig
     /**
      * Returns the array of uniforms for this configuration.
      */
-    public Variable[] getUniforms (GlContext ctx)
+    public UniformConfig[] getUniforms (GlContext ctx)
     {
         return implementation.getUniforms(ctx);
     }

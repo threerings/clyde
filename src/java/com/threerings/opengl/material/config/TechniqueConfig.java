@@ -11,6 +11,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -110,8 +111,7 @@ public class TechniqueConfig extends DeepObject
             boolean update, RenderQueue.Group group, MutableInteger pidx)
         {
             final RenderQueue queue = group.getQueue(this.queue);
-            ArrayList<ExpressionBinding.Updater> updaters =
-                new ArrayList<ExpressionBinding.Updater>();
+            ArrayList<Updater> updaters = new ArrayList<Updater>();
             final Batch batch = (passes.length == 1) ?
                 createBatch(ctx, scope, geometry, passes[0], updaters, pidx) :
                 createBatch(ctx, scope, geometry, updaters, pidx);
@@ -124,12 +124,11 @@ public class TechniqueConfig extends DeepObject
                         }
                     };
                 } else {
-                    final ExpressionBinding.Updater[] updaterArray = updaters.toArray(
-                        new ExpressionBinding.Updater[updaters.size()]);
+                    final Updater[] updaterArray = updaters.toArray(new Updater[updaters.size()]);
                     return new Renderable() {
                         public void enqueue () {
                             geometry.update();
-                            for (ExpressionBinding.Updater updater : updaterArray) {
+                            for (Updater updater : updaterArray) {
                                 updater.update();
                             }
                             queue.add(batch, priority);
@@ -144,11 +143,10 @@ public class TechniqueConfig extends DeepObject
                         }
                     };
                 } else {
-                    final ExpressionBinding.Updater[] updaterArray = updaters.toArray(
-                        new ExpressionBinding.Updater[updaters.size()]);
+                    final Updater[] updaterArray = updaters.toArray(new Updater[updaters.size()]);
                     return new Renderable() {
                         public void enqueue () {
-                            for (ExpressionBinding.Updater updater : updaterArray) {
+                            for (Updater updater : updaterArray) {
                                 updater.update();
                             }
                             queue.add(batch, priority);
@@ -163,7 +161,7 @@ public class TechniqueConfig extends DeepObject
          */
         protected CompoundBatch createBatch (
             GlContext ctx, Scope scope, Geometry geometry,
-            ArrayList<ExpressionBinding.Updater> updaters, MutableInteger pidx)
+            ArrayList<Updater> updaters, MutableInteger pidx)
         {
             CompoundBatch batch = new CompoundBatch();
             for (PassConfig pass : passes) {
@@ -177,10 +175,10 @@ public class TechniqueConfig extends DeepObject
          */
         protected SimpleBatch createBatch (
             GlContext ctx, Scope scope, Geometry geometry, PassConfig pass,
-            ArrayList<ExpressionBinding.Updater> updaters, MutableInteger pidx)
+            ArrayList<Updater> updaters, MutableInteger pidx)
         {
             // initialize the states and draw command
-            RenderState[] states = pass.createStates(ctx);
+            RenderState[] states = pass.createStates(ctx, scope, updaters);
             states[RenderState.ARRAY_STATE] = geometry.getArrayState(pidx.value);
             if (states[RenderState.FOG_STATE] == null) {
                 states[RenderState.FOG_STATE] = ScopeUtil.resolve(

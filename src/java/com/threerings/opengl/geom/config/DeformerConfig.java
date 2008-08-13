@@ -33,12 +33,9 @@ public abstract class DeformerConfig extends DeepObject
         public Geometry createGeometry (
             GlContext ctx, Scope scope, GeometryConfig.Stored config, PassDescriptor[] passes)
         {
-            String[] bones = config.getBones();
-            final Matrix4f[] boneMatrices = new Matrix4f[bones.length];
-            Function getBoneMatrix = ScopeUtil.resolve(scope, "getBoneMatrix", Function.NULL);
-            for (int ii = 0; ii < bones.length; ii++) {
-                Matrix4f matrix = (Matrix4f)getBoneMatrix.call(bones[ii]);
-                boneMatrices[ii] = (matrix == null) ? new Matrix4f() : matrix;
+            final Matrix4f[] boneMatrices = config.getBoneMatrices(scope);
+            if (boneMatrices == null) {
+                return config.createStaticGeometry(ctx, scope, passes);
             }
             final ArrayState[] arrayStates = config.createArrayStates(ctx, passes, false, true);
             final DrawCommand drawCommand = config.createDrawCommand(true);

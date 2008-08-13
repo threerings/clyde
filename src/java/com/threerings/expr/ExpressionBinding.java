@@ -94,17 +94,6 @@ public abstract class ExpressionBinding extends DeepObject
         }
     }
 
-    /**
-     * Updates the values of the bound variables.
-     */
-    public static abstract class Updater
-    {
-        /**
-         * Updates the bound variables.
-         */
-        public abstract void update ();
-    }
-
     /** The paths of the bound variables. */
     @Editable(width=40)
     public String[] paths = new String[0];

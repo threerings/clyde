@@ -24,6 +24,9 @@ public final class Matrix4f
     /** The identity matrix. */
     public static final Matrix4f IDENTITY = new Matrix4f();
 
+    /** An empty matrix array. */
+    public static final Matrix4f[] EMPTY_ARRAY = new Matrix4f[0];
+
     /** The values of the matrix. */
     public float m00, m10, m20, m30;
     public float m01, m11, m21, m31;

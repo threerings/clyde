@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.geom;
 
+import com.threerings.math.Matrix4f;
+
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
 import com.threerings.opengl.renderer.config.CoordSpace;
 import com.threerings.opengl.renderer.state.ArrayState;
@@ -12,6 +14,14 @@ import com.threerings.opengl.renderer.state.ArrayState;
  */
 public abstract class Geometry
 {
+    /**
+     * Returns the geometry's bone matrices, if any.
+     */
+    public Matrix4f[] getBoneMatrices ()
+    {
+        return null;
+    }
+
     /**
      * Returns the coordinate space in which the specified pass is given.
      */

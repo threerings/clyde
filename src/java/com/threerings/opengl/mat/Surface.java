@@ -7,8 +7,10 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
-import com.threerings.expr.ScopeUpdateListener;
+import com.threerings.expr.Scoped;
+import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Matrix4f;
 
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.geom.config.GeometryConfig;
@@ -21,24 +23,26 @@ import com.threerings.opengl.util.Renderable;
 /**
  * A renderable surface.
  */
-public class Surface
-    implements Renderable, ConfigUpdateListener<MaterialConfig>, ScopeUpdateListener
+public class Surface extends SimpleScope
+    implements Renderable, ConfigUpdateListener<MaterialConfig>
 {
     /**
      * Creates a new surface.
      */
     public Surface (
-        GlContext ctx, Scope scope, GeometryConfig geometryConfig, MaterialConfig materialConfig)
+        GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
+        MaterialConfig materialConfig)
     {
-        this(ctx, scope, geometryConfig, materialConfig, null);
+        this(ctx, parentScope, geometryConfig, materialConfig, null);
     }
 
     /**
      * Creates a new surface.
      */
-    public Surface (GlContext ctx, Scope scope, Geometry geometry, MaterialConfig materialConfig)
+    public Surface (
+        GlContext ctx, Scope parentScope, Geometry geometry, MaterialConfig materialConfig)
     {
-        this(ctx, scope, null, materialConfig, geometry);
+        this(ctx, parentScope, null, materialConfig, geometry);
     }
 
     /**
@@ -71,9 +75,16 @@ public class Surface
         updateFromConfigs();
     }
 
-    // documentation inherited from interface ScopeUpdateListener
+    @Override // documentation inherited
+    public String getScopeName ()
+    {
+        return "surface";
+    }
+
+    @Override // documentation inherited
     public void scopeUpdated (ScopeEvent event)
     {
+        super.scopeUpdated(event);
         updateFromConfigs();
     }
 
@@ -81,16 +92,15 @@ public class Surface
      * Creates a new surface.
      */
     protected Surface (
-        GlContext ctx, Scope scope, GeometryConfig geometryConfig,
+        GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
         MaterialConfig materialConfig, Geometry geometry)
     {
+        super(parentScope);
         _ctx = ctx;
-        _scope = scope;
         _geometryConfig = geometryConfig;
         _materialConfig = materialConfig;
         _geometry = geometry;
 
-        _scope.addListener(this);
         _materialConfig.addListener(this);
         updateFromConfigs();
     }
@@ -100,20 +110,18 @@ public class Surface
      */
     protected void updateFromConfigs ()
     {
-        String scheme = ScopeUtil.resolve(_scope, "renderScheme", (String)null);
+        String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
         TechniqueConfig technique = _materialConfig.getTechnique(_ctx, scheme);
         if (_geometryConfig != null) {
             PassDescriptor[] passes = technique.getDescriptors(_ctx);
-            _geometry = _geometryConfig.createGeometry(_ctx, _scope, technique.deformer, passes);
+            _geometry = _geometryConfig.createGeometry(_ctx, this, technique.deformer, passes);
         }
-        _renderable = technique.createRenderable(_ctx, _scope, _geometry);
+        _boneMatrices = _geometry.getBoneMatrices();
+        _renderable = technique.createRenderable(_ctx, this, _geometry);
     }
 
     /** The application context. */
     protected GlContext _ctx;
-
-    /** The expression scope. */
-    protected Scope _scope;
 
     /** The configuration of the surface geometry (or null, if the geometry didn't come from a
      * config). */
@@ -121,6 +129,10 @@ public class Surface
 
     /** The configuration of the surface material. */
     protected MaterialConfig _materialConfig;
+
+    /** The bone matrices, if any. */
+    @Scoped
+    protected Matrix4f[] _boneMatrices;
 
     /** The surface geometry. */
     protected Geometry _geometry;

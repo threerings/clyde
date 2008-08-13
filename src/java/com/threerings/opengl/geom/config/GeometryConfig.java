@@ -24,8 +24,11 @@ import com.samskivert.util.ArrayIntSet;
 import com.samskivert.util.HashIntMap;
 
 import com.threerings.export.Exportable;
+import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
+import com.threerings.math.Matrix4f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
@@ -120,23 +123,19 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /**
-         * Returns the list of bones influencing this geometry.
-         */
-        public String[] getBones ()
-        {
-            return new String[0];
-        }
-
-        /**
          * Creates static geometry for the described passes.
          */
-        public Geometry createStaticGeometry (GlContext ctx, PassDescriptor[] passes)
+        public Geometry createStaticGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
+            final Matrix4f[] boneMatrices = getBoneMatrices(scope);
             final CoordSpace[] coordSpaces = getCoordSpaces(passes);
             if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
                 final ArrayState[] arrayStates = createArrayStates(ctx, passes, true, true);
                 final DrawCommand drawCommand = createDrawCommand(true);
                 return new Geometry() {
+                    public Matrix4f[] getBoneMatrices () {
+                        return boneMatrices;
+                    }
                     public CoordSpace getCoordSpace (int pass) {
                         return coordSpaces[pass];
                     }
@@ -150,6 +149,9 @@ public abstract class GeometryConfig extends DeepObject
             } else {
                 final DrawCommand[] drawCommands = getListCommands(ctx, passes);
                 return new Geometry() {
+                    public Matrix4f[] getBoneMatrices () {
+                        return boneMatrices;
+                    }
                     public CoordSpace getCoordSpace (int pass) {
                         return coordSpaces[pass];
                     }
@@ -161,6 +163,14 @@ public abstract class GeometryConfig extends DeepObject
                     }
                 };
             }
+        }
+
+        /**
+         * Returns the matrices of the bones influencing this geometry, if any.
+         */
+        public Matrix4f[] getBoneMatrices (Scope scope)
+        {
+            return null;
         }
 
         /**
@@ -306,7 +316,7 @@ public abstract class GeometryConfig extends DeepObject
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
-            return (deformer == null) ? createStaticGeometry(ctx, passes) :
+            return (deformer == null) ? createStaticGeometry(ctx, scope, passes) :
                 deformer.createGeometry(ctx, scope, this, passes);
         }
 
@@ -552,9 +562,15 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public String[] getBones ()
+        public Matrix4f[] getBoneMatrices (Scope scope)
         {
-            return bones;
+            Function getBoneMatrix = ScopeUtil.resolve(scope, "getBoneMatrix", Function.NULL);
+            Matrix4f[] matrices = new Matrix4f[bones.length];
+            for (int ii = 0; ii < bones.length; ii++) {
+                Matrix4f matrix = (Matrix4f)getBoneMatrix.call(bones[ii]);
+                matrices[ii] = (matrix == null) ? new Matrix4f() : matrix;
+            }
+            return matrices;
         }
     }
 

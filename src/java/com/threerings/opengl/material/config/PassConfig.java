@@ -3,9 +3,13 @@
 
 package com.threerings.opengl.material.config;
 
+import java.util.ArrayList;
+
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.geom.config.PassDescriptor;
@@ -124,7 +128,7 @@ public class PassConfig extends DeepObject
     /**
      * Creates the set of states for this pass.
      */
-    public RenderState[] createStates (GlContext ctx)
+    public RenderState[] createStates (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
         RenderState[] states = RenderState.createEmptySet();
         states[RenderState.ALPHA_STATE] = alphaState.getState();
@@ -141,7 +145,7 @@ public class PassConfig extends DeepObject
             (materialState == null) ? null : materialState.getState();
         states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
         states[RenderState.POLYGON_STATE] = polygonState.getState();
-        states[RenderState.SHADER_STATE] = shaderState.getState(ctx);
+        states[RenderState.SHADER_STATE] = shaderState.getState(ctx, scope, updaters);
         states[RenderState.STENCIL_STATE] = stencilState.getState();
         states[RenderState.TEXTURE_STATE] = textureState.getState(ctx);
         return states;

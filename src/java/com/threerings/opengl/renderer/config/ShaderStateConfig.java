@@ -11,13 +11,15 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.geom.config.PassDescriptor;
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.Shader;
-import com.threerings.opengl.renderer.config.ShaderConfig.Variable;
+import com.threerings.opengl.renderer.config.ShaderConfig.UniformConfig;
 import com.threerings.opengl.renderer.state.ShaderState;
 import com.threerings.opengl.util.GlContext;
 
@@ -40,7 +42,7 @@ public abstract class ShaderStateConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public ShaderState getState (GlContext ctx)
+        public ShaderState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
             return ShaderState.DISABLED;
         }
@@ -78,7 +80,7 @@ public abstract class ShaderStateConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public ShaderState getState (GlContext ctx)
+        public ShaderState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
             ShaderConfig vconfig = getShaderConfig(ctx, vertex);
             ShaderConfig fconfig = getShaderConfig(ctx, fragment);
@@ -93,10 +95,14 @@ public abstract class ShaderStateConfig extends DeepObject
             }
             ArrayList<Uniform> uniforms = new ArrayList<Uniform>();
             if (vshader != null) {
-                addUniforms(program, uniforms, vconfig.getUniforms(ctx));
+                for (UniformConfig config : vconfig.getUniforms(ctx)) {
+                    config.createUniforms(scope, program, uniforms, updaters);
+                }
             }
             if (fshader != null) {
-                addUniforms(program, uniforms, fconfig.getUniforms(ctx));
+                for (UniformConfig config : fconfig.getUniforms(ctx)) {
+                    config.createUniforms(scope, program, uniforms, updaters);
+                }
             }
             return new ShaderState(program, uniforms.toArray(new Uniform[uniforms.size()]));
         }
@@ -108,19 +114,6 @@ public abstract class ShaderStateConfig extends DeepObject
         {
             return (ref == null) ?
                 null : ctx.getConfigManager().getConfig(ShaderConfig.class, ref);
-        }
-
-        /**
-         * Adds the uniforms corresponding to the supplied variables to the list.
-         */
-        protected void addUniforms (Program program, ArrayList<Uniform> uniforms, Variable[] vars)
-        {
-            for (Variable var : vars) {
-                int location = program.getUniformLocation(var.name);
-                if (location != -1) {
-                    uniforms.add(var.createUniform(location));
-                }
-            }
         }
     }
 
@@ -142,5 +135,5 @@ public abstract class ShaderStateConfig extends DeepObject
     /**
      * Returns the corresponding shader state.
      */
-    public abstract ShaderState getState (GlContext ctx);
+    public abstract ShaderState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters);
 }
