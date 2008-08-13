@@ -76,7 +76,7 @@ public class ModelViewer extends GlCanvasTool
      */
     public static void main (String[] args)
     {
-        new ModelViewer(args.length > 0 ? args[0] : null).start();
+        new ModelViewer(args.length > 0 ? args[0] : null).startup();
     }
 
     /**
@@ -212,8 +212,11 @@ public class ModelViewer extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void updateScene ()
+    protected void updateView ()
     {
+        super.updateView();
+
+        // tick the model
         long time = System.currentTimeMillis();
         float elapsed = (_lastTick == 0L) ? 0f : (time - _lastTick) / 1000f;
         if (_model != null) {
@@ -223,9 +226,11 @@ public class ModelViewer extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void enqueueScene ()
+    protected void enqueueView ()
     {
-        super.enqueueScene();
+        super.enqueueView();
+
+        // enqueue the model
         if (_model != null) {
             _model.enqueue();
         }

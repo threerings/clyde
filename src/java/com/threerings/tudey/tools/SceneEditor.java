@@ -43,7 +43,7 @@ public class SceneEditor extends GlCanvasTool
      */
     public static void main (String[] args)
     {
-        new SceneEditor(args.length > 0 ? args[0] : null).start();
+        new SceneEditor(args.length > 0 ? args[0] : null).startup();
     }
 
     /**
@@ -176,17 +176,18 @@ public class SceneEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void updateScene ()
+    protected void updateView ()
     {
+        super.updateView();
         long time = System.currentTimeMillis();
         float elapsed = (time - _lastTick) / 1000f;
         _lastTick = time;
     }
 
     @Override // documentation inherited
-    protected void enqueueScene ()
+    protected void enqueueView ()
     {
-        super.enqueueScene();
+        super.enqueueView();
     }
 
     /**

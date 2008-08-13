@@ -3,6 +3,9 @@
 
 package com.threerings.opengl;
 
+import org.lwjgl.opengl.PixelFormat;
+
+import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.config.ConfigManager;
@@ -10,29 +13,33 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
+import com.threerings.math.Transform3D;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
 import com.threerings.opengl.camera.CameraHandler;
+import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.MaterialCache;
 import com.threerings.opengl.util.ModelCache;
+import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.ShaderCache;
 import com.threerings.opengl.util.TextureCache;
 
 /**
  * A base class for OpenGL-based applications.
  */
-public abstract class GlApp
+public abstract class GlApp extends DynamicScope
     implements GlContext, EditorContext, RunQueue
 {
     public GlApp ()
     {
-        _scope = new DynamicScope(this, "app");
+        super("app");
         _renderer = new Renderer();
         _compositor = new Compositor(this);
         _rsrcmgr = new ResourceManager("rsrc/");
@@ -43,12 +50,10 @@ public abstract class GlApp
         _shadcache = new ShaderCache(this);
         _matcache = new MaterialCache(this);
         _modcache = new ModelCache(this);
-    }
 
-    /**
-     * Creates a user interface root appropriate for this application.
-     */
-    public abstract Root createRoot ();
+        // initialize our scoped fields
+        _viewTransform = _compositor.getCamera().getViewTransform();
+    }
 
     /**
      * Returns a reference to the application's camera handler.
@@ -58,12 +63,46 @@ public abstract class GlApp
         return _camhand;
     }
 
+    /**
+     * Sets the render scheme.
+     */
+    public void setRenderScheme (String scheme)
+    {
+        if (!ObjectUtil.equals(_renderScheme, scheme)) {
+            _renderScheme = scheme;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Returns the name of the configured render scheme.
+     */
+    public String getRenderScheme ()
+    {
+        return _renderScheme;
+    }
+
+    /**
+     * Creates a user interface root appropriate for this application.
+     */
+    public abstract Root createRoot ();
+
+    /**
+     * Starts up the application.
+     */
+    public abstract void startup ();
+
+    /**
+     * Shuts down the application.
+     */
+    public abstract void shutdown ();
+
     // documentation inherited from interface GlContext
     public DynamicScope getScope ()
     {
-        return _scope;
+        return this;
     }
-    
+
     // documentation inherited from interface GlContext
     public Renderer getRenderer ()
     {
@@ -124,9 +163,87 @@ public abstract class GlApp
         return _modcache;
     }
 
-    /** The expression scope. */
-    protected DynamicScope _scope;
-    
+    /**
+     * Initializes the view once the OpenGL context is available.
+     */
+    protected void init ()
+    {
+        initRenderer();
+        _compositor.init();
+        _camhand = createCameraHandler();
+        _camhand.updatePerspective();
+
+        // add a root to call the enqueue method
+        _compositor.addRoot(new Renderable() {
+            public void enqueue () {
+                GlApp.this.enqueueView();
+            }
+        });
+
+        // give subclasses a chance to init
+        didInit();
+    }
+
+    /**
+     * Initializes the renderer.
+     */
+    protected abstract void initRenderer ();
+
+    /**
+     * Creates and returns the camera handler.
+     */
+    protected CameraHandler createCameraHandler ()
+    {
+        return new OrbitCameraHandler(this);
+    }
+
+    /**
+     * Override to perform custom initialization after the render context is valid.
+     */
+    protected void didInit ()
+    {
+    }
+
+    /**
+     * Override to perform cleanup before the application exits.
+     */
+    protected void willShutdown ()
+    {
+    }
+
+    /**
+     * Performs any updates that are necessary even when not rendering.
+     */
+    protected void updateView ()
+    {
+        _now.value = System.currentTimeMillis();
+    }
+
+    /**
+     * Renders the entire view.
+     */
+    protected void renderView ()
+    {
+        _camhand.updatePosition();
+        _compositor.renderView();
+    }
+
+    /**
+     * Gives the application a chance to enqueue anything it might want rendered.
+     */
+    protected void enqueueView ()
+    {
+    }
+
+    /**
+     * Sets the viewport rectangle.
+     */
+    protected void setViewport (int x, int y, int width, int height)
+    {
+        _compositor.getCamera().getViewport().set(x, y, width, height);
+        _camhand.updatePerspective();
+    }
+
     /** The OpenGL renderer. */
     protected Renderer _renderer;
 
@@ -159,12 +276,29 @@ public abstract class GlApp
 
     /** The model cache. */
     protected ModelCache _modcache;
-    
+
     /** A container for the current time as sampled at the beginning of the frame. */
     @Scoped
     protected MutableLong _now = new MutableLong(System.currentTimeMillis());
-    
+
     /** A container for the application epoch. */
     @Scoped
     protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
+
+    /** The base render scheme (used to select material techniques). */
+    @Scoped
+    protected String _renderScheme;
+
+    /** A scoped reference to the camera's view transform. */
+    @Scoped
+    protected Transform3D _viewTransform;
+
+    /** A transform state containing the camera's view transform. */
+    @Scoped
+    protected TransformState _viewTransformState = new TransformState();
+
+    /** Our supported pixel formats in order of preference. */
+    protected static final PixelFormat[] PIXEL_FORMATS = {
+        new PixelFormat(8, 24, 8), new PixelFormat(8, 16, 8),
+        new PixelFormat(0, 16, 8), new PixelFormat(0, 8, 0) };
 }

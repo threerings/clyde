@@ -54,24 +54,8 @@ public abstract class GlCanvasApp extends GlApp
         // add the canvas inside a panel so that we can use KeyboardManager
         JPanel panel = new JPanel(new BorderLayout());
         _frame.add(panel, BorderLayout.CENTER);
-        try {
-            panel.add(_canvas = new GlCanvas(new PixelFormat(8, 8, 8)) {
-                public void didInit () {
-                    initRenderer();
-                }
-                public void updateScene () {
-                    _now.value = System.currentTimeMillis();
-                    GlCanvasApp.this.updateScene();
-                }
-                public void renderScene () {
-                    _camhand.updatePosition();
-                    GlCanvasApp.this.renderScene();
-                }
-            }, BorderLayout.CENTER);
-
-        } catch (LWJGLException e) {
-            log.warning("Failed to open window.", e);
-            return;
+        if ((_canvas = createCanvas()) != null) {
+            panel.add(_canvas);
         }
 
         // create the keyboard manager
@@ -95,23 +79,6 @@ public abstract class GlCanvasApp extends GlApp
         return _canvas;
     }
 
-    /**
-     * Starts up the application.
-     */
-    public void start ()
-    {
-        _frame.setVisible(true);
-    }
-
-    /**
-     * Shuts down the application.
-     */
-    public void shutdown ()
-    {
-        willShutdown();
-        System.exit(0);
-    }
-
     // documentation inherited from interface RunQueue
     public void postRunnable (Runnable run)
     {
@@ -131,20 +98,32 @@ public abstract class GlCanvasApp extends GlApp
         return new CanvasRoot(this, _canvas);
     }
 
-    /**
-     * Initializes the application once the OpenGL context is available.
-     */
+    @Override // documentation inherited
+    public void startup ()
+    {
+        _frame.setVisible(true);
+    }
+
+    @Override // documentation inherited
+    public void shutdown ()
+    {
+        willShutdown();
+        System.exit(0);
+    }
+
+    @Override // documentation inherited
     protected void initRenderer ()
     {
         _renderer.init(_canvas, _canvas.getWidth(), _canvas.getHeight());
-        _compositor.init();
-        _camhand = createCameraHandler();
-        _camhand.updatePerspective();
+    }
 
+    @Override // documentation inherited
+    protected void didInit ()
+    {
         // adjust the viewport on resize
         _canvas.addComponentListener(new ComponentAdapter() {
             public void componentResized (ComponentEvent event) {
-                canvasResized(_canvas.getWidth(), _canvas.getHeight());
+                setViewport(0, 0, _canvas.getWidth(), _canvas.getHeight());
             }
         });
 
@@ -153,69 +132,31 @@ public abstract class GlCanvasApp extends GlApp
 
         // enable the keyboard manager
         _keymgr.setEnabled(true);
+    }
 
-        // add a root to call the enqueueScene method
-        _compositor.addRoot(new Renderable() {
-            public void enqueue () {
-                enqueueScene();
+    /**
+     * Creates a canvas using one of our supported pixel formats.
+     */
+    protected GlCanvas createCanvas () {
+        for (PixelFormat format : PIXEL_FORMATS) {
+            try {
+                return new GlCanvas(format) {
+                    public void didInit () {
+                        GlCanvasApp.this.init();
+                    }
+                    public void updateView () {
+                        GlCanvasApp.this.updateView();
+                    }
+                    public void renderView () {
+                        GlCanvasApp.this.renderView();
+                    }
+                };
+            } catch (LWJGLException e) {
+                // proceed to next format
             }
-        });
-
-        // give subclasses a chance to init
-        didInit();
-    }
-
-    /**
-     * Creates and returns the camera handler.
-     */
-    protected CameraHandler createCameraHandler ()
-    {
-        return new OrbitCameraHandler(this);
-    }
-
-    /**
-     * Override to perform custom initialization after the render context is valid.
-     */
-    protected void didInit ()
-    {
-    }
-
-    /**
-     * Override to perform cleanup before the application exits.
-     */
-    protected void willShutdown ()
-    {
-    }
-
-    /**
-     * Performs any scene updates that are necessary even when not rendering.
-     */
-    protected void updateScene ()
-    {
-    }
-
-    /**
-     * Renders the entire scene.
-     */
-    protected void renderScene ()
-    {
-        _compositor.renderScene();
-    }
-
-    /**
-     * Gives the application a chance to enqueue anything it might want rendered.
-     */
-    protected void enqueueScene ()
-    {
-    }
-
-    /**
-     * Called when the canvas has been resized.
-     */
-    protected void canvasResized (int width, int height)
-    {
-        _compositor.getCamera().getViewport().set(0, 0, width, height);
-        _camhand.updatePerspective();
+        }
+        log.warning("Couldn't find valid pixel format.");
+        return null;
     }
 
     /** The frame containing the canvas. */

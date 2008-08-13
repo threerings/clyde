@@ -11,11 +11,30 @@ import com.samskivert.util.WeakObserverList;
 import com.threerings.expr.util.ScopeUtil;
 
 /**
- * A {@link Scope} that allows dynamic reparenting and the addition and removal of symbols.
+ * A {@link Scope} that allows dynamic reparenting and the addition and removal of symbols.  Can be
+ * used either as a base class or as a contained object.
  */
 public class DynamicScope
     implements Scope, ScopeUpdateListener
 {
+    /**
+     * Creates a new scope that is its own owner.
+     */
+    public DynamicScope (String name)
+    {
+        this(name, (Scope)null);
+    }
+
+    /**
+     * Creates a new scope that is its own owner with the supplied scope as its parent.
+     */
+    public DynamicScope (String name, Scope parent)
+    {
+        _owner = this;
+        _name = name;
+        setParentScope(parent);
+    }
+
     /**
      * Creates a new scope.
      */
@@ -31,13 +50,13 @@ public class DynamicScope
     {
         _owner = owner;
         _name = name;
-        setParent(parent);
+        setParentScope(parent);
     }
 
     /**
      * Sets the parent of this scope.
      */
-    public void setParent (Scope parent)
+    public void setParentScope (Scope parent)
     {
         if (_parent != null) {
             _parent.removeListener(this);

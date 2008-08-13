@@ -138,9 +138,9 @@ public class GlCanvas extends AWTGLCanvas
      */
     protected void updateFrame ()
     {
-        updateScene();
+        updateView();
         if (isShowing()) {
-            renderScene();
+            renderView();
             swapBuffers();
         }
     }
@@ -148,14 +148,14 @@ public class GlCanvas extends AWTGLCanvas
     /**
      * Override to perform any updates that are required even if not rendering.
      */
-    protected void updateScene ()
+    protected void updateView ()
     {
     }
 
     /**
-     * Override to render the canvas scene.
+     * Override to render the contents of the canvas.
      */
-    protected void renderScene ()
+    protected void renderView ()
     {
     }
 

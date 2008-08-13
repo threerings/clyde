@@ -39,7 +39,7 @@ public class ModelViewer extends GlCanvasTool
      */
     public static void main (String[] args)
     {
-        new ModelViewer(args.length > 0 ? args[0] : null).start();
+        new ModelViewer(args.length > 0 ? args[0] : null).startup();
     }
 
     /**
@@ -124,11 +124,13 @@ public class ModelViewer extends GlCanvasTool
         ModelConfig config = new ModelConfig();
         config.implementation = (ModelConfig.Derived)_epanel.getObject();
         _model = new Model(this, config);
+        _model.setParentScope(this);
     }
 
     @Override // documentation inherited
-    protected void updateScene ()
+    protected void updateView ()
     {
+        super.updateView();
         long time = System.currentTimeMillis();
         float elapsed = (_lastTick == 0L) ? 0f : (time - _lastTick) / 1000f;
         _model.tick(elapsed);
@@ -136,9 +138,9 @@ public class ModelViewer extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void enqueueScene ()
+    protected void enqueueView ()
     {
-        super.enqueueScene();
+        super.enqueueView();
         _model.enqueue();
     }
 

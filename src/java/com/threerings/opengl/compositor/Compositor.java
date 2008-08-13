@@ -24,7 +24,7 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
 /**
- * Handles the process of compositing the scene from its various elements.
+ * Handles the process of compositing the view from its various elements.
  */
 public class Compositor
 {
@@ -62,7 +62,7 @@ public class Compositor
     }
 
     /**
-     * Adds an element to the list of scene roots.
+     * Adds an element to the list of view roots.
      */
     public void addRoot (Renderable root)
     {
@@ -70,7 +70,7 @@ public class Compositor
     }
 
     /**
-     * Removes an element from the list of scene roots.
+     * Removes an element from the list of view roots.
      */
     public void removeRoot (Renderable root)
     {
@@ -78,9 +78,9 @@ public class Compositor
     }
 
     /**
-     * Renders the composited scene.
+     * Renders the composited view.
      */
-    public void renderScene ()
+    public void renderView ()
     {
         // start by requesting that the roots enqueue themselves and register their dependencies
         for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {

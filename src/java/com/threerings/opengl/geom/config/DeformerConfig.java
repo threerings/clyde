@@ -5,7 +5,9 @@ package com.threerings.opengl.geom.config;
 
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
 import com.threerings.util.DeepObject;
 
@@ -33,7 +35,10 @@ public abstract class DeformerConfig extends DeepObject
         {
             String[] bones = config.getBones();
             final Matrix4f[] boneMatrices = new Matrix4f[bones.length];
+            Function getBoneMatrix = ScopeUtil.resolve(scope, "getBoneMatrix", Function.NULL);
             for (int ii = 0; ii < bones.length; ii++) {
+                Matrix4f matrix = (Matrix4f)getBoneMatrix.call(bones[ii]);
+                boneMatrices[ii] = (matrix == null) ? new Matrix4f() : matrix;
             }
             final ArrayState[] arrayStates = config.createArrayStates(ctx, passes, false, true);
             final DrawCommand drawCommand = config.createDrawCommand(true);

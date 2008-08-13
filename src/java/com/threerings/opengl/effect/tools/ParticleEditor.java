@@ -90,7 +90,7 @@ public class ParticleEditor extends GlCanvasTool
      */
     public static void main (String[] args)
     {
-        new ParticleEditor(args.length > 0 ? args[0] : null).start();
+        new ParticleEditor(args.length > 0 ? args[0] : null).startup();
     }
 
     /**
@@ -352,8 +352,9 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void updateScene ()
+    protected void updateView ()
     {
+        super.updateView();
         long time = System.currentTimeMillis();
         float elapsed = (_lastTick == 0L) ? 0f : (time - _lastTick) / 1000f;
         _particles.tick(elapsed);
@@ -361,9 +362,9 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void enqueueScene ()
+    protected void enqueueView ()
     {
-        super.enqueueScene();
+        super.enqueueView();
         if (_showGround.isSelected()) {
             _ground.enqueue();
         }

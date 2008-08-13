@@ -89,6 +89,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
     @Override // documentation inherited
     protected void didInit ()
     {
+        super.didInit();
+
         // create the various renderables
         _grid = new Grid(this, 65, 1f);
         _grid.getColor().set(0.2f, 0.2f, 0.2f, 1f);
@@ -101,7 +103,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     }
 
     @Override // documentation inherited
-    protected void enqueueScene ()
+    protected void enqueueView ()
     {
         _grid.enqueue();
         if (_showBounds.isSelected()) {

@@ -16,8 +16,9 @@ public abstract class SimpleScope
      */
     public SimpleScope (Scope parentScope)
     {
-        _parentScope = parentScope;
-        _parentScope.addListener(this);
+        if ((_parentScope = parentScope) != null) {
+            _parentScope.addListener(this);
+        }
         ScopeUtil.updateBound(this, _parentScope);
     }
 

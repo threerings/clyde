@@ -36,7 +36,7 @@ import com.threerings.opengl.util.Tickable;
 /**
  * A 3D model.
  */
-public class Model
+public class Model extends DynamicScope
     implements Tickable, Intersectable, Renderable,
         ConfigUpdateListener<ModelConfig>, ScopeUpdateListener
 {
@@ -158,17 +158,9 @@ public class Model
      */
     public Model (GlContext ctx, ModelConfig config)
     {
+        super("model");
         _ctx = ctx;
-        _scope.addListener(this);
         setConfig(config);
-    }
-
-    /**
-     * Returns a reference to the model scope.
-     */
-    public DynamicScope getScope ()
-    {
-        return _scope;
     }
 
     /**
@@ -225,7 +217,7 @@ public class Model
     {
         if (_fogState != state) {
             _fogState = state;
-            _scope.wasUpdated();
+            wasUpdated();
         }
     }
 
@@ -244,7 +236,7 @@ public class Model
     {
         if (_lightState != state) {
             _lightState = state;
-            _scope.wasUpdated();
+            wasUpdated();
         }
     }
 
@@ -300,7 +292,7 @@ public class Model
     protected void resetEpoch ()
     {
         MutableLong now = ScopeUtil.resolve(
-            _scope, Scope.NOW, new MutableLong(System.currentTimeMillis()));
+            this, Scope.NOW, new MutableLong(System.currentTimeMillis()));
         _epoch.value = now.value;
     }
 
@@ -310,15 +302,12 @@ public class Model
     protected void updateFromConfig ()
     {
         Implementation nimpl = (_config == null) ?
-            null : _config.getModelImplementation(_ctx, _scope, _impl);
+            null : _config.getModelImplementation(_ctx, this, _impl);
         _impl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
     }
 
     /** The application context. */
     protected GlContext _ctx;
-
-    /** The expression scope. */
-    protected DynamicScope _scope = new DynamicScope(this, "model");
 
     /** The configuration of this model. */
     protected ModelConfig _config;
