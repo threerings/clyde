@@ -263,25 +263,27 @@ public abstract class GeometryConfig extends DeepObject
         /**
          * Creates a set of array states for this geometry.
          *
-         * @param vbo if true, use a shared buffer object for vertex data.
-         * @param ibo if true, use a shared buffer object for index data.
+         * @param staticVBO if true, use a shared static buffer object for vertex data.
+         * @param staticIBO if true, use a shared static buffer object for index data.
          */
         public ArrayState[] createArrayStates (
-            GlContext ctx, PassDescriptor[] passes, boolean vbo, boolean ibo)
+            GlContext ctx, PassDescriptor[] passes, boolean staticVBO, boolean staticIBO)
         {
-            return createArrayStates(ctx, passes, new PassSummary(passes), vbo, ibo, true);
+            return createArrayStates(
+                ctx, passes, new PassSummary(passes), staticVBO, staticIBO, null, null);
         }
 
         /**
          * Creates a set of array states for this geometry.
          *
-         * @param vbo if true, use a shared buffer object for vertex data.
-         * @param ibo if true, use a shared buffer object for index data.
-         * @param populate whether or not the populate the arrays.
+         * @param staticVBO if true, use a shared static buffer object for vertex data.
+         * @param staticIBO if true, use a shared static buffer object for index data.
+         * @param arrayBuffer the precreated buffer object to use for the arrays, if any.
+         * @param floatArray the precreated float buffer to use for the arrays, if any.
          */
         public ArrayState[] createArrayStates (
             GlContext ctx, PassDescriptor[] passes, PassSummary summary,
-            boolean vbo, boolean ibo, boolean populate)
+            boolean staticVBO, boolean staticIBO, BufferObject arrayBuffer, FloatBuffer floatArray)
         {
             // create the base arrays and put them in a list
             ArrayList<ClientArray> arrays = new ArrayList<ClientArray>();
@@ -329,61 +331,39 @@ public abstract class GeometryConfig extends DeepObject
                 array.stride = stride;
             }
 
-            // if we're using a vbo, check for an existing buffer object
-            boolean createBuffer = true;
-            if (vbo) {
+            // if we have been given an array buffer or float array, set them
+            if (arrayBuffer != null || floatArray != null) {
+                for (ClientArray array : arrays) {
+                    array.arrayBuffer = arrayBuffer;
+                    array.floatArray = floatArray;
+                }
+
+            // otherwise, if we're to use a static vbo, look it up
+            } else if (staticVBO) {
                 if (_arrayBuffers == null) {
                     _arrayBuffers = new SoftCache<PassSummary, BufferObject>();
                 }
-                BufferObject arrayBuffer = _arrayBuffers.get(summary);
+                arrayBuffer = _arrayBuffers.get(summary);
                 if (arrayBuffer == null) {
                     _arrayBuffers.put(summary, arrayBuffer = new BufferObject(ctx.getRenderer()));
-                } else {
-                    createBuffer = false;
+                    floatArray = populateClientArrays(
+                        vertexAttribArrays, texCoordArrays, colorArray, normalArray, vertexArray);
+                    arrayBuffer.setData(floatArray);
                 }
                 for (ClientArray array : arrays) {
                     array.arrayBuffer = arrayBuffer;
                     array.floatArray = null;
                 }
-            }
 
-            // create the buffer if necessary
-            if (createBuffer) {
-                int vsize = stride / 4;
-                FloatBuffer floatArray = BufferUtils.createFloatBuffer(getVertexCount() * vsize);
-                for (ClientArray array : arrays) {
-                    array.floatArray = floatArray;
-                }
-
-                // populate the buffer if requested
-                if (populate) {
-                    for (Map.Entry<String, ClientArray> entry : vertexAttribArrays.entrySet()) {
-                        getVertexAttribArray(entry.getKey()).populateClientArray(entry.getValue());
-                    }
-                    for (Map.Entry<Integer, ClientArray> entry : texCoordArrays.entrySet()) {
-                        getTexCoordArray(entry.getKey()).populateClientArray(entry.getValue());
-                    }
-                    if (colorArray != null) {
-                        this.colorArray.populateClientArray(colorArray);
-                    }
-                    if (normalArray != null) {
-                        this.normalArray.populateClientArray(normalArray);
-                    }
-                    this.vertexArray.populateClientArray(vertexArray);
-                }
-
-                // if it's for a VBO, populate the VBO and clear the references
-                if (vbo) {
-                    vertexArray.arrayBuffer.setData(floatArray);
-                    for (ClientArray array : arrays) {
-                        array.floatArray = null;
-                    }
-                }
+            // otherwise, create and populate a new buffer
+            } else {
+                populateClientArrays(
+                    vertexAttribArrays, texCoordArrays, colorArray, normalArray, vertexArray);
             }
 
             // create the states for each pass
             ArrayState[] states = new ArrayState[passes.length];
-            BufferObject elementArrayBuffer = ibo ? getElementArrayBuffer(ctx) : null;
+            BufferObject elementArrayBuffer = staticIBO ? getElementArrayBuffer(ctx) : null;
             for (int ii = 0; ii < passes.length; ii++) {
                 PassDescriptor pass = passes[ii];
                 ClientArray[] attribArrays = new ClientArray[pass.vertexAttribs.length];
@@ -413,6 +393,9 @@ public abstract class GeometryConfig extends DeepObject
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
+            if (passes.length == 0) {
+                return Geometry.EMPTY;
+            }
             return (deformer == null) ? createStaticGeometry(ctx, scope, passes) :
                 deformer.createGeometry(ctx, scope, this, passes);
         }
@@ -427,6 +410,42 @@ public abstract class GeometryConfig extends DeepObject
                 spaces[ii] = passes[ii].coordSpace;
             }
             return spaces;
+        }
+
+        /**
+         * Creates a new buffer and populates the specified client arrays with this geometry's
+         * array data.
+         *
+         * @return a reference to the newly created and populated buffer.
+         */
+        protected FloatBuffer populateClientArrays (
+            HashMap<String, ClientArray> vertexAttribArrays,
+            HashIntMap<ClientArray> texCoordArrays,
+            ClientArray colorArray, ClientArray normalArray, ClientArray vertexArray)
+        {
+            FloatBuffer floatArray = BufferUtils.createFloatBuffer(
+                getVertexCount() * vertexArray.stride / 4);
+            for (Map.Entry<String, ClientArray> entry : vertexAttribArrays.entrySet()) {
+                ClientArray clientArray = entry.getValue();
+                clientArray.floatArray = floatArray;
+                getVertexAttribArray(entry.getKey()).populateClientArray(clientArray);
+            }
+            for (Map.Entry<Integer, ClientArray> entry : texCoordArrays.entrySet()) {
+                ClientArray clientArray = entry.getValue();
+                clientArray.floatArray = floatArray;
+                getTexCoordArray(entry.getKey()).populateClientArray(clientArray);
+            }
+            if (colorArray != null) {
+                colorArray.floatArray = floatArray;
+                this.colorArray.populateClientArray(colorArray);
+            }
+            if (normalArray != null) {
+                normalArray.floatArray = floatArray;
+                this.normalArray.populateClientArray(normalArray);
+            }
+            vertexArray.floatArray = floatArray;
+            this.vertexArray.populateClientArray(vertexArray);
+            return floatArray;
         }
 
         /**

@@ -14,6 +14,13 @@ import com.threerings.opengl.renderer.state.ArrayState;
  */
 public abstract class Geometry
 {
+    /** A "geometry" object that draws nothing. */
+    public static final Geometry EMPTY = new SimpleGeometry() {
+        protected void draw () {
+            // no-op
+        }
+    };
+
     /**
      * Returns the geometry's bone matrices, if any.
      */
