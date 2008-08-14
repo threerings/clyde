@@ -271,14 +271,6 @@ public abstract class Texture
     }
 
     /**
-     * Rounds the supplied value up to a power of two.
-     */
-    protected static int nextPOT (int value)
-    {
-        return (Integer.bitCount(value) > 1) ? (Integer.highestOneBit(value) << 1) : value;
-    }
-
-    /**
      * Returns the format of the data to be returned by {@link #getData} for the specified image.
      */
     protected static int getFormat (BufferedImage image)

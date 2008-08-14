@@ -13,6 +13,8 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.opengl.glu.GLU;
 
+import com.threerings.opengl.util.GlUtil;
+
 /**
  * A two-dimensional texture.
  */
@@ -73,8 +75,8 @@ public class Texture2D extends Texture
     public void setImage (int level, int format, int width, int height, boolean border)
     {
         if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
-            width = nextPOT(width);
-            height = nextPOT(height);
+            width = GlUtil.nextPowerOfTwo(width);
+            height = GlUtil.nextPowerOfTwo(height);
         }
         if (level == 0) {
             _format = format;
@@ -103,8 +105,8 @@ public class Texture2D extends Texture
         }
         int width = image.getWidth(), height = image.getHeight();
         if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
-            width = nextPOT(width);
-            height = nextPOT(height);
+            width = GlUtil.nextPowerOfTwo(width);
+            height = GlUtil.nextPowerOfTwo(height);
         }
         _format = format;
         _width = width;
@@ -125,8 +127,8 @@ public class Texture2D extends Texture
     {
         int width = image.getWidth(), height = image.getHeight();
         if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
-            width = nextPOT(width);
-            height = nextPOT(height);
+            width = GlUtil.nextPowerOfTwo(width);
+            height = GlUtil.nextPowerOfTwo(height);
         }
         if (level == 0) {
             _format = format;
@@ -171,8 +173,8 @@ public class Texture2D extends Texture
         // determine the width and height of the texture
         int width = image.getWidth(), height = image.getHeight();
         if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
-            width = nextPOT(width);
-            height = nextPOT(height);
+            width = GlUtil.nextPowerOfTwo(width);
+            height = GlUtil.nextPowerOfTwo(height);
         }
         _renderer.setTexture(this);
         if (mipmap && !isRectangle()) { // rectangles cannot be mipmapped

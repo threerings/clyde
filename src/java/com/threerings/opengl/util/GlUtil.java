@@ -19,6 +19,15 @@ import java.util.regex.Pattern;
 public class GlUtil
 {
     /**
+     * Returns the smallest power-of-two that is greater than or equal to the supplied (positive)
+     * value.
+     */
+    public static int nextPowerOfTwo (int value)
+    {
+        return (Integer.bitCount(value) > 1) ? (Integer.highestOneBit(value) << 1) : value;
+    }
+
+    /**
      * If the supplied path can be parsed as an absolute filename, returns a
      * {@link FileInputStream} for that file; otherwise, requests the stream
      * from the resource manager.

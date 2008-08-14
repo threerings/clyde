@@ -11,6 +11,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
+import com.threerings.opengl.util.GlUtil;
+
 /**
  * A three-dimensional texture.
  */
@@ -47,9 +49,9 @@ public class Texture3D extends Texture
     public void setImage (int level, int format, int width, int height, int depth, boolean border)
     {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
-            width = nextPOT(width);
-            height = nextPOT(height);
-            depth = nextPOT(depth);
+            width = GlUtil.nextPowerOfTwo(width);
+            height = GlUtil.nextPowerOfTwo(height);
+            depth = GlUtil.nextPowerOfTwo(depth);
         }
         if (level == 0) {
             _format = format;
@@ -91,9 +93,9 @@ public class Texture3D extends Texture
     {
         int width = image.getWidth() / sdivs, height = image.getHeight() / tdivs;
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
-            width = nextPOT(width);
-            height = nextPOT(height);
-            depth = nextPOT(depth);
+            width = GlUtil.nextPowerOfTwo(width);
+            height = GlUtil.nextPowerOfTwo(height);
+            depth = GlUtil.nextPowerOfTwo(depth);
         }
         if (level == 0) {
             _format = format;

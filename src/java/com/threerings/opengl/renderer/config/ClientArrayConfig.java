@@ -129,4 +129,46 @@ public class ClientArrayConfig extends DeepObject
         src.rewind();
         dest.rewind();
     }
+
+    /**
+     * Extracts the contents of this array into the specified float array.
+     *
+     * @param offset the offset within the array at which to place the first element.
+     * @param stride the stride between adjacent elements within the array.
+     */
+    public void populateFloatArray (float[] array, int doffset, int dstride)
+    {
+        FloatBuffer src = floatArray;
+        int sstride = stride / 4;
+        int sidx = offset / 4, didx = doffset;
+        for (int ii = 0, nn = src.capacity() / sstride; ii < nn; ii++) {
+            src.position(sidx);
+            src.get(array, didx, size);
+
+            sidx += sstride;
+            didx += dstride;
+        }
+        src.rewind();
+    }
+
+    /**
+     * Extracts the contents of this array into the specified int array.
+     *
+     * @param offset the offset within the array at which to place the first element.
+     * @param stride the stride between adjacent elements within the array.
+     */
+    public void populateIntArray (int[] array, int doffset, int dstride)
+    {
+        FloatBuffer src = floatArray;
+        int sstride = stride / 4;
+        int sidx = offset / 4, didx = doffset;
+        for (int ii = 0, nn = src.capacity() / sstride; ii < nn; ii++) {
+            for (int jj = 0; jj < size; jj++) {
+                array[didx + jj] = (int)src.get(sidx + jj);
+            }
+            sidx += sstride;
+            didx += dstride;
+        }
+        src.rewind();
+    }
 }

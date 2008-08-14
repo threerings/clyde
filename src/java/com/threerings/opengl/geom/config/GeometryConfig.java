@@ -9,9 +9,7 @@ import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import org.lwjgl.BufferUtils;
@@ -20,8 +18,8 @@ import org.lwjgl.opengl.GLContext;
 
 import com.google.common.collect.Maps;
 
-import com.samskivert.util.ArrayIntSet;
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.SoftCache;
 
 import com.threerings.export.Exportable;
 import com.threerings.expr.Function;
@@ -30,6 +28,7 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
 import com.threerings.util.DeepObject;
+import com.threerings.util.IdentityKey;
 import com.threerings.util.Shallow;
 
 import com.threerings.opengl.geom.Geometry;
@@ -123,6 +122,94 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /**
+         * Returns the number of vertices in the arrays.
+         */
+        public int getVertexCount ()
+        {
+            return (vertexArray.floatArray.capacity() * 4) / vertexArray.stride;
+        }
+
+        /**
+         * Returns the vertex attribute array config with the specified name.
+         */
+        public AttributeArrayConfig getVertexAttribArray (String name)
+        {
+            if (vertexAttribArrays != null) {
+                for (AttributeArrayConfig array : vertexAttribArrays) {
+                    if (array.name.equals(name)) {
+                        return array;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Returns the texture coordinate array config at the specified index.
+         */
+        public ClientArrayConfig getTexCoordArray (int idx)
+        {
+            return (texCoordArrays != null && texCoordArrays.length > idx) ?
+                texCoordArrays[idx] : null;
+        }
+
+        /**
+         * Returns a float array containing the interleaved contents of the specified arrays.
+         *
+         * @param align if true, use power-of-two alignment.
+         */
+        public float[] getFloatArray (boolean align, ClientArrayConfig... arrays)
+        {
+            if (_floatArrays == null) {
+                _floatArrays = new SoftCache<IdentityKey, float[]>();
+            }
+            IdentityKey key = new IdentityKey(align, (Object[])arrays);
+            float[] array = _floatArrays.get(key);
+            if (array == null) {
+                int offset = 0;
+                int[] offsets = new int[arrays.length];
+                for (int ii = 0; ii < arrays.length; ii++) {
+                    offsets[ii] = offset;
+                    offset += arrays[ii].size;
+                }
+                int stride = align ? GlUtil.nextPowerOfTwo(offset) : offset;
+                _floatArrays.put(key, array = new float[stride * getVertexCount()]);
+                for (int ii = 0; ii < arrays.length; ii++) {
+                    arrays[ii].populateFloatArray(array, offsets[ii], stride);
+                }
+            }
+            return array;
+        }
+
+        /**
+         * Returns an int array containing the interleaved contents of the specified arrays.
+         *
+         * @param align if true, use power-of-two alignment.
+         */
+        public int[] getIntArray (boolean align, ClientArrayConfig... arrays)
+        {
+            if (_intArrays == null) {
+                _intArrays = new SoftCache<IdentityKey, int[]>();
+            }
+            IdentityKey key = new IdentityKey(align, (Object[])arrays);
+            int[] array = _intArrays.get(key);
+            if (array == null) {
+                int offset = 0;
+                int[] offsets = new int[arrays.length];
+                for (int ii = 0; ii < arrays.length; ii++) {
+                    offsets[ii] = offset;
+                    offset += arrays[ii].size;
+                }
+                int stride = align ? GlUtil.nextPowerOfTwo(offset) : offset;
+                _intArrays.put(key, array = new int[stride * getVertexCount()]);
+                for (int ii = 0; ii < arrays.length; ii++) {
+                    arrays[ii].populateIntArray(array, offsets[ii], stride);
+                }
+            }
+            return array;
+        }
+
+        /**
          * Creates static geometry for the described passes.
          */
         public Geometry createStaticGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
@@ -182,40 +269,49 @@ public abstract class GeometryConfig extends DeepObject
         public ArrayState[] createArrayStates (
             GlContext ctx, PassDescriptor[] passes, boolean vbo, boolean ibo)
         {
-            // find out which attributes the passes use
-            PassSummary summary = new PassSummary(passes);
+            return createArrayStates(ctx, passes, new PassSummary(passes), vbo, ibo, true);
+        }
 
-            // create the base arrays
+        /**
+         * Creates a set of array states for this geometry.
+         *
+         * @param vbo if true, use a shared buffer object for vertex data.
+         * @param ibo if true, use a shared buffer object for index data.
+         * @param populate whether or not the populate the arrays.
+         */
+        public ArrayState[] createArrayStates (
+            GlContext ctx, PassDescriptor[] passes, PassSummary summary,
+            boolean vbo, boolean ibo, boolean populate)
+        {
+            // create the base arrays and put them in a list
+            ArrayList<ClientArray> arrays = new ArrayList<ClientArray>();
             HashMap<String, ClientArray> vertexAttribArrays = Maps.newHashMap();
             for (String attrib : summary.vertexAttribs) {
                 AttributeArrayConfig vertexAttribArray = getVertexAttribArray(attrib);
                 if (vertexAttribArray != null) {
-                    vertexAttribArrays.put(attrib, vertexAttribArray.createClientArray());
+                    ClientArray array = vertexAttribArray.createClientArray();
+                    vertexAttribArrays.put(attrib, array);
+                    arrays.add(array);
                 }
             }
             HashIntMap<ClientArray> texCoordArrays = new HashIntMap<ClientArray>();
             for (int set : summary.texCoordSets) {
                 ClientArrayConfig texCoordArray = getTexCoordArray(set);
                 if (texCoordArray != null) {
-                    texCoordArrays.put(set, texCoordArray.createClientArray());
+                    ClientArray array = texCoordArray.createClientArray();
+                    texCoordArrays.put(set, array);
+                    arrays.add(array);
                 }
             }
-            ClientArray colorArray = (summary.colors && this.colorArray != null) ?
-                this.colorArray.createClientArray() : null;
-            ClientArray normalArray = (summary.normals && this.normalArray != null) ?
-                this.normalArray.createClientArray() : null;
+            ClientArray colorArray = null;
+            if (summary.colors && this.colorArray != null) {
+                arrays.add(colorArray = this.colorArray.createClientArray());
+            }
+            ClientArray normalArray = null;
+            if (summary.normals && this.normalArray != null) {
+                arrays.add(normalArray = this.normalArray.createClientArray());
+            }
             ClientArray vertexArray = this.vertexArray.createClientArray();
-
-            // put them all in a list
-            ArrayList<ClientArray> arrays = new ArrayList<ClientArray>();
-            arrays.addAll(vertexAttribArrays.values());
-            arrays.addAll(texCoordArrays.values());
-            if (colorArray != null) {
-                arrays.add(colorArray);
-            }
-            if (normalArray != null) {
-                arrays.add(normalArray);
-            }
             arrays.add(vertexArray);
 
             // compute the offsets and stride
@@ -226,8 +322,7 @@ public abstract class GeometryConfig extends DeepObject
             }
 
             // bump the stride up to the nearest power of two
-            int stride = (Integer.bitCount(offset) > 1) ?
-                (Integer.highestOneBit(offset) << 1) : offset;
+            int stride = GlUtil.nextPowerOfTwo(offset);
 
             // update the arrays with the stride
             for (ClientArray array : arrays) {
@@ -235,15 +330,16 @@ public abstract class GeometryConfig extends DeepObject
             }
 
             // if we're using a vbo, check for an existing buffer object
-            boolean populateBuffer = true;
+            boolean createBuffer = true;
             if (vbo) {
-                SoftReference<BufferObject> ref = _arrayBuffers.get(summary);
-                BufferObject arrayBuffer = (ref == null) ? null : ref.get();
+                if (_arrayBuffers == null) {
+                    _arrayBuffers = new SoftCache<PassSummary, BufferObject>();
+                }
+                BufferObject arrayBuffer = _arrayBuffers.get(summary);
                 if (arrayBuffer == null) {
-                    _arrayBuffers.put(summary, new SoftReference<BufferObject>(
-                        arrayBuffer = new BufferObject(ctx.getRenderer())));
+                    _arrayBuffers.put(summary, arrayBuffer = new BufferObject(ctx.getRenderer()));
                 } else {
-                    populateBuffer = false;
+                    createBuffer = false;
                 }
                 for (ClientArray array : arrays) {
                     array.arrayBuffer = arrayBuffer;
@@ -251,29 +347,30 @@ public abstract class GeometryConfig extends DeepObject
                 }
             }
 
-            // populate the buffer if necessary
-            if (populateBuffer) {
-                // create the buffer and update the arrays
+            // create the buffer if necessary
+            if (createBuffer) {
                 int vsize = stride / 4;
                 FloatBuffer floatArray = BufferUtils.createFloatBuffer(getVertexCount() * vsize);
                 for (ClientArray array : arrays) {
                     array.floatArray = floatArray;
                 }
 
-                // populate the buffer
-                for (Map.Entry<String, ClientArray> entry : vertexAttribArrays.entrySet()) {
-                    getVertexAttribArray(entry.getKey()).populateClientArray(entry.getValue());
+                // populate the buffer if requested
+                if (populate) {
+                    for (Map.Entry<String, ClientArray> entry : vertexAttribArrays.entrySet()) {
+                        getVertexAttribArray(entry.getKey()).populateClientArray(entry.getValue());
+                    }
+                    for (Map.Entry<Integer, ClientArray> entry : texCoordArrays.entrySet()) {
+                        getTexCoordArray(entry.getKey()).populateClientArray(entry.getValue());
+                    }
+                    if (colorArray != null) {
+                        this.colorArray.populateClientArray(colorArray);
+                    }
+                    if (normalArray != null) {
+                        this.normalArray.populateClientArray(normalArray);
+                    }
+                    this.vertexArray.populateClientArray(vertexArray);
                 }
-                for (Map.Entry<Integer, ClientArray> entry : texCoordArrays.entrySet()) {
-                    getTexCoordArray(entry.getKey()).populateClientArray(entry.getValue());
-                }
-                if (colorArray != null) {
-                    this.colorArray.populateClientArray(colorArray);
-                }
-                if (normalArray != null) {
-                    this.normalArray.populateClientArray(normalArray);
-                }
-                this.vertexArray.populateClientArray(vertexArray);
 
                 // if it's for a VBO, populate the VBO and clear the references
                 if (vbo) {
@@ -345,14 +442,15 @@ public abstract class GeometryConfig extends DeepObject
          */
         protected DrawCommand[] getListCommands (GlContext ctx, PassDescriptor[] passes)
         {
+            if (_listCommands == null) {
+                _listCommands = new SoftCache<PassDescriptor, DrawCommand>();
+            }
             DrawCommand[] commands = new DrawCommand[passes.length];
             for (int ii = 0; ii < passes.length; ii++) {
                 PassDescriptor pass = passes[ii];
-                SoftReference<DrawCommand> ref = _listCommands.get(pass);
-                DrawCommand command = (ref == null) ? null : ref.get();
+                DrawCommand command = _listCommands.get(pass);
                 if (command == null) {
-                    _listCommands.put(pass, new SoftReference<DrawCommand>(
-                        command = createListCommand(ctx, pass)));
+                    _listCommands.put(pass, command = createListCommand(ctx, pass));
                 }
                 commands[ii] = command;
             }
@@ -404,45 +502,17 @@ public abstract class GeometryConfig extends DeepObject
                 colorArray, normalArray, vertexArray, null);
         }
 
-        /**
-         * Returns the number of vertices in the arrays.
-         */
-        protected int getVertexCount ()
-        {
-            return (vertexArray.floatArray.capacity() * 4) / vertexArray.stride;
-        }
-
-        /**
-         * Returns the vertex attribute array config with the specified name.
-         */
-        protected AttributeArrayConfig getVertexAttribArray (String name)
-        {
-            if (vertexAttribArrays != null) {
-                for (AttributeArrayConfig array : vertexAttribArrays) {
-                    if (array.name.equals(name)) {
-                        return array;
-                    }
-                }
-            }
-            return null;
-        }
-
-        /**
-         * Returns the texture coordinate array config at the specified index.
-         */
-        protected ClientArrayConfig getTexCoordArray (int idx)
-        {
-            return (texCoordArrays != null && texCoordArrays.length > idx) ?
-                texCoordArrays[idx] : null;
-        }
-
         /** Cached array buffers. */
-        protected transient HashMap<PassSummary, SoftReference<BufferObject>> _arrayBuffers =
-            Maps.newHashMap();
+        protected transient SoftCache<PassSummary, BufferObject> _arrayBuffers;
 
         /** Cached display list commands. */
-        protected transient HashMap<PassDescriptor, SoftReference<DrawCommand>> _listCommands =
-            Maps.newHashMap();
+        protected transient SoftCache<PassDescriptor, DrawCommand> _listCommands;
+
+        /** Cached float arrays. */
+        protected transient SoftCache<IdentityKey, float[]> _floatArrays;
+
+        /** Cached int arrays. */
+        protected transient SoftCache<IdentityKey, int[]> _intArrays;
     }
 
     /**
@@ -605,32 +675,4 @@ public abstract class GeometryConfig extends DeepObject
      */
     public abstract Geometry createGeometry (
         GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes);
-
-    /**
-     * Summarizes the attributes used by a set of passes.
-     */
-    protected static class PassSummary extends DeepObject
-    {
-        /** The names of all vertex attributes used by the passes. */
-        public HashSet<String> vertexAttribs = new HashSet<String>();
-
-        /** All of the texture coordinate sets used by the passes. */
-        public ArrayIntSet texCoordSets = new ArrayIntSet();
-
-        /** Whether or not any of the passes use vertex colors. */
-        public boolean colors;
-
-        /** Whether or not any of the passes use vertex normals. */
-        public boolean normals;
-
-        public PassSummary (PassDescriptor... passes)
-        {
-            for (PassDescriptor pass : passes) {
-                Collections.addAll(vertexAttribs, pass.vertexAttribs);
-                texCoordSets.add(pass.texCoordSets);
-                colors |= pass.colors;
-                normals |= pass.normals;
-            }
-        }
-    }
 }

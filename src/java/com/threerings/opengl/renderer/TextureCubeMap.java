@@ -8,9 +8,10 @@ import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.opengl.ARBTextureCubeMap;
-
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
+
+import com.threerings.opengl.util.GlUtil;
 
 /**
  * A cube map texture.
@@ -55,7 +56,7 @@ public class TextureCubeMap extends Texture
     public void setImages (int level, int format, int size, boolean border)
     {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
-            size = nextPOT(size);
+            size = GlUtil.nextPowerOfTwo(size);
         }
         if (level == 0) {
             _format = format;
@@ -107,7 +108,7 @@ public class TextureCubeMap extends Texture
             }
         }
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
-            size = nextPOT(size);
+            size = GlUtil.nextPowerOfTwo(size);
         }
         if (level == 0) {
             _format = format;
@@ -153,7 +154,7 @@ public class TextureCubeMap extends Texture
     {
         int size = Math.max(image.getWidth() / sdivs, image.getHeight() / tdivs);
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
-            size = nextPOT(size);
+            size = GlUtil.nextPowerOfTwo(size);
         }
         if (level == 0) {
             _format = format;
