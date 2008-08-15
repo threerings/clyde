@@ -94,24 +94,6 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
 
         /**
-         * Creates an articulated node for this config.
-         *
-         * @param node an existing node to reuse, if possible.
-         * @return either a reference to the existing node (if reused), or a new node.
-         */
-        public Articulated.Node getArticulatedNode (
-            GlContext ctx, Scope scope, Articulated.Node node)
-        {
-            // require an exact class match
-            if (node != null && node.getClass() == Articulated.Node.class) {
-                node.setConfig(this);
-            } else {
-                node = new Articulated.Node(ctx, scope, this);
-            }
-            return node;
-        }
-
-        /**
          * Updates the nodes' reference transforms.
          */
         public void updateRefTransforms (Transform3D parentRefTransform)
@@ -121,6 +103,47 @@ public class ArticulatedConfig extends ModelConfig.Imported
             for (Node child : children) {
                 child.updateRefTransforms(refTransform);
             }
+        }
+
+        /**
+         * (Re)creates the list of articulated nodes for this config.
+         *
+         * @param onodes if non-null, a list of existing nodes to reuse, if possible.
+         * @param nnodes the list to contain the new nodes.
+         */
+        public void getArticulatedNodes (
+            Scope scope, Articulated.Node[] onodes, ArrayList<Articulated.Node> nnodes,
+            Transform3D parentViewTransform)
+        {
+            int idx = nnodes.size();
+            Articulated.Node node = (onodes == null || onodes.length <= idx) ? null : onodes[idx];
+            if (node != null && node.getClass() == getArticulatedNodeClass()) {
+                node.setConfig(this, parentViewTransform);
+            } else {
+                node = createArticulatedNode(scope, parentViewTransform);
+            }
+            nnodes.add(node);
+            Transform3D viewTransform = node.getViewTransform();
+            for (Node child : children) {
+                child.getArticulatedNodes(scope, onodes, nnodes, viewTransform);
+            }
+        }
+
+        /**
+         * Returns the articulated node class corresponding to this config class.
+         */
+        protected Class getArticulatedNodeClass ()
+        {
+            return Articulated.Node.class;
+        }
+
+        /**
+         * Creates a new articulated node.
+         */
+        protected Articulated.Node createArticulatedNode (
+            Scope scope, Transform3D parentViewTransform)
+        {
+            return new Articulated.Node(scope, this, parentViewTransform);
         }
     }
 
@@ -167,15 +190,16 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
 
         @Override // documentation inherited
-        public Articulated.Node getArticulatedNode (
-            GlContext ctx, Scope scope, Articulated.Node node)
+        protected Class getArticulatedNodeClass ()
         {
-            if (node instanceof Articulated.MeshNode) {
-                node.setConfig(this);
-            } else {
-                node = new Articulated.MeshNode(ctx, scope, this);
-            }
-            return node;
+            return Articulated.MeshNode.class;
+        }
+
+        @Override // documentation inherited
+        protected Articulated.Node createArticulatedNode (
+            Scope scope, Transform3D parentViewTransform)
+        {
+            return new Articulated.MeshNode(scope, this, parentViewTransform);
         }
     }
 
@@ -195,9 +219,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
     }
 
     /**
-     * Represents an attachment point on an articulated model.
+     * Represents an attached model.
      */
-    public class AttachmentPoint extends DeepObject
+    public class Attachment extends DeepObject
         implements Exportable
     {
         /** The name of the node representing the attachment point. */
@@ -206,7 +230,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
 
         /** The model to attach to the node. */
         @Editable(nullable=true)
-        public ConfigReference<ModelConfig> attachment;
+        public ConfigReference<ModelConfig> model;
 
         /**
          * Returns the options available for the node field.
@@ -227,9 +251,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
     @Editable
     public AnimationMapping[] animationMappings = new AnimationMapping[0];
 
-    /** The model's attachment points. */
+    /** The model's attachments. */
     @Editable(depends={"source"})
-    public AttachmentPoint[] attachmentPoints = new AttachmentPoint[0];
+    public Attachment[] attachments = new Attachment[0];
 
     /** The root node. */
     @Shallow

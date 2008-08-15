@@ -8,6 +8,7 @@ import java.util.Map;
 import com.samskivert.util.ObjectUtil;
 
 import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.MutableLong;
@@ -182,10 +183,26 @@ public class Model extends DynamicScope
     /**
      * Sets the configuration of this model.
      */
+    public void setConfig (ConfigReference<ModelConfig> ref)
+    {
+        setConfig(_ctx.getConfigManager().getConfig(ModelConfig.class, ref));
+    }
+
+    /**
+     * Sets the configuration of this model.
+     */
     public void setConfig (String name, String firstKey, Object firstValue, Object... otherArgs)
     {
         setConfig(_ctx.getConfigManager().getConfig(
             ModelConfig.class, name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Resets the configuration of this model to the null configuration.
+     */
+    public void clearConfig ()
+    {
+        setConfig((ModelConfig)null);
     }
 
     /**

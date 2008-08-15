@@ -185,7 +185,7 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, ConfigReference<T> ref)
     {
-        return getConfig(clazz, ref.getName(), ref.getArguments());
+        return (ref == null) ? null : getConfig(clazz, ref.getName(), ref.getArguments());
     }
 
     /**
@@ -221,6 +221,11 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name)
     {
+        // check for a null name
+        if (name == null) {
+            return null;
+        }
+
         // for resource-loaded configs, go through the cache
         if (isResourceClass(clazz)) {
             ManagedConfig config = _resources.get(name);

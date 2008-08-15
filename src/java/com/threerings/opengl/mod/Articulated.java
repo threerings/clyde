@@ -3,6 +3,7 @@
 
 package com.threerings.opengl.mod;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,10 +22,14 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.mat.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig;
+import com.threerings.opengl.model.config.ArticulatedConfig.AnimationMapping;
+import com.threerings.opengl.model.config.ArticulatedConfig.Attachment;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
+
+import static com.threerings.opengl.Log.*;
 
 /**
  * An articulated model implementation.
@@ -39,53 +44,38 @@ public class Articulated extends Model.Implementation
         /**
          * Creates a new node.
          */
-        public Node (GlContext ctx, Scope parentScope, ArticulatedConfig.Node config)
+        public Node (
+            Scope parentScope, ArticulatedConfig.Node config, Transform3D parentViewTransform)
         {
             super(parentScope);
-            _ctx = ctx;
             _viewTransform = new Transform3D();
-            setConfig(config);
+            setConfig(config, parentViewTransform);
         }
 
         /**
          * Sets the configuration of this node.
          */
-        public void setConfig (ArticulatedConfig.Node config)
+        public void setConfig (ArticulatedConfig.Node config, Transform3D parentViewTransform)
         {
             _config = config;
             _localTransform.set(config.transform);
-
-            // reconfigure the children
-            Node[] ochildren = _children;
-            if (_children == null || _children.length != config.children.length) {
-                _children = new Node[config.children.length];
-            }
-            for (int ii = 0; ii < _children.length; ii++) {
-                Node ochild = (ochildren == null || ochildren.length <= ii) ? null : ochildren[ii];
-                _children[ii] = config.children[ii].getArticulatedNode(_ctx, _parentScope, ochild);
-            }
+            _parentViewTransform = parentViewTransform;
         }
 
         /**
-         * Updates the node map.
+         * Returns a reference to the configuration of this node.
          */
-        public void updateNodeMap (HashMap<String, Node> nodes)
+        public ArticulatedConfig.Node getConfig ()
         {
-            nodes.put(_config.name, this);
-            for (Node child : _children) {
-                child.updateNodeMap(nodes);
-            }
+            return _config;
         }
 
         /**
-         * Creates the surfaces of this node.
+         * Returns a reference to this node's view transform.
          */
-        public void createSurfaces (
-            MaterialMapping[] materialMappings, Map<String, MaterialConfig> materialConfigs)
+        public Transform3D getViewTransform ()
         {
-            for (Node child : _children) {
-                child.createSurfaces(materialMappings, materialConfigs);
-            }
+            return _viewTransform;
         }
 
         /**
@@ -101,24 +91,27 @@ public class Articulated extends Model.Implementation
         }
 
         /**
-         * Enqueues this node for rendering.
-         *
-         * @param parentViewTransform the view transform of the parent node.
+         * Creates the surfaces of this node.
          */
-        public void enqueue (Transform3D parentViewTransform)
+        public void createSurfaces (
+            GlContext ctx, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Enqueues this node for rendering.
+         */
+        public void enqueue ()
         {
             // compose parent view transform with local transform
-            parentViewTransform.compose(_localTransform, _viewTransform);
+            _parentViewTransform.compose(_localTransform, _viewTransform);
 
             // update bone transform if necessary
             if (_boneTransform != null) {
                 _viewTransform.compose(_config.invRefTransform, _boneTransform);
                 _boneTransform.update(Transform3D.AFFINE);
-            }
-
-            // enqueue children
-            for (Node child : _children) {
-                child.enqueue(_viewTransform);
             }
         }
 
@@ -131,17 +124,16 @@ public class Articulated extends Model.Implementation
         /**
          * Constructor for subclasses.
          */
-        protected Node (GlContext ctx, Scope parentScope)
+        protected Node (Scope parentScope)
         {
             super(parentScope);
-            _ctx = ctx;
         }
-
-        /** The application context. */
-        protected GlContext _ctx;
 
         /** The node configuration. */
         protected ArticulatedConfig.Node _config;
+
+        /** A reference to the parent view transform. */
+        protected Transform3D _parentViewTransform;
 
         /** The node's local transform. */
         protected Transform3D _localTransform = new Transform3D();
@@ -152,9 +144,6 @@ public class Articulated extends Model.Implementation
 
         /** The bone transform, for nodes used as bones. */
         protected Transform3D _boneTransform;
-
-        /** The children of this node. */
-        protected Node[] _children;
     }
 
     /**
@@ -165,39 +154,40 @@ public class Articulated extends Model.Implementation
         /**
          * Creates a new mesh node.
          */
-        public MeshNode (GlContext ctx, Scope parentScope, ArticulatedConfig.MeshNode config)
+        public MeshNode (
+            Scope parentScope, ArticulatedConfig.MeshNode config, Transform3D parentViewTransform)
         {
-            super(ctx, parentScope);
+            super(parentScope);
             _viewTransform = _transformState.getModelview();
-            setConfig(config);
+            setConfig(config, parentViewTransform);
         }
 
         @Override // documentation inherited
         public void createSurfaces (
-            MaterialMapping[] materialMappings, Map<String, MaterialConfig> materialConfigs)
+            GlContext ctx, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
         {
-            super.createSurfaces(materialMappings, materialConfigs);
             VisibleMesh mesh = ((ArticulatedConfig.MeshNode)_config).visible;
             if (mesh != null) {
-                _surface = createSurface(_ctx, this, mesh, materialMappings, materialConfigs);
+                _surface = createSurface(ctx, this, mesh, materialMappings, materialConfigs);
             }
         }
 
         @Override // documentation inherited
-        public void enqueue (Transform3D parentViewTransform)
+        public void enqueue ()
         {
-            super.enqueue(parentViewTransform);
+            super.enqueue();
             if (_surface != null) {
                 _transformState.setDirty(true);
                 _surface.enqueue();
             }
         }
 
-        /** The mesh's transform state. */
+        /** The surface transform state. */
         @Scoped
         protected TransformState _transformState = new TransformState();
 
-        /** The mesh surface. */
+        /** The surface. */
         protected Surface _surface;
     }
 
@@ -218,20 +208,86 @@ public class Articulated extends Model.Implementation
     {
         _config = config;
 
-        // configure the node hierarchy
-        _root = config.root.getArticulatedNode(_ctx, this, _root);
+        // create the node list
+        ArrayList<Node> nnodes = new ArrayList<Node>();
+        config.root.getArticulatedNodes(this, _nodes, nnodes, _viewTransform);
+        _nodes = nnodes.toArray(new Node[nnodes.size()]);
 
-        // update the node map
-        _nodes.clear();
-        _root.updateNodeMap(_nodes);
+        // populate the name map
+        _nodesByName.clear();
+        for (Node node : _nodes) {
+            _nodesByName.put(node.getConfig().name, node);
+        }
 
         // create the node surfaces
         Map<String, MaterialConfig> materialConfigs = Maps.newHashMap();
-        _root.createSurfaces(config.materialMappings, materialConfigs);
+        for (Node node : _nodes) {
+            node.createSurfaces(_ctx, config.materialMappings, materialConfigs);
+        }
 
         // create the skinned surfaces
         _surfaces = createSurfaces(
             _ctx, this, config.skin.visible, config.materialMappings, materialConfigs);
+
+        // create the configured attachments
+        Model[] omodels = _configAttachments;
+        _configAttachments = new Model[config.attachments.length];
+        for (int ii = 0; ii < _configAttachments.length; ii++) {
+            Model model = (omodels == null || omodels.length <= ii) ?
+                new Model(_ctx) : omodels[ii];
+            _configAttachments[ii] = model;
+            Attachment attachment = config.attachments[ii];
+            model.setParentScope(getNode(attachment.node));
+            model.setConfig(attachment.model);
+        }
+    }
+
+    /**
+     * Attaches the specified model at the given point.
+     */
+    public void attach (String point, Model model)
+    {
+        attach(point, model, true);
+    }
+
+    /**
+     * Attaches the specified model at the given point.
+     *
+     * @param replace if true, replace any existing attachments at the point.
+     */
+    public void attach (String point, Model model, boolean replace)
+    {
+        Node node = getNode(point);
+        if (node == null) {
+            return;
+        }
+        if (replace) {
+            detachAll(node);
+        }
+        model.setParentScope(node);
+        _userAttachments.add(model);
+    }
+
+    /**
+     * Detaches any models attached to the specified point.
+     */
+    public void detachAll (String point)
+    {
+        detachAll(getNode(point));
+    }
+
+    /**
+     * Detaches an attached model.
+     */
+    public void detach (Model model)
+    {
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            if (_userAttachments.get(ii) == model) {
+                _userAttachments.remove(ii);
+                return;
+            }
+        }
+        log.warning("Missing attachment to remove.", "model", model);
     }
 
     /**
@@ -240,20 +296,34 @@ public class Articulated extends Model.Implementation
     @Scoped
     public Matrix4f getBoneMatrix (String name)
     {
-        Node node = _nodes.get(name);
+        Node node = _nodesByName.get(name);
         return (node == null) ? (Matrix4f)_parentGetBoneMatrix.call(name) : node.getBoneMatrix();
     }
 
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        // update the view transform and the transform hierarchy
+        // update the view transform
         _parentViewTransform.compose(_localTransform, _viewTransform);
-        _root.enqueue(_viewTransform);
+
+        // update/enqueue the nodes
+        for (Node node : _nodes) {
+            node.enqueue();
+        }
 
         // enqueue the surfaces
         for (Surface surface : _surfaces) {
             surface.enqueue();
+        }
+
+        // enqueue the configured attachments
+        for (Model model : _configAttachments) {
+            model.enqueue();
+        }
+
+        // and the user attachments
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            _userAttachments.get(ii).enqueue();
         }
     }
 
@@ -263,20 +333,48 @@ public class Articulated extends Model.Implementation
         return false;
     }
 
+    /**
+     * Returns a reference to the node with the specified name, logging a warning and returning
+     * <code>null</code> if no such node exists.
+     */
+    protected Node getNode (String name)
+    {
+        Node node = _nodesByName.get(name);
+        if (node == null) {
+            log.warning("Missing node.", "node", name);
+        }
+        return node;
+    }
+
+    /**
+     * Detaches all models attached to the specified node.
+     */
+    protected void detachAll (Node node)
+    {
+        for (int ii = _userAttachments.size() - 1; ii >= 0; ii--) {
+            if (_userAttachments.get(ii).getParentScope() == node) {
+                _userAttachments.remove(ii);
+            }
+        }
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
     /** The model configuration. */
     protected ArticulatedConfig _config;
 
-    /** The root node. */
-    protected Node _root;
+    /** The model nodes, in the order of a preorder depth-first traversal. */
+    protected Node[] _nodes;
+
+    /** Maps node names to nodes. */
+    protected HashMap<String, Node> _nodesByName = new HashMap<String, Node>();
 
     /** The skinned surfaces. */
     protected Surface[] _surfaces;
 
-    /** The set of nodes, mapped by name. */
-    protected HashMap<String, Node> _nodes = new HashMap<String, Node>();
+    /** The attachments created from the configuration. */
+    protected Model[] _configAttachments;
 
     /** The local transform. */
     @Bound
@@ -293,4 +391,7 @@ public class Articulated extends Model.Implementation
     /** The view transform. */
     @Scoped
     protected Transform3D _viewTransform = new Transform3D();
+
+    /** User attachments (their parent scopes are the nodes to which they're attached). */
+    protected ArrayList<Model> _userAttachments = new ArrayList<Model>();
 }
