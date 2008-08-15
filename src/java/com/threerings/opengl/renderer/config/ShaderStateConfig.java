@@ -95,6 +95,21 @@ public abstract class ShaderStateConfig extends DeepObject
             }
             ArrayList<Uniform> uniforms = new ArrayList<Uniform>();
             if (vshader != null) {
+                PassDescriptor desc = new PassDescriptor();
+                vconfig.populateDescriptor(ctx, desc);
+                boolean relink = false;
+                for (int ii = 0; ii < desc.vertexAttribs.length; ii++) {
+                    String attrib = desc.vertexAttribs[ii];
+                    int oloc = program.getAttribLocation(attrib);
+                    int nloc = desc.firstVertexAttribIndex + ii;
+                    if (oloc != nloc) {
+                        program.setAttribLocation(attrib, nloc);
+                        relink = true;
+                    }
+                }
+                if (relink) {
+                    program.relink();
+                }
                 for (UniformConfig config : vconfig.getUniforms(ctx)) {
                     config.createUniforms(scope, program, uniforms, updaters);
                 }

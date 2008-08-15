@@ -162,6 +162,9 @@ public class ModelDef
             // initialize the skin
             config.skin = new ModelConfig.MeshSet(
                 visible.toArray(new ModelConfig.VisibleMesh[visible.size()]), collision);
+
+            // update transient fields
+            config.initTransientFields();
         }
 
         /**
@@ -867,6 +870,7 @@ public class ModelDef
         {
             solid = other.solid;
             texture = other.texture;
+            tag = other.tag;
             transparent = other.transparent;
         }
 
@@ -920,6 +924,16 @@ public class ModelDef
 
             // merge any children
             super.mergeSkinMeshes(mesh);
+        }
+
+        @Override // documentation inherited
+        public ArticulatedConfig.Node createNode (
+            ArticulatedConfig config, boolean haveCollisionMesh)
+        {
+            return new ArticulatedConfig.Node(
+                name,
+                createTransform(translation, rotation, scale, config.scale),
+                createChildNodes(config, haveCollisionMesh));
         }
 
         @Override // documentation inherited

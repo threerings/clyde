@@ -160,6 +160,7 @@ public class ShaderConfig extends ParameterizedConfig
         {
             desc.coordSpace = coordSpace;
             desc.hints = hints;
+            desc.firstVertexAttribIndex = FIRST_VERTEX_ATTRIB_INDEX;
             desc.vertexAttribs = attributes;
             desc.colors |= colors;
             desc.normals |= normals;
@@ -655,4 +656,7 @@ public class ShaderConfig extends ParameterizedConfig
 
     /** Formats floats so that they will be recognized as float constants in GLSL. */
     protected static final DecimalFormat GLSL_FLOAT = new DecimalFormat("0.0");
+
+    /** The index of the first vertex attribute (earlier ones are reserved). */
+    protected static final int FIRST_VERTEX_ATTRIB_INDEX = 9;
 }

@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.model.config;
 
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.TreeSet;
 
@@ -12,6 +14,7 @@ import com.samskivert.util.QuickSort;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
@@ -44,6 +47,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
 
         /** The children of the node. */
         public Node[] children;
+
+        /** The inverse of the reference space transform. */
+        public transient Transform3D invRefTransform;
 
         public Node (String name, Transform3D transform, Node[] children)
         {
@@ -84,6 +90,36 @@ public class ArticulatedConfig extends ModelConfig.Imported
         {
             for (Node child : children) {
                 child.getTextureTagPairs(pairs);
+            }
+        }
+
+        /**
+         * Creates an articulated node for this config.
+         *
+         * @param node an existing node to reuse, if possible.
+         * @return either a reference to the existing node (if reused), or a new node.
+         */
+        public Articulated.Node getArticulatedNode (
+            GlContext ctx, Scope scope, Articulated.Node node)
+        {
+            // require an exact class match
+            if (node != null && node.getClass() == Articulated.Node.class) {
+                node.setConfig(this);
+            } else {
+                node = new Articulated.Node(ctx, scope, this);
+            }
+            return node;
+        }
+
+        /**
+         * Updates the nodes' reference transforms.
+         */
+        public void updateRefTransforms (Transform3D parentRefTransform)
+        {
+            Transform3D refTransform = parentRefTransform.compose(transform);
+            invRefTransform = refTransform.invert();
+            for (Node child : children) {
+                child.updateRefTransforms(refTransform);
             }
         }
     }
@@ -128,6 +164,18 @@ public class ArticulatedConfig extends ModelConfig.Imported
             if (visible != null) {
                 pairs.add(new ComparableTuple<String, String>(visible.texture, visible.tag));
             }
+        }
+
+        @Override // documentation inherited
+        public Articulated.Node getArticulatedNode (
+            GlContext ctx, Scope scope, Articulated.Node node)
+        {
+            if (node instanceof Articulated.MeshNode) {
+                node.setConfig(this);
+            } else {
+                node = new Articulated.MeshNode(ctx, scope, this);
+            }
+            return node;
         }
     }
 
@@ -190,6 +238,26 @@ public class ArticulatedConfig extends ModelConfig.Imported
     /** The skin meshes. */
     @Shallow
     public MeshSet skin;
+
+    /**
+     * Reads the fields of this object.
+     */
+    public void readFields (Importer in)
+        throws IOException
+    {
+        in.defaultReadFields();
+        initTransientFields();
+    }
+
+    /**
+     * Initializes the transient fields of the objects after construction or deserialization.
+     */
+    public void initTransientFields ()
+    {
+        if (root != null) {
+            root.updateRefTransforms(new Transform3D());
+        }
+    }
 
     @Override // documentation inherited
     public Model.Implementation getModelImplementation (
