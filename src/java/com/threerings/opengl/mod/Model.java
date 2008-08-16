@@ -34,12 +34,14 @@ import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * A 3D model.
  */
 public class Model extends DynamicScope
     implements Tickable, Intersectable, Renderable,
-        ConfigUpdateListener<ModelConfig>, ScopeUpdateListener
+        ConfigUpdateListener<ModelConfig>
 {
     /**
      * The actual model implementation.
@@ -50,6 +52,40 @@ public class Model extends DynamicScope
         public Implementation (Scope parentScope)
         {
             super(parentScope);
+        }
+
+        /**
+         * Attaches the specified model at the given point.
+         *
+         * @param replace if true, replace any existing attachments at the point.
+         */
+        public void attach (String point, Model model, boolean replace)
+        {
+            log.warning("Attachment not supported.", "point", point, "model", model);
+        }
+
+        /**
+         * Detaches an attached model.
+         */
+        public void detach (Model model)
+        {
+            log.warning("Model not attached.", "model", model);
+        }
+
+        /**
+         * Detaches any models attached to the specified point.
+         */
+        public void detachAll (String point)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Returns the model's list of animations.
+         */
+        public Animation[] getAnimations ()
+        {
+            return null;
         }
 
         // documentation inherited from interface Tickable
@@ -263,6 +299,49 @@ public class Model extends DynamicScope
     public LightState getLightState ()
     {
         return _lightState;
+    }
+
+    /**
+     * Attaches the specified model at the given point.
+     */
+    public void attach (String point, Model model)
+    {
+        attach(point, model, true);
+    }
+
+    /**
+     * Attaches the specified model at the given point.
+     *
+     * @param replace if true, replace any existing attachments at the point.
+     */
+    public void attach (String point, Model model, boolean replace)
+    {
+        _impl.attach(point, model, replace);
+    }
+
+    /**
+     * Detaches an attached model.
+     */
+    public void detach (Model model)
+    {
+        _impl.detach(model);
+    }
+
+    /**
+     * Detaches any models attached to the specified point.
+     */
+    public void detachAll (String point)
+    {
+        _impl.detachAll(point);
+    }
+
+    /**
+     * Returns a reference to this model's list of animations (or <code>null</code> if the
+     * model does not support animation).
+     */
+    public Animation[] getAnimations ()
+    {
+        return _impl.getAnimations();
     }
 
     /**

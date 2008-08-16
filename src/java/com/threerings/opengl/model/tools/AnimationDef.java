@@ -14,6 +14,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Animation.Frame;
+import com.threerings.opengl.model.config.AnimationConfig;
 
 /**
  * An intermediate representation for animations used to store data parsed from XML.
@@ -117,6 +118,16 @@ public class AnimationDef
 
         // create and return the animation
         return new Animation(props, frameRate, targets, aframes);
+    }
+
+    /**
+     * Updates the supplied configuration with the animation data in this definition.
+     */
+    public void update (AnimationConfig.Imported config)
+    {
+        config.rate = frameRate;
+        config.targets = getTargets();
+        config.transforms = getTransforms(config.targets, config.scale);
     }
 
     /**

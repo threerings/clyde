@@ -10,14 +10,17 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
 import com.threerings.expr.Transform3DExpression;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
+import com.threerings.opengl.mod.Animation;
 import com.threerings.opengl.model.tools.AnimationDef;
 import com.threerings.opengl.model.tools.xml.AnimationParser;
+import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.*;
 
@@ -41,6 +44,20 @@ public class AnimationConfig extends ParameterizedConfig
         public void updateFromSource (EditorContext ctx, boolean force)
         {
             // nothing by default
+        }
+
+        /**
+         * Creates or updates an animation implementation for this configuration.
+         *
+         * @param scope the animation's expression scope.
+         * @param impl an existing implementation to reuse, if possible.
+         * @return either a reference to the existing implementation (if reused), a new
+         * implementation, or <code>null</code> if no implementation could be created.
+         */
+        public Animation.Implementation getAnimationImplementation (
+            GlContext ctx, Scope scope, Animation.Implementation impl)
+        {
+            return null;
         }
     }
 
@@ -96,6 +113,17 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable(hgroup="l")
         public boolean skipLastFrame = true;
 
+        /** The base animation frame rate. */
+        public float rate;
+
+        /** The targets of the animation. */
+        @Shallow
+        public String[] targets;
+
+        /** The transforms for each target, each frame. */
+        @Shallow
+        public Transform3D[][] transforms;
+
         /**
          * Sets the source file from which to load the animation data.
          */
@@ -127,8 +155,7 @@ public class AnimationConfig extends ParameterizedConfig
             }
             _reload = false;
             if (_source == null) {
-                _targets = new String[0];
-                _transforms = new Transform3D[0][];
+                updateFromSource(null);
                 return;
             }
             if (_parser == null) {
@@ -136,29 +163,44 @@ public class AnimationConfig extends ParameterizedConfig
             }
             AnimationDef def;
             try {
-                def = _parser.parseAnimation(ctx.getResourceManager().getResource(_source));
+                updateFromSource(_parser.parseAnimation(
+                    ctx.getResourceManager().getResource(_source)));
             } catch (Exception e) {
                 log.warning("Error parsing animation [source=" + _source + "].", e);
                 return;
             }
-            _rate = def.frameRate;
-            _targets = def.getTargets();
-            _transforms = def.getTransforms(_targets, scale);
+        }
+
+        @Override // documentation inherited
+        public Animation.Implementation getAnimationImplementation (
+            GlContext ctx, Scope scope, Animation.Implementation impl)
+        {
+            if (targets == null) {
+                return null;
+            }
+            if (impl instanceof Animation.Imported) {
+                ((Animation.Imported)impl).setConfig(this);
+            } else {
+                impl = new Animation.Imported(scope, this);
+            }
+            return impl;
+        }
+
+        /**
+         * Updates from a parsed animation definition.
+         */
+        protected void updateFromSource (AnimationDef def)
+        {
+            if (def == null) {
+                targets = null;
+                transforms = null;
+            } else {
+                def.update(this);
+            }
         }
 
         /** The resource from which we read the animation data. */
         protected String _source;
-
-        /** The base animation frame rate. */
-        protected float _rate;
-
-        /** The targets of the animation. */
-        @Shallow
-        protected String[] _targets = new String[0];
-
-        /** The transforms for each target, each frame. */
-        @Shallow
-        protected Transform3D[][] _transforms = new Transform3D[0][];
 
         /** Indicates that {@link #updateFromSource} should reload the data. */
         @DeepOmit
@@ -173,6 +215,18 @@ public class AnimationConfig extends ParameterizedConfig
         /** The list of target transforms. */
         @Editable
         public TargetTransform[] transforms = new TargetTransform[0];
+
+        @Override // documentation inherited
+        public Animation.Implementation getAnimationImplementation (
+            GlContext ctx, Scope scope, Animation.Implementation impl)
+        {
+            if (impl instanceof Animation.Procedural) {
+                ((Animation.Procedural)impl).setConfig(this);
+            } else {
+                impl = new Animation.Procedural(scope, this);
+            }
+            return impl;
+        }
     }
 
     /**
@@ -183,6 +237,15 @@ public class AnimationConfig extends ParameterizedConfig
         /** The animation reference. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
+
+        @Override // documentation inherited
+        public Animation.Implementation getAnimationImplementation (
+            GlContext ctx, Scope scope, Animation.Implementation impl)
+        {
+            AnimationConfig config = ctx.getConfigManager().getConfig(
+                AnimationConfig.class, animation);
+            return (config == null) ? null : config.getAnimationImplementation(ctx, scope, impl);
+        }
     }
 
     /**
@@ -203,6 +266,20 @@ public class AnimationConfig extends ParameterizedConfig
     /** The actual animation implementation. */
     @Editable
     public Implementation implementation = new Imported();
+
+    /**
+     * Creates or updates an animation implementation for this configuration.
+     *
+     * @param scope the animation's expression scope.
+     * @param impl an existing implementation to reuse, if possible.
+     * @return either a reference to the existing implementation (if reused), a new
+     * implementation, or <code>null</code> if no implementation could be created.
+     */
+    public Animation.Implementation getAnimationImplementation (
+        GlContext ctx, Scope scope, Animation.Implementation impl)
+    {
+        return implementation.getAnimationImplementation(ctx, scope, impl);
+    }
 
     @Override // documentation inherited
     public void updateFromSource (EditorContext ctx, boolean force)

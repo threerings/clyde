@@ -208,6 +208,13 @@ public class Articulated extends Model.Implementation
     {
         _config = config;
 
+        // save the names of the nodes to which the user nodes are attached
+        String[] userAttachmentNodes = new String[_userAttachments.size()];
+        for (int ii = 0; ii < userAttachmentNodes.length; ii++) {
+            userAttachmentNodes[ii] =
+                ((Node)_userAttachments.get(ii).getParentScope()).getConfig().name;
+        }
+
         // create the node list
         ArrayList<Node> nnodes = new ArrayList<Node>();
         config.root.getArticulatedNodes(this, _nodes, nnodes, _viewTransform);
@@ -229,6 +236,17 @@ public class Articulated extends Model.Implementation
         _surfaces = createSurfaces(
             _ctx, this, config.skin.visible, config.materialMappings, materialConfigs);
 
+        // create the animations
+        Animation[] oanims = _animations;
+        _animations = new Animation[config.animationMappings.length];
+        for (int ii = 0; ii < _animations.length; ii++) {
+            Animation anim = (oanims == null || oanims.length <= ii) ?
+                new Animation(_ctx, this) : oanims[ii];
+            _animations[ii] = anim;
+            AnimationMapping mapping = config.animationMappings[ii];
+            anim.setConfig(mapping.name, mapping.animation);
+        }
+
         // create the configured attachments
         Model[] omodels = _configAttachments;
         _configAttachments = new Model[config.attachments.length];
@@ -237,57 +255,21 @@ public class Articulated extends Model.Implementation
                 new Model(_ctx) : omodels[ii];
             _configAttachments[ii] = model;
             Attachment attachment = config.attachments[ii];
-            model.setParentScope(getNode(attachment.node));
+            model.setParentScope(getAttachmentNode(attachment.node));
             model.setConfig(attachment.model);
         }
-    }
 
-    /**
-     * Attaches the specified model at the given point.
-     */
-    public void attach (String point, Model model)
-    {
-        attach(point, model, true);
-    }
-
-    /**
-     * Attaches the specified model at the given point.
-     *
-     * @param replace if true, replace any existing attachments at the point.
-     */
-    public void attach (String point, Model model, boolean replace)
-    {
-        Node node = getNode(point);
-        if (node == null) {
-            return;
-        }
-        if (replace) {
-            detachAll(node);
-        }
-        model.setParentScope(node);
-        _userAttachments.add(model);
-    }
-
-    /**
-     * Detaches any models attached to the specified point.
-     */
-    public void detachAll (String point)
-    {
-        detachAll(getNode(point));
-    }
-
-    /**
-     * Detaches an attached model.
-     */
-    public void detach (Model model)
-    {
-        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
-            if (_userAttachments.get(ii) == model) {
-                _userAttachments.remove(ii);
-                return;
+        // update the user attachments
+        ArrayList<Model> oattachments = _userAttachments;
+        _userAttachments = new ArrayList<Model>();
+        for (int ii = 0; ii < userAttachmentNodes.length; ii++) {
+            Model model = oattachments.get(ii);
+            Node node = getAttachmentNode(userAttachmentNodes[ii]);
+            if (node != null) {
+                model.setParentScope(node);
+                _userAttachments.add(model);
             }
         }
-        log.warning("Missing attachment to remove.", "model", model);
     }
 
     /**
@@ -298,6 +280,15 @@ public class Articulated extends Model.Implementation
     {
         Node node = _nodesByName.get(name);
         return (node == null) ? (Matrix4f)_parentGetBoneMatrix.call(name) : node.getBoneMatrix();
+    }
+
+    /**
+     * Returns a reference to the node with the specified name.
+     */
+    @Scoped
+    public Node getNode (String name)
+    {
+        return _nodesByName.get(name);
     }
 
     // documentation inherited from interface Renderable
@@ -328,6 +319,44 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void attach (String point, Model model, boolean replace)
+    {
+        Node node = getAttachmentNode(point);
+        if (node == null) {
+            return;
+        }
+        if (replace) {
+            detachAll(node);
+        }
+        model.setParentScope(node);
+        _userAttachments.add(model);
+    }
+
+    @Override // documentation inherited
+    public void detach (Model model)
+    {
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            if (_userAttachments.get(ii) == model) {
+                _userAttachments.remove(ii);
+                return;
+            }
+        }
+        log.warning("Missing attachment to remove.", "model", model);
+    }
+
+    @Override // documentation inherited
+    public void detachAll (String point)
+    {
+        detachAll(getAttachmentNode(point));
+    }
+
+    @Override // documentation inherited
+    public Animation[] getAnimations ()
+    {
+        return _animations;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray ray, Vector3f result)
     {
         return false;
@@ -337,11 +366,11 @@ public class Articulated extends Model.Implementation
      * Returns a reference to the node with the specified name, logging a warning and returning
      * <code>null</code> if no such node exists.
      */
-    protected Node getNode (String name)
+    protected Node getAttachmentNode (String name)
     {
         Node node = _nodesByName.get(name);
         if (node == null) {
-            log.warning("Missing node.", "node", name);
+            log.warning("Missing node for attachment.", "node", name);
         }
         return node;
     }
@@ -372,6 +401,9 @@ public class Articulated extends Model.Implementation
 
     /** The skinned surfaces. */
     protected Surface[] _surfaces;
+
+    /** The animations. */
+    protected Animation[] _animations;
 
     /** The attachments created from the configuration. */
     protected Model[] _configAttachments;

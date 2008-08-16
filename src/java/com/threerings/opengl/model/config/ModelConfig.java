@@ -273,9 +273,6 @@ public class ModelConfig extends ParameterizedConfig
         public Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
-            if (model == null) {
-                return null;
-            }
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
             return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
         }
