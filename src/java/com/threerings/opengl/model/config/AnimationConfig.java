@@ -74,20 +74,16 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable(hgroup="p")
         public boolean override = true;
 
-        /** The interval over which to transition into the first frame. */
-        @Editable(min=0, step=0.01, hgroup="t")
-        public float transition;
-
         /** The blend weight of the animation. */
-        @Editable(min=0, max=1, step=0.01, hgroup="t")
+        @Editable(min=0, max=1, step=0.01, hgroup="w")
         public float weight = 1f;
 
         /** The amount of time to spend blending in the animation. */
-        @Editable(min=0, step=0.01, hgroup="b")
+        @Editable(min=0, step=0.01, hgroup="w")
         public float blendIn;
 
         /** The amount of time to spend blending out the animation. */
-        @Editable(min=0, step=0.01, hgroup="b")
+        @Editable(min=0, step=0.01, hgroup="w")
         public float blendOut;
     }
 
@@ -96,12 +92,16 @@ public class AnimationConfig extends ParameterizedConfig
      */
     public static class Imported extends Original
     {
+        /** The interval over which to transition into the first frame. */
+        @Editable(min=0, step=0.01, hgroup="t")
+        public float transition;
+
         /** The speed of the animation. */
-        @Editable(min=0, step=0.01, hgroup="r")
+        @Editable(min=0, step=0.01, hgroup="t")
         public float speed = 1f;
 
         /** The global animation scale. */
-        @Editable(min=0, step=0.01, hgroup="r")
+        @Editable(min=0, step=0.01, hgroup="t")
         public float scale = 0.01f;
 
         /** Whether or not the animation loops. */

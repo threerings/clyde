@@ -403,6 +403,21 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Stops all animations playing at the specified priority level, blending them out over the
+     * specified interval.
+     */
+    public void stopAnimations (int priority, float blendOut)
+    {
+        List<Animation> playing = getPlayingAnimations();
+        for (int ii = 0, nn = playing.size(); ii < nn; ii++) {
+            Animation anim = playing.get(ii);
+            if (anim.getPriority() == priority) {
+                anim.stop(blendOut);
+            }
+        }
+    }
+
+    /**
      * Stops all animations currently playing.
      */
     public void stopAllAnimations ()

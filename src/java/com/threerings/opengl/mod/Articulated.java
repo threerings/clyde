@@ -42,6 +42,13 @@ public class Articulated extends Model.Implementation
      */
     public static class Node extends SimpleScope
     {
+        /** The value of the update counter at the last update (used when applying animation
+         * transforms to determine which transform is being applied first). */
+        public int lastUpdate;
+
+        /** The total weight of the animation transforms applied to this node. */
+        public float totalWeight;
+
         /**
          * Creates a new node.
          */
@@ -69,6 +76,14 @@ public class Articulated extends Model.Implementation
         public ArticulatedConfig.Node getConfig ()
         {
             return _config;
+        }
+
+        /**
+         * Returns a reference to this node's local transform.
+         */
+        public Transform3D getLocalTransform ()
+        {
+            return _localTransform;
         }
 
         /**
@@ -425,11 +440,23 @@ public class Articulated extends Model.Implementation
 
     /**
      * Notes that an animation has started.
+     *
+     * @param overrideBlendOut if non-negative, an interval over which to blend out all
+     * animations currently playing at the same priority level as this one.
      */
-    protected void animationStarted (Animation animation)
+    protected void animationStarted (Animation animation, float overrideBlendOut)
     {
-        // insert into playing list in priority order
+        // make sure it's not in the list already
+        _playing.remove(animation);
+
+        // if necessary, stop any animations already playing at the same priority
+        // level
         int priority = animation.getPriority();
+        if (overrideBlendOut >= 0f) {
+            ((Model)_parentScope).stopAnimations(priority, overrideBlendOut);
+        }
+
+        // insert into playing list in priority order
         for (int ii = 0, nn = _playing.size(); ii < nn; ii++) {
             if (priority >= _playing.get(ii).getPriority()) {
                 _playing.add(ii, animation);

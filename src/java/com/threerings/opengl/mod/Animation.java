@@ -48,7 +48,8 @@ public class Animation extends SimpleScope
             blendToWeight(_config.weight, _config.blendIn);
 
             // notify containing animation
-            ((Animation)_parentScope).started();
+            ((Animation)_parentScope).started(
+                (_config.override && _config.weight == 1f) ? _config.blendIn : -1f);
         }
 
         /**
@@ -56,8 +57,16 @@ public class Animation extends SimpleScope
          */
         public void stop ()
         {
+            stop(_config.blendOut);
+        }
+
+        /**
+         * Stops the animation, blending out over the specified interval.
+         */
+        public void stop (float blendOut)
+        {
             // blend out
-            blendToWeight(0f, _config.blendOut);
+            blendToWeight(0f, blendOut);
         }
 
         /**
@@ -184,13 +193,16 @@ public class Animation extends SimpleScope
         {
             super.setConfig(_config = config);
 
-            // resolve the targets
+            // resolve the targets and initialize the snapshot array
             _targets = new Articulated.Node[config.targets.length];
+            _snapshot = new Transform3D[_targets.length];
             Function getNode = ScopeUtil.resolve(_parentScope, "getNode", Function.NULL);
             for (int ii = 0; ii < _targets.length; ii++) {
                 _targets[ii] = (Articulated.Node)getNode.call(config.targets[ii]);
+                if (_targets[ii] != null) {
+                    _snapshot[ii] = new Transform3D();
+                }
             }
-
         }
 
         @Override // documentation inherited
@@ -200,16 +212,127 @@ public class Animation extends SimpleScope
             _accum = 0f;
             _completed = false;
 
+            // if transitioning, take a snapshot of the current transforms
+            if (_transitioning = (_config.transition > 0f)) {
+                for (int ii = 0; ii < _targets.length; ii++) {
+                    Articulated.Node target = _targets[ii];
+                    if (target != null) {
+                        _snapshot[ii].set(target.getLocalTransform());
+                    }
+                }
+            }
+
             super.start();
         }
 
         @Override // documentation inherited
-        public void stop ()
+        public boolean isPlaying ()
         {
-            super.stop();
+            return super.isPlaying() && !hasCompleted();
         }
 
+        @Override // documentation inherited
+        public boolean tick (float elapsed)
+        {
+            // apply speed modifier
+            super.tick(elapsed *= _config.speed);
+            if (!isPlaying()) {
+                return false;
+            }
+            // if we're transitioning, update the accumulated portion based on transition time
+            if (_transitioning) {
+                _accum += (elapsed / _config.transition);
+                if (_accum < 1f) {
+                    return false; // still transitioning
+                }
+                // done transitioning; fix accumulated frames and clear transition flag
+                _accum = (_accum - 1f) * _config.transition * _config.rate;
+                _transitioning = false;
 
+            // otherwise, based on frame rate
+            } else {
+                _accum += (elapsed * _config.rate);
+            }
+            int frames = (int)_accum;
+            _accum -= frames;
+
+            // advance the frame index
+            int fcount = _config.transforms.length;
+            if (_config.loop) {
+                _fidx = (_fidx + frames) % (fcount - (_config.skipLastFrame ? 1 : 0));
+
+            } else if ((_fidx += frames) >= fcount - 1) {
+                _fidx = fcount - 1;
+                _accum = 0f;
+                _completed = true;
+                ((Animation)_parentScope).stopped(true);
+                return true;
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean hasCompleted ()
+        {
+            return _completed;
+        }
+
+        @Override // documentation inherited
+        public void updateTransforms ()
+        {
+            Transform3D[][] transforms = _config.transforms;
+            Transform3D[] t1, t2;
+            if (_transitioning) {
+                t1 = _snapshot;
+                t2 = transforms[0];
+            } else {
+                t1 = transforms[_fidx];
+                t2 = transforms[(_fidx + 1) % transforms.length];
+            }
+            for (int ii = 0; ii < _targets.length; ii++) {
+                // lerp into the target transform
+                Articulated.Node target = _targets[ii];
+                if (target != null) {
+                    t1[ii].lerp(t2[ii], _accum, target.getLocalTransform());
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        public void blendTransforms (int update)
+        {
+            Transform3D[][] transforms = _config.transforms;
+            Transform3D[] t1, t2;
+            if (_transitioning) {
+                t1 = _snapshot;
+                t2 = transforms[0];
+            } else {
+                t1 = transforms[_fidx];
+                t2 = transforms[(_fidx + 1) % transforms.length];
+            }
+            for (int ii = 0; ii < _targets.length; ii++) {
+                // first make sure the target exists
+                Articulated.Node target = _targets[ii];
+                if (target == null) {
+                    continue;
+                }
+                // then see if we're the first to touch it, in which case we can lerp directly
+                if (target.lastUpdate != update) {
+                    t1[ii].lerp(t2[ii], _accum, target.getLocalTransform());
+                    target.lastUpdate = update;
+                    target.totalWeight = _weight;
+                    continue;
+                }
+                // if the total weight is less than one, we can add our contribution
+                if (target.totalWeight >= 1f) {
+                    continue;
+                }
+                float weight = Math.min(_weight, 1f - target.totalWeight);
+                t1[ii].lerp(t2[ii], _accum, _xform);
+                target.getLocalTransform().lerpLocal(
+                    _xform, weight / (target.totalWeight += weight));
+            }
+        }
 
         /** The implementation configuration. */
         protected AnimationConfig.Imported _config;
@@ -219,6 +342,9 @@ public class Animation extends SimpleScope
 
         /** A snapshot of the original transforms of the targets, for transitioning. */
         protected Transform3D[] _snapshot;
+
+        /** Whether we are currently transitioning into the first frame. */
+        protected boolean _transitioning;
 
         /** The time remaining until we have to start blending the animation out. */
         protected float _countdown;
@@ -360,6 +486,15 @@ public class Animation extends SimpleScope
     }
 
     /**
+     * Stops playing this animation, blending it out over the specified interval
+     * (as opposed to its default interval).
+     */
+    public void stop (float blendOut)
+    {
+        _impl.stop(blendOut);
+    }
+
+    /**
      * Determines whether this animation is playing.
      */
     public boolean isPlaying ()
@@ -468,11 +603,14 @@ public class Animation extends SimpleScope
 
     /**
      * Notes that the animation started.
+     *
+     * @param overrideBlendOut if non-negative, an interval over which to blend out all
+     * animations currently playing at the same priority level as this one.
      */
-    protected void started ()
+    protected void started (float overrideBlendOut)
     {
         // notify the containing implementation
-        ((Articulated)_parentScope).animationStarted(this);
+        ((Articulated)_parentScope).animationStarted(this, overrideBlendOut);
 
         // notify observers
         applyStartedOp(_observers, this);
