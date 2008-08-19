@@ -208,6 +208,7 @@ public class Animation extends SimpleScope
         @Override // documentation inherited
         public void start ()
         {
+            // initialize frame counter
             _fidx = 0;
             _accum = 0f;
             _completed = false;
@@ -222,6 +223,12 @@ public class Animation extends SimpleScope
                 }
             }
 
+            // if blending out, store countdown time
+            if (_counting = (!_config.loop && _config.blendOut > 0f)) {
+                _countdown = _config.getDuration() - _config.blendOut;
+            }
+
+            // blend in
             super.start();
         }
 
@@ -234,11 +241,17 @@ public class Animation extends SimpleScope
         @Override // documentation inherited
         public boolean tick (float elapsed)
         {
-            // apply speed modifier
-            super.tick(elapsed *= _config.speed);
+            // see if we need to start blending out
+            if (_counting && (_countdown -= elapsed) <= 0f) {
+                blendToWeight(0f, _config.blendOut);
+            }
+
+            // update the weight
+            super.tick(elapsed);
             if (!isPlaying()) {
                 return false;
             }
+
             // if we're transitioning, update the accumulated portion based on transition time
             if (_transitioning) {
                 _accum += (elapsed / _config.transition);
@@ -246,12 +259,12 @@ public class Animation extends SimpleScope
                     return false; // still transitioning
                 }
                 // done transitioning; fix accumulated frames and clear transition flag
-                _accum = (_accum - 1f) * _config.transition * _config.rate;
+                _accum = (_accum - 1f) * _config.transition * _config.getScaledRate();
                 _transitioning = false;
 
             // otherwise, based on frame rate
             } else {
-                _accum += (elapsed * _config.rate);
+                _accum += (elapsed * _config.getScaledRate());
             }
             int frames = (int)_accum;
             _accum -= frames;
@@ -334,6 +347,15 @@ public class Animation extends SimpleScope
             }
         }
 
+        @Override // documentation inherited
+        protected void blendToWeight (float weight, float interval)
+        {
+            super.blendToWeight(weight, interval);
+            if (weight == 0f) {
+                _counting = false; // cancel any plans to blend out
+            }
+        }
+
         /** The implementation configuration. */
         protected AnimationConfig.Imported _config;
 
@@ -345,6 +367,9 @@ public class Animation extends SimpleScope
 
         /** Whether we are currently transitioning into the first frame. */
         protected boolean _transitioning;
+
+        /** Whether we are counting down until we must blend out. */
+        protected boolean _counting;
 
         /** The time remaining until we have to start blending the animation out. */
         protected float _countdown;

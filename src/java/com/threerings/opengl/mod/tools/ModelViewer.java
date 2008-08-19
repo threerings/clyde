@@ -11,6 +11,8 @@ import java.awt.event.KeyEvent;
 
 import java.io.File;
 
+import java.text.DecimalFormat;
+
 import java.util.prefs.Preferences;
 
 import javax.swing.DefaultComboBoxModel;
@@ -21,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -89,10 +92,25 @@ public class ModelViewer extends GlCanvasTool
         view.addSeparator();
         view.add(createMenuItem("recenter", KeyEvent.VK_R, KeyEvent.VK_C));
 
+        // add the bottom panel
+        JPanel bottom = GroupLayout.makeVBox(
+            GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
+        _frame.add(bottom, BorderLayout.SOUTH);
+
         // add the track panel container
         _tpanels = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
-        _frame.add(_tpanels, BorderLayout.SOUTH);
+        bottom.add(_tpanels);
         _tpanels.setVisible(false);
+
+        // add the controls
+        JPanel controls = new JPanel();
+        bottom.add(controls);
+        controls.add(new JLabel(_msgs.get("m.global_speed")));
+        controls.add(_speedSlider = new JSlider(-200, +200, 0));
+        _speedSlider.setPreferredSize(new Dimension(400, _speedSlider.getPreferredSize().height));
+        _speedSlider.addChangeListener(this);
+        controls.add(_speedLabel = new JLabel());
+        updateSpeedLabel();
 
         // configure the config editor
         ModelConfig.Derived impl = new ModelConfig.Derived();
@@ -109,8 +127,13 @@ public class ModelViewer extends GlCanvasTool
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        // let the config know that it was updated
-        _model.getConfig().wasUpdated();
+        if (event.getSource() == _epanel) {
+            // let the config know that it was updated
+            _model.getConfig().wasUpdated();
+
+        } else { // event.getSource() == _speedSlider
+            updateSpeedLabel();
+        }
     }
 
     // documentation inherited from interface ConfigUpdateListener
@@ -191,11 +214,24 @@ public class ModelViewer extends GlCanvasTool
     @Override // documentation inherited
     protected void updateView ()
     {
-        super.updateView();
-        long time = System.currentTimeMillis();
-        float elapsed = (_lastTick == 0L) ? 0f : (time - _lastTick) / 1000f;
+        // scaled the elapsed time by the speed
+        long nnow = System.currentTimeMillis();
+        _elapsed += (nnow - _lastUpdate) * getSpeed();
+        _lastUpdate = nnow;
+
+        // remove the integer portion for use as time increment
+        long lelapsed = (long)_elapsed;
+        _elapsed -= lelapsed;
+        _now.value += lelapsed;
+
+        updateView(lelapsed / 1000f);
+    }
+
+    @Override // documentation inherited
+    protected void updateView (float elapsed)
+    {
+        super.updateView(elapsed);
         _model.tick(elapsed);
-        _lastTick = time;
     }
 
     @Override // documentation inherited
@@ -213,6 +249,23 @@ public class ModelViewer extends GlCanvasTool
         for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
             ((TrackPanel)_tpanels.getComponent(ii)).updateControls();
         }
+    }
+
+    /**
+     * Updates the speed display.
+     */
+    protected void updateSpeedLabel ()
+    {
+        _speedLabel.setText(SPEED_FORMAT.format(getSpeed()));
+    }
+
+    /**
+     * Returns the speed as read from the slider.
+     */
+    protected double getSpeed ()
+    {
+        double base = (double)_speedSlider.getValue() / _speedSlider.getMaximum();
+        return Math.pow(20.0, base);
     }
 
     /**
@@ -305,12 +358,27 @@ public class ModelViewer extends GlCanvasTool
     /** The container for the animation track panels. */
     protected JPanel _tpanels;
 
+    /** The speed control slider. */
+    protected JSlider _speedSlider;
+
+    /** The speed display. */
+    protected JLabel _speedLabel;
+
     /** The model being viewed. */
     protected Model _model;
 
-    /** The time of the last tick. */
-    protected long _lastTick;
+    /** The time of the last update. */
+    protected long _lastUpdate = System.currentTimeMillis();
+
+    /** Accumulated elapsed time. */
+    protected double _elapsed;
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ModelViewer.class);
+
+    /** The format for the speed display. */
+    protected static final DecimalFormat SPEED_FORMAT = new DecimalFormat("0.00x");
+    static {
+        SPEED_FORMAT.setMaximumFractionDigits(2);
+    }
 }

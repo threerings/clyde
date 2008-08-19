@@ -147,6 +147,22 @@ public class AnimationConfig extends ParameterizedConfig
             return _source;
         }
 
+        /**
+         * Returns the duration of the animation (assuming it doesn't loop).
+         */
+        public float getDuration ()
+        {
+            return transition + (transforms.length - 1) / getScaledRate();
+        }
+
+        /**
+         * Returns the frame rate as scaled by the speed.
+         */
+        public float getScaledRate ()
+        {
+            return speed * rate;
+        }
+
         @Override // documentation inherited
         public void updateFromSource (EditorContext ctx, boolean force)
         {
