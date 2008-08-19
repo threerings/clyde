@@ -340,10 +340,10 @@ public class Animation extends SimpleScope
                 if (target.totalWeight >= 1f) {
                     continue;
                 }
-                float weight = Math.min(_weight, 1f - target.totalWeight);
+                float mweight = Math.min(_weight, 1f - target.totalWeight);
                 t1[ii].lerp(t2[ii], _accum, _xform);
                 target.getLocalTransform().lerpLocal(
-                    _xform, weight / (target.totalWeight += weight));
+                    _xform, mweight / (target.totalWeight += mweight));
             }
         }
 
@@ -426,6 +426,22 @@ public class Animation extends SimpleScope
             }
         }
 
+        @Override // documentation inherited
+        public void updateTransforms ()
+        {
+            for (TargetTransform transform : _transforms) {
+                transform.update();
+            }
+        }
+
+        @Override // documentation inherited
+        public void blendTransforms (int update)
+        {
+            for (TargetTransform transform : _transforms) {
+                transform.blend(update, _weight);
+            }
+        }
+
         /**
          * Pairs a node with its transform evaluator.
          */
@@ -441,6 +457,45 @@ public class Animation extends SimpleScope
             {
                 this.targets = targets;
                 this.evaluator = evaluator;
+            }
+
+            /**
+             * Updates the transforms directly from this target.
+             */
+            public void update ()
+            {
+                Transform3D transform = evaluator.evaluate();
+                for (Articulated.Node target : targets) {
+                    target.getLocalTransform().set(transform);
+                }
+            }
+
+            /**
+             * Blends in the influence of this target.
+             *
+             * @param update the current value of the update counter (used to determine which nodes
+             * have been touched on this update).
+             * @param weight the weight of our contribution.
+             */
+            public void blend (int update, float weight)
+            {
+                Transform3D transform = evaluator.evaluate();
+                for (Articulated.Node target : targets) {
+                    // if we're the first to touch it, we can set the transform directly
+                    if (target.lastUpdate != update) {
+                        target.getLocalTransform().set(transform);
+                        target.lastUpdate = update;
+                        target.totalWeight = weight;
+                        continue;
+                    }
+                    // if the total weight is less than one, we can add our contribution
+                    if (target.totalWeight >= 1f) {
+                        continue;
+                    }
+                    float mweight = Math.min(weight, 1f - target.totalWeight);
+                    target.getLocalTransform().lerpLocal(
+                        transform, mweight / (target.totalWeight += mweight));
+                }
             }
         }
 
