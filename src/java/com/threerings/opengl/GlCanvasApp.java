@@ -11,6 +11,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -51,16 +52,16 @@ public abstract class GlCanvasApp extends GlApp
             }
         });
 
-        // add the canvas inside a panel so that we can use KeyboardManager
-        JPanel panel = new JPanel(new BorderLayout());
-        _frame.add(panel, BorderLayout.CENTER);
-        if ((_canvas = createCanvas()) != null) {
-            panel.add(_canvas);
+        // add the canvas inside a container so that we can use KeyboardManager
+        if ((_canvas = createCanvas()) == null) {
+            return;
         }
+        JComponent cont = createCanvasContainer();
+        _frame.add(cont, BorderLayout.CENTER);
 
         // create the keyboard manager
         _keymgr = new KeyboardManager();
-        _keymgr.setTarget(panel, new KeyTranslatorImpl());
+        _keymgr.setTarget(cont, new KeyTranslatorImpl());
     }
 
     /**
@@ -157,6 +158,17 @@ public abstract class GlCanvasApp extends GlApp
         }
         log.warning("Couldn't find valid pixel format.");
         return null;
+    }
+
+    /**
+     * Creates and returns the component that contains the canvas (after the canvas has been
+     * created).
+     */
+    protected JComponent createCanvasContainer ()
+    {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(_canvas, BorderLayout.CENTER);
+        return panel;
     }
 
     /** The frame containing the canvas. */

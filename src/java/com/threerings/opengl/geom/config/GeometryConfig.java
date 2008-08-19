@@ -390,6 +390,12 @@ public abstract class GeometryConfig extends DeepObject
         public abstract DrawCommand createDrawCommand (boolean ibo);
 
         @Override // documentation inherited
+        public Box getBounds ()
+        {
+            return bounds;
+        }
+
+        @Override // documentation inherited
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
@@ -688,6 +694,11 @@ public abstract class GeometryConfig extends DeepObject
         {
         }
     }
+
+    /**
+     * Returns the bounds of the geometry.
+     */
+    public abstract Box getBounds ();
 
     /**
      * Creates an instance of the geometry described by this config.

@@ -9,16 +9,18 @@ package com.threerings.opengl.mod;
 public interface AnimationObserver
 {
     /**
-     * Notifies the observer that the animation has been cancelled.
+     * Notes that an animation has started.
      *
      * @return true to keep the observer in the list, false to remove it.
      */
-    public boolean animationCancelled (Animation animation);
+    public boolean animationStarted (Animation animation);
 
     /**
-     * Notifies the observer that the animation has completed.
+     * Notifies the observer that the animation has stopped.
      *
+     * @param completed whether or not the animation ran to completion (as opposed to being
+     * cancelled).
      * @return true to keep the observer in the list, false to remove it.
      */
-    public boolean animationCompleted (Animation animation);
+    public boolean animationStopped (Animation animation, boolean completed);
 }

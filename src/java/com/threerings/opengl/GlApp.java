@@ -296,12 +296,16 @@ public abstract class GlApp extends DynamicScope
     @Scoped
     protected Transform3D _viewTransform;
 
+    /** A scoped reference to the root world transform. */
+    @Scoped
+    protected Transform3D _worldTransform = new Transform3D();
+
     /** A transform state containing the camera's view transform. */
     @Scoped
     protected TransformState _viewTransformState = new TransformState();
 
     /** Our supported pixel formats in order of preference. */
     protected static final PixelFormat[] PIXEL_FORMATS = {
-        new PixelFormat(8, 24, 8), new PixelFormat(8, 16, 8),
+        new PixelFormat(8, 16, 8), new PixelFormat(1, 16, 8),
         new PixelFormat(0, 16, 8), new PixelFormat(0, 8, 0) };
 }

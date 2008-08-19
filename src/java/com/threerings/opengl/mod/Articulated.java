@@ -5,6 +5,7 @@ package com.threerings.opengl.mod;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -247,6 +248,12 @@ public class Articulated extends Model.Implementation
             anim.setConfig(mapping.name, mapping.animation);
         }
 
+        // populate the animation map
+        _animationsByName.clear();
+        for (Animation animation : _animations) {
+            _animationsByName.put(animation.getName(), animation);
+        }
+
         // create the configured attachments
         Model[] omodels = _configAttachments;
         _configAttachments = new Model[config.attachments.length];
@@ -294,6 +301,9 @@ public class Articulated extends Model.Implementation
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
+        // update the local transforms based on the animation
+        updateTransforms();
+
         // update the view transform
         _parentViewTransform.compose(_localTransform, _viewTransform);
 
@@ -351,15 +361,100 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public List<Animation> getPlayingAnimations ()
+    {
+        return _playing;
+    }
+
+    @Override // documentation inherited
+    public Animation getAnimation (String name)
+    {
+        return _animationsByName.get(name);
+    }
+
+    @Override // documentation inherited
     public Animation[] getAnimations ()
     {
         return _animations;
     }
 
     @Override // documentation inherited
+    public boolean requiresTick ()
+    {
+        return true;
+    }
+
+    @Override // documentation inherited
+    public void tick (float elapsed)
+    {
+        // copy the tracks to an array so that callbacks can manipulate the list;
+        // note if any tracks have completed
+        boolean completed = false;
+        _playingArray = _playing.toArray(_playingArray);
+        for (int ii = 0, nn = _playing.size(); ii < nn; ii++) {
+            completed |= _playingArray[ii].tick(elapsed);
+        }
+
+        // if any tracks have completed, issue a final update and remove them
+        if (completed) {
+            updateTransforms();
+            for (int ii = _playing.size() - 1; ii >= 0; ii--) {
+                Animation animation = _playing.get(ii);
+                if (animation.hasCompleted()) {
+                    _playing.remove(ii);
+                }
+            }
+        }
+
+        // tick the configured attachments
+        for (Model model : _configAttachments) {
+            model.tick(elapsed);
+        }
+
+        // and the user attachments
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            _userAttachments.get(ii).tick(elapsed);
+        }
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray ray, Vector3f result)
     {
         return false;
+    }
+
+    /**
+     * Notes that an animation has started.
+     */
+    protected void animationStarted (Animation animation)
+    {
+        // insert into playing list in priority order
+        int priority = animation.getPriority();
+        for (int ii = 0, nn = _playing.size(); ii < nn; ii++) {
+            if (priority >= _playing.get(ii).getPriority()) {
+                _playing.add(ii, animation);
+                return;
+            }
+        }
+        _playing.add(animation);
+
+        // notify containing model
+        ((Model)_parentScope).animationStarted(animation);
+    }
+
+    /**
+     * Notes that an animation has stopped.
+     */
+    protected void animationStopped (Animation animation, boolean completed)
+    {
+        // remove from playing list *unless* it's completed, in which case we'll remove it
+        // after one final update
+        if (!completed) {
+            _playing.remove(animation);
+        }
+
+        // notify containing model
+        ((Model)_parentScope).animationStopped(animation, completed);
     }
 
     /**
@@ -387,6 +482,27 @@ public class Articulated extends Model.Implementation
         }
     }
 
+    /**
+     * Updates the node transforms based on the current animation state.
+     */
+    protected void updateTransforms ()
+    {
+        // handle the special (but likely common) case of a single animation
+        int nn = _playing.size();
+        if (nn == 1) {
+            _playing.get(0).updateTransforms();
+            return;
+        }
+
+        // increment the update counter so that the tracks know which nodes have been updated
+        _update++;
+
+        // process the tracks in order of decreasing priority
+        for (int ii = 0; ii < nn; ii++) {
+            _playing.get(ii).blendTransforms(_update);
+        }
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -404,6 +520,9 @@ public class Articulated extends Model.Implementation
 
     /** The animations. */
     protected Animation[] _animations;
+
+    /** Maps animation names to animations. */
+    protected HashMap<String, Animation> _animationsByName = new HashMap<String, Animation>();
 
     /** The attachments created from the configuration. */
     protected Model[] _configAttachments;
@@ -426,4 +545,14 @@ public class Articulated extends Model.Implementation
 
     /** User attachments (their parent scopes are the nodes to which they're attached). */
     protected ArrayList<Model> _userAttachments = new ArrayList<Model>();
+
+    /** The animations currently being played, sorted by decreasing priority. */
+    protected ArrayList<Animation> _playing = new ArrayList<Animation>();
+
+    /** Holds the playing animations during the tick. */
+    protected Animation[] _playingArray = new Animation[0];
+
+    /** Incremented on each call to {@link #updateTransforms} and used to determine which nodes
+     * have been manipulated by animations on the current update. */
+    protected int _update;
 }

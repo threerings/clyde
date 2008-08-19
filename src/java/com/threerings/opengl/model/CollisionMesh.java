@@ -44,6 +44,14 @@ public class CollisionMesh
     }
 
     /**
+     * Returns a reference to the bounds of the mesh.
+     */
+    public Box getBounds ()
+    {
+        return _root.getBounds();
+    }
+
+    /**
      * Finds the intersection of the given ray with this mesh and places it in the supplied result
      * object.
      *
@@ -102,6 +110,14 @@ public class CollisionMesh
 
         public Node ()
         {
+        }
+
+        /**
+         * Returns a reference to the bounds of the node.
+         */
+        public Box getBounds ()
+        {
+            return _bounds;
         }
 
         /**

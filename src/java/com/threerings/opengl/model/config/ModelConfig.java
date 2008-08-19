@@ -23,6 +23,7 @@ import com.threerings.editor.FileConstraints;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.math.Box;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
@@ -284,6 +285,9 @@ public class ModelConfig extends ParameterizedConfig
     public static class MeshSet extends DeepObject
         implements Exportable
     {
+        /** The bounds of the meshes. */
+        public Box bounds;
+
         /** The visible meshes. */
         public VisibleMesh[] visible;
 
@@ -292,8 +296,13 @@ public class ModelConfig extends ParameterizedConfig
 
         public MeshSet (VisibleMesh[] visible, CollisionMesh collision)
         {
-            this.visible = visible;
-            this.collision = collision;
+            bounds = new Box();
+            for (VisibleMesh mesh : (this.visible = visible)) {
+                bounds.addLocal(mesh.geometry.getBounds());
+            }
+            if ((this.collision = collision) != null) {
+                bounds.addLocal(collision.getBounds());
+            }
         }
 
         public MeshSet ()

@@ -3,9 +3,12 @@
 
 package com.threerings.opengl.mod;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import com.samskivert.util.ObjectUtil;
+import com.samskivert.util.ObserverList;
 
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
@@ -81,11 +84,51 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Returns a list of all animations currently playing.
+         */
+        public List<Animation> getPlayingAnimations ()
+        {
+            return Collections.emptyList();
+        }
+
+        /**
+         * Retrieves an animation by name.
+         */
+        public Animation getAnimation (String name)
+        {
+            return null;
+        }
+
+        /**
          * Returns the model's list of animations.
          */
         public Animation[] getAnimations ()
         {
-            return null;
+            return Animation.EMPTY_ARRAY;
+        }
+
+        /**
+         * Updates the world space bounds of the model.
+         */
+        public void updateWorldBounds ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Draws the bounds of the model in immediate mode.
+         */
+        public void drawBounds ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Checks whether the model requires a per-frame call to its {@link #tick} method.
+         */
+        public boolean requiresTick ()
+        {
+            return false;
         }
 
         // documentation inherited from interface Tickable
@@ -336,12 +379,96 @@ public class Model extends DynamicScope
     }
 
     /**
-     * Returns a reference to this model's list of animations (or <code>null</code> if the
-     * model does not support animation).
+     * Starts an animation by name.
+     */
+    public void startAnimation (String name)
+    {
+        Animation animation = getAnimation(name);
+        if (animation != null) {
+            animation.start();
+        } else {
+            log.warning("Animation not found.", "name", name);
+        }
+    }
+
+    /**
+     * Stops an animation by name.
+     */
+    public void stopAnimation (String name)
+    {
+        Animation animation = getAnimation(name);
+        if (animation != null) {
+            animation.stop();
+        }
+    }
+
+    /**
+     * Stops all animations currently playing.
+     */
+    public void stopAllAnimations ()
+    {
+        List<Animation> playing = getPlayingAnimations();
+        for (int ii = 0, nn = playing.size(); ii < nn; ii++) {
+            playing.get(ii).stop();
+        }
+    }
+
+    /**
+     * Returns a list containing all animations currently playing on this model.
+     */
+    public List<Animation> getPlayingAnimations ()
+    {
+        return _impl.getPlayingAnimations();
+    }
+
+    /**
+     * Checks whether the named animation is playing.
+     */
+    public boolean isAnimationPlaying (String name)
+    {
+        Animation animation = getAnimation(name);
+        return animation != null && animation.isPlaying();
+    }
+
+    /**
+     * Retrieves an animation by name.
+     */
+    public Animation getAnimation (String name)
+    {
+        return _impl.getAnimation(name);
+    }
+
+    /**
+     * Returns a reference to this model's list of animations.
      */
     public Animation[] getAnimations ()
     {
         return _impl.getAnimations();
+    }
+
+    /**
+     * Adds an observer for animations played on this model.
+     */
+    public void addAnimationObserver (AnimationObserver observer)
+    {
+        if (_animobs == null) {
+            _animobs = ObserverList.newFastUnsafe();
+        }
+        _animobs.add(observer);
+    }
+
+    /**
+     * Removes an animation observer from this model.
+     */
+    public void removeAnimationObserver (AnimationObserver observer)
+    {
+        if (_animobs == null) {
+            return;
+        }
+        _animobs.remove(observer);
+        if (_animobs.isEmpty()) {
+            _animobs = null;
+        }
     }
 
     /**
@@ -350,6 +477,31 @@ public class Model extends DynamicScope
     public void reset ()
     {
         resetEpoch();
+    }
+
+    /**
+     * Updates the world space bounds of the model.
+     */
+    public void updateWorldBounds ()
+    {
+        _impl.updateWorldBounds();
+    }
+
+    /**
+     * Draws the bounds of the model in immediate mode.
+     */
+    public void drawBounds ()
+    {
+        _impl.drawBounds();
+    }
+
+    /**
+     * Checks whether the model requires a per-frame call to the {@link #tick} method to
+     * advance its state.
+     */
+    public boolean requiresTick ()
+    {
+        return _impl.requiresTick();
     }
 
     // documentation inherited from interface Tickable
@@ -402,6 +554,22 @@ public class Model extends DynamicScope
         _impl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
     }
 
+    /**
+     * Notifies the listeners that an animation has started.
+     */
+    protected void animationStarted (Animation animation)
+    {
+        Animation.applyStartedOp(_animobs, animation);
+    }
+
+    /**
+     * Notifies the listeners that an animation has stopped.
+     */
+    protected void animationStopped (Animation animation, boolean completed)
+    {
+        Animation.applyStoppedOp(_animobs, animation, completed);
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -410,6 +578,9 @@ public class Model extends DynamicScope
 
     /** The model implementation. */
     protected Implementation _impl = NULL_IMPLEMENTATION;
+
+    /** The lazily-initialized list of animation observers. */
+    protected ObserverList<AnimationObserver> _animobs;
 
     /** A container for the model epoch. */
     @Scoped
