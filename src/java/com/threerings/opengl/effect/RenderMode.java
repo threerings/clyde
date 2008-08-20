@@ -113,7 +113,7 @@ public abstract class RenderMode extends DeepObject
         /**
          * Sets the path to the prototype mesh to use.
          */
-        @Editable(nullable=true)
+        @Editable(mode="compact", nullable=true)
         @FileConstraints(
             description="m.model_files",
             extensions={".properties", ".dat"},
