@@ -543,9 +543,10 @@ public class Model extends DynamicScope
         updateFromConfig();
     }
 
-    // documentation inherited from interface ScopeUpdateListener
+    @Override // documentation inherited
     public void scopeUpdated (ScopeEvent event)
     {
+        super.scopeUpdated(event);
         resetEpoch();
     }
 

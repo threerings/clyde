@@ -13,7 +13,10 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
@@ -249,6 +252,12 @@ public abstract class GlApp extends DynamicScope
         // update the view transform state
         _viewTransformState.getModelview().set(_viewTransform);
         _viewTransformState.setDirty(true);
+
+        // update the shared axial billboard rotation (this assumes that the camera doesn't
+        // "roll")
+        Quaternion viewRotation = _viewTransform.getRotation();
+        float angle = FloatMath.HALF_PI + 2f*FloatMath.atan2(viewRotation.x, viewRotation.w);
+        _billboardRotation.fromAngleAxis(angle, Vector3f.UNIT_X);
     }
 
     /**
@@ -316,6 +325,10 @@ public abstract class GlApp extends DynamicScope
     /** A transform state containing the camera's view transform. */
     @Scoped
     protected TransformState _viewTransformState = new TransformState();
+
+    /** The view rotation shared by all billboards aligned with the z axis and the view vector. */
+    @Scoped
+    protected Quaternion _billboardRotation = new Quaternion();
 
     /** Our supported pixel formats in order of preference. */
     protected static final PixelFormat[] PIXEL_FORMATS = {

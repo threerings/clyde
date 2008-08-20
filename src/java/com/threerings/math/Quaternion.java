@@ -97,12 +97,24 @@ public final class Quaternion
      * Sets this quaternion to one that first rotates about x by the specified number of radians,
      * then rotates about z by the specified number of radians.
      */
-    public Quaternion fromAngles (float x, float z)
+    public Quaternion fromAnglesXZ (float x, float z)
     {
         float hx = x * 0.5f, hz = z * 0.5f;
         float sx = FloatMath.sin(hx), cx = FloatMath.cos(hx);
         float sz = FloatMath.sin(hz), cz = FloatMath.cos(hz);
         return set(cz*sx, sz*sx, sz*cx, cz*cx);
+    }
+
+    /**
+     * Sets this quaternion to one that first rotates about x by the specified number of radians,
+     * then rotates about y by the specified number of radians.
+     */
+    public Quaternion fromAnglesXY (float x, float y)
+    {
+        float hx = x * 0.5f, hy = y * 0.5f;
+        float sx = FloatMath.sin(hx), cx = FloatMath.cos(hx);
+        float sy = FloatMath.sin(hy), cy = FloatMath.cos(hy);
+        return set(cy*sx, sy*cx, -sy*sx, cy*cx);
     }
 
     /**

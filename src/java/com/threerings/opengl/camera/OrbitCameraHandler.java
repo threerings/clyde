@@ -99,7 +99,7 @@ public class OrbitCameraHandler extends CameraHandler
             FloatMath.sin(_coords.azimuth) * ce,
             -FloatMath.cos(_coords.azimuth) * ce,
             FloatMath.sin(_coords.elevation)).multLocal(_coords.distance).addLocal(_target);
-        xform.getRotation().fromAngles(
+        xform.getRotation().fromAnglesXZ(
             FloatMath.HALF_PI - _coords.elevation, _coords.azimuth);
 
         // update the camera transform

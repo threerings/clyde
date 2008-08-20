@@ -13,8 +13,10 @@ import com.google.common.collect.Maps;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
+import com.threerings.expr.Updater;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
@@ -25,6 +27,7 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig.AnimationMapping;
 import com.threerings.opengl.model.config.ArticulatedConfig.Attachment;
+import com.threerings.opengl.model.config.ArticulatedConfig.NodeTransform;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.renderer.state.TransformState;
@@ -56,7 +59,7 @@ public class Articulated extends Model.Implementation
             Scope parentScope, ArticulatedConfig.Node config, Transform3D parentViewTransform)
         {
             super(parentScope);
-            _viewTransform = new Transform3D();
+            _viewTransform = new Transform3D(Transform3D.UNIFORM);
             setConfig(config, parentViewTransform);
         }
 
@@ -68,6 +71,7 @@ public class Articulated extends Model.Implementation
             _config = config;
             _localTransform.set(config.transform);
             _parentViewTransform = parentViewTransform;
+            _updater = null;
         }
 
         /**
@@ -107,6 +111,14 @@ public class Articulated extends Model.Implementation
         }
 
         /**
+         * Sets the updater to call after updating the view transform.
+         */
+        public void setUpdater (Updater updater)
+        {
+            _updater = updater;
+        }
+
+        /**
          * Creates the surfaces of this node.
          */
         public void createSurfaces (
@@ -123,6 +135,11 @@ public class Articulated extends Model.Implementation
         {
             // compose parent view transform with local transform
             _parentViewTransform.compose(_localTransform, _viewTransform);
+
+            /// apply our updater post-transform
+            if (_updater != null) {
+                _updater.update();
+            }
 
             // update bone transform if necessary
             if (_boneTransform != null) {
@@ -160,6 +177,9 @@ public class Articulated extends Model.Implementation
 
         /** The bone transform, for nodes used as bones. */
         protected Transform3D _boneTransform;
+
+        /** An updater to apply after updating the view transform. */
+        protected Updater _updater;
     }
 
     /**
@@ -201,7 +221,7 @@ public class Articulated extends Model.Implementation
 
         /** The surface transform state. */
         @Scoped
-        protected TransformState _transformState = new TransformState();
+        protected TransformState _transformState = new TransformState(Transform3D.UNIFORM);
 
         /** The surface. */
         protected Surface _surface;
@@ -223,75 +243,7 @@ public class Articulated extends Model.Implementation
     public void setConfig (ArticulatedConfig config)
     {
         _config = config;
-
-        // save the names of the nodes to which the user nodes are attached
-        String[] userAttachmentNodes = new String[_userAttachments.size()];
-        for (int ii = 0; ii < userAttachmentNodes.length; ii++) {
-            userAttachmentNodes[ii] =
-                ((Node)_userAttachments.get(ii).getParentScope()).getConfig().name;
-        }
-
-        // create the node list
-        ArrayList<Node> nnodes = new ArrayList<Node>();
-        config.root.getArticulatedNodes(this, _nodes, nnodes, _viewTransform);
-        _nodes = nnodes.toArray(new Node[nnodes.size()]);
-
-        // populate the name map
-        _nodesByName.clear();
-        for (Node node : _nodes) {
-            _nodesByName.put(node.getConfig().name, node);
-        }
-
-        // create the node surfaces
-        Map<String, MaterialConfig> materialConfigs = Maps.newHashMap();
-        for (Node node : _nodes) {
-            node.createSurfaces(_ctx, config.materialMappings, materialConfigs);
-        }
-
-        // create the skinned surfaces
-        _surfaces = createSurfaces(
-            _ctx, this, config.skin.visible, config.materialMappings, materialConfigs);
-
-        // create the animations
-        Animation[] oanims = _animations;
-        _animations = new Animation[config.animationMappings.length];
-        for (int ii = 0; ii < _animations.length; ii++) {
-            Animation anim = (oanims == null || oanims.length <= ii) ?
-                new Animation(_ctx, this) : oanims[ii];
-            _animations[ii] = anim;
-            AnimationMapping mapping = config.animationMappings[ii];
-            anim.setConfig(mapping.name, mapping.animation);
-        }
-
-        // populate the animation map
-        _animationsByName.clear();
-        for (Animation animation : _animations) {
-            _animationsByName.put(animation.getName(), animation);
-        }
-
-        // create the configured attachments
-        Model[] omodels = _configAttachments;
-        _configAttachments = new Model[config.attachments.length];
-        for (int ii = 0; ii < _configAttachments.length; ii++) {
-            Model model = (omodels == null || omodels.length <= ii) ?
-                new Model(_ctx) : omodels[ii];
-            _configAttachments[ii] = model;
-            Attachment attachment = config.attachments[ii];
-            model.setParentScope(getAttachmentNode(attachment.node));
-            model.setConfig(attachment.model);
-        }
-
-        // update the user attachments
-        ArrayList<Model> oattachments = _userAttachments;
-        _userAttachments = new ArrayList<Model>();
-        for (int ii = 0; ii < userAttachmentNodes.length; ii++) {
-            Model model = oattachments.get(ii);
-            Node node = getAttachmentNode(userAttachmentNodes[ii]);
-            if (node != null) {
-                model.setParentScope(node);
-                _userAttachments.add(model);
-            }
-        }
+        updateFromConfig();
     }
 
     /**
@@ -436,6 +388,96 @@ public class Articulated extends Model.Implementation
     public boolean getIntersection (Ray ray, Vector3f result)
     {
         return false;
+    }
+
+    @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
+        updateFromConfig();
+    }
+
+    /**
+     * Updates the model to match its new or modified configuration.
+     */
+    protected void updateFromConfig ()
+    {
+        // save the names of the nodes to which the user nodes are attached
+        String[] userAttachmentNodes = new String[_userAttachments.size()];
+        for (int ii = 0; ii < userAttachmentNodes.length; ii++) {
+            userAttachmentNodes[ii] =
+                ((Node)_userAttachments.get(ii).getParentScope()).getConfig().name;
+        }
+
+        // create the node list
+        ArrayList<Node> nnodes = new ArrayList<Node>();
+        _config.root.getArticulatedNodes(this, _nodes, nnodes, _viewTransform);
+        _nodes = nnodes.toArray(new Node[nnodes.size()]);
+
+        // populate the name map
+        _nodesByName.clear();
+        for (Node node : _nodes) {
+            _nodesByName.put(node.getConfig().name, node);
+        }
+
+        // set the node transform updaters
+        for (NodeTransform transform : _config.nodeTransforms) {
+            Node node = _nodesByName.get(transform.node);
+            if (node != null) {
+                node.setUpdater(transform.createUpdater(node));
+            }
+        }
+
+        // create the node surfaces
+        Map<String, MaterialConfig> materialConfigs = Maps.newHashMap();
+        for (Node node : _nodes) {
+            node.createSurfaces(_ctx, _config.materialMappings, materialConfigs);
+        }
+
+        // create the skinned surfaces
+        _surfaces = createSurfaces(
+            _ctx, this, _config.skin.visible, _config.materialMappings, materialConfigs);
+
+        // create the animations
+        Animation[] oanims = _animations;
+        _animations = new Animation[_config.animationMappings.length];
+        for (int ii = 0; ii < _animations.length; ii++) {
+            Animation anim = (oanims == null || oanims.length <= ii) ?
+                new Animation(_ctx, this) : oanims[ii];
+            _animations[ii] = anim;
+            AnimationMapping mapping = _config.animationMappings[ii];
+            anim.setConfig(mapping.name, mapping.animation);
+        }
+
+        // populate the animation map
+        _animationsByName.clear();
+        for (Animation animation : _animations) {
+            _animationsByName.put(animation.getName(), animation);
+        }
+
+        // create the configured attachments
+        Model[] omodels = _configAttachments;
+        _configAttachments = new Model[_config.attachments.length];
+        for (int ii = 0; ii < _configAttachments.length; ii++) {
+            Model model = (omodels == null || omodels.length <= ii) ?
+                new Model(_ctx) : omodels[ii];
+            _configAttachments[ii] = model;
+            Attachment attachment = _config.attachments[ii];
+            model.setParentScope(getAttachmentNode(attachment.node));
+            model.setConfig(attachment.model);
+        }
+
+        // update the user attachments
+        ArrayList<Model> oattachments = _userAttachments;
+        _userAttachments = new ArrayList<Model>();
+        for (int ii = 0; ii < userAttachmentNodes.length; ii++) {
+            Model model = oattachments.get(ii);
+            Node node = getAttachmentNode(userAttachmentNodes[ii]);
+            if (node != null) {
+                model.setParentScope(node);
+                _userAttachments.add(model);
+            }
+        }
     }
 
     /**

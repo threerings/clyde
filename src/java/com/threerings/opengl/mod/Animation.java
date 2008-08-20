@@ -10,9 +10,13 @@ import com.samskivert.util.ObserverList;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
+import com.threerings.expr.Bound;
 import com.threerings.expr.Function;
+import com.threerings.expr.MutableLong;
 import com.threerings.expr.ObjectExpression.Evaluator;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
+import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
@@ -407,23 +411,7 @@ public class Animation extends SimpleScope
         public void setConfig (AnimationConfig.Procedural config)
         {
             super.setConfig(_config = config);
-
-            // create the target transforms
-            Function getNode = ScopeUtil.resolve(_parentScope, "getNode", Function.NULL);
-            _transforms = new TargetTransform[config.transforms.length];
-            for (int ii = 0; ii < _transforms.length; ii++) {
-                AnimationConfig.TargetTransform transform = config.transforms[ii];
-                ArrayList<Articulated.Node> targets = new ArrayList<Articulated.Node>();
-                for (String target : transform.targets) {
-                    Articulated.Node node = (Articulated.Node)getNode.call(target);
-                    if (node != null) {
-                        targets.add(node);
-                    }
-                }
-                _transforms[ii] = new TargetTransform(
-                    targets.toArray(new Articulated.Node[targets.size()]),
-                    transform.expression.createEvaluator(this));
-            }
+            updateFromConfig();
         }
 
         @Override // documentation inherited
@@ -439,6 +427,36 @@ public class Animation extends SimpleScope
         {
             for (TargetTransform transform : _transforms) {
                 transform.blend(update, _weight);
+            }
+        }
+
+        @Override // documentation inherited
+        public void scopeUpdated (ScopeEvent event)
+        {
+            super.scopeUpdated(event);
+            updateFromConfig();
+        }
+
+        /**
+         * Updates the animation from its configuration and scope.
+         */
+        protected void updateFromConfig ()
+        {
+            // create the target transforms
+            Function getNode = ScopeUtil.resolve(_parentScope, "getNode", Function.NULL);
+            _transforms = new TargetTransform[_config.transforms.length];
+            for (int ii = 0; ii < _transforms.length; ii++) {
+                AnimationConfig.TargetTransform transform = _config.transforms[ii];
+                ArrayList<Articulated.Node> targets = new ArrayList<Articulated.Node>();
+                for (String target : transform.targets) {
+                    Articulated.Node node = (Articulated.Node)getNode.call(target);
+                    if (node != null) {
+                        targets.add(node);
+                    }
+                }
+                _transforms[ii] = new TargetTransform(
+                    targets.toArray(new Articulated.Node[targets.size()]),
+                    transform.expression.createEvaluator(this));
             }
         }
 
@@ -554,6 +572,7 @@ public class Animation extends SimpleScope
      */
     public void start ()
     {
+        resetEpoch();
         _impl.start();
     }
 
@@ -666,6 +685,13 @@ public class Animation extends SimpleScope
     }
 
     @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
+        resetEpoch();
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         return _name;
@@ -706,6 +732,14 @@ public class Animation extends SimpleScope
 
         // notify observers
         applyStoppedOp(_observers, this, completed);
+    }
+
+    /**
+     * Resets the epoch value to the current time.
+     */
+    protected void resetEpoch ()
+    {
+        _epoch.value = _now.value;
     }
 
     /**
@@ -798,6 +832,14 @@ public class Animation extends SimpleScope
 
     /** The lazily-initialized list of animation observers. */
     protected ObserverList<AnimationObserver> _observers;
+
+    /** The container for the current time. */
+    @Bound
+    protected MutableLong _now = new MutableLong(System.currentTimeMillis());
+
+    /** A container for the animation epoch. */
+    @Scoped
+    protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
 
     /** Started op to reuse. */
     protected static StartedOp _startedOp = new StartedOp();
