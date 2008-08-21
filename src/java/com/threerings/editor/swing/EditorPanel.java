@@ -35,6 +35,7 @@ import javax.swing.event.ChangeListener;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 import com.samskivert.swing.util.SwingUtil;
+import com.samskivert.util.ArrayUtil;
 
 import com.threerings.util.MessageBundle;
 
@@ -218,8 +219,8 @@ public class EditorPanel extends BasePropertyEditor
             return;
         }
         Class clazz = _object.getClass();
-        final String[] cats = Introspector.getCategories(clazz);
         Property[] props = Introspector.getProperties(clazz);
+        final String[] cats = getFilteredCategories(clazz, props);
         MessageBundle cmsgs = _msgmgr.getBundle(Introspector.getMessageBundle(clazz));
         if (cats.length <= 1) {
             // if there's only one category, add them in a single scroll panel
@@ -333,6 +334,40 @@ public class EditorPanel extends BasePropertyEditor
     public void stateChanged (ChangeEvent event)
     {
         fireStateChanged();
+    }
+
+    /**
+     * Returns the list of categories, minus any made empty by omission.
+     */
+    protected String[] getFilteredCategories (Class clazz, Property[] props)
+    {
+        String[] cats = Introspector.getCategories(clazz);
+        if (!_omitColumns) {
+            return cats;
+        }
+        for (int ii = cats.length - 1; ii >= 0; ii--) {
+            if (!isCategoryPresent(props, cats[ii])) {
+                cats = ArrayUtil.splice(cats, ii, 1);
+            }
+        }
+        return cats;
+    }
+
+    /**
+     * Determines whether the specified category is represented in the property array.
+     */
+    protected boolean isCategoryPresent (Property[] props, String cat)
+    {
+        if (_object instanceof DynamicallyEditable && cat.equals("")) {
+            return true;
+        }
+        for (Property prop : props) {
+            Editable annotation = prop.getAnnotation();
+            if (!annotation.column() && annotation.category().equals(cat)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

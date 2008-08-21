@@ -108,6 +108,14 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Resets the state of this model.
+         */
+        public void reset ()
+        {
+            // nothing by default
+        }
+
+        /**
          * Updates the world space bounds of the model.
          */
         public void updateWorldBounds ()
@@ -492,6 +500,7 @@ public class Model extends DynamicScope
     public void reset ()
     {
         resetEpoch();
+        _impl.reset();
     }
 
     /**
