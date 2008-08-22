@@ -33,7 +33,7 @@ import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.model.tools.xml.ModelParser;
 
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
-import com.threerings.opengl.geom.config.GeometryConfig;
+import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.util.GlContext;
 

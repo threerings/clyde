@@ -23,7 +23,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
-import com.threerings.opengl.geom.config.PassDescriptor;
+import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.FloatUniform;

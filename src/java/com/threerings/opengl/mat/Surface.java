@@ -13,8 +13,8 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
 
 import com.threerings.opengl.geom.Geometry;
-import com.threerings.opengl.geom.config.GeometryConfig;
-import com.threerings.opengl.geom.config.PassDescriptor;
+import com.threerings.opengl.geometry.config.GeometryConfig;
+import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.util.GlContext;

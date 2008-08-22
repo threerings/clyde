@@ -7,7 +7,7 @@ import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.geom.config.PassDescriptor;
+import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.GlContext;

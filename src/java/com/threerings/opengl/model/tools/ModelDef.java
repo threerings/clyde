@@ -32,8 +32,8 @@ import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.geom.config.GeometryConfig;
-import com.threerings.opengl.geom.config.GeometryConfig.AttributeArrayConfig;
+import com.threerings.opengl.geometry.config.GeometryConfig;
+import com.threerings.opengl.geometry.config.GeometryConfig.AttributeArrayConfig;
 import com.threerings.opengl.model.ArticulatedModel;
 import com.threerings.opengl.model.ArticulatedModel.Node;
 import com.threerings.opengl.model.CollisionMesh;

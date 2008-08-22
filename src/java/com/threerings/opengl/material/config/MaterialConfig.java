@@ -17,8 +17,8 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
-import com.threerings.opengl.geom.config.GeometryConfig;
-import com.threerings.opengl.geom.config.PassDescriptor;
+import com.threerings.opengl.geometry.config.GeometryConfig;
+import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.mat.Surface;
 import com.threerings.opengl.util.GlContext;
 

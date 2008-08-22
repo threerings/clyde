@@ -15,7 +15,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.geom.config.PassDescriptor;
+import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.Shader;
