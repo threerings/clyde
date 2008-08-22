@@ -231,13 +231,7 @@ public class ResourceEditor extends BaseConfigEditor
         } else if (action.equals("export")) {
             exportConfig();
         } else if (action.equals("configs")) {
-            ConfigManager cfgmgr = _cfgmgr;
-            Object config = _epanel.getObject();
-            if (config instanceof ParameterizedConfig) {
-                cfgmgr = ((ParameterizedConfig)config).getConfigManager();
-            }
-            showFrame(new ConfigEditor(_msgmgr, cfgmgr, _colorpos));
-
+            showFrame(new ConfigEditor(_msgmgr, getConfigManager(), _colorpos));
         } else {
             super.actionPerformed(event);
         }
@@ -248,6 +242,14 @@ public class ResourceEditor extends BaseConfigEditor
     {
         super.removeNotify();
         setConfig(null, null);
+    }
+
+    @Override // documentation inherited
+    public ConfigManager getConfigManager ()
+    {
+        Object config = _epanel.getObject();
+        return (config instanceof ParameterizedConfig) ?
+            ((ParameterizedConfig)config).getConfigManager() : _cfgmgr;
     }
 
     /**

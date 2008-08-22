@@ -33,6 +33,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.TransferHandler;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -44,6 +46,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
 
+import com.threerings.config.tools.ConfigEditor;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -68,7 +71,7 @@ import static com.threerings.opengl.Log.*;
  * The particle editor application.
  */
 public class ParticleEditor extends GlCanvasTool
-    implements ListSelectionListener
+    implements ListSelectionListener, ChangeListener
 {
     /**
      * The program entry point.
@@ -112,11 +115,13 @@ public class ParticleEditor extends GlCanvasTool
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
+        edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
+        edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
         edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
-        view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_G));
+        view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_D));
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
@@ -226,6 +231,7 @@ public class ParticleEditor extends GlCanvasTool
         JPanel ipanel = GroupLayout.makeVStretchBox(5);
         epanel.add(ipanel);
         ipanel.add(_editor = new EditorPanel(this, EditorPanel.CategoryMode.CHOOSER, null, true));
+        _editor.addChangeListener(this);
         _editor.setVisible(false);
 
         // create the reset button
@@ -245,6 +251,12 @@ public class ParticleEditor extends GlCanvasTool
         if (enabled) {
             _editor.setObject(getLayers()[idx]);
         }
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+        _model.getConfig().wasUpdated();
     }
 
     @Override // documentation inherited
@@ -271,6 +283,9 @@ public class ParticleEditor extends GlCanvasTool
             exportParticles();
         } else if (action.equals("import_layers")) {
             importLayers();
+        } else if (action.equals("configs")) {
+            new ConfigEditor(
+                _msgmgr, _model.getConfig().getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("reset")) {
             _model.reset();
         } else if (action.equals("new_layer")) {
@@ -326,6 +341,7 @@ public class ParticleEditor extends GlCanvasTool
         // create the model
         ModelConfig config = new ModelConfig();
         config.implementation = new ParticleSystemConfig();
+        config.init(_cfgmgr);
         _model = new Model(this, config);
         _model.setParentScope(this);
 
@@ -361,8 +377,9 @@ public class ParticleEditor extends GlCanvasTool
      */
     protected void newParticles ()
     {
-        setParticleSystemConfig(new ParticleSystemConfig());
-        setFile(null);
+        ModelConfig config = new ModelConfig();
+        config.implementation = new ParticleSystemConfig();
+        setConfig(config, null);
     }
 
     /**
@@ -383,10 +400,8 @@ public class ParticleEditor extends GlCanvasTool
     {
         try {
             BinaryImporter in = new BinaryImporter(new FileInputStream(file));
-            ModelConfig config = (ModelConfig)in.readObject();
-            setParticleSystemConfig((ParticleSystemConfig)config.implementation);
+            setConfig((ModelConfig)in.readObject(), file);
             in.close();
-            setFile(file);
         } catch (Exception e) { // IOException, ClassCastException
             log.warning("Failed to open particles.", "file", file, e);
         }
@@ -427,8 +442,7 @@ public class ParticleEditor extends GlCanvasTool
             File file = _exportChooser.getSelectedFile();
             try {
                 XMLImporter in = new XMLImporter(new FileInputStream(file));
-                ModelConfig config = (ModelConfig)in.readObject();
-                setParticleSystemConfig((ParticleSystemConfig)config.implementation);
+                setConfig((ModelConfig)in.readObject(), null);
                 in.close();
             } catch (Exception e) { // IOException, ClassCastException
                 log.warning("Failed to import particles.", "file", file, e);
@@ -476,6 +490,20 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     /**
+     * Sets the configuration of the particle system.
+     */
+    protected void setConfig (ModelConfig config, File file)
+    {
+        if (!(config.implementation instanceof ParticleSystemConfig)) {
+            throw new ClassCastException(config.getClass().getName());
+        }
+        config.init(_cfgmgr);
+        _model.setConfig(config);
+        ((LayerTableModel)_ltable.getModel()).fireTableDataChanged();
+        setFile(file);
+    }
+
+    /**
      * Sets the file and updates the revert item and title bar.
      */
     protected void setFile (File file)
@@ -512,17 +540,6 @@ public class ParticleEditor extends GlCanvasTool
     protected Layer[] getLayers ()
     {
         return getParticleSystemConfig().layers;
-    }
-
-    /**
-     * Sets the particle system config and notes that the model config was updated.
-     */
-    protected void setParticleSystemConfig (ParticleSystemConfig impl)
-    {
-        ModelConfig config = _model.getConfig();
-        config.implementation = impl;
-        config.wasUpdated();
-        ((LayerTableModel)_ltable.getModel()).fireTableDataChanged();
     }
 
     /**

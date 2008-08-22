@@ -11,6 +11,7 @@ import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.ObserverList;
 
 import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.DynamicScope;
@@ -33,6 +34,7 @@ import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
@@ -247,7 +249,12 @@ public class Model extends DynamicScope
     public Model (GlContext ctx, ModelConfig config)
     {
         super("model");
-        _ctx = ctx;
+        _ctx = new GlContextWrapper(ctx) {
+            public ConfigManager getConfigManager () {
+                return (_config == null) ?
+                    _wrapped.getConfigManager() : _config.getConfigManager();
+            }
+        };
         setConfig(config);
     }
 

@@ -200,6 +200,7 @@ public class ModelViewer extends GlCanvasTool
 
         // set up the model
         ModelConfig config = new ModelConfig();
+        config.init(_cfgmgr);
         config.addListener(this);
         config.implementation = (ModelConfig.Derived)_epanel.getObject();
         _model = new Model(this, config);
