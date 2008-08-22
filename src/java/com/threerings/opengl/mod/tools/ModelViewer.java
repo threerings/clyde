@@ -40,7 +40,7 @@ import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.mod.Animation;
-import com.threerings.opengl.mod.AnimationObserver;
+import com.threerings.opengl.mod.ModelObserver;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.DebugBounds;
@@ -49,7 +49,7 @@ import com.threerings.opengl.util.DebugBounds;
  * A simple model viewer application.
  */
 public class ModelViewer extends GlCanvasTool
-    implements ChangeListener, ConfigUpdateListener<ModelConfig>, AnimationObserver
+    implements ChangeListener, ConfigUpdateListener<ModelConfig>, ModelObserver
 {
     /**
      * The program entry point.
@@ -90,7 +90,8 @@ public class ModelViewer extends GlCanvasTool
         _showCompass.setSelected(true);
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
         view.addSeparator();
-        view.add(createMenuItem("recenter", KeyEvent.VK_R, KeyEvent.VK_C));
+        view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
+        view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
 
         // add the bottom panel
         JPanel bottom = GroupLayout.makeVBox(
@@ -151,17 +152,23 @@ public class ModelViewer extends GlCanvasTool
         }
     }
 
-    // documentation inherited from interface AnimationObserver
+    // documentation inherited from interface ModelObserver
     public boolean animationStarted (Animation animation)
     {
         updateTrackControls();
         return true;
     }
 
-    // documentation inherited from interface AnimationObserver
+    // documentation inherited from interface ModelObserver
     public boolean animationStopped (Animation animation, boolean completed)
     {
         updateTrackControls();
+        return true;
+    }
+
+    // documentation inherited from interface ModelObserver
+    public boolean modelCompleted (Model model)
+    {
         return true;
     }
 
@@ -174,6 +181,16 @@ public class ModelViewer extends GlCanvasTool
         pane.setResizeWeight(1.0);
         pane.setOneTouchExpandable(true);
         return pane;
+    }
+
+    @Override // documentation inherited
+    public void actionPerformed (ActionEvent event)
+    {
+        if (event.getActionCommand().equals("reset")) {
+            _model.reset();
+        } else {
+            super.actionPerformed(event);
+        }
     }
 
     @Override // documentation inherited
@@ -205,7 +222,7 @@ public class ModelViewer extends GlCanvasTool
         config.implementation = (ModelConfig.Derived)_epanel.getObject();
         _model = new Model(this, config);
         _model.setParentScope(this);
-        _model.addAnimationObserver(this);
+        _model.addObserver(this);
 
         // add the initial track panel
         _tpanels.setVisible(_model.getAnimations().length > 0);

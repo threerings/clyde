@@ -110,6 +110,14 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Determines whether the model (such as a transient effect) has completed.
+         */
+        public boolean hasCompleted ()
+        {
+            return false;
+        }
+
+        /**
          * Resets the state of this model.
          */
         public void reset ()
@@ -477,27 +485,35 @@ public class Model extends DynamicScope
     }
 
     /**
-     * Adds an observer for animations played on this model.
+     * Determines whether this model (such as a transient effect) has completed.
      */
-    public void addAnimationObserver (AnimationObserver observer)
+    public boolean hasCompleted ()
     {
-        if (_animobs == null) {
-            _animobs = ObserverList.newFastUnsafe();
-        }
-        _animobs.add(observer);
+        return _impl.hasCompleted();
     }
 
     /**
-     * Removes an animation observer from this model.
+     * Adds an observer to this model.
      */
-    public void removeAnimationObserver (AnimationObserver observer)
+    public void addObserver (ModelObserver observer)
     {
-        if (_animobs == null) {
+        if (_observers == null) {
+            _observers = ObserverList.newFastUnsafe();
+        }
+        _observers.add(observer);
+    }
+
+    /**
+     * Removes an observer from this model.
+     */
+    public void removeObserver (ModelObserver observer)
+    {
+        if (_observers == null) {
             return;
         }
-        _animobs.remove(observer);
-        if (_animobs.isEmpty()) {
-            _animobs = null;
+        _observers.remove(observer);
+        if (_observers.isEmpty()) {
+            _observers = null;
         }
     }
 
@@ -576,6 +592,18 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Notes that the model has completed.  This should only be called by the {@link #_impl}.
+     */
+    public void completed ()
+    {
+        if (_observers != null) {
+            _completedOp.init(this);
+            _observers.apply(_completedOp);
+            _completedOp.clear();
+        }
+    }
+
+    /**
      * Resets the model epoch to the current time.
      */
     protected void resetEpoch ()
@@ -600,7 +628,7 @@ public class Model extends DynamicScope
      */
     protected void animationStarted (Animation animation)
     {
-        Animation.applyStartedOp(_animobs, animation);
+        Animation.applyStartedOp(_observers, animation);
     }
 
     /**
@@ -608,7 +636,39 @@ public class Model extends DynamicScope
      */
     protected void animationStopped (Animation animation, boolean completed)
     {
-        Animation.applyStoppedOp(_animobs, animation, completed);
+        Animation.applyStoppedOp(_observers, animation, completed);
+    }
+
+    /**
+     * An {@link ObserverList.ObserverOp} that calls {@link ModelObserver#modelCompleted}.
+     */
+    protected static class CompletedOp
+        implements ObserverList.ObserverOp<ModelObserver>
+    {
+        /**
+         * (Re)initializes this op.
+         */
+        public void init (Model model)
+        {
+            _model = model;
+        }
+
+        /**
+         * Clears out the model reference.
+         */
+        public void clear ()
+        {
+            _model = null;
+        }
+
+        // documentation inherited from interface ObserverOp
+        public boolean apply (ModelObserver observer)
+        {
+            return observer.modelCompleted(_model);
+        }
+
+        /** The completed model. */
+        protected Model _model;
     }
 
     /** The application context. */
@@ -620,8 +680,8 @@ public class Model extends DynamicScope
     /** The model implementation. */
     protected Implementation _impl = NULL_IMPLEMENTATION;
 
-    /** The lazily-initialized list of animation observers. */
-    protected ObserverList<AnimationObserver> _animobs;
+    /** The lazily-initialized list of model observers. */
+    protected ObserverList<ModelObserver> _observers;
 
     /** A container for the model epoch. */
     @Scoped
@@ -638,6 +698,9 @@ public class Model extends DynamicScope
     /** The model's light state. */
     @Scoped
     protected LightState _lightState;
+
+    /** Completed op to reuse. */
+    protected static CompletedOp _completedOp = new CompletedOp();
 
     /** An implementation that does nothing. */
     protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {

@@ -755,11 +755,14 @@ public class Animation extends SimpleScope
      * Applies the {@link #_startedOp} to the supplied list of observers.
      */
     protected static void applyStartedOp (
-        ObserverList<AnimationObserver> observers, Animation animation)
+        ObserverList<? extends AnimationObserver> observers, Animation animation)
     {
         if (observers != null) {
             _startedOp.init(animation);
-            observers.apply(_startedOp);
+            @SuppressWarnings("unchecked") ObserverList<AnimationObserver> obs =
+                (ObserverList<AnimationObserver>)observers;
+            obs.apply(_startedOp);
+            _startedOp.clear();
         }
     }
 
@@ -767,19 +770,40 @@ public class Animation extends SimpleScope
      * Applies the {@link #_stoppedOp} to the supplied list of observers.
      */
     protected static void applyStoppedOp (
-        ObserverList<AnimationObserver> observers, Animation animation, boolean completed)
+        ObserverList<? extends AnimationObserver> observers,
+        Animation animation, boolean completed)
     {
         if (observers != null) {
             _stoppedOp.init(animation, completed);
-            observers.apply(_stoppedOp);
+            @SuppressWarnings("unchecked") ObserverList<AnimationObserver> obs =
+                (ObserverList<AnimationObserver>)observers;
+            obs.apply(_stoppedOp);
+            _stoppedOp.clear();
         }
+    }
+
+    /**
+     * Animation op base class.
+     */
+    protected static abstract class AnimationOp
+        implements ObserverList.ObserverOp<AnimationObserver>
+    {
+        /**
+         * Clears out the animation reference.
+         */
+        public void clear ()
+        {
+            _animation = null;
+        }
+
+        /** The relevant animation. */
+        protected Animation _animation;
     }
 
     /**
      * An {@link ObserverList.ObserverOp} that calls {@link AnimationObserver#animationStarted}.
      */
-    protected static class StartedOp
-        implements ObserverList.ObserverOp<AnimationObserver>
+    protected static class StartedOp extends AnimationOp
     {
         /**
          * (Re)initializes this op.
@@ -794,16 +818,12 @@ public class Animation extends SimpleScope
         {
             return observer.animationStarted(_animation);
         }
-
-        /** The started animation. */
-        protected Animation _animation;
     }
 
     /**
      * An {@link ObserverList.ObserverOp} that calls {@link AnimationObserver#animationStopped}.
      */
-    protected static class StoppedOp
-        implements ObserverList.ObserverOp<AnimationObserver>
+    protected static class StoppedOp extends AnimationOp
     {
         /**
          * (Re)initializes this op.
@@ -819,9 +839,6 @@ public class Animation extends SimpleScope
         {
             return observer.animationStopped(_animation, _completed);
         }
-
-        /** The started animation. */
-        protected Animation _animation;
 
         /** Whether or not the animation completed. */
         protected boolean _completed;
