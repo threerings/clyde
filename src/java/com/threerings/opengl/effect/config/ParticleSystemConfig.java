@@ -16,6 +16,7 @@ import com.threerings.probs.QuaternionVariable;
 import com.threerings.probs.VectorVariable;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.eff.ParticleSystem;
 import com.threerings.opengl.effect.AlphaMode;
 import com.threerings.opengl.effect.ColorFunction;
 import com.threerings.opengl.effect.FloatFunction;
@@ -246,6 +247,14 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
-        return null;
+        if (impl instanceof ParticleSystem) {
+            ((ParticleSystem)impl).setConfig(this);
+        } else {
+            if (impl != null) {
+                impl.dispose();
+            }
+            impl = new ParticleSystem(ctx, scope, this);
+        }
+        return impl;
     }
 }

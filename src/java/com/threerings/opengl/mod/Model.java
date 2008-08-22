@@ -566,6 +566,15 @@ public class Model extends DynamicScope
         resetEpoch();
     }
 
+    @Override // documentation inherited
+    public void dispose ()
+    {
+        super.dispose();
+        if (_config != null) {
+            _config.removeListener(this);
+        }
+    }
+
     /**
      * Resets the model epoch to the current time.
      */

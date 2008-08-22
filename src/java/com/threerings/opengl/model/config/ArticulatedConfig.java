@@ -42,8 +42,8 @@ public class ArticulatedConfig extends ModelConfig.Imported
     /** The options for billboard rotation about the x axis. */
     public enum BillboardRotationX { ALIGN_TO_VIEW, FACE_VIEWER, NONE };
 
-    /** The options for billboard rotation about the z axis. */
-    public enum BillboardRotationZ { ALIGN_TO_VIEW, FACE_VIEWER };
+    /** The options for billboard rotation about the y axis. */
+    public enum BillboardRotationY { ALIGN_TO_VIEW, FACE_VIEWER };
 
     /**
      * A node within an {@link Articulated} model.
@@ -132,6 +132,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
             if (node != null && node.getClass() == getArticulatedNodeClass()) {
                 node.setConfig(this, parentViewTransform);
             } else {
+                if (node != null) {
+                    node.dispose();
+                }
                 node = createArticulatedNode(scope, parentViewTransform);
             }
             nnodes.add(node);
@@ -264,9 +267,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Editable(hgroup="b")
         public BillboardRotationX rotationX = BillboardRotationX.ALIGN_TO_VIEW;
 
-        /** The z rotation mode. */
+        /** The y rotation mode. */
         @Editable(hgroup="b")
-        public BillboardRotationZ rotationZ = BillboardRotationZ.ALIGN_TO_VIEW;
+        public BillboardRotationY rotationY = BillboardRotationY.ALIGN_TO_VIEW;
 
         @Override // documentation inherited
         public Updater createUpdater (Articulated.Node node)
@@ -274,19 +277,19 @@ public class ArticulatedConfig extends ModelConfig.Imported
             Transform3D viewTransform = node.getViewTransform();
             final Quaternion rotation = viewTransform.getRotation();
             if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
-                    rotationZ == BillboardRotationZ.ALIGN_TO_VIEW) {
+                    rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
                 // simplest case; just clear the rotation
                 return createUpdater(rotation, Quaternion.IDENTITY);
             }
             if (rotationX == BillboardRotationX.NONE &&
-                    rotationZ == BillboardRotationZ.ALIGN_TO_VIEW) {
+                    rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
                 // axial alignment; these all share the same rotation
                 return createUpdater(
                     rotation, ScopeUtil.resolve(node, "billboardRotation", Quaternion.IDENTITY));
             }
             final Vector3f translation = viewTransform.getTranslation();
             if (rotationX == BillboardRotationX.FACE_VIEWER &&
-                    rotationZ == BillboardRotationZ.ALIGN_TO_VIEW) {
+                    rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
                 // pivot about the x axis
                 return new Updater() {
                     public void update () {
@@ -296,7 +299,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 };
             }
             if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
-                    rotationZ == BillboardRotationZ.FACE_VIEWER) {
+                    rotationY == BillboardRotationY.FACE_VIEWER) {
                 // pivot about the y axis
                 return new Updater() {
                     public void update () {
@@ -306,7 +309,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 };
             }
             if (rotationX == BillboardRotationX.FACE_VIEWER &&
-                    rotationZ == BillboardRotationZ.FACE_VIEWER) {
+                    rotationY == BillboardRotationY.FACE_VIEWER) {
                 // pivot about the x and y axes
                 return new Updater() {
                     public void update () {
@@ -316,7 +319,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                     }
                 };
             }
-            // final possibility: no rotation about x, face viewer about z
+            // final possibility: no rotation about x, face viewer about y
             final Quaternion billboardRotation = ScopeUtil.resolve(
                 node, "billboardRotation", Quaternion.IDENTITY);
             return new Updater() {
@@ -354,6 +357,10 @@ public class ArticulatedConfig extends ModelConfig.Imported
         /** The model to attach to the node. */
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
+
+        /** The transform of the model. */
+        @Editable(step=0.01)
+        public Transform3D transform = new Transform3D();
 
         /**
          * Returns the options available for the node field.
@@ -428,6 +435,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
         if (impl instanceof Articulated) {
             ((Articulated)impl).setConfig(this);
         } else {
+            if (impl != null) {
+                impl.dispose();
+            }
             impl = new Articulated(ctx, scope, this);
         }
         return impl;

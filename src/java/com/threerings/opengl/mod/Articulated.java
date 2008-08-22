@@ -412,6 +412,11 @@ public class Articulated extends Model.Implementation
         // create the node list
         ArrayList<Node> nnodes = new ArrayList<Node>();
         _config.root.getArticulatedNodes(this, _nodes, nnodes, _viewTransform);
+        if (_nodes != null) {
+            for (int ii = nnodes.size(); ii < _nodes.length; ii++) {
+                _nodes[ii].dispose();
+            }
+        }
         _nodes = nnodes.toArray(new Node[nnodes.size()]);
 
         // populate the name map
@@ -435,6 +440,11 @@ public class Articulated extends Model.Implementation
         }
 
         // create the skinned surfaces
+        if (_surfaces != null) {
+            for (Surface surface : _surfaces) {
+                surface.dispose();
+            }
+        }
         _surfaces = createSurfaces(
             _ctx, this, _config.skin.visible, _config.materialMappings, materialConfigs);
 
@@ -447,6 +457,11 @@ public class Articulated extends Model.Implementation
             _animations[ii] = anim;
             AnimationMapping mapping = _config.animationMappings[ii];
             anim.setConfig(mapping.name, mapping.animation);
+        }
+        if (oanims != null) {
+            for (int ii = _animations.length; ii < oanims.length; ii++) {
+                oanims[ii].dispose();
+            }
         }
 
         // populate the animation map
@@ -465,6 +480,12 @@ public class Articulated extends Model.Implementation
             Attachment attachment = _config.attachments[ii];
             model.setParentScope(getAttachmentNode(attachment.node));
             model.setConfig(attachment.model);
+            model.getLocalTransform().set(attachment.transform);
+        }
+        if (omodels != null) {
+            for (int ii = _configAttachments.length; ii < omodels.length; ii++) {
+                omodels[ii].dispose();
+            }
         }
 
         // update the user attachments

@@ -121,6 +121,17 @@ public class DynamicScope
         }
     }
 
+    /**
+     * Releases the resources associated with this scope.  This is intended to be a hint to avoid
+     * unnecessary processing, rather than a requirement.
+     */
+    public void dispose ()
+    {
+        if (_parent != null) {
+            _parent.removeListener(this);
+        }
+    }
+
     // documentation inherited from interface Scope
     public String getScopeName ()
     {

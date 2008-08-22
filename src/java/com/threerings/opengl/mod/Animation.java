@@ -692,6 +692,15 @@ public class Animation extends SimpleScope
     }
 
     @Override // documentation inherited
+    public void dispose ()
+    {
+        super.dispose();
+        if (_config != null) {
+            _config.removeListener(this);
+        }
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         return _name;

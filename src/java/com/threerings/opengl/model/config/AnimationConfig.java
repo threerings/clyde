@@ -54,11 +54,8 @@ public class AnimationConfig extends ParameterizedConfig
          * @return either a reference to the existing implementation (if reused), a new
          * implementation, or <code>null</code> if no implementation could be created.
          */
-        public Animation.Implementation getAnimationImplementation (
-            GlContext ctx, Scope scope, Animation.Implementation impl)
-        {
-            return null;
-        }
+        public abstract Animation.Implementation getAnimationImplementation (
+            GlContext ctx, Scope scope, Animation.Implementation impl);
     }
 
     /**
@@ -197,6 +194,9 @@ public class AnimationConfig extends ParameterizedConfig
             if (impl instanceof Animation.Imported) {
                 ((Animation.Imported)impl).setConfig(this);
             } else {
+                if (impl != null) {
+                    impl.dispose();
+                }
                 impl = new Animation.Imported(scope, this);
             }
             return impl;
@@ -239,6 +239,9 @@ public class AnimationConfig extends ParameterizedConfig
             if (impl instanceof Animation.Procedural) {
                 ((Animation.Procedural)impl).setConfig(this);
             } else {
+                if (impl != null) {
+                    impl.dispose();
+                }
                 impl = new Animation.Procedural(scope, this);
             }
             return impl;

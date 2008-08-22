@@ -22,6 +22,17 @@ public abstract class SimpleScope
         ScopeUtil.updateBound(this, _parentScope);
     }
 
+    /**
+     * Releases the resources associated with this scope.  This is intended to be a hint to avoid
+     * unnecessary processing, rather than a requirement.
+     */
+    public void dispose ()
+    {
+        if (_parentScope != null) {
+            _parentScope.removeListener(this);
+        }
+    }
+
     // documentation inherited from interface Scope
     public String getScopeName ()
     {

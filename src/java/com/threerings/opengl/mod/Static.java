@@ -44,6 +44,11 @@ public class Static extends Model.Implementation
      */
     public void setConfig (MeshSet meshes, MaterialMapping[] materialMappings)
     {
+        if (_surfaces != null) {
+            for (Surface surface : _surfaces) {
+                surface.dispose();
+            }
+        }
         _meshes = meshes;
         _surfaces = createSurfaces(
             _ctx, this, meshes.visible, materialMappings, new HashMap<String, MaterialConfig>());

@@ -88,6 +88,13 @@ public class Surface extends SimpleScope
         updateFromConfigs();
     }
 
+    @Override // documentation inherited
+    public void dispose ()
+    {
+        super.dispose();
+        _materialConfig.removeListener(this);
+    }
+
     /**
      * Creates a new surface.
      */
