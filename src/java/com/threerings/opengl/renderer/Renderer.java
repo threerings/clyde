@@ -2168,7 +2168,7 @@ public class Renderer
     protected int _primitiveCount;
 
     /** References to the last states applied. */
-    protected RenderState[] _states = RenderState.DEFAULTS.clone();
+    protected RenderState[] _states = RenderState.createDefaultSet();
 
     /** The clear color. */
     protected Color4f _clearColor = new Color4f(0f, 0f, 0f, 0f);

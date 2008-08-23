@@ -63,20 +63,36 @@ public abstract class RenderState
     /** The total number of state types. */
     public static final int STATE_COUNT = 16;
 
-    /** The OpenGL default states. */
-    public static final RenderState[] DEFAULTS = new RenderState[] {
-        AlphaState.OPAQUE, ArrayState.DISABLED, ColorState.WHITE, ColorMaskState.ALL,
-        CullState.DISABLED, DepthState.WRITE, FogState.DISABLED, LightState.DISABLED,
-        LineState.DEFAULT, MaterialState.DEFAULT, PointState.DEFAULT, PolygonState.DEFAULT,
-        ShaderState.DISABLED, StencilState.DISABLED, TextureState.DISABLED,
-        TransformState.IDENTITY };
-
     /**
      * Creates and returns a new, empty render state set.
      */
     public static RenderState[] createEmptySet ()
     {
         return new RenderState[STATE_COUNT];
+    }
+
+    /**
+     * Returns a new render state set containing the default states.
+     */
+    public static RenderState[] createDefaultSet ()
+    {
+        return getDefaults().clone();
+    }
+
+    /**
+     * Returns a reference to the shared default state array.
+     */
+    public static RenderState[] getDefaults ()
+    {
+        if (_defaults == null) {
+            _defaults = new RenderState[] {
+                AlphaState.OPAQUE, ArrayState.DISABLED, ColorState.WHITE, ColorMaskState.ALL,
+                CullState.DISABLED, DepthState.WRITE, FogState.DISABLED, LightState.DISABLED,
+                LineState.DEFAULT, MaterialState.DEFAULT, PointState.DEFAULT, PolygonState.DEFAULT,
+                ShaderState.DISABLED, StencilState.DISABLED, TextureState.DISABLED,
+                TransformState.IDENTITY };
+        }
+        return _defaults;
     }
 
     /**
@@ -120,4 +136,7 @@ public abstract class RenderState
 
     /** Set when the state has changed and must be reapplied. */
     protected boolean _dirty;
+
+    /** The default states. */
+    protected static RenderState[] _defaults;
 }
