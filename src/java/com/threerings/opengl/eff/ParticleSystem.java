@@ -4,11 +4,15 @@
 package com.threerings.opengl.eff;
 
 import com.threerings.expr.Scope;
+import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.mat.Surface;
+import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -24,9 +28,10 @@ public class ParticleSystem extends Model.Implementation
         /**
          * Creates a new layer.
          */
-        public Layer (Scope parentScope, ParticleSystemConfig.Layer config)
+        public Layer (GlContext ctx, Scope parentScope, ParticleSystemConfig.Layer config)
         {
             super(parentScope);
+            _ctx = ctx;
             setConfig(config);
         }
 
@@ -36,6 +41,14 @@ public class ParticleSystem extends Model.Implementation
         public void setConfig (ParticleSystemConfig.Layer config)
         {
             _config = config;
+
+            // recreate the surface
+            if (_surface != null) {
+                _surface.dispose();
+            }
+            _surface = new Surface(
+                _ctx, this, config.geometry,
+                _ctx.getConfigManager().getConfig(MaterialConfig.class, config.material));
         }
 
         /**
@@ -75,6 +88,9 @@ public class ParticleSystem extends Model.Implementation
             return "layer";
         }
 
+        /** The application context. */
+        protected GlContext _ctx;
+
         /** The layer configuration. */
         protected ParticleSystemConfig.Layer _config;
 
@@ -86,6 +102,15 @@ public class ParticleSystem extends Model.Implementation
 
         /** The layer surface. */
         protected Surface _surface;
+
+        /** The particles in the layer (first the living particles, then the pre-living particles,
+         * then the dead particles). */
+        @Scoped
+        protected Particle[] _particles;
+
+        /** The shared transform state. */
+        @Scoped
+        protected TransformState _transformState = new TransformState();
     }
 
     /**

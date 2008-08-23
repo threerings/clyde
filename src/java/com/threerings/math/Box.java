@@ -11,6 +11,12 @@ import com.threerings.export.Exportable;
 public final class Box
     implements Exportable
 {
+    /** The empty box. */
+    public static final Box EMPTY = new Box(Vector3f.MAX_VALUE, Vector3f.MIN_VALUE);
+
+    /** The zero box. */
+    public static final Box ZERO = new Box(Vector3f.ZERO, Vector3f.ZERO);
+
     /**
      * Creates a box with the values contained in the supplied minimum and maximum extents.
      */

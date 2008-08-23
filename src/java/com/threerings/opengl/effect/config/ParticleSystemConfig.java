@@ -8,6 +8,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 import com.threerings.probs.ColorFunctionVariable;
 import com.threerings.probs.FloatFunctionVariable;
@@ -20,6 +21,10 @@ import com.threerings.opengl.eff.ParticleSystem;
 import com.threerings.opengl.effect.AlphaMode;
 import com.threerings.opengl.effect.ColorFunction;
 import com.threerings.opengl.effect.FloatFunction;
+import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geometry.config.DeformerConfig;
+import com.threerings.opengl.geometry.config.GeometryConfig;
+import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
@@ -47,9 +52,9 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         @Editable(column=true)
         public boolean visible = true;
 
-        /** The particle render mode. */
+        /** The particle geometry. */
         @Editable(category="appearance")
-        public RenderMode renderMode = new Points();
+        public ParticleGeometryConfig geometry = new Points();
 
         /** The particle count. */
         @Editable(category="appearance", min=0)
@@ -164,22 +169,33 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
      * Determines how particles are rendered.
      */
     @EditorTypes({ Points.class, Lines.class, Quads.class, Meshes.class })
-    public static abstract class RenderMode extends DeepObject
-        implements Exportable
+    public static abstract class ParticleGeometryConfig extends GeometryConfig
     {
+        @Override // documentation inherited
+        public Box getBounds ()
+        {
+            return Box.EMPTY;
+        }
+
+        @Override // documentation inherited
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        {
+            return null;
+        }
     }
 
     /**
      * Renders particles as points.
      */
-    public static class Points extends RenderMode
+    public static class Points extends ParticleGeometryConfig
     {
     }
 
     /**
      * Renders particles as lines or line strips.
      */
-    public static class Lines extends RenderMode
+    public static class Lines extends ParticleGeometryConfig
     {
         /** The number of segments in each particle. */
         @Editable(min=0)
@@ -198,7 +214,7 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
     /**
      * Renders particles as quads or quad strips.
      */
-    public static class Quads extends RenderMode
+    public static class Quads extends ParticleGeometryConfig
     {
         /** The number of segments in each particle. */
         @Editable(min=0)
@@ -217,7 +233,7 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
     /**
      * Renders particles as mesh instances.
      */
-    public static class Meshes extends RenderMode
+    public static class Meshes extends ParticleGeometryConfig
     {
         /** The model containing the mesh. */
         @Editable(mode="compact", nullable=true)

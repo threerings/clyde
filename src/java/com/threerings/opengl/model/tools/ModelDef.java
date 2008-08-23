@@ -1410,7 +1410,7 @@ public class ModelDef
 
         // create a top-level node to hold the entire model
         NodeDef node = new NodeDef();
-        node.name = "root";
+        node.name = "%ROOT%";
         node.childDefs = tops;
         for (SpatialDef top : tops) {
             top.parentDef = node;
