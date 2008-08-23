@@ -56,7 +56,7 @@ public class Surface extends SimpleScope
             _materialConfig.removeListener(this);
         }
         _materialConfig = (config == null) ?
-            _ctx.getConfigManager().getConfig(MaterialConfig.class, NULL_MATERIAL) : config;
+            _ctx.getConfigManager().getConfig(MaterialConfig.class, BLANK_MATERIAL) : config;
         _materialConfig.addListener(this);
         updateFromConfigs();
     }
@@ -127,7 +127,7 @@ public class Surface extends SimpleScope
             log.warning("No technique available to render material.",
                 "material", _materialConfig.getName(), "scheme", scheme);
             MaterialConfig config = _ctx.getConfigManager().getConfig(
-                MaterialConfig.class, NULL_MATERIAL);
+                MaterialConfig.class, BLANK_MATERIAL);
             technique = config.getTechnique(_ctx, scheme);
         }
         if (_geometryConfig != null) {
@@ -159,5 +159,5 @@ public class Surface extends SimpleScope
     protected Renderable _renderable;
 
     /** The config to use when we're given a <code>null</code> material config. */
-    protected static final String NULL_MATERIAL = "System/Null";
+    protected static final String BLANK_MATERIAL = "Basic/Blank";
 }
