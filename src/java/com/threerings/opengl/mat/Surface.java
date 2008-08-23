@@ -20,6 +20,8 @@ import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * A renderable surface.
  */
@@ -50,8 +52,12 @@ public class Surface extends SimpleScope
      */
     public void setMaterialConfig (MaterialConfig config)
     {
-        _materialConfig.removeListener(this);
-        (_materialConfig = config).addListener(this);
+        if (_materialConfig != null) {
+            _materialConfig.removeListener(this);
+        }
+        _materialConfig = (config == null) ?
+            _ctx.getConfigManager().getConfig(MaterialConfig.class, NULL_MATERIAL) : config;
+        _materialConfig.addListener(this);
         updateFromConfigs();
     }
 
@@ -105,11 +111,9 @@ public class Surface extends SimpleScope
         super(parentScope);
         _ctx = ctx;
         _geometryConfig = geometryConfig;
-        _materialConfig = materialConfig;
         _geometry = geometry;
 
-        _materialConfig.addListener(this);
-        updateFromConfigs();
+        setMaterialConfig(materialConfig);
     }
 
     /**
@@ -119,6 +123,13 @@ public class Surface extends SimpleScope
     {
         String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
         TechniqueConfig technique = _materialConfig.getTechnique(_ctx, scheme);
+        if (technique == null) {
+            log.warning("No technique available to render material.",
+                "material", _materialConfig.getName(), "scheme", scheme);
+            MaterialConfig config = _ctx.getConfigManager().getConfig(
+                MaterialConfig.class, NULL_MATERIAL);
+            technique = config.getTechnique(_ctx, scheme);
+        }
         if (_geometryConfig != null) {
             PassDescriptor[] passes = technique.getDescriptors(_ctx);
             _geometry = _geometryConfig.createGeometry(_ctx, this, technique.deformer, passes);
@@ -146,4 +157,7 @@ public class Surface extends SimpleScope
 
     /** The renderable created from the configs. */
     protected Renderable _renderable;
+
+    /** The config to use when we're given a <code>null</code> material config. */
+    protected static final String NULL_MATERIAL = "System/Null";
 }

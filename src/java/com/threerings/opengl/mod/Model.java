@@ -217,10 +217,18 @@ public class Model extends DynamicScope
         {
             for (MaterialMapping mapping : materialMappings) {
                 if (ObjectUtil.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
-                    return (mapping.material == null) ? null :
-                        ctx.getConfigManager().getConfig(MaterialConfig.class, mapping.material);
+                    if (mapping.material == null) {
+                        return null;
+                    }
+                    MaterialConfig config = ctx.getConfigManager().getConfig(
+                        MaterialConfig.class, mapping.material);
+                    if (config == null) {
+                        log.warning("Missing material for mapping.", "material", mapping.material);
+                    }
+                    return config;
                 }
             }
+            log.warning("No material mapping found.", "texture", texture, "tag", tag);
             return null;
         }
     }
