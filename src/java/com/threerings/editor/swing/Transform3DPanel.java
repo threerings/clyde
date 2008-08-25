@@ -16,7 +16,9 @@ import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 /**
  * Allows editing a 3D transform.
@@ -100,11 +102,14 @@ public class Transform3DPanel extends BasePropertyEditor
      */
     public Transform3D getValue ()
     {
-        if (_mode == Mode.RIGID) {
-            return new Transform3D(_tpanel.getValue(), _rpanel.getValue());
-        } else { // _mode == Mode.UNIFORM
-            return new Transform3D(_tpanel.getValue(), _rpanel.getValue(),
-                ((Number)_sspinner.getValue()).floatValue());
+        Vector3f translation = _tpanel.getValue();
+        Quaternion rotation = _rpanel.getValue();
+        float scale = (_sspinner == null) ? 1f : ((Number)_sspinner.getValue()).floatValue();
+        if (scale == 1f) {
+            return (translation.equals(Vector3f.ZERO) && rotation.equals(Quaternion.IDENTITY)) ?
+                new Transform3D() : new Transform3D(translation, rotation);
+        } else {
+            return new Transform3D(translation, rotation, scale);
         }
     }
 
