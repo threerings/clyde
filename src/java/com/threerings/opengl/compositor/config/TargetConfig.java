@@ -4,6 +4,7 @@
 package com.threerings.opengl.compositor.config;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -29,6 +30,12 @@ public abstract class TargetConfig extends DeepObject
         /** The texture to which we render. */
         @Editable(weight=-1, nullable=true)
         public ConfigReference<TextureConfig> texture;
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(TextureConfig.class, texture);
+        }
     }
 
     /**
@@ -45,4 +52,12 @@ public abstract class TargetConfig extends DeepObject
     /** The steps required to update the target. */
     @Editable
     public StepConfig[] steps = new StepConfig[0];
+
+    /**
+     * Adds the target's update references to the provided set.
+     */
+    public void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        // nothing by default
+    }
 }

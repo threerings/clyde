@@ -26,15 +26,6 @@ public class ParameterizedConfig extends ManagedConfig
     public Parameter[] parameters = new Parameter[0];
 
     /**
-     * Returns a reference to the config manager to use when resolving references within this
-     * config.
-     */
-    public ConfigManager getConfigManager ()
-    {
-        return _cfgmgr;
-    }
-
-    /**
      * Returns a reference to the parameter with the supplied name, or <code>null</code> if it
      * doesn't exist.
      */
@@ -79,12 +70,6 @@ public class ParameterizedConfig extends ManagedConfig
             applyArguments(instance, args);
         }
         return instance;
-    }
-
-    @Override // documentation inherited
-    public void init (ConfigManager cfgmgr)
-    {
-        _cfgmgr = cfgmgr;
     }
 
     @Override // documentation inherited
@@ -157,10 +142,6 @@ public class ParameterizedConfig extends ManagedConfig
         }
         return null;
     }
-
-    /** The config manager that we use to resolve references. */
-    @DeepOmit
-    protected transient ConfigManager _cfgmgr;
 
     /** The instance from which the configuration is derived, if any (used to prevent the base
      * from being garbage-collected). */

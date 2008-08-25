@@ -5,6 +5,7 @@ package com.threerings.opengl.material.config;
 
 import java.util.ArrayList;
 
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -51,6 +52,11 @@ public class TechniqueConfig extends DeepObject
         public String queue = RenderQueue.OPAQUE;
 
         /**
+         * Adds the enqueuer's update references to the provided set.
+         */
+        public abstract void getUpdateReferences (ConfigReferenceSet refs);
+
+        /**
          * Determines whether this enqueuer is supported by the hardware.
          */
         public abstract boolean isSupported (GlContext ctx);
@@ -85,6 +91,14 @@ public class TechniqueConfig extends DeepObject
         /** The passes to render. */
         @Editable
         public PassConfig[] passes = new PassConfig[0];
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (PassConfig pass : passes) {
+                pass.getUpdateReferences(refs);
+            }
+        }
 
         @Override // documentation inherited
         public boolean isSupported (GlContext ctx)
@@ -227,6 +241,14 @@ public class TechniqueConfig extends DeepObject
         public Enqueuer[] enqueuers = new Enqueuer[0];
 
         @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (Enqueuer enqueuer : enqueuers) {
+                enqueuer.getUpdateReferences(refs);
+            }
+        }
+
+        @Override // documentation inherited
         public boolean isSupported (GlContext ctx)
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -288,6 +310,14 @@ public class TechniqueConfig extends DeepObject
     /** Determines what we actually enqueue for this technique. */
     @Editable
     public Enqueuer enqueuer = new NormalEnqueuer();
+
+    /**
+     * Adds the technique's update references to the provided set.
+     */
+    public void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        enqueuer.getUpdateReferences(refs);
+    }
 
     /**
      * Processes this technique to accommodate the features of the hardware.

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import com.samskivert.util.ObjectUtil;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -35,6 +36,11 @@ public class MaterialConfig extends ParameterizedConfig
         implements Exportable
     {
         /**
+         * Adds the implementation's update references to the provided set.
+         */
+        public abstract void getUpdateReferences (ConfigReferenceSet refs);
+
+        /**
          * Returns a technique to use to render this material.
          */
         public abstract TechniqueConfig getTechnique (GlContext ctx, String scheme);
@@ -56,6 +62,14 @@ public class MaterialConfig extends ParameterizedConfig
         /** The techniques available to render the material. */
         @Editable
         public TechniqueConfig[] techniques = new TechniqueConfig[] { new TechniqueConfig() };
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (TechniqueConfig technique : techniques) {
+                technique.getUpdateReferences(refs);
+            }
+        }
 
         @Override // documentation inherited
         public TechniqueConfig getTechnique (GlContext ctx, String scheme)
@@ -123,6 +137,12 @@ public class MaterialConfig extends ParameterizedConfig
         public ConfigReference<MaterialConfig> material;
 
         @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(MaterialConfig.class, material);
+        }
+
+        @Override // documentation inherited
         public TechniqueConfig getTechnique (GlContext ctx, String scheme)
         {
             if (material == null) {
@@ -141,7 +161,7 @@ public class MaterialConfig extends ParameterizedConfig
     /**
      * Finds a technique to render this material.
      *
-     * @param scheme the
+     * @param scheme the preferred render scheme to use.
      */
     public TechniqueConfig getTechnique (GlContext ctx, String scheme)
     {
@@ -154,5 +174,11 @@ public class MaterialConfig extends ParameterizedConfig
         // invalidate the implementation
         implementation.invalidate();
         super.wasUpdated();
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        implementation.getUpdateReferences(refs);
     }
 }

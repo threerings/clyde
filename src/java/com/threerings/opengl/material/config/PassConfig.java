@@ -5,6 +5,7 @@ package com.threerings.opengl.material.config;
 
 import java.util.ArrayList;
 
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
@@ -100,6 +101,15 @@ public class PassConfig extends DeepObject
     /** The dynamic expression bindings for this pass. */
     @Editable
     public ExpressionBinding[] dynamicBindings = new ExpressionBinding[0];
+
+    /**
+     * Adds the technique's update references to the provided set.
+     */
+    public void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        shaderState.getUpdateReferences(refs);
+        textureState.getUpdateReferences(refs);
+    }
 
     /**
      * Determines whether this pass is supported.

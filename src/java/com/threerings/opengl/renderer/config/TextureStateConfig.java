@@ -3,6 +3,7 @@
 
 package com.threerings.opengl.renderer.config;
 
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -21,6 +22,16 @@ public class TextureStateConfig extends DeepObject
     /** The texture unit configurations. */
     @Editable
     public TextureUnitConfig[] units = new TextureUnitConfig[0];
+
+    /**
+     * Adds the state's update references to the provided set.
+     */
+    public void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        for (TextureUnitConfig unit : units) {
+            refs.add(TextureConfig.class, unit.texture);
+        }
+    }
 
     /**
      * Determines whether this state is supported by the hardware.

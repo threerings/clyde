@@ -16,6 +16,7 @@ import com.samskivert.util.ObjectUtil;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -65,6 +66,14 @@ public class ModelConfig extends ParameterizedConfig
          * @param force if true, reload the source data even if it has already been loaded.
          */
         public void updateFromSource (EditorContext ctx, boolean force)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Adds the implementation's update references to the provided set.
+         */
+        public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
         }
@@ -271,6 +280,12 @@ public class ModelConfig extends ParameterizedConfig
         public ConfigReference<ModelConfig> model;
 
         @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(ModelConfig.class, model);
+        }
+
+        @Override // documentation inherited
         public Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
@@ -386,6 +401,12 @@ public class ModelConfig extends ParameterizedConfig
     public void updateFromSource (EditorContext ctx, boolean force)
     {
         implementation.updateFromSource(ctx, force);
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        implementation.getUpdateReferences(refs);
     }
 
     /** The model's local config library. */

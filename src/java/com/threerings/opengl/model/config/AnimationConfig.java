@@ -4,6 +4,7 @@
 package com.threerings.opengl.model.config;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -42,6 +43,14 @@ public class AnimationConfig extends ParameterizedConfig
          * @param force if true, reload the source data even if it has already been loaded.
          */
         public void updateFromSource (EditorContext ctx, boolean force)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Adds the implementation's update references to the provided set.
+         */
+        public void getUpdateReferences (ConfigReferenceSet refs)
         {
             // nothing by default
         }
@@ -258,6 +267,12 @@ public class AnimationConfig extends ParameterizedConfig
         public ConfigReference<AnimationConfig> animation;
 
         @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(AnimationConfig.class, animation);
+        }
+
+        @Override // documentation inherited
         public Animation.Implementation getAnimationImplementation (
             GlContext ctx, Scope scope, Animation.Implementation impl)
         {
@@ -304,6 +319,12 @@ public class AnimationConfig extends ParameterizedConfig
     public void updateFromSource (EditorContext ctx, boolean force)
     {
         implementation.updateFromSource(ctx, force);
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        implementation.getUpdateReferences(refs);
     }
 
     /** Parses animation exports. */

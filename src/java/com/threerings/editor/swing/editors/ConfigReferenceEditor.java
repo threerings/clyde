@@ -67,9 +67,6 @@ public class ConfigReferenceEditor extends PropertyEditor
             editor.setVisible(true);
             return;
 
-        } else if (source == _reload) {
-            nvalue = ovalue;
-
         } else { // event.getSource() == _clear
             nvalue = null;
         }
@@ -106,8 +103,6 @@ public class ConfigReferenceEditor extends PropertyEditor
         if (!getMode().equals("compact")) {
             cpanel.add(_edit = new JButton(_msgs.get("m.edit")));
             _edit.addActionListener(this);
-            cpanel.add(_reload = new JButton(_msgs.get("m.reload")));
-            _reload.addActionListener(this);
         }
         if (_property.getAnnotation().nullable()) {
             cpanel.add(_clear = new JButton(_msgs.get("m.clear")));
@@ -147,7 +142,6 @@ public class ConfigReferenceEditor extends PropertyEditor
         boolean enable = (value != null);
         if (_edit != null) {
             _edit.setEnabled(enable);
-            _reload.setEnabled(enable);
         }
         if (_clear != null) {
             _clear.setEnabled(enable);
@@ -231,8 +225,8 @@ public class ConfigReferenceEditor extends PropertyEditor
     /** The config button. */
     protected JButton _config;
 
-    /** The reload, edit, and clear buttons. */
-    protected JButton _edit, _reload, _clear;
+    /** The edit, and clear buttons. */
+    protected JButton _edit, _clear;
 
     /** Holds the argument panels. */
     protected JPanel _arguments;

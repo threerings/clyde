@@ -16,6 +16,7 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -281,6 +282,14 @@ public class TextureConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
+        /**
+         * Adds the implementation's update references to the provided set.
+         */
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            // nothing by default
+        }
+
         /**
          * Determines whether this configuration is supported by the hardware.
          */
@@ -897,6 +906,12 @@ public class TextureConfig extends ParameterizedConfig
         public ConfigReference<TextureConfig> texture;
 
         @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(TextureConfig.class, texture);
+        }
+
+        @Override // documentation inherited
         public boolean isSupported (GlContext ctx)
         {
             TextureConfig config = getTextureConfig(ctx);
@@ -949,6 +964,12 @@ public class TextureConfig extends ParameterizedConfig
     public Texture getTexture (GlContext ctx)
     {
         return implementation.getTexture(ctx);
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        implementation.getUpdateReferences(refs);
     }
 
     /**

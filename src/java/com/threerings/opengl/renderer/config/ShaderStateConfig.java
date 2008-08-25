@@ -8,6 +8,7 @@ import org.lwjgl.opengl.GLContext;
 import java.util.ArrayList;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -60,6 +61,13 @@ public abstract class ShaderStateConfig extends DeepObject
         /** The fragment shader to use. */
         @Editable(nullable=true)
         public ConfigReference<ShaderConfig> fragment;
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(ShaderConfig.class, vertex);
+            refs.add(ShaderConfig.class, fragment);
+        }
 
         @Override // documentation inherited
         public boolean isSupported (GlContext ctx)
@@ -130,6 +138,14 @@ public abstract class ShaderStateConfig extends DeepObject
             return (ref == null) ?
                 null : ctx.getConfigManager().getConfig(ShaderConfig.class, ref);
         }
+    }
+
+    /**
+     * Adds the state's update references to the provided set.
+     */
+    public void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        // nothing by default
     }
 
     /**
