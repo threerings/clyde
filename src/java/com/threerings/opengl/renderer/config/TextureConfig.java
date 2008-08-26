@@ -25,6 +25,7 @@ import com.threerings.export.Exportable;
 import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Texture;
@@ -299,6 +300,14 @@ public class TextureConfig extends ParameterizedConfig
          * Returns the texture corresponding to this configuration.
          */
         public abstract Texture getTexture (GlContext ctx);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -370,9 +379,20 @@ public class TextureConfig extends ParameterizedConfig
             if (texture == null) {
                 _texture = new SoftReference<Texture>(texture = createTexture(ctx));
                 load(ctx, texture);
-                update(texture);
+                texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
+                texture.setMaxAnisotropy(maxAnisotropy);
+                texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
+                texture.setBorderColor(borderColor);
+                texture.setCompare(compareMode.getConstant(), compareFunc.getConstant());
+                texture.setDepthMode(depthMode.getConstant());
             }
             return texture;
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            _texture = null;
         }
 
         /**
@@ -385,20 +405,8 @@ public class TextureConfig extends ParameterizedConfig
          */
         protected abstract void load (GlContext ctx, Texture texture);
 
-        /**
-         * Updates the texture with the configuration parameters.
-         */
-        protected void update (Texture texture)
-        {
-            texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
-            texture.setMaxAnisotropy(maxAnisotropy);
-            texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
-            texture.setBorderColor(borderColor);
-            texture.setCompare(compareMode.getConstant(), compareFunc.getConstant());
-            texture.setDepthMode(depthMode.getConstant());
-        }
-
         /** The texture corresponding to this configuration. */
+        @DeepOmit
         protected transient SoftReference<Texture> _texture;
     }
 
@@ -964,6 +972,14 @@ public class TextureConfig extends ParameterizedConfig
     public Texture getTexture (GlContext ctx)
     {
         return implementation.getTexture(ctx);
+    }
+
+    @Override // documentation inherited
+    public void wasUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.wasUpdated();
     }
 
     @Override // documentation inherited

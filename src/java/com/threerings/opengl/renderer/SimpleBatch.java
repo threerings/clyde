@@ -400,7 +400,8 @@ public class SimpleBatch extends Batch
         key[idx++] = (fragmentShader == null) ? 0 : fragmentShader.getId();
 
         for (int ii = 0; ii < textures; ii++) {
-            key[idx++] = (units[ii] == null) ? 0 : units[ii].texture.getId();
+            Texture texture = (units[ii] == null) ? null : units[ii].texture;
+            key[idx++] = (texture == null) ? 0 : texture.getId();
         }
         key[idx++] = -1;
 
