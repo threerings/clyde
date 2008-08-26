@@ -994,7 +994,7 @@ public class TextureConfig extends ParameterizedConfig
     protected static BufferedImage getImage (
         GlContext ctx, String file, ColorizationReference[] colorizations)
     {
-        BufferedImage image = ctx.getTextureCache().getImage(file);
+        BufferedImage image = ctx.getImageCache().getImage(file);
         if (colorizations.length == 0) {
             return image;
         }

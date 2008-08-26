@@ -69,6 +69,12 @@ public abstract class GlContextWrapper
     }
 
     // documentation inherited from interface GlContext
+    public ImageCache getImageCache ()
+    {
+        return _wrapped.getImageCache();
+    }
+
+    // documentation inherited from interface GlContext
     public TextureCache getTextureCache ()
     {
         return _wrapped.getTextureCache();

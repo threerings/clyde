@@ -28,6 +28,7 @@ import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.ImageCache;
 import com.threerings.opengl.util.MaterialCache;
 import com.threerings.opengl.util.ModelCache;
 import com.threerings.opengl.util.Renderable;
@@ -49,8 +50,9 @@ public abstract class GlApp extends DynamicScope
         _msgmgr = new MessageManager("rsrc.i18n");
         _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
         _colorpos = ColorPository.loadColorPository(_rsrcmgr);
+        _imgcache = new ImageCache(this, shouldCheckTimestamps());
         _texcache = new TextureCache(this);
-        _shadcache = new ShaderCache(this);
+        _shadcache = new ShaderCache(this, shouldCheckTimestamps());
         _matcache = new MaterialCache(this);
         _modcache = new ModelCache(this);
 
@@ -143,6 +145,12 @@ public abstract class GlApp extends DynamicScope
     }
 
     // documentation inherited from interface GlContext
+    public ImageCache getImageCache ()
+    {
+        return _imgcache;
+    }
+
+    // documentation inherited from interface GlContext
     public TextureCache getTextureCache ()
     {
         return _texcache;
@@ -164,6 +172,15 @@ public abstract class GlApp extends DynamicScope
     public ModelCache getModelCache ()
     {
         return _modcache;
+    }
+
+    /**
+     * Determines whether or not we should check resource file timestamps when we load them from
+     * the cache (in other words, whether we expect the files to be modified externally).
+     */
+    protected boolean shouldCheckTimestamps ()
+    {
+        return false;
     }
 
     /**
@@ -289,6 +306,9 @@ public abstract class GlApp extends DynamicScope
 
     /** The color pository. */
     protected ColorPository _colorpos;
+
+    /** The image cache. */
+    protected ImageCache _imgcache;
 
     /** The texture cache. */
     protected TextureCache _texcache;

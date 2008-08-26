@@ -4,10 +4,8 @@
 package com.threerings.opengl.util;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+
 import java.util.Arrays;
-import javax.imageio.ImageIO;
 
 import com.samskivert.util.SoftCache;
 
@@ -16,8 +14,6 @@ import com.threerings.media.image.ImageUtil;
 
 import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.Texture2D;
-
-import static com.threerings.opengl.Log.*;
 
 /**
  * Caches loaded textures.
@@ -63,7 +59,7 @@ public class TextureCache
         TextureKey tkey = new TextureKey(path, zations);
         Texture texture = _textures.get(tkey);
         if (texture == null) {
-            BufferedImage image = getImage(path);
+            BufferedImage image = _ctx.getImageCache().getImage(path);
             if (zations != null) {
                 image = ImageUtil.recolorImage(image, zations);
             }
@@ -72,36 +68,6 @@ public class TextureCache
             _textures.put(tkey, texture = tex2d);
         }
         return texture;
-    }
-
-    /**
-     * Retrieves the image at the specified path.
-     */
-    public BufferedImage getImage (String path)
-    {
-        BufferedImage image = _images.get(path);
-        if (image == null) {
-            try {
-                image = readImage(path);
-            } catch (Exception e) {
-                log.warning("Unable to load image resource [path=" + path + "].", e);
-                image = ImageUtil.createErrorImage(64, 64);
-            }
-            _images.put(path, image);
-        }
-        return image;
-    }
-
-    /**
-     * Reads the image at the specified path (either an absolute pathname or the name of a
-     * resource).
-     */
-    protected BufferedImage readImage (String path)
-        throws IOException
-    {
-        File pfile = new File(path);
-        return pfile.isAbsolute() ?
-            ImageIO.read(pfile) : _ctx.getResourceManager().getImageResource(path);
     }
 
     /**
@@ -140,7 +106,4 @@ public class TextureCache
 
     /** The set of loaded textures. */
     protected SoftCache<TextureKey, Texture> _textures = new SoftCache<TextureKey, Texture>();
-
-    /** The set of loaded images. */
-    protected SoftCache<String, BufferedImage> _images = new SoftCache<String, BufferedImage>();
 }

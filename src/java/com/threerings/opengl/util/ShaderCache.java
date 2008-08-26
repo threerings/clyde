@@ -4,6 +4,8 @@
 package com.threerings.opengl.util;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -28,14 +30,18 @@ import static com.threerings.opengl.Log.*;
 /**
  * Caches loaded shaders and shader programs.
  */
-public class ShaderCache
+public class ShaderCache extends ResourceCache<String>
 {
     /**
      * Creates a new shader cache.
+     *
+     * @param checkTimestamps if true, check the last-modified timestamp of each resource file
+     * when we retrieve it from the cache, reloading the resource if the file has been modified
+     * externally.
      */
-    public ShaderCache (GlContext ctx)
+    public ShaderCache (GlContext ctx, boolean checkTimestamps)
     {
-        _ctx = ctx;
+        super(ctx, checkTimestamps);
     }
 
     /**
@@ -103,6 +109,31 @@ public class ShaderCache
             _programs.put(key, program);
         }
         return program;
+    }
+
+    /**
+     * Retrieves the shader source at the specified path.
+     */
+    public String getSource (String path)
+    {
+        return getResource(path);
+    }
+
+    @Override // documentation inherited
+    protected String loadResource (File file)
+    {
+        StringBuilder buf = new StringBuilder();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                buf.append(line).append('\n');
+            }
+            reader.close();
+        } catch (IOException e) {
+            log.warning("Error loading shader.", "file", file, e);
+        }
+        return buf.toString();
     }
 
     /**
@@ -201,9 +232,6 @@ public class ShaderCache
         /** The vertex and fragment shaders. */
         protected WeakReference<Shader> _vertex, _fragment;
     }
-
-    /** The renderer context. */
-    protected GlContext _ctx;
 
     /** The set of compiled shaders. */
     protected SoftCache<ShaderKey, Shader> _shaders = new SoftCache<ShaderKey, Shader>();

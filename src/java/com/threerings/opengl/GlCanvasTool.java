@@ -78,6 +78,12 @@ public abstract class GlCanvasTool extends GlCanvasApp
     }
 
     @Override // documentation inherited
+    public boolean shouldCheckTimestamps ()
+    {
+        return true;
+    }
+
+    @Override // documentation inherited
     protected CameraHandler createCameraHandler ()
     {
         // add an orbiter to move the camera with the mouse

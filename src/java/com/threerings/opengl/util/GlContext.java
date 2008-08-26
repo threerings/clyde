@@ -22,7 +22,7 @@ public interface GlContext
      * Returns a reference to the scope.
      */
     public DynamicScope getScope ();
-    
+
     /**
      * Returns a reference to the renderer.
      */
@@ -52,6 +52,11 @@ public interface GlContext
      * Returns a reference to the color pository.
      */
     public ColorPository getColorPository ();
+
+    /**
+     * Returns a reference to the image cache.
+     */
+    public ImageCache getImageCache ();
 
     /**
      * Returns a reference to the texture cache.
