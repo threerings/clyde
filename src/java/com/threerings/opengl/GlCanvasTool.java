@@ -14,6 +14,8 @@ import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import com.samskivert.util.Interval;
+
 import com.threerings.math.Vector3f;
 
 import com.threerings.config.tools.ConfigEditor;
@@ -72,6 +74,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
                     _canvas, this, _msgs.get("t.preferences"), _eprefs);
             }
             _pdialog.setVisible(true);
+        } else if (action.equals("refresh")) {
+            _rsrcmgr.checkForModifications();
         } else if (action.equals("recenter")) {
             ((OrbitCameraHandler)_camhand).getTarget().set(Vector3f.ZERO);
         }
@@ -208,6 +212,14 @@ public abstract class GlCanvasTool extends GlCanvasApp
         {
             super(prefs);
             _compositor.getBackgroundColor().set(getPref("background_color", Color4f.GRAY));
+
+            // initialize the refresh interval
+            _refreshInterval = new Interval(GlCanvasTool.this) {
+                public void expired () {
+                    _rsrcmgr.checkForModifications();
+                }
+            };
+            rescheduleRefreshInterval(getRefreshInterval());
         }
 
         /**
@@ -228,6 +240,40 @@ public abstract class GlCanvasTool extends GlCanvasApp
         {
             return _compositor.getBackgroundColor();
         }
+
+        /**
+         * Sets the refresh interval.
+         */
+        @Editable(weight=2, min=0, step=0.01)
+        public void setRefreshInterval (float interval)
+        {
+            _prefs.putFloat("refresh_interval", interval);
+            rescheduleRefreshInterval(interval);
+        }
+
+        /**
+         * Returns the refresh interval.
+         */
+        @Editable
+        public float getRefreshInterval ()
+        {
+            return _prefs.getFloat("refresh_interval", 0f);
+        }
+
+        /**
+         * Updates the schedule of the refresh interval.
+         */
+        protected void rescheduleRefreshInterval (float interval)
+        {
+            if (interval > 0f) {
+                _refreshInterval.schedule((long)(interval * 1000f), true);
+            } else {
+                _refreshInterval.cancel();
+            }
+        }
+
+        /** The interval we use to check for resource modifications. */
+        protected Interval _refreshInterval;
     }
 
     /** The tool message bundle. */

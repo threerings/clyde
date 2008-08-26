@@ -7,6 +7,8 @@ import java.awt.image.BufferedImage;
 
 import java.lang.ref.SoftReference;
 
+import java.util.HashSet;
+
 import org.lwjgl.opengl.ARBShadow;
 import org.lwjgl.opengl.ARBTextureBorderClamp;
 import org.lwjgl.opengl.ARBTextureCompression;
@@ -292,6 +294,14 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         /**
+         * Adds the implementation's update resources to the provided set.
+         */
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            // nothing by default
+        }
+
+        /**
          * Determines whether this configuration is supported by the hardware.
          */
         public abstract boolean isSupported (GlContext ctx);
@@ -423,6 +433,14 @@ public class TextureConfig extends ParameterizedConfig
             implements Exportable
         {
             /**
+             * Adds the contents' update resources to the provided set.
+             */
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                // nothing by default
+            }
+
+            /**
              * Loads the texture with the contents.
              */
             public abstract void load (
@@ -468,6 +486,14 @@ public class TextureConfig extends ParameterizedConfig
             public boolean premultiply = true;
 
             @Override // documentation inherited
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                if (file != null) {
+                    paths.add(file);
+                }
+            }
+
+            @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap)
             {
@@ -483,6 +509,12 @@ public class TextureConfig extends ParameterizedConfig
         /** The initial contents of the texture. */
         @Editable(category="data")
         public Contents contents = new ImageFile();
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            contents.getUpdateResources(paths);
+        }
 
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
@@ -509,6 +541,14 @@ public class TextureConfig extends ParameterizedConfig
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
+            /**
+             * Adds the contents' update resources to the provided set.
+             */
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                // nothing by default
+            }
+
             /**
              * Loads the texture with the contents.
              */
@@ -559,6 +599,14 @@ public class TextureConfig extends ParameterizedConfig
             public boolean premultiply = true;
 
             @Override // documentation inherited
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                if (file != null) {
+                    paths.add(file);
+                }
+            }
+
+            @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
             {
@@ -574,6 +622,12 @@ public class TextureConfig extends ParameterizedConfig
         /** The initial contents of the texture. */
         @Editable(category="data")
         public Contents contents = new ImageFile();
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            contents.getUpdateResources(paths);
+        }
 
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
@@ -618,6 +672,14 @@ public class TextureConfig extends ParameterizedConfig
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
+            /**
+             * Adds the contents' update resources to the provided set.
+             */
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                // nothing by default
+            }
+
             /**
              * Loads the texture with the contents.
              */
@@ -684,6 +746,14 @@ public class TextureConfig extends ParameterizedConfig
             public int depth = 1;
 
             @Override // documentation inherited
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                if (file != null) {
+                    paths.add(file);
+                }
+            }
+
+            @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
             {
@@ -700,6 +770,12 @@ public class TextureConfig extends ParameterizedConfig
         /** The initial contents of the texture. */
         @Editable(category="data")
         public Contents contents = new ImageFile();
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            contents.getUpdateResources(paths);
+        }
 
         @Override // documentation inherited
         public boolean isSupported (GlContext ctx)
@@ -732,6 +808,14 @@ public class TextureConfig extends ParameterizedConfig
         public static abstract class Contents extends DeepObject
             implements Exportable
         {
+            /**
+             * Adds the contents' update resources to the provided set.
+             */
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                // nothing by default
+            }
+
             /**
              * Loads the texture with the contents.
              */
@@ -788,6 +872,14 @@ public class TextureConfig extends ParameterizedConfig
             public int divisionsT = 2;
 
             @Override // documentation inherited
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                if (file != null) {
+                    paths.add(file);
+                }
+            }
+
+            @Override // documentation inherited
             public void load (
                 GlContext ctx, TextureCubeMap texture, Format format,
                 boolean border, boolean mipmap)
@@ -822,6 +914,13 @@ public class TextureConfig extends ParameterizedConfig
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
             public boolean premultiply = true;
+
+            @Override // documentation inherited
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                negative.getUpdateResources(paths);
+                positive.getUpdateResources(paths);
+            }
 
             @Override // documentation inherited
             public void load (
@@ -879,11 +978,33 @@ public class TextureConfig extends ParameterizedConfig
                 extensions={".png", ".jpg"},
                 directory="image_dir")
             public String z;
+
+            /**
+             * Adds the trio's update resources to the provided set.
+             */
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                if (x != null) {
+                    paths.add(x);
+                }
+                if (y != null) {
+                    paths.add(y);
+                }
+                if (z != null) {
+                    paths.add(z);
+                }
+            }
         }
 
         /** The initial contents of the texture. */
         @Editable(category="data")
         public Contents contents = new ImageFiles();
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            contents.getUpdateResources(paths);
+        }
 
         @Override // documentation inherited
         public boolean isSupported (GlContext ctx)
@@ -975,17 +1096,23 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     @Override // documentation inherited
-    public void wasUpdated ()
+    protected void fireConfigUpdated ()
     {
         // invalidate the implementation
         implementation.invalidate();
-        super.wasUpdated();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+        implementation.getUpdateResources(paths);
     }
 
     /**

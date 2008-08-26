@@ -88,6 +88,8 @@ public class SceneEditor extends GlCanvasTool
         _showCompass.setEnabled(true);
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
         view.addSeparator();
+        view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
+        view.addSeparator();
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
 
         // create the file chooser

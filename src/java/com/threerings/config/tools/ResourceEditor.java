@@ -114,6 +114,8 @@ public class ResourceEditor extends BaseConfigEditor
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
+        edit.add(createMenuItem("update", KeyEvent.VK_U, KeyEvent.VK_U));
+        edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
         edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
 
@@ -230,6 +232,10 @@ public class ResourceEditor extends BaseConfigEditor
             importConfig();
         } else if (action.equals("export")) {
             exportConfig();
+        } else if (action.equals("update")) {
+            ManagedConfig config = (ManagedConfig)_epanel.getObject();
+            config.updateFromSource(this, true);
+            config.wasUpdated();
         } else if (action.equals("configs")) {
             showFrame(new ConfigEditor(_msgmgr, getConfigManager(), _colorpos));
         } else {

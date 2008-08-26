@@ -6,6 +6,7 @@ package com.threerings.opengl.renderer.config;
 import java.text.DecimalFormat;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -52,6 +53,14 @@ public class ShaderConfig extends ParameterizedConfig
          * Adds the implementation's update references to the provided set.
          */
         public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Adds the implementation's update resources to the provided set.
+         */
+        public void getUpdateResources (HashSet<String> paths)
         {
             // nothing by default
         }
@@ -121,6 +130,14 @@ public class ShaderConfig extends ParameterizedConfig
             implements Exportable
         {
             /**
+             * Adds the contents' update resources to the provided set.
+             */
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                // nothing by default
+            }
+
+            /**
              * Returns the shader.
              */
             public abstract Shader getShader (GlContext ctx);
@@ -144,6 +161,14 @@ public class ShaderConfig extends ParameterizedConfig
             public Definition[] definitions = new Definition[0];
 
             @Override // documentation inherited
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                if (file != null) {
+                    paths.add(file);
+                }
+            }
+
+            @Override // documentation inherited
             public Shader getShader (GlContext ctx)
             {
                 if (file == null) {
@@ -163,6 +188,12 @@ public class ShaderConfig extends ParameterizedConfig
         /** The initial contents of the shader. */
         @Editable
         public Contents contents = new SourceFile();
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            contents.getUpdateResources(paths);
+        }
 
         @Override // documentation inherited
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
@@ -195,6 +226,14 @@ public class ShaderConfig extends ParameterizedConfig
             implements Exportable
         {
             /**
+             * Adds the contents' update resources to the provided set.
+             */
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                // nothing by default
+            }
+
+            /**
              * Returns the shader.
              */
             public abstract Shader getShader (GlContext ctx);
@@ -218,6 +257,14 @@ public class ShaderConfig extends ParameterizedConfig
             public Definition[] definitions = new Definition[0];
 
             @Override // documentation inherited
+            public void getUpdateResources (HashSet<String> paths)
+            {
+                if (file != null) {
+                    paths.add(file);
+                }
+            }
+
+            @Override // documentation inherited
             public Shader getShader (GlContext ctx)
             {
                 if (file == null) {
@@ -237,6 +284,12 @@ public class ShaderConfig extends ParameterizedConfig
         /** The initial contents of the shader. */
         @Editable
         public Contents contents = new SourceFile();
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            contents.getUpdateResources(paths);
+        }
 
         @Override // documentation inherited
         public void populateDescriptor (GlContext ctx, PassDescriptor desc)
@@ -673,6 +726,12 @@ public class ShaderConfig extends ParameterizedConfig
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+        implementation.getUpdateResources(paths);
     }
 
     /** Formats floats so that they will be recognized as float constants in GLSL. */

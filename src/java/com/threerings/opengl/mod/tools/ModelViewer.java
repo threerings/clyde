@@ -90,8 +90,10 @@ public class ModelViewer extends GlCanvasTool
         _showCompass.setSelected(true);
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
         view.addSeparator();
-        view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
+        view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
+        view.addSeparator();
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
+        view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
 
         // add the bottom panel
         JPanel bottom = GroupLayout.makeVBox(
