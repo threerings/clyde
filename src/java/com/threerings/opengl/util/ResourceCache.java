@@ -14,7 +14,7 @@ import com.google.common.collect.Maps;
 /**
  * Base class for the resource caches.
  */
-public abstract class ResourceCache<T>
+public abstract class ResourceCache
 {
     /**
      * Creates a new resource cache.
@@ -30,56 +30,78 @@ public abstract class ResourceCache<T>
     }
 
     /**
-     * Retrieves the resource at the specified path.
+     * A cache for a single type of resource.
      */
-    protected T getResource (String path)
+    protected abstract class Subcache<K, V>
     {
-        CachedResource<T> cached = _resources.get(path);
-        if (cached != null) {
-            T resource = cached.ref.get();
-            if (!(resource == null || (_checkTimestamps &&
-                    getResourceFile(path).lastModified() > cached.lastModified))) {
-                return resource;
+        /**
+         * Retrieves the resource corresponding to the specified key.
+         */
+        public V getResource (K key)
+        {
+            CachedResource<V> cached = _resources.get(key);
+            if (cached != null) {
+                V resource = cached.get();
+                if (!(resource == null || (_checkTimestamps && cached.wasModified()))) {
+                    return resource;
+                }
             }
+            V resource = loadResource(key);
+            _resources.put(key, new CachedResource<V>(resource, getResourceFile(key)));
+            return resource;
         }
-        File file = getResourceFile(path);
-        T resource = loadResource(file);
-        _resources.put(path, new CachedResource<T>(resource, file.lastModified()));
-        return resource;
-    }
 
-    /**
-     * Returns the file corresponding to the specified path (either an absolute pathname or the
-     * name of a resource).
-     */
-    protected File getResourceFile (String path)
-    {
-        // TODO: remove when we no longer need to support absolute paths
-        File file = new File(path);
-        return file.isAbsolute() ? file : _ctx.getResourceManager().getResourceFile(path);
-    }
+        /**
+         * Loads the resource corresponding to the specified key.
+         */
+        protected abstract V loadResource (K key);
 
-    /**
-     * Loads the resource from the specified file.
-     */
-    protected abstract T loadResource (File file);
+        /**
+         * Returns the file corresponding to the specified key.
+         */
+        protected File getResourceFile (K key)
+        {
+            // TODO: simplify when we no longer need to support absolute paths
+            String path = getResourcePath(key);
+            File file = new File(path);
+            return file.isAbsolute() ? file : _ctx.getResourceManager().getResourceFile(path);
+        }
+
+        /**
+         * Returns the resource path corresponding to the specified key.
+         */
+        protected abstract String getResourcePath (K key);
+
+        /** The cached resources. */
+        protected HashMap<K, CachedResource<V>> _resources = Maps.newHashMap();
+    }
 
     /**
      * Contains a cached resource.
      */
-    protected static class CachedResource<T>
+    protected static class CachedResource<T> extends SoftReference<T>
     {
-        /** The underlying reference to the resource. */
-        public SoftReference<T> ref;
-
-        /** The last-modified timestamp of the resource file. */
-        public long lastModified;
-
-        public CachedResource (T resource, long lastModified)
+        public CachedResource (T resource, File file)
         {
-            ref = new SoftReference<T>(resource);
-            this.lastModified = lastModified;
+            super(resource);
+            _file = file;
+            _lastModified = file.lastModified();
         }
+
+        /**
+         * Determines whether the resource file has been modified since this reference
+         * was created.
+         */
+        public boolean wasModified ()
+        {
+            return _file.lastModified() > _lastModified;
+        }
+
+        /** The file corresponding to the resource. */
+        protected File _file;
+
+        /** The recorded last-modified timestamp. */
+        protected long _lastModified;
     }
 
     /** The renderer context. */
@@ -87,7 +109,4 @@ public abstract class ResourceCache<T>
 
     /** Whether or not to check resource file timestamps. */
     protected boolean _checkTimestamps;
-
-    /** The cached resources. */
-    protected HashMap<String, CachedResource<T>> _resources = Maps.newHashMap();
 }

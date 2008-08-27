@@ -4,22 +4,18 @@
 package com.threerings.opengl.util;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 import java.lang.ref.WeakReference;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import org.lwjgl.opengl.ARBFragmentShader;
 import org.lwjgl.opengl.ARBVertexShader;
 
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.SoftCache;
 
 import com.threerings.opengl.renderer.Program;
@@ -30,7 +26,7 @@ import static com.threerings.opengl.Log.*;
 /**
  * Caches loaded shaders and shader programs.
  */
-public class ShaderCache extends ResourceCache<String>
+public class ShaderCache extends ResourceCache
 {
     /**
      * Creates a new shader cache.
@@ -45,20 +41,12 @@ public class ShaderCache extends ResourceCache<String>
     }
 
     /**
-     * Loads and returns the shader at the specified path.
-     */
-    public Shader getShader (String path)
-    {
-        return getShader(path, null, null);
-    }
-
-    /**
      * Loads and returns the shader at the specified path with the supplied preprocessor
      * definitions.
      */
     public Shader getShader (String path, String... defs)
     {
-        return getShader(path, defs, null);
+        return getShader(path, defs, new String[0]);
     }
 
     /**
@@ -68,28 +56,15 @@ public class ShaderCache extends ResourceCache<String>
      */
     public Shader getShader (String path, String[] defs, String[] ddefs)
     {
-        ShaderKey key = new ShaderKey(path, defs);
-        Shader shader = _shaders.get(key);
-        if (shader == null) {
-            String ext = path.substring(path.lastIndexOf('.') + 1);
-            Integer type = _types.get(ext);
-            if (type == null) {
-                log.warning("Unknown shader extension [path=" + path + "].");
-                return null;
-            }
-            String source = readSource(path, safeConcatenate(defs, ddefs));
-            if (source == null) {
-                return null;
-            }
-            shader = new Shader(_ctx.getRenderer(), type.intValue());
-            if (!shader.setSource(source)) {
-                log.warning("Error compiling shader [path=" + path + ", log=" +
-                    shader.getInfoLog() + "].");
-                return null;
-            }
-            _shaders.put(key, shader);
-        }
-        return shader;
+        return _shaders.getResource(new ShaderKey(path, defs, ddefs));
+    }
+
+    /**
+     * Retrieves the shader source at the specified path.
+     */
+    public String getSource (String path)
+    {
+        return _source.getResource(path);
     }
 
     /**
@@ -102,73 +77,14 @@ public class ShaderCache extends ResourceCache<String>
         if (program == null) {
             program = new Program(_ctx.getRenderer());
             if (!program.setShaders(vertex, fragment)) {
-                log.warning("Error linking shader program [vertex=" + vertex + ", fragment=" +
-                    fragment + ", log=" + program.getInfoLog() + "].");
+                log.warning(
+                    "Error linking shader program.", "vertex", vertex,
+                    "fragment", fragment, "log", program.getInfoLog());
                 return null;
             }
             _programs.put(key, program);
         }
         return program;
-    }
-
-    /**
-     * Retrieves the shader source at the specified path.
-     */
-    public String getSource (String path)
-    {
-        return getResource(path);
-    }
-
-    @Override // documentation inherited
-    protected String loadResource (File file)
-    {
-        StringBuilder buf = new StringBuilder();
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buf.append(line).append('\n');
-            }
-            reader.close();
-        } catch (IOException e) {
-            log.warning("Error loading shader.", "file", file, e);
-        }
-        return buf.toString();
-    }
-
-    /**
-     * Reads the shader at the specified path, prepending the supplied preprocessor
-     * definitions.
-     */
-    protected String readSource (String path, String[] defs)
-    {
-        StringBuffer buf = new StringBuffer();
-        if (defs != null) {
-            for (String def : defs) {
-                buf.append("#define ").append(def).append('\n');
-            }
-        }
-        try {
-            BufferedReader reader = new BufferedReader(
-                new InputStreamReader(_ctx.getResourceManager().getResource(path)));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buf.append(line).append('\n');
-            }
-            reader.close();
-        } catch (IOException e) {
-            log.warning("Error reading shader [path=" + path + ", error=" + e + "].");
-            return null;
-        }
-        return buf.toString();
-    }
-
-    /**
-     * Concatenates two arrays, either or both of which may be <code>null</code>.
-     */
-    protected static String[] safeConcatenate (String[] a1, String[] a2)
-    {
-        return (a1 == null) ? a2 : (a2 == null ? a1 : ArrayUtil.concatenate(a1, a2));
     }
 
     /**
@@ -179,28 +95,27 @@ public class ShaderCache extends ResourceCache<String>
         /** The path of the shader. */
         public String path;
 
-        /** The set of preprocessor definitions. */
-        public HashSet<String> defs = new HashSet<String>();
+        /** The definitions and derived definitions. */
+        public String[] defs, ddefs;
 
-        public ShaderKey (String path, String[] defs)
+        public ShaderKey (String path, String[] defs, String[] ddefs)
         {
             this.path = path;
-            if (defs != null) {
-                Collections.addAll(this.defs, defs);
-            }
+            this.defs = defs;
+            this.ddefs = ddefs;
         }
 
         @Override // documentation inherited
         public int hashCode ()
         {
-            return path.hashCode() ^ defs.hashCode();
+            return path.hashCode() ^ Arrays.hashCode(defs);
         }
 
         @Override // documentation inherited
         public boolean equals (Object other)
         {
             ShaderKey okey = (ShaderKey)other;
-            return path.equals(okey.path) && defs.equals(okey.defs);
+            return path.equals(okey.path) && Arrays.equals(defs, okey.defs);
         }
     }
 
@@ -233,8 +148,60 @@ public class ShaderCache extends ResourceCache<String>
         protected WeakReference<Shader> _vertex, _fragment;
     }
 
-    /** The set of compiled shaders. */
-    protected SoftCache<ShaderKey, Shader> _shaders = new SoftCache<ShaderKey, Shader>();
+    /** The shader cache. */
+    protected Subcache<ShaderKey, Shader> _shaders = new Subcache<ShaderKey, Shader>() {
+        protected Shader loadResource (ShaderKey key) {
+            String path = key.path;
+            String ext = path.substring(path.lastIndexOf('.') + 1);
+            Integer type = _types.get(ext);
+            if (type == null) {
+                log.warning("Unknown shader extension.", "path", path);
+                return null;
+            }
+            StringBuilder buf = new StringBuilder();
+            appendDefs(buf, key.defs);
+            appendDefs(buf, key.ddefs);
+            buf.append(getSource(key.path));
+            Shader shader = new Shader(_ctx.getRenderer(), type.intValue());
+            if (!shader.setSource(buf.toString())) {
+                log.warning(
+                    "Error compiling shader.", "defs", key.defs, "ddefs",
+                    key.ddefs, "path", path, "log", shader.getInfoLog());
+                return null;
+            }
+            return shader;
+        }
+        protected String getResourcePath (ShaderKey key) {
+            return key.path;
+        }
+        protected void appendDefs (StringBuilder buf, String[] defs) {
+            for (String def : defs) {
+                buf.append("#define ").append(def).append('\n');
+            }
+        }
+    };
+
+    /** The source file cache. */
+    protected Subcache<String, String> _source = new Subcache<String, String>() {
+        protected String loadResource (String path) {
+            StringBuilder buf = new StringBuilder();
+            try {
+                BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(_ctx.getResourceManager().getResource(path)));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buf.append(line).append('\n');
+                }
+                reader.close();
+            } catch (IOException e) {
+                log.warning("Failed to read shader source.", "path", path, e);
+            }
+            return buf.toString();
+        }
+        protected String getResourcePath (String path) {
+            return path;
+        }
+    };
 
     /** The set of linked shader programs. */
     protected SoftCache<ProgramKey, Program> _programs = new SoftCache<ProgramKey, Program>();

@@ -59,7 +59,7 @@ public class TextureCache
         TextureKey tkey = new TextureKey(path, zations);
         Texture texture = _textures.get(tkey);
         if (texture == null) {
-            BufferedImage image = _ctx.getImageCache().getImage(path);
+            BufferedImage image = _ctx.getImageCache().getBufferedImage(path);
             if (zations != null) {
                 image = ImageUtil.recolorImage(image, zations);
             }

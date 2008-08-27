@@ -90,7 +90,7 @@ public abstract class SceneResource extends DeepObject
         public void preload (TudeyContext ctx)
         {
             _image = new com.threerings.opengl.gui.
-                Image(ctx.getImageCache().getImage(path));
+                Image(ctx.getImageCache().getBufferedImage(path));
         }
 
         /** The image object. */

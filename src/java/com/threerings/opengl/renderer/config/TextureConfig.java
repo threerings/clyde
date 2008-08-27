@@ -1121,15 +1121,11 @@ public class TextureConfig extends ParameterizedConfig
     protected static BufferedImage getImage (
         GlContext ctx, String file, ColorizationReference[] colorizations)
     {
-        BufferedImage image = ctx.getImageCache().getImage(file);
-        if (colorizations.length == 0) {
-            return image;
-        }
         Colorization[] zations = new Colorization[colorizations.length];
         for (int ii = 0; ii < zations.length; ii++) {
             zations[ii] = ctx.getColorPository().getColorization(
                 colorizations[ii].colorization);
         }
-        return ImageUtil.recolorImage(image, zations);
+        return ctx.getImageCache().getBufferedImage(file, zations);
     }
 }

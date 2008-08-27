@@ -5,11 +5,13 @@ package com.threerings.opengl.util;
 
 import java.awt.image.BufferedImage;
 
-import java.io.File;
 import java.io.IOException;
+
+import java.util.Arrays;
 
 import javax.imageio.ImageIO;
 
+import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 
 import static com.threerings.opengl.Log.*;
@@ -17,7 +19,7 @@ import static com.threerings.opengl.Log.*;
 /**
  * A cache for images.
  */
-public class ImageCache extends ResourceCache<BufferedImage>
+public class ImageCache extends ResourceCache
 {
     /**
      * Creates a new image cache.
@@ -32,21 +34,61 @@ public class ImageCache extends ResourceCache<BufferedImage>
     }
 
     /**
-     * Retrieves an image from the cache.
+     * Retrieves a buffered image from the cache.
      */
-    public BufferedImage getImage (String path)
+    public BufferedImage getBufferedImage (String path, Colorization... zations)
     {
-        return getResource(path);
+        return _buffered.getResource(new ImageKey(path, zations));
     }
 
-    @Override // documentation inherited
-    protected BufferedImage loadResource (File file)
+    /**
+     * Identifies a cached image.
+     */
+    protected static class ImageKey
     {
-        try {
-            return ImageIO.read(file);
-        } catch (IOException e) {
-            log.warning("Failed to read image.", "file", file, e);
-            return ImageUtil.createErrorImage(64, 64);
+        /** The path of the image resource. */
+        public String path;
+
+        /** The colorizations to apply to the image. */
+        public Colorization[] zations;
+
+        public ImageKey (String path, Colorization[] zations)
+        {
+            this.path = path;
+            this.zations = zations;
+        }
+
+        @Override // documentation inherited
+        public int hashCode ()
+        {
+            return path.hashCode() ^ Arrays.hashCode(zations);
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            ImageKey okey = (ImageKey)other;
+            return path.equals(okey.path) && Arrays.equals(zations, okey.zations);
         }
     }
+
+    /** The buffered image subcache. */
+    protected Subcache<ImageKey, BufferedImage> _buffered =
+        new Subcache<ImageKey, BufferedImage>() {
+        protected BufferedImage loadResource (ImageKey key) {
+            if (key.zations.length > 0) {
+                return ImageUtil.recolorImage(getBufferedImage(key.path), key.zations);
+            }
+            try {
+                // TODO: simplify when we no longer need to support absolute paths
+                return ImageIO.read(getResourceFile(key));
+            } catch (IOException e) {
+                log.warning("Failed to read image.", "path", key.path, e);
+                return ImageUtil.createErrorImage(64, 64);
+            }
+        }
+        protected String getResourcePath (ImageKey key) {
+            return key.path;
+        }
+    };
 }
