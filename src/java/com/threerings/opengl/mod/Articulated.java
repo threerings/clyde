@@ -5,6 +5,7 @@ package com.threerings.opengl.mod;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,8 +70,11 @@ public class Articulated extends Model.Implementation
         public void setConfig (ArticulatedConfig.Node config, Transform3D parentViewTransform)
         {
             _config = config;
-            _localTransform.set(config.transform);
             _parentViewTransform = parentViewTransform;
+            if (_localTransform == null) {
+                // only set the local transform on initialization
+                _localTransform = new Transform3D(config.transform);
+            }
             _updater = null;
         }
 
@@ -169,7 +173,7 @@ public class Articulated extends Model.Implementation
         protected Transform3D _parentViewTransform;
 
         /** The node's local transform. */
-        protected Transform3D _localTransform = new Transform3D();
+        protected Transform3D _localTransform;
 
         /** The node's view transform. */
         @Scoped
@@ -409,15 +413,21 @@ public class Articulated extends Model.Implementation
                 ((Node)_userAttachments.get(ii).getParentScope()).getConfig().name;
         }
 
-        // create the node list
-        ArrayList<Node> nnodes = new ArrayList<Node>();
-        _config.root.getArticulatedNodes(this, _nodes, nnodes, _viewTransform);
+        // save the old nodes (if any)
+        IdentityHashMap<ArticulatedConfig.Node, Node> onodes = Maps.newIdentityHashMap();
         if (_nodes != null) {
-            for (int ii = nnodes.size(); ii < _nodes.length; ii++) {
-                _nodes[ii].dispose();
+            for (Node node : _nodes) {
+                onodes.put(node.getConfig(), node);
             }
         }
+
+        // create the node list
+        ArrayList<Node> nnodes = new ArrayList<Node>();
+        _config.root.getArticulatedNodes(this, onodes, nnodes, _viewTransform);
         _nodes = nnodes.toArray(new Node[nnodes.size()]);
+        for (Node node : onodes.values()) {
+            node.dispose(); // dispose of the unrecycled old nodes
+        }
 
         // populate the name map
         _nodesByName.clear();

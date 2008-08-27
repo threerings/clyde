@@ -6,6 +6,7 @@ package com.threerings.opengl.model.config;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.TreeSet;
 
 import com.samskivert.util.ComparableTuple;
@@ -120,21 +121,17 @@ public class ArticulatedConfig extends ModelConfig.Imported
         /**
          * (Re)creates the list of articulated nodes for this config.
          *
-         * @param onodes if non-null, a list of existing nodes to reuse, if possible.
+         * @param onodes the existing nodes to reuse.
          * @param nnodes the list to contain the new nodes.
          */
         public void getArticulatedNodes (
-            Scope scope, Articulated.Node[] onodes, ArrayList<Articulated.Node> nnodes,
-            Transform3D parentViewTransform)
+            Scope scope, IdentityHashMap<Node, Articulated.Node> onodes,
+            ArrayList<Articulated.Node> nnodes, Transform3D parentViewTransform)
         {
-            int idx = nnodes.size();
-            Articulated.Node node = (onodes == null || onodes.length <= idx) ? null : onodes[idx];
-            if (node != null && node.getClass() == getArticulatedNodeClass()) {
+            Articulated.Node node = onodes.remove(this);
+            if (node != null) {
                 node.setConfig(this, parentViewTransform);
             } else {
-                if (node != null) {
-                    node.dispose();
-                }
                 node = createArticulatedNode(scope, parentViewTransform);
             }
             nnodes.add(node);
@@ -142,14 +139,6 @@ public class ArticulatedConfig extends ModelConfig.Imported
             for (Node child : children) {
                 child.getArticulatedNodes(scope, onodes, nnodes, viewTransform);
             }
-        }
-
-        /**
-         * Returns the articulated node class corresponding to this config class.
-         */
-        protected Class getArticulatedNodeClass ()
-        {
-            return Articulated.Node.class;
         }
 
         /**
@@ -202,12 +191,6 @@ public class ArticulatedConfig extends ModelConfig.Imported
             if (visible != null) {
                 pairs.add(new ComparableTuple<String, String>(visible.texture, visible.tag));
             }
-        }
-
-        @Override // documentation inherited
-        protected Class getArticulatedNodeClass ()
-        {
-            return Articulated.MeshNode.class;
         }
 
         @Override // documentation inherited

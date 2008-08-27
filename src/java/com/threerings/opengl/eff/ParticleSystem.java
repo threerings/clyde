@@ -3,6 +3,10 @@
 
 package com.threerings.opengl.eff;
 
+import java.util.IdentityHashMap;
+
+import com.google.common.collect.Maps;
+
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
@@ -42,6 +46,21 @@ public class ParticleSystem extends Model.Implementation
         {
             _config = config;
 
+            // recreate the particles and adjust the counts
+            Particle[] oparts = _particles;
+            _particles = new Particle[config.particleCount];
+            for (int ii = 0; ii < _particles.length; ii++) {
+                _particles[ii] = (oparts == null || oparts.length <= ii) ?
+                    new Particle() : oparts[ii];
+            }
+            if (oparts == null) {
+                _living = 0;
+                _preliving = _particles.length;
+            } else {
+                _living = Math.min(_living, _particles.length);
+                _preliving = Math.min(_living + _preliving, _particles.length) - _living;
+            }
+
             // recreate the surface
             if (_surface != null) {
                 _surface.dispose();
@@ -49,6 +68,14 @@ public class ParticleSystem extends Model.Implementation
             _surface = new Surface(
                 _ctx, this, config.geometry,
                 _ctx.getConfigManager().getConfig(MaterialConfig.class, config.material));
+        }
+
+        /**
+         * Returns a reference to the layer config.
+         */
+        public ParticleSystemConfig.Layer getConfig ()
+        {
+            return _config;
         }
 
         /**
@@ -64,6 +91,12 @@ public class ParticleSystem extends Model.Implementation
          */
         public void reset ()
         {
+            // clear the elapsed time
+            _total = 0f;
+
+            // reset the counts
+            _living = 0;
+            _preliving = _config.particleCount;
         }
 
         /**
@@ -71,6 +104,12 @@ public class ParticleSystem extends Model.Implementation
          */
         public void tick (float elapsed)
         {
+            if ((_total += elapsed) < _config.startTime) {
+                return;
+            }
+            elapsed *= _config.timeScale;
+
+
         }
 
         /**
@@ -78,6 +117,9 @@ public class ParticleSystem extends Model.Implementation
          */
         public void enqueue ()
         {
+            if (!_config.visible || _living == 0) {
+                return;
+            }
             // enqueue the surface
             _surface.enqueue();
         }
@@ -111,6 +153,9 @@ public class ParticleSystem extends Model.Implementation
         /** The shared transform state. */
         @Scoped
         protected TransformState _transformState = new TransformState();
+
+        /** The total time elapsed since reset. */
+        protected float _total;
     }
 
     /**
@@ -180,7 +225,26 @@ public class ParticleSystem extends Model.Implementation
      */
     protected void updateFromConfig ()
     {
+        // save the old layers (if any)
+        IdentityHashMap<ParticleSystemConfig.Layer, Layer> olayers = Maps.newIdentityHashMap();
+        if (_layers != null) {
+            for (Layer layer : _layers) {
+                olayers.put(layer.getConfig(), layer);
+            }
+        }
 
+        // (re)create the layers
+        _layers = new Layer[_config.layers.length];
+        int idx = 0;
+        for (ParticleSystemConfig.Layer config : _config.layers) {
+            Layer layer = olayers.get(config);
+            if (layer != null) {
+                layer.setConfig(config);
+            } else {
+                layer = new Layer(_ctx, this, config);
+            }
+            _layers[idx++] = layer;
+        }
     }
 
     /**
