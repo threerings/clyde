@@ -307,9 +307,7 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         {
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
             GeometryConfig geom = (config == null) ? null : config.getParticleGeometry(ctx);
-            return (geom instanceof IndexedStored) ?
-                new ParticleGeometry.Meshes(ctx, scope, passes, (IndexedStored)geom) :
-                new ParticleGeometry.Points(ctx, scope, passes);
+            return ParticleGeometry.Meshes.create(ctx, scope, passes, geom);
         }
     }
 
