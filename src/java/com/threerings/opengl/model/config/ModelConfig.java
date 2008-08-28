@@ -86,10 +86,33 @@ public class ModelConfig extends ParameterizedConfig
          * @return either a reference to the existing implementation (if reused), a new
          * implementation, or <code>null</code> if no implementation could be created.
          */
-        public Model.Implementation getModelImplementation (
-            GlContext ctx, Scope scope, Model.Implementation impl)
+        public abstract Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl);
+
+        /**
+         * Returns the {@link GeometryConfig} to use when this model is selected for use within a
+         * particle system (or <code>null</code> if it cannot be used).
+         */
+        public GeometryConfig getParticleGeometry (GlContext ctx)
         {
             return null;
+        }
+
+        /**
+         * Returns a reference to the material to use when this model is selected for use within a
+         * particle system.
+         */
+        public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
+        {
+            return null;
+        }
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
         }
     }
 
@@ -205,6 +228,40 @@ public class ModelConfig extends ParameterizedConfig
             }
         }
 
+        @Override // documentation inherited
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            return null;
+        }
+
+        @Override // documentation inherited
+        public GeometryConfig getParticleGeometry (GlContext ctx)
+        {
+            VisibleMesh mesh = getParticleMesh();
+            return (mesh == null) ? null : mesh.geometry;
+        }
+
+        @Override // documentation inherited
+        public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
+        {
+            VisibleMesh mesh = getParticleMesh();
+            if (mesh == null) {
+                return null;
+            }
+            MaterialMapping mapping = getMaterialMapping(mesh.texture, mesh.tag);
+            return (mapping == null) ? null : mapping.material;
+        }
+
+        /**
+         * Returns the {@link VisibleMesh} to use when this model is selected for use within a
+         * particle system (or <code>null</code> if it cannot be used).
+         */
+        protected VisibleMesh getParticleMesh ()
+        {
+            return null;
+        }
+
         /**
          * Updates from a parsed model definition.
          */
@@ -291,6 +348,20 @@ public class ModelConfig extends ParameterizedConfig
         {
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
             return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
+        }
+
+        @Override // documentation inherited
+        public GeometryConfig getParticleGeometry (GlContext ctx)
+        {
+            ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
+            return (config == null) ? null : config.getParticleGeometry(ctx);
+        }
+
+        @Override // documentation inherited
+        public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
+        {
+            ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
+            return (config == null) ? null : config.getParticleMaterial(ctx);
         }
     }
 
@@ -390,6 +461,24 @@ public class ModelConfig extends ParameterizedConfig
         return implementation.getModelImplementation(ctx, scope, impl);
     }
 
+    /**
+     * Returns the {@link GeometryConfig} to use when this model is selected for use within a
+     * particle system (or <code>null</code> if it cannot be used).
+     */
+    public GeometryConfig getParticleGeometry (GlContext ctx)
+    {
+        return implementation.getParticleGeometry(ctx);
+    }
+
+    /**
+     * Returns a reference to the material to use when this model is selected for use within a
+     * particle system.
+     */
+    public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
+    {
+        return implementation.getParticleMaterial(ctx);
+    }
+
     @Override // documentation inherited
     public void init (ConfigManager cfgmgr)
     {
@@ -401,6 +490,14 @@ public class ModelConfig extends ParameterizedConfig
     public void updateFromSource (EditorContext ctx, boolean force)
     {
         implementation.updateFromSource(ctx, force);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

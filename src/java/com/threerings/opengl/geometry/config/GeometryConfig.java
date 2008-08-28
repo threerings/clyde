@@ -32,6 +32,7 @@ import com.threerings.util.IdentityKey;
 import com.threerings.util.Shallow;
 
 import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geometry.util.GeometryUtil;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
 import com.threerings.opengl.renderer.config.CoordSpace;
 import com.threerings.opengl.renderer.BufferObject;
@@ -285,51 +286,31 @@ public abstract class GeometryConfig extends DeepObject
             GlContext ctx, PassDescriptor[] passes, PassSummary summary,
             boolean staticVBO, boolean staticIBO, BufferObject arrayBuffer, FloatBuffer floatArray)
         {
-            // create the base arrays and put them in a list
-            ArrayList<ClientArray> arrays = new ArrayList<ClientArray>();
+            // create the base arrays
             HashMap<String, ClientArray> vertexAttribArrays = Maps.newHashMap();
             for (String attrib : summary.vertexAttribs) {
                 AttributeArrayConfig vertexAttribArray = getVertexAttribArray(attrib);
                 if (vertexAttribArray != null) {
-                    ClientArray array = vertexAttribArray.createClientArray();
-                    vertexAttribArrays.put(attrib, array);
-                    arrays.add(array);
+                    vertexAttribArrays.put(attrib, vertexAttribArray.createClientArray());
                 }
             }
             HashIntMap<ClientArray> texCoordArrays = new HashIntMap<ClientArray>();
             for (int set : summary.texCoordSets) {
                 ClientArrayConfig texCoordArray = getTexCoordArray(set);
                 if (texCoordArray != null) {
-                    ClientArray array = texCoordArray.createClientArray();
-                    texCoordArrays.put(set, array);
-                    arrays.add(array);
+                    texCoordArrays.put(set, texCoordArray.createClientArray());
                 }
             }
-            ClientArray colorArray = null;
-            if (summary.colors && this.colorArray != null) {
-                arrays.add(colorArray = this.colorArray.createClientArray());
-            }
-            ClientArray normalArray = null;
-            if (summary.normals && this.normalArray != null) {
-                arrays.add(normalArray = this.normalArray.createClientArray());
-            }
+            ClientArray colorArray = (summary.colors && this.colorArray != null) ?
+                this.colorArray.createClientArray() : null;
+            ClientArray normalArray = (summary.normals && this.normalArray != null) ?
+                this.normalArray.createClientArray() : null;
             ClientArray vertexArray = this.vertexArray.createClientArray();
-            arrays.add(vertexArray);
 
-            // compute the offsets and stride
-            int offset = 0;
-            for (ClientArray array : arrays) {
-                array.offset = offset;
-                offset += array.getElementBytes();
-            }
-
-            // bump the stride up to the nearest power of two
-            int stride = GlUtil.nextPowerOfTwo(offset);
-
-            // update the arrays with the stride
-            for (ClientArray array : arrays) {
-                array.stride = stride;
-            }
+            // put them in a list and compute the offsets and stride
+            ArrayList<ClientArray> arrays = GeometryUtil.createList(
+                vertexAttribArrays, texCoordArrays, colorArray, normalArray, vertexArray);
+            GeometryUtil.updateOffsetsAndStride(arrays);
 
             // if we have been given an array buffer or float array, set them
             if (arrayBuffer != null || floatArray != null) {
@@ -362,24 +343,9 @@ public abstract class GeometryConfig extends DeepObject
             }
 
             // create the states for each pass
-            ArrayState[] states = new ArrayState[passes.length];
-            BufferObject elementArrayBuffer = staticIBO ? getElementArrayBuffer(ctx) : null;
-            for (int ii = 0; ii < passes.length; ii++) {
-                PassDescriptor pass = passes[ii];
-                ClientArray[] attribArrays = new ClientArray[pass.vertexAttribs.length];
-                for (int jj = 0; jj < attribArrays.length; jj++) {
-                    attribArrays[jj] = vertexAttribArrays.get(pass.vertexAttribs[jj]);
-                }
-                ClientArray[] coordArrays = new ClientArray[pass.texCoordSets.length];
-                for (int jj = 0; jj < coordArrays.length; jj++) {
-                    coordArrays[jj] = texCoordArrays.get(pass.texCoordSets[jj]);
-                }
-                states[ii] = new ArrayState(
-                    pass.firstVertexAttribIndex, attribArrays, coordArrays,
-                    (pass.colors ? colorArray : null), (pass.normals ? normalArray : null),
-                    vertexArray, elementArrayBuffer);
-            }
-            return states;
+            return GeometryUtil.createArrayStates(
+                vertexAttribArrays, texCoordArrays, colorArray, normalArray,
+                vertexArray, staticIBO ? getElementArrayBuffer(ctx) : null, passes);
         }
 
         /**

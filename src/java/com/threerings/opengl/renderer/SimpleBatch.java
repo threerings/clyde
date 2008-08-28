@@ -326,7 +326,7 @@ public class SimpleBatch extends Batch
      * Creates a {@link DrawBufferRangeElements} if the driver supports it; otherwise, falls back
      * and creates a {@link DrawBufferElements}.
      */
-    public static DrawCommand createDrawBufferElements (
+    public static DrawElements createDrawBufferElements (
         int mode, int start, int end, int count, int type, long offset)
     {
         if (GLContext.getCapabilities().OpenGL12) {
@@ -340,7 +340,7 @@ public class SimpleBatch extends Batch
      * Creates a {@link DrawShortRangeElements} if the driver supports it; otherwise, falls back
      * and creates a {@link DrawShortElements}.
      */
-    public static DrawCommand createDrawShortElements (
+    public static DrawElements createDrawShortElements (
         int mode, int start, int end, ShortBuffer indices)
     {
         if (GLContext.getCapabilities().OpenGL12) {

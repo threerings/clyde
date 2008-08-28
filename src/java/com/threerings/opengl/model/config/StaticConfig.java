@@ -13,6 +13,7 @@ import com.threerings.util.Shallow;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.mod.Static;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
+import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.util.GlContext;
 
@@ -41,6 +42,12 @@ public class StaticConfig extends ModelConfig.Imported
             impl = new Static(ctx, scope, meshes, materialMappings);
         }
         return impl;
+    }
+
+    @Override // documentation inherited
+    protected VisibleMesh getParticleMesh ()
+    {
+        return (meshes == null || meshes.visible.length == 0) ? null : meshes.visible[0];
     }
 
     @Override // documentation inherited

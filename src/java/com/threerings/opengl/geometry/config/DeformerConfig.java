@@ -8,7 +8,6 @@ import java.nio.FloatBuffer;
 import java.util.ArrayList;
 
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.ARBBufferObject;
 import org.lwjgl.opengl.GLContext;
 
 import com.samskivert.util.ListUtil;
@@ -21,6 +20,7 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.geom.DynamicGeometry;
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.renderer.ClientArray;
@@ -96,16 +96,19 @@ public abstract class DeformerConfig extends DeepObject
                 destArrays.add(config.normalArray);
             }
             destArrays.add(config.vertexArray);
-            final float[] dest = config.getFloatArray(
+            float[] dest = config.getFloatArray(
                 true, destArrays.toArray(new ClientArrayConfig[destArrays.size()]));
 
             // create the array states and, if possible, a VBO to hold the skinned data
-            final boolean vbo = GLContext.getCapabilities().GL_ARB_vertex_buffer_object;
-            final BufferObject arrayBuffer = vbo ? new BufferObject(ctx.getRenderer()) : null;
-            final FloatBuffer floatArray = vbo ? getScratchBuffer(dest.length) :
-                BufferUtils.createFloatBuffer(dest.length);
+            BufferObject arrayBuffer = null;
+            FloatBuffer floatArray = null;
+            if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+                arrayBuffer = new BufferObject(ctx.getRenderer());
+            } else {
+                floatArray = BufferUtils.createFloatBuffer(dest.length);
+            }
             final ArrayState[] arrayStates = config.createArrayStates(
-                ctx, passes, summary, false, true, arrayBuffer, vbo ? null : floatArray);
+                ctx, passes, summary, false, true, arrayBuffer, floatArray);
             final int tangentOffset = tangents ? getTangentOffset(passes, arrayStates) : 0;
             final int normalOffset = normals ? getNormalOffset(arrayStates) : 0;
             ClientArray vertexArray = arrayStates[0].getVertexArray();
@@ -114,7 +117,7 @@ public abstract class DeformerConfig extends DeepObject
 
             // finally, create the draw command and the geometry itself
             final DrawCommand drawCommand = config.createDrawCommand(true);
-            return new Geometry() {
+            return new DynamicGeometry(dest, arrayBuffer, floatArray) {
                 public CoordSpace getCoordSpace (int pass) {
                     return CoordSpace.EYE;
                 }
@@ -124,32 +127,20 @@ public abstract class DeformerConfig extends DeepObject
                 public DrawCommand getDrawCommand (int pass) {
                     return drawCommand;
                 }
-                public boolean requiresUpdate () {
-                    return true;
-                }
-                public void update () {
+                protected void updateData () {
                     // skin based on attributes
                     if (tangents && normals) {
                         skinVertices(
-                            source, dest, boneMatrices, boneIndices, boneWeights,
+                            source, _data, boneMatrices, boneIndices, boneWeights,
                             tangentOffset, normalOffset, vertexOffset, vertexStride);
                     } else if (normals) {
                         skinVertices(
-                            source, dest, boneMatrices, boneIndices, boneWeights,
+                            source, _data, boneMatrices, boneIndices, boneWeights,
                             normalOffset, vertexOffset, vertexStride);
                     } else {
                         skinVertices(
-                            source, dest, boneMatrices, boneIndices,
+                            source, _data, boneMatrices, boneIndices,
                             boneWeights, vertexOffset, vertexStride);
-                    }
-
-                    // copy from array to buffer
-                    floatArray.clear();
-                    floatArray.put(dest).flip();
-
-                    // copy from buffer to vbo if using one
-                    if (vbo) {
-                        arrayBuffer.setData(floatArray, ARBBufferObject.GL_STREAM_DRAW_ARB);
                     }
                 }
             };
@@ -189,18 +180,6 @@ public abstract class DeformerConfig extends DeepObject
      */
     public abstract Geometry createGeometry (
         GlContext ctx, Scope scope, GeometryConfig.Stored config, PassDescriptor[] passes);
-
-    /**
-     * Returns a reference to the scratch buffer, (re)creating it if necessary to provide the
-     * supplied size.
-     */
-    protected static FloatBuffer getScratchBuffer (int size)
-    {
-        if (_scratchBuffer == null || _scratchBuffer.capacity() < size) {
-            _scratchBuffer = BufferUtils.createFloatBuffer(size);
-        }
-        return _scratchBuffer;
-    }
 
     /**
      * Skins a set of vertices, normals, and tangents.
@@ -345,7 +324,4 @@ public abstract class DeformerConfig extends DeepObject
             vidx += dinc;
         }
     }
-
-    /** The shared scratch buffer used to hold vertex data before copying to the VBO. */
-    protected static FloatBuffer _scratchBuffer;
 }

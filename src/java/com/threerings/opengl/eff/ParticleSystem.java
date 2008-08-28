@@ -7,6 +7,7 @@ import java.util.IdentityHashMap;
 
 import com.google.common.collect.Maps;
 
+import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
@@ -54,11 +55,12 @@ public class ParticleSystem extends Model.Implementation
                     new Particle() : oparts[ii];
             }
             if (oparts == null) {
-                _living = 0;
+                _living.value = 0;
                 _preliving = _particles.length;
             } else {
-                _living = Math.min(_living, _particles.length);
-                _preliving = Math.min(_living + _preliving, _particles.length) - _living;
+                _living.value = Math.min(_living.value, _particles.length);
+                _preliving = Math.min(_living.value + _preliving, _particles.length) -
+                    _living.value;
             }
 
             // recreate the surface
@@ -83,7 +85,7 @@ public class ParticleSystem extends Model.Implementation
          */
         public boolean hasCompleted ()
         {
-            return _living == 0 && _preliving == 0 && !_config.respawnDeadParticles;
+            return _living.value == 0 && _preliving == 0 && !_config.respawnDeadParticles;
         }
 
         /**
@@ -95,8 +97,8 @@ public class ParticleSystem extends Model.Implementation
             _total = 0f;
 
             // reset the counts
-            _living = 0;
-            _preliving = _config.particleCount;
+            _living.value = 0;
+            _preliving = _particles.length;
         }
 
         /**
@@ -117,7 +119,7 @@ public class ParticleSystem extends Model.Implementation
          */
         public void enqueue ()
         {
-            if (!_config.visible || _living == 0) {
+            if (!_config.visible || _living.value == 0) {
                 return;
             }
             // enqueue the surface
@@ -137,7 +139,8 @@ public class ParticleSystem extends Model.Implementation
         protected ParticleSystemConfig.Layer _config;
 
         /** The number of particles currently alive. */
-        protected int _living;
+        @Scoped
+        protected MutableInteger _living = new MutableInteger();
 
         /** The number of particles currently "pre-alive." */
         protected int _preliving;

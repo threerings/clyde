@@ -3,7 +3,12 @@
 
 package com.threerings.opengl.effect.config;
 
+import java.lang.ref.SoftReference;
+
+import java.nio.ShortBuffer;
+
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -16,7 +21,9 @@ import com.threerings.probs.FloatVariable;
 import com.threerings.probs.QuaternionVariable;
 import com.threerings.probs.VectorVariable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.eff.ParticleGeometry;
 import com.threerings.opengl.eff.ParticleSystem;
 import com.threerings.opengl.effect.AlphaMode;
 import com.threerings.opengl.effect.ColorFunction;
@@ -24,10 +31,12 @@ import com.threerings.opengl.effect.FloatFunction;
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.geometry.config.DeformerConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig;
+import com.threerings.opengl.geometry.config.GeometryConfig.IndexedStored;
 import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -163,6 +172,28 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         /** The layer's influences. */
         @Editable(category="influences")
         public InfluenceConfig[] influences = new InfluenceConfig[0];
+
+        /** The shared data array. */
+        @DeepOmit
+        public transient SoftReference<float[]> data;
+
+        /** The shared indices. */
+        @DeepOmit
+        public transient SoftReference<ShortBuffer> indices;
+
+        /** The shared element array buffer. */
+        @DeepOmit
+        public transient SoftReference<BufferObject> elementArrayBuffer;
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            data = null;
+            indices = null;
+            elementArrayBuffer = null;
+        }
     }
 
     /**
@@ -171,17 +202,18 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
     @EditorTypes({ Points.class, Lines.class, Quads.class, Meshes.class })
     public static abstract class ParticleGeometryConfig extends GeometryConfig
     {
-        @Override // documentation inherited
-        public Box getBounds ()
+        /**
+         * Adds the geometry's update references to the provided set.
+         */
+        public void getUpdateReferences (ConfigReferenceSet refs)
         {
-            return Box.EMPTY;
+            // nothing by default
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (
-            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        public Box getBounds ()
         {
-            return null;
+            return Box.EMPTY; // not used
         }
     }
 
@@ -190,6 +222,12 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
      */
     public static class Points extends ParticleGeometryConfig
     {
+        @Override // documentation inherited
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        {
+            return new ParticleGeometry.Points(ctx, scope, passes);
+        }
     }
 
     /**
@@ -208,6 +246,15 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
 
         public Lines ()
         {
+        }
+
+        @Override // documentation inherited
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        {
+            return (segments > 0) ?
+                new ParticleGeometry.LineTrails(ctx, scope, passes, segments) :
+                new ParticleGeometry.Lines(ctx, scope, passes);
         }
     }
 
@@ -228,6 +275,15 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         public Quads ()
         {
         }
+
+        @Override // documentation inherited
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        {
+            return (segments > 0) ?
+                new ParticleGeometry.QuadTrails(ctx, scope, passes, segments) :
+                new ParticleGeometry.Quads(ctx, scope, passes);
+        }
     }
 
     /**
@@ -238,6 +294,23 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         /** The model containing the mesh. */
         @Editable(mode="compact", nullable=true)
         public ConfigReference<ModelConfig> model;
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(ModelConfig.class, model);
+        }
+
+        @Override // documentation inherited
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        {
+            ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
+            GeometryConfig geom = (config == null) ? null : config.getParticleGeometry(ctx);
+            return (geom instanceof IndexedStored) ?
+                new ParticleGeometry.Meshes(ctx, scope, passes, (IndexedStored)geom) :
+                new ParticleGeometry.Points(ctx, scope, passes);
+        }
     }
 
     /**
@@ -260,6 +333,14 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
     public Layer[] layers = new Layer[0];
 
     @Override // documentation inherited
+    public void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        for (Layer layer : layers) {
+            layer.geometry.getUpdateReferences(refs);
+        }
+    }
+
+    @Override // documentation inherited
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
@@ -272,5 +353,13 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
             impl = new ParticleSystem(ctx, scope, this);
         }
         return impl;
+    }
+
+    @Override // documentation inherited
+    public void invalidate ()
+    {
+        for (Layer layer : layers) {
+            layer.invalidate();
+        }
     }
 }
