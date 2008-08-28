@@ -51,6 +51,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         public Points (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
             super(scope);
+            init(ctx, passes);
         }
 
         @Override // documentation inherited
@@ -72,9 +73,31 @@ public abstract class ParticleGeometry extends DynamicGeometry
         }
 
         @Override // documentation inherited
-        protected void getParticleIndices (ShortBuffer indices)
+        protected int[] getPrototypeIndices ()
         {
-            for (int ii = 0; ii < _particles.length; ii++) {
+            return new int[] { 0 };
+        }
+
+        @Override // documentation inherited
+        protected void updateData ()
+        {
+            // get everything into local variables
+            Particle[] particles = _particles;
+            float[] data = _data;
+
+            // figure out the texture coordinate parameters
+            int udivs = _config.textureDivisionsS;
+            float uscale = 1f / udivs;
+            float vscale = 1f / _config.textureDivisionsT;
+
+            // update the living particles
+            for (int ii = 0, nn = _living.value; ii < nn; ii++) {
+                Particle particle = particles[ii];
+
+                // determine the texture coordinate offsets
+                int frame = Math.round(particle.getFrame());
+                float uoff = (frame % udivs) * uscale, voff = (frame / udivs) * vscale;
+
 
             }
         }
@@ -88,6 +111,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         public Lines (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
             super(scope);
+            init(ctx, passes);
         }
 
         @Override // documentation inherited
@@ -109,11 +133,14 @@ public abstract class ParticleGeometry extends DynamicGeometry
         }
 
         @Override // documentation inherited
-        protected void getParticleIndices (ShortBuffer indices)
+        protected int[] getPrototypeIndices ()
         {
-            for (int ii = 0; ii < _particles.length; ii++) {
+            return new int[] { 0, 1 };
+        }
 
-            }
+        @Override // documentation inherited
+        protected void updateData ()
+        {
         }
     }
 
@@ -126,6 +153,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         {
             super(scope);
             _segments = segments;
+            init(ctx, passes);
         }
 
         @Override // documentation inherited
@@ -147,11 +175,19 @@ public abstract class ParticleGeometry extends DynamicGeometry
         }
 
         @Override // documentation inherited
-        protected void getParticleIndices (ShortBuffer indices)
+        protected int[] getPrototypeIndices ()
         {
-            for (int ii = 0; ii < _particles.length; ii++) {
-
+            int[] prototype = new int[_segments * 2];
+            for (int ii = 0, idx = 0; ii < _segments; ii++) {
+                prototype[idx++] = ii;
+                prototype[idx++] = ii + 1;
             }
+            return prototype;
+        }
+
+        @Override // documentation inherited
+        protected void updateData ()
+        {
         }
 
         /** The number of segments in each particle. */
@@ -166,6 +202,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         public Quads (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
             super(scope);
+            init(ctx, passes);
         }
 
         @Override // documentation inherited
@@ -187,11 +224,14 @@ public abstract class ParticleGeometry extends DynamicGeometry
         }
 
         @Override // documentation inherited
-        protected void getParticleIndices (ShortBuffer indices)
+        protected int[] getPrototypeIndices ()
         {
-            for (int ii = 0; ii < _particles.length; ii++) {
+            return new int[] { 0, 1, 2, 2, 1, 3 };
+        }
 
-            }
+        @Override // documentation inherited
+        protected void updateData ()
+        {
         }
     }
 
@@ -204,6 +244,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         {
             super(scope);
             _segments = segments;
+            init(ctx, passes);
         }
 
         @Override // documentation inherited
@@ -225,11 +266,25 @@ public abstract class ParticleGeometry extends DynamicGeometry
         }
 
         @Override // documentation inherited
-        protected void getParticleIndices (ShortBuffer indices)
+        protected int[] getPrototypeIndices ()
         {
-            for (int ii = 0; ii < _particles.length; ii++) {
+            int[] prototype = new int[_segments * 6];
+            for (int ii = 0, idx = 0; ii < _segments; ii++) {
+                int offset = ii*2;
+                prototype[idx++] = offset;
+                prototype[idx++] = offset + 1;
+                prototype[idx++] = offset + 2;
 
+                prototype[idx++] = offset + 2;
+                prototype[idx++] = offset + 1;
+                prototype[idx++] = offset + 3;
             }
+            return prototype;
+        }
+
+        @Override // documentation inherited
+        protected void updateData ()
+        {
         }
 
         /** The number of segments in each particle. */
@@ -246,6 +301,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         {
             super(scope);
             _geom = geom;
+            init(ctx, passes);
         }
 
         @Override // documentation inherited
@@ -267,11 +323,18 @@ public abstract class ParticleGeometry extends DynamicGeometry
         }
 
         @Override // documentation inherited
-        protected void getParticleIndices (ShortBuffer indices)
+        protected int[] getPrototypeIndices ()
         {
-            for (int ii = 0; ii < _particles.length; ii++) {
-
+            int[] prototype = new int[_geom.indices.capacity()];
+            for (int ii = 0; ii < prototype.length; ii++) {
+                prototype[ii] = _geom.indices.get(ii);
             }
+            return prototype;
+        }
+
+        @Override // documentation inherited
+        protected void updateData ()
+        {
         }
 
         /** The geometry to render. */
@@ -298,13 +361,21 @@ public abstract class ParticleGeometry extends DynamicGeometry
         return _drawCommand;
     }
 
+    @Override // documentation inherited
+    public void update ()
+    {
+        super.update();
+
+        // modify the draw command based on the number of living particles
+        _drawCommand.setLimits(0, _living.value * getParticleIndexCount());
+        _drawCommand.setRange(0, _living.value * getParticleVertexCount() - 1);
+    }
+
     /**
      * Initializes the geometry.
      */
     protected void init (GlContext ctx, PassDescriptor[] passes)
     {
-        PassSummary summary = new PassSummary(passes);
-
         // create the base arrays
         HashMap<String, ClientArray> vertexAttribArrays = new HashMap<String, ClientArray>();
         HashIntMap<ClientArray> texCoordArrays = new HashIntMap<ClientArray>();
@@ -337,7 +408,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             if (elementArrayBuffer == null) {
                 _config.elementArrayBuffer = new SoftReference<BufferObject>(
                     elementArrayBuffer = new BufferObject(ctx.getRenderer()));
-                elementArrayBuffer.setData(createIndexBuffer());
+                elementArrayBuffer.setData(createIndices());
             }
             _drawCommand = SimpleBatch.createDrawBufferElements(
                 getMode(), 0, 0, 0, GL11.GL_UNSIGNED_SHORT, 0L);
@@ -349,7 +420,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             ShortBuffer indices = (_config.indices == null) ? null : _config.indices.get();
             if (indices == null) {
                 _config.indices = new SoftReference<ShortBuffer>(
-                    indices = createIndexBuffer());
+                    indices = createIndices());
             }
             _drawCommand = SimpleBatch.createDrawShortElements(getMode(), 0, 0, indices);
         }
@@ -366,22 +437,19 @@ public abstract class ParticleGeometry extends DynamicGeometry
             normalArray, vertexArray, elementArrayBuffer, passes);
     }
 
-    @Override // documentation inherited
-    protected void updateData ()
-    {
-        // modify the draw command based on the number of living particles
-        _drawCommand.setLimits(0, _living.value * getParticleIndexCount());
-        _drawCommand.setRange(0, _living.value * getParticleVertexCount() - 1);
-    }
-
     /**
      * Creates and populates the index buffer.
      */
-    protected ShortBuffer createIndexBuffer ()
+    protected ShortBuffer createIndices ()
     {
-        ShortBuffer indices = BufferUtils.createShortBuffer(
-            _particles.length * getParticleIndexCount());
-        getParticleIndices(indices);
+        int[] prototype = getPrototypeIndices();
+        ShortBuffer indices = BufferUtils.createShortBuffer(_particles.length * prototype.length);
+        int vpp = getParticleVertexCount();
+        for (int ii = 0, offset = 0; ii < _particles.length; ii++, offset += vpp) {
+            for (int index : prototype) {
+                indices.put((short)(offset + index));
+            }
+        }
         indices.rewind();
         return indices;
     }
@@ -402,9 +470,10 @@ public abstract class ParticleGeometry extends DynamicGeometry
     protected abstract int getParticleIndexCount ();
 
     /**
-     * Writes the indices of the particles to the provided buffer.
+     * Returns the array of prototype indices that will be replicated at different offsets to
+     * create the actual index buffer.
      */
-    protected abstract void getParticleIndices (ShortBuffer indices);
+    protected abstract int[] getPrototypeIndices ();
 
     /** The configuration of the layer. */
     @Bound
