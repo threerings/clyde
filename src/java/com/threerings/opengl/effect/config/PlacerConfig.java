@@ -3,10 +3,19 @@
 
 package com.threerings.opengl.effect.config;
 
+import com.samskivert.util.RandomUtil;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
+
+import com.threerings.opengl.camera.Camera;
+import com.threerings.opengl.eff.ParticleSystem.Layer;
+import com.threerings.opengl.eff.Placer;
+import com.threerings.opengl.effect.Particle;
 
 /**
  * Determines the particles' initial positions.
@@ -22,6 +31,15 @@ public abstract class PlacerConfig extends DeepObject
      */
     public static class Point extends PlacerConfig
     {
+        @Override // documentation inherited
+        public Placer createPlacer (Layer layer)
+        {
+            return new SimplePlacer(layer) {
+                protected Vector3f place (Vector3f position) {
+                    return position.set(0f, 0f, 0f);
+                }
+            };
+        }
     }
 
     /**
@@ -32,6 +50,16 @@ public abstract class PlacerConfig extends DeepObject
         /** The length of the segment. */
         @Editable(min=0.0, step=0.01)
         public float length = 1f;
+
+        @Override // documentation inherited
+        public Placer createPlacer (Layer layer)
+        {
+            return new SimplePlacer(layer) {
+                protected Vector3f place (Vector3f position) {
+                    return position.set(FloatMath.random(-0.5f, +0.5f) * length, 0f, 0f);
+                }
+            };
+        }
     }
 
     /**
@@ -54,6 +82,42 @@ public abstract class PlacerConfig extends DeepObject
         /** Whether to include the interior of the box (as opposed to just the faces). */
         @Editable
         public boolean solid = true;
+
+        @Override // documentation inherited
+        public Placer createPlacer (Layer layer)
+        {
+            return new SimplePlacer(layer) {
+                protected Vector3f place (Vector3f position) {
+                    if (solid) {
+                        return position.set(
+                            FloatMath.random(-0.5f, +0.5f) * width,
+                            FloatMath.random(-0.5f, +0.5f) * length,
+                            FloatMath.random(-0.5f, +0.5f) * height);
+                    }
+                    // choose a face pair according to their dimensions
+                    float xy = width * length;
+                    float xz = width * height;
+                    float yz = length * height;
+                    float rand = RandomUtil.getFloat(xy + xz + yz);
+                    if (rand < xy) {
+                        return position.set(
+                            FloatMath.random(-0.5f, +0.5f) * width,
+                            FloatMath.random(-0.5f, +0.5f) * length,
+                            (RandomUtil.rand.nextBoolean() ? -0.5f : +0.5f) * height);
+                    } else if (rand < xy + xz) {
+                        return position.set(
+                            FloatMath.random(-0.5f, +0.5f) * width,
+                            (RandomUtil.rand.nextBoolean() ? -0.5f : +0.5f) * length,
+                            FloatMath.random(-0.5f, +0.5f) * height);
+                    } else {
+                        return position.set(
+                            (RandomUtil.rand.nextBoolean() ? -0.5f : +0.5f) * width,
+                            FloatMath.random(-0.5f, +0.5f) * length,
+                            FloatMath.random(-0.5f, +0.5f) * height);
+                    }
+                }
+            };
+        }
     }
 
     /**
@@ -68,6 +132,23 @@ public abstract class PlacerConfig extends DeepObject
         /** The outer radius of the ring. */
         @Editable(min=0.0, step=0.01)
         public float outerRadius = 1f;
+
+        @Override // documentation inherited
+        public Placer createPlacer (Layer layer)
+        {
+            return new SimplePlacer(layer) {
+                protected Vector3f place (Vector3f position) {
+                    // find a radius based on the area distribution
+                    float radius = FloatMath.sqrt(
+                        FloatMath.random(innerRadius*innerRadius, outerRadius*outerRadius));
+                    float angle = RandomUtil.getFloat(FloatMath.TWO_PI);
+                    return position.set(
+                        radius * FloatMath.cos(angle),
+                        radius * FloatMath.sin(angle),
+                        0f);
+                }
+            };
+        }
     }
 
     /**
@@ -82,6 +163,29 @@ public abstract class PlacerConfig extends DeepObject
         /** The outer radius of the shell. */
         @Editable(min=0.0, step=0.01)
         public float outerRadius = 1f;
+
+        @Override // documentation inherited
+        public Placer createPlacer (Layer layer)
+        {
+            return new SimplePlacer(layer) {
+                protected Vector3f place (Vector3f position) {
+                    // find a radius based on the volume distribution
+                    float radius = FloatMath.pow(
+                        FloatMath.random(
+                            innerRadius*innerRadius*innerRadius,
+                            outerRadius*outerRadius*outerRadius),
+                        1f / 3f);
+                    // elevation based on the surface area distribution
+                    float sine = FloatMath.random(-1f, +1f);
+                    float cose = FloatMath.sqrt(1f - sine*sine);
+                    float angle = RandomUtil.getFloat(FloatMath.TWO_PI);
+                    return position.set(
+                        radius * FloatMath.cos(angle) * cose,
+                        radius * FloatMath.sin(angle) * cose,
+                        radius * sine);
+                }
+            };
+        }
     }
 
     /**
@@ -100,5 +204,89 @@ public abstract class PlacerConfig extends DeepObject
         /** Whether to include the interior of the frustum (as opposed to just the edges). */
         @Editable
         public boolean solid = true;
+
+        @Override // documentation inherited
+        public Placer createPlacer (final Layer layer)
+        {
+            return new Placer() {
+                public void place (Particle particle) {
+                    // choose a distance according to the volume distribution
+                    // or surface area distribution, depending on solidity
+                    float exp = solid ? 3f : 2f;
+                    float distance = FloatMath.pow(FloatMath.random(
+                        FloatMath.pow(nearDistance, exp), FloatMath.pow(farDistance, exp)),
+                            1f / exp);
+
+                    // find the location of the edges at the distance
+                    Camera camera = layer.getCamera();
+                    float scale = distance / camera.getNear();
+                    float left = camera.getLeft() * scale;
+                    float right = camera.getRight() * scale;
+                    float bottom = camera.getBottom() * scale;
+                    float top = camera.getTop() * scale;
+
+                    // if it's solid, choose a random point in the rect; otherwise, choose an edge
+                    // pair according to their lengths
+                    Vector3f position = particle.getPosition();
+                    if (solid) {
+                        position.set(
+                            FloatMath.random(left, right),
+                            FloatMath.random(bottom, top),
+                            -distance);
+                    } else {
+                        float width = right - left;
+                        float height = top - bottom;
+                        if (RandomUtil.getFloat(width + height) < width) {
+                            position.set(
+                                FloatMath.random(left, right),
+                                RandomUtil.rand.nextBoolean() ? top : bottom,
+                                -distance);
+                        } else {
+                            position.set(
+                                RandomUtil.rand.nextBoolean() ? left : right,
+                                FloatMath.random(top, bottom),
+                                -distance);
+                        }
+                    }
+
+                    // transform into world space, then into layer space
+                    layer.pointToLayer(camera.getWorldTransform().transformPointLocal(position),
+                        false);
+                }
+            };
+        }
+    }
+
+    /**
+     * Creates the placer corresponding to this config.
+     */
+    public abstract Placer createPlacer (Layer layer);
+
+    /**
+     * Base class for simple emitter space placers.
+     */
+    protected static abstract class SimplePlacer
+        implements Placer
+    {
+        public SimplePlacer (Layer layer)
+        {
+            _layer = layer;
+        }
+
+        // documentation inherited from interface Placer
+        public void place (Particle particle)
+        {
+            _layer.pointToLayer(place(particle.getPosition()), true);
+        }
+
+        /**
+         * Sets the position in emitter space.
+         *
+         * @return a reference to the position point, for chaining.
+         */
+        protected abstract Vector3f place (Vector3f position);
+
+        /** The owning layer. */
+        protected Layer _layer;
     }
 }

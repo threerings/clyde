@@ -25,7 +25,7 @@ public abstract class Counter extends DeepObject
      */
     public static class Unlimited extends Counter
     {
-         @Override // documentation inherited
+        @Override // documentation inherited
         public int count (float elapsed, int maximum)
         {
             return maximum;

@@ -210,6 +210,14 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
             // nothing by default
         }
 
+        /**
+         * Returns the number of segments in each particle.
+         */
+        public int getSegments ()
+        {
+            return 0;
+        }
+
         @Override // documentation inherited
         public Box getBounds ()
         {
@@ -249,6 +257,12 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         }
 
         @Override // documentation inherited
+        public int getSegments ()
+        {
+            return segments;
+        }
+
+        @Override // documentation inherited
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
@@ -274,6 +288,12 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
 
         public Quads ()
         {
+        }
+
+        @Override // documentation inherited
+        public int getSegments ()
+        {
+            return segments;
         }
 
         @Override // documentation inherited
