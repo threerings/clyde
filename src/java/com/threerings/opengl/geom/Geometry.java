@@ -4,6 +4,7 @@
 package com.threerings.opengl.geom;
 
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
 import com.threerings.opengl.renderer.config.CoordSpace;
@@ -35,6 +36,14 @@ public abstract class Geometry
     public CoordSpace getCoordSpace (int pass)
     {
         return CoordSpace.OBJECT;
+    }
+
+    /**
+     * Returns a reference to the location of the center of the geometry (used for depth sorting).
+     */
+    public Vector3f getCenter ()
+    {
+        return Vector3f.ZERO;
     }
 
     /**

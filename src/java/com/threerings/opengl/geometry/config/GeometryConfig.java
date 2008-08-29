@@ -27,6 +27,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.IdentityKey;
 import com.threerings.util.Shallow;
@@ -217,6 +218,7 @@ public abstract class GeometryConfig extends DeepObject
         {
             final Matrix4f[] boneMatrices = getBoneMatrices(scope);
             final CoordSpace[] coordSpaces = getCoordSpaces(passes);
+            final Vector3f center = bounds.getCenter();
             if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
                 final ArrayState[] arrayStates = createArrayStates(ctx, passes, true, true);
                 final DrawCommand drawCommand = createDrawCommand(true);
@@ -226,6 +228,9 @@ public abstract class GeometryConfig extends DeepObject
                     }
                     public CoordSpace getCoordSpace (int pass) {
                         return coordSpaces[pass];
+                    }
+                    public Vector3f getCenter () {
+                        return center;
                     }
                     public ArrayState getArrayState (int pass) {
                         return arrayStates[pass];
@@ -242,6 +247,9 @@ public abstract class GeometryConfig extends DeepObject
                     }
                     public CoordSpace getCoordSpace (int pass) {
                         return coordSpaces[pass];
+                    }
+                    public Vector3f getCenter () {
+                        return center;
                     }
                     public ArrayState getArrayState (int pass) {
                         return ArrayState.DISABLED;

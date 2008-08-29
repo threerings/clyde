@@ -274,6 +274,15 @@ public class ParticleSystem extends Model.Implementation
             return "layer";
         }
 
+        @Override // documentation inherited
+        public void dispose ()
+        {
+            super.dispose();
+            if (_surface != null) {
+                _surface.dispose();
+            }
+        }
+
         /** The application context. */
         protected GlContext _ctx;
 
@@ -393,8 +402,7 @@ public class ParticleSystem extends Model.Implementation
     public void tick (float elapsed)
     {
         // update the world transform
-//        _parentViewTransform.compose(_localTransform, _worldTransform);
-        _worldTransform.set(_localTransform);
+        _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // tick the layers
         for (Layer layer : _layers) {
@@ -419,13 +427,16 @@ public class ParticleSystem extends Model.Implementation
         _layers = new Layer[_config.layers.length];
         for (int ii = 0; ii < _layers.length; ii++) {
             ParticleSystemConfig.Layer config = _config.layers[ii];
-            Layer layer = olayers.get(config);
+            Layer layer = olayers.remove(config);
             if (layer != null) {
                 layer.setConfig(config);
             } else {
                 layer = new Layer(_ctx, this, config);
             }
             _layers[ii] = layer;
+        }
+        for (Layer layer : olayers.values()) {
+            layer.dispose(); // dispose of the unrecycled old layers
         }
     }
 
@@ -454,6 +465,10 @@ public class ParticleSystem extends Model.Implementation
     /** The parent view transform. */
     @Bound("viewTransform")
     protected Transform3D _parentViewTransform;
+
+    /** The parent world transform. */
+    @Bound("worldTransform")
+    protected Transform3D _parentWorldTransform;
 
     /** The view transform. */
     @Scoped

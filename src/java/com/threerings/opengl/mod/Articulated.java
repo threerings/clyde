@@ -207,10 +207,12 @@ public class Articulated extends Model.Implementation
             GlContext ctx, MaterialMapping[] materialMappings,
             Map<String, MaterialConfig> materialConfigs)
         {
-            VisibleMesh mesh = ((ArticulatedConfig.MeshNode)_config).visible;
-            if (mesh != null) {
-                _surface = createSurface(ctx, this, mesh, materialMappings, materialConfigs);
+            if (_surface != null) {
+                _surface.dispose();
             }
+            VisibleMesh mesh = ((ArticulatedConfig.MeshNode)_config).visible;
+            _surface = (mesh == null) ? null :
+                createSurface(ctx, this, mesh, materialMappings, materialConfigs);
         }
 
         @Override // documentation inherited
@@ -220,6 +222,15 @@ public class Articulated extends Model.Implementation
             if (_surface != null) {
                 _transformState.setDirty(true);
                 _surface.enqueue();
+            }
+        }
+
+        @Override // documentation inherited
+        public void dispose ()
+        {
+            super.dispose();
+            if (_surface != null) {
+                _surface.dispose();
             }
         }
 

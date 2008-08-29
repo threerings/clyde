@@ -14,6 +14,8 @@ import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
@@ -129,11 +131,14 @@ public class TechniqueConfig extends DeepObject
             final Batch batch = (passes.length == 1) ?
                 createBatch(ctx, scope, geometry, passes[0], updaters, pidx) :
                 createBatch(ctx, scope, geometry, updaters, pidx);
+            final Transform3D modelview = getTransformState(batch).getModelview();
+            final Vector3f center = geometry.getCenter();
             if (update) {
                 if (updaters.isEmpty()) {
                     return new Renderable() {
                         public void enqueue () {
                             geometry.update();
+                            batch.depth = modelview.transformPointZ(center);
                             queue.add(batch, priority);
                         }
                     };
@@ -145,6 +150,7 @@ public class TechniqueConfig extends DeepObject
                             for (Updater updater : updaterArray) {
                                 updater.update();
                             }
+                            batch.depth = modelview.transformPointZ(center);
                             queue.add(batch, priority);
                         }
                     };
@@ -153,6 +159,7 @@ public class TechniqueConfig extends DeepObject
                 if (updaters.isEmpty()) {
                     return new Renderable() {
                         public void enqueue () {
+                            batch.depth = modelview.transformPointZ(center);
                             queue.add(batch, priority);
                         }
                     };
@@ -163,11 +170,32 @@ public class TechniqueConfig extends DeepObject
                             for (Updater updater : updaterArray) {
                                 updater.update();
                             }
+                            batch.depth = modelview.transformPointZ(center);
                             queue.add(batch, priority);
                         }
                     };
                 }
             }
+        }
+
+        /**
+         * Extracts the transform state from the specified batch.
+         */
+        protected TransformState getTransformState (Batch batch)
+        {
+            if (batch instanceof SimpleBatch) {
+                TransformState state =
+                    (TransformState)((SimpleBatch)batch).getStates()[RenderState.TRANSFORM_STATE];
+                if (state != null) {
+                    return state;
+                }
+            } else if (batch instanceof CompoundBatch) {
+                ArrayList<Batch> batches = ((CompoundBatch)batch).getBatches();
+                if (!batches.isEmpty()) {
+                    return getTransformState(batches.get(0));
+                }
+            }
+            return TransformState.IDENTITY;
         }
 
         /**
@@ -179,7 +207,11 @@ public class TechniqueConfig extends DeepObject
         {
             CompoundBatch batch = new CompoundBatch();
             for (PassConfig pass : passes) {
-                batch.getBatches().add(createBatch(ctx, scope, geometry, pass, updaters, pidx));
+                SimpleBatch simple = createBatch(ctx, scope, geometry, pass, updaters, pidx);
+                batch.getBatches().add(simple);
+                if (batch.key == null) {
+                    batch.key = simple.key;
+                }
             }
             return batch;
         }
