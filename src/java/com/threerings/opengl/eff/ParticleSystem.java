@@ -26,7 +26,9 @@ import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.mat.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.TransformState;
+import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -115,20 +117,13 @@ public class ParticleSystem extends Model.Implementation
         }
 
         /**
-         * Determines whether the layer has completed.
-         */
-        public boolean hasCompleted ()
-        {
-            return _living.value == 0 && _preliving == 0 && !_config.respawnDeadParticles;
-        }
-
-        /**
          * Resets the state of the layer.
          */
         public void reset ()
         {
-            // clear the elapsed time
+            // clear the elapsed time and completion flag
             _total = 0f;
+            _completed = false;
 
             // reset the counts
             _living.value = 0;
@@ -137,11 +132,15 @@ public class ParticleSystem extends Model.Implementation
 
         /**
          * Updates the current particle state based on the elapsed time in seconds.
+         *
+         * @return true if this layer has completed, false if it is still active.
          */
-        public void tick (float elapsed)
+        public boolean tick (float elapsed)
         {
-            if ((_total += elapsed) < _config.startTime) {
-                return;
+            if (_completed) {
+                return true;
+            } else if ((_total += elapsed) < _config.startTime) {
+                return false;
             }
             elapsed *= _config.timeScale;
 
@@ -184,6 +183,11 @@ public class ParticleSystem extends Model.Implementation
                 }
             }
 
+            // check for completion
+            if (_living.value == 0 && _preliving == 0 && !_config.respawnDeadParticles) {
+                return (_completed = true);
+            }
+
             // find out how many particles the counter thinks we should emit
             int count = _counter.count(elapsed, _config.respawnDeadParticles ?
                 (_particles.length - _living.value) : _preliving);
@@ -208,6 +212,14 @@ public class ParticleSystem extends Model.Implementation
                 _bounds.addLocal(particle.getPosition());
                 msize = Math.max(msize, particle.getSize());
             }
+
+            // add layer bounds to the system bounds
+            if (_config.moveParticlesWithEmitter) {
+                _bounds.transformLocal(_worldTransform);
+            }
+            _parentBounds.addLocal(_bounds);
+
+            return false;
         }
 
         /**
@@ -238,6 +250,14 @@ public class ParticleSystem extends Model.Implementation
             return _config.moveParticlesWithEmitter ?
                 (emitter ? vector : _worldTransformInv.transformVectorLocal(vector)) :
                 (emitter ? _worldTransform.transformVectorLocal(vector) : vector);
+        }
+
+        /**
+         * Draws the bounds of the layer.
+         */
+        public void drawBounds ()
+        {
+            DebugBounds.draw(_bounds, Color4f.GRAY);
         }
 
         /**
@@ -298,6 +318,10 @@ public class ParticleSystem extends Model.Implementation
         @Bound("worldTransform")
         protected Transform3D _parentWorldTransform;
 
+        /** The parent bounds. */
+        @Bound("bounds")
+        protected Box _parentBounds;
+
         /** The layer's transform in world space. */
         protected Transform3D _worldTransform = new Transform3D();
 
@@ -340,6 +364,9 @@ public class ParticleSystem extends Model.Implementation
 
         /** The total time elapsed since reset. */
         protected float _total;
+
+        /** Whether or not the layer has completed. */
+        protected boolean _completed;
     }
 
     /**
@@ -376,12 +403,7 @@ public class ParticleSystem extends Model.Implementation
     @Override // documentation inherited
     public boolean hasCompleted ()
     {
-        for (Layer layer : _layers) {
-            if (!layer.hasCompleted()) {
-                return false;
-            }
-        }
-        return true;
+        return _completed;
     }
 
     @Override // documentation inherited
@@ -389,6 +411,22 @@ public class ParticleSystem extends Model.Implementation
     {
         for (Layer layer : _layers) {
             layer.reset();
+        }
+        _completed = false;
+    }
+
+    @Override // documentation inherited
+    public Box getBounds ()
+    {
+        return _bounds;
+    }
+
+    @Override // documentation inherited
+    public void drawBounds ()
+    {
+        DebugBounds.draw(_bounds, Color4f.WHITE);
+        for (Layer layer : _layers) {
+            layer.drawBounds();
         }
     }
 
@@ -401,12 +439,25 @@ public class ParticleSystem extends Model.Implementation
     @Override // documentation inherited
     public void tick (float elapsed)
     {
+        // if we're completed, there's nothing more to do
+        if (_completed || _layers.length == 0) {
+            return;
+        }
+
         // update the world transform
         _parentWorldTransform.compose(_localTransform, _worldTransform);
 
-        // tick the layers
+        // reset the bounds
+        _bounds.setToEmpty();
+
+        // tick the layers (they will expand the bounds)
+        _completed = true;
         for (Layer layer : _layers) {
-            layer.tick(elapsed);
+            _completed &= layer.tick(elapsed);
+        }
+        if (_completed) {
+            // notify containing model
+            ((Model)_parentScope).completed();
         }
     }
 
@@ -440,15 +491,6 @@ public class ParticleSystem extends Model.Implementation
         }
     }
 
-    /**
-     * Notes that the system has completed.
-     */
-    protected void completed ()
-    {
-        // notify containing model
-        ((Model)_parentScope).completed();
-    }
-
     /** The application context. */
     protected GlContext _ctx;
 
@@ -458,25 +500,32 @@ public class ParticleSystem extends Model.Implementation
     /** The layers of the system. */
     protected Layer[] _layers;
 
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
+    /** The parent world transform. */
+    @Bound("worldTransform")
+    protected Transform3D _parentWorldTransform;
 
     /** The parent view transform. */
     @Bound("viewTransform")
     protected Transform3D _parentViewTransform;
 
-    /** The parent world transform. */
-    @Bound("worldTransform")
-    protected Transform3D _parentWorldTransform;
+    /** The local transform. */
+    @Bound
+    protected Transform3D _localTransform;
+
+    /** The world transform. */
+    @Scoped
+    protected Transform3D _worldTransform = new Transform3D();
 
     /** The view transform. */
     @Scoped
     protected Transform3D _viewTransform = new Transform3D();
 
-    /** The world transform. */
+    /** The bounds of the system. */
     @Scoped
-    protected Transform3D _worldTransform = new Transform3D();
+    protected Box _bounds = new Box();
+
+    /** If true, the particle system has completed. */
+    protected boolean _completed;
 
     /** Sorts particles by decreasing depth. */
     protected static final Comparator<Particle> DEPTH_COMP = new Comparator<Particle>() {

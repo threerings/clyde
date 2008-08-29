@@ -22,6 +22,7 @@ import com.threerings.expr.ScopeUpdateListener;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Box;
 import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
@@ -126,9 +127,17 @@ public class Model extends DynamicScope
         }
 
         /**
-         * Updates the world space bounds of the model.
+         * Returns a reference to the bounds of the model.
          */
-        public void updateWorldBounds ()
+        public Box getBounds ()
+        {
+            return Box.EMPTY;
+        }
+
+        /**
+         * Updates the bounds of the model.
+         */
+        public void updateBounds ()
         {
             // nothing by default
         }
@@ -535,11 +544,19 @@ public class Model extends DynamicScope
     }
 
     /**
-     * Updates the world space bounds of the model.
+     * Returns a reference to the bounds of the model.
      */
-    public void updateWorldBounds ()
+    public Box getBounds ()
     {
-        _impl.updateWorldBounds();
+        return _impl.getBounds();
+    }
+
+    /**
+     * Updates the bounds of the model.
+     */
+    public void updateBounds ()
+    {
+        _impl.updateBounds();
     }
 
     /**

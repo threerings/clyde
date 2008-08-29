@@ -167,15 +167,19 @@ public class ModelConfig extends ParameterizedConfig
         }
 
         /** The model scale. */
-        @Editable(min=0, step=0.01, hgroup="r")
+        @Editable(min=0, step=0.01, hgroup="s")
         public float scale = 0.01f;
 
+        /** A fixed amount by which to expand the bounds (to account for skinning). */
+        @Editable(min=0, step=0.01, hgroup="s")
+        public float boundsExpansion;
+
         /** If true, ignore the transforms of the top-level children. */
-        @Editable
+        @Editable(hgroup="i")
         public boolean ignoreRootTransforms;
 
         /** If true, generate tangent attributes for meshes. */
-        @Editable
+        @Editable(hgroup="i")
         public boolean generateTangents;
 
         /** The mappings from texture name to material. */

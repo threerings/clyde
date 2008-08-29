@@ -20,6 +20,7 @@ import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
@@ -107,6 +108,14 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
 
         /**
+         * Returns the bounds of the node's geometry.
+         */
+        public Box getBounds ()
+        {
+            return Box.EMPTY;
+        }
+
+        /**
          * Updates the nodes' reference transforms.
          */
         public void updateRefTransforms (Transform3D parentRefTransform)
@@ -126,18 +135,20 @@ public class ArticulatedConfig extends ModelConfig.Imported
          */
         public void getArticulatedNodes (
             Scope scope, IdentityHashMap<Node, Articulated.Node> onodes,
-            ArrayList<Articulated.Node> nnodes, Transform3D parentViewTransform)
+            ArrayList<Articulated.Node> nnodes, Transform3D parentWorldTransform,
+            Transform3D parentViewTransform)
         {
             Articulated.Node node = onodes.remove(this);
             if (node != null) {
-                node.setConfig(this, parentViewTransform);
+                node.setConfig(this, parentWorldTransform, parentViewTransform);
             } else {
-                node = createArticulatedNode(scope, parentViewTransform);
+                node = createArticulatedNode(scope, parentWorldTransform, parentViewTransform);
             }
             nnodes.add(node);
+            Transform3D worldTransform = node.getWorldTransform();
             Transform3D viewTransform = node.getViewTransform();
             for (Node child : children) {
-                child.getArticulatedNodes(scope, onodes, nnodes, viewTransform);
+                child.getArticulatedNodes(scope, onodes, nnodes, worldTransform, viewTransform);
             }
         }
 
@@ -145,9 +156,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
          * Creates a new articulated node.
          */
         protected Articulated.Node createArticulatedNode (
-            Scope scope, Transform3D parentViewTransform)
+            Scope scope, Transform3D parentWorldTransform, Transform3D parentViewTransform)
         {
-            return new Articulated.Node(scope, this, parentViewTransform);
+            return new Articulated.Node(scope, this, parentWorldTransform, parentViewTransform);
         }
     }
 
@@ -194,10 +205,17 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
 
         @Override // documentation inherited
-        protected Articulated.Node createArticulatedNode (
-            Scope scope, Transform3D parentViewTransform)
+        public Box getBounds ()
         {
-            return new Articulated.MeshNode(scope, this, parentViewTransform);
+            return (visible == null) ? collision.getBounds() : visible.geometry.getBounds();
+        }
+
+        @Override // documentation inherited
+        protected Articulated.Node createArticulatedNode (
+            Scope scope, Transform3D parentWorldTransform, Transform3D parentViewTransform)
+        {
+            return new Articulated.MeshNode(
+                scope, this, parentWorldTransform, parentViewTransform);
         }
     }
 

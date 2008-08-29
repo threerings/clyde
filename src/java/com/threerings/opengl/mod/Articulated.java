@@ -18,6 +18,7 @@ import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.Updater;
+import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
@@ -31,7 +32,9 @@ import com.threerings.opengl.model.config.ArticulatedConfig.Attachment;
 import com.threerings.opengl.model.config.ArticulatedConfig.NodeTransform;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.TransformState;
+import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.*;
@@ -57,19 +60,23 @@ public class Articulated extends Model.Implementation
          * Creates a new node.
          */
         public Node (
-            Scope parentScope, ArticulatedConfig.Node config, Transform3D parentViewTransform)
+            Scope parentScope, ArticulatedConfig.Node config,
+            Transform3D parentWorldTransform, Transform3D parentViewTransform)
         {
             super(parentScope);
             _viewTransform = new Transform3D(Transform3D.UNIFORM);
-            setConfig(config, parentViewTransform);
+            setConfig(config, parentWorldTransform, parentViewTransform);
         }
 
         /**
          * Sets the configuration of this node.
          */
-        public void setConfig (ArticulatedConfig.Node config, Transform3D parentViewTransform)
+        public void setConfig (
+            ArticulatedConfig.Node config, Transform3D parentWorldTransform,
+            Transform3D parentViewTransform)
         {
             _config = config;
+            _parentWorldTransform = parentWorldTransform;
             _parentViewTransform = parentViewTransform;
             if (_localTransform == null) {
                 // only set the local transform on initialization
@@ -92,6 +99,14 @@ public class Articulated extends Model.Implementation
         public Transform3D getLocalTransform ()
         {
             return _localTransform;
+        }
+
+        /**
+         * Returns a reference to this node's world transform.
+         */
+        public Transform3D getWorldTransform ()
+        {
+            return _worldTransform;
         }
 
         /**
@@ -133,6 +148,15 @@ public class Articulated extends Model.Implementation
         }
 
         /**
+         * Updates the node for the current frame.
+         */
+        public void update ()
+        {
+            // compose parent world transform with local transform
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
+        }
+
+        /**
          * Enqueues this node for rendering.
          */
         public void enqueue ()
@@ -169,11 +193,18 @@ public class Articulated extends Model.Implementation
         /** The node configuration. */
         protected ArticulatedConfig.Node _config;
 
+        /** A reference to the parent world transform. */
+        protected Transform3D _parentWorldTransform;
+
         /** A reference to the parent view transform. */
         protected Transform3D _parentViewTransform;
 
         /** The node's local transform. */
         protected Transform3D _localTransform;
+
+        /** The node's world transform. */
+        @Scoped
+        protected Transform3D _worldTransform = new Transform3D();
 
         /** The node's view transform. */
         @Scoped
@@ -195,11 +226,12 @@ public class Articulated extends Model.Implementation
          * Creates a new mesh node.
          */
         public MeshNode (
-            Scope parentScope, ArticulatedConfig.MeshNode config, Transform3D parentViewTransform)
+            Scope parentScope, ArticulatedConfig.MeshNode config,
+            Transform3D parentWorldTransform, Transform3D parentViewTransform)
         {
             super(parentScope);
             _viewTransform = _transformState.getModelview();
-            setConfig(config, parentViewTransform);
+            setConfig(config, parentWorldTransform, parentViewTransform);
         }
 
         @Override // documentation inherited
@@ -213,6 +245,16 @@ public class Articulated extends Model.Implementation
             VisibleMesh mesh = ((ArticulatedConfig.MeshNode)_config).visible;
             _surface = (mesh == null) ? null :
                 createSurface(ctx, this, mesh, materialMappings, materialConfigs);
+        }
+
+        @Override // documentation inherited
+        public void update ()
+        {
+            super.update();
+
+            // transform the bounds and add them to the parent bounds
+            _parentBounds.addLocal(
+                _config.getBounds().transform(_worldTransform, _bounds));
         }
 
         @Override // documentation inherited
@@ -233,6 +275,13 @@ public class Articulated extends Model.Implementation
                 _surface.dispose();
             }
         }
+
+        /** The bounds of the parent. */
+        @Bound("bounds")
+        protected Box _parentBounds;
+
+        /** The bounds of the mesh. */
+        protected Box _bounds = new Box();
 
         /** The surface transform state. */
         @Scoped
@@ -283,9 +332,6 @@ public class Articulated extends Model.Implementation
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        // update the local transforms based on the animation
-        updateTransforms();
-
         // update the view transform
         _parentViewTransform.compose(_localTransform, _viewTransform);
 
@@ -361,6 +407,24 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public Box getBounds ()
+    {
+        return _bounds;
+    }
+
+    @Override // documentation inherited
+    public void drawBounds ()
+    {
+        DebugBounds.draw(_bounds, Color4f.WHITE);
+        for (Model model : _configAttachments) {
+            model.drawBounds();
+        }
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            _userAttachments.get(ii).drawBounds();
+        }
+    }
+
+    @Override // documentation inherited
     public boolean requiresTick ()
     {
         return true;
@@ -369,6 +433,12 @@ public class Articulated extends Model.Implementation
     @Override // documentation inherited
     public void tick (float elapsed)
     {
+        // update the world transform
+        _parentWorldTransform.compose(_localTransform, _worldTransform);
+
+        // initialize the bounds
+        _config.skin.bounds.transform(_worldTransform, _bounds);
+
         // copy the tracks to an array so that callbacks can manipulate the list;
         // note if any tracks have completed
         boolean completed = false;
@@ -377,9 +447,11 @@ public class Articulated extends Model.Implementation
             completed |= _playingArray[ii].tick(elapsed);
         }
 
-        // if any tracks have completed, issue a final update and remove them
+        // update the local node transforms
+        updateTransforms();
+
+        // if any tracks have completed, remove them
         if (completed) {
-            updateTransforms();
             for (int ii = _playing.size() - 1; ii >= 0; ii--) {
                 Animation animation = _playing.get(ii);
                 if (animation.hasCompleted()) {
@@ -388,14 +460,24 @@ public class Articulated extends Model.Implementation
             }
         }
 
+        // update the nodes and expand the bounds
+        for (Node node : _nodes) {
+            node.update();
+        }
+
         // tick the configured attachments
         for (Model model : _configAttachments) {
             model.tick(elapsed);
+            model.updateBounds();
+            _bounds.addLocal(model.getBounds());
         }
 
         // and the user attachments
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
-            _userAttachments.get(ii).tick(elapsed);
+            Model model = _userAttachments.get(ii);
+            model.tick(elapsed);
+            model.updateBounds();
+            _bounds.addLocal(model.getBounds());
         }
     }
 
@@ -434,7 +516,7 @@ public class Articulated extends Model.Implementation
 
         // create the node list
         ArrayList<Node> nnodes = new ArrayList<Node>();
-        _config.root.getArticulatedNodes(this, onodes, nnodes, _viewTransform);
+        _config.root.getArticulatedNodes(this, onodes, nnodes, _worldTransform, _viewTransform);
         _nodes = nnodes.toArray(new Node[nnodes.size()]);
         for (Node node : onodes.values()) {
             node.dispose(); // dispose of the unrecycled old nodes
@@ -638,9 +720,9 @@ public class Articulated extends Model.Implementation
     /** The attachments created from the configuration. */
     protected Model[] _configAttachments;
 
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
+    /** The parent world transform. */
+    @Bound("worldTransform")
+    protected Transform3D _parentWorldTransform;
 
     /** The parent view transform. */
     @Bound("viewTransform")
@@ -650,9 +732,21 @@ public class Articulated extends Model.Implementation
     @Bound("getBoneMatrix")
     protected Function _parentGetBoneMatrix = Function.NULL;
 
+    /** The local transform. */
+    @Bound
+    protected Transform3D _localTransform;
+
+    /** The world transform. */
+    @Scoped
+    protected Transform3D _worldTransform = new Transform3D();
+
     /** The view transform. */
     @Scoped
     protected Transform3D _viewTransform = new Transform3D();
+
+    /** The bounds of the model. */
+    @Scoped
+    protected Box _bounds = new Box();
 
     /** User attachments (their parent scopes are the nodes to which they're attached). */
     protected ArrayList<Model> _userAttachments = new ArrayList<Model>();

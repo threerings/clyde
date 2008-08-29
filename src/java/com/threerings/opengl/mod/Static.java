@@ -69,19 +69,25 @@ public class Static extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void updateWorldBounds ()
+    public Box getBounds ()
+    {
+        return _bounds;
+    }
+
+    @Override // documentation inherited
+    public void updateBounds ()
     {
         // update the world transform
         _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // and the world bounds
-        _meshes.bounds.transform(_worldTransform, _worldBounds);
+        _meshes.bounds.transform(_worldTransform, _bounds);
     }
 
     @Override // documentation inherited
     public void drawBounds ()
     {
-        DebugBounds.draw(_worldBounds, Color4f.WHITE);
+        DebugBounds.draw(_bounds, Color4f.WHITE);
     }
 
     @Override // documentation inherited
@@ -99,20 +105,17 @@ public class Static extends Model.Implementation
     /** The surfaces corresponding to each visible mesh. */
     protected Surface[] _surfaces;
 
-    /** The world space bounds of the model. */
-    protected Box _worldBounds = new Box();
-
-    /** The local transform. */
-    @Bound
-    protected Transform3D _localTransform;
+    /** The parent world transform. */
+    @Bound("worldTransform")
+    protected Transform3D _parentWorldTransform;
 
     /** The parent view transform. */
     @Bound("viewTransform")
     protected Transform3D _parentViewTransform;
 
-    /** The parent world transform. */
-    @Bound("worldTransform")
-    protected Transform3D _parentWorldTransform;
+    /** The local transform. */
+    @Bound
+    protected Transform3D _localTransform;
 
     /** The world transform. */
     @Scoped
@@ -121,4 +124,7 @@ public class Static extends Model.Implementation
     /** The shared transform state. */
     @Scoped
     protected TransformState _transformState = new TransformState();
+
+    /** The bounds of the model. */
+    protected Box _bounds = new Box();
 }

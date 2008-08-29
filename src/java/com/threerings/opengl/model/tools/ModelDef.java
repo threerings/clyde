@@ -668,6 +668,8 @@ public class ModelDef
             for (Vertex vertex : vertices) {
                 bounds.addLocal(new Vector3f(vertex.location));
             }
+            bounds.expandLocal(
+                config.boundsExpansion, config.boundsExpansion, config.boundsExpansion);
 
             // create and return the mesh
             return new ModelConfig.VisibleMesh(

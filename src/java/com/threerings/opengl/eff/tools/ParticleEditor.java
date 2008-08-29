@@ -121,6 +121,8 @@ public class ParticleEditor extends GlCanvasTool
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
+        view.add(_autoReset = createCheckBoxMenuItem("auto_reset", KeyEvent.VK_A, KeyEvent.VK_E));
+        view.addSeparator();
         view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_D));
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
@@ -362,6 +364,9 @@ public class ParticleEditor extends GlCanvasTool
     {
         super.updateView(elapsed);
         _model.tick(elapsed);
+        if (_autoReset.isSelected() && _model.hasCompleted()) {
+            _model.reset();
+        }
     }
 
     @Override // documentation inherited
@@ -703,6 +708,9 @@ public class ParticleEditor extends GlCanvasTool
 
     /** The revert menu item. */
     protected JMenuItem _revert;
+
+    /** The toggle for automatic reset. */
+    protected JCheckBoxMenuItem _autoReset;
 
     /** The toggle for the ground view. */
     protected JCheckBoxMenuItem _showGround;
