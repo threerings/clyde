@@ -36,6 +36,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.editor.Property;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.util.ChangeBlock;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.GlCanvasTool;
@@ -132,8 +133,14 @@ public class ModelViewer extends GlCanvasTool
     {
         if (event.getSource() == _epanel) {
             // let the config know that it was updated
-            _model.getConfig().wasUpdated();
-
+            if (!_block.enter()) {
+                return;
+            }
+            try {
+                _model.getConfig().wasUpdated();
+            } finally {
+                _block.leave();
+            }
         } else { // event.getSource() == _speedSlider
             updateSpeedLabel();
         }
@@ -146,11 +153,22 @@ public class ModelViewer extends GlCanvasTool
         Animation[] anims = _model.getAnimations();
         if (anims.length == 0) {
             _tpanels.setVisible(false);
+        } else {
+            _tpanels.setVisible(true);
+            for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
+                ((TrackPanel)_tpanels.getComponent(ii)).updateAnimations();
+            }
+        }
+
+        // update the editor panel
+        if (!_block.enter()) {
             return;
         }
-        _tpanels.setVisible(true);
-        for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
-            ((TrackPanel)_tpanels.getComponent(ii)).updateAnimations();
+        try {
+            _epanel.update();
+            _epanel.validate();
+        } finally {
+            _block.leave();
         }
     }
 
@@ -392,6 +410,9 @@ public class ModelViewer extends GlCanvasTool
 
     /** Accumulated elapsed time. */
     protected double _elapsed;
+
+    /** Indicates that we should ignore any changes, because we're the one effecting them. */
+    protected ChangeBlock _block = new ChangeBlock();
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ModelViewer.class);

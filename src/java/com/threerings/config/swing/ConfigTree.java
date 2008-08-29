@@ -22,6 +22,7 @@ import com.samskivert.util.ListUtil;
 import com.samskivert.util.Tuple;
 
 import com.threerings.export.SerializableWrapper;
+import com.threerings.util.ChangeBlock;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.config.ConfigGroup;
@@ -110,20 +111,20 @@ public class ConfigTree extends JTree
      */
     public void selectedConfigChanged ()
     {
-        if (!enterChangeBlock()) {
+        if (!_block.enter()) {
             return;
         }
         try {
             getSelectedNode().getConfig().wasUpdated();
         } finally {
-            leaveChangeBlock();
+            _block.leave();
         }
     }
 
     // documentation inherited from interface ConfigGroupListener
     public void configAdded (ConfigEvent<ManagedConfig> event)
     {
-        if (!enterChangeBlock()) {
+        if (!_block.enter()) {
             return;
         }
         try {
@@ -138,14 +139,14 @@ public class ConfigTree extends JTree
                     point.right, point.left, point.left.getInsertionIndex(point.right));
             }
         } finally {
-            leaveChangeBlock();
+            _block.leave();
         }
     }
 
     // documentation inherited from interface ConfigGroupListener
     public void configRemoved (ConfigEvent<ManagedConfig> event)
     {
-        if (!enterChangeBlock()) {
+        if (!_block.enter()) {
             return;
         }
         try {
@@ -159,20 +160,20 @@ public class ConfigTree extends JTree
                 log.warning("Missing config node [name=" + name + "].");
             }
         } finally {
-            leaveChangeBlock();
+            _block.leave();
         }
     }
 
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
-        if (!enterChangeBlock()) {
+        if (!_block.enter()) {
             return;
         }
         try {
             selectedConfigUpdated();
         } finally {
-            leaveChangeBlock();
+            _block.leave();
         }
     }
 
@@ -205,24 +206,24 @@ public class ConfigTree extends JTree
             }
             public void insertNodeInto (MutableTreeNode child, MutableTreeNode parent, int index) {
                 super.insertNodeInto(child, parent, index);
-                if (!enterChangeBlock()) {
+                if (!_block.enter()) {
                     return;
                 }
                 try {
                     ((ConfigTreeNode)child).addConfigs(_groups[0]);
                 } finally {
-                    leaveChangeBlock();
+                    _block.leave();
                 }
             }
             public void removeNodeFromParent (MutableTreeNode node) {
                 super.removeNodeFromParent(node);
-                if (!enterChangeBlock()) {
+                if (!_block.enter()) {
                     return;
                 }
                 try {
                     ((ConfigTreeNode)node).removeConfigs(_groups[0]);
                 } finally {
-                    leaveChangeBlock();
+                    _block.leave();
                 }
             }
         });
@@ -361,24 +362,6 @@ public class ConfigTree extends JTree
     }
 
     /**
-     * Attempts to enter the change block.
-     *
-     * @return true if we have entered, false if we are already within a change block.
-     */
-    protected boolean enterChangeBlock ()
-    {
-        return _changing ? false : (_changing = true);
-    }
-
-    /**
-     * Leaves the change block.
-     */
-    protected void leaveChangeBlock ()
-    {
-        _changing = false;
-    }
-
-    /**
      * Contains a node for transfer.
      */
     protected static class NodeTransfer
@@ -420,7 +403,7 @@ public class ConfigTree extends JTree
     protected ConfigGroup<ManagedConfig>[] _groups;
 
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
-    protected boolean _changing;
+    protected ChangeBlock _block = new ChangeBlock();
 
     /** The configuration that we're listening to, if any. */
     protected ManagedConfig _lconfig;

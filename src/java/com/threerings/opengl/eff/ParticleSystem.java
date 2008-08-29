@@ -419,7 +419,7 @@ public class ParticleSystem extends Model.Implementation
         IdentityHashMap<ParticleSystemConfig.Layer, Layer> olayers = Maps.newIdentityHashMap();
         if (_layers != null) {
             for (Layer layer : _layers) {
-                olayers.put(layer.getConfig(), layer);
+                olayers.put(layer.getConfig().identity, layer);
             }
         }
 
@@ -427,7 +427,7 @@ public class ParticleSystem extends Model.Implementation
         _layers = new Layer[_config.layers.length];
         for (int ii = 0; ii < _layers.length; ii++) {
             ParticleSystemConfig.Layer config = _config.layers[ii];
-            Layer layer = olayers.remove(config);
+            Layer layer = olayers.remove(config.identity);
             if (layer != null) {
                 layer.setConfig(config);
             } else {

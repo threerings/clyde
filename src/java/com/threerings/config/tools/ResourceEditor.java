@@ -29,6 +29,7 @@ import com.samskivert.util.ObjectUtil;
 
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
+import com.threerings.util.ChangeBlock;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 
@@ -185,7 +186,7 @@ public class ResourceEditor extends BaseConfigEditor
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        if (!enterChangeBlock()) {
+        if (!_block.enter()) {
             return;
         }
         try {
@@ -193,20 +194,20 @@ public class ResourceEditor extends BaseConfigEditor
             config.updateFromSource(this, false);
             config.wasUpdated();
         } finally {
-            leaveChangeBlock();
+            _block.leave();
         }
     }
 
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
-        if (!enterChangeBlock()) {
+        if (!_block.enter()) {
             return;
         }
         try {
             _epanel.update();
         } finally {
-            leaveChangeBlock();
+            _block.leave();
         }
     }
 
@@ -407,24 +408,6 @@ public class ResourceEditor extends BaseConfigEditor
         setTitle(_msgs.get("m.title") + (file == null ? "" : (": " + file)));
     }
 
-    /**
-     * Attempts to enter the change block.
-     *
-     * @return true if we have entered, false if we are already within a change block.
-     */
-    protected boolean enterChangeBlock ()
-    {
-        return _changing ? false : (_changing = true);
-    }
-
-    /**
-     * Leaves the change block.
-     */
-    protected void leaveChangeBlock ()
-    {
-        _changing = false;
-    }
-
     /** The file menu items. */
     protected JMenuItem _save, _saveAs, _revert, _export;
 
@@ -441,5 +424,5 @@ public class ResourceEditor extends BaseConfigEditor
     protected File _file;
 
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
-    protected boolean _changing;
+    protected ChangeBlock _block = new ChangeBlock();
 }

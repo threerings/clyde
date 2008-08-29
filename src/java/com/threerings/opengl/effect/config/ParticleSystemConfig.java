@@ -22,6 +22,7 @@ import com.threerings.probs.QuaternionVariable;
 import com.threerings.probs.VectorVariable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
+import com.threerings.util.Shallow;
 
 import com.threerings.opengl.eff.ParticleGeometry;
 import com.threerings.opengl.eff.ParticleSystem;
@@ -172,6 +173,10 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         /** The layer's influences. */
         @Editable(category="influences")
         public InfluenceConfig[] influences = new InfluenceConfig[0];
+
+        /** Used to identify the layer after customization. */
+        @Shallow
+        public transient Layer identity = this;
 
         /** The shared data array. */
         @DeepOmit
