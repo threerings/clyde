@@ -223,6 +223,14 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
             return 0;
         }
 
+        /**
+         * Returns the radius of the geometry (used to expand the bounds).
+         */
+        public float getRadius (GlContext ctx)
+        {
+            return 1f;
+        }
+
         @Override // documentation inherited
         public Box getBounds ()
         {
@@ -235,6 +243,12 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
      */
     public static class Points extends ParticleGeometryConfig
     {
+        @Override // documentation inherited
+        public float getRadius (GlContext ctx)
+        {
+            return 0f;
+        }
+
         @Override // documentation inherited
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
@@ -327,12 +341,26 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         }
 
         @Override // documentation inherited
+        public float getRadius (GlContext ctx)
+        {
+            GeometryConfig geom = getParticleGeometry(ctx);
+            return (geom == null) ? 0f : geom.getBounds().getDiagonalLength() * 0.5f;
+        }
+
+        @Override // documentation inherited
         public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
+            return ParticleGeometry.Meshes.create(ctx, scope, passes, getParticleGeometry(ctx));
+        }
+
+        /**
+         * Returns the particle geometry for the model.
+         */
+        protected GeometryConfig getParticleGeometry (GlContext ctx)
+        {
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
-            GeometryConfig geom = (config == null) ? null : config.getParticleGeometry(ctx);
-            return ParticleGeometry.Meshes.create(ctx, scope, passes, geom);
+            return (config == null) ? null : config.getParticleGeometry(ctx);
         }
     }
 

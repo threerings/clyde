@@ -76,6 +76,14 @@ public final class Box
     }
 
     /**
+     * Returns the length of the box's diagonal (the distance from minimum to maximum extent).
+     */
+    public float getDiagonalLength ()
+    {
+        return _minExtent.distance(_maxExtent);
+    }
+
+    /**
      * Determines whether the box is empty (whether it contains the special values
      * {@link Vector3f#MAX_VALUE} and {@link Vector3f#MIN_VALUE} for its minimum
      * and maximum extents, respectively).

@@ -98,6 +98,9 @@ public class ParticleSystem extends Model.Implementation
             _surface = new Surface(
                 _ctx, this, config.geometry,
                 _ctx.getConfigManager().getConfig(MaterialConfig.class, config.material));
+
+            // get the geometry radius
+            _geometryRadius = config.geometry.getRadius(_ctx);
         }
 
         /**
@@ -212,6 +215,13 @@ public class ParticleSystem extends Model.Implementation
                 _bounds.addLocal(particle.getPosition());
                 msize = Math.max(msize, particle.getSize());
             }
+
+            // expand the bounds (TODO: account for tails)
+            if (_bounds.isEmpty()) {
+                return false;
+            }
+            float amount = _geometryRadius * msize;
+            _bounds.expandLocal(amount, amount, amount);
 
             // add layer bounds to the system bounds
             if (_config.moveParticlesWithEmitter) {
@@ -330,6 +340,9 @@ public class ParticleSystem extends Model.Implementation
 
         /** The bounds of the layer. */
         protected Box _bounds = new Box();
+
+        /** The radius of the geometry (used to expand the bounds). */
+        protected float _geometryRadius;
 
         /** The particles in the layer (first the living particles, then the pre-living particles,
          * then the dead particles). */
