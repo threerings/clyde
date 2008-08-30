@@ -15,6 +15,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.mat.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
@@ -93,7 +94,15 @@ public class Static extends Model.Implementation
     @Override // documentation inherited
     public boolean getIntersection (Ray ray, Vector3f result)
     {
-        return false;
+        // we must transform the ray into model space before checking against the collision mesh
+        CollisionMesh collision = _meshes.collision;
+        if (collision == null || !_bounds.intersects(ray) ||
+                !collision.getIntersection(ray.transform(_worldTransform.invert()), result)) {
+            return false;
+        }
+        // then transform it back if we get a hit
+        _worldTransform.transformPointLocal(result);
+        return true;
     }
 
     /** The application context. */

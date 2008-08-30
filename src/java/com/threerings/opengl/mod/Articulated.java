@@ -26,6 +26,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.mat.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig.AnimationMapping;
 import com.threerings.opengl.model.config.ArticulatedConfig.Attachment;
@@ -157,6 +158,14 @@ public class Articulated extends Model.Implementation
         }
 
         /**
+         * Checks for an intersection between the mesh in this node (if any) and the supplied ray.
+         */
+        public boolean getIntersection (Ray ray, Vector3f result)
+        {
+            return false;
+        }
+
+        /**
          * Enqueues this node for rendering.
          */
         public void enqueue ()
@@ -255,6 +264,20 @@ public class Articulated extends Model.Implementation
             // transform the bounds and add them to the parent bounds
             _parentBounds.addLocal(
                 _config.getBounds().transform(_worldTransform, _bounds));
+        }
+
+        @Override // documentation inherited
+        public boolean getIntersection (Ray ray, Vector3f result)
+        {
+            // transform the ray into model space before checking against the collision mesh
+            CollisionMesh collision = ((ArticulatedConfig.MeshNode)_config).collision;
+            if (collision == null || !_bounds.intersects(ray) ||
+                    !collision.getIntersection(ray.transform(_worldTransform.invert()), result)) {
+                return false;
+            }
+            // then transform it back if we get a hit
+            _worldTransform.transformPointLocal(result);
+            return true;
         }
 
         @Override // documentation inherited
@@ -407,6 +430,17 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void reset ()
+    {
+        for (Model model : _configAttachments) {
+            model.reset();
+        }
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            _userAttachments.get(ii).reset();
+        }
+    }
+
+    @Override // documentation inherited
     public Box getBounds ()
     {
         return _bounds;
@@ -484,7 +518,35 @@ public class Articulated extends Model.Implementation
     @Override // documentation inherited
     public boolean getIntersection (Ray ray, Vector3f result)
     {
-        return false;
+        // exit early if there's no bounds intersection
+        if (!_bounds.intersects(ray)) {
+            return false;
+        }
+        // first check against the skin
+        Vector3f closest = result;
+        if (getSkinIntersection(ray, result)) {
+            result = updateClosest(ray.getOrigin(), result, closest);
+        }
+        // then the nodes
+        for (Node node : _nodes) {
+            if (node.getIntersection(ray, result)) {
+                result = updateClosest(ray.getOrigin(), result, closest);
+            }
+        }
+        // then the configured attachments
+        for (Model model : _configAttachments) {
+            if (model.getIntersection(ray, result)) {
+                result = updateClosest(ray.getOrigin(), result, closest);
+            }
+        }
+        // then the user attachments
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            if (_userAttachments.get(ii).getIntersection(ray, result)) {
+                result = updateClosest(ray.getOrigin(), result, closest);
+            }
+        }
+        // if we ever changed the result reference, that means we hit something
+        return (result != closest);
     }
 
     @Override // documentation inherited
@@ -694,6 +756,36 @@ public class Articulated extends Model.Implementation
         for (int ii = 0; ii < nn; ii++) {
             _playing.get(ii).blendTransforms(_update);
         }
+    }
+
+    /**
+     * Checks for an intersection with the skin mesh.
+     */
+    protected boolean getSkinIntersection (Ray ray, Vector3f result)
+    {
+        // we must transform the ray into model space before checking against the collision mesh
+        CollisionMesh collision = _config.skin.collision;
+        if (collision == null || !collision.getIntersection(
+                ray.transform(_worldTransform.invert()), result)) {
+            return false;
+        }
+        // then transform it back if we get a hit
+        _worldTransform.transformPointLocal(result);
+        return true;
+    }
+
+    /**
+     * Updates the value of the closest point and returns a new result vector reference.
+     */
+    protected static Vector3f updateClosest (Vector3f origin, Vector3f result, Vector3f closest)
+    {
+        if (result == closest) {
+            return new Vector3f();
+        }
+        if (origin.distanceSquared(result) < origin.distanceSquared(closest)) {
+            closest.set(result);
+        }
+        return result;
     }
 
     /** The application context. */
