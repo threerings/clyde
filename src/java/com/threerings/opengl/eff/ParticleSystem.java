@@ -28,6 +28,7 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.TransformState;
+import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
@@ -444,9 +445,15 @@ public class ParticleSystem extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public boolean requiresTick ()
+    public void setTickPolicy (TickPolicy policy)
     {
-        return true;
+        _tickPolicy = policy;
+    }
+
+    @Override // documentation inherited
+    public TickPolicy getTickPolicy ()
+    {
+        return _tickPolicy;
     }
 
     @Override // documentation inherited
@@ -536,6 +543,9 @@ public class ParticleSystem extends Model.Implementation
     /** The bounds of the system. */
     @Scoped
     protected Box _bounds = new Box();
+
+    /** The model's tick policy. */
+    protected TickPolicy _tickPolicy = TickPolicy.ALWAYS;
 
     /** If true, the particle system has completed. */
     protected boolean _completed;

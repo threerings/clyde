@@ -51,13 +51,22 @@ public class DraggableSpinner extends JSpinner
             public void mouseDragged (MouseEvent event) {
                 int dx = event.getX() - _lx;
                 _lx = event.getX();
-                for (int dir = (dx < 0) ? +1 : -1; dx != 0; dx += dir) {
-                    Object nvalue = (dx < 0) ? getPreviousValue() : getNextValue();
-                    if (nvalue == null) {
-                        setValue(dx < 0 ? model.getMinimum() : model.getMaximum());
-                        break;
+                Object ovalue = getValue();
+                _suppressStateChanged = true;
+                try {
+                    for (int dir = (dx < 0) ? +1 : -1; dx != 0; dx += dir) {
+                        Object nvalue = (dx < 0) ? getPreviousValue() : getNextValue();
+                        if (nvalue == null) {
+                            setValue(dx < 0 ? model.getMinimum() : model.getMaximum());
+                            break;
+                        }
+                        setValue(nvalue);
                     }
-                    setValue(nvalue);
+                } finally {
+                    _suppressStateChanged = false;
+                }
+                if (!getValue().equals(ovalue)) {
+                    fireStateChanged();
                 }
             }
             protected int _lx;
@@ -106,6 +115,14 @@ public class DraggableSpinner extends JSpinner
         return ((Number)getValue()).intValue();
     }
 
+    @Override // documentation inherited
+    protected void fireStateChanged ()
+    {
+        if (!_suppressStateChanged) {
+            super.fireStateChanged();
+        }
+    }
+
     /**
      * Gets rid of pesky "negative zero" values.
      */
@@ -129,4 +146,7 @@ public class DraggableSpinner extends JSpinner
             }
         }
     }
+
+    /** When set, suppresses the state-changed event. */
+    protected boolean _suppressStateChanged;
 }

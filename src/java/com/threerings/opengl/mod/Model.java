@@ -34,6 +34,7 @@ import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
+import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Intersectable;
@@ -46,8 +47,7 @@ import static com.threerings.opengl.Log.*;
  * A 3D model.
  */
 public class Model extends DynamicScope
-    implements Tickable, Intersectable, Renderable,
-        ConfigUpdateListener<ModelConfig>
+    implements SceneElement, ConfigUpdateListener<ModelConfig>
 {
     /**
      * The actual model implementation.
@@ -151,11 +151,19 @@ public class Model extends DynamicScope
         }
 
         /**
-         * Checks whether the model requires a per-frame call to its {@link #tick} method.
+         * Sets the tick policy of the model.
          */
-        public boolean requiresTick ()
+        public void setTickPolicy (TickPolicy policy)
         {
-            return false;
+            log.warning("Setting tick policy not supported.", "policy", policy);
+        }
+
+        /**
+         * Returns the tick policy of the model.
+         */
+        public TickPolicy getTickPolicy ()
+        {
+            return TickPolicy.NEVER;
         }
 
         // documentation inherited from interface Tickable
@@ -385,6 +393,22 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Sets the model's user object reference.
+     */
+    public void setUserObject (Object object)
+    {
+        _userObject = object;
+    }
+
+    /**
+     * Returns the model's user object reference.
+     */
+    public Object getUserObject ()
+    {
+        return _userObject;
+    }
+
+    /**
      * Attaches the specified model at the given point.
      */
     public void attach (String point, Model model)
@@ -544,14 +568,6 @@ public class Model extends DynamicScope
     }
 
     /**
-     * Returns a reference to the bounds of the model.
-     */
-    public Box getBounds ()
-    {
-        return _impl.getBounds();
-    }
-
-    /**
      * Updates the bounds of the model.
      */
     public void updateBounds ()
@@ -568,12 +584,23 @@ public class Model extends DynamicScope
     }
 
     /**
-     * Checks whether the model requires a per-frame call to the {@link #tick} method to
-     * advance its state.
+     * Sets the tick policy of the model.
      */
-    public boolean requiresTick ()
+    public void setTickPolicy (TickPolicy policy)
     {
-        return _impl.requiresTick();
+        _impl.setTickPolicy(policy);
+    }
+
+    // documentation inherited from interface SceneElement
+    public TickPolicy getTickPolicy ()
+    {
+        return _impl.getTickPolicy();
+    }
+
+    // documentation inherited from interface SceneElement
+    public Box getBounds ()
+    {
+        return _impl.getBounds();
     }
 
     // documentation inherited from interface Tickable
@@ -707,6 +734,9 @@ public class Model extends DynamicScope
 
     /** The lazily-initialized list of model observers. */
     protected ObserverList<ModelObserver> _observers;
+
+    /** The model's user object. */
+    protected Object _userObject;
 
     /** A container for the model epoch. */
     @Scoped
