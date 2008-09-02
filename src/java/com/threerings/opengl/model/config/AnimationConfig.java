@@ -119,6 +119,10 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable(hgroup="l")
         public boolean skipLastFrame = true;
 
+        /** Actions to perform at specific times within the animation. */
+        @Editable
+        public Action[] actions = new Action[0];
+
         /** The base animation frame rate. */
         public float rate;
 
@@ -280,6 +284,32 @@ public class AnimationConfig extends ParameterizedConfig
                 AnimationConfig.class, animation);
             return (config == null) ? null : config.getAnimationImplementation(ctx, scope, impl);
         }
+    }
+
+    /**
+     * An action to take at a specific time within the animation.
+     */
+    @EditorTypes({ AddTransient.class })
+    public static abstract class Action extends DeepObject
+        implements Exportable
+    {
+        /** The frame at which to perform the action. */
+        @Editable(min=0, step=0.01)
+        public float frame;
+    }
+
+    /**
+     * Adds a transient model (particle system, for example) to the scene.
+     */
+    public static class AddTransient extends Action
+    {
+        /** The node at whose transform the node should be added. */
+        @Editable
+        public String node = "";
+
+        /** The model to spawn. */
+        @Editable(nullable=true)
+        public ConfigReference<ModelConfig> model;
     }
 
     /**

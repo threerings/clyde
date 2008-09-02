@@ -137,6 +137,14 @@ public class Frustum
     }
 
     /**
+     * Returns a reference to the bounds of this frustum.
+     */
+    public Box getBounds ()
+    {
+        return _bounds;
+    }
+
+    /**
      * Determines the maximum signed distance of the point from the planes of the frustum.  If
      * the distance is less than or equal to zero, the point lies inside the frustum.
      */
@@ -155,7 +163,7 @@ public class Frustum
     public IntersectionType getIntersectionType (Box box)
     {
         // exit quickly in cases where the bounding boxes don't overlap
-        if (!_bbox.intersects(box)) {
+        if (!_bounds.intersects(box)) {
             return IntersectionType.NONE;
         }
 
@@ -211,7 +219,7 @@ public class Frustum
         _planes[3].fromPoints(_vertices[4], _vertices[0], _vertices[3]); // right
         _planes[4].fromPoints(_vertices[3], _vertices[2], _vertices[6]); // top
         _planes[5].fromPoints(_vertices[4], _vertices[5], _vertices[1]); // bottom
-        _bbox.fromPoints(_vertices);
+        _bounds.fromPoints(_vertices);
     }
 
     /** The vertices of the frustum. */
@@ -222,7 +230,7 @@ public class Frustum
     protected Plane[] _planes = new Plane[6];
 
     /** The frustum's bounding box (as derived from the vertices). */
-    protected Box _bbox = new Box();
+    protected Box _bounds = new Box();
 
     /** A working vertex. */
     protected static Vector3f _vertex = new Vector3f();
