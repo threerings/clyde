@@ -735,9 +735,6 @@ public class Model extends DynamicScope
     /** The lazily-initialized list of model observers. */
     protected ObserverList<ModelObserver> _observers;
 
-    /** The model's user object. */
-    protected Object _userObject;
-
     /** A container for the model epoch. */
     @Scoped
     protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
@@ -753,6 +750,9 @@ public class Model extends DynamicScope
     /** The model's light state. */
     @Scoped
     protected LightState _lightState;
+
+    /** The model's user object. */
+    protected Object _userObject;
 
     /** Completed op to reuse. */
     protected static CompletedOp _completedOp = new CompletedOp();

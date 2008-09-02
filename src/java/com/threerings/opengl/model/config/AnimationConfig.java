@@ -121,7 +121,7 @@ public class AnimationConfig extends ParameterizedConfig
 
         /** Actions to perform at specific times within the animation. */
         @Editable
-        public Action[] actions = new Action[0];
+        public FrameAction[] actions = new FrameAction[0];
 
         /** The base animation frame rate. */
         public float rate;
@@ -210,7 +210,7 @@ public class AnimationConfig extends ParameterizedConfig
                 if (impl != null) {
                     impl.dispose();
                 }
-                impl = new Animation.Imported(scope, this);
+                impl = new Animation.Imported(ctx, scope, this);
             }
             return impl;
         }
@@ -255,7 +255,7 @@ public class AnimationConfig extends ParameterizedConfig
                 if (impl != null) {
                     impl.dispose();
                 }
-                impl = new Animation.Procedural(scope, this);
+                impl = new Animation.Procedural(ctx, scope, this);
             }
             return impl;
         }
@@ -287,29 +287,18 @@ public class AnimationConfig extends ParameterizedConfig
     }
 
     /**
-     * An action to take at a specific time within the animation.
+     * An action to perform at a specific frame in the animation.
      */
-    @EditorTypes({ AddTransient.class })
-    public static abstract class Action extends DeepObject
+    public static class FrameAction extends DeepObject
         implements Exportable
     {
         /** The frame at which to perform the action. */
         @Editable(min=0, step=0.01)
         public float frame;
-    }
 
-    /**
-     * Adds a transient model (particle system, for example) to the scene.
-     */
-    public static class AddTransient extends Action
-    {
-        /** The node at whose transform the node should be added. */
+        /** The action to perform. */
         @Editable
-        public String node = "";
-
-        /** The model to spawn. */
-        @Editable(nullable=true)
-        public ConfigReference<ModelConfig> model;
+        public ActionConfig action = new ActionConfig.CallFunction();
     }
 
     /**

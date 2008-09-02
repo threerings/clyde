@@ -127,7 +127,8 @@ public class AnimationDef
     {
         config.rate = frameRate;
         config.targets = getTargets();
-        config.transforms = getTransforms(config.targets, config.scale);
+        config.transforms = getTransforms(
+            config.targets, config.scale, config.loop && config.skipLastFrame);
     }
 
     /**
@@ -147,10 +148,11 @@ public class AnimationDef
     /**
      * Returns the transforms for each target, each frame.
      */
-    public Transform3D[][] getTransforms (String[] targets, float scale)
+    public Transform3D[][] getTransforms (String[] targets, float scale, boolean omitLastFrame)
     {
-        Transform3D[][] transforms = new Transform3D[frames.size()][];
-        for (int ii = 0; ii < transforms.length; ii++) {
+        int nframes = frames.size() - (omitLastFrame ? 1 : 0);
+        Transform3D[][] transforms = new Transform3D[nframes][];
+        for (int ii = 0; ii < nframes; ii++) {
             transforms[ii] = frames.get(ii).getTransforms(targets, scale);
         }
         return transforms;

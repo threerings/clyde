@@ -11,6 +11,7 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
+import com.threerings.expr.Executor;
 import com.threerings.expr.Function;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.ObjectExpression.Evaluator;
@@ -38,9 +39,10 @@ public class Animation extends SimpleScope
         /**
          * Creates a new implementation.
          */
-        public Implementation (Scope parentScope)
+        public Implementation (GlContext ctx, Scope parentScope)
         {
             super(parentScope);
+            _ctx = ctx;
         }
 
         /**
@@ -163,6 +165,9 @@ public class Animation extends SimpleScope
             }
         }
 
+        /** The application context. */
+        protected GlContext _ctx;
+
         /** The implementation configuration. */
         protected AnimationConfig.Original _config;
 
@@ -184,9 +189,9 @@ public class Animation extends SimpleScope
         /**
          * Creates a new imported implementation.
          */
-        public Imported (Scope parentScope, AnimationConfig.Imported config)
+        public Imported (GlContext ctx, Scope parentScope, AnimationConfig.Imported config)
         {
-            super(parentScope);
+            super(ctx, parentScope);
             setConfig(config);
         }
 
@@ -207,13 +212,21 @@ public class Animation extends SimpleScope
                     _snapshot[ii] = new Transform3D();
                 }
             }
+
+            // create the executors
+            _executors = new FrameExecutor[config.actions.length];
+            for (int ii = 0; ii < _executors.length; ii++) {
+                AnimationConfig.FrameAction action = config.actions[ii];
+                _executors[ii] = new FrameExecutor(
+                    action.frame, action.action.createExecutor(_ctx, this));
+            }
         }
 
         @Override // documentation inherited
         public void start ()
         {
             // initialize frame counter
-            _fidx = 0;
+            _fidx = _eidx = 0;
             _accum = 0f;
             _completed = false;
 
@@ -270,15 +283,22 @@ public class Animation extends SimpleScope
             } else {
                 _accum += (elapsed * _config.getScaledRate());
             }
+
+            // advance the frame index and execute any actions
             int frames = (int)_accum;
             _accum -= frames;
+            _fidx += frames;
+            executeActions();
 
-            // advance the frame index
+            // check for loop or completion
             int fcount = _config.transforms.length;
             if (_config.loop) {
-                _fidx = (_fidx + frames) % (fcount - (_config.skipLastFrame ? 1 : 0));
-
-            } else if ((_fidx += frames) >= fcount - 1) {
+                if (_fidx >= fcount) {
+                    _fidx %= fcount;
+                    _eidx = 0;
+                    executeActions();
+                }
+            } else if (_fidx >= fcount - 1) {
                 _fidx = fcount - 1;
                 _accum = 0f;
                 _completed = true;
@@ -360,6 +380,17 @@ public class Animation extends SimpleScope
             }
         }
 
+        /**
+         * Executes all actions scheduled before or at the current frame.
+         */
+        protected void executeActions ()
+        {
+            float frame = _fidx + _accum;
+            for (; _eidx < _executors.length && _executors[_eidx].frame <= frame; _eidx++) {
+                _executors[_eidx].executor.execute();
+            }
+        }
+
         /** The implementation configuration. */
         protected AnimationConfig.Imported _config;
 
@@ -368,6 +399,9 @@ public class Animation extends SimpleScope
 
         /** A snapshot of the original transforms of the targets, for transitioning. */
         protected Transform3D[] _snapshot;
+
+        /** Executors for frame actions. */
+        protected FrameExecutor[] _executors;
 
         /** Whether we are currently transitioning into the first frame. */
         protected boolean _transitioning;
@@ -384,6 +418,9 @@ public class Animation extends SimpleScope
         /** The progress towards the next frame. */
         protected float _accum;
 
+        /** The index of the next executor. */
+        protected int _eidx;
+
         /** Set when the animation has completed. */
         protected boolean _completed;
 
@@ -399,9 +436,9 @@ public class Animation extends SimpleScope
         /**
          * Creates a new procedural implementation.
          */
-        public Procedural (Scope parentScope, AnimationConfig.Procedural config)
+        public Procedural (GlContext ctx, Scope parentScope, AnimationConfig.Procedural config)
         {
-            super(parentScope);
+            super(ctx, parentScope);
             setConfig(config);
         }
 
@@ -783,6 +820,24 @@ public class Animation extends SimpleScope
     }
 
     /**
+     * Contains an executor to activate at a specific frame.
+     */
+    protected static class FrameExecutor
+    {
+        /** The frame at which to execute the action. */
+        public float frame;
+
+        /** The action executor. */
+        public Executor executor;
+
+        public FrameExecutor (float frame, Executor executor)
+        {
+            this.frame = frame;
+            this.executor = executor;
+        }
+    }
+
+    /**
      * Animation op base class.
      */
     protected static abstract class AnimationOp
@@ -874,6 +929,6 @@ public class Animation extends SimpleScope
     protected static StoppedOp _stoppedOp = new StoppedOp();
 
     /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null, null) {
     };
 }

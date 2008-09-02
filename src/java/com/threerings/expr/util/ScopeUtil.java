@@ -54,6 +54,14 @@ public class ScopeUtil
     }
 
     /**
+     * Attempts to resolve, then call the specified function with the given arguments.
+     */
+    public static Object call (Scope scope, String name, Object... args)
+    {
+        return resolve(scope, name, Function.NULL).call(args);
+    }
+
+    /**
      * Attempts to resolve a quaternion symbol.
      */
     public static Quaternion resolve (Scope scope, String name, Quaternion defvalue)
