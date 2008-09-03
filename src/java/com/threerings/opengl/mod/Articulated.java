@@ -855,10 +855,10 @@ public class Articulated extends Model.Implementation
     protected Transform3D _viewTransform = new Transform3D();
 
     /** The bounds of the model. */
-    @Scoped
     protected Box _bounds = new Box();
 
     /** Holds the bounds of the model when updating. */
+    @Scoped
     protected Box _nbounds = new Box();
 
     /** The model's tick policy. */

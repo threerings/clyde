@@ -480,17 +480,17 @@ public class ParticleSystem extends Model.Implementation
         for (Layer layer : _layers) {
             _completed &= layer.tick(elapsed);
         }
-        if (_completed) {
-            // notify containing model
-            ((Model)_parentScope).completed();
-            return;
-        }
 
         // update the bounds if necessary
         if (!_bounds.equals(_nbounds)) {
             ((Model)_parentScope).boundsWillChange();
             _bounds.set(_nbounds);
             ((Model)_parentScope).boundsDidChange();
+        }
+
+        // notify containing model if completed
+        if (_completed) {
+            ((Model)_parentScope).completed();
         }
     }
 
@@ -554,10 +554,10 @@ public class ParticleSystem extends Model.Implementation
     protected Transform3D _viewTransform = new Transform3D();
 
     /** The bounds of the system. */
-    @Scoped
     protected Box _bounds = new Box();
 
     /** Holds the bounds of the model when updating. */
+    @Scoped
     protected Box _nbounds = new Box();
 
     /** The model's tick policy. */

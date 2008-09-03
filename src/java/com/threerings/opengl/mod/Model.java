@@ -612,6 +612,16 @@ public class Model extends DynamicScope
         return _impl.getBounds();
     }
 
+    // documentation inherited from interface SceneElement
+    public boolean updateLastVisit (int visit)
+    {
+        if (_lastVisit == visit) {
+            return false;
+        }
+        _lastVisit = visit;
+        return true;
+    }
+
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
@@ -817,6 +827,9 @@ public class Model extends DynamicScope
 
     /** The model's user object. */
     protected Object _userObject;
+
+    /** The visitation id of the last visit. */
+    protected int _lastVisit;
 
     /** Completed op to reuse. */
     protected static CompletedOp _completedOp = new CompletedOp();

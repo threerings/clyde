@@ -26,34 +26,21 @@ public class SimpleScene extends Scene
         super(ctx);
     }
 
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
-        // tick the elements that we always tick
-        for (int ii = _alwaysTick.size() - 1; ii >= 0; ii--) {
-            _alwaysTick.get(ii).tick(elapsed);
-        }
-
-        // tick the elements that we tick when visible
-        Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
-        for (int ii = _tickWhenVisible.size() - 1; ii >= 0; ii--) {
-            SceneElement element = _tickWhenVisible.get(ii);
-            if (frustum.getIntersectionType(element.getBounds()) !=
-                    Frustum.IntersectionType.NONE) {
-                element.tick(elapsed);
-            }
-        }
-    }
-
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
+        // get the frustum and enqueue the first two lists
         Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
-        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            SceneElement element = _elements.get(ii);
+        enqueue(frustum, _neverTick);
+        enqueue(frustum, _alwaysTick);
+
+        // record the elements rendered for the third
+        for (int ii = 0, nn = _tickWhenVisible.size(); ii < nn; ii++) {
+            SceneElement element = _tickWhenVisible.get(ii);
             if (frustum.getIntersectionType(element.getBounds()) !=
                     Frustum.IntersectionType.NONE) {
                 element.enqueue();
+                _visible.add(element);
             }
         }
     }
@@ -116,26 +103,33 @@ public class SimpleScene extends Scene
     protected ArrayList<SceneElement> getTickList (SceneElement element)
     {
         TickPolicy policy = element.getTickPolicy();
-        return (policy == TickPolicy.NEVER) ? DISCARD_LIST :
+        return (policy == TickPolicy.NEVER) ? _neverTick :
             (policy == TickPolicy.ALWAYS ? _alwaysTick : _tickWhenVisible);
+    }
+
+    /**
+     * Enqueues the specified list of elements.
+     */
+    protected void enqueue (Frustum frustum, ArrayList<SceneElement> list)
+    {
+        for (int ii = 0, nn = list.size(); ii < nn; ii++) {
+            SceneElement element = list.get(ii);
+            if (frustum.getIntersectionType(element.getBounds()) !=
+                    Frustum.IntersectionType.NONE) {
+                element.enqueue();
+            }
+        }
     }
 
     /** The list of all scene elements. */
     protected ArrayList<SceneElement> _elements = new ArrayList<SceneElement>();
 
+    /** The scene elements that we never tick. */
+    protected ArrayList<SceneElement> _neverTick = new ArrayList<SceneElement>();
+
     /** The scene elements that we tick when they're visible. */
     protected ArrayList<SceneElement> _tickWhenVisible = new ArrayList<SceneElement>();
 
-    /** The scene elements that we always tick. */
-    protected ArrayList<SceneElement> _alwaysTick = new ArrayList<SceneElement>();
-
     /** Result vector for intersection testing. */
     protected Vector3f _result = new Vector3f();
-
-    /** A list that discards added elements. */
-    protected static final ArrayList<SceneElement> DISCARD_LIST = new ArrayList<SceneElement>() {
-        public boolean add (SceneElement element) {
-            return false;
-        }
-    };
 }

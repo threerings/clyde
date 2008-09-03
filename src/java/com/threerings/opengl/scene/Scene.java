@@ -7,6 +7,7 @@ import java.lang.ref.SoftReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import com.google.common.collect.Maps;
 
@@ -103,6 +104,22 @@ public abstract class Scene extends DynamicScope
         // nothing by default
     }
 
+    // documentation inherited from interface Tickable
+    public void tick (float elapsed)
+    {
+        // tick the elements that we always tick (in reverse order,
+        // so that they can remove themselves)
+        for (int ii = _alwaysTick.size() - 1; ii >= 0; ii--) {
+            _alwaysTick.get(ii).tick(elapsed);
+        }
+
+        // tick the visible tick-when-visible elements
+        for (SceneElement element : _visible) {
+            element.tick(elapsed);
+        }
+        _visible.clear();
+    }
+
     /**
      * Returns an instance of the referenced model from the transient pool.
      */
@@ -141,6 +158,12 @@ public abstract class Scene extends DynamicScope
 
     /** The application context. */
     protected GlContext _ctx;
+
+    /** The scene elements that we always tick. */
+    protected ArrayList<SceneElement> _alwaysTick = new ArrayList<SceneElement>();
+
+    /** The visible elements to tick. */
+    protected HashSet<SceneElement> _visible = new HashSet<SceneElement>();
 
     /** Pooled transient models. */
     protected HashMap<ConfigReference, ArrayList<SoftReference<Model>>> _transientPool =
