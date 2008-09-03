@@ -31,7 +31,7 @@ public class DynamicScope
     public DynamicScope (String name, Scope parent)
     {
         _owner = this;
-        _name = name;
+        _scopeName = name;
         setParentScope(parent);
     }
 
@@ -49,7 +49,7 @@ public class DynamicScope
     public DynamicScope (Object owner, String name, Scope parent)
     {
         _owner = owner;
-        _name = name;
+        _scopeName = name;
         setParentScope(parent);
     }
 
@@ -58,13 +58,16 @@ public class DynamicScope
      */
     public void setParentScope (Scope parent)
     {
-        if (_parent != null) {
-            _parent.removeListener(this);
+        if (_parentScope == parent) {
+            return;
         }
-        if ((_parent = parent) != null) {
-            _parent.addListener(this);
+        if (_parentScope != null) {
+            _parentScope.removeListener(this);
         }
-        ScopeUtil.updateBound(_owner, _parent);
+        if ((_parentScope = parent) != null) {
+            _parentScope.addListener(this);
+        }
+        ScopeUtil.updateBound(_owner, _parentScope);
         wasUpdated();
     }
 
@@ -127,21 +130,21 @@ public class DynamicScope
      */
     public void dispose ()
     {
-        if (_parent != null) {
-            _parent.removeListener(this);
+        if (_parentScope != null) {
+            _parentScope.removeListener(this);
         }
     }
 
     // documentation inherited from interface Scope
     public String getScopeName ()
     {
-        return _name;
+        return _scopeName;
     }
 
     // documentation inherited from interface Scope
     public Scope getParentScope ()
     {
-        return _parent;
+        return _parentScope;
     }
 
     // documentation inherited from interface Scope
@@ -167,7 +170,7 @@ public class DynamicScope
     // documentation inherited from interface ScopeUpdateListener
     public void scopeUpdated (ScopeEvent event)
     {
-        ScopeUtil.updateBound(_owner, _parent);
+        ScopeUtil.updateBound(_owner, _parentScope);
         wasUpdated();
     }
 
@@ -175,10 +178,10 @@ public class DynamicScope
     protected Object _owner;
 
     /** The name of this scope. */
-    protected String _name;
+    protected String _scopeName;
 
     /** A reference to the parent scope. */
-    protected Scope _parent;
+    protected Scope _parentScope = INVALID_SCOPE;
 
     /** The compound update depth. */
     protected int _compoundDepth;
@@ -188,4 +191,7 @@ public class DynamicScope
 
     /** The listeners to this scope. */
     protected WeakObserverList<ScopeUpdateListener> _listeners = WeakObserverList.newFastUnsafe();
+
+    /** Used to force initialization. */
+    protected static final Scope INVALID_SCOPE = new DynamicScope(null);
 }

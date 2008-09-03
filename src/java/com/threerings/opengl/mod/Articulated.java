@@ -301,7 +301,7 @@ public class Articulated extends Model.Implementation
         }
 
         /** The bounds of the parent. */
-        @Bound("bounds")
+        @Bound("nbounds")
         protected Box _parentBounds;
 
         /** The bounds of the mesh. */
@@ -462,7 +462,11 @@ public class Articulated extends Model.Implementation
     @Override // documentation inherited
     public void setTickPolicy (TickPolicy policy)
     {
-        _tickPolicy = policy;
+        if (_tickPolicy != policy) {
+            ((Model)_parentScope).tickPolicyWillChange();
+            _tickPolicy = policy;
+            ((Model)_parentScope).tickPolicyDidChange();
+        }
     }
 
     @Override // documentation inherited
@@ -478,7 +482,7 @@ public class Articulated extends Model.Implementation
         _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // initialize the bounds
-        _config.skin.bounds.transform(_worldTransform, _bounds);
+        _config.skin.bounds.transform(_worldTransform, _nbounds);
 
         // copy the tracks to an array so that callbacks can manipulate the list;
         // note if any tracks have completed
@@ -510,7 +514,7 @@ public class Articulated extends Model.Implementation
         for (Model model : _configAttachments) {
             model.tick(elapsed);
             model.updateBounds();
-            _bounds.addLocal(model.getBounds());
+            _nbounds.addLocal(model.getBounds());
         }
 
         // and the user attachments
@@ -518,7 +522,14 @@ public class Articulated extends Model.Implementation
             Model model = _userAttachments.get(ii);
             model.tick(elapsed);
             model.updateBounds();
-            _bounds.addLocal(model.getBounds());
+            _nbounds.addLocal(model.getBounds());
+        }
+
+        // update the bounds if necessary
+        if (!_bounds.equals(_nbounds)) {
+            ((Model)_parentScope).boundsWillChange();
+            _bounds.set(_nbounds);
+            ((Model)_parentScope).boundsDidChange();
         }
     }
 
@@ -846,6 +857,9 @@ public class Articulated extends Model.Implementation
     /** The bounds of the model. */
     @Scoped
     protected Box _bounds = new Box();
+
+    /** Holds the bounds of the model when updating. */
+    protected Box _nbounds = new Box();
 
     /** The model's tick policy. */
     protected TickPolicy _tickPolicy = TickPolicy.ALWAYS;

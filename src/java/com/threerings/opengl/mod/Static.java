@@ -82,7 +82,12 @@ public class Static extends Model.Implementation
         _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // and the world bounds
-        _meshes.bounds.transform(_worldTransform, _bounds);
+        _meshes.bounds.transform(_worldTransform, _nbounds);
+        if (!_bounds.equals(_nbounds)) {
+            ((Model)_parentScope).boundsWillChange();
+            _bounds.set(_nbounds);
+            ((Model)_parentScope).boundsDidChange();
+        }
     }
 
     @Override // documentation inherited
@@ -136,4 +141,7 @@ public class Static extends Model.Implementation
 
     /** The bounds of the model. */
     protected Box _bounds = new Box();
+
+    /** Holds the new bounds of the model when updating. */
+    protected Box _nbounds = new Box();
 }

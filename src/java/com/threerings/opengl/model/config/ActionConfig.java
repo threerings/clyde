@@ -62,12 +62,15 @@ public abstract class ActionConfig extends DeepObject
         @Override // documentation inherited
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
+            final Function spawnTransient = ScopeUtil.resolve(
+                scope, "spawnTransient", Function.NULL);
             Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
             final Transform3D transform = (node == null) ?
                 ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
                 node.getWorldTransform();
             return new Executor() {
                 public void execute () {
+                    spawnTransient.call(model, transform);
                 }
             };
         }

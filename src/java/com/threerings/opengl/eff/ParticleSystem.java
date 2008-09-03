@@ -129,7 +129,8 @@ public class ParticleSystem extends Model.Implementation
             _total = 0f;
             _completed = false;
 
-            // reset the counts
+            // reset the counter and counts
+            _counter.reset();
             _living.value = 0;
             _preliving = _particles.length;
         }
@@ -330,7 +331,7 @@ public class ParticleSystem extends Model.Implementation
         protected Transform3D _parentWorldTransform;
 
         /** The parent bounds. */
-        @Bound("bounds")
+        @Bound("nbounds")
         protected Box _parentBounds;
 
         /** The layer's transform in world space. */
@@ -447,7 +448,11 @@ public class ParticleSystem extends Model.Implementation
     @Override // documentation inherited
     public void setTickPolicy (TickPolicy policy)
     {
-        _tickPolicy = policy;
+        if (_tickPolicy != policy) {
+            ((Model)_parentScope).tickPolicyWillChange();
+            _tickPolicy = policy;
+            ((Model)_parentScope).tickPolicyDidChange();
+        }
     }
 
     @Override // documentation inherited
@@ -468,7 +473,7 @@ public class ParticleSystem extends Model.Implementation
         _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // reset the bounds
-        _bounds.setToEmpty();
+        _nbounds.setToEmpty();
 
         // tick the layers (they will expand the bounds)
         _completed = true;
@@ -478,6 +483,14 @@ public class ParticleSystem extends Model.Implementation
         if (_completed) {
             // notify containing model
             ((Model)_parentScope).completed();
+            return;
+        }
+
+        // update the bounds if necessary
+        if (!_bounds.equals(_nbounds)) {
+            ((Model)_parentScope).boundsWillChange();
+            _bounds.set(_nbounds);
+            ((Model)_parentScope).boundsDidChange();
         }
     }
 
@@ -543,6 +556,9 @@ public class ParticleSystem extends Model.Implementation
     /** The bounds of the system. */
     @Scoped
     protected Box _bounds = new Box();
+
+    /** Holds the bounds of the model when updating. */
+    protected Box _nbounds = new Box();
 
     /** The model's tick policy. */
     protected TickPolicy _tickPolicy = TickPolicy.ALWAYS;

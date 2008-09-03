@@ -34,6 +34,7 @@ import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
+import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
@@ -274,6 +275,14 @@ public class Model extends DynamicScope
     {
         this(ctx, ctx.getConfigManager().getConfig(
             ModelConfig.class, name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Creates a new model with the referenced configuration.
+     */
+    public Model (GlContext ctx, ConfigReference<ModelConfig> ref)
+    {
+        this(ctx, ctx.getConfigManager().getConfig(ModelConfig.class, ref));
     }
 
     /**
@@ -656,6 +665,46 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Notes that the tick policy will change.  Should only be called by the {@link #_impl}.
+     */
+    public void tickPolicyWillChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).tickPolicyWillChange(this);
+        }
+    }
+
+    /**
+     * Notes that the tick policy has changed.  Should only be called by the {@link #_impl}.
+     */
+    public void tickPolicyDidChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).tickPolicyDidChange(this);
+        }
+    }
+
+    /**
+     * Notes that the bounds will change.  Should only be called by the {@link #_impl}.
+     */
+    public void boundsWillChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).boundsWillChange(this);
+        }
+    }
+
+    /**
+     * Notes that the bounds have changed.  Should only be called by the {@link #_impl}.
+     */
+    public void boundsDidChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).boundsDidChange(this);
+        }
+    }
+
+    /**
      * Resets the model epoch to the current time.
      */
     protected void resetEpoch ()
@@ -672,7 +721,22 @@ public class Model extends DynamicScope
     {
         Implementation nimpl = (_config == null) ?
             null : _config.getModelImplementation(_ctx, this, _impl);
-        _impl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        boolean tickPolicyChanging = (_impl.getTickPolicy() != nimpl.getTickPolicy());
+        boolean boundsChanging = !_impl.getBounds().equals(nimpl.getBounds());
+        if (tickPolicyChanging) {
+            tickPolicyWillChange();
+        }
+        if (boundsChanging) {
+            boundsWillChange();
+        }
+        _impl = nimpl;
+        if (tickPolicyChanging) {
+            tickPolicyDidChange();
+        }
+        if (boundsChanging) {
+            boundsDidChange();
+        }
     }
 
     /**

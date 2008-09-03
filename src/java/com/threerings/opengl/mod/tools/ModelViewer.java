@@ -44,6 +44,7 @@ import com.threerings.opengl.mod.Animation;
 import com.threerings.opengl.mod.ModelObserver;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.scene.SimpleScene;
 import com.threerings.opengl.util.DebugBounds;
 
 /**
@@ -235,14 +236,17 @@ public class ModelViewer extends GlCanvasTool
     {
         super.didInit();
 
-        // set up the model
+        // set up the scene and model
+        _scene = new SimpleScene(this);
+        _scene.setParentScope(this);
+
         ModelConfig config = new ModelConfig();
         config.init(_cfgmgr);
         config.addListener(this);
         config.implementation = (ModelConfig.Derived)_epanel.getObject();
         _model = new Model(this, config);
-        _model.setParentScope(this);
         _model.addObserver(this);
+        _scene.add(_model);
 
         // add the initial track panel
         _tpanels.setVisible(_model.getAnimations().length > 0);
@@ -269,14 +273,14 @@ public class ModelViewer extends GlCanvasTool
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
-        _model.tick(elapsed);
+        _scene.tick(elapsed);
     }
 
     @Override // documentation inherited
     protected void enqueueView ()
     {
         super.enqueueView();
-        _model.enqueue();
+        _scene.enqueue();
     }
 
     /**
@@ -401,6 +405,9 @@ public class ModelViewer extends GlCanvasTool
 
     /** The speed display. */
     protected JLabel _speedLabel;
+
+    /** The model scene. */
+    protected SimpleScene _scene;
 
     /** The model being viewed. */
     protected Model _model;

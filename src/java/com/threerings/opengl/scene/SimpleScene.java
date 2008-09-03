@@ -5,6 +5,7 @@ package com.threerings.opengl.scene;
 
 import java.util.ArrayList;
 
+import com.threerings.expr.DynamicScope;
 import com.threerings.math.Frustum;
 import com.threerings.math.Ray;
 import com.threerings.math.Vector3f;
@@ -29,13 +30,13 @@ public class SimpleScene extends Scene
     public void tick (float elapsed)
     {
         // tick the elements that we always tick
-        for (int ii = 0, nn = _alwaysTick.size(); ii < nn; ii++) {
+        for (int ii = _alwaysTick.size() - 1; ii >= 0; ii--) {
             _alwaysTick.get(ii).tick(elapsed);
         }
 
         // tick the elements that we tick when visible
         Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
-        for (int ii = 0, nn = _tickWhenVisible.size(); ii < nn; ii++) {
+        for (int ii = _tickWhenVisible.size() - 1; ii >= 0; ii--) {
             SceneElement element = _tickWhenVisible.get(ii);
             if (frustum.getIntersectionType(element.getBounds()) !=
                     Frustum.IntersectionType.NONE) {
@@ -60,21 +61,18 @@ public class SimpleScene extends Scene
     @Override // documentation inherited
     public void add (SceneElement element)
     {
-        TickPolicy policy = element.getTickPolicy();
-        if (policy != TickPolicy.NEVER) {
-            (policy == TickPolicy.ALWAYS ? _alwaysTick : _tickWhenVisible).add(element);
+        if (element instanceof DynamicScope) {
+            ((DynamicScope)element).setParentScope(this);
         }
         _elements.add(element);
+        getTickList(element).add(element);
     }
 
     @Override // documentation inherited
     public void remove (SceneElement element)
     {
-        TickPolicy policy = element.getTickPolicy();
-        if (policy != TickPolicy.NEVER) {
-            (policy == TickPolicy.ALWAYS ? _alwaysTick : _tickWhenVisible).remove(element);
-        }
         _elements.remove(element);
+        getTickList(element).remove(element);
     }
 
     @Override // documentation inherited
@@ -93,6 +91,35 @@ public class SimpleScene extends Scene
         return closest;
     }
 
+    /**
+     * Notes that the specified scene element's tick policy is about to change.  Will be followed
+     * by a call to {@link #tickPolicyDidChange} when the change has been effected.
+     */
+    public void tickPolicyWillChange (SceneElement element)
+    {
+        getTickList(element).remove(element);
+    }
+
+    /**
+     * Notes that the specified scene element's tick policy has changed.
+     */
+    public void tickPolicyDidChange (SceneElement element)
+    {
+        if (_elements.contains(element)) {
+            getTickList(element).add(element);
+        }
+    }
+
+    /**
+     * Returns the list corresponding to the specified element's tick policy.
+     */
+    protected ArrayList<SceneElement> getTickList (SceneElement element)
+    {
+        TickPolicy policy = element.getTickPolicy();
+        return (policy == TickPolicy.NEVER) ? DISCARD_LIST :
+            (policy == TickPolicy.ALWAYS ? _alwaysTick : _tickWhenVisible);
+    }
+
     /** The list of all scene elements. */
     protected ArrayList<SceneElement> _elements = new ArrayList<SceneElement>();
 
@@ -104,4 +131,11 @@ public class SimpleScene extends Scene
 
     /** Result vector for intersection testing. */
     protected Vector3f _result = new Vector3f();
+
+    /** A list that discards added elements. */
+    protected static final ArrayList<SceneElement> DISCARD_LIST = new ArrayList<SceneElement>() {
+        public boolean add (SceneElement element) {
+            return false;
+        }
+    };
 }
