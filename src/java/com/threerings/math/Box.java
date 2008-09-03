@@ -84,6 +84,16 @@ public final class Box
     }
 
     /**
+     * Returns the length of the box's longest edge.
+     */
+    public float getLongestEdge ()
+    {
+        return Math.max(
+            Math.max(_maxExtent.x - _minExtent.x, _maxExtent.y - _minExtent.y),
+            _maxExtent.z - _minExtent.z);
+    }
+
+    /**
      * Determines whether the box is empty (whether it contains the special values
      * {@link Vector3f#MAX_VALUE} and {@link Vector3f#MIN_VALUE} for its minimum
      * and maximum extents, respectively).

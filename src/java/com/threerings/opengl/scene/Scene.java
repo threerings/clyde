@@ -14,6 +14,7 @@ import com.google.common.collect.Maps;
 import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
+import com.threerings.math.Frustum;
 import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
@@ -21,6 +22,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.mod.ModelAdapter;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
@@ -54,12 +56,37 @@ public abstract class Scene extends DynamicScope
     /**
      * Adds an element to this scene.
      */
-    public abstract void add (SceneElement element);
+    public void add (SceneElement element)
+    {
+        if (element instanceof DynamicScope) {
+            ((DynamicScope)element).setParentScope(this);
+        }
+        addToTick(element);
+        addToSpatial(element);
+    }
 
     /**
      * Removes an element from the scene.
      */
-    public abstract void remove (SceneElement element);
+    public void remove (SceneElement element)
+    {
+        remove(element, true);
+    }
+
+    /**
+     * Removes an element from the scene.
+     *
+     * @param clearParentScope if true and the element is an instance of {@link DynamicScope},
+     * set the element's parent scope to <code>null</code>.
+     */
+    public void remove (SceneElement element, boolean clearParentScope)
+    {
+        if (element instanceof DynamicScope && clearParentScope) {
+            ((DynamicScope)element).setParentScope(null);
+        }
+        removeFromTick(element);
+        removeFromSpatial(element);
+    }
 
     /**
      * Checks for an intersection between the provided ray and the contents of the scene.
@@ -76,7 +103,7 @@ public abstract class Scene extends DynamicScope
      */
     public void tickPolicyWillChange (SceneElement element)
     {
-        // nothing by default
+        removeFromTick(element);
     }
 
     /**
@@ -84,7 +111,7 @@ public abstract class Scene extends DynamicScope
      */
     public void tickPolicyDidChange (SceneElement element)
     {
-        // nothing by default
+        addToTick(element);
     }
 
     /**
@@ -118,6 +145,47 @@ public abstract class Scene extends DynamicScope
             element.tick(elapsed);
         }
         _visible.clear();
+    }
+
+    /**
+     * Adds an element to the scene's tick data structure.
+     */
+    protected void addToTick (SceneElement element)
+    {
+        if (element.getTickPolicy() == TickPolicy.ALWAYS) {
+            _alwaysTick.add(element);
+        }
+    }
+
+    /**
+     * Removes an element from the scene's tick data structure.
+     */
+    protected void removeFromTick (SceneElement element)
+    {
+        if (element.getTickPolicy() == TickPolicy.ALWAYS) {
+            _alwaysTick.remove(element);
+        }
+    }
+
+    /**
+     * Adds an element to the scene's spatial data structure.
+     */
+    protected abstract void addToSpatial (SceneElement element);
+
+    /**
+     * Removes an element from the scene's spatial data structure.
+     */
+    protected abstract void removeFromSpatial (SceneElement element);
+
+    /**
+     * Enqueues an element for rendering.
+     */
+    protected final void enqueue (SceneElement element)
+    {
+        element.enqueue();
+        if (element.getTickPolicy() == TickPolicy.WHEN_VISIBLE) {
+            _visible.add(element);
+        }
     }
 
     /**
@@ -172,9 +240,12 @@ public abstract class Scene extends DynamicScope
     /** Removes transient models and returns them to the pool when they complete. */
     protected ModelAdapter _transientObserver = new ModelAdapter() {
         public boolean modelCompleted (Model model) {
-            remove(model);
+            remove(model, false);
             returnToTransientPool(model);
             return true;
         }
     };
+
+    /** Result vector for intersection testing. */
+    protected Vector3f _result = new Vector3f();
 }

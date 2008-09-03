@@ -3,6 +3,7 @@
 
 package com.threerings.opengl.scene;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.threerings.math.Box;
@@ -14,125 +15,402 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.util.GlContext;
 
 /**
- * A scene based on a multiresolution spatial hashing scheme.
+ * A scene that uses a hybrid spatial hashing/octree scheme to store scene elements.
  */
 public class HashScene extends Scene
 {
     /**
      * Creates a new hash scene.
      *
-     * @param finest the size of the hash cells at the finest resolution.
-     * @param levels the number of resolution levels in the hash space.
+     * @param granularity the size of the top-level cells.
+     * @param levels the (maximum) number of octree levels.
      */
-    public HashScene (GlContext ctx, float finest, int levels)
+    public HashScene (GlContext ctx, float granularity, int levels)
     {
         super(ctx);
-
-        // create the levels
-        _levels = new Level[levels];
-        float size = finest;
-        for (int ii = levels - 1; ii >= 0; ii--) {
-            _levels[ii] = new Level(size);
-            size *= 2f;
-        }
-    }
-
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
+        _granularity = granularity;
+        _levels = levels;
     }
 
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        // start at the coarsest level and work downwards
-        _levels[0].enqueue(_ctx.getCompositor().getCamera().getWorldVolume());
-    }
+        // make sure it intersects the top-level bounds
+        Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
+        if (frustum.getIntersectionType(_bounds) == Frustum.IntersectionType.NONE) {
+            return;
+        }
 
-    @Override // documentation inherited
-    public void add (SceneElement element)
-    {
-    }
+        // increment the visit counter
+        _visit++;
 
-    @Override // documentation inherited
-    public void remove (SceneElement element)
-    {
+        // visit the intersecting roots
+        Box bounds = frustum.getBounds();
+        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        float rgran = 1f / _granularity;
+        int minx = (int)FloatMath.floor(min.x * rgran);
+        int maxx = (int)FloatMath.floor(max.x * rgran);
+        int miny = (int)FloatMath.floor(min.y * rgran);
+        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minz = (int)FloatMath.floor(min.z * rgran);
+        int maxz = (int)FloatMath.floor(max.z * rgran);
+        for (int zz = minz; zz <= maxz; zz++) {
+            for (int yy = miny; yy <= maxy; yy++) {
+                for (int xx = minx; xx <= maxx; xx++) {
+                    Node root = _roots.get(_coord.set(xx, yy, zz));
+                    if (root != null) {
+                        root.enqueue(frustum);
+                    }
+                }
+            }
+        }
     }
 
     @Override // documentation inherited
     public SceneElement getIntersection (Ray ray, Vector3f location)
     {
+        // make sure it intersects the top-level bounds
+        if (!_bounds.intersects(ray)) {
+            return null;
+        }
+
+        // increment the visit counter
+        _visit++;
+
+        // start at the coarsest level
         return null;
     }
 
+    @Override // documentation inherited
+    public void boundsWillChange (SceneElement element)
+    {
+        removeFromSpatial(element);
+    }
+
+    @Override // documentation inherited
+    public void boundsDidChange (SceneElement element)
+    {
+        addToSpatial(element);
+    }
+
+    @Override // documentation inherited
+    protected void addToSpatial (SceneElement element)
+    {
+        Box bounds = element.getBounds();
+        int level = getLevel(bounds);
+        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        float rgran = 1f / _granularity;
+        int minx = (int)FloatMath.floor(min.x * rgran);
+        int maxx = (int)FloatMath.floor(max.x * rgran);
+        int miny = (int)FloatMath.floor(min.y * rgran);
+        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minz = (int)FloatMath.floor(min.z * rgran);
+        int maxz = (int)FloatMath.floor(max.z * rgran);
+        for (int zz = minz; zz <= maxz; zz++) {
+            for (int yy = miny; yy <= maxy; yy++) {
+                for (int xx = minx; xx <= maxx; xx++) {
+                    Node root = _roots.get(_coord.set(xx, yy, zz));
+                    if (root == null) {
+                        _roots.put((Coord)_coord.clone(), root = createRoot(xx, yy, zz));
+                        _bounds.addLocal(root.getBounds());
+                    }
+                    root.add(element, level);
+                }
+            }
+        }
+    }
+
+    @Override // documentation inherited
+    protected void removeFromSpatial (SceneElement element)
+    {
+        Box bounds = element.getBounds();
+        int level = getLevel(bounds);
+        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        float rgran = 1f / _granularity;
+        int minx = (int)FloatMath.floor(min.x * rgran);
+        int maxx = (int)FloatMath.floor(max.x * rgran);
+        int miny = (int)FloatMath.floor(min.y * rgran);
+        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minz = (int)FloatMath.floor(min.z * rgran);
+        int maxz = (int)FloatMath.floor(max.z * rgran);
+        for (int zz = minz; zz <= maxz; zz++) {
+            for (int yy = miny; yy <= maxy; yy++) {
+                for (int xx = minx; xx <= maxx; xx++) {
+                    Node root = _roots.get(_coord.set(xx, yy, zz));
+                    if (root == null) {
+                        continue;
+                    }
+                    root.remove(element, level);
+                    if (root.isEmpty()) {
+                        _roots.remove(_coord);
+                        recomputeBounds();
+                    }
+                }
+            }
+        }
+    }
+
     /**
-     * Represents a single level of the hash space.
+     * Returns the level for the supplied bounds.
      */
-    protected class Level
+    protected int getLevel (Box bounds)
+    {
+        int level = Math.round(
+            FloatMath.log(bounds.getLongestEdge() / _granularity) / FloatMath.log(0.5f));
+        return Math.min(Math.max(level, 0), _levels - 1);
+    }
+
+    /**
+     * Creates a root node for the specified coordinates.
+     */
+    protected Node createRoot (int x, int y, int z)
+    {
+        Node root = (_levels > 1) ? new InternalNode(_levels - 1) : new LeafNode();
+        Box bounds = root.getBounds();
+        bounds.getMinimumExtent().set(
+            x * _granularity, y * _granularity, z * _granularity);
+        bounds.getMaximumExtent().set(
+            (x + 1) * _granularity, (y + 1) * _granularity, (z + 1) * _granularity);
+        return root;
+    }
+
+    /**
+     * Recomputes the bounds of the roots.
+     */
+    protected void recomputeBounds ()
+    {
+        _bounds.setToEmpty();
+        for (Node root : _roots.values()) {
+            _bounds.addLocal(root.getBounds());
+        }
+    }
+
+    /**
+     * Represents a node in an octree.
+     */
+    protected abstract class Node
     {
         /**
-         * Creates a new level with cells of the specified size.
+         * Returns a reference to the bounds of the node.
          */
-        public Level (float size)
+        public Box getBounds ()
         {
-            _size = size;
-            _rsize = 1f / size;
+            return _bounds;
         }
 
         /**
-         * Enqueues the elements at this level.
+         * Determines whether the node is empty (that is, has no elements).
+         */
+        public boolean isEmpty ()
+        {
+            return _elements.isEmpty();
+        }
+
+        /**
+         * Adds an element to this node.
+         */
+        public void add (SceneElement element, int level)
+        {
+            _elements.add(element);
+        }
+
+        /**
+         * Removes an element from this node.
+         */
+        public void remove (SceneElement element, int level)
+        {
+            _elements.remove(element);
+        }
+
+        /**
+         * Enqueues the elements in this node.
          */
         public void enqueue (Frustum frustum)
         {
-            Box bounds = frustum.getBounds();
-            Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-            int minx = (int)FloatMath.floor(min.x * _rsize);
-            int maxx = (int)FloatMath.ceil(max.x * _rsize);
-            int miny = (int)FloatMath.floor(min.y * _rsize);
-            int maxy = (int)FloatMath.ceil(max.y * _rsize);
-            int minz = (int)FloatMath.floor(min.z * _rsize);
-            int maxz = (int)FloatMath.ceil(max.z * _rsize);
-            Coord coord = _coord;
-            for (int zz = minz; zz <= maxz; zz++) {
-                for (int yy = miny; yy <= maxy; yy++) {
-                    for (int xx = minx; xx <= maxx; xx++) {
-                        Cell cell = _cells.get(coord.set(xx, yy, zz));
-                        if (cell == null) {
-                            continue;
-                        }
-                        Frustum.IntersectionType type = frustum.getIntersectionType(cell.bounds);
-                        if (type == Frustum.IntersectionType.NONE) {
-                            continue;
-                        }
+            Frustum.IntersectionType type = frustum.getIntersectionType(_bounds);
+            if (type == Frustum.IntersectionType.CONTAINS) {
+                enqueueAll();
+            } else if (type == Frustum.IntersectionType.INTERSECTS) {
+                enqueueIntersecting(frustum);
+            }
+        }
 
+        /**
+         * Enqueues all elements in this node.
+         */
+        protected void enqueueAll ()
+        {
+            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+                SceneElement element = _elements.get(ii);
+                if (element.updateLastVisit(_visit)) {
+                    HashScene.this.enqueue(element);
+                }
+            }
+        }
+
+        /**
+         * Enqueues the elements intersecting the given frustum.
+         */
+        protected void enqueueIntersecting (Frustum frustum)
+        {
+            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+                SceneElement element = _elements.get(ii);
+                if (element.updateLastVisit(_visit) &&
+                        frustum.getIntersectionType(element.getBounds()) !=
+                            Frustum.IntersectionType.NONE) {
+                    HashScene.this.enqueue(element);
+                }
+            }
+        }
+
+        /** The bounds of the node. */
+        public Box _bounds = new Box();
+
+        /** The elements in the node. */
+        public ArrayList<SceneElement> _elements = new ArrayList<SceneElement>(4);
+    }
+
+    /**
+     * An internal node with (up to) eight children.
+     */
+    protected class InternalNode extends Node
+    {
+        public InternalNode (int levels)
+        {
+            _levels = levels;
+        }
+
+        @Override // documentation inherited
+        public boolean isEmpty ()
+        {
+            if (!super.isEmpty()) {
+                return false;
+            }
+            for (Node child : _children) {
+                if (child != null) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override // documentation inherited
+        public void add (SceneElement element, int level)
+        {
+            if (level == 0) {
+                super.add(element, level);
+                return;
+            }
+            level--;
+            Box bounds = element.getBounds();
+            for (int ii = 0; ii < _children.length; ii++) {
+                Node child = _children[ii];
+                if (child == null) {
+                    getChildBounds(ii, _box);
+                    if (_box.intersects(bounds)) {
+                        _children[ii] = child = (_levels > 1) ?
+                            new InternalNode(_levels - 1) : new LeafNode();
+                        child.getBounds().set(_box);
+                        child.add(element, level);
+                    }
+                } else if (child.getBounds().intersects(bounds)) {
+                    child.add(element, level);
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        public void remove (SceneElement element, int level)
+        {
+            if (level == 0) {
+                super.remove(element, level);
+                return;
+            }
+            level--;
+            Box bounds = element.getBounds();
+            for (int ii = 0; ii < _children.length; ii++) {
+                Node child = _children[ii];
+                if (child != null && child.getBounds().intersects(bounds)) {
+                    child.remove(element, level);
+                    if (child.isEmpty()) {
+                        _children[ii] = null;
                     }
                 }
             }
         }
 
-        /** The size (and size reciprocal) of the cells. */
-        protected float _size, _rsize;
+        @Override // documentation inherited
+        protected void enqueueAll ()
+        {
+            super.enqueueAll();
+            for (Node child : _children) {
+                if (child != null) {
+                    child.enqueueAll();
+                }
+            }
+        }
 
-        /** The cells at this level. */
-        protected HashMap<Coord, Cell> _cells = new HashMap<Coord, Cell>();
+        @Override // documentation inherited
+        protected void enqueueIntersecting (Frustum frustum)
+        {
+            super.enqueueIntersecting(frustum);
+            for (Node child : _children) {
+                if (child != null) {
+                    child.enqueue(frustum);
+                }
+            }
+        }
 
-        /** A reusable coord object for queries. */
-        protected Coord _coord = new Coord();
+        /**
+         * Populates the specified box with the bounds of the indexed child.
+         */
+        protected void getChildBounds (int idx, Box box)
+        {
+            Vector3f pmin = _bounds.getMinimumExtent(), pmax = _bounds.getMaximumExtent();
+            Vector3f cmin = box.getMinimumExtent(), cmax = box.getMaximumExtent();
+            float hsize = (pmax.x - pmin.x) * 0.5f;
+            if ((idx & 4) == 0) {
+                cmin.x = pmin.x;
+                cmax.x = pmin.x + hsize;
+            } else {
+                cmin.x = pmin.x + hsize;
+                cmax.x = pmax.x;
+            }
+            if ((idx & 2) == 0) {
+                cmin.y = pmin.y;
+                cmax.y = pmin.y + hsize;
+            } else {
+                cmin.y = pmin.y + hsize;
+                cmax.y = pmax.y;
+            }
+            if ((idx & 1) == 0) {
+                cmin.z = pmin.z;
+                cmax.z = pmin.z + hsize;
+            } else {
+                cmin.z = pmin.z + hsize;
+                cmax.z = pmax.z;
+            }
+        }
+
+        /** The number of levels under this node. */
+        public int _levels;
+
+        /** The children of the node. */
+        public Node[] _children = new Node[8];
     }
 
     /**
-     * The contents of a single hash cell.
+     * A leaf node.
      */
-    protected static class Cell
+    protected class LeafNode extends Node
     {
-        /** The bounds of the cell. */
-        public Box bounds = new Box();
     }
 
     /**
      * The coordinates of a hash cell.
      */
     protected static class Coord
+        implements Cloneable
     {
         /** The coordinates of the cell. */
         public int x, y, z;
@@ -151,6 +429,16 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
+        public Object clone ()
+        {
+            try {
+                return super.clone();
+            } catch (CloneNotSupportedException e) {
+                return null; // won't happen
+            }
+        }
+
+        @Override // documentation inherited
         public int hashCode ()
         {
             return x + 31*(y + 31*z);
@@ -164,6 +452,24 @@ public class HashScene extends Scene
         }
     }
 
-    /** The levels of the hash, from coarsest to finest. */
-    protected Level[] _levels;
+    /** The size of the root nodes. */
+    protected float _granularity;
+
+    /** The (maximum) number of tree levels. */
+    protected int _levels;
+
+    /** The top level nodes. */
+    protected HashMap<Coord, Node> _roots = new HashMap<Coord, Node>();
+
+    /** The bounds of the roots. */
+    protected Box _bounds = new Box();
+
+    /** The visit counter. */
+    protected int _visit;
+
+    /** A reusable coord object for queries. */
+    protected Coord _coord = new Coord();
+
+    /** A reusable box. */
+    protected Box _box = new Box();
 }
