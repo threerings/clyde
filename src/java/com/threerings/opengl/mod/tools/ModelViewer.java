@@ -219,7 +219,6 @@ public class ModelViewer extends GlCanvasTool
     {
         return new DebugBounds(this) {
             protected void draw () {
-                _model.updateBounds();
                 _model.drawBounds();
             }
         };

@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Ray;
@@ -45,14 +46,9 @@ public class Static extends Model.Implementation
      */
     public void setConfig (MeshSet meshes, MaterialMapping[] materialMappings)
     {
-        if (_surfaces != null) {
-            for (Surface surface : _surfaces) {
-                surface.dispose();
-            }
-        }
         _meshes = meshes;
-        _surfaces = createSurfaces(
-            _ctx, this, meshes.visible, materialMappings, new HashMap<String, MaterialConfig>());
+        _materialMappings = materialMappings;
+        updateFromConfig();
     }
 
     // documentation inherited from interface Renderable
@@ -79,6 +75,9 @@ public class Static extends Model.Implementation
     public void updateBounds ()
     {
         // update the world transform
+        if (_parentWorldTransform == null) {
+            return;
+        }
         _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // and the world bounds
@@ -110,11 +109,36 @@ public class Static extends Model.Implementation
         return true;
     }
 
+    @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
+        updateBounds();
+    }
+
+    /**
+     * Updates the model to match its new or modified configuration.
+     */
+    protected void updateFromConfig ()
+    {
+        if (_surfaces != null) {
+            for (Surface surface : _surfaces) {
+                surface.dispose();
+            }
+        }
+        _surfaces = createSurfaces(
+            _ctx, this, _meshes.visible, _materialMappings, new HashMap<String, MaterialConfig>());
+        updateBounds();
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
     /** The model meshes. */
     protected MeshSet _meshes;
+
+    /** The material mappings. */
+    protected MaterialMapping[] _materialMappings;
 
     /** The surfaces corresponding to each visible mesh. */
     protected Surface[] _surfaces;
