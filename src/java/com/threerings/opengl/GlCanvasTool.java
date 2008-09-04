@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 
 import java.util.prefs.Preferences;
 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
@@ -185,6 +186,23 @@ public abstract class GlCanvasTool extends GlCanvasApp
     {
         return ToolUtil.createCheckBoxMenuItem(
             this, _msgs, action, mnemonic, accelerator, modifiers);
+    }
+
+    /**
+     * Creates an action with the specified command, mnemonic, and (optional) accelerator.
+     */
+    protected Action createAction (String command, int mnemonic, int accelerator)
+    {
+        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator);
+    }
+
+    /**
+     * Creates an action with the specified command, mnemonic, and (optional) accelerator
+     * key/modifiers.
+     */
+    protected Action createAction (String command, int mnemonic, int accelerator, int modifiers)
+    {
+        return ToolUtil.createAction(this, _msgs, command, mnemonic, accelerator, modifiers);
     }
 
     /**

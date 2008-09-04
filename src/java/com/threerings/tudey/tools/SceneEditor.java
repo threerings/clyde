@@ -13,6 +13,7 @@ import java.io.IOException;
 
 import java.util.prefs.Preferences;
 
+import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -74,22 +75,42 @@ public class SceneEditor extends GlCanvasTool
         file.add(createMenuItem("import", KeyEvent.VK_I, -1));
         file.add(createMenuItem("export", KeyEvent.VK_E, -1));
         file.addSeparator();
+        file.add(_importSelection = createMenuItem("import_selection", KeyEvent.VK_M, -1));
+        file.add(_exportSelection = createMenuItem("export_selection", KeyEvent.VK_X, -1));
+        file.addSeparator();
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
-        edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
-        edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
+        edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
+        edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
+        edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
+        edit.add(new JMenuItem(
+            _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+        edit.addSeparator();
+        edit.add(_rotateCW = createMenuItem("rotate_cw", KeyEvent.VK_R, -1));
+        edit.add(_rotateCCW = createMenuItem("rotate_ccw", KeyEvent.VK_O, -1));
+        edit.addSeparator();
+        edit.add(_raise = createMenuItem("raise", KeyEvent.VK_A, -1));
+        edit.add(_lower = createMenuItem("lower", KeyEvent.VK_L, -1));
+        edit.addSeparator();
+        edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
+        edit.add(createMenuItem("resources", KeyEvent.VK_S, KeyEvent.VK_E));
+        edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_P));
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
-        _showCompass.setEnabled(true);
+        _showCompass.setSelected(true);
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
         view.addSeparator();
         view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
         view.addSeparator();
+        view.add(createMenuItem("raise_grid", KeyEvent.VK_R, KeyEvent.VK_UP, 0));
+        view.add(createMenuItem("lower_grid", KeyEvent.VK_L, KeyEvent.VK_DOWN, 0));
+        view.addSeparator();
+        view.add(createMenuItem("reorient", KeyEvent.VK_I, KeyEvent.VK_I));
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
 
         // create the file chooser
@@ -157,7 +178,7 @@ public class SceneEditor extends GlCanvasTool
     @Override // documentation inherited
     protected ToolUtil.EditablePrefs createEditablePrefs ()
     {
-        return new SceneEditorPrefs(_prefs);
+        return new CanvasToolPrefs(_prefs);
     }
 
     @Override // documentation inherited
@@ -172,18 +193,12 @@ public class SceneEditor extends GlCanvasTool
         } else {
             newScene();
         }
-
-        // initialize the clock
-        _lastTick = System.currentTimeMillis();
     }
 
     @Override // documentation inherited
-    protected void updateView ()
+    protected void updateView (float elapsed)
     {
-        super.updateView();
-        long time = System.currentTimeMillis();
-        float elapsed = (time - _lastTick) / 1000f;
-        _lastTick = time;
+        super.updateView(elapsed);
     }
 
     @Override // documentation inherited
@@ -320,22 +335,23 @@ public class SceneEditor extends GlCanvasTool
         _frame.setTitle(title);
     }
 
-    /**
-     * Scene editor preferences.
-     */
-    protected class SceneEditorPrefs extends CanvasToolPrefs
-    {
-        public SceneEditorPrefs (Preferences prefs)
-        {
-            super(prefs);
-        }
-    }
-
     /** The file to attempt to load on initialization, if any. */
     protected File _initScene;
 
     /** The revert menu item. */
     protected JMenuItem _revert;
+
+    /** The selection import and export menu items. */
+    protected JMenuItem _importSelection, _exportSelection;
+
+    /** The edit menu actions. */
+    protected Action _cut, _copy, _paste, _delete;
+
+    /** The rotate menu items. */
+    protected JMenuItem _rotateCW, _rotateCCW;
+
+    /** The raise/lower menu items. */
+    protected JMenuItem _raise, _lower;
 
     /** The file chooser for opening and saving scene files. */
     protected JFileChooser _chooser;
@@ -348,9 +364,6 @@ public class SceneEditor extends GlCanvasTool
 
     /** The scene being edited. */
     protected TudeySceneModel _scene;
-
-    /** The time of the last tick. */
-    protected long _lastTick;
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);
