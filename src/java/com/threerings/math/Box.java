@@ -382,10 +382,62 @@ public final class Box
                 (intersectsZ(ray, _minExtent.z) || intersectsZ(ray, _maxExtent.z));
     }
 
+    /**
+     * Finds the location of the (first) intersection between the specified ray and this box.
+     * This will be the ray origin if the ray starts inside the box.
+     *
+     * @param result a vector to hold the location of the intersection.
+     * @return true if the ray intersects the box (in which case the result vector will be
+     * populated with the location of the intersection), false if not.
+     */
+    public boolean getIntersection (Ray ray, Vector3f result)
+    {
+        Vector3f origin = ray.getOrigin();
+        if (contains(origin)) {
+            result.set(origin);
+            return true;
+        }
+        Vector3f dir = ray.getDirection();
+        float t = Float.MAX_VALUE;
+        if (Math.abs(dir.x) > FloatMath.EPSILON) {
+            t = Math.min(t, getIntersectionX(ray, _minExtent.x));
+            t = Math.min(t, getIntersectionX(ray, _maxExtent.x));
+        }
+        if (Math.abs(dir.y) > FloatMath.EPSILON) {
+            t = Math.min(t, getIntersectionY(ray, _minExtent.y));
+            t = Math.min(t, getIntersectionY(ray, _maxExtent.y));
+        }
+        if (Math.abs(dir.z) > FloatMath.EPSILON) {
+            t = Math.min(t, getIntersectionZ(ray, _minExtent.z));
+            t = Math.min(t, getIntersectionZ(ray, _maxExtent.z));
+        }
+        if (t == Float.MAX_VALUE) {
+            return false;
+        }
+        origin.addScaled(dir, t, result);
+        return true;
+    }
+
     @Override // documentation inherited
     public String toString ()
     {
         return "[min=" + _minExtent + ", max=" + _maxExtent + "]";
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        return _minExtent.hashCode() + 31*_maxExtent.hashCode();
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!(other instanceof Box)) {
+            return false;
+        }
+        Box obox = (Box)other;
+        return _minExtent.equals(obox._minExtent) && _maxExtent.equals(obox._maxExtent);
     }
 
     /**
@@ -396,12 +448,12 @@ public final class Box
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (x - origin.x) / dir.x;
-        if (t >= 0f) {
-            float iy = origin.y + t*dir.y, iz = origin.z + t*dir.z;
-            return iy >= _minExtent.y && iy <= _maxExtent.y &&
-                iz >= _minExtent.z && iz <= _maxExtent.z;
+        if (t < 0f) {
+            return false;
         }
-        return false;
+        float iy = origin.y + t*dir.y, iz = origin.z + t*dir.z;
+        return iy >= _minExtent.y && iy <= _maxExtent.y &&
+            iz >= _minExtent.z && iz <= _maxExtent.z;
     }
 
     /**
@@ -412,12 +464,12 @@ public final class Box
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (y - origin.y) / dir.y;
-        if (t >= 0f) {
-            float ix = origin.x + t*dir.x, iz = origin.z + t*dir.z;
-            return ix >= _minExtent.x && ix <= _maxExtent.x &&
-                iz >= _minExtent.z && iz <= _maxExtent.z;
+        if (t < 0f) {
+            return false;
         }
-        return false;
+        float ix = origin.x + t*dir.x, iz = origin.z + t*dir.z;
+        return ix >= _minExtent.x && ix <= _maxExtent.x &&
+            iz >= _minExtent.z && iz <= _maxExtent.z;
     }
 
     /**
@@ -428,12 +480,63 @@ public final class Box
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (z - origin.z) / dir.z;
-        if (t >= 0f) {
-            float ix = origin.x + t*dir.x, iy = origin.y + t*dir.y;
-            return ix >= _minExtent.x && ix <= _maxExtent.x &&
-                iy >= _minExtent.y && iy <= _maxExtent.y;
+        if (t < 0f) {
+            return false;
         }
-        return false;
+        float ix = origin.x + t*dir.x, iy = origin.y + t*dir.y;
+        return ix >= _minExtent.x && ix <= _maxExtent.x &&
+            iy >= _minExtent.y && iy <= _maxExtent.y;
+    }
+
+    /**
+     * Helper method for {@link #getIntersection}.  Finds the <code>t</code> value where the ray
+     * intersects the box at the plane where x equals the value specified, or returns
+     * {@link Float#MAX_VALUE} if there is no such intersection.
+     */
+    protected float getIntersectionX (Ray ray, float x)
+    {
+        Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
+        float t = (x - origin.x) / dir.x;
+        if (t < 0f) {
+            return Float.MAX_VALUE;
+        }
+        float iy = origin.y + t*dir.y, iz = origin.z + t*dir.z;
+        return (iy >= _minExtent.y && iy <= _maxExtent.y &&
+            iz >= _minExtent.z && iz <= _maxExtent.z) ? t : Float.MAX_VALUE;
+    }
+
+    /**
+     * Helper method for {@link #getIntersection}.  Finds the <code>t</code> value where the ray
+     * intersects the box at the plane where y equals the value specified, or returns
+     * {@link Float#MAX_VALUE} if there is no such intersection.
+     */
+    protected float getIntersectionY (Ray ray, float y)
+    {
+        Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
+        float t = (y - origin.y) / dir.y;
+        if (t < 0f) {
+            return Float.MAX_VALUE;
+        }
+        float ix = origin.x + t*dir.x, iz = origin.z + t*dir.z;
+        return (ix >= _minExtent.x && ix <= _maxExtent.x &&
+            iz >= _minExtent.z && iz <= _maxExtent.z) ? t : Float.MAX_VALUE;
+    }
+
+    /**
+     * Helper method for {@link #getIntersection}.  Finds the <code>t</code> value where the ray
+     * intersects the box at the plane where z equals the value specified, or returns
+     * {@link Float#MAX_VALUE} if there is no such intersection.
+     */
+    protected float getIntersectionZ (Ray ray, float z)
+    {
+        Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
+        float t = (z - origin.z) / dir.z;
+        if (t < 0f) {
+            return Float.MAX_VALUE;
+        }
+        float ix = origin.x + t*dir.x, iy = origin.y + t*dir.y;
+        return (ix >= _minExtent.x && ix <= _maxExtent.x &&
+            iy >= _minExtent.y && iy <= _maxExtent.y) ? t : Float.MAX_VALUE;
     }
 
     /** The box's minimum extent. */

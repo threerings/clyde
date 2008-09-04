@@ -69,15 +69,57 @@ public class HashScene extends Scene
     @Override // documentation inherited
     public SceneElement getIntersection (Ray ray, Vector3f location)
     {
-        // make sure it intersects the top-level bounds
-        if (!_bounds.intersects(ray)) {
+        // get the point of intersection with the top-level bounds
+        if (!_bounds.getIntersection(ray, _pt)) {
             return null;
         }
 
         // increment the visit counter
         _visit++;
 
-        // start at the coarsest level
+        // find the starting cell
+        float rgran = 1f / _granularity;
+        int xx = (int)FloatMath.floor(_pt.x * rgran);
+        int yy = (int)FloatMath.floor(_pt.y * rgran);
+        int zz = (int)FloatMath.floor(_pt.z * rgran);
+
+        // determine the integer directions on each axis
+        Vector3f dir = ray.getDirection();
+        int xdir = (int)Math.signum(dir.x);
+        int ydir = (int)Math.signum(dir.y);
+        int zdir = (int)Math.signum(dir.z);
+
+        // step through each cell that the ray intersects, returning the first hit or bailing
+        // out when we exceed the bounds
+        do {
+            Node root = _roots.get(_coord.set(xx, yy, zz));
+            if (root != null) {
+                SceneElement element = root.getIntersection(ray, location);
+                if (element != null) {
+                    return element;
+                }
+            }
+            float xt = (xdir == 0) ? Float.MAX_VALUE :
+                ((xx + xdir) * _granularity - _pt.x) / dir.x;
+            float yt = (ydir == 0) ? Float.MAX_VALUE :
+                ((yy + ydir) * _granularity - _pt.y) / dir.y;
+            float zt = (zdir == 0) ? Float.MAX_VALUE :
+                ((zz + zdir) * _granularity - _pt.z) / dir.z;
+            float t = (xt < yt) ? (xt < zt ? xt : zt) : (yt < zt ? yt : zt);
+            if (xt == t) {
+                xx += xdir;
+            }
+            if (yt == t) {
+                yy += ydir;
+            }
+            if (zt == t) {
+                zz += zdir;
+            }
+            _pt.addScaledLocal(dir, t);
+
+        } while (_bounds.contains(_pt));
+
+        // no luck
         return null;
     }
 
@@ -236,6 +278,25 @@ public class HashScene extends Scene
         }
 
         /**
+         * Checks for an intersection with this node.
+         */
+        public SceneElement getIntersection (Ray ray, Vector3f location)
+        {
+            SceneElement closest = null;
+            Vector3f origin = ray.getOrigin();
+            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+                SceneElement element = _elements.get(ii);
+                if (element.updateLastVisit(_visit) && element.getIntersection(ray, _result) &&
+                        (closest == null || origin.distanceSquared(_result) <
+                            origin.distanceSquared(location))) {
+                    closest = element;
+                    location.set(_result);
+                }
+            }
+            return closest;
+        }
+
+        /**
          * Enqueues all elements in this node.
          */
         protected void enqueueAll ()
@@ -340,6 +401,26 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
+        public SceneElement getIntersection (Ray ray, Vector3f location)
+        {
+            SceneElement closest = super.getIntersection(ray, location);
+            Vector3f origin = ray.getOrigin();
+            Vector3f result = new Vector3f();
+            for (Node child : _children) {
+                if (child == null || !child.getBounds().intersects(ray)) {
+                    continue;
+                }
+                SceneElement element = child.getIntersection(ray, result);
+                if (element != null && (closest == null ||
+                        origin.distanceSquared(result) < origin.distanceSquared(location))) {
+                    closest = element;
+                    location.set(result);
+                }
+            }
+            return closest;
+        }
+
+        @Override // documentation inherited
         protected void enqueueAll ()
         {
             super.enqueueAll();
@@ -369,21 +450,21 @@ public class HashScene extends Scene
             Vector3f pmin = _bounds.getMinimumExtent(), pmax = _bounds.getMaximumExtent();
             Vector3f cmin = box.getMinimumExtent(), cmax = box.getMaximumExtent();
             float hsize = (pmax.x - pmin.x) * 0.5f;
-            if ((idx & 4) == 0) {
+            if ((idx & (1 << 2)) == 0) {
                 cmin.x = pmin.x;
                 cmax.x = pmin.x + hsize;
             } else {
                 cmin.x = pmin.x + hsize;
                 cmax.x = pmax.x;
             }
-            if ((idx & 2) == 0) {
+            if ((idx & (1 << 1)) == 0) {
                 cmin.y = pmin.y;
                 cmax.y = pmin.y + hsize;
             } else {
                 cmin.y = pmin.y + hsize;
                 cmax.y = pmax.y;
             }
-            if ((idx & 1) == 0) {
+            if ((idx & (1 << 0)) == 0) {
                 cmin.z = pmin.z;
                 cmax.z = pmin.z + hsize;
             } else {
@@ -472,4 +553,7 @@ public class HashScene extends Scene
 
     /** A reusable box. */
     protected Box _box = new Box();
+
+    /** Reusable location vector. */
+    protected Vector3f _pt = new Vector3f();
 }
