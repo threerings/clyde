@@ -36,6 +36,7 @@ import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.SceneElement;
+import com.threerings.opengl.scene.SceneInfluence;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Intersectable;
@@ -610,6 +611,16 @@ public class Model extends DynamicScope
     public Box getBounds ()
     {
         return _impl.getBounds();
+    }
+
+    // documentation inherited from interface SceneElement
+    public void influenceAdded (SceneInfluence influence)
+    {
+    }
+
+    // documentation inherited from interface SceneElement
+    public void influenceRemoved (SceneInfluence influence)
+    {
     }
 
     // documentation inherited from interface SceneElement

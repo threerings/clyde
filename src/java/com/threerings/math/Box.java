@@ -358,13 +358,25 @@ public final class Box
     }
 
     /**
+     * Determines whether this box completely contains the specified box.
+     */
+    public boolean contains (Box other)
+    {
+        Vector3f otherMinExtent = other._minExtent, otherMaxExtent = other._maxExtent;
+        return otherMinExtent.x >= _minExtent.x && otherMaxExtent.x <= _maxExtent.x &&
+            otherMinExtent.y >= _minExtent.y && otherMaxExtent.y <= _maxExtent.y &&
+            otherMinExtent.z >= _minExtent.z && otherMaxExtent.z <= _maxExtent.z;
+    }
+
+    /**
      * Determines whether this box intersects the specified other box.
      */
     public boolean intersects (Box other)
     {
-        return _maxExtent.x >= other._minExtent.x && _minExtent.x <= other._maxExtent.x &&
-            _maxExtent.y >= other._minExtent.y && _minExtent.y <= other._maxExtent.y &&
-            _maxExtent.z >= other._minExtent.z && _minExtent.z <= other._maxExtent.z;
+        Vector3f otherMinExtent = other._minExtent, otherMaxExtent = other._maxExtent;
+        return _maxExtent.x >= otherMinExtent.x && _minExtent.x <= otherMaxExtent.x &&
+            _maxExtent.y >= otherMinExtent.y && _minExtent.y <= otherMaxExtent.y &&
+            _maxExtent.z >= otherMinExtent.z && _minExtent.z <= otherMaxExtent.z;
     }
 
     /**

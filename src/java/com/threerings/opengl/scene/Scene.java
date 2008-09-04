@@ -11,9 +11,12 @@ import java.util.HashSet;
 
 import com.google.common.collect.Maps;
 
+import com.samskivert.util.Predicate;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
+import com.threerings.math.Box;
 import com.threerings.math.Frustum;
 import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
@@ -58,9 +61,12 @@ public abstract class Scene extends DynamicScope
      */
     public void add (SceneElement element)
     {
+        // initialize scope
         if (element instanceof DynamicScope) {
             ((DynamicScope)element).setParentScope(this);
         }
+
+        // add to data structures
         addToTick(element);
         addToSpatial(element);
     }
@@ -81,11 +87,46 @@ public abstract class Scene extends DynamicScope
      */
     public void remove (SceneElement element, boolean clearParentScope)
     {
+        // remove from data structures
+        removeFromTick(element);
+        removeFromSpatial(element);
+
+        // clear scope
         if (element instanceof DynamicScope && clearParentScope) {
             ((DynamicScope)element).setParentScope(null);
         }
-        removeFromTick(element);
-        removeFromSpatial(element);
+    }
+
+    /**
+     * Adds an influence to this scene.
+     */
+    public void add (SceneInfluence influence)
+    {
+        // add to spatial data structure
+        addToSpatial(influence);
+
+        // find, notify all influenced elements
+        getElements(influence.getBounds(), _influenced);
+        for (int ii = 0, nn = _influenced.size(); ii < nn; ii++) {
+            _influenced.get(ii).influenceAdded(influence);
+        }
+        _influenced.clear();
+    }
+
+    /**
+     * Removes an influence from this scene.
+     */
+    public void remove (SceneInfluence influence)
+    {
+        // find, notify all influenced elements
+        getElements(influence.getBounds(), _influenced);
+        for (int ii = 0, nn = _influenced.size(); ii < nn; ii++) {
+            _influenced.get(ii).influenceRemoved(influence);
+        }
+        _influenced.clear();
+
+        // remove from spatial data structure
+        removeFromSpatial(influence);
     }
 
     /**
@@ -95,7 +136,33 @@ public abstract class Scene extends DynamicScope
      * @return a reference to the first element intersected by the ray, or <code>null</code> for
      * none.
      */
-    public abstract SceneElement getIntersection (Ray ray, Vector3f location);
+    public SceneElement getIntersection (Ray ray, Vector3f location)
+    {
+        return getIntersection(ray, location, ALL_ELEMENTS);
+    }
+
+    /**
+     * Checks for an intersection between the provided ray and the contents of the scene.
+     *
+     * @param filter a predicate to use in filtering the results of the test.
+     * @param location a vector to populate with the location of the intersection, if any.
+     * @return a reference to the first element intersected by the ray, or <code>null</code> for
+     * none.
+     */
+    public abstract SceneElement getIntersection (
+        Ray ray, Vector3f location, Predicate<SceneElement> filter);
+
+    /**
+     * Retrieves all scene elements whose bounds intersect the provided region.
+     *
+     * @param results a list to hold the results of the search.
+     */
+    public abstract void getElements (Box bounds, ArrayList<SceneElement> results);
+
+    /**
+     * Retrieves all scene influences whose bounds intersect the provided region.
+     */
+    public abstract void getInfluences (Box bounds, ArrayList<SceneInfluence> results);
 
     /**
      * Notes that the specified scene element's tick policy is about to change.  Will be followed
@@ -116,7 +183,7 @@ public abstract class Scene extends DynamicScope
 
     /**
      * Notes that the specified scene element's bounds are about to change.  Will be followed by a
-     * call to {@link #boundsDidChange} when the change has been effected.
+     * call to {@link #boundsDidChange(SceneElement)} when the change has been effected.
      */
     public void boundsWillChange (SceneElement element)
     {
@@ -127,6 +194,23 @@ public abstract class Scene extends DynamicScope
      * Notes that the specified scene element's bounds have changed.
      */
     public void boundsDidChange (SceneElement element)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Notes that the specified infuence's bounds are about to change.  Will be followed by a call
+     * to {@link #boundsDidChange(SceneInfluence)} when the change has been effected.
+     */
+    public void boundsWillChange (SceneInfluence influence)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Notes that the specified influence's bounds have changed.
+     */
+    public void boundsDidChange (SceneInfluence influence)
     {
         // nothing by default
     }
@@ -176,6 +260,16 @@ public abstract class Scene extends DynamicScope
      * Removes an element from the scene's spatial data structure.
      */
     protected abstract void removeFromSpatial (SceneElement element);
+
+    /**
+     * Adds an influence to the scene's spatial data structure.
+     */
+    protected abstract void addToSpatial (SceneInfluence influence);
+
+    /**
+     * Removes an influence from the scene's spatial data structure.
+     */
+    protected abstract void removeFromSpatial (SceneInfluence influence);
 
     /**
      * Enqueues an element for rendering.
@@ -246,6 +340,16 @@ public abstract class Scene extends DynamicScope
         }
     };
 
+    /** Holds element during processing. */
+    protected ArrayList<SceneElement> _influenced = new ArrayList<SceneElement>();
+
     /** Result vector for intersection testing. */
     protected Vector3f _result = new Vector3f();
+
+    /** A predicate that matches all elements. */
+    protected static final Predicate<SceneElement> ALL_ELEMENTS = new Predicate<SceneElement>() {
+        public boolean isMatch (SceneElement element) {
+            return true;
+        }
+    };
 }

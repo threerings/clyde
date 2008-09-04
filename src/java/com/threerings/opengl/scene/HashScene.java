@@ -6,6 +6,10 @@ package com.threerings.opengl.scene;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.google.common.collect.Maps;
+
+import com.samskivert.util.Predicate;
+
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
@@ -13,6 +17,7 @@ import com.threerings.math.Ray;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Intersectable;
 
 /**
  * A scene that uses a hybrid spatial hashing/octree scheme to store scene elements.
@@ -57,7 +62,7 @@ public class HashScene extends Scene
         for (int zz = minz; zz <= maxz; zz++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 for (int xx = minx; xx <= maxx; xx++) {
-                    Node root = _roots.get(_coord.set(xx, yy, zz));
+                    Node<SceneElement> root = _elements.get(_coord.set(xx, yy, zz));
                     if (root != null) {
                         root.enqueue(frustum);
                     }
@@ -67,7 +72,8 @@ public class HashScene extends Scene
     }
 
     @Override // documentation inherited
-    public SceneElement getIntersection (Ray ray, Vector3f location)
+    public SceneElement getIntersection (
+        Ray ray, Vector3f location, Predicate<SceneElement> filter)
     {
         // get the point of intersection with the top-level bounds
         if (!_bounds.getIntersection(ray, _pt)) {
@@ -92,9 +98,9 @@ public class HashScene extends Scene
         // step through each cell that the ray intersects, returning the first hit or bailing
         // out when we exceed the bounds
         do {
-            Node root = _roots.get(_coord.set(xx, yy, zz));
+            Node<SceneElement> root = _elements.get(_coord.set(xx, yy, zz));
             if (root != null) {
-                SceneElement element = root.getIntersection(ray, location);
+                SceneElement element = root.getIntersection(ray, location, filter);
                 if (element != null) {
                     return element;
                 }
@@ -124,6 +130,18 @@ public class HashScene extends Scene
     }
 
     @Override // documentation inherited
+    public void getElements (Box bounds, ArrayList<SceneElement> results)
+    {
+        getIntersecting(_elements, bounds, results);
+    }
+
+    @Override // documentation inherited
+    public void getInfluences (Box bounds, ArrayList<SceneInfluence> results)
+    {
+        getIntersecting(_influences, bounds, results);
+    }
+
+    @Override // documentation inherited
     public void boundsWillChange (SceneElement element)
     {
         removeFromSpatial(element);
@@ -138,34 +156,33 @@ public class HashScene extends Scene
     @Override // documentation inherited
     protected void addToSpatial (SceneElement element)
     {
-        Box bounds = element.getBounds();
-        int level = getLevel(bounds);
-        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
-        int minz = (int)FloatMath.floor(min.z * rgran);
-        int maxz = (int)FloatMath.floor(max.z * rgran);
-        for (int zz = minz; zz <= maxz; zz++) {
-            for (int yy = miny; yy <= maxy; yy++) {
-                for (int xx = minx; xx <= maxx; xx++) {
-                    Node root = _roots.get(_coord.set(xx, yy, zz));
-                    if (root == null) {
-                        _roots.put((Coord)_coord.clone(), root = createRoot(xx, yy, zz));
-                        _bounds.addLocal(root.getBounds());
-                    }
-                    root.add(element, level);
-                }
-            }
-        }
+        add(_elements, element);
     }
 
     @Override // documentation inherited
     protected void removeFromSpatial (SceneElement element)
     {
-        Box bounds = element.getBounds();
+        remove(_elements, element);
+    }
+
+    @Override // documentation inherited
+    protected void addToSpatial (SceneInfluence influence)
+    {
+        add(_influences, influence);
+    }
+
+    @Override // documentation inherited
+    protected void removeFromSpatial (SceneInfluence influence)
+    {
+        remove(_influences, influence);
+    }
+
+    /**
+     * Adds the specified object to the provided map.
+     */
+    protected <T extends SceneObject> void add (HashMap<Coord, Node<T>> roots, T object)
+    {
+        Box bounds = object.getBounds();
         int level = getLevel(bounds);
         Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         float rgran = 1f / _granularity;
@@ -178,14 +195,79 @@ public class HashScene extends Scene
         for (int zz = minz; zz <= maxz; zz++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 for (int xx = minx; xx <= maxx; xx++) {
-                    Node root = _roots.get(_coord.set(xx, yy, zz));
+                    Node<T> root = roots.get(_coord.set(xx, yy, zz));
+                    if (root == null) {
+                        roots.put((Coord)_coord.clone(), root = createRoot(xx, yy, zz));
+                        _bounds.addLocal(root.getBounds());
+                    }
+                    root.add(object, level);
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes the specified object from the provided map.
+     */
+    protected <T extends SceneObject> void remove (HashMap<Coord, Node<T>> roots, T object)
+    {
+        Box bounds = object.getBounds();
+        int level = getLevel(bounds);
+        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        float rgran = 1f / _granularity;
+        int minx = (int)FloatMath.floor(min.x * rgran);
+        int maxx = (int)FloatMath.floor(max.x * rgran);
+        int miny = (int)FloatMath.floor(min.y * rgran);
+        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minz = (int)FloatMath.floor(min.z * rgran);
+        int maxz = (int)FloatMath.floor(max.z * rgran);
+        for (int zz = minz; zz <= maxz; zz++) {
+            for (int yy = miny; yy <= maxy; yy++) {
+                for (int xx = minx; xx <= maxx; xx++) {
+                    Node<T> root = roots.get(_coord.set(xx, yy, zz));
                     if (root == null) {
                         continue;
                     }
-                    root.remove(element, level);
+                    root.remove(object, level);
                     if (root.isEmpty()) {
-                        _roots.remove(_coord);
+                        roots.remove(_coord);
                         recomputeBounds();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds all objects from the provided map that intersect the given bounds to the specified
+     * results list.
+     */
+    protected <T extends SceneObject> void getIntersecting (
+        HashMap<Coord, Node<T>> roots, Box bounds, ArrayList<T> results)
+    {
+        // make sure it intersects the top-level bounds
+        if (!_bounds.intersects(bounds)) {
+            return;
+        }
+
+        // increment the visit counter
+        _visit++;
+
+        // visit the intersecting roots
+        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        float rgran = 1f / _granularity;
+        int minx = (int)FloatMath.floor(min.x * rgran);
+        int maxx = (int)FloatMath.floor(max.x * rgran);
+        int miny = (int)FloatMath.floor(min.y * rgran);
+        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minz = (int)FloatMath.floor(min.z * rgran);
+        int maxz = (int)FloatMath.floor(max.z * rgran);
+        for (int zz = minz; zz <= maxz; zz++) {
+            for (int yy = miny; yy <= maxy; yy++) {
+                for (int xx = minx; xx <= maxx; xx++) {
+                    Node<T> root = roots.get(_coord.set(xx, yy, zz));
+                    if (root != null) {
+                        root.get(bounds, results);
                     }
                 }
             }
@@ -205,9 +287,9 @@ public class HashScene extends Scene
     /**
      * Creates a root node for the specified coordinates.
      */
-    protected Node createRoot (int x, int y, int z)
+    protected <T extends SceneObject> Node<T> createRoot (int x, int y, int z)
     {
-        Node root = (_levels > 1) ? new InternalNode(_levels - 1) : new LeafNode();
+        Node<T> root = (_levels > 1) ? new InternalNode<T>(_levels - 1) : new LeafNode<T>();
         Box bounds = root.getBounds();
         bounds.getMinimumExtent().set(
             x * _granularity, y * _granularity, z * _granularity);
@@ -222,7 +304,10 @@ public class HashScene extends Scene
     protected void recomputeBounds ()
     {
         _bounds.setToEmpty();
-        for (Node root : _roots.values()) {
+        for (Node root : _elements.values()) {
+            _bounds.addLocal(root.getBounds());
+        }
+        for (Node root : _influences.values()) {
             _bounds.addLocal(root.getBounds());
         }
     }
@@ -230,7 +315,7 @@ public class HashScene extends Scene
     /**
      * Represents a node in an octree.
      */
-    protected abstract class Node
+    protected abstract class Node<T extends SceneObject>
     {
         /**
          * Returns a reference to the bounds of the node.
@@ -241,27 +326,27 @@ public class HashScene extends Scene
         }
 
         /**
-         * Determines whether the node is empty (that is, has no elements).
+         * Determines whether the node is empty (that is, has no objects).
          */
         public boolean isEmpty ()
         {
-            return _elements.isEmpty();
+            return _objects.isEmpty();
         }
 
         /**
-         * Adds an element to this node.
+         * Adds an object to this node.
          */
-        public void add (SceneElement element, int level)
+        public void add (T object, int level)
         {
-            _elements.add(element);
+            _objects.add(object);
         }
 
         /**
-         * Removes an element from this node.
+         * Removes an object from this node.
          */
-        public void remove (SceneElement element, int level)
+        public void remove (T object, int level)
         {
-            _elements.remove(element);
+            _objects.remove(object);
         }
 
         /**
@@ -280,16 +365,17 @@ public class HashScene extends Scene
         /**
          * Checks for an intersection with this node.
          */
-        public SceneElement getIntersection (Ray ray, Vector3f location)
+        public T getIntersection (Ray ray, Vector3f location, Predicate<T> filter)
         {
-            SceneElement closest = null;
+            T closest = null;
             Vector3f origin = ray.getOrigin();
-            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-                SceneElement element = _elements.get(ii);
-                if (element.updateLastVisit(_visit) && element.getIntersection(ray, _result) &&
-                        (closest == null || origin.distanceSquared(_result) <
-                            origin.distanceSquared(location))) {
-                    closest = element;
+            for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
+                T object = _objects.get(ii);
+                if (filter.isMatch(object) && object.updateLastVisit(_visit) &&
+                        ((Intersectable)object).getIntersection(ray, _result) &&
+                            (closest == null || origin.distanceSquared(_result) <
+                                origin.distanceSquared(location))) {
+                    closest = object;
                     location.set(_result);
                 }
             }
@@ -297,14 +383,26 @@ public class HashScene extends Scene
         }
 
         /**
+         * Retrieves all objects intersecting the provided bounds.
+         */
+        public void get (Box bounds, ArrayList<T> results)
+        {
+            if (bounds.contains(_bounds)) {
+                getAll(results);
+            } else if (bounds.intersects(_bounds)) {
+                getIntersecting(bounds, results);
+            }
+        }
+
+        /**
          * Enqueues all elements in this node.
          */
         protected void enqueueAll ()
         {
-            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-                SceneElement element = _elements.get(ii);
-                if (element.updateLastVisit(_visit)) {
-                    HashScene.this.enqueue(element);
+            for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
+                T object = _objects.get(ii);
+                if (object.updateLastVisit(_visit)) {
+                    HashScene.this.enqueue((SceneElement)object);
                 }
             }
         }
@@ -314,12 +412,38 @@ public class HashScene extends Scene
          */
         protected void enqueueIntersecting (Frustum frustum)
         {
-            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-                SceneElement element = _elements.get(ii);
-                if (element.updateLastVisit(_visit) &&
-                        frustum.getIntersectionType(element.getBounds()) !=
+            for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
+                T object = _objects.get(ii);
+                if (object.updateLastVisit(_visit) &&
+                        frustum.getIntersectionType(object.getBounds()) !=
                             Frustum.IntersectionType.NONE) {
-                    HashScene.this.enqueue(element);
+                    HashScene.this.enqueue((SceneElement)object);
+                }
+            }
+        }
+
+        /**
+         * Gets all objects in this node.
+         */
+        protected void getAll (ArrayList<T> results)
+        {
+            for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
+                T object = _objects.get(ii);
+                if (object.updateLastVisit(_visit)) {
+                    results.add(object);
+                }
+            }
+        }
+
+        /**
+         * Gets all objects in this node intersecting the provided bounds.
+         */
+        protected void getIntersecting (Box bounds, ArrayList<T> results)
+        {
+            for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
+                T object = _objects.get(ii);
+                if (object.updateLastVisit(_visit) && object.getBounds().intersects(bounds)) {
+                    results.add(object);
                 }
             }
         }
@@ -327,14 +451,14 @@ public class HashScene extends Scene
         /** The bounds of the node. */
         public Box _bounds = new Box();
 
-        /** The elements in the node. */
-        public ArrayList<SceneElement> _elements = new ArrayList<SceneElement>(4);
+        /** The objects in the node. */
+        public ArrayList<T> _objects = new ArrayList<T>(4);
     }
 
     /**
      * An internal node with (up to) eight children.
      */
-    protected class InternalNode extends Node
+    protected class InternalNode<T extends SceneObject> extends Node<T>
     {
         public InternalNode (int levels)
         {
@@ -356,43 +480,43 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        public void add (SceneElement element, int level)
+        public void add (T object, int level)
         {
             if (level == 0) {
-                super.add(element, level);
+                super.add(object, level);
                 return;
             }
             level--;
-            Box bounds = element.getBounds();
+            Box bounds = object.getBounds();
             for (int ii = 0; ii < _children.length; ii++) {
-                Node child = _children[ii];
+                Node<T> child = _children[ii];
                 if (child == null) {
                     getChildBounds(ii, _box);
                     if (_box.intersects(bounds)) {
                         _children[ii] = child = (_levels > 1) ?
-                            new InternalNode(_levels - 1) : new LeafNode();
+                            new InternalNode<T>(_levels - 1) : new LeafNode<T>();
                         child.getBounds().set(_box);
-                        child.add(element, level);
+                        child.add(object, level);
                     }
                 } else if (child.getBounds().intersects(bounds)) {
-                    child.add(element, level);
+                    child.add(object, level);
                 }
             }
         }
 
         @Override // documentation inherited
-        public void remove (SceneElement element, int level)
+        public void remove (T object, int level)
         {
             if (level == 0) {
-                super.remove(element, level);
+                super.remove(object, level);
                 return;
             }
             level--;
-            Box bounds = element.getBounds();
+            Box bounds = object.getBounds();
             for (int ii = 0; ii < _children.length; ii++) {
-                Node child = _children[ii];
+                Node<T> child = _children[ii];
                 if (child != null && child.getBounds().intersects(bounds)) {
-                    child.remove(element, level);
+                    child.remove(object, level);
                     if (child.isEmpty()) {
                         _children[ii] = null;
                     }
@@ -401,19 +525,19 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        public SceneElement getIntersection (Ray ray, Vector3f location)
+        public T getIntersection (Ray ray, Vector3f location, Predicate<T> filter)
         {
-            SceneElement closest = super.getIntersection(ray, location);
+            T closest = super.getIntersection(ray, location, filter);
             Vector3f origin = ray.getOrigin();
             Vector3f result = new Vector3f();
-            for (Node child : _children) {
+            for (Node<T> child : _children) {
                 if (child == null || !child.getBounds().intersects(ray)) {
                     continue;
                 }
-                SceneElement element = child.getIntersection(ray, result);
-                if (element != null && (closest == null ||
+                T object = child.getIntersection(ray, result, filter);
+                if (object != null && (closest == null ||
                         origin.distanceSquared(result) < origin.distanceSquared(location))) {
-                    closest = element;
+                    closest = object;
                     location.set(result);
                 }
             }
@@ -424,7 +548,7 @@ public class HashScene extends Scene
         protected void enqueueAll ()
         {
             super.enqueueAll();
-            for (Node child : _children) {
+            for (Node<T> child : _children) {
                 if (child != null) {
                     child.enqueueAll();
                 }
@@ -435,9 +559,31 @@ public class HashScene extends Scene
         protected void enqueueIntersecting (Frustum frustum)
         {
             super.enqueueIntersecting(frustum);
-            for (Node child : _children) {
+            for (Node<T> child : _children) {
                 if (child != null) {
                     child.enqueue(frustum);
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        protected void getAll (ArrayList<T> results)
+        {
+            super.getAll(results);
+            for (Node<T> child : _children) {
+                if (child != null) {
+                    child.getAll(results);
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        protected void getIntersecting (Box bounds, ArrayList<T> results)
+        {
+            super.getIntersecting(bounds, results);
+            for (Node<T> child : _children) {
+                if (child != null) {
+                    child.getIntersecting(bounds, results);
                 }
             }
         }
@@ -477,13 +623,14 @@ public class HashScene extends Scene
         public int _levels;
 
         /** The children of the node. */
-        public Node[] _children = new Node[8];
+        @SuppressWarnings("unchecked")
+        public Node<T>[] _children = (Node<T>[])new Node[8];
     }
 
     /**
      * A leaf node.
      */
-    protected class LeafNode extends Node
+    protected class LeafNode<T extends SceneObject> extends Node<T>
     {
     }
 
@@ -539,8 +686,11 @@ public class HashScene extends Scene
     /** The (maximum) number of tree levels. */
     protected int _levels;
 
-    /** The top level nodes. */
-    protected HashMap<Coord, Node> _roots = new HashMap<Coord, Node>();
+    /** The top level element nodes. */
+    protected HashMap<Coord, Node<SceneElement>> _elements = Maps.newHashMap();
+
+    /** The top level influence nodes. */
+    protected HashMap<Coord, Node<SceneInfluence>> _influences = Maps.newHashMap();
 
     /** The bounds of the roots. */
     protected Box _bounds = new Box();
