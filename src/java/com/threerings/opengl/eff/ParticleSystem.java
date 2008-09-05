@@ -403,18 +403,6 @@ public class ParticleSystem extends Model.Implementation
         updateFromConfig();
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
-    {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
-
-        // enqueue the layers
-        for (Layer layer : _layers) {
-            layer.enqueue();
-        }
-    }
-
     @Override // documentation inherited
     public boolean hasCompleted ()
     {
@@ -491,6 +479,18 @@ public class ParticleSystem extends Model.Implementation
         // notify containing model if completed
         if (_completed) {
             ((Model)_parentScope).completed();
+        }
+    }
+
+    @Override // documentation inherited
+    public void enqueue ()
+    {
+        // update the view transform
+        _parentViewTransform.compose(_localTransform, _viewTransform);
+
+        // enqueue the layers
+        for (Layer layer : _layers) {
+            layer.enqueue();
         }
     }
 

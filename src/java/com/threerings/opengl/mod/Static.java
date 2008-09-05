@@ -51,20 +51,6 @@ public class Static extends Model.Implementation
         updateFromConfig();
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
-    {
-        // update the shared transform state
-        Transform3D modelview = _transformState.getModelview();
-        _parentViewTransform.compose(_localTransform, modelview);
-        _transformState.setDirty(true);
-
-        // enqueue the surfaces
-        for (Surface surface : _surfaces) {
-            surface.enqueue();
-        }
-    }
-
     @Override // documentation inherited
     public Box getBounds ()
     {
@@ -107,6 +93,20 @@ public class Static extends Model.Implementation
         // then transform it back if we get a hit
         _worldTransform.transformPointLocal(result);
         return true;
+    }
+
+    @Override // documentation inherited
+    public void enqueue ()
+    {
+        // update the shared transform state
+        Transform3D modelview = _transformState.getModelview();
+        _parentViewTransform.compose(_localTransform, modelview);
+        _transformState.setDirty(true);
+
+        // enqueue the surfaces
+        for (Surface surface : _surfaces) {
+            surface.enqueue();
+        }
     }
 
     @Override // documentation inherited

@@ -139,6 +139,7 @@ public class HashScene extends Scene
     public void getInfluences (Box bounds, ArrayList<SceneInfluence> results)
     {
         getIntersecting(_influences, bounds, results);
+        results.addAll(_globalInfluences);
     }
 
     @Override // documentation inherited
@@ -168,13 +169,23 @@ public class HashScene extends Scene
     @Override // documentation inherited
     protected void addToSpatial (SceneInfluence influence)
     {
-        add(_influences, influence);
+        Box bounds = influence.getBounds();
+        if (bounds.equals(Box.MAX_VALUE)) {
+            _globalInfluences.add(influence);
+        } else {
+            add(_influences, influence);
+        }
     }
 
     @Override // documentation inherited
     protected void removeFromSpatial (SceneInfluence influence)
     {
-        remove(_influences, influence);
+        Box bounds = influence.getBounds();
+        if (bounds.equals(Box.MAX_VALUE)) {
+            _globalInfluences.remove(influence);
+        } else {
+            remove(_influences, influence);
+        }
     }
 
     /**
@@ -691,6 +702,9 @@ public class HashScene extends Scene
 
     /** The top level influence nodes. */
     protected HashMap<Coord, Node<SceneInfluence>> _influences = Maps.newHashMap();
+
+    /** Global influences. */
+    protected ArrayList<SceneInfluence> _globalInfluences = new ArrayList<SceneInfluence>();
 
     /** The bounds of the roots. */
     protected Box _bounds = new Box();

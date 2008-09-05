@@ -204,7 +204,10 @@ public abstract class Scene extends DynamicScope
      */
     public void boundsWillChange (SceneInfluence influence)
     {
-        // nothing by default
+        // store the elements currently intersecting the bounds
+        getElements(influence.getBounds(), _influenced);
+        _existing.addAll(_influenced);
+        _influenced.clear();
     }
 
     /**
@@ -212,7 +215,23 @@ public abstract class Scene extends DynamicScope
      */
     public void boundsDidChange (SceneInfluence influence)
     {
-        // nothing by default
+        // find the elements currently intersecting the bounds
+        getElements(influence.getBounds(), _influenced);
+        for (int ii = 0, nn = _influenced.size(); ii < nn; ii++) {
+            SceneElement element = _influenced.get(ii);
+            if (!_existing.remove(element)) {
+                element.influenceAdded(influence);
+            }
+        }
+        _influenced.clear();
+
+        // notify any elements no longer influenced
+        if (!_existing.isEmpty()) {
+            for (SceneElement element : _existing) {
+                element.influenceRemoved(influence);
+            }
+            _existing.clear();
+        }
     }
 
     // documentation inherited from interface Tickable
@@ -342,6 +361,9 @@ public abstract class Scene extends DynamicScope
 
     /** Holds element during processing. */
     protected ArrayList<SceneElement> _influenced = new ArrayList<SceneElement>();
+
+    /** Holds the set of existing influenced elements while changing an influence's bounds. */
+    protected HashSet<SceneElement> _existing = new HashSet<SceneElement>();
 
     /** Result vector for intersection testing. */
     protected Vector3f _result = new Vector3f();

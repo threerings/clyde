@@ -353,33 +353,6 @@ public class Articulated extends Model.Implementation
         return _nodesByName.get(name);
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
-    {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
-
-        // update/enqueue the nodes
-        for (Node node : _nodes) {
-            node.enqueue();
-        }
-
-        // enqueue the surfaces
-        for (Surface surface : _surfaces) {
-            surface.enqueue();
-        }
-
-        // enqueue the configured attachments
-        for (Model model : _configAttachments) {
-            model.enqueue();
-        }
-
-        // and the user attachments
-        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
-            _userAttachments.get(ii).enqueue();
-        }
-    }
-
     @Override // documentation inherited
     public void attach (String point, Model model, boolean replace)
     {
@@ -565,6 +538,33 @@ public class Articulated extends Model.Implementation
         }
         // if we ever changed the result reference, that means we hit something
         return (result != closest);
+    }
+
+    @Override // documentation inherited
+    public void enqueue ()
+    {
+        // update the view transform
+        _parentViewTransform.compose(_localTransform, _viewTransform);
+
+        // update/enqueue the nodes
+        for (Node node : _nodes) {
+            node.enqueue();
+        }
+
+        // enqueue the surfaces
+        for (Surface surface : _surfaces) {
+            surface.enqueue();
+        }
+
+        // enqueue the configured attachments
+        for (Model model : _configAttachments) {
+            model.enqueue();
+        }
+
+        // and the user attachments
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            _userAttachments.get(ii).enqueue();
+        }
     }
 
     @Override // documentation inherited

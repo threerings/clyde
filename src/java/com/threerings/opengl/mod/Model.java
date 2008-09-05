@@ -180,6 +180,12 @@ public class Model extends DynamicScope
             return false;
         }
 
+        // documentation inherited from interface Renderable
+        public void enqueue ()
+        {
+            // nothing by default
+        }
+
         @Override // documentation inherited
         public String getScopeName ()
         {
