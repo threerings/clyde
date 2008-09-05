@@ -146,13 +146,13 @@ public class PassConfig extends DeepObject
         states[RenderState.COLOR_MASK_STATE] = colorMaskState.getState();
         states[RenderState.CULL_STATE] = cullState.getState();
         states[RenderState.DEPTH_STATE] = depthState.getState();
-        states[RenderState.FOG_STATE] =
-            (fogStateOverride == null) ? null : fogStateOverride.getState();
-        states[RenderState.LIGHT_STATE] =
-            (lightStateOverride == null) ? null : lightStateOverride.getState();
+        states[RenderState.FOG_STATE] = (fogStateOverride == null) ?
+            null : fogStateOverride.getState();
+        states[RenderState.LIGHT_STATE] = (lightStateOverride == null) ?
+                null : lightStateOverride.getState(ctx, scope, updaters);
         states[RenderState.LINE_STATE] = (lineState == null) ? null : lineState.getState();
-        states[RenderState.MATERIAL_STATE] =
-            (materialState == null) ? null : materialState.getState();
+        states[RenderState.MATERIAL_STATE] = (materialState == null) ?
+            null : materialState.getState();
         states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
         states[RenderState.POLYGON_STATE] = polygonState.getState();
         states[RenderState.SHADER_STATE] = shaderState.getState(ctx, scope, updaters);

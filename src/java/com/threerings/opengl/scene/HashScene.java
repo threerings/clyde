@@ -40,8 +40,11 @@ public class HashScene extends Scene
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        // make sure it intersects the top-level bounds
+        // enqueue the oversized elements
         Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
+        enqueue(_oversizedElements, frustum);
+
+        // make sure the frustum intersects the top-level bounds
         if (frustum.getIntersectionType(_bounds) == Frustum.IntersectionType.NONE) {
             return;
         }
@@ -50,8 +53,8 @@ public class HashScene extends Scene
         _visit++;
 
         // visit the intersecting roots
-        Box bounds = frustum.getBounds();
-        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        frustum.getBounds().intersect(_bounds, _box);
+        Vector3f min = _box.getMinimumExtent(), max = _box.getMaximumExtent();
         float rgran = 1f / _granularity;
         int minx = (int)FloatMath.floor(min.x * rgran);
         int maxx = (int)FloatMath.floor(max.x * rgran);
@@ -75,9 +78,12 @@ public class HashScene extends Scene
     public SceneElement getIntersection (
         Ray ray, Vector3f location, Predicate<SceneElement> filter)
     {
+        // check for an intersection with the oversized elements
+        SceneElement closest = getIntersection(_oversizedElements, ray, location, filter);
+
         // get the point of intersection with the top-level bounds
         if (!_bounds.getIntersection(ray, _pt)) {
-            return null;
+            return closest;
         }
 
         // increment the visit counter
@@ -97,12 +103,19 @@ public class HashScene extends Scene
 
         // step through each cell that the ray intersects, returning the first hit or bailing
         // out when we exceed the bounds
+        Vector3f result = new Vector3f();
         do {
             Node<SceneElement> root = _elements.get(_coord.set(xx, yy, zz));
             if (root != null) {
-                SceneElement element = root.getIntersection(ray, location, filter);
+                SceneElement element = root.getIntersection(ray, result, filter);
                 if (element != null) {
-                    return element;
+                    Vector3f origin = ray.getOrigin();
+                    if (closest == null || origin.distanceSquared(result) <
+                            origin.distanceSquared(location)) {
+                        closest = element;
+                        location.set(result);
+                    }
+                    return closest;
                 }
             }
             float xt = (xdir == 0) ? Float.MAX_VALUE :
@@ -126,20 +139,19 @@ public class HashScene extends Scene
         } while (_bounds.contains(_pt));
 
         // no luck
-        return null;
+        return closest;
     }
 
     @Override // documentation inherited
     public void getElements (Box bounds, ArrayList<SceneElement> results)
     {
-        getIntersecting(_elements, bounds, results);
+        getIntersecting(_elements, _oversizedElements, bounds, results);
     }
 
     @Override // documentation inherited
     public void getInfluences (Box bounds, ArrayList<SceneInfluence> results)
     {
-        getIntersecting(_influences, bounds, results);
-        results.addAll(_globalInfluences);
+        getIntersecting(_influences, _oversizedInfluences, bounds, results);
     }
 
     @Override // documentation inherited
@@ -157,43 +169,38 @@ public class HashScene extends Scene
     @Override // documentation inherited
     protected void addToSpatial (SceneElement element)
     {
-        add(_elements, element);
+        add(_elements, _oversizedElements, element);
     }
 
     @Override // documentation inherited
     protected void removeFromSpatial (SceneElement element)
     {
-        remove(_elements, element);
+        remove(_elements, _oversizedElements, element);
     }
 
     @Override // documentation inherited
     protected void addToSpatial (SceneInfluence influence)
     {
-        Box bounds = influence.getBounds();
-        if (bounds.equals(Box.MAX_VALUE)) {
-            _globalInfluences.add(influence);
-        } else {
-            add(_influences, influence);
-        }
+        add(_influences, _oversizedInfluences, influence);
     }
 
     @Override // documentation inherited
     protected void removeFromSpatial (SceneInfluence influence)
     {
-        Box bounds = influence.getBounds();
-        if (bounds.equals(Box.MAX_VALUE)) {
-            _globalInfluences.remove(influence);
-        } else {
-            remove(_influences, influence);
-        }
+        remove(_influences, _oversizedInfluences, influence);
     }
 
     /**
      * Adds the specified object to the provided map.
      */
-    protected <T extends SceneObject> void add (HashMap<Coord, Node<T>> roots, T object)
+    protected <T extends SceneObject> void add (
+        HashMap<Coord, Node<T>> roots, ArrayList<T> oversized, T object)
     {
         Box bounds = object.getBounds();
+        if (areOversized(bounds)) {
+            oversized.add(object);
+            return;
+        }
         int level = getLevel(bounds);
         Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         float rgran = 1f / _granularity;
@@ -220,9 +227,14 @@ public class HashScene extends Scene
     /**
      * Removes the specified object from the provided map.
      */
-    protected <T extends SceneObject> void remove (HashMap<Coord, Node<T>> roots, T object)
+    protected <T extends SceneObject> void remove (
+        HashMap<Coord, Node<T>> roots, ArrayList<T> oversized, T object)
     {
         Box bounds = object.getBounds();
+        if (areOversized(bounds)) {
+            oversized.remove(object);
+            return;
+        }
         int level = getLevel(bounds);
         Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         float rgran = 1f / _granularity;
@@ -250,14 +262,27 @@ public class HashScene extends Scene
     }
 
     /**
+     * Determines whether the specified bounds qualify as "oversized" with respect to the
+     * scene granularity.
+     */
+    protected boolean areOversized (Box bounds)
+    {
+        return bounds.getLongestEdge() > (_granularity * 2f);
+    }
+
+    /**
      * Adds all objects from the provided map that intersect the given bounds to the specified
      * results list.
      */
     protected <T extends SceneObject> void getIntersecting (
-        HashMap<Coord, Node<T>> roots, Box bounds, ArrayList<T> results)
+        HashMap<Coord, Node<T>> roots, ArrayList<T> oversized, Box bounds, ArrayList<T> results)
     {
-        // make sure it intersects the top-level bounds
-        if (!_bounds.intersects(bounds)) {
+        // get the oversized elements
+        getIntersecting(oversized, bounds, results);
+
+        // get the intersection with the top-level bounds
+        bounds.intersect(_bounds, _box);
+        if (_box.isEmpty()) {
             return;
         }
 
@@ -265,7 +290,7 @@ public class HashScene extends Scene
         _visit++;
 
         // visit the intersecting roots
-        Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        Vector3f min = _box.getMinimumExtent(), max = _box.getMaximumExtent();
         float rgran = 1f / _granularity;
         int minx = (int)FloatMath.floor(min.x * rgran);
         int maxx = (int)FloatMath.floor(max.x * rgran);
@@ -700,13 +725,16 @@ public class HashScene extends Scene
     /** The top level element nodes. */
     protected HashMap<Coord, Node<SceneElement>> _elements = Maps.newHashMap();
 
+    /** Oversized elements. */
+    protected ArrayList<SceneElement> _oversizedElements = new ArrayList<SceneElement>();
+
     /** The top level influence nodes. */
     protected HashMap<Coord, Node<SceneInfluence>> _influences = Maps.newHashMap();
 
-    /** Global influences. */
-    protected ArrayList<SceneInfluence> _globalInfluences = new ArrayList<SceneInfluence>();
+    /** Oversized influences. */
+    protected ArrayList<SceneInfluence> _oversizedInfluences = new ArrayList<SceneInfluence>();
 
-    /** The bounds of the roots. */
+    /** The bounds of the roots (does not include the oversized objects). */
     protected Box _bounds = new Box();
 
     /** The visit counter. */

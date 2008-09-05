@@ -3,16 +3,21 @@
 
 package com.threerings.opengl.renderer.config;
 
-import com.threerings.util.DeepObject;
-
-import com.threerings.math.Vector3f;
+import java.util.ArrayList;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
+import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
+import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Light;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Represents the state of a single light.
@@ -43,11 +48,18 @@ public abstract class LightConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Light createLight ()
+        protected Updater createUpdater (GlContext ctx, Scope scope, final Light light)
         {
-            Light light = super.createLight();
-            light.position.set(direction.x, direction.y, direction.z, 0f);
-            return light;
+            final Transform3D viewTransform = ScopeUtil.resolve(
+                scope, "viewTransform", new Transform3D());
+            return new Updater() {
+                public void update () {
+                    viewTransform.transformVector(direction, _dir);
+                    light.position.set(_dir.x, _dir.y, _dir.z, 0f);
+                    light.dirty = true;
+                }
+                protected Vector3f _dir = new Vector3f();
+            };
         }
     }
 
@@ -83,14 +95,28 @@ public abstract class LightConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Light createLight ()
+        public Light createLight (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
-            Light light = super.createLight();
-            light.position.set(position.x, position.y, position.z, 0f);
+            Light light = super.createLight(ctx, scope, updaters);
             light.constantAttenuation = attenuation.constant;
             light.linearAttenuation = attenuation.linear;
             light.quadraticAttenuation = attenuation.quadratic;
             return light;
+        }
+
+        @Override // documentation inherited
+        protected Updater createUpdater (GlContext ctx, Scope scope, final Light light)
+        {
+            final Transform3D viewTransform = ScopeUtil.resolve(
+                scope, "viewTransform", new Transform3D());
+            return new Updater() {
+                public void update () {
+                    viewTransform.transformPoint(position, _pos);
+                    light.position.set(_pos.x, _pos.y, _pos.z, 1f);
+                    light.dirty = true;
+                }
+                protected Vector3f _pos = new Vector3f();
+            };
         }
     }
 
@@ -122,13 +148,28 @@ public abstract class LightConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Light createLight ()
+        public Light createLight (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
-            Light light = super.createLight();
-            light.spotDirection.set(direction);
+            Light light = super.createLight(ctx, scope, updaters);
             light.spotExponent = falloff.exponent;
             light.spotCutoff = falloff.cutoff;
             return light;
+        }
+
+        @Override // documentation inherited
+        protected Updater createUpdater (GlContext ctx, Scope scope, final Light light)
+        {
+            final Transform3D viewTransform = ScopeUtil.resolve(
+                scope, "viewTransform", new Transform3D());
+            return new Updater() {
+                public void update () {
+                    viewTransform.transformPoint(position, _pos);
+                    light.position.set(_pos.x, _pos.y, _pos.z, 1f);
+                    viewTransform.transformVector(direction, light.spotDirection);
+                    light.dirty = true;
+                }
+                protected Vector3f _pos = new Vector3f();
+            };
         }
     }
 
@@ -211,12 +252,18 @@ public abstract class LightConfig extends DeepObject
     /**
      * Creates a light object corresponding to this configuration.
      */
-    public Light createLight ()
+    public Light createLight (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
         Light light = new Light();
         light.ambient.set(colors.ambient);
         light.diffuse.set(colors.diffuse);
         light.specular.set(colors.specular);
+        updaters.add(createUpdater(ctx, scope, light));
         return light;
     }
+
+    /**
+     * Creates the updater for the light.
+     */
+    protected abstract Updater createUpdater (GlContext ctx, Scope scope, Light light);
 }

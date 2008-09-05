@@ -97,13 +97,14 @@ public final class Box
     }
 
     /**
-     * Determines whether the box is empty (whether it contains the special values
-     * {@link Vector3f#MAX_VALUE} and {@link Vector3f#MIN_VALUE} for its minimum
-     * and maximum extents, respectively).
+     * Determines whether the box is empty (whether any of its minima are greater than their
+     * corresponding maxima).
      */
     public boolean isEmpty ()
     {
-        return _minExtent.equals(Vector3f.MAX_VALUE) && _maxExtent.equals(Vector3f.MIN_VALUE);
+        return _minExtent.x > _maxExtent.x ||
+            _minExtent.y > _maxExtent.y ||
+            _minExtent.z > _maxExtent.z;
     }
 
     /**
@@ -196,6 +197,46 @@ public final class Box
             Math.max(_maxExtent.x, omax.x),
             Math.max(_maxExtent.y, omax.y),
             Math.max(_maxExtent.z, omax.z));
+        return result;
+    }
+
+    /**
+     * Finds the intersection between this box and another box and places the result in this box.
+     *
+     * @return a reference to this box, for chaining.
+     */
+    public Box intersectLocal (Box other)
+    {
+        return intersect(other, this);
+    }
+
+    /**
+     * Finds the intersection between this box and another box.
+     *
+     * @return a new box containing the result.
+     */
+    public Box intersect (Box other)
+    {
+        return intersect(other, new Box());
+    }
+
+    /**
+     * Finds the intersection between this box and another box and places the result in the
+     * provided object.
+     *
+     * @return a reference to this box, for chaining.
+     */
+    public Box intersect (Box other, Box result)
+    {
+        Vector3f omin = other.getMinimumExtent(), omax = other.getMaximumExtent();
+        result.getMinimumExtent().set(
+            Math.max(_minExtent.x, omin.x),
+            Math.max(_minExtent.y, omin.y),
+            Math.max(_minExtent.z, omin.z));
+        result.getMaximumExtent().set(
+            Math.min(_maxExtent.x, omax.x),
+            Math.min(_maxExtent.y, omax.y),
+            Math.min(_maxExtent.z, omax.z));
         return result;
     }
 

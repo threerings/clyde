@@ -3,14 +3,19 @@
 
 package com.threerings.opengl.renderer.config;
 
+import java.util.ArrayList;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.state.LightState;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Configurable light state.
@@ -25,7 +30,7 @@ public abstract class LightStateConfig extends DeepObject
     public static class Disabled extends LightStateConfig
     {
         @Override // documentation inherited
-        public LightState getState ()
+        public LightState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
             return LightState.DISABLED;
         }
@@ -45,11 +50,11 @@ public abstract class LightStateConfig extends DeepObject
         public LightConfig[] lights = new LightConfig[0];
 
         @Override // documentation inherited
-        public LightState getState ()
+        public LightState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
             Light[] slights = new Light[lights.length];
             for (int ii = 0; ii < lights.length; ii++) {
-                slights[ii] = lights[ii].createLight();
+                slights[ii] = lights[ii].createLight(ctx, scope, updaters);
             }
             return new LightState(slights, globalAmbient);
         }
@@ -58,5 +63,5 @@ public abstract class LightStateConfig extends DeepObject
     /**
      * Returns the corresponding light state.
      */
-    public abstract LightState getState ();
+    public abstract LightState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters);
 }

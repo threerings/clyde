@@ -5,6 +5,7 @@ package com.threerings.opengl.scene.config;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
+import com.threerings.math.Box;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;

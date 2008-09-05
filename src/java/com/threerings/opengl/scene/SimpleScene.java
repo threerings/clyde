@@ -30,32 +30,14 @@ public class SimpleScene extends Scene
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
-        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            SceneElement element = _elements.get(ii);
-            if (frustum.getIntersectionType(element.getBounds()) !=
-                    Frustum.IntersectionType.NONE) {
-                enqueue(element);
-            }
-        }
+        enqueue(_elements, _ctx.getCompositor().getCamera().getWorldVolume());
     }
 
     @Override // documentation inherited
     public SceneElement getIntersection (
         Ray ray, Vector3f location, Predicate<SceneElement> filter)
     {
-        SceneElement closest = null;
-        Vector3f origin = ray.getOrigin();
-        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            SceneElement element = _elements.get(ii);
-            if (filter.isMatch(element) && element.getIntersection(ray, _result) &&
-                    (closest == null || origin.distanceSquared(_result) <
-                        origin.distanceSquared(location))) {
-                closest = element;
-                location.set(_result);
-            }
-        }
-        return closest;
+        return getIntersection(_elements, ray, location, filter);
     }
 
     @Override // documentation inherited
@@ -92,21 +74,6 @@ public class SimpleScene extends Scene
     protected void removeFromSpatial (SceneInfluence influence)
     {
         _influences.remove(influence);
-    }
-
-    /**
-     * Adds all objects from the provided list that intersect the given bounds to the specified
-     * results list.
-     */
-    protected static <T extends SceneObject> void getIntersecting (
-        ArrayList<T> objects, Box bounds, ArrayList<T> results)
-    {
-        for (int ii = 0, nn = objects.size(); ii < nn; ii++) {
-            T object = objects.get(ii);
-            if (object.getBounds().intersects(bounds)) {
-                results.add(object);
-            }
-        }
     }
 
     /** The list of all scene elements. */

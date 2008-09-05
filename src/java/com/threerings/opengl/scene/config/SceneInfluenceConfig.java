@@ -3,15 +3,24 @@
 
 package com.threerings.opengl.scene.config;
 
+import java.util.ArrayList;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.ExpressionBinding;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.config.FogStateConfig;
 import com.threerings.opengl.renderer.config.LightConfig;
+import com.threerings.opengl.scene.AmbientLightInfluence;
+import com.threerings.opengl.scene.FogInfluence;
+import com.threerings.opengl.scene.LightInfluence;
 import com.threerings.opengl.scene.SceneInfluence;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * The configuration of an influence.
@@ -30,6 +39,13 @@ public abstract class SceneInfluenceConfig extends DeepObject
         /** The ambient light color. */
         @Editable
         public Color4f color = new Color4f(0.2f, 0.2f, 0.2f, 1f);
+
+        @Override // documentation inherited
+        protected SceneInfluence createInfluence (
+            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        {
+            return new AmbientLightInfluence(color);
+        }
     }
 
     /**
@@ -39,7 +55,14 @@ public abstract class SceneInfluenceConfig extends DeepObject
     {
         /** The fog state. */
         @Editable
-        public FogStateConfig fogState = new FogStateConfig.Linear();
+        public FogStateConfig state = new FogStateConfig.Linear();
+
+        @Override // documentation inherited
+        protected SceneInfluence createInfluence (
+            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        {
+            return new FogInfluence(state.getState());
+        }
     }
 
     /**
@@ -50,5 +73,48 @@ public abstract class SceneInfluenceConfig extends DeepObject
         /** The light config. */
         @Editable
         public LightConfig light = new LightConfig.Directional();
+
+        @Override // documentation inherited
+        protected SceneInfluence createInfluence (
+            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        {
+            return new LightInfluence(light.createLight(ctx, scope, updaters));
+        }
     }
+
+    /** The static expression bindings for this influence. */
+    @Editable(weight=1)
+    public ExpressionBinding[] staticBindings = new ExpressionBinding[0];
+
+    /** The dynamic expression bindings for this influence. */
+    @Editable(weight=1)
+    public ExpressionBinding[] dynamicBindings = new ExpressionBinding[0];
+
+    /**
+     * Creates the scene influence corresponding to this config.
+     *
+     * @param updaters a list to populate with required updaters.
+     */
+    public SceneInfluence createSceneInfluence (
+        GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+    {
+        // create the basic influence
+        SceneInfluence influence = createInfluence(ctx, scope, updaters);
+
+        // update the static bindings and add the dynamic updaters to the list
+        for (ExpressionBinding binding : staticBindings) {
+            binding.createUpdater(scope, influence).update();
+        }
+        for (ExpressionBinding binding : dynamicBindings) {
+            updaters.add(binding.createUpdater(scope, influence));
+        }
+
+        return influence;
+    }
+
+    /**
+     * Creates the actual influence object.
+     */
+    protected abstract SceneInfluence createInfluence (
+        GlContext ctx, Scope scope, ArrayList<Updater> updaters);
 }

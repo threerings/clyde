@@ -8,10 +8,24 @@ import com.threerings.opengl.renderer.Color4f;
 /**
  * Represents the influence of the ambient light level.
  */
-public interface AmbientLightInfluence extends SceneInfluence
+public class AmbientLightInfluence extends SceneInfluence
 {
     /**
-     * Returns a reference to the ambient light color.
+     * Creates a new ambient light influence with the specified color.
      */
-    public Color4f getAmbientLight ();
+    public AmbientLightInfluence (Color4f color)
+    {
+        _color.set(color);
+    }
+
+    /**
+     * Returns a reference to the color.
+     */
+    public Color4f getColor ()
+    {
+        return _color;
+    }
+
+    /** The light color. */
+    protected Color4f _color = new Color4f();
 }

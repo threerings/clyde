@@ -3,10 +3,13 @@
 
 package com.threerings.opengl.scene;
 
+import java.util.ArrayList;
+
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
+import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 
@@ -75,6 +78,11 @@ public class Influencer extends Model.Implementation
     {
         // update the view transform
         _parentViewTransform.compose(_localTransform, _viewTransform);
+
+        // update the updaters
+        for (Updater updater : _updaters) {
+            updater.update();
+        }
     }
 
     @Override // documentation inherited
@@ -89,6 +97,10 @@ public class Influencer extends Model.Implementation
      */
     protected void updateFromConfig ()
     {
+        // create the influence and the updaters
+        ArrayList<Updater> updaters = new ArrayList<Updater>();
+        _influence = _config.influence.createSceneInfluence(_ctx, this, updaters);
+        _updaters = updaters.toArray(new Updater[updaters.size()]);
     }
 
     /** The application context. */
@@ -96,6 +108,12 @@ public class Influencer extends Model.Implementation
 
     /** The model configuration. */
     protected InfluencerConfig _config;
+
+    /** The influence. */
+    protected SceneInfluence _influence;
+
+    /** Updaters to update before enqueuing. */
+    protected Updater[] _updaters;
 
     /** The parent world transform. */
     @Bound("worldTransform")

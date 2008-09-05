@@ -291,6 +291,20 @@ public abstract class Scene extends DynamicScope
     protected abstract void removeFromSpatial (SceneInfluence influence);
 
     /**
+     * Enqueues a list of elements for rendering.
+     */
+    protected void enqueue (ArrayList<SceneElement> elements, Frustum frustum)
+    {
+        for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
+            SceneElement element = elements.get(ii);
+            if (frustum.getIntersectionType(element.getBounds()) !=
+                    Frustum.IntersectionType.NONE) {
+                enqueue(element);
+            }
+        }
+    }
+
+    /**
      * Enqueues an element for rendering.
      */
     protected final void enqueue (SceneElement element)
@@ -299,6 +313,27 @@ public abstract class Scene extends DynamicScope
         if (element.getTickPolicy() == TickPolicy.WHEN_VISIBLE) {
             _visible.add(element);
         }
+    }
+
+    /**
+     * Searches for an intersection with the supplied elements.
+     */
+    public SceneElement getIntersection (
+        ArrayList<SceneElement> elements, Ray ray, Vector3f location,
+        Predicate<SceneElement> filter)
+    {
+        SceneElement closest = null;
+        Vector3f origin = ray.getOrigin();
+        for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
+            SceneElement element = elements.get(ii);
+            if (filter.isMatch(element) && element.getIntersection(ray, _result) &&
+                    (closest == null || origin.distanceSquared(_result) <
+                        origin.distanceSquared(location))) {
+                closest = element;
+                location.set(_result);
+            }
+        }
+        return closest;
     }
 
     /**
@@ -335,6 +370,21 @@ public abstract class Scene extends DynamicScope
             _transientPool.put(ref, list = new ArrayList<SoftReference<Model>>());
         }
         list.add(new SoftReference<Model>(model));
+    }
+
+    /**
+     * Adds all objects from the provided list that intersect the given bounds to the specified
+     * results list.
+     */
+    protected static <T extends SceneObject> void getIntersecting (
+        ArrayList<T> objects, Box bounds, ArrayList<T> results)
+    {
+        for (int ii = 0, nn = objects.size(); ii < nn; ii++) {
+            T object = objects.get(ii);
+            if (object.getBounds().intersects(bounds)) {
+                results.add(object);
+            }
+        }
     }
 
     /** The application context. */
