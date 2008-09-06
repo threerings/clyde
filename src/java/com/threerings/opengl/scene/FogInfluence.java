@@ -15,17 +15,15 @@ public class FogInfluence extends SceneInfluence
      */
     public FogInfluence (FogState state)
     {
-        _state = state;
+        _fogState = state;
     }
 
-    /**
-     * Returns a reference to the fog state.
-     */
-    public FogState getState ()
+    @Override // documentation inherited
+    public FogState getFogState ()
     {
-        return _state;
+        return _fogState;
     }
 
     /** The fog state. */
-    protected FogState _state;
+    protected FogState _fogState;
 }

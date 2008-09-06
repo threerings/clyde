@@ -18,9 +18,7 @@ public class LightInfluence extends SceneInfluence
         _light = light;
     }
 
-    /**
-     * Returns a reference to the light object.
-     */
+    @Override // documentation inherited
     public Light getLight ()
     {
         return _light;

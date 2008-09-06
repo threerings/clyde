@@ -35,6 +35,7 @@ import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.TransformState;
+import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
@@ -365,6 +366,10 @@ public class Articulated extends Model.Implementation
         }
         model.setParentScope(node);
         _userAttachments.add(model);
+        Scene scene = ((Model)_parentScope).getScene();
+        if (scene != null) {
+            model.wasAdded(scene);
+        }
     }
 
     @Override // documentation inherited
@@ -372,6 +377,9 @@ public class Articulated extends Model.Implementation
     {
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             if (_userAttachments.get(ii) == model) {
+                if (model.getScene() != null) {
+                    model.willBeRemoved();
+                }
                 _userAttachments.remove(ii);
                 return;
             }
@@ -446,6 +454,35 @@ public class Articulated extends Model.Implementation
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
+    }
+
+    @Override // documentation inherited
+    public void wasAdded ()
+    {
+        // notify configured attachments
+        Scene scene = ((Model)_parentScope).getScene();
+        for (Model model : _configAttachments) {
+            model.wasAdded(scene);
+        }
+
+        // and user attachments
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            _userAttachments.get(ii).wasAdded(scene);
+        }
+    }
+
+    @Override // documentation inherited
+    public void willBeRemoved ()
+    {
+        // notify configured attachments
+        for (Model model : _configAttachments) {
+            model.willBeRemoved();
+        }
+
+        // and user attachments
+        for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+            _userAttachments.get(ii).willBeRemoved();
+        }
     }
 
     @Override // documentation inherited
@@ -654,6 +691,7 @@ public class Articulated extends Model.Implementation
         }
 
         // create the configured attachments
+        Scene scene = ((Model)_parentScope).getScene();
         Model[] omodels = _configAttachments;
         _configAttachments = new Model[_config.attachments.length];
         for (int ii = 0; ii < _configAttachments.length; ii++) {
@@ -664,10 +702,17 @@ public class Articulated extends Model.Implementation
             model.setParentScope(getAttachmentNode(attachment.node));
             model.setConfig(attachment.model);
             model.getLocalTransform().set(attachment.transform);
+            if (model.getScene() == null && scene != null) {
+                model.wasAdded(scene);
+            }
         }
         if (omodels != null) {
             for (int ii = _configAttachments.length; ii < omodels.length; ii++) {
-                omodels[ii].dispose();
+                Model model = omodels[ii];
+                if (scene != null) {
+                    model.willBeRemoved();
+                }
+                model.dispose();
             }
         }
 
@@ -680,6 +725,9 @@ public class Articulated extends Model.Implementation
             if (node != null) {
                 model.setParentScope(node);
                 _userAttachments.add(model);
+
+            } else if (scene != null) {
+                model.willBeRemoved();
             }
         }
     }
@@ -749,7 +797,11 @@ public class Articulated extends Model.Implementation
     protected void detachAll (Node node)
     {
         for (int ii = _userAttachments.size() - 1; ii >= 0; ii--) {
-            if (_userAttachments.get(ii).getParentScope() == node) {
+            Model model = _userAttachments.get(ii);
+            if (model.getParentScope() == node) {
+                if (model.getScene() != null) {
+                    model.willBeRemoved();
+                }
                 _userAttachments.remove(ii);
             }
         }

@@ -4,6 +4,7 @@
 package com.threerings.opengl.scene;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import com.samskivert.util.Predicate;
 
@@ -41,13 +42,13 @@ public class SimpleScene extends Scene
     }
 
     @Override // documentation inherited
-    public void getElements (Box bounds, ArrayList<SceneElement> results)
+    public void getElements (Box bounds, Collection<SceneElement> results)
     {
         getIntersecting(_elements, bounds, results);
     }
 
     @Override // documentation inherited
-    public void getInfluences (Box bounds, ArrayList<SceneInfluence> results)
+    public void getInfluences (Box bounds, Collection<SceneInfluence> results)
     {
         getIntersecting(_influences, bounds, results);
     }

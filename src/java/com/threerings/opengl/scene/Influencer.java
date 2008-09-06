@@ -59,11 +59,19 @@ public class Influencer extends Model.Implementation
         _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // and the world bounds
-//        _meshes.bounds.transform(_worldTransform, _nbounds);
+        _config.extent.transformBounds(_worldTransform, _nbounds);
         if (!_bounds.equals(_nbounds)) {
             ((Model)_parentScope).boundsWillChange();
             _bounds.set(_nbounds);
             ((Model)_parentScope).boundsDidChange();
+
+            // update the influence bounds if we're in a scene
+            Scene scene = ((Model)_parentScope).getScene();
+            if (scene != null) {
+                scene.boundsWillChange(_influence);
+                _influence.getBounds().set(_nbounds);
+                scene.boundsDidChange(_influence);
+            }
         }
     }
 
@@ -71,6 +79,18 @@ public class Influencer extends Model.Implementation
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
+    }
+
+    @Override // documentation inherited
+    public void wasAdded ()
+    {
+        ((Model)_parentScope).getScene().add(_influence);
+    }
+
+    @Override // documentation inherited
+    public void willBeRemoved ()
+    {
+        ((Model)_parentScope).getScene().remove(_influence);
     }
 
     @Override // documentation inherited
@@ -97,10 +117,24 @@ public class Influencer extends Model.Implementation
      */
     protected void updateFromConfig ()
     {
+        // remove the old influence, if any
+        Scene scene = ((Model)_parentScope).getScene();
+        if (scene != null && _influence != null) {
+            scene.remove(_influence);
+        }
+
         // create the influence and the updaters
         ArrayList<Updater> updaters = new ArrayList<Updater>();
         _influence = _config.influence.createSceneInfluence(_ctx, this, updaters);
         _updaters = updaters.toArray(new Updater[updaters.size()]);
+
+        // add to scene if we're in one
+        if (scene != null) {
+            scene.add(_influence);
+        }
+
+        // update the bounds
+        updateBounds();
     }
 
     /** The application context. */

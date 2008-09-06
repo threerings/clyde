@@ -15,17 +15,15 @@ public class AmbientLightInfluence extends SceneInfluence
      */
     public AmbientLightInfluence (Color4f color)
     {
-        _color.set(color);
+        _ambientLight.set(color);
     }
 
-    /**
-     * Returns a reference to the color.
-     */
-    public Color4f getColor ()
+    @Override // documentation inherited
+    public Color4f getAmbientLight ()
     {
-        return _color;
+        return _ambientLight;
     }
 
-    /** The light color. */
-    protected Color4f _color = new Color4f();
+    /** The ambient light color. */
+    protected Color4f _ambientLight = new Color4f();
 }

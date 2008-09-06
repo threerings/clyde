@@ -23,12 +23,17 @@ public interface SceneElement extends SceneObject, Tickable, Intersectable, Rend
     public TickPolicy getTickPolicy ();
 
     /**
-     * Notes that an influence has been added whose bounds intersect those of the element.
+     * Notes that the element was added to the specified scene.
      */
-    public void influenceAdded (SceneInfluence influence);
+    public void wasAdded (Scene scene);
 
     /**
-     * Notes that an intersecting influence has been removed.
+     * Notes that the element will be removed from the scene.
      */
-    public void influenceRemoved (SceneInfluence influence);
+    public void willBeRemoved ();
+
+    /**
+     * Sets the influences affecting this element.
+     */
+    public void setInfluences (SceneInfluenceSet influences);
 }

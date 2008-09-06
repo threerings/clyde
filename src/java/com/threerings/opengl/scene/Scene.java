@@ -6,6 +6,7 @@ package com.threerings.opengl.scene;
 import java.lang.ref.SoftReference;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -61,7 +62,7 @@ public abstract class Scene extends DynamicScope
      */
     public void add (SceneElement element)
     {
-        // initialize scope
+        // set the parent scope if appropriate
         if (element instanceof DynamicScope) {
             ((DynamicScope)element).setParentScope(this);
         }
@@ -69,6 +70,12 @@ public abstract class Scene extends DynamicScope
         // add to data structures
         addToTick(element);
         addToSpatial(element);
+
+        // add to influence update list
+        _updateInfluences.add(element);
+
+        // notify the element
+        element.wasAdded(this);
     }
 
     /**
@@ -87,11 +94,18 @@ public abstract class Scene extends DynamicScope
      */
     public void remove (SceneElement element, boolean clearParentScope)
     {
+        // notify element
+        element.willBeRemoved();
+
+        // remove from visible, influence update lists
+        _visible.remove(element);
+        _updateInfluences.remove(element);
+
         // remove from data structures
         removeFromTick(element);
         removeFromSpatial(element);
 
-        // clear scope
+        // clear the scope if appropriate
         if (element instanceof DynamicScope && clearParentScope) {
             ((DynamicScope)element).setParentScope(null);
         }
@@ -105,12 +119,8 @@ public abstract class Scene extends DynamicScope
         // add to spatial data structure
         addToSpatial(influence);
 
-        // find, notify all influenced elements
-        getElements(influence.getBounds(), _influenced);
-        for (int ii = 0, nn = _influenced.size(); ii < nn; ii++) {
-            _influenced.get(ii).influenceAdded(influence);
-        }
-        _influenced.clear();
+        // add any intersecting elements to the update list
+        getElements(influence.getBounds(), _updateInfluences);
     }
 
     /**
@@ -118,12 +128,8 @@ public abstract class Scene extends DynamicScope
      */
     public void remove (SceneInfluence influence)
     {
-        // find, notify all influenced elements
-        getElements(influence.getBounds(), _influenced);
-        for (int ii = 0, nn = _influenced.size(); ii < nn; ii++) {
-            _influenced.get(ii).influenceRemoved(influence);
-        }
-        _influenced.clear();
+        // add any intersecting elements to the update list
+        getElements(influence.getBounds(), _updateInfluences);
 
         // remove from spatial data structure
         removeFromSpatial(influence);
@@ -157,12 +163,12 @@ public abstract class Scene extends DynamicScope
      *
      * @param results a list to hold the results of the search.
      */
-    public abstract void getElements (Box bounds, ArrayList<SceneElement> results);
+    public abstract void getElements (Box bounds, Collection<SceneElement> results);
 
     /**
      * Retrieves all scene influences whose bounds intersect the provided region.
      */
-    public abstract void getInfluences (Box bounds, ArrayList<SceneInfluence> results);
+    public abstract void getInfluences (Box bounds, Collection<SceneInfluence> results);
 
     /**
      * Notes that the specified scene element's tick policy is about to change.  Will be followed
@@ -195,7 +201,8 @@ public abstract class Scene extends DynamicScope
      */
     public void boundsDidChange (SceneElement element)
     {
-        // nothing by default
+        // add to update list
+        _updateInfluences.add(element);
     }
 
     /**
@@ -204,10 +211,8 @@ public abstract class Scene extends DynamicScope
      */
     public void boundsWillChange (SceneInfluence influence)
     {
-        // store the elements currently intersecting the bounds
-        getElements(influence.getBounds(), _influenced);
-        _existing.addAll(_influenced);
-        _influenced.clear();
+        // add any intersecting elements to the update list
+        getElements(influence.getBounds(), _updateInfluences);
     }
 
     /**
@@ -215,23 +220,8 @@ public abstract class Scene extends DynamicScope
      */
     public void boundsDidChange (SceneInfluence influence)
     {
-        // find the elements currently intersecting the bounds
-        getElements(influence.getBounds(), _influenced);
-        for (int ii = 0, nn = _influenced.size(); ii < nn; ii++) {
-            SceneElement element = _influenced.get(ii);
-            if (!_existing.remove(element)) {
-                element.influenceAdded(influence);
-            }
-        }
-        _influenced.clear();
-
-        // notify any elements no longer influenced
-        if (!_existing.isEmpty()) {
-            for (SceneElement element : _existing) {
-                element.influenceRemoved(influence);
-            }
-            _existing.clear();
-        }
+        // add any intersecting elements to the update list
+        getElements(influence.getBounds(), _updateInfluences);
     }
 
     // documentation inherited from interface Tickable
@@ -244,10 +234,22 @@ public abstract class Scene extends DynamicScope
         }
 
         // tick the visible tick-when-visible elements
-        for (SceneElement element : _visible) {
-            element.tick(elapsed);
+        if (!_visible.isEmpty()) {
+            for (SceneElement element : _visible) {
+                element.tick(elapsed);
+            }
+            _visible.clear();
         }
-        _visible.clear();
+
+        // update the influences of any flagged elements
+        if (!_updateInfluences.isEmpty()) {
+            for (SceneElement element : _updateInfluences) {
+                getInfluences(element.getBounds(), _influences);
+                element.setInfluences(_influences);
+                _influences.clear();
+            }
+            _updateInfluences.clear();
+        }
     }
 
     /**
@@ -377,7 +379,7 @@ public abstract class Scene extends DynamicScope
      * results list.
      */
     protected static <T extends SceneObject> void getIntersecting (
-        ArrayList<T> objects, Box bounds, ArrayList<T> results)
+        ArrayList<T> objects, Box bounds, Collection<T> results)
     {
         for (int ii = 0, nn = objects.size(); ii < nn; ii++) {
             T object = objects.get(ii);
@@ -396,6 +398,9 @@ public abstract class Scene extends DynamicScope
     /** The visible elements to tick. */
     protected HashSet<SceneElement> _visible = new HashSet<SceneElement>();
 
+    /** The elements whose influence sets must be updated. */
+    protected HashSet<SceneElement> _updateInfluences = new HashSet<SceneElement>();
+
     /** Pooled transient models. */
     protected HashMap<ConfigReference, ArrayList<SoftReference<Model>>> _transientPool =
         Maps.newHashMap();
@@ -409,11 +414,8 @@ public abstract class Scene extends DynamicScope
         }
     };
 
-    /** Holds element during processing. */
-    protected ArrayList<SceneElement> _influenced = new ArrayList<SceneElement>();
-
-    /** Holds the set of existing influenced elements while changing an influence's bounds. */
-    protected HashSet<SceneElement> _existing = new HashSet<SceneElement>();
+    /** Holds the influences affecting an element. */
+    protected SceneInfluenceSet _influences = new SceneInfluenceSet();
 
     /** Result vector for intersection testing. */
     protected Vector3f _result = new Vector3f();

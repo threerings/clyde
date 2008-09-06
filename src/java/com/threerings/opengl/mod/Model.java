@@ -4,8 +4,10 @@
 package com.threerings.opengl.mod;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.ObserverList;
@@ -34,9 +36,13 @@ import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
+import com.threerings.opengl.scene.AmbientLightInfluence;
+import com.threerings.opengl.scene.FogInfluence;
+import com.threerings.opengl.scene.LightInfluence;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.scene.SceneInfluence;
+import com.threerings.opengl.scene.SceneInfluenceSet;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Intersectable;
@@ -168,6 +174,22 @@ public class Model extends DynamicScope
             return TickPolicy.NEVER;
         }
 
+        /**
+         * Notes that the model was added to a scene.
+         */
+        public void wasAdded ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the model will be removed from the scene.
+         */
+        public void willBeRemoved ()
+        {
+            // nothing by default
+        }
+
         // documentation inherited from interface Tickable
         public void tick (float elapsed)
         {
@@ -190,6 +212,16 @@ public class Model extends DynamicScope
         public String getScopeName ()
         {
             return "impl";
+        }
+
+        @Override // documentation inherited
+        public void dispose ()
+        {
+            Scene scene = (_parentScope == null) ? null : ((Model)_parentScope).getScene();
+            if (scene != null) {
+                willBeRemoved();
+            }
+            super.dispose();
         }
 
         /**
@@ -620,13 +652,44 @@ public class Model extends DynamicScope
     }
 
     // documentation inherited from interface SceneElement
-    public void influenceAdded (SceneInfluence influence)
+    public void wasAdded (Scene scene)
     {
+        _scene = scene;
+        _impl.wasAdded();
     }
 
     // documentation inherited from interface SceneElement
-    public void influenceRemoved (SceneInfluence influence)
+    public void willBeRemoved ()
     {
+        _impl.willBeRemoved();
+        _scene = null;
+    }
+
+    // documentation inherited from interface SceneElement
+    public void setInfluences (SceneInfluenceSet influences)
+    {
+        if (_influences.equals(influences)) {
+            return;
+        }
+        _influences.clear();
+        _influences.addAll(influences);
+
+        // process the influences
+        Box bounds = getBounds();
+        boolean updated = false;
+        FogState fogState = _influences.getFogState(bounds, _fogState);
+        if (_fogState != fogState) {
+            _fogState = fogState;
+            updated = true;
+        }
+        LightState lightState = _influences.getLightState(bounds, _lightState);
+        if (_lightState != lightState) {
+            _lightState = lightState;
+            updated = true;
+        }
+        if (updated) {
+            wasUpdated();
+        }
     }
 
     // documentation inherited from interface SceneElement
@@ -674,9 +737,19 @@ public class Model extends DynamicScope
     public void dispose ()
     {
         super.dispose();
+        _impl.dispose();
         if (_config != null) {
             _config.removeListener(this);
         }
+    }
+
+    /**
+     * Returns a reference to the scene containing the model, if any.  This should only be called
+     * by the {@link #_impl}.
+     */
+    public Scene getScene ()
+    {
+        return _scene;
     }
 
     /**
@@ -833,6 +906,12 @@ public class Model extends DynamicScope
     /** The model's local transform. */
     @Scoped
     protected Transform3D _localTransform = new Transform3D(Transform3D.UNIFORM);
+
+    /** The scene containing the model, if any. */
+    protected Scene _scene;
+
+    /** The influences affecting this model. */
+    protected SceneInfluenceSet _influences = new SceneInfluenceSet();
 
     /** The model's fog state. */
     @Scoped

@@ -4,6 +4,7 @@
 package com.threerings.opengl.scene;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import com.google.common.collect.Maps;
@@ -143,13 +144,13 @@ public class HashScene extends Scene
     }
 
     @Override // documentation inherited
-    public void getElements (Box bounds, ArrayList<SceneElement> results)
+    public void getElements (Box bounds, Collection<SceneElement> results)
     {
         getIntersecting(_elements, _oversizedElements, bounds, results);
     }
 
     @Override // documentation inherited
-    public void getInfluences (Box bounds, ArrayList<SceneInfluence> results)
+    public void getInfluences (Box bounds, Collection<SceneInfluence> results)
     {
         getIntersecting(_influences, _oversizedInfluences, bounds, results);
     }
@@ -157,13 +158,29 @@ public class HashScene extends Scene
     @Override // documentation inherited
     public void boundsWillChange (SceneElement element)
     {
+        super.boundsWillChange(element);
         removeFromSpatial(element);
     }
 
     @Override // documentation inherited
     public void boundsDidChange (SceneElement element)
     {
+        super.boundsDidChange(element);
         addToSpatial(element);
+    }
+
+    @Override // documentation inherited
+    public void boundsWillChange (SceneInfluence influence)
+    {
+        super.boundsWillChange(influence);
+        removeFromSpatial(influence);
+    }
+
+    @Override // documentation inherited
+    public void boundsDidChange (SceneInfluence influence)
+    {
+        super.boundsDidChange(influence);
+        addToSpatial(influence);
     }
 
     @Override // documentation inherited
@@ -275,7 +292,7 @@ public class HashScene extends Scene
      * results list.
      */
     protected <T extends SceneObject> void getIntersecting (
-        HashMap<Coord, Node<T>> roots, ArrayList<T> oversized, Box bounds, ArrayList<T> results)
+        HashMap<Coord, Node<T>> roots, ArrayList<T> oversized, Box bounds, Collection<T> results)
     {
         // get the oversized elements
         getIntersecting(oversized, bounds, results);
@@ -421,7 +438,7 @@ public class HashScene extends Scene
         /**
          * Retrieves all objects intersecting the provided bounds.
          */
-        public void get (Box bounds, ArrayList<T> results)
+        public void get (Box bounds, Collection<T> results)
         {
             if (bounds.contains(_bounds)) {
                 getAll(results);
@@ -461,7 +478,7 @@ public class HashScene extends Scene
         /**
          * Gets all objects in this node.
          */
-        protected void getAll (ArrayList<T> results)
+        protected void getAll (Collection<T> results)
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
@@ -474,7 +491,7 @@ public class HashScene extends Scene
         /**
          * Gets all objects in this node intersecting the provided bounds.
          */
-        protected void getIntersecting (Box bounds, ArrayList<T> results)
+        protected void getIntersecting (Box bounds, Collection<T> results)
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
@@ -603,7 +620,7 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        protected void getAll (ArrayList<T> results)
+        protected void getAll (Collection<T> results)
         {
             super.getAll(results);
             for (Node<T> child : _children) {
@@ -614,7 +631,7 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        protected void getIntersecting (Box bounds, ArrayList<T> results)
+        protected void getIntersecting (Box bounds, Collection<T> results)
         {
             super.getIntersecting(bounds, results);
             for (Node<T> child : _children) {
