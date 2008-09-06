@@ -3,10 +3,13 @@
 
 package com.threerings.opengl.scene;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import com.threerings.math.Box;
 
+import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 
@@ -23,7 +26,19 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
      */
     public FogState getFogState (Box bounds, FogState state)
     {
-        return null;
+        FogState closest = FogState.DISABLED;
+        float cdist = Float.MAX_VALUE;
+        for (SceneInfluence influence : this) {
+            state = influence.getFogState();
+            if (state != null) {
+                float distance = influence.getBounds().getExtentDistance(bounds);
+                if (distance < cdist) {
+                    closest = state;
+                    cdist = distance;
+                }
+            }
+        }
+        return closest;
     }
 
     /**
@@ -34,6 +49,24 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
      */
     public LightState getLightState (Box bounds, LightState state)
     {
-        return null;
+        Color4f closestAmbient = null;
+        float cdist = Float.MAX_VALUE;
+        ArrayList<Light> lights = new ArrayList<Light>();
+        for (SceneInfluence influence : this) {
+            Color4f ambient = influence.getAmbientLight();
+            if (ambient != null) {
+                float distance = influence.getBounds().getExtentDistance(bounds);
+                if (distance < cdist) {
+                    closestAmbient = ambient;
+                    cdist = distance;
+                }
+            }
+            Light light = influence.getLight();
+            if (light != null) {
+                lights.add(light);
+            }
+        }
+        return (closestAmbient == null) ? LightState.DISABLED :
+            new LightState(lights.toArray(new Light[lights.size()]), closestAmbient);
     }
 }

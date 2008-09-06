@@ -126,6 +126,7 @@ public class Influencer extends Model.Implementation
         // create the influence and the updaters
         ArrayList<Updater> updaters = new ArrayList<Updater>();
         _influence = _config.influence.createSceneInfluence(_ctx, this, updaters);
+        _influence.getBounds().set(_bounds);
         _updaters = updaters.toArray(new Updater[updaters.size()]);
 
         // add to scene if we're in one

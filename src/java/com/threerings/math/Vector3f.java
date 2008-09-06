@@ -224,6 +224,14 @@ public final class Vector3f
     }
 
     /**
+     * Returns the Manhattan distance between this vector and the specified other.
+     */
+    public float manhattanDistance (Vector3f other)
+    {
+        return Math.abs(x - other.x) + Math.abs(y - other.y) + Math.abs(z - other.z);
+    }
+
+    /**
      * Multiplies this vector in-place by a scalar.
      *
      * @return a reference to this vector, for chaining.

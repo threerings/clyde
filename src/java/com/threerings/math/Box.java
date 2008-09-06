@@ -402,14 +402,24 @@ public final class Box
     }
 
     /**
+     * Returns the sum of the Manhattan distances between the extents of this box and the
+     * specified other box.
+     */
+    public float getExtentDistance (Box other)
+    {
+        return other.getMinimumExtent().manhattanDistance(_minExtent) +
+            other.getMaximumExtent().manhattanDistance(_maxExtent);
+    }
+
+    /**
      * Determines whether this box completely contains the specified box.
      */
     public boolean contains (Box other)
     {
-        Vector3f otherMinExtent = other._minExtent, otherMaxExtent = other._maxExtent;
-        return otherMinExtent.x >= _minExtent.x && otherMaxExtent.x <= _maxExtent.x &&
-            otherMinExtent.y >= _minExtent.y && otherMaxExtent.y <= _maxExtent.y &&
-            otherMinExtent.z >= _minExtent.z && otherMaxExtent.z <= _maxExtent.z;
+        Vector3f omin = other._minExtent, omax = other._maxExtent;
+        return omin.x >= _minExtent.x && omax.x <= _maxExtent.x &&
+            omin.y >= _minExtent.y && omax.y <= _maxExtent.y &&
+            omin.z >= _minExtent.z && omax.z <= _maxExtent.z;
     }
 
     /**
@@ -417,10 +427,10 @@ public final class Box
      */
     public boolean intersects (Box other)
     {
-        Vector3f otherMinExtent = other._minExtent, otherMaxExtent = other._maxExtent;
-        return _maxExtent.x >= otherMinExtent.x && _minExtent.x <= otherMaxExtent.x &&
-            _maxExtent.y >= otherMinExtent.y && _minExtent.y <= otherMaxExtent.y &&
-            _maxExtent.z >= otherMinExtent.z && _minExtent.z <= otherMaxExtent.z;
+        Vector3f omin = other._minExtent, omax = other._maxExtent;
+        return _maxExtent.x >= omin.x && _minExtent.x <= omax.x &&
+            _maxExtent.y >= omin.y && _minExtent.y <= omax.y &&
+            _maxExtent.z >= omin.z && _minExtent.z <= omax.z;
     }
 
     /**
