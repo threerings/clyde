@@ -54,10 +54,10 @@ import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 import com.threerings.util.ToolUtil;
 
-import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig.Layer;
 import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.mod.tools.ModelTool;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
@@ -70,7 +70,7 @@ import static com.threerings.opengl.Log.*;
 /**
  * The particle editor application.
  */
-public class ParticleEditor extends GlCanvasTool
+public class ParticleEditor extends ModelTool
     implements ListSelectionListener, ChangeListener
 {
     /**
@@ -290,8 +290,6 @@ public class ParticleEditor extends GlCanvasTool
         } else if (action.equals("configs")) {
             new ConfigEditor(
                 _msgmgr, _model.getConfig().getConfigManager(), _colorpos).setVisible(true);
-        } else if (action.equals("reset")) {
-            _model.reset();
         } else if (action.equals("new_layer")) {
             ((LayerTableModel)_ltable.getModel()).newLayer();
         } else if (action.equals("clone_layer")) {
@@ -304,19 +302,9 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected DebugBounds createBounds ()
-    {
-        return new DebugBounds(this) {
-            protected void draw () {
-                _model.drawBounds();
-            }
-        };
-    }
-
-    @Override // documentation inherited
     protected ToolUtil.EditablePrefs createEditablePrefs ()
     {
-        return new CanvasToolPrefs(_prefs);
+        return new ModelToolPrefs(_prefs);
     }
 
     @Override // documentation inherited
@@ -346,8 +334,7 @@ public class ParticleEditor extends GlCanvasTool
         ModelConfig config = new ModelConfig();
         config.implementation = new ParticleSystemConfig();
         config.init(_cfgmgr);
-        _model = new Model(this, config);
-        _model.setParentScope(this);
+        _scene.add(_model = new Model(this, config));
 
         // initialize the table
         _ltable.setModel(new LayerTableModel());
@@ -363,7 +350,6 @@ public class ParticleEditor extends GlCanvasTool
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
-        _model.tick(elapsed);
         if (_autoReset.isSelected() && _model.hasCompleted()) {
             _model.reset();
         }
@@ -376,7 +362,6 @@ public class ParticleEditor extends GlCanvasTool
         if (_showGround.isSelected()) {
             _ground.enqueue();
         }
-        _model.enqueue();
     }
 
     /**
@@ -735,9 +720,6 @@ public class ParticleEditor extends GlCanvasTool
 
     /** The loaded particle file. */
     protected File _file;
-
-    /** The particle model. */
-    protected Model _model;
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ParticleEditor.class);

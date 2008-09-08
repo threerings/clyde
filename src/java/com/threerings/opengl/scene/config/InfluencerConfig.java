@@ -87,9 +87,6 @@ public class InfluencerConfig extends ModelConfig.Implementation
         if (impl instanceof Influencer) {
             ((Influencer)impl).setConfig(this);
         } else {
-            if (impl != null) {
-                impl.dispose();
-            }
             impl = new Influencer(ctx, scope, this);
         }
         return impl;

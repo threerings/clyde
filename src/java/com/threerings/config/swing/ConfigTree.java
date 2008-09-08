@@ -21,7 +21,7 @@ import javax.swing.tree.TreeSelectionModel;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.Tuple;
 
-import com.threerings.export.SerializableWrapper;
+import com.threerings.export.util.SerializableWrapper;
 import com.threerings.util.ChangeBlock;
 import com.threerings.util.ToolUtil;
 

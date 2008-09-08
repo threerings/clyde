@@ -13,6 +13,7 @@ import com.samskivert.util.QuickSort;
 import com.threerings.expr.Bound;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
@@ -492,6 +493,13 @@ public class ParticleSystem extends Model.Implementation
         for (Layer layer : _layers) {
             layer.enqueue();
         }
+    }
+
+    @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
+        updateFromConfig();
     }
 
     /**

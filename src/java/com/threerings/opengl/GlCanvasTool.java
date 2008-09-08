@@ -37,7 +37,7 @@ import com.threerings.opengl.util.Grid;
 import com.threerings.opengl.util.Stats;
 
 /**
- * A base class for the OpenGL tool applications, such as the model viewer and the particle editor.
+ * A base class for the OpenGL tool applications.
  */
 public abstract class GlCanvasTool extends GlCanvasApp
     implements EditorContext, ActionListener
@@ -229,7 +229,6 @@ public abstract class GlCanvasTool extends GlCanvasApp
         public CanvasToolPrefs (Preferences prefs)
         {
             super(prefs);
-            _compositor.getBackgroundColor().set(getPref("background_color", Color4f.GRAY));
 
             // initialize the refresh interval
             _refreshInterval = new Interval(GlCanvasTool.this) {
@@ -237,13 +236,54 @@ public abstract class GlCanvasTool extends GlCanvasApp
                     _rsrcmgr.checkForModifications();
                 }
             };
-            rescheduleRefreshInterval(getRefreshInterval());
+            rescheduleRefreshInterval();
+
+            // set the background color
+            _compositor.getBackgroundColor().set(getPref("background_color", Color4f.GRAY));
+        }
+
+        /**
+         * Sets whether or not automatic file refresh is enabled.
+         */
+        @Editable(weight=1)
+        public void setAutoRefreshEnabled (boolean enabled)
+        {
+            _prefs.putBoolean("auto_refresh_enabled", enabled);
+            rescheduleRefreshInterval();
+        }
+
+        /**
+         * Checks whether or not automatic file refresh is enabled.
+         */
+        @Editable
+        public boolean isAutoRefreshEnabled ()
+        {
+            return _prefs.getBoolean("auto_refresh_enabled", false);
+        }
+
+        /**
+         * Sets the refresh interval.
+         */
+        @Editable(weight=2, min=0, step=0.01)
+        public void setRefreshInterval (float interval)
+        {
+            _prefs.putFloat("refresh_interval", interval);
+            rescheduleRefreshInterval();
+        }
+
+        /**
+         * Returns the refresh interval.
+         */
+        @Editable
+        public float getRefreshInterval ()
+        {
+            return _prefs.getFloat("refresh_interval", 0.5f);
         }
 
         /**
          * Sets the background color.
          */
-        @Editable(weight=1)
+        @Editable(weight=3)
         public void setBackgroundColor (Color4f color)
         {
             _compositor.getBackgroundColor().set(color);
@@ -260,30 +300,12 @@ public abstract class GlCanvasTool extends GlCanvasApp
         }
 
         /**
-         * Sets the refresh interval.
-         */
-        @Editable(weight=2, min=0, step=0.01)
-        public void setRefreshInterval (float interval)
-        {
-            _prefs.putFloat("refresh_interval", interval);
-            rescheduleRefreshInterval(interval);
-        }
-
-        /**
-         * Returns the refresh interval.
-         */
-        @Editable
-        public float getRefreshInterval ()
-        {
-            return _prefs.getFloat("refresh_interval", 0f);
-        }
-
-        /**
          * Updates the schedule of the refresh interval.
          */
-        protected void rescheduleRefreshInterval (float interval)
+        protected void rescheduleRefreshInterval ()
         {
-            if (interval > 0f) {
+            float interval = getRefreshInterval();
+            if (isAutoRefreshEnabled() && interval > 0f) {
                 _refreshInterval.schedule((long)(interval * 1000f), true);
             } else {
                 _refreshInterval.cancel();

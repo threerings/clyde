@@ -398,9 +398,6 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         if (impl instanceof ParticleSystem) {
             ((ParticleSystem)impl).setConfig(this);
         } else {
-            if (impl != null) {
-                impl.dispose();
-            }
             impl = new ParticleSystem(ctx, scope, this);
         }
         return impl;

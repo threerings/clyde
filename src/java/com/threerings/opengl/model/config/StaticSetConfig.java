@@ -52,9 +52,6 @@ public class StaticSetConfig extends ModelConfig.Imported
         if (impl instanceof Static) {
             ((Static)impl).setConfig(mset, materialMappings);
         } else {
-            if (impl != null) {
-                impl.dispose();
-            }
             impl = new Static(ctx, scope, mset, materialMappings);
         }
         return impl;

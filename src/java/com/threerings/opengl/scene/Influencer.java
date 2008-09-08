@@ -69,7 +69,9 @@ public class Influencer extends Model.Implementation
             Scene scene = ((Model)_parentScope).getScene();
             if (scene != null) {
                 scene.boundsWillChange(_influence);
-                _influence.getBounds().set(_nbounds);
+            }
+            _influence.getBounds().set(_nbounds);
+            if (scene != null) {
                 scene.boundsDidChange(_influence);
             }
         }
@@ -109,7 +111,7 @@ public class Influencer extends Model.Implementation
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
-        updateBounds();
+        updateFromConfig();
     }
 
     /**

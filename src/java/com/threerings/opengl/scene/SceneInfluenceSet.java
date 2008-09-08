@@ -26,19 +26,19 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
      */
     public FogState getFogState (Box bounds, FogState state)
     {
-        FogState closest = FogState.DISABLED;
+        FogState closestState = null;
         float cdist = Float.MAX_VALUE;
         for (SceneInfluence influence : this) {
             state = influence.getFogState();
             if (state != null) {
                 float distance = influence.getBounds().getExtentDistance(bounds);
-                if (distance < cdist) {
-                    closest = state;
+                if (closestState == null || distance < cdist) {
+                    closestState = state;
                     cdist = distance;
                 }
             }
         }
-        return closest;
+        return (closestState == null) ? FogState.DISABLED : closestState;
     }
 
     /**
@@ -56,7 +56,7 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
             Color4f ambient = influence.getAmbientLight();
             if (ambient != null) {
                 float distance = influence.getBounds().getExtentDistance(bounds);
-                if (distance < cdist) {
+                if (closestAmbient == null || distance <= cdist) {
                     closestAmbient = ambient;
                     cdist = distance;
                 }

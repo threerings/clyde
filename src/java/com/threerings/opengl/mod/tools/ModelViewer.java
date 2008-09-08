@@ -39,7 +39,6 @@ import com.threerings.editor.swing.EditorPanel;
 import com.threerings.util.ChangeBlock;
 import com.threerings.util.ToolUtil;
 
-import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.mod.Animation;
 import com.threerings.opengl.mod.ModelObserver;
 import com.threerings.opengl.mod.Model;
@@ -50,7 +49,7 @@ import com.threerings.opengl.util.DebugBounds;
 /**
  * A simple model viewer application.
  */
-public class ModelViewer extends GlCanvasTool
+public class ModelViewer extends ModelTool
     implements ChangeListener, ConfigUpdateListener<ModelConfig>, ModelObserver
 {
     /**
@@ -205,29 +204,9 @@ public class ModelViewer extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    public void actionPerformed (ActionEvent event)
-    {
-        if (event.getActionCommand().equals("reset")) {
-            _model.reset();
-        } else {
-            super.actionPerformed(event);
-        }
-    }
-
-    @Override // documentation inherited
-    protected DebugBounds createBounds ()
-    {
-        return new DebugBounds(this) {
-            protected void draw () {
-                _model.drawBounds();
-            }
-        };
-    }
-
-    @Override // documentation inherited
     protected ToolUtil.EditablePrefs createEditablePrefs ()
     {
-        return new CanvasToolPrefs(_prefs);
+        return new ModelToolPrefs(_prefs);
     }
 
     @Override // documentation inherited
@@ -235,17 +214,13 @@ public class ModelViewer extends GlCanvasTool
     {
         super.didInit();
 
-        // set up the scene and model
-        _scene = new SimpleScene(this);
-        _scene.setParentScope(this);
-
+        // set up the model
         ModelConfig config = new ModelConfig();
         config.init(_cfgmgr);
         config.addListener(this);
         config.implementation = (ModelConfig.Derived)_epanel.getObject();
-        _model = new Model(this, config);
+        _scene.add(_model = new Model(this, config));
         _model.addObserver(this);
-        _scene.add(_model);
 
         // add the initial track panel
         _tpanels.setVisible(_model.getAnimations().length > 0);
@@ -266,20 +241,6 @@ public class ModelViewer extends GlCanvasTool
         _now.value += lelapsed;
 
         updateView(lelapsed / 1000f);
-    }
-
-    @Override // documentation inherited
-    protected void updateView (float elapsed)
-    {
-        super.updateView(elapsed);
-        _scene.tick(elapsed);
-    }
-
-    @Override // documentation inherited
-    protected void enqueueView ()
-    {
-        super.enqueueView();
-        _scene.enqueue();
     }
 
     /**
@@ -404,12 +365,6 @@ public class ModelViewer extends GlCanvasTool
 
     /** The speed display. */
     protected JLabel _speedLabel;
-
-    /** The model scene. */
-    protected SimpleScene _scene;
-
-    /** The model being viewed. */
-    protected Model _model;
 
     /** The time of the last update. */
     protected long _lastUpdate = System.currentTimeMillis();

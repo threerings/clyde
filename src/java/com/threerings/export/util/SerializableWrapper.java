@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.export;
+package com.threerings.export.util;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -9,6 +9,9 @@ import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.OutputStream;
+
+import com.threerings.export.BinaryExporter;
+import com.threerings.export.BinaryImporter;
 
 /**
  * Wraps an exportable object so that it can be serialized (in an inefficient manner, by creating

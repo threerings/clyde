@@ -26,7 +26,8 @@ import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.Editable;
-import com.threerings.export.SerializableWrapper;
+import com.threerings.export.util.ExportUtil;
+import com.threerings.export.util.SerializableWrapper;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.resource.ResourceManager;
 
@@ -127,6 +128,27 @@ public class ToolUtil
         protected void putPref (String key, Color4f value)
         {
             _prefs.put(key, value.r + ", " + value.g + ", " + value.b + ", " + value.a);
+        }
+
+        /**
+         * Retrieves the value of an exportable preference.
+         */
+        protected Object getPref (String key, Object def)
+        {
+            byte[] bytes = _prefs.getByteArray(key, null);
+            Object object = (bytes == null) ? null : ExportUtil.fromBytes(bytes);
+            return (object == null) ? def : object;
+        }
+
+        /**
+         * Sets the value of an exportable preference.
+         */
+        protected void putPref (String key, Object value)
+        {
+            byte[] bytes = ExportUtil.toBytes(value);
+            if (bytes != null) {
+                _prefs.putByteArray(key, bytes);
+            }
         }
 
         /** The preferences node to use. */

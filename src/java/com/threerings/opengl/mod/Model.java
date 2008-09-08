@@ -214,16 +214,6 @@ public class Model extends DynamicScope
             return "impl";
         }
 
-        @Override // documentation inherited
-        public void dispose ()
-        {
-            Scene scene = (_parentScope == null) ? null : ((Model)_parentScope).getScene();
-            if (scene != null) {
-                willBeRemoved();
-            }
-            super.dispose();
-        }
-
         /**
          * Creates a set of surfaces.
          */
@@ -822,6 +812,9 @@ public class Model extends DynamicScope
         Implementation nimpl = (_config == null) ?
             null : _config.getModelImplementation(_ctx, this, _impl);
         nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        if (_impl == nimpl) {
+            return;
+        }
         boolean tickPolicyChanging = (_impl.getTickPolicy() != nimpl.getTickPolicy());
         boolean boundsChanging = !_impl.getBounds().equals(nimpl.getBounds());
         if (tickPolicyChanging) {
@@ -829,6 +822,12 @@ public class Model extends DynamicScope
         }
         if (boundsChanging) {
             boundsWillChange();
+        }
+        if (_impl != null) {
+            if (_scene != null) {
+                _impl.willBeRemoved();
+            }
+            _impl.dispose();
         }
         _impl = nimpl;
         if (tickPolicyChanging) {

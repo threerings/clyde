@@ -113,7 +113,7 @@ public class Static extends Model.Implementation
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
-        updateBounds();
+        updateFromConfig();
     }
 
     /**

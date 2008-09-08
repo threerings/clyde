@@ -102,6 +102,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             @SuppressWarnings("unchecked") List<Object> list = (List<Object>)values;
             list.set(idx, value);
         }
+        _property.set(_object, values);
     }
 
     /**
@@ -132,6 +133,7 @@ public abstract class ArrayListEditor extends PropertyEditor
             }
             @SuppressWarnings("unchecked") List<Object> list = values;
             list.add(value);
+            _property.set(_object, values);
         }
         _add.setEnabled(getLength() < _max);
         fireStateChanged();
@@ -154,6 +156,7 @@ public abstract class ArrayListEditor extends PropertyEditor
         } else {
             List values = (List)_property.get(_object);
             values.remove(idx);
+            _property.set(_object, values);
         }
         _add.setEnabled(getLength() < _max);
         fireStateChanged();
