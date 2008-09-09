@@ -123,6 +123,9 @@ public class ParticleEditor extends ModelTool
         menubar.add(view);
         view.add(_autoReset = createCheckBoxMenuItem("auto_reset", KeyEvent.VK_A, KeyEvent.VK_E));
         view.addSeparator();
+        view.add(_showEnvironment =
+            createCheckBoxMenuItem("environment", KeyEvent.VK_E, KeyEvent.VK_V));
+        _showEnvironment.setSelected(true);
         view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_D));
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));

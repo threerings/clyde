@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 
 import java.util.prefs.Preferences;
 
+import javax.swing.JCheckBoxMenuItem;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
@@ -53,7 +55,10 @@ public abstract class ModelTool extends GlCanvasTool
     @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
-        if (event.getActionCommand().equals("reset")) {
+        String action = event.getActionCommand();
+        if (action.equals("environment")) {
+            ((ModelToolPrefs)_eprefs).updateEnvironment();
+        } else if (action.equals("reset")) {
             _model.reset();
         } else {
             super.actionPerformed(event);
@@ -136,7 +141,8 @@ public abstract class ModelTool extends GlCanvasTool
         public void updateEnvironment ()
         {
             Model[] omodels = _environment;
-            _environment = new Model[_environmentModels.length];
+            _environment =
+                new Model[_showEnvironment.isSelected() ? _environmentModels.length : 0];
             for (int ii = 0; ii < _environment.length; ii++) {
                 EnvironmentModel envmod = _environmentModels[ii];
                 Model model = (omodels == null || omodels.length <= ii) ? null : omodels[ii];
@@ -160,6 +166,9 @@ public abstract class ModelTool extends GlCanvasTool
         /** The environment models to include in the scene. */
         protected EnvironmentModel[] _environmentModels;
     }
+
+    /** Environment toggle. */
+    protected JCheckBoxMenuItem _showEnvironment;
 
     /** The model scene. */
     protected SimpleScene _scene;
