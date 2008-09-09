@@ -88,7 +88,7 @@ public class TableArrayListEditor extends ArrayListEditor
     {
         _columns[column].setColumnValue(row, value);
         fireTableChanged(row, row, column, TableModelEvent.UPDATE);
-        fireStateChanged();
+        fireStateChanged(true);
     }
 
     // documentation inherited from interface TableModel
@@ -115,7 +115,7 @@ public class TableArrayListEditor extends ArrayListEditor
         int row = _table.getSelectedRow();
         setValue(row, _opanel.getValue());
         fireTableChanged(row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
-        fireStateChanged();
+        fireStateChanged(true);
     }
 
     @Override // documentation inherited
@@ -412,7 +412,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
 
         // fire notification events, update selection
-        fireStateChanged();
+        fireStateChanged(true);
         fireTableChanged(
             TableModelEvent.HEADER_ROW, TableModelEvent.HEADER_ROW,
             TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
@@ -441,7 +441,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
 
         // fire notification events, update selection
-        fireStateChanged();
+        fireStateChanged(true);
         fireTableChanged(
             TableModelEvent.HEADER_ROW, TableModelEvent.HEADER_ROW,
             TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
@@ -529,7 +529,7 @@ public class TableArrayListEditor extends ArrayListEditor
         fireTableChanged(
             Math.min(selected, row), Math.max(selected, row),
             TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
-        fireStateChanged();
+        fireStateChanged(true);
         setSelection(selected, -1);
         updateSelected();
     }
@@ -548,7 +548,7 @@ public class TableArrayListEditor extends ArrayListEditor
         }
         fireTableChanged(
             0, Integer.MAX_VALUE, TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
-        fireStateChanged();
+        fireStateChanged(true);
         setSelection(-1, selected);
         updateSelected();
     }
@@ -577,7 +577,7 @@ public class TableArrayListEditor extends ArrayListEditor
             fireTableChanged(
                 Math.min(srow, row), Math.max(srow, row), col, TableModelEvent.UPDATE);
         }
-        fireStateChanged();
+        fireStateChanged(true);
         updateSelected();
     }
 

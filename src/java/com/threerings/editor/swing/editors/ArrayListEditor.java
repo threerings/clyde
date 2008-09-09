@@ -102,7 +102,6 @@ public abstract class ArrayListEditor extends PropertyEditor
             @SuppressWarnings("unchecked") List<Object> list = (List<Object>)values;
             list.set(idx, value);
         }
-        _property.set(_object, values);
     }
 
     /**
@@ -159,6 +158,17 @@ public abstract class ArrayListEditor extends PropertyEditor
             _property.set(_object, values);
         }
         _add.setEnabled(getLength() < _max);
+        fireStateChanged();
+    }
+
+    /**
+     * Fires a state change, optionally resetting the property value.
+     */
+    protected void fireStateChanged (boolean reset)
+    {
+        if (reset) {
+            _property.set(_object, _property.get(_object));
+        }
         fireStateChanged();
     }
 
