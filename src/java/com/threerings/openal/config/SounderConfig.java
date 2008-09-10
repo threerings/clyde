@@ -81,7 +81,7 @@ public class SounderConfig extends ParameterizedConfig
         public boolean directional;
 
         /** The base gain (volume). */
-        @Editable(min=0, max=1, step=0.01, hgroup="g")
+        @Editable(min=0, step=0.01, hgroup="g")
         public float gain = 1f;
 
         /** The pitch multiplier. */

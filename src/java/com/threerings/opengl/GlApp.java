@@ -22,6 +22,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
 import com.threerings.openal.ClipProvider;
+import com.threerings.openal.Listener;
 import com.threerings.openal.ResourceClipProvider;
 import com.threerings.openal.SoundManager;
 import com.threerings.opengl.camera.CameraHandler;
@@ -268,7 +269,6 @@ public abstract class GlApp extends DynamicScope
     protected void updateView (float elapsed)
     {
         _soundmgr.updateStreams(elapsed);
-        _camhand.updatePosition();
     }
 
     /**
@@ -276,6 +276,20 @@ public abstract class GlApp extends DynamicScope
      */
     protected void renderView ()
     {
+        // update the camera position
+        _camhand.updatePosition();
+
+        // update the listener position and orientation
+        Listener listener = _soundmgr.getListener();
+        Transform3D transform = _compositor.getCamera().getWorldTransform();
+        Vector3f translation = transform.getTranslation();
+        Quaternion rotation = transform.getRotation();
+        rotation.transformUnitY(_up);
+        rotation.transformUnitZ(_at).negateLocal();
+        listener.setPosition(translation.x, translation.y, translation.z);
+        listener.setOrientation(_at.x, _at.y, _at.z, _up.x, _up.y, _up.z);
+
+        // render the view
         _compositor.renderView();
     }
 
@@ -373,6 +387,9 @@ public abstract class GlApp extends DynamicScope
     /** The view rotation shared by all billboards aligned with the z axis and the view vector. */
     @Scoped
     protected Quaternion _billboardRotation = new Quaternion();
+
+    /** Used to compute listener orientation. */
+    protected Vector3f _at = new Vector3f(), _up = new Vector3f();
 
     /** Our supported pixel formats in order of preference. */
     protected static final PixelFormat[] PIXEL_FORMATS = {
