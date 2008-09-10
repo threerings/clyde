@@ -744,7 +744,7 @@ public class Animation extends SimpleScope
     }
 
     /**
-     * Updates the model to match its new or modified configuration.
+     * Updates the animation to match its new or modified configuration.
      */
     protected void updateFromConfig ()
     {

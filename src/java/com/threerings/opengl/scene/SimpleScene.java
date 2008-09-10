@@ -54,6 +54,12 @@ public class SimpleScene extends Scene
     }
 
     @Override // documentation inherited
+    public void getEffects (Box bounds, Collection<ViewerEffect> results)
+    {
+        getIntersecting(_effects, bounds, results);
+    }
+
+    @Override // documentation inherited
     protected void addToSpatial (SceneElement element)
     {
         _elements.add(element);
@@ -77,9 +83,24 @@ public class SimpleScene extends Scene
         _influences.remove(influence);
     }
 
+    @Override // documentation inherited
+    protected void addToSpatial (ViewerEffect effect)
+    {
+        _effects.add(effect);
+    }
+
+    @Override // documentation inherited
+    protected void removeFromSpatial (ViewerEffect effect)
+    {
+        _effects.remove(effect);
+    }
+
     /** The list of all scene elements. */
     protected ArrayList<SceneElement> _elements = new ArrayList<SceneElement>();
 
     /** The list of all scene influences. */
     protected ArrayList<SceneInfluence> _influences = new ArrayList<SceneInfluence>();
+
+    /** The list of all viewer effects. */
+    protected ArrayList<ViewerEffect> _effects = new ArrayList<ViewerEffect>();
 }

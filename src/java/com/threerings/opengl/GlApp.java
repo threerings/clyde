@@ -250,6 +250,7 @@ public abstract class GlApp extends DynamicScope
      */
     protected void updateView (float elapsed)
     {
+        _camhand.updatePosition();
     }
 
     /**
@@ -257,7 +258,6 @@ public abstract class GlApp extends DynamicScope
      */
     protected void renderView ()
     {
-        _camhand.updatePosition();
         _compositor.renderView();
     }
 

@@ -14,13 +14,16 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
+import com.threerings.openal.config.SounderConfig;
 import com.threerings.opengl.mod.Articulated;
 import com.threerings.opengl.util.GlContext;
 
 /**
  * Configurations for actions taken by models.
  */
-@EditorTypes({ ActionConfig.CallFunction.class, ActionConfig.SpawnTransient.class })
+@EditorTypes({
+    ActionConfig.CallFunction.class, ActionConfig.SpawnTransient.class,
+    ActionConfig.PlaySound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -71,6 +74,34 @@ public abstract class ActionConfig extends DeepObject
             return new Executor() {
                 public void execute () {
                     spawnTransient.call(model, transform);
+                }
+            };
+        }
+    }
+
+    /**
+     * Plays a sound.
+     */
+    public static class PlaySound extends ActionConfig
+    {
+        /** The configuration of the sounder that will play the sound. */
+        @Editable(nullable=true)
+        public ConfigReference<SounderConfig> sounder;
+
+        /** The node at whose transform the sound should be played. */
+        @Editable
+        public String node = "";
+
+        @Override // documentation inherited
+        public Executor createExecutor (GlContext ctx, Scope scope)
+        {
+            Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
+            final Transform3D transform = (node == null) ?
+                ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
+                node.getWorldTransform();
+            return new Executor() {
+                public void execute () {
+
                 }
             };
         }

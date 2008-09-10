@@ -7,38 +7,36 @@ import com.threerings.math.Box;
 import com.threerings.util.ShallowObject;
 
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.renderer.Light;
-import com.threerings.opengl.renderer.state.FogState;
 
 /**
- * Base class for things that influence scene elements.
+ * Base class for things in the scene that affect the viewer.
  */
-public abstract class SceneInfluence extends ShallowObject
+public abstract class ViewerEffect extends ShallowObject
     implements SceneObject
 {
     /**
-     * Returns the ambient light color associated with this influence, or <code>null</code> for
+     * Returns the background color associated with this effect, or <code>null</code> for
      * none.
      */
-    public Color4f getAmbientLight ()
+    public Color4f getBackgroundColor ()
     {
         return null;
     }
 
     /**
-     * Returns the fog state associated with this influence, or <code>null</code> for none.
+     * Notes that the effect is now acting on the viewer.
      */
-    public FogState getFogState ()
+    public void activate ()
     {
-        return null;
+        // nothing by default
     }
 
     /**
-     * Returns the light associated with this influence, or <code>null</code> for none.
+     * Notes that the effect is no longer acting on the viewer.
      */
-    public Light getLight ()
+    public void deactivate ()
     {
-        return null;
+        // nothing by default
     }
 
     // documentation inherited from interface SceneObject
@@ -57,7 +55,7 @@ public abstract class SceneInfluence extends ShallowObject
         return true;
     }
 
-    /** The bounds of the influence. */
+    /** The bounds of the effect. */
     protected Box _bounds = new Box();
 
     /** The visitation id of the last visit. */

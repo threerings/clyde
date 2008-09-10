@@ -99,7 +99,7 @@ public class ConfigEditor extends BaseConfigEditor
         Class clazz, String name)
     {
         super(msgmgr, cfgmgr, colorpos, "config");
-        setSize(800, 600);
+        setSize(850, 600);
         SwingUtil.centerWindow(this);
 
         // populate the menu bar

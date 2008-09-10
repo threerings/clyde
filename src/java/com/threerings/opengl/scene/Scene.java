@@ -26,6 +26,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.mod.ModelAdapter;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
@@ -136,6 +137,24 @@ public abstract class Scene extends DynamicScope
     }
 
     /**
+     * Adds a viewer effect to this scene.
+     */
+    public void add (ViewerEffect effect)
+    {
+        // add to spatial data structure
+        addToSpatial(effect);
+    }
+
+    /**
+     * Removes a viewer effect from this scene.
+     */
+    public void remove (ViewerEffect effect)
+    {
+        // remove from spatial data structure
+        removeFromSpatial(effect);
+    }
+
+    /**
      * Checks for an intersection between the provided ray and the contents of the scene.
      *
      * @param location a vector to populate with the location of the intersection, if any.
@@ -169,6 +188,11 @@ public abstract class Scene extends DynamicScope
      * Retrieves all scene influences whose bounds intersect the provided region.
      */
     public abstract void getInfluences (Box bounds, Collection<SceneInfluence> results);
+
+    /**
+     * Retrieves all viewer effects whose bounds intersect the provided region.
+     */
+    public abstract void getEffects (Box bounds, Collection<ViewerEffect> results);
 
     /**
      * Notes that the specified scene element's tick policy is about to change.  Will be followed
@@ -206,7 +230,7 @@ public abstract class Scene extends DynamicScope
     }
 
     /**
-     * Notes that the specified infuence's bounds are about to change.  Will be followed by a call
+     * Notes that the specified influence's bounds are about to change.  Will be followed by a call
      * to {@link #boundsDidChange(SceneInfluence)} when the change has been effected.
      */
     public void boundsWillChange (SceneInfluence influence)
@@ -222,6 +246,21 @@ public abstract class Scene extends DynamicScope
     {
         // add any intersecting elements to the update list
         getElements(influence.getBounds(), _updateInfluences);
+    }
+
+    /**
+     * Notes that the specified effect's bounds are about to change.  Will be followed by a call
+     * to {@link #boundsDidChange(ViewerEffect)} when the change has been effected.
+     */
+    public void boundsWillChange (ViewerEffect effect)
+    {
+    }
+
+    /**
+     * Notes that the specified effect's bounds have changed.
+     */
+    public void boundsDidChange (ViewerEffect effect)
+    {
     }
 
     // documentation inherited from interface Tickable
@@ -241,6 +280,12 @@ public abstract class Scene extends DynamicScope
             _visible.clear();
         }
 
+        // find the effects acting on the viewer
+        Vector3f location = _ctx.getCompositor().getCamera().getWorldTransform().getTranslation();
+        getEffects(_viewer.set(location, location), _neffects);
+        setEffects(_neffects);
+        _neffects.clear();
+
         // update the influences of any flagged elements
         if (!_updateInfluences.isEmpty()) {
             for (SceneElement element : _updateInfluences) {
@@ -249,6 +294,36 @@ public abstract class Scene extends DynamicScope
                 _influences.clear();
             }
             _updateInfluences.clear();
+        }
+    }
+
+    /**
+     * Sets the effects acting on the viewer.
+     */
+    protected void setEffects (ViewerEffectSet effects)
+    {
+        if (_effects.equals(effects)) {
+            return;
+        }
+        // deactivate any effects no longer in the set
+        for (ViewerEffect effect : _effects) {
+            if (!effects.contains(effect)) {
+                effect.deactivate();
+            }
+        }
+        // activate any new effects
+        for (ViewerEffect effect : effects) {
+            if (!_effects.contains(effect)) {
+                effect.activate();
+            }
+        }
+        _effects.clear();
+        _effects.addAll(effects);
+
+        // update the background color
+        Color4f backgroundColor = _effects.getBackgroundColor(_viewer);
+        if (backgroundColor != null) {
+            _ctx.getCompositor().getBackgroundColor().set(backgroundColor);
         }
     }
 
@@ -291,6 +366,16 @@ public abstract class Scene extends DynamicScope
      * Removes an influence from the scene's spatial data structure.
      */
     protected abstract void removeFromSpatial (SceneInfluence influence);
+
+    /**
+     * Adds an effect to the scene's spatial data structure.
+     */
+    protected abstract void addToSpatial (ViewerEffect effect);
+
+    /**
+     * Removes an effect from the scene's spatial data structure.
+     */
+    protected abstract void removeFromSpatial (ViewerEffect effect);
 
     /**
      * Enqueues a list of elements for rendering.
@@ -401,6 +486,9 @@ public abstract class Scene extends DynamicScope
     /** The elements whose influence sets must be updated. */
     protected HashSet<SceneElement> _updateInfluences = new HashSet<SceneElement>();
 
+    /** The effects currently acting on the viewer. */
+    protected ViewerEffectSet _effects = new ViewerEffectSet();
+
     /** Pooled transient models. */
     protected HashMap<ConfigReference, ArrayList<SoftReference<Model>>> _transientPool =
         Maps.newHashMap();
@@ -414,11 +502,17 @@ public abstract class Scene extends DynamicScope
         }
     };
 
+    /** The viewer volume. */
+    protected Box _viewer = new Box();
+
     /** Holds the influences affecting an element. */
     protected SceneInfluenceSet _influences = new SceneInfluenceSet();
 
     /** Result vector for intersection testing. */
     protected Vector3f _result = new Vector3f();
+
+    /** Holds the new set of effects acting on the viewer. */
+    protected ViewerEffectSet _neffects = new ViewerEffectSet();
 
     /** A predicate that matches all elements. */
     protected static final Predicate<SceneElement> ALL_ELEMENTS = new Predicate<SceneElement>() {

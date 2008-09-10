@@ -156,6 +156,12 @@ public class HashScene extends Scene
     }
 
     @Override // documentation inherited
+    public void getEffects (Box bounds, Collection<ViewerEffect> results)
+    {
+        getIntersecting(_effects, _oversizedEffects, bounds, results);
+    }
+
+    @Override // documentation inherited
     public void boundsWillChange (SceneElement element)
     {
         super.boundsWillChange(element);
@@ -184,6 +190,20 @@ public class HashScene extends Scene
     }
 
     @Override // documentation inherited
+    public void boundsWillChange (ViewerEffect effect)
+    {
+        super.boundsWillChange(effect);
+        removeFromSpatial(effect);
+    }
+
+    @Override // documentation inherited
+    public void boundsDidChange (ViewerEffect effect)
+    {
+        super.boundsDidChange(effect);
+        addToSpatial(effect);
+    }
+
+    @Override // documentation inherited
     protected void addToSpatial (SceneElement element)
     {
         add(_elements, _oversizedElements, element);
@@ -205,6 +225,18 @@ public class HashScene extends Scene
     protected void removeFromSpatial (SceneInfluence influence)
     {
         remove(_influences, _oversizedInfluences, influence);
+    }
+
+    @Override // documentation inherited
+    protected void addToSpatial (ViewerEffect effect)
+    {
+        add(_effects, _oversizedEffects, effect);
+    }
+
+    @Override // documentation inherited
+    protected void removeFromSpatial (ViewerEffect effect)
+    {
+        remove(_effects, _oversizedEffects, effect);
     }
 
     /**
@@ -750,6 +782,12 @@ public class HashScene extends Scene
 
     /** Oversized influences. */
     protected ArrayList<SceneInfluence> _oversizedInfluences = new ArrayList<SceneInfluence>();
+
+    /** The top level effect nodes. */
+    protected HashMap<Coord, Node<ViewerEffect>> _effects = Maps.newHashMap();
+
+    /** Oversized effects. */
+    protected ArrayList<ViewerEffect> _oversizedEffects = new ArrayList<ViewerEffect>();
 
     /** The bounds of the roots (does not include the oversized objects). */
     protected Box _bounds = new Box();
