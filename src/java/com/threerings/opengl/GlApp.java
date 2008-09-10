@@ -21,6 +21,9 @@ import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
+import com.threerings.openal.ClipProvider;
+import com.threerings.openal.ResourceClipProvider;
+import com.threerings.openal.SoundManager;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.compositor.Compositor;
@@ -50,6 +53,8 @@ public abstract class GlApp extends DynamicScope
         _msgmgr = new MessageManager("rsrc.i18n");
         _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
         _colorpos = ColorPository.loadColorPository(_rsrcmgr);
+        _soundmgr = SoundManager.createSoundManager(this);
+        _clipprov = new ResourceClipProvider(_rsrcmgr);
         _imgcache = new ImageCache(this, shouldCheckTimestamps());
         _texcache = new TextureCache(this);
         _shadcache = new ShaderCache(this, shouldCheckTimestamps());
@@ -102,10 +107,34 @@ public abstract class GlApp extends DynamicScope
      */
     public abstract void shutdown ();
 
-    // documentation inherited from interface GlContext
+    // documentation inherited from interface AlContext, GlContext
     public DynamicScope getScope ()
     {
         return this;
+    }
+
+    // documentation inherited from interfaces AlContext, GlContext, EditorContext
+    public ResourceManager getResourceManager ()
+    {
+        return _rsrcmgr;
+    }
+
+    // documentation inherited from interfaces AlContext, GlContext, EditorContext
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
+    }
+
+    // documentation inherited from interface AlContext
+    public SoundManager getSoundManager ()
+    {
+        return _soundmgr;
+    }
+
+    // documentation inherited from interface AlContext
+    public ClipProvider getClipProvider ()
+    {
+        return _clipprov;
     }
 
     // documentation inherited from interface GlContext
@@ -121,21 +150,9 @@ public abstract class GlApp extends DynamicScope
     }
 
     // documentation inherited from interfaces GlContext, EditorContext
-    public ResourceManager getResourceManager ()
-    {
-        return _rsrcmgr;
-    }
-
-    // documentation inherited from interfaces GlContext, EditorContext
     public MessageManager getMessageManager ()
     {
         return _msgmgr;
-    }
-
-    // documentation inherited from interfaces GlContext, EditorContext
-    public ConfigManager getConfigManager ()
-    {
-        return _cfgmgr;
     }
 
     // documentation inherited from interface GlContext, EditorContext
@@ -250,6 +267,7 @@ public abstract class GlApp extends DynamicScope
      */
     protected void updateView (float elapsed)
     {
+        _soundmgr.updateStreams(elapsed);
         _camhand.updatePosition();
     }
 
@@ -321,6 +339,12 @@ public abstract class GlApp extends DynamicScope
 
     /** The model cache. */
     protected ModelCache _modcache;
+
+    /** The sound manager. */
+    protected SoundManager _soundmgr;
+
+    /** The clip provider. */
+    protected ClipProvider _clipprov;
 
     /** A container for the current time as sampled at the beginning of the frame. */
     @Scoped

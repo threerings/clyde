@@ -3,7 +3,12 @@
 
 package com.threerings.openal.config;
 
+import java.io.File;
+import java.io.IOException;
+
 import java.util.HashSet;
+
+import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -15,8 +20,11 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
+import com.threerings.openal.FileStream;
 import com.threerings.openal.Sounder;
 import com.threerings.openal.util.AlContext;
+
+import static com.threerings.openal.Log.*;
 
 /**
  * The configuration of a sounder.
@@ -189,6 +197,30 @@ public class SounderConfig extends ParameterizedConfig
         /** The interval over which to fade in the stream. */
         @Editable(min=0, step=0.01)
         public float fadeIn;
+
+        /**
+         * Creates the stream corresponding to this config.
+         */
+        public FileStream createStream (AlContext ctx)
+        {
+            ResourceManager rsrcmgr = ctx.getResourceManager();
+            FileStream stream;
+            try {
+                stream = new FileStream(
+                    ctx.getSoundManager(), rsrcmgr.getResourceFile(fileQueue[0].file),
+                    fileQueue[0].loop);
+            } catch (IOException e) {
+                log.warning("Error opening stream.", "file", fileQueue[0].file, e);
+                return null;
+            }
+            for (int ii = 1; ii < fileQueue.length; ii++) {
+                QueuedFile queued = fileQueue[ii];
+                if (queued.file != null) {
+                    stream.queueFile(rsrcmgr.getResourceFile(queued.file), queued.loop);
+                }
+            }
+            return stream;
+        }
 
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)

@@ -3,6 +3,8 @@
 
 package com.threerings.openal.util;
 
+import com.threerings.resource.ResourceManager;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.expr.DynamicScope;
 
@@ -18,6 +20,11 @@ public interface AlContext
      * Returns a reference to the scope.
      */
     public DynamicScope getScope ();
+
+    /**
+     * Returns a reference to the resource manager.
+     */
+    public ResourceManager getResourceManager ();
 
     /**
      * Returns a reference to the configuration manager.

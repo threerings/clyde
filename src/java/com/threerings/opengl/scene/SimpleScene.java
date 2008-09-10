@@ -28,6 +28,16 @@ public class SimpleScene extends Scene
         super(ctx);
     }
 
+    /**
+     * Creates a new simple scene.
+     *
+     * @param sources the number of simultaneous sound sources to allow.
+     */
+    public SimpleScene (GlContext ctx, int sources)
+    {
+        super(ctx, sources);
+    }
+
     // documentation inherited from interface Renderable
     public void enqueue ()
     {

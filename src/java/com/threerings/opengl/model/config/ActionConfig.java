@@ -14,6 +14,7 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
+import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.opengl.mod.Articulated;
 import com.threerings.opengl.util.GlContext;
@@ -99,9 +100,10 @@ public abstract class ActionConfig extends DeepObject
             final Transform3D transform = (node == null) ?
                 ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
                 node.getWorldTransform();
+            final Sounder sounder = new Sounder(ctx, scope, this.sounder);
             return new Executor() {
                 public void execute () {
-
+                    sounder.start();
                 }
             };
         }

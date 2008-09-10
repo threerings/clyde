@@ -12,15 +12,17 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
 
+import com.threerings.openal.SoundGroup;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.openal.util.AlContext;
 
 /**
  * Plays a sound.
  */
-public abstract class Sounder extends SimpleScope
+public class Sounder extends SimpleScope
     implements ConfigUpdateListener<SounderConfig>
 {
     /**
@@ -40,16 +42,12 @@ public abstract class Sounder extends SimpleScope
         /**
          * Starts playing the sound.
          */
-        public void start ()
-        {
-        }
+        public abstract void start ();
 
         /**
          * Stops the animation.
          */
-        public void stop ()
-        {
-        }
+        public abstract void stop ();
 
         @Override // documentation inherited
         public String getScopeName ()
@@ -92,22 +90,34 @@ public abstract class Sounder extends SimpleScope
         public void setConfig (SounderConfig.Clip config)
         {
             super.setConfig(_config = config);
+
+            // resolve the group and use it to obtain a sound reference
+            SoundGroup group = ScopeUtil.resolve(
+                _parentScope, "soundGroup", null, SoundGroup.class);
+            _sound = (group == null) ? null : group.getSound(config.file);
         }
 
         @Override // documentation inherited
         public void start ()
         {
-            super.start();
+            if (_sound != null) {
+                _sound.play(null, _config.loop);
+            }
         }
 
         @Override // documentation inherited
         public void stop ()
         {
-            super.stop();
+            if (_sound != null) {
+                _sound.stop();
+            }
         }
 
         /** The implementation configuration. */
         protected SounderConfig.Clip _config;
+
+        /** The sound. */
+        protected Sound _sound;
     }
 
     /**
@@ -135,26 +145,55 @@ public abstract class Sounder extends SimpleScope
         @Override // documentation inherited
         public void start ()
         {
-            super.start();
+            if (_stream != null) {
+                _stream.dispose();
+            }
+            _stream = _config.createStream(_ctx);
+            if (_stream != null) {
+                _stream.play();
+            }
         }
 
         @Override // documentation inherited
         public void stop ()
         {
-            super.stop();
+            if (_stream != null) {
+                _stream.dispose();
+                _stream = null;
+            }
         }
 
         /** The implementation configuration. */
         protected SounderConfig.Stream _config;
+
+        /** The stream. */
+        protected FileStream _stream;
     }
 
     /**
-     * Creates a new sounder.
+     * Creates a new sounder with a null configuration.
      */
     public Sounder (AlContext ctx, Scope parentScope)
     {
+        this(ctx, parentScope, (SounderConfig)null);
+    }
+
+    /**
+     * Creates a new sounder with the referenced configuration.
+     */
+    public Sounder (AlContext ctx, Scope parentScope, ConfigReference<SounderConfig> ref)
+    {
+        this(ctx, parentScope, ctx.getConfigManager().getConfig(SounderConfig.class, ref));
+    }
+
+    /**
+     * Creates a new sounder with the given configuration.
+     */
+    public Sounder (AlContext ctx, Scope parentScope, SounderConfig config)
+    {
         super(parentScope);
         _ctx = ctx;
+        setConfig(config);
     }
 
     /**
@@ -261,5 +300,7 @@ public abstract class Sounder extends SimpleScope
 
     /** An implementation that does nothing. */
     protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null, null) {
+        public void start () { }
+        public void stop () { }
     };
 }

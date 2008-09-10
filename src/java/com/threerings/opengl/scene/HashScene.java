@@ -33,7 +33,19 @@ public class HashScene extends Scene
      */
     public HashScene (GlContext ctx, float granularity, int levels)
     {
-        super(ctx);
+        this(ctx, granularity, levels, DEFAULT_SOURCES);
+    }
+
+    /**
+     * Creates a new hash scene.
+     *
+     * @param granularity the size of the top-level cells.
+     * @param levels the (maximum) number of octree levels.
+     * @param sources the number of simultaneous sound sources to allow.
+     */
+    public HashScene (GlContext ctx, float granularity, int levels, int sources)
+    {
+        super(ctx, sources);
         _granularity = granularity;
         _levels = levels;
     }

@@ -9,6 +9,8 @@ import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
+import com.threerings.openal.ClipProvider;
+import com.threerings.openal.SoundManager;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -26,10 +28,28 @@ public abstract class GlContextWrapper
         _wrapped = wrapped;
     }
 
-    // documentation inherited from interface GlContext
+    // documentation inherited from interface AlContext, GlContext
     public DynamicScope getScope ()
     {
         return _wrapped.getScope();
+    }
+
+    // documentation inherited from interfaces AlContext, GlContext, EditorContext
+    public ConfigManager getConfigManager ()
+    {
+        return _wrapped.getConfigManager();
+    }
+
+    // documentation inherited from interface AlContext
+    public SoundManager getSoundManager ()
+    {
+        return _wrapped.getSoundManager();
+    }
+
+    // documentation inherited from interface AlContext
+    public ClipProvider getClipProvider ()
+    {
+        return _wrapped.getClipProvider();
     }
 
     // documentation inherited from interface GlContext
@@ -54,12 +74,6 @@ public abstract class GlContextWrapper
     public MessageManager getMessageManager ()
     {
         return _wrapped.getMessageManager();
-    }
-
-    // documentation inherited from interface GlContext
-    public ConfigManager getConfigManager ()
-    {
-        return _wrapped.getConfigManager();
     }
 
     // documentation inherited from interface GlContext

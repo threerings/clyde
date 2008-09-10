@@ -23,6 +23,7 @@ import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.openal.SoundGroup;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.mod.ModelAdapter;
 import com.threerings.opengl.model.config.ModelConfig;
@@ -43,8 +44,19 @@ public abstract class Scene extends DynamicScope
      */
     public Scene (GlContext ctx)
     {
+        this(ctx, DEFAULT_SOURCES);
+    }
+
+    /**
+     * Creates a new scene.
+     *
+     * @param sources the number of simultaneous sound sources to allow.
+     */
+    public Scene (GlContext ctx, int sources)
+    {
         super("scene");
         _ctx = ctx;
+        _soundGroup = ctx.getSoundManager().createGroup(ctx.getClipProvider(), sources);
     }
 
     /**
@@ -502,6 +514,10 @@ public abstract class Scene extends DynamicScope
         }
     };
 
+    /** A sound group for the scene. */
+    @Scoped
+    protected SoundGroup _soundGroup;
+
     /** The viewer volume. */
     protected Box _viewer = new Box();
 
@@ -520,4 +536,7 @@ public abstract class Scene extends DynamicScope
             return true;
         }
     };
+
+    /** The default number of sound sources to allow. */
+    protected static final int DEFAULT_SOURCES = 10;
 }

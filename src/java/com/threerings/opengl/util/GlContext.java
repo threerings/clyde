@@ -9,6 +9,7 @@ import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
+import com.threerings.openal.util.AlContext;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -16,7 +17,7 @@ import com.threerings.opengl.renderer.Renderer;
  * Provides access to the various components of the OpenGL rendering system.  Not to be confused
  * with LWJGL's {@link org.lwjgl.opengl.GLContext}.
  */
-public interface GlContext
+public interface GlContext extends AlContext
 {
     /**
      * Returns a reference to the scope.

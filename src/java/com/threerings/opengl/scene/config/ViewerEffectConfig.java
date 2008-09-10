@@ -10,6 +10,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
+import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.BackgroundColorEffect;
@@ -35,7 +36,14 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Override // documentation inherited
         public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
         {
+            final Sounder sounder = new Sounder(ctx, scope, this.sounder);
             return new ViewerEffect() {
+                public void activate () {
+                    sounder.start();
+                }
+                public void deactivate () {
+                    sounder.stop();
+                }
             };
         }
     }
