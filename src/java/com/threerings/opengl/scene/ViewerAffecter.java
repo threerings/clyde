@@ -3,31 +3,28 @@
 
 package com.threerings.opengl.scene;
 
-import java.util.ArrayList;
-
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
-import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.scene.config.InfluencerConfig;
+import com.threerings.opengl.scene.config.ViewerAffecterConfig;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
 /**
- * A model implementation that exerts an influence over scene elements.
+ * A model implementation that exerts an effect on the viewer.
  */
-public class Influencer extends Model.Implementation
+public class ViewerAffecter extends Model.Implementation
 {
     /**
-     * Creates a new influencer implementation.
+     * Creates a new affecter implementation.
      */
-    public Influencer (GlContext ctx, Scope parentScope, InfluencerConfig config)
+    public ViewerAffecter (GlContext ctx, Scope parentScope, ViewerAffecterConfig config)
     {
         super(parentScope);
         _ctx = ctx;
@@ -37,7 +34,7 @@ public class Influencer extends Model.Implementation
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (InfluencerConfig config)
+    public void setConfig (ViewerAffecterConfig config)
     {
         _config = config;
         updateFromConfig();
@@ -65,14 +62,14 @@ public class Influencer extends Model.Implementation
             _bounds.set(_nbounds);
             ((Model)_parentScope).boundsDidChange();
 
-            // update the influence bounds if we're in a scene
+            // update the effect bounds if we're in a scene
             Scene scene = ((Model)_parentScope).getScene();
             if (scene != null) {
-                scene.boundsWillChange(_influence);
+                scene.boundsWillChange(_effect);
             }
-            _influence.getBounds().set(_nbounds);
+            _effect.getBounds().set(_nbounds);
             if (scene != null) {
-                scene.boundsDidChange(_influence);
+                scene.boundsDidChange(_effect);
             }
         }
     }
@@ -86,25 +83,13 @@ public class Influencer extends Model.Implementation
     @Override // documentation inherited
     public void wasAdded ()
     {
-        ((Model)_parentScope).getScene().add(_influence);
+        ((Model)_parentScope).getScene().add(_effect);
     }
 
     @Override // documentation inherited
     public void willBeRemoved ()
     {
-        ((Model)_parentScope).getScene().remove(_influence);
-    }
-
-    @Override // documentation inherited
-    public void enqueue ()
-    {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
-
-        // update the updaters
-        for (Updater updater : _updaters) {
-            updater.update();
-        }
+        ((Model)_parentScope).getScene().remove(_effect);
     }
 
     @Override // documentation inherited
@@ -119,21 +104,19 @@ public class Influencer extends Model.Implementation
      */
     protected void updateFromConfig ()
     {
-        // remove the old influence, if any
+        // remove the old effect, if any
         Scene scene = ((Model)_parentScope).getScene();
-        if (scene != null && _influence != null) {
-            scene.remove(_influence);
+        if (scene != null && _effect != null) {
+            scene.remove(_effect);
         }
 
-        // create the influence and the updaters
-        ArrayList<Updater> updaters = new ArrayList<Updater>();
-        _influence = _config.influence.createSceneInfluence(_ctx, this, updaters);
-        _influence.getBounds().set(_bounds);
-        _updaters = updaters.toArray(new Updater[updaters.size()]);
+        // create the effect
+        _effect = _config.effect.createViewerEffect(_ctx, this);
+        _effect.getBounds().set(_bounds);
 
         // add to scene if we're in one
         if (scene != null) {
-            scene.add(_influence);
+            scene.add(_effect);
         }
 
         // update the bounds
@@ -144,21 +127,14 @@ public class Influencer extends Model.Implementation
     protected GlContext _ctx;
 
     /** The model configuration. */
-    protected InfluencerConfig _config;
+    protected ViewerAffecterConfig _config;
 
-    /** The influence. */
-    protected SceneInfluence _influence;
-
-    /** Updaters to update before enqueuing. */
-    protected Updater[] _updaters;
+    /** The effect. */
+    protected ViewerEffect _effect;
 
     /** The parent world transform. */
     @Bound("worldTransform")
     protected Transform3D _parentWorldTransform;
-
-    /** The parent view transform. */
-    @Bound("viewTransform")
-    protected Transform3D _parentViewTransform;
 
     /** The local transform. */
     @Bound
@@ -167,10 +143,6 @@ public class Influencer extends Model.Implementation
     /** The world transform. */
     @Scoped
     protected Transform3D _worldTransform = new Transform3D();
-
-    /** The view transform. */
-    @Scoped
-    protected Transform3D _viewTransform = new Transform3D();
 
     /** The bounds of the system. */
     protected Box _bounds = new Box();

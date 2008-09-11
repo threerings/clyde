@@ -8,6 +8,8 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
@@ -36,7 +38,8 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Override // documentation inherited
         public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
         {
-            final Sounder sounder = new Sounder(ctx, scope, this.sounder);
+            Transform3D transform = ScopeUtil.resolve(scope, "worldTransform", new Transform3D());
+            final Sounder sounder = new Sounder(ctx, scope, transform, this.sounder);
             return new ViewerEffect() {
                 public void activate () {
                     sounder.start();

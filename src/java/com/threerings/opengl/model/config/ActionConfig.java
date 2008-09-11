@@ -97,10 +97,10 @@ public abstract class ActionConfig extends DeepObject
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
-            final Transform3D transform = (node == null) ?
+            Transform3D transform = (node == null) ?
                 ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
                 node.getWorldTransform();
-            final Sounder sounder = new Sounder(ctx, scope, this.sounder);
+            final Sounder sounder = new Sounder(ctx, scope, transform, this.sounder);
             return new Executor() {
                 public void execute () {
                     sounder.start();

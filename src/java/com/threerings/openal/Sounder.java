@@ -3,6 +3,13 @@
 
 package com.threerings.openal;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.lwjgl.openal.AL10;
+
+import com.threerings.resource.ResourceManager;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
@@ -14,10 +21,15 @@ import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.openal.SoundGroup;
+import com.threerings.openal.Source;
 import com.threerings.openal.config.SounderConfig;
+import com.threerings.openal.config.SounderConfig.QueuedFile;
 import com.threerings.openal.util.AlContext;
+
+import static com.threerings.openal.Log.*;
 
 /**
  * Plays a sound.
@@ -68,6 +80,10 @@ public class Sounder extends SimpleScope
 
         /** The implementation configuration. */
         protected SounderConfig.Original _config;
+
+        /** The sound transform. */
+        @Bound
+        protected Transform3D _transform;
     }
 
     /**
@@ -95,12 +111,29 @@ public class Sounder extends SimpleScope
             SoundGroup group = ScopeUtil.resolve(
                 _parentScope, "soundGroup", null, SoundGroup.class);
             _sound = (group == null) ? null : group.getSound(config.file);
+            if (_sound == null) {
+                return;
+            }
+
+            // configure the sound
+            _sound.setGain(config.gain);
+            _sound.setSourceRelative(config.sourceRelative);
+            _sound.setMinGain(config.minGain);
+            _sound.setMaxGain(config.maxGain);
+            _sound.setReferenceDistance(config.referenceDistance);
+            _sound.setRolloffFactor(config.rolloffFactor);
+            _sound.setMaxDistance(config.maxDistance);
+            _sound.setPitch(config.pitch);
+            _sound.setConeInnerAngle(config.coneInnerAngle);
+            _sound.setConeOuterAngle(config.coneOuterAngle);
+            _sound.setConeOuterGain(config.coneOuterGain);
         }
 
         @Override // documentation inherited
         public void start ()
         {
             if (_sound != null) {
+                updateSoundTransform();
                 _sound.play(null, _config.loop);
             }
         }
@@ -113,11 +146,28 @@ public class Sounder extends SimpleScope
             }
         }
 
+        /**
+         * Updates the position and direction of the sound.
+         */
+        protected void updateSoundTransform ()
+        {
+            _transform.update(Transform3D.RIGID);
+            Vector3f translation = _transform.getTranslation();
+            _sound.setPosition(translation.x, translation.y, translation.z);
+            if (_config.directional) {
+                _transform.getRotation().transformUnitX(_direction);
+                _sound.setDirection(_direction.x, _direction.y, _direction.z);
+            }
+        }
+
         /** The implementation configuration. */
         protected SounderConfig.Clip _config;
 
         /** The sound. */
         protected Sound _sound;
+
+        /** Holds the direction vector. */
+        protected Vector3f _direction = new Vector3f();
     }
 
     /**
@@ -148,8 +198,40 @@ public class Sounder extends SimpleScope
             if (_stream != null) {
                 _stream.dispose();
             }
-            _stream = _config.createStream(_ctx);
-            if (_stream != null) {
+            QueuedFile[] queue = _config.queue;
+            try {
+                _stream = createStream(queue[0]);
+            } catch (IOException e) {
+                log.warning("Error opening stream.", "file", queue[0].file, e);
+                _stream = null;
+                return;
+            }
+            ResourceManager rsrcmgr = _ctx.getResourceManager();
+            for (int ii = 1; ii < queue.length; ii++) {
+                QueuedFile queued = queue[ii];
+                if (queued.file != null) {
+                    _stream.queueFile(rsrcmgr.getResourceFile(queued.file), queued.loop);
+                }
+            }
+            _stream.setGain(_config.gain);
+
+            // configure the stream source
+            Source source = _stream.getSource();
+            source.setSourceRelative(_config.sourceRelative);
+            source.setMinGain(_config.minGain);
+            source.setMaxGain(_config.maxGain);
+            source.setReferenceDistance(_config.referenceDistance);
+            source.setRolloffFactor(_config.rolloffFactor);
+            source.setMaxDistance(_config.maxDistance);
+            source.setPitch(_config.pitch);
+            source.setConeInnerAngle(_config.coneInnerAngle);
+            source.setConeOuterAngle(_config.coneOuterAngle);
+            source.setConeOuterGain(_config.coneOuterGain);
+
+            // start playing
+            if (_config.fadeIn > 0f) {
+                _stream.fadeIn(_config.fadeIn);
+            } else {
                 _stream.play();
             }
         }
@@ -158,9 +240,41 @@ public class Sounder extends SimpleScope
         public void stop ()
         {
             if (_stream != null) {
-                _stream.dispose();
+                if (_config.fadeOut > 0f) {
+                    _stream.fadeOut(_config.fadeOut, true);
+                } else {
+                    _stream.dispose();
+                }
                 _stream = null;
             }
+        }
+
+        /**
+         * Creates the file stream.
+         */
+        protected FileStream createStream (QueuedFile queued)
+            throws IOException
+        {
+            return new FileStream(
+                _ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(queued.file),
+                    queued.loop) {
+                protected void update (float time) {
+                    super.update(time);
+                    if (_state == AL10.AL_PLAYING) {
+                        updateSoundTransform();
+                    }
+                }
+                protected void updateSoundTransform () {
+                    _transform.update(Transform3D.RIGID);
+                    Vector3f translation = _transform.getTranslation();
+                    _source.setPosition(translation.x, translation.y, translation.z);
+                    if (_config.directional) {
+                        _transform.getRotation().transformUnitX(_direction);
+                        _source.setDirection(_direction.x, _direction.y, _direction.z);
+                    }
+                }
+                protected Vector3f _direction = new Vector3f();
+            };
         }
 
         /** The implementation configuration. */
@@ -172,27 +286,37 @@ public class Sounder extends SimpleScope
 
     /**
      * Creates a new sounder with a null configuration.
+     *
+     * @param transform a reference to the sound transform to use.
      */
-    public Sounder (AlContext ctx, Scope parentScope)
+    public Sounder (AlContext ctx, Scope parentScope, Transform3D transform)
     {
-        this(ctx, parentScope, (SounderConfig)null);
+        this(ctx, parentScope, transform, (SounderConfig)null);
     }
 
     /**
      * Creates a new sounder with the referenced configuration.
+     *
+     * @param transform a reference to the sound transform to use.
      */
-    public Sounder (AlContext ctx, Scope parentScope, ConfigReference<SounderConfig> ref)
+    public Sounder (
+        AlContext ctx, Scope parentScope, Transform3D transform,
+        ConfigReference<SounderConfig> ref)
     {
-        this(ctx, parentScope, ctx.getConfigManager().getConfig(SounderConfig.class, ref));
+        this(ctx, parentScope, transform,
+            ctx.getConfigManager().getConfig(SounderConfig.class, ref));
     }
 
     /**
      * Creates a new sounder with the given configuration.
+     *
+     * @param transform a reference to the sound transform to use.
      */
-    public Sounder (AlContext ctx, Scope parentScope, SounderConfig config)
+    public Sounder (AlContext ctx, Scope parentScope, Transform3D transform, SounderConfig config)
     {
         super(parentScope);
         _ctx = ctx;
+        _transform = transform;
         setConfig(config);
     }
 
@@ -283,6 +407,10 @@ public class Sounder extends SimpleScope
 
     /** The application context. */
     protected AlContext _ctx;
+
+    /** The sound transform reference. */
+    @Scoped
+    protected Transform3D _transform;
 
     /** The configuration of this sounder. */
     protected SounderConfig _config;

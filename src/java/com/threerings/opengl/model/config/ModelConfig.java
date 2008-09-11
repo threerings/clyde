@@ -35,8 +35,8 @@ import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.model.tools.xml.ModelParser;
-import com.threerings.opengl.scene.config.AffecterConfig;
-import com.threerings.opengl.scene.config.InfluencerConfig;
+import com.threerings.opengl.scene.config.ViewerAffecterConfig;
+import com.threerings.opengl.scene.config.SceneInfluencerConfig;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.*;
@@ -57,7 +57,8 @@ public class ModelConfig extends ParameterizedConfig
      */
     @EditorTypes({
         StaticConfig.class, StaticSetConfig.class, ArticulatedConfig.class,
-        ParticleSystemConfig.class, InfluencerConfig.class, AffecterConfig.class, Derived.class })
+        ParticleSystemConfig.class, SceneInfluencerConfig.class, ViewerAffecterConfig.class,
+        Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {

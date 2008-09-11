@@ -3,12 +3,7 @@
 
 package com.threerings.openal.config;
 
-import java.io.File;
-import java.io.IOException;
-
 import java.util.HashSet;
-
-import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -20,7 +15,6 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
-import com.threerings.openal.FileStream;
 import com.threerings.openal.Sounder;
 import com.threerings.openal.util.AlContext;
 
@@ -115,11 +109,11 @@ public class SounderConfig extends ParameterizedConfig
 
         /** The inner angle of the sound cone. */
         @Editable(min=-360, max=+360, hgroup="c")
-        public int coneInnerAngle = 360;
+        public float coneInnerAngle = 360f;
 
         /** The outer angle of the sound cone. */
         @Editable(min=-360, max=+360, hgroup="c")
-        public int coneOuterAngle = 360;
+        public float coneOuterAngle = 360f;
     }
 
     /**
@@ -171,61 +165,22 @@ public class SounderConfig extends ParameterizedConfig
      */
     public static class Stream extends Original
     {
-        /**
-         * Represents a file to enqueue in the stream.
-         */
-        public static class QueuedFile extends DeepObject
-            implements Exportable
-        {
-            /** The file to stream. */
-            @Editable(editor="resource", nullable=true, hgroup="f")
-            @FileConstraints(
-                description="m.sound_files_desc",
-                extensions={".ogg"},
-                directory="sound_dir")
-            public String file;
-
-            /** Whether or not to loop the file. */
-            @Editable(hgroup="f")
-            public boolean loop;
-        }
-
         /** The files to enqueue in the stream. */
         @Editable(weight=-1)
-        public QueuedFile[] fileQueue = new QueuedFile[0];
+        public QueuedFile[] queue = new QueuedFile[0];
 
         /** The interval over which to fade in the stream. */
-        @Editable(min=0, step=0.01)
+        @Editable(min=0, step=0.01, hgroup="f")
         public float fadeIn;
 
-        /**
-         * Creates the stream corresponding to this config.
-         */
-        public FileStream createStream (AlContext ctx)
-        {
-            ResourceManager rsrcmgr = ctx.getResourceManager();
-            FileStream stream;
-            try {
-                stream = new FileStream(
-                    ctx.getSoundManager(), rsrcmgr.getResourceFile(fileQueue[0].file),
-                    fileQueue[0].loop);
-            } catch (IOException e) {
-                log.warning("Error opening stream.", "file", fileQueue[0].file, e);
-                return null;
-            }
-            for (int ii = 1; ii < fileQueue.length; ii++) {
-                QueuedFile queued = fileQueue[ii];
-                if (queued.file != null) {
-                    stream.queueFile(rsrcmgr.getResourceFile(queued.file), queued.loop);
-                }
-            }
-            return stream;
-        }
+        /** The interval over which to fade out the stream. */
+        @Editable(min=0, step=0.01, hgroup="f")
+        public float fadeOut;
 
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)
         {
-            for (QueuedFile queued : fileQueue) {
+            for (QueuedFile queued : queue) {
                 if (queued.file != null) {
                     paths.add(queued.file);
                 }
@@ -236,7 +191,7 @@ public class SounderConfig extends ParameterizedConfig
         public Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl)
         {
-            if (fileQueue.length == 0 || fileQueue[0].file == null) {
+            if (queue.length == 0 || queue[0].file == null) {
                 return null;
             }
             if (impl instanceof Sounder.Stream) {
@@ -273,6 +228,25 @@ public class SounderConfig extends ParameterizedConfig
             SounderConfig config = ctx.getConfigManager().getConfig(SounderConfig.class, sounder);
             return (config == null) ? null : config.getSounderImplementation(ctx, scope, impl);
         }
+    }
+
+    /**
+     * Represents a file to enqueue in the stream.
+     */
+    public static class QueuedFile extends DeepObject
+        implements Exportable
+    {
+        /** The file to stream. */
+        @Editable(editor="resource", nullable=true, hgroup="f")
+        @FileConstraints(
+            description="m.sound_files_desc",
+            extensions={".ogg"},
+            directory="sound_dir")
+        public String file;
+
+        /** Whether or not to loop the file. */
+        @Editable(hgroup="f")
+        public boolean loop;
     }
 
     /** The actual sound implementation. */
