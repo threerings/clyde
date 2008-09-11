@@ -184,12 +184,12 @@ public class PanelArrayListEditor extends ArrayListEditor
 
             // initialize
             setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createEmptyBorder(10, 0, 0, 0),
+                BorderFactory.createEmptyBorder(8, 0, 0, 0),
                 BorderFactory.createTitledBorder("")));
             setBackground(null);
             setTrigger(expand, _expandIcon, _collapseIcon);
             expand.setHorizontalAlignment(JButton.CENTER);
-            add(new Spacer(1, -20));
+            add(new Spacer(1, -18));
             setTriggerContainer(tcont, opanel);
             setGap(5);
             setCollapsed(false);
@@ -251,7 +251,7 @@ public class PanelArrayListEditor extends ArrayListEditor
                     "media/editor/" + name + ".png");
             } catch (IOException e) {
                 log.warning("Error loading image.", "name", name, e);
-                image = ImageUtil.createErrorImage(16, 16);
+                image = ImageUtil.createErrorImage(12, 12);
             }
             return new ImageIcon(image);
         }
@@ -277,5 +277,5 @@ public class PanelArrayListEditor extends ArrayListEditor
     protected static Icon _expandIcon, _collapseIcon, _raiseIcon, _lowerIcon, _deleteIcon;
 
     /** The size of the panel buttons. */
-    protected static final Dimension PANEL_BUTTON_SIZE = new Dimension(20, 20);
+    protected static final Dimension PANEL_BUTTON_SIZE = new Dimension(16, 16);
 }
