@@ -90,7 +90,7 @@ public abstract class ShapeConfig extends DeepObject
         implements Exportable
     {
         /** The vertex coordinates. */
-        @Editable(step=0.01, hgroup="c")
+        @Editable(column=true)
         public float x, y;
     }
 
