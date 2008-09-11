@@ -152,7 +152,7 @@ public abstract class ModelTool extends GlCanvasTool
                     model.setConfig(envmod.model);
                 }
                 _environment[ii] = model;
-                model.getLocalTransform().set(envmod.transform);
+                model.setLocalTransform(envmod.transform);
                 model.updateBounds();
             }
             if (omodels != null) {

@@ -26,7 +26,7 @@ public abstract class ViewerEffect extends ShallowObject
     /**
      * Notes that the effect is now acting on the viewer.
      */
-    public void activate ()
+    public void activate (Scene scene)
     {
         // nothing by default
     }
@@ -35,6 +35,14 @@ public abstract class ViewerEffect extends ShallowObject
      * Notes that the effect is no longer acting on the viewer.
      */
     public void deactivate ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Called once per frame while the effect is active.
+     */
+    public void update ()
     {
         // nothing by default
     }

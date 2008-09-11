@@ -420,6 +420,11 @@ public class Articulated extends Model.Implementation
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             _userAttachments.get(ii).reset();
         }
+        for (int ii = 0; ii < _animations.length; ii++) {
+            if (_config.animationMappings[ii].startAutomatically) {
+                _animations[ii].start();
+            }
+        }
     }
 
     @Override // documentation inherited
@@ -677,6 +682,9 @@ public class Articulated extends Model.Implementation
             _animations[ii] = anim;
             AnimationMapping mapping = _config.animationMappings[ii];
             anim.setConfig(mapping.name, mapping.animation);
+            if (mapping.startAutomatically) {
+                anim.start();
+            }
         }
         if (oanims != null) {
             for (int ii = _animations.length; ii < oanims.length; ii++) {

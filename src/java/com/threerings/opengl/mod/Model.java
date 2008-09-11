@@ -330,6 +330,16 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Sets the local transform to the specified value and promotes it to
+     * {@link Transform3D#UNIFORM}.
+     */
+    public void setLocalTransform (Transform3D transform)
+    {
+        _localTransform.set(transform);
+        _localTransform.promote(Transform3D.UNIFORM);
+    }
+
+    /**
      * Returns a reference to the model's local transform.
      */
     public Transform3D getLocalTransform ()

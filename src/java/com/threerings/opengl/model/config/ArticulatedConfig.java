@@ -232,6 +232,10 @@ public class ArticulatedConfig extends ModelConfig.Imported
         /** The animation associated with the name. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
+
+        /** Whether or not to start this animation automatically. */
+        @Editable
+        public boolean startAutomatically;
     }
 
     /**

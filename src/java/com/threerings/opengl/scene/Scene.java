@@ -298,6 +298,11 @@ public abstract class Scene extends DynamicScope
         setEffects(_neffects);
         _neffects.clear();
 
+        // update the active effects
+        for (ViewerEffect effect : _effects) {
+            effect.update();
+        }
+
         // update the influences of any flagged elements
         if (!_updateInfluences.isEmpty()) {
             for (SceneElement element : _updateInfluences) {
@@ -326,7 +331,7 @@ public abstract class Scene extends DynamicScope
         // activate any new effects
         for (ViewerEffect effect : effects) {
             if (!_effects.contains(effect)) {
-                effect.activate();
+                effect.activate(this);
             }
         }
         _effects.clear();

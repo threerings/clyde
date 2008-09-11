@@ -268,14 +268,6 @@ public abstract class GlApp extends DynamicScope
      */
     protected void updateView (float elapsed)
     {
-        _soundmgr.updateStreams(elapsed);
-    }
-
-    /**
-     * Renders the entire view.
-     */
-    protected void renderView ()
-    {
         // update the camera position
         _camhand.updatePosition();
 
@@ -289,7 +281,15 @@ public abstract class GlApp extends DynamicScope
         listener.setPosition(translation.x, translation.y, translation.z);
         listener.setOrientation(_at.x, _at.y, _at.z, _up.x, _up.y, _up.z);
 
-        // render the view
+        // update the sound manager streams
+        _soundmgr.updateStreams(elapsed);
+    }
+
+    /**
+     * Renders the entire view.
+     */
+    protected void renderView ()
+    {
         _compositor.renderView();
     }
 

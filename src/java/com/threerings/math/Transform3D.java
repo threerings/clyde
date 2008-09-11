@@ -472,10 +472,12 @@ public final class Transform3D
     {
         if (_type == IDENTITY) {
             if (utype >= AFFINE) {
-                _matrix = (_matrix == null) ? new Matrix4f() : _matrix;
+                _matrix = (_matrix == null) ? new Matrix4f() : _matrix.setToIdentity();
             } else if (utype >= RIGID) {
-                _translation = (_translation == null) ? new Vector3f() : _translation;
-                _rotation = (_rotation == null) ? new Quaternion() : _rotation;
+                _translation = (_translation == null) ?
+                    new Vector3f() : _translation.set(Vector3f.ZERO);
+                _rotation = (_rotation == null) ?
+                    new Quaternion() : _rotation.set(Quaternion.IDENTITY);
                 _scale = 1f;
             }
         } else if (_type == RIGID) {

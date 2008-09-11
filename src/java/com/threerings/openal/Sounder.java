@@ -57,9 +57,17 @@ public class Sounder extends SimpleScope
         public abstract void start ();
 
         /**
-         * Stops the animation.
+         * Stops the sound.
          */
         public abstract void stop ();
+
+        /**
+         * Updates the sound.
+         */
+        public void update ()
+        {
+            // nothing by default
+        }
 
         @Override // documentation inherited
         public String getScopeName ()
@@ -144,6 +152,12 @@ public class Sounder extends SimpleScope
             if (_sound != null) {
                 _sound.stop();
             }
+        }
+
+        @Override // documentation inherited
+        public void update ()
+        {
+            updateSoundTransform();
         }
 
         /**
@@ -357,6 +371,17 @@ public class Sounder extends SimpleScope
     public void stop ()
     {
         _impl.stop();
+    }
+
+    /**
+     * Updates the sound for the current frame.  Invocation of this method is not guaranteed;
+     * in particular, while {@link com.threerings.opengl.scene.config.ViewerEffectConfig.Sound}
+     * calls this method, {@link com.threerings.opengl.model.config.ActionConfig.PlaySound}
+     * does not.
+     */
+    public void update ()
+    {
+        _impl.update();
     }
 
     // documentation inherited from interface ConfigUpdateListener
