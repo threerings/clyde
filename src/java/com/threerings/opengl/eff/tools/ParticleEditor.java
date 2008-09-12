@@ -30,6 +30,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.TransferHandler;
@@ -158,18 +159,13 @@ public class ParticleEditor extends ModelTool
             }
         });
 
-        // create the edit panel
-        JPanel epanel = GroupLayout.makeVStretchBox(5);
-        _frame.add(epanel, BorderLayout.EAST);
-        epanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createRaisedBevelBorder(),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-        epanel.setPreferredSize(new Dimension(250, 1));
-        epanel.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
+        // configure the edit panel
+        _epanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        _epanel.setPreferredSize(new Dimension(350, 1));
 
         // create the layer table
         JPanel lpanel = GroupLayout.makeVStretchBox(5);
-        epanel.add(lpanel, GroupLayout.FIXED);
+        _epanel.add(lpanel, GroupLayout.FIXED);
         lpanel.add(new JScrollPane(
             _ltable = new JTable() {
                 public void changeSelection (
@@ -236,14 +232,14 @@ public class ParticleEditor extends ModelTool
 
         // create the editor panel
         JPanel ipanel = GroupLayout.makeVStretchBox(5);
-        epanel.add(ipanel);
+        _epanel.add(ipanel);
         ipanel.add(_editor = new EditorPanel(this, EditorPanel.CategoryMode.CHOOSER, null, true));
         _editor.addChangeListener(this);
         _editor.setVisible(false);
 
         // create the reset button
         bpanel = new JPanel();
-        epanel.add(bpanel, GroupLayout.FIXED);
+        _epanel.add(bpanel, GroupLayout.FIXED);
         bpanel.add(createButton("reset"));
     }
 
@@ -302,6 +298,17 @@ public class ParticleEditor extends ModelTool
         } else {
             super.actionPerformed(event);
         }
+    }
+
+    @Override // documentation inherited
+    protected JComponent createCanvasContainer ()
+    {
+        JSplitPane pane = new JSplitPane(
+            JSplitPane.HORIZONTAL_SPLIT, true, _canvas, _epanel = GroupLayout.makeVStretchBox(5));
+        _canvas.setMinimumSize(new Dimension(1, 1));
+        pane.setResizeWeight(1.0);
+        pane.setOneTouchExpandable(true);
+        return pane;
     }
 
     @Override // documentation inherited
@@ -708,6 +715,9 @@ public class ParticleEditor extends ModelTool
 
     /** The file chooser for importing and exporting particle files. */
     protected JFileChooser _exportChooser;
+
+    /** The panel that holds the editor bits. */
+    protected JPanel _epanel;
 
     /** The layer table. */
     protected JTable _ltable;

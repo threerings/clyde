@@ -75,7 +75,7 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
         public Alignment alignment = Alignment.BILLBOARD;
 
         /** The material to use for the particle system. */
-        @Editable(category="appearance", mode="compact", nullable=true)
+        @Editable(category="appearance", nullable=true)
         public ConfigReference<MaterialConfig> material;
 
         /** The number of texture divisions in the S direction. */

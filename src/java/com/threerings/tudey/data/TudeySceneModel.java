@@ -7,6 +7,7 @@ import com.threerings.whirled.data.SceneModel;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.export.Exportable;
+import com.threerings.util.DeepUtil;
 
 /**
  * Contains a representation of a Tudey scene.
@@ -14,6 +15,9 @@ import com.threerings.export.Exportable;
 public class TudeySceneModel extends SceneModel
     implements Exportable
 {
+    /** The global scene properties. */
+    public SceneGlobals globals = new SceneGlobals();
+
     /**
      * Initializes the model.
      */
@@ -28,6 +32,12 @@ public class TudeySceneModel extends SceneModel
     public ConfigManager getConfigManager ()
     {
         return _cfgmgr;
+    }
+
+    @Override // documentation inherited
+    public Object clone ()
+    {
+        return DeepUtil.copy(this, null);
     }
 
     /** The scene configuration manager. */

@@ -3,22 +3,37 @@
 
 package com.threerings.tudey.tools;
 
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.HashMap;
 import java.util.prefs.Preferences;
 
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.filechooser.FileFilter;
+
+import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.VGroupLayout;
+
+import com.threerings.media.image.ImageUtil;
 
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.export.BinaryExporter;
@@ -30,6 +45,7 @@ import com.threerings.util.ToolUtil;
 import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.util.DebugBounds;
 
+import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel;
 
 import static com.threerings.tudey.Log.*;
@@ -39,6 +55,41 @@ import static com.threerings.tudey.Log.*;
  */
 public class SceneEditor extends GlCanvasTool
 {
+    /**
+     * A tool to use in the scene editor.
+     */
+    public static abstract class Tool extends JPanel
+    {
+        public Tool ()
+        {
+            super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+        }
+
+        /**
+         * Notes that the tool has been activated.
+         */
+        public void activate ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the tool has been deactivated.
+         */
+        public void deactivate ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the scene object has changed.
+         */
+        public void sceneChanged (TudeySceneModel scene)
+        {
+            // nothing by default
+        }
+    }
+
     /**
      * The program entry point.
      */
@@ -134,12 +185,44 @@ public class SceneEditor extends GlCanvasTool
                 return _msgs.get("m.xml_files");
             }
         });
+
+        // configure the edit panel
+        _epanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        _epanel.setPreferredSize(new Dimension(350, 1));
+
+        // create the tool box
+        JPanel outer = new JPanel();
+        _epanel.add(outer, GroupLayout.FIXED);
+        JPanel tpanel = new JPanel(new GridLayout(1, 1));
+        outer.add(tpanel);
+        GlobalEditor gedit = new GlobalEditor(this);
+        addTool(tpanel, "global_editor", gedit);
+
+        // create the option panel
+        _opanel = GroupLayout.makeVStretchBox(5);
+        _epanel.add(_opanel);
+
+        // activate the global editor tool
+        setActiveTool(gedit);
+    }
+
+    /**
+     * Returns a reference to the scene view.
+     */
+    public TudeySceneView getView ()
+    {
+        return _view;
     }
 
     @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
+        Tool tool = _tools.get(action);
+        if (tool != null) {
+            setActiveTool(tool);
+            return;
+        }
         if (action.equals("new")) {
             newScene();
         } else if (action.equals("open")) {
@@ -166,6 +249,17 @@ public class SceneEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
+    protected JComponent createCanvasContainer ()
+    {
+        JSplitPane pane = new JSplitPane(
+            JSplitPane.HORIZONTAL_SPLIT, true, _canvas, _epanel = GroupLayout.makeVStretchBox(5));
+        _canvas.setMinimumSize(new Dimension(1, 1));
+        pane.setResizeWeight(1.0);
+        pane.setOneTouchExpandable(true);
+        return pane;
+    }
+
+    @Override // documentation inherited
     protected DebugBounds createBounds ()
     {
         return new DebugBounds(this) {
@@ -186,6 +280,10 @@ public class SceneEditor extends GlCanvasTool
     {
         super.didInit();
 
+        // create the scene view
+        _view = new TudeySceneView(this);
+        _view.wasAdded();
+
         // attempt to load the scene file specified on the command line if any
         // (otherwise, create an empty scene)
         if (_initScene != null) {
@@ -199,12 +297,57 @@ public class SceneEditor extends GlCanvasTool
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
+        _view.tick(elapsed);
     }
 
     @Override // documentation inherited
     protected void enqueueView ()
     {
         super.enqueueView();
+        _view.enqueue();
+    }
+
+    /**
+     * Adds a tool to the tool panel.
+     */
+    protected void addTool (JPanel tpanel, String name, Tool tool)
+    {
+        tpanel.add(createIconButton(name));
+        _tools.put(name, tool);
+    }
+
+    /**
+     * Creates a button with the named icon.
+     */
+    protected JButton createIconButton (String name)
+    {
+        BufferedImage image;
+        try {
+            image = _rsrcmgr.getImageResource("media/tudey/" + name + ".png");
+        } catch (IOException e) {
+            log.warning("Error loading image.", "name", name, e);
+            image = ImageUtil.createErrorImage(16, 16);
+        }
+        JButton button = new JButton(new ImageIcon(image));
+        button.setPreferredSize(ICON_BUTTON_SIZE);
+        button.setActionCommand(name);
+        button.addActionListener(this);
+        return button;
+    }
+
+    /**
+     * Sets the active tool.
+     */
+    protected void setActiveTool (Tool tool)
+    {
+        if (_activeTool != null) {
+            _activeTool.deactivate();
+            _opanel.remove(_activeTool);
+        }
+        if ((_activeTool = tool) != null) {
+            _opanel.add(_activeTool);
+            _activeTool.activate();
+        }
     }
 
     /**
@@ -293,6 +436,14 @@ public class SceneEditor extends GlCanvasTool
     {
         _scene = scene;
         _scene.init(_cfgmgr);
+
+        // update the view
+        _view.setSceneModel(_scene);
+
+        // notify the tools
+        for (Tool tool : _tools.values()) {
+            tool.sceneChanged(scene);
+        }
     }
 
     /**
@@ -359,12 +510,30 @@ public class SceneEditor extends GlCanvasTool
     /** The file chooser for importing and exporting scene files. */
     protected JFileChooser _exportChooser;
 
+    /** The panel that holds the editor bits. */
+    protected JPanel _epanel;
+
+    /** The panel that holds the tool options. */
+    protected JPanel _opanel;
+
+    /** Tools mapped by name. */
+    protected HashMap<String, Tool> _tools = new HashMap<String, Tool>();
+
+    /** The active tool. */
+    protected Tool _activeTool;
+
     /** The loaded scene file. */
     protected File _file;
 
     /** The scene being edited. */
     protected TudeySceneModel _scene;
 
+    /** The scene view. */
+    protected TudeySceneView _view;
+
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);
+
+    /** The size of the icon buttons. */
+    protected static final Dimension ICON_BUTTON_SIZE = new Dimension(20, 20);
 }
