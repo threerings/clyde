@@ -163,16 +163,10 @@ public abstract class ConfigChooser extends JPanel
             _msgs = msgmgr.getBundle("config");
             _label = getLabel(msgmgr, clazz, ConfigGroup.getName(clazz));
 
-            // get the list of configs
-            ArrayList<ConfigGroup> groups = new ArrayList<ConfigGroup>();
-            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass = (Class<ManagedConfig>)clazz;
-            for (; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
-                ConfigGroup group = cfgmgr.getGroup(cclass);
-                if (group != null) {
-                    groups.add(group);
-                }
-            }
-            _groups = groups.toArray(new ConfigGroup[groups.size()]);
+            // get the list of groups
+            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+                (Class<ManagedConfig>)clazz;
+            _groups = cfgmgr.getGroups(cclass);
 
             setLayout(new BorderLayout());
             JPanel bpanel = new JPanel();

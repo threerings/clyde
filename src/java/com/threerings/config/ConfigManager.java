@@ -5,6 +5,7 @@ package com.threerings.config;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -297,6 +298,24 @@ public class ConfigManager
             }
         }
         return (_parent == null) ? null : _parent.getConfig(clazz, id);
+    }
+
+    /**
+     * Retrieves the groups registered for the specified class in this manager and all of its
+     * ancestors.
+     */
+    public <T extends ManagedConfig> ConfigGroup<T>[] getGroups (Class<T> clazz)
+    {
+        ArrayList<ConfigGroup<T>> groups = new ArrayList<ConfigGroup<T>>();
+        for (ConfigManager cfgmgr = this; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
+            ConfigGroup<T> group = cfgmgr.getGroup(clazz);
+            if (group != null) {
+                groups.add(group);
+            }
+        }
+        @SuppressWarnings("unchecked") ConfigGroup<T>[] array =
+            (ConfigGroup<T>[])new ConfigGroup[groups.size()];
+        return groups.toArray(array);
     }
 
     /**

@@ -6,6 +6,7 @@ package com.threerings.editor.swing.editors;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
@@ -227,9 +228,15 @@ public class PanelArrayListEditor extends ArrayListEditor
                 swapValues(idx, idx + 1);
             } else if (source == _delete) {
                 removeValue(getIndex());
-            } else {
+            } else { // source == _trigger
                 super.actionPerformed(event);
             }
+        }
+
+        @Override // documentation inherited
+        public void scrollRectToVisible (Rectangle rect)
+        {
+            // block this to avoid excess scrolling
         }
 
         /**

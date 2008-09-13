@@ -32,9 +32,11 @@ import javax.swing.filechooser.FileFilter;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.media.image.ImageUtil;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -201,10 +203,11 @@ public class SceneEditor extends GlCanvasTool
         // create the tool box
         JPanel outer = new JPanel();
         _epanel.add(outer, GroupLayout.FIXED);
-        JPanel tpanel = new JPanel(new GridLayout(1, 1));
+        JPanel tpanel = new JPanel(new GridLayout(0, 2, 5, 5));
         outer.add(tpanel);
         GlobalEditor gedit = new GlobalEditor(this);
         addTool(tpanel, "global_editor", gedit);
+        addTool(tpanel, "placer", new Placer(this));
 
         // create the option panel
         _opanel = GroupLayout.makeVStretchBox(5);
@@ -247,6 +250,12 @@ public class SceneEditor extends GlCanvasTool
     {
         _scene.removeEntry(id);
         _view.entryRemoved(id);
+    }
+
+    @Override // documentation inherited
+    public ConfigManager getConfigManager ()
+    {
+        return (_scene == null) ? _cfgmgr : _scene.getConfigManager();
     }
 
     @Override // documentation inherited
@@ -382,6 +391,7 @@ public class SceneEditor extends GlCanvasTool
             _opanel.add(_activeTool);
             _activeTool.activate();
         }
+        SwingUtil.refresh(_opanel);
     }
 
     /**
