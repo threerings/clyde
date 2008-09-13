@@ -291,7 +291,7 @@ public class ConfigEditor extends BaseConfigEditor
                 @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
                     (ConfigGroup<ManagedConfig>)group;
                 this.group = mgroup;
-                _label = getLabel(group.getName());
+                _label = getLabel(group.getConfigClass(), group.getName());
             }
 
             /**

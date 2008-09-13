@@ -3,28 +3,39 @@
 
 package com.threerings.tudey.client;
 
+import com.samskivert.util.HashIntMap;
+
+import com.threerings.expr.Scope;
+import com.threerings.expr.Scoped;
+import com.threerings.expr.SimpleScope;
+
 import com.threerings.opengl.GlView;
-import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.scene.HashScene;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.util.Tickable;
 
-import com.threerings.tudey.data.SceneGlobals;
-import com.threerings.tudey.data.SceneGlobals.EnvironmentModel;
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
+
+import com.threerings.tudey.client.sprite.EntrySprite;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Displays a view of a Tudey scene.
  */
-public class TudeySceneView extends GlView
+public class TudeySceneView extends SimpleScope
 {
     /**
      * Creates a new scene view.
      */
-    public TudeySceneView (GlContext ctx)
+    public TudeySceneView (GlContext ctx, Scope parentScope)
     {
+        super(parentScope);
         _ctx = ctx;
         _scene = new HashScene(ctx, 64f, 6);
-        _scene.setParentScope(ctx.getScope());
+        _scene.setParentScope(this);
     }
 
     /**
@@ -32,67 +43,89 @@ public class TudeySceneView extends GlView
      */
     public void setSceneModel (TudeySceneModel model)
     {
-        _sceneModel = model;
-        updateEnvironment();
+        // clear out the existing sprites
+        for (EntrySprite sprite : _entrySprites.values()) {
+            sprite.dispose();
+        }
+        _entrySprites.clear();
+
+        // create the new sprites
+         _sceneModel = model;
+        for (Entry entry : _sceneModel.getEntries()) {
+            addEntrySprite(entry);
+        }
     }
 
     /**
-     * Notes that the state of the scene globals has changed.
+     * Notes that an entry has been added to the scene.
      */
-    public void globalsChanged ()
+    public void entryAdded (Entry entry)
     {
-        updateEnvironment();
+        addEntrySprite(entry);
+    }
+
+    /**
+     * Notes that an entry has been updated within the scene.
+     */
+    public void entryUpdated (Entry entry)
+    {
+        EntrySprite sprite = _entrySprites.get(entry.getId());
+        if (sprite != null) {
+            sprite.update(entry);
+        } else {
+            log.warning("Missing sprite to update.", "entry", entry);
+        }
+    }
+
+    /**
+     * Notes that an entry has been removed from the scene.
+     */
+    public void entryRemoved (int id)
+    {
+        EntrySprite sprite = _entrySprites.remove(id);
+        if (sprite != null) {
+            sprite.dispose();
+        } else {
+            log.warning("Missing entry sprite to remove.", "id", id);
+        }
     }
 
     @Override // documentation inherited
+    public String getScopeName ()
+    {
+        return "view";
+    }
+
+    // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
         _scene.tick(elapsed);
     }
 
-    @Override // documentation inherited
+    // documentation inherited from interface Renderable
     public void enqueue ()
     {
         _scene.enqueue();
     }
 
     /**
-     * Updates the environment in response to a change in the environment model list.
+     * Adds a sprite for the specified entry.
      */
-    protected void updateEnvironment ()
+    protected void addEntrySprite (Entry entry)
     {
-        EnvironmentModel[] environmentModels = _sceneModel.globals.environmentModels;
-        Model[] omodels = _environment;
-        _environment = new Model[environmentModels.length];
-        for (int ii = 0; ii < _environment.length; ii++) {
-            EnvironmentModel envmod = environmentModels[ii];
-            Model model = (omodels == null || omodels.length <= ii) ? null : omodels[ii];
-            if (model == null) {
-                _scene.add(model = new Model(_ctx, envmod.model));
-            } else {
-                model.setConfig(envmod.model);
-            }
-            _environment[ii] = model;
-            model.setLocalTransform(envmod.transform);
-            model.updateBounds();
-        }
-        if (omodels != null) {
-            for (int ii = _environment.length; ii < omodels.length; ii++) {
-                _scene.remove(omodels[ii]);
-                omodels[ii].dispose();
-            }
-        }
+        _entrySprites.put(entry.getId(), entry.createSprite(_ctx, this));
     }
 
     /** The application context. */
     protected GlContext _ctx;
 
     /** The OpenGL scene. */
+    @Scoped
     protected HashScene _scene;
 
     /** The scene model. */
     protected TudeySceneModel _sceneModel;
 
-    /** The environment models. */
-    protected Model[] _environment;
+    /** Sprites corresponding to the scene entries. */
+    protected HashIntMap<EntrySprite> _entrySprites = new HashIntMap<EntrySprite>();
 }

@@ -124,11 +124,8 @@ public class ResourceEditor extends BaseConfigEditor
         ArrayIntSet mnems = new ArrayIntSet();
         mnems.add('w');
         int idx = 0;
-        MessageBundle cmsgs = _msgmgr.getBundle("config");
         for (final Class clazz : cfgmgr.getResourceClasses()) {
-            String name = ConfigGroup.getName(clazz);
-            String key = "m." + name;
-            String label = cmsgs.exists(key) ? cmsgs.get(key) : name;
+            String label = getLabel(clazz, ConfigGroup.getName(clazz));
             JMenuItem item = new JMenuItem(label);
             for (int ii = 0, nn = label.length(); ii < nn; ii++) {
                 char c = Character.toLowerCase(label.charAt(ii));

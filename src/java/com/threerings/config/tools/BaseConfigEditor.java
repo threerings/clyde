@@ -21,6 +21,7 @@ import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
+import com.threerings.editor.Introspector;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.util.EditorContext;
 
@@ -198,6 +199,16 @@ public abstract class BaseConfigEditor extends JFrame
     {
         String key = "m." + name;
         return _msgs.exists(key) ? _msgs.get(key) : name;
+    }
+
+    /**
+     * Returns the label for the specified class.
+     */
+    protected String getLabel (Class clazz, String type)
+    {
+        MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(clazz));
+        String key = "m." + type;
+        return msgs.exists(key) ? msgs.get(key) : type;
     }
 
     /**

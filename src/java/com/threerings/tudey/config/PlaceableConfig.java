@@ -15,7 +15,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.tudey.client.PlaceableSprite;
+import com.threerings.tudey.client.sprite.PlaceableSprite;
 
 /**
  * The configuration of a placeable object.
@@ -80,7 +80,15 @@ public class PlaceableConfig extends ParameterizedConfig
         public PlaceableSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
-            return null;
+            if (impl instanceof PlaceableSprite.Prop) {
+                ((PlaceableSprite.Prop)impl).setConfig(this);
+            } else {
+                if (impl != null) {
+                    impl.dispose();
+                }
+                impl = new PlaceableSprite.Prop(ctx, scope, this);
+            }
+            return impl;
         }
     }
 
@@ -93,7 +101,15 @@ public class PlaceableConfig extends ParameterizedConfig
         public PlaceableSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
-            return null;
+            if (impl instanceof PlaceableSprite.Marker) {
+                ((PlaceableSprite.Marker)impl).setConfig(this);
+            } else {
+                if (impl != null) {
+                    impl.dispose();
+                }
+                impl = new PlaceableSprite.Marker(ctx, scope, this);
+            }
+            return impl;
         }
     }
 

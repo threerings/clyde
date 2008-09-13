@@ -47,6 +47,7 @@ import com.threerings.opengl.util.DebugBounds;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 
 import static com.threerings.tudey.Log.*;
 
@@ -60,9 +61,13 @@ public class SceneEditor extends GlCanvasTool
      */
     public static abstract class Tool extends JPanel
     {
-        public Tool ()
+        /**
+         * Creates the tool.
+         */
+        public Tool (SceneEditor editor)
         {
             super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+            _editor = editor;
         }
 
         /**
@@ -88,6 +93,9 @@ public class SceneEditor extends GlCanvasTool
         {
             // nothing by default
         }
+
+        /** A reference to the creating editor. */
+        protected SceneEditor _editor;
     }
 
     /**
@@ -214,6 +222,33 @@ public class SceneEditor extends GlCanvasTool
         return _view;
     }
 
+    /**
+     * Adds an entry to the scene and notifies the view.
+     */
+    public void addEntry (Entry entry)
+    {
+        _scene.addEntry(entry);
+        _view.entryAdded(entry);
+    }
+
+    /**
+     * Updates an entry within the scene and notifies the view.
+     */
+    public void updateEntry (Entry entry)
+    {
+        _scene.updateEntry(entry);
+        _view.entryUpdated(entry);
+    }
+
+    /**
+     * Removes an entry from the scene and notifies the view.
+     */
+    public void removeEntry (int id)
+    {
+        _scene.removeEntry(id);
+        _view.entryRemoved(id);
+    }
+
     @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
@@ -281,8 +316,7 @@ public class SceneEditor extends GlCanvasTool
         super.didInit();
 
         // create the scene view
-        _view = new TudeySceneView(this);
-        _view.wasAdded();
+        _view = new TudeySceneView(this, this);
 
         // attempt to load the scene file specified on the command line if any
         // (otherwise, create an empty scene)
@@ -422,6 +456,7 @@ public class SceneEditor extends GlCanvasTool
                 XMLImporter in = new XMLImporter(new FileInputStream(file));
                 setScene((TudeySceneModel)in.readObject());
                 in.close();
+                setFile(null);
             } catch (IOException e) {
                 log.warning("Failed to import scene [file=" + file +"].", e);
             }

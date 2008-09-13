@@ -125,8 +125,7 @@ public class DynamicScope
     }
 
     /**
-     * Releases the resources associated with this scope.  This is intended to be a hint to avoid
-     * unnecessary processing, rather than a requirement.
+     * Releases the resources associated with this scope.
      */
     public void dispose ()
     {

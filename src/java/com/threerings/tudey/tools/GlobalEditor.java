@@ -3,12 +3,24 @@
 
 package com.threerings.tudey.tools;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntMap.IntEntry;
+import com.samskivert.util.QuickSort;
+
+import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.export.Exportable;
+import com.threerings.util.DeepObject;
 
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 
 /**
  * The global editor tool.
@@ -21,7 +33,7 @@ public class GlobalEditor extends SceneEditor.Tool
      */
     public GlobalEditor (SceneEditor editor)
     {
-        _editor = editor;
+        super(editor);
 
         // create and add the editor panel
         add(_epanel = new EditorPanel(editor));
@@ -31,18 +43,81 @@ public class GlobalEditor extends SceneEditor.Tool
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        _editor.getView().globalsChanged();
+        // compare the current state to the stored state
+        EditableGlobals editable = (EditableGlobals)_epanel.getObject();
+        for (Iterator<IntEntry<GlobalEntry>> it = _globals.intEntrySet().iterator();
+                it.hasNext(); ) {
+            IntEntry<GlobalEntry> entry = it.next();
+            int id = entry.getIntKey();
+            GlobalEntry oglobal = entry.getValue();
+            GlobalEntry nglobal = editable.getGlobal(id);
+            if (nglobal == null) { // removed
+                _editor.removeEntry(id);
+                it.remove();
+
+            } else if (!nglobal.equals(oglobal)) { // modified
+                GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
+                _editor.updateEntry(cglobal);
+                entry.setValue(cglobal);
+            }
+        }
+        for (GlobalEntry nglobal : editable.globals) {
+            if (nglobal.getId() == 0) { // added
+                GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
+                _editor.addEntry(cglobal);
+                int id = cglobal.getId();
+                _globals.put(id, cglobal);
+                nglobal.setId(id);
+            }
+        }
     }
 
     @Override // documentation inherited
     public void sceneChanged (TudeySceneModel scene)
     {
-        _epanel.setObject(scene.globals);
+        // extract the scene's globals
+        _globals.clear();
+        for (Entry entry : scene.getEntries()) {
+            if (entry instanceof GlobalEntry) {
+                _globals.put(entry.getId(), (GlobalEntry)entry);
+            }
+        }
+
+        // create the (cloned) editable list
+        EditableGlobals editable = new EditableGlobals();
+        editable.globals = _globals.values().toArray(new GlobalEntry[_globals.size()]);
+        QuickSort.sort(editable.globals);
+        _epanel.setObject((EditableGlobals)editable.clone());
     }
 
-    /** The editor that created the tool. */
-    protected SceneEditor _editor;
+    /**
+     * Allows us to edit the scene's globals.
+     */
+    protected static class EditableGlobals extends DeepObject
+        implements Exportable
+    {
+        /** The array of globals to edit. */
+        @Editable
+        public GlobalEntry[] globals;
+
+        /**
+         * Returns the global with the supplied identifier, or <code>null</code> if it couldn't be
+         * found.
+         */
+        public GlobalEntry getGlobal (int id)
+        {
+            for (GlobalEntry global : globals) {
+                if (global.getId() == id) {
+                    return global;
+                }
+            }
+            return null;
+        }
+    }
 
     /** The panel that we use to edit the scene's globals. */
     protected EditorPanel _epanel;
+
+    /** The current set of globals. */
+    protected HashIntMap<GlobalEntry> _globals = new HashIntMap<GlobalEntry>();
 }
