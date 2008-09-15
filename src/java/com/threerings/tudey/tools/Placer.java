@@ -38,7 +38,6 @@ public class Placer extends SceneEditor.Tool
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
             _pane = new JScrollPane(), _epanel = new EditorPanel(editor));
         split.setResizeWeight(1.0);
-        split.setOneTouchExpandable(true);
         add(split);
         _epanel.setObject(new EditableReference());
         _epanel.addChangeListener(this);

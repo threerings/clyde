@@ -33,6 +33,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
@@ -169,8 +170,11 @@ public class ConfigEditor extends BaseConfigEditor
             }
         });
 
+        // create the split pane
+        add(_split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true), BorderLayout.CENTER);
+
         // create the tabbed pane
-        add(_tabs = new JTabbedPane(), BorderLayout.WEST);
+        _split.setLeftComponent(_tabs = new JTabbedPane());
         _tabs.setPreferredSize(new Dimension(250, 1));
         _tabs.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
 
@@ -187,7 +191,6 @@ public class ConfigEditor extends BaseConfigEditor
         // add a listener for tab change
         _tabs.addChangeListener(new ChangeListener() {
             public void stateChanged (ChangeEvent event) {
-                _panel.deactivate();
                 (_panel = (ManagerPanel)_tabs.getSelectedComponent()).activate();
             }
             protected ManagerPanel _panel = panel;
@@ -571,8 +574,8 @@ public class ConfigEditor extends BaseConfigEditor
         public void activate ()
         {
             // add the editor panel
-            ConfigEditor.this.add(_epanel, BorderLayout.CENTER);
-            ConfigEditor.this.repaint();
+            _split.setRightComponent(_epanel);
+            SwingUtil.refresh(_epanel);
 
             // activate the selected item
             ((GroupItem)gbox.getSelectedItem()).activate();
@@ -583,15 +586,6 @@ public class ConfigEditor extends BaseConfigEditor
             _revert.setEnabled(enable);
             _saveAll.setEnabled(enable);
             _revertAll.setEnabled(enable);
-        }
-
-        /**
-         * Called when the panel is hidden.
-         */
-        public void deactivate ()
-        {
-            // remove the editor panel
-            ConfigEditor.this.remove(_epanel);
         }
 
         /**
@@ -675,6 +669,9 @@ public class ConfigEditor extends BaseConfigEditor
 
     /** The file chooser for opening and saving config files. */
     protected JFileChooser _chooser;
+
+    /** The split pane containing the tabs and the editor panel. */
+    protected JSplitPane _split;
 
     /** The tabs for each manager. */
     protected JTabbedPane _tabs;
