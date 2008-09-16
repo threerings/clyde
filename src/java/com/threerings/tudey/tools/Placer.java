@@ -8,6 +8,9 @@ import java.awt.event.MouseWheelEvent;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.tudey.client.cursor.PlaceableCursor;
 import com.threerings.tudey.config.PlaceableConfig;
@@ -24,6 +27,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     public Placer (SceneEditor editor)
     {
         super(editor, PlaceableConfig.class, new PlaceableReference());
+        _entry.transform.setType(Transform3D.UNIFORM);
     }
 
     @Override // documentation inherited
@@ -33,53 +37,67 @@ public class Placer extends ConfigTool<PlaceableConfig>
     }
 
     @Override // documentation inherited
+    public boolean allowsMouseCamera ()
+    {
+        return false;
+    }
+
+    @Override // documentation inherited
     public void tick (float elapsed)
     {
-        _cursor.tick(elapsed);
+        updateCursor();
+        if (_cursorVisible) {
+            _cursor.tick(elapsed);
+        }
     }
 
     @Override // documentation inherited
     public void enqueue ()
     {
-        _cursor.enqueue();
+        if (_cursorVisible) {
+            _cursor.enqueue();
+        }
     }
 
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-    }
-
-    @Override // documentation inherited
-    public void mouseEntered (MouseEvent event)
-    {
-    }
-
-    @Override // documentation inherited
-    public void mouseExited (MouseEvent event)
-    {
-    }
-
-    @Override // documentation inherited
-    public void mouseDragged (MouseEvent event)
-    {
-    }
-
-    @Override // documentation inherited
-    public void mouseMoved (MouseEvent event)
-    {
+        if (_cursorVisible) {
+            _editor.addEntry((PlaceableEntry)_entry.clone());
+        }
     }
 
     @Override // documentation inherited
     public void mouseWheelMoved (MouseWheelEvent event)
     {
+        _angle += event.getWheelRotation() *
+            (event.isShiftDown() ? FINE_ROTATION_INCREMENT : FloatMath.HALF_PI);
+    }
 
+    /**
+     * Updates the entry transform and cursor visibility based on the location of the mouse cursor.
+     */
+    protected void updateCursor ()
+    {
+        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
+            return;
+        }
+        // snap to tile grid/ninety degree rotations if shift not held down
+        if (!_editor.isShiftDown()) {
+            _isect.x = FloatMath.floor(_isect.x) + 0.5f;
+            _isect.y = FloatMath.floor(_isect.y) + 0.5f;
+            _angle = Math.round(_angle / FloatMath.HALF_PI) * FloatMath.HALF_PI;
+        }
+        Transform3D transform = _entry.transform;
+        transform.getTranslation().set(_isect.x, _isect.y, _editor.getGrid().getZ());
+        transform.getRotation().fromAngleAxis(_angle, Vector3f.UNIT_Z);
+        _cursor.update(_entry);
     }
 
     @Override // documentation inherited
     protected void referenceChanged (ConfigReference<PlaceableConfig> ref)
     {
         _entry.placeable = ref;
-        _cursor.updateFromEntry();
     }
 
     /**
@@ -109,4 +127,16 @@ public class Placer extends ConfigTool<PlaceableConfig>
 
     /** The cursor. */
     protected PlaceableCursor _cursor;
+
+    /** Whether or not the cursor is in the window. */
+    protected boolean _cursorVisible;
+
+    /** The angle about the z axis. */
+    protected float _angle;
+
+    /** Holds the result on an intersection test. */
+    protected Vector3f _isect = new Vector3f();
+
+    /** The fine rotation increment. */
+    protected static final float FINE_ROTATION_INCREMENT = FloatMath.PI / 64f;
 }

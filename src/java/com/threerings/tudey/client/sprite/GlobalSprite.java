@@ -72,7 +72,6 @@ public class GlobalSprite extends EntrySprite
         {
             _model.setConfig(config.model);
             _model.setLocalTransform(config.transform);
-            _model.updateBounds();
         }
 
         @Override // documentation inherited

@@ -78,13 +78,13 @@ public class PlaceableConfig extends ParameterizedConfig
         public PlaceableCursor.Implementation getCursorImplementation (
             GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
         {
-            if (impl instanceof PlaceableCursor.Normal) {
-                ((PlaceableCursor.Normal)impl).setConfig(this);
+            if (impl instanceof PlaceableCursor.Original) {
+                ((PlaceableCursor.Original)impl).setConfig(this);
             } else {
                 if (impl != null) {
                     impl.dispose();
                 }
-                impl = new PlaceableCursor.Normal(ctx, scope, this);
+                impl = new PlaceableCursor.Original(ctx, scope, this);
             }
             return impl;
         }

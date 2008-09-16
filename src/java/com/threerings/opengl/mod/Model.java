@@ -331,12 +331,13 @@ public class Model extends DynamicScope
 
     /**
      * Sets the local transform to the specified value and promotes it to
-     * {@link Transform3D#UNIFORM}.
+     * {@link Transform3D#UNIFORM}, then updates the bounds of the model.
      */
     public void setLocalTransform (Transform3D transform)
     {
         _localTransform.set(transform);
         _localTransform.promote(Transform3D.UNIFORM);
+        updateBounds();
     }
 
     /**

@@ -4,10 +4,14 @@
 package com.threerings.tudey.client.sprite;
 
 import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
+import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -29,10 +33,17 @@ public class PlaceableSprite extends EntrySprite
         /**
          * Creates a new implementation.
          */
-        public Implementation (GlContext ctx, Scope parentScope)
+        public Implementation (Scope parentScope)
         {
             super(parentScope);
-            _ctx = ctx;
+        }
+
+        /**
+         * Updates the implementation to match the entry state.
+         */
+        public void update (PlaceableEntry entry)
+        {
+            // nothing by default
         }
 
         @Override // documentation inherited
@@ -40,15 +51,57 @@ public class PlaceableSprite extends EntrySprite
         {
             return "impl";
         }
+    }
 
-        /** The renderer context. */
-        protected GlContext _ctx;
+    /**
+     * Superclass of the original implementations.
+     */
+    public static abstract class Original extends Implementation
+    {
+        /**
+         * Creates a new implementation.
+         */
+        public Original (GlContext ctx, Scope parentScope)
+        {
+            super(parentScope);
+            _scene.add(_model = new Model(ctx));
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (PlaceableConfig.Original config)
+        {
+            _model.setConfig(config.model);
+        }
+
+        /**
+         * Updates the implementation to match the entry state.
+         */
+        public void update (PlaceableEntry entry)
+        {
+            _model.setLocalTransform(entry.transform);
+        }
+
+        @Override // documentation inherited
+        public void dispose ()
+        {
+            super.dispose();
+            _scene.remove(_model);
+        }
+
+        /** The model. */
+        protected Model _model;
+
+        /** The scene to which we add our model. */
+        @Bound
+        protected Scene _scene;
     }
 
     /**
      * A prop implementation.
      */
-    public static class Prop extends Implementation
+    public static class Prop extends Original
     {
         /**
          * Creates a new prop implementation.
@@ -58,19 +111,12 @@ public class PlaceableSprite extends EntrySprite
             super(ctx, parentScope);
             setConfig(config);
         }
-
-        /**
-         * (Re)configures the implementation.
-         */
-        public void setConfig (PlaceableConfig.Prop config)
-        {
-        }
     }
 
     /**
      * A marker implementation.
      */
-    public static class Marker extends Implementation
+    public static class Marker extends Original
     {
         /**
          * Creates a new marker implementation.
@@ -79,13 +125,6 @@ public class PlaceableSprite extends EntrySprite
         {
             super(ctx, parentScope);
             setConfig(config);
-        }
-
-        /**
-         * (Re)configures the implementation.
-         */
-        public void setConfig (PlaceableConfig.Marker config)
-        {
         }
     }
 
@@ -101,29 +140,73 @@ public class PlaceableSprite extends EntrySprite
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PlaceableConfig> event)
     {
-        updateFromEntry();
+        updateFromConfig();
+        _impl.update(_entry);
     }
 
     @Override // documentation inherited
     public void update (Entry entry)
     {
         _entry = (PlaceableEntry)entry;
-        updateFromEntry();
+        setConfig(_entry.placeable);
+        _impl.update(_entry);
     }
 
     @Override // documentation inherited
     public void dispose ()
     {
         super.dispose();
+        _impl.dispose();
+        if (_config != null) {
+            _config.removeListener(this);
+        }
     }
 
     /**
-     * Updates the state of the sprite from its entry.
+     * Sets the configuration of this placeable.
      */
-    protected void updateFromEntry ()
+    protected void setConfig (ConfigReference<PlaceableConfig> ref)
     {
+        setConfig(_ctx.getConfigManager().getConfig(PlaceableConfig.class, ref));
+    }
+
+    /**
+     * Sets the configuration of this placeable.
+     */
+    protected void setConfig (PlaceableConfig config)
+    {
+        if (_config == config) {
+            return;
+        }
+        if (_config != null) {
+            _config.removeListener(this);
+        }
+        if ((_config = config) != null) {
+            _config.addListener(this);
+        }
+        updateFromConfig();
+    }
+
+    /**
+     * Updates the placeable to match its new or modified configuration.
+     */
+    protected void updateFromConfig ()
+    {
+        Implementation nimpl = (_config == null) ?
+            null : _config.getSpriteImplementation(_ctx, this, _impl);
+        _impl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
     }
 
     /** The scene entry. */
     protected PlaceableEntry _entry;
+
+    /** The placeable configuration. */
+    protected PlaceableConfig _config;
+
+    /** The placeable implementation. */
+    protected Implementation _impl = NULL_IMPLEMENTATION;
+
+    /** An implementation that does nothing. */
+    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+    };
 }

@@ -14,6 +14,9 @@ import javax.swing.JPanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
+import com.threerings.math.Ray;
+import com.threerings.math.Vector3f;
+
 import com.threerings.opengl.GlCanvas;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
@@ -71,6 +74,15 @@ public abstract class EditorTool extends JPanel
     public void sceneChanged (TudeySceneModel scene)
     {
         // nothing by default
+    }
+
+    /**
+     * Determines whether this tool (currently) allows the user to move the camera using the
+     * mouse (without holding down the control key).
+     */
+    public boolean allowsMouseCamera ()
+    {
+        return true;
     }
 
     // documentation inherited from interface Tickable
@@ -133,6 +145,21 @@ public abstract class EditorTool extends JPanel
         // nothing by default
     }
 
+    /**
+     * Finds the point at which the mouse ray intersects the grid plane.
+     *
+     * @return true if the mouse is on the canvas and the mouse ray intersects the grid plane
+     * (in which case the result object will be populated), false if not.
+     */
+    protected boolean getMousePlaneIntersection (Vector3f result)
+    {
+        return _editor.getMouseRay(_pick) &&
+            _editor.getGrid().getPlane().getIntersection(_pick, result);
+    }
+
     /** A reference to the creating editor. */
     protected SceneEditor _editor;
+
+    /** Used for picking. */
+    protected Ray _pick = new Ray();
 }

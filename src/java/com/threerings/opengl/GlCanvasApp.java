@@ -7,6 +7,7 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
@@ -21,9 +22,10 @@ import org.lwjgl.opengl.PixelFormat;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.media.ManagedJFrame;
-
 import com.threerings.util.KeyboardManager;
 import com.threerings.util.KeyTranslatorImpl;
+
+import com.threerings.math.Ray;
 
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
@@ -78,6 +80,31 @@ public abstract class GlCanvasApp extends GlApp
     public GlCanvas getCanvas ()
     {
         return _canvas;
+    }
+
+    /**
+     * Gets the ray through the canvas's mouse position.
+     *
+     * @return true if the mouse cursor is on the canvas (in which case the result will be
+     * populated), false if it is not on the canvas.
+     */
+    public boolean getMouseRay (Ray result)
+    {
+        Point pt = _canvas.getMousePosition();
+        if (pt == null) {
+            return false;
+        }
+        getPickRay(pt.x, pt.y, result);
+        return true;
+    }
+
+    /**
+     * Finds the ray through the specified canvas coordinates.
+     */
+    public void getPickRay (int x, int y, Ray result)
+    {
+        // flip vertically to convert to viewport coordinates
+        _compositor.getCamera().getPickRay(x, _canvas.getHeight() - y - 1, result);
     }
 
     // documentation inherited from interface RunQueue

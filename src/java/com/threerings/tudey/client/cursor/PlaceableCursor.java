@@ -7,6 +7,8 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Bound;
+import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
@@ -33,10 +35,17 @@ public class PlaceableCursor extends Cursor
         /**
          * Creates a new implementation.
          */
-        public Implementation (GlContext ctx, Scope parentScope)
+        public Implementation (Scope parentScope)
         {
             super(parentScope);
-            _ctx = ctx;
+        }
+
+        /**
+         * Updates the cursor state.
+         */
+        public void update (PlaceableEntry entry)
+        {
+            // nothing by default
         }
 
         // documentation inherited from interface Tickable
@@ -56,22 +65,19 @@ public class PlaceableCursor extends Cursor
         {
             return "impl";
         }
-
-        /** The renderer context. */
-        protected GlContext _ctx;
     }
 
     /**
-     * The normal implementation.
+     * The original implementation.
      */
-    public static class Normal extends Implementation
+    public static class Original extends Implementation
     {
         /**
-         * Creates a new normal implementation.
+         * Creates a new implementation.
          */
-        public Normal (GlContext ctx, Scope parentScope, PlaceableConfig.Original config)
+        public Original (GlContext ctx, Scope parentScope, PlaceableConfig.Original config)
         {
-            super(ctx, parentScope);
+            super(parentScope);
             _model = new Model(ctx);
             _model.setParentScope(this);
             setConfig(config);
@@ -86,10 +92,15 @@ public class PlaceableCursor extends Cursor
         }
 
         @Override // documentation inherited
+        public void update (PlaceableEntry entry)
+        {
+            _model.setLocalTransform(entry.transform);
+        }
+
+        @Override // documentation inherited
         public void tick (float elapsed)
         {
             _model.tick(elapsed);
-            _model.updateBounds();
         }
 
         @Override // documentation inherited
@@ -108,22 +119,24 @@ public class PlaceableCursor extends Cursor
     public PlaceableCursor (GlContext ctx, TudeySceneView view, PlaceableEntry entry)
     {
         super(ctx, view);
-        _entry = entry;
-        updateFromEntry();
+        update(entry);
     }
 
     /**
-     * Updates the cursor from the entry.
+     * Updates the cursor with new entry state.
      */
-    public void updateFromEntry ()
+    public void update (PlaceableEntry entry)
     {
+        _entry = entry;
         setConfig(_entry.placeable);
+        _impl.update(_entry);
     }
 
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PlaceableConfig> event)
     {
         updateFromConfig();
+        _impl.update(_entry);
     }
 
     @Override // documentation inherited
@@ -193,6 +206,6 @@ public class PlaceableCursor extends Cursor
     protected Implementation _impl = NULL_IMPLEMENTATION;
 
     /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null, null) {
+    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
     };
 }

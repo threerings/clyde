@@ -10,6 +10,8 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.util.Grid;
 import com.threerings.opengl.util.Tickable;
 
+import com.threerings.tudey.util.TudeySceneMetrics;
+
 /**
  * A special grid that follows the camera around (while staying aligned to the tile grid).
  */
@@ -30,7 +32,7 @@ public class EditorGrid extends Grid
     public void setElevation (int elevation)
     {
         _elevation = elevation;
-        _plane.constant = -elevation;
+        _plane.constant = -getZ();
     }
 
     /**
@@ -39,6 +41,14 @@ public class EditorGrid extends Grid
     public int getElevation ()
     {
         return _elevation;
+    }
+
+    /**
+     * Returns the z coordinate of the tile grid.
+     */
+    public float getZ ()
+    {
+        return TudeySceneMetrics.getZ(_elevation);
     }
 
     /**
@@ -61,7 +71,7 @@ public class EditorGrid extends Grid
         int gy = (int)_isect.y;
 
         // update our transform
-        _transform.getTranslation().set(gx, gy, _elevation);
+        _transform.getTranslation().set(gx, gy, getZ());
     }
 
     /** The elevation of the grid in tile units. */

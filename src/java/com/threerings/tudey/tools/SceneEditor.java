@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 
 import java.io.File;
@@ -35,10 +37,10 @@ import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 
 import com.samskivert.swing.GroupLayout;
-
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.media.image.ImageUtil;
+import com.threerings.util.KeyboardManager.KeyObserver;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.tools.ConfigEditor;
@@ -65,6 +67,7 @@ import static com.threerings.tudey.Log.*;
  * The scene editor application.
  */
 public class SceneEditor extends GlCanvasTool
+    implements KeyObserver
 {
     /**
      * The program entry point.
@@ -181,6 +184,9 @@ public class SceneEditor extends GlCanvasTool
 
         // activate the global editor tool
         setActiveTool(gedit);
+
+        // add ourself as a key observer
+        _keymgr.registerKeyObserver(this);
     }
 
     /**
@@ -189,6 +195,38 @@ public class SceneEditor extends GlCanvasTool
     public TudeySceneView getView ()
     {
         return _view;
+    }
+
+    /**
+     * Returns a reference to the editor grid.
+     */
+    public EditorGrid getGrid ()
+    {
+        return _grid;
+    }
+
+    /**
+     * Checks whether the shift key is being held down.
+     */
+    public boolean isShiftDown ()
+    {
+        return _shiftDown;
+    }
+
+    /**
+     * Checks whether the control key is being held down.
+     */
+    public boolean isControlDown ()
+    {
+        return _controlDown;
+    }
+
+    /**
+     * Checks whether the alt key is being held down.
+     */
+    public boolean isAltDown ()
+    {
+        return _altDown;
     }
 
     /**
@@ -216,6 +254,23 @@ public class SceneEditor extends GlCanvasTool
     {
         _scene.removeEntry(id);
         _view.entryRemoved(id);
+    }
+
+    // documentation inherited from interface KeyObserver
+    public void handleKeyEvent (int id, int keyCode, long timestamp)
+    {
+        boolean pressed = (id == KeyEvent.KEY_PRESSED);
+        switch (keyCode) {
+            case KeyEvent.VK_SHIFT:
+                _shiftDown = pressed;
+                break;
+            case KeyEvent.VK_CONTROL:
+                _controlDown = pressed;
+                break;
+            case KeyEvent.VK_ALT:
+                _altDown = pressed;
+                break;
+        }
     }
 
     @Override // documentation inherited
@@ -303,11 +358,28 @@ public class SceneEditor extends GlCanvasTool
         // camera target elevation matches grid elevation
         OrbitCameraHandler camhand = new OrbitCameraHandler(this) {
             public void updatePosition () {
-                _target.z = _grid.getElevation();
+                _target.z = _grid.getZ();
                 super.updatePosition();
             }
         };
-        new MouseOrbiter(camhand, true).addTo(_canvas);
+        // mouse movement is enabled when the tool allows it or control is held down
+        new MouseOrbiter(camhand, true) {
+            public void mouseDragged (MouseEvent event) {
+                if (allowMovement()) {
+                    super.mouseDragged(event);
+                } else {
+                    super.mouseMoved(event);
+                }
+            }
+            public void mouseWheelMoved (MouseWheelEvent event) {
+                if (allowMovement()) {
+                    super.mouseWheelMoved(event);
+                }
+            }
+            protected boolean allowMovement () {
+                return _activeTool.allowsMouseCamera() || isControlDown();
+            }
+        }.addTo(_canvas);
         return camhand;
     }
 
@@ -593,6 +665,9 @@ public class SceneEditor extends GlCanvasTool
 
     /** A casted reference to the editor grid. */
     protected EditorGrid _grid;
+
+    /** Whether or not the shift, control, and/or alt keys are being held down. */
+    protected boolean _shiftDown, _controlDown, _altDown;
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);
