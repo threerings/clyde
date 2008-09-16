@@ -385,6 +385,9 @@ public class Model extends DynamicScope
      */
     public void setConfig (ModelConfig config)
     {
+        if (_config == config) {
+            return;
+        }
         if (_config != null) {
             _config.removeListener(this);
         }

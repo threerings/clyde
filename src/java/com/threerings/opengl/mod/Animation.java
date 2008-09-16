@@ -587,6 +587,9 @@ public class Animation extends SimpleScope
     public void setConfig (String name, AnimationConfig config)
     {
         _name = name;
+        if (_config == config) {
+            return;
+        }
         if (_config != null) {
             _config.removeListener(this);
         }

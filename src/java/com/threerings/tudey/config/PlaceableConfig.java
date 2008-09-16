@@ -15,6 +15,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.tudey.client.cursor.PlaceableCursor;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 
 /**
@@ -38,6 +39,17 @@ public class PlaceableConfig extends ParameterizedConfig
         }
 
         /**
+         * Creates or updates a cursor implementation for this configuration.
+         *
+         * @param scope the placeable's expression scope.
+         * @param impl an existing implementation to reuse, if possible.
+         * @return either a reference to the existing implementation (if reused), a new
+         * implementation, or <code>null</code> if no implementation could be created.
+         */
+        public abstract PlaceableCursor.Implementation getCursorImplementation (
+            GlContext ctx, Scope scope, PlaceableCursor.Implementation impl);
+
+        /**
          * Creates or updates a sprite implementation for this configuration.
          *
          * @param scope the placeable's expression scope.
@@ -59,8 +71,23 @@ public class PlaceableConfig extends ParameterizedConfig
         public ConfigReference<ModelConfig> model;
 
         /** The shape of the placeable. */
-        @Editable(nullable=true)
-        public ShapeConfig shape;
+        @Editable
+        public ShapeConfig shape = new ShapeConfig.Point();
+
+        @Override // documentation inherited
+        public PlaceableCursor.Implementation getCursorImplementation (
+            GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
+        {
+            if (impl instanceof PlaceableCursor.Normal) {
+                ((PlaceableCursor.Normal)impl).setConfig(this);
+            } else {
+                if (impl != null) {
+                    impl.dispose();
+                }
+                impl = new PlaceableCursor.Normal(ctx, scope, this);
+            }
+            return impl;
+        }
     }
 
     /**
@@ -129,6 +156,15 @@ public class PlaceableConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public PlaceableCursor.Implementation getCursorImplementation (
+            GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
+        {
+            PlaceableConfig config = ctx.getConfigManager().getConfig(
+                PlaceableConfig.class, placeable);
+            return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
+        }
+
+        @Override // documentation inherited
         public PlaceableSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
@@ -141,6 +177,20 @@ public class PlaceableConfig extends ParameterizedConfig
     /** The actual placeable implementation. */
     @Editable
     public Implementation implementation = new Prop();
+
+    /**
+     * Creates or updates a cursor implementation for this configuration.
+     *
+     * @param scope the placeable's expression scope.
+     * @param impl an existing implementation to reuse, if possible.
+     * @return either a reference to the existing implementation (if reused), a new
+     * implementation, or <code>null</code> if no implementation could be created.
+     */
+    public PlaceableCursor.Implementation getCursorImplementation (
+        GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
+    {
+        return implementation.getCursorImplementation(ctx, scope, impl);
+    }
 
     /**
      * Creates or updates a sprite implementation for this configuration.

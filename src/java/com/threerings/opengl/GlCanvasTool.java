@@ -103,7 +103,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         super.didInit();
 
         // create the various renderables
-        _grid = new Grid(this, 65, 1f);
+        _grid = createGrid();
         _grid.getColor().set(0.2f, 0.2f, 0.2f, 1f);
         _bounds = createBounds();
         _compass = new Compass(this);
@@ -135,6 +135,14 @@ public abstract class GlCanvasTool extends GlCanvasApp
      * Creates and returns the editable preferences.
      */
     protected abstract ToolUtil.EditablePrefs createEditablePrefs ();
+
+    /**
+     * Creates the grid object.
+     */
+    protected Grid createGrid ()
+    {
+        return new Grid(this, 65, 1f);
+    }
 
     /**
      * Creates the debug bounds object.

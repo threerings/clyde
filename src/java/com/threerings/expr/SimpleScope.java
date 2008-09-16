@@ -53,13 +53,17 @@ public abstract class SimpleScope
     // documentation inherited from interface Scope
     public void addListener (ScopeUpdateListener listener)
     {
-        _parentScope.addListener(listener);
+        if (_parentScope != null) {
+            _parentScope.addListener(listener);
+        }
     }
 
     // documentation inherited from interface Scope
     public void removeListener (ScopeUpdateListener listener)
     {
-        _parentScope.removeListener(listener);
+        if (_parentScope != null) {
+            _parentScope.removeListener(listener);
+        }
     }
 
     // documentation inherited from interface ScopeUpdateListener

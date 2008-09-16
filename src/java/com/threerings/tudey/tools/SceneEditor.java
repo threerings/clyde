@@ -17,7 +17,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -28,10 +30,12 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.InputMap;
+import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 
 import com.samskivert.swing.GroupLayout;
-import com.samskivert.swing.VGroupLayout;
+
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.media.image.ImageUtil;
@@ -45,7 +49,11 @@ import com.threerings.export.XMLImporter;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.GlCanvasTool;
+import com.threerings.opengl.camera.CameraHandler;
+import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.camera.MouseOrbiter;
 import com.threerings.opengl.util.DebugBounds;
+import com.threerings.opengl.util.Grid;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel;
@@ -58,48 +66,6 @@ import static com.threerings.tudey.Log.*;
  */
 public class SceneEditor extends GlCanvasTool
 {
-    /**
-     * A tool to use in the scene editor.
-     */
-    public static abstract class Tool extends JPanel
-    {
-        /**
-         * Creates the tool.
-         */
-        public Tool (SceneEditor editor)
-        {
-            super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-            _editor = editor;
-        }
-
-        /**
-         * Notes that the tool has been activated.
-         */
-        public void activate ()
-        {
-            // nothing by default
-        }
-
-        /**
-         * Notes that the tool has been deactivated.
-         */
-        public void deactivate ()
-        {
-            // nothing by default
-        }
-
-        /**
-         * Notes that the scene object has changed.
-         */
-        public void sceneChanged (TudeySceneModel scene)
-        {
-            // nothing by default
-        }
-
-        /** A reference to the creating editor. */
-        protected SceneEditor _editor;
-    }
-
     /**
      * The program entry point.
      */
@@ -262,7 +228,7 @@ public class SceneEditor extends GlCanvasTool
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
-        Tool tool = _tools.get(action);
+        EditorTool tool = _tools.get(action);
         if (tool != null) {
             setActiveTool(tool);
             return;
@@ -287,6 +253,10 @@ public class SceneEditor extends GlCanvasTool
             exportScene();
         } else if (action.equals("configs")) {
             new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
+        } else if (action.equals("raise_grid")) {
+            _grid.setElevation(Math.min(_grid.getElevation() + 1, Byte.MAX_VALUE));
+        } else if (action.equals("lower_grid")) {
+            _grid.setElevation(Math.max(_grid.getElevation() - 1, Byte.MIN_VALUE));
         } else {
             super.actionPerformed(event);
         }
@@ -300,7 +270,15 @@ public class SceneEditor extends GlCanvasTool
         _canvas.setMinimumSize(new Dimension(1, 1));
         pane.setResizeWeight(1.0);
         pane.setOneTouchExpandable(true);
+        bindAction(pane, KeyEvent.VK_UP, 0, "raise_grid");
+        bindAction(pane, KeyEvent.VK_DOWN, 0, "lower_grid");
         return pane;
+    }
+
+    @Override // documentation inherited
+    protected Grid createGrid ()
+    {
+        return (_grid = new EditorGrid(this));
     }
 
     @Override // documentation inherited
@@ -320,12 +298,31 @@ public class SceneEditor extends GlCanvasTool
     }
 
     @Override // documentation inherited
+    protected CameraHandler createCameraHandler ()
+    {
+        // camera target elevation matches grid elevation
+        OrbitCameraHandler camhand = new OrbitCameraHandler(this) {
+            public void updatePosition () {
+                _target.z = _grid.getElevation();
+                super.updatePosition();
+            }
+        };
+        new MouseOrbiter(camhand, true).addTo(_canvas);
+        return camhand;
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();
 
         // create the scene view
         _view = new TudeySceneView(this, this);
+
+        // initialize the tools
+        for (EditorTool tool : _tools.values()) {
+            tool.init();
+        }
 
         // attempt to load the scene file specified on the command line if any
         // (otherwise, create an empty scene)
@@ -341,6 +338,8 @@ public class SceneEditor extends GlCanvasTool
     {
         super.updateView(elapsed);
         _view.tick(elapsed);
+        _activeTool.tick(elapsed);
+        _grid.tick(elapsed);
     }
 
     @Override // documentation inherited
@@ -348,12 +347,13 @@ public class SceneEditor extends GlCanvasTool
     {
         super.enqueueView();
         _view.enqueue();
+        _activeTool.enqueue();
     }
 
     /**
      * Adds a tool to the tool panel.
      */
-    protected void addTool (JPanel tpanel, String name, Tool tool)
+    protected void addTool (JPanel tpanel, String name, EditorTool tool)
     {
         tpanel.add(createIconButton(name));
         _tools.put(name, tool);
@@ -381,7 +381,7 @@ public class SceneEditor extends GlCanvasTool
     /**
      * Sets the active tool.
      */
-    protected void setActiveTool (Tool tool)
+    protected void setActiveTool (EditorTool tool)
     {
         if (_activeTool != null) {
             _activeTool.deactivate();
@@ -392,6 +392,21 @@ public class SceneEditor extends GlCanvasTool
             _activeTool.activate();
         }
         SwingUtil.refresh(_opanel);
+    }
+
+    /**
+     * Binds a keystroke to an action on the specified component.
+     */
+    protected void bindAction (
+        final JComponent comp, int keyCode, int modifiers, final String action)
+    {
+        comp.getInputMap().put(KeyStroke.getKeyStroke(keyCode, modifiers), action);
+        comp.getActionMap().put(action, new AbstractAction(action) {
+            public void actionPerformed (ActionEvent event) {
+                SceneEditor.this.actionPerformed(new ActionEvent(
+                    comp, ActionEvent.ACTION_PERFORMED, action));
+            }
+        });
     }
 
     /**
@@ -486,7 +501,7 @@ public class SceneEditor extends GlCanvasTool
         _view.setSceneModel(_scene);
 
         // notify the tools
-        for (Tool tool : _tools.values()) {
+        for (EditorTool tool : _tools.values()) {
             tool.sceneChanged(scene);
         }
     }
@@ -562,10 +577,10 @@ public class SceneEditor extends GlCanvasTool
     protected JPanel _opanel;
 
     /** Tools mapped by name. */
-    protected HashMap<String, Tool> _tools = new HashMap<String, Tool>();
+    protected HashMap<String, EditorTool> _tools = new HashMap<String, EditorTool>();
 
     /** The active tool. */
-    protected Tool _activeTool;
+    protected EditorTool _activeTool;
 
     /** The loaded scene file. */
     protected File _file;
@@ -575,6 +590,9 @@ public class SceneEditor extends GlCanvasTool
 
     /** The scene view. */
     protected TudeySceneView _view;
+
+    /** A casted reference to the editor grid. */
+    protected EditorGrid _grid;
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);

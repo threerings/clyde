@@ -25,7 +25,7 @@ import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 /**
  * The global editor tool.
  */
-public class GlobalEditor extends SceneEditor.Tool
+public class GlobalEditor extends EditorTool
     implements ChangeListener
 {
     /**

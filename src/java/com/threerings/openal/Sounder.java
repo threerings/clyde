@@ -347,6 +347,9 @@ public class Sounder extends SimpleScope
      */
     public void setConfig (SounderConfig config)
     {
+        if (_config == config) {
+            return;
+        }
         if (_config != null) {
             _config.removeListener(this);
         }

@@ -134,6 +134,9 @@ public class GlobalSprite extends EntrySprite
      */
     protected void setConfig (SceneGlobalConfig config)
     {
+        if (_config == config) {
+            return;
+        }
         if (_config != null) {
             _config.removeListener(this);
         }
