@@ -27,6 +27,11 @@ import static com.threerings.editor.Log.*;
 public abstract class ArrayListEditor extends PropertyEditor
     implements ActionListener
 {
+    /**
+     * Ensures that the specified index is visible.
+     */
+    public abstract void makeVisible (int idx);
+
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {

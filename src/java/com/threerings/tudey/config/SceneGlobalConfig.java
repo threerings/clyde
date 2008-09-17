@@ -60,7 +60,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
         public ConfigReference<ModelConfig> model;
 
         /** The transform to apply to the model. */
-        @Editable
+        @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
 
         @Override // documentation inherited
@@ -70,9 +70,6 @@ public class SceneGlobalConfig extends ParameterizedConfig
             if (impl instanceof GlobalSprite.EnvironmentModel) {
                 ((GlobalSprite.EnvironmentModel)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new GlobalSprite.EnvironmentModel(ctx, scope, this);
             }
             return impl;

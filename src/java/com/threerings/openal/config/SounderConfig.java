@@ -151,9 +151,6 @@ public class SounderConfig extends ParameterizedConfig
             if (impl instanceof Sounder.Clip) {
                 ((Sounder.Clip)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new Sounder.Clip(ctx, scope, this);
             }
             return impl;
@@ -197,9 +194,6 @@ public class SounderConfig extends ParameterizedConfig
             if (impl instanceof Sounder.Stream) {
                 ((Sounder.Stream)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new Sounder.Stream(ctx, scope, this);
             }
             return impl;

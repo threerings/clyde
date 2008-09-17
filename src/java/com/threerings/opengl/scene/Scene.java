@@ -175,7 +175,8 @@ public abstract class Scene extends DynamicScope
      */
     public SceneElement getIntersection (Ray ray, Vector3f location)
     {
-        return getIntersection(ray, location, ALL_ELEMENTS);
+        Predicate<SceneElement> filter = Predicate.trueInstance();
+        return getIntersection(ray, location, filter);
     }
 
     /**
@@ -422,7 +423,7 @@ public abstract class Scene extends DynamicScope
     /**
      * Searches for an intersection with the supplied elements.
      */
-    public SceneElement getIntersection (
+    protected SceneElement getIntersection (
         ArrayList<SceneElement> elements, Ray ray, Vector3f location,
         Predicate<SceneElement> filter)
     {
@@ -534,13 +535,6 @@ public abstract class Scene extends DynamicScope
 
     /** Holds the new set of effects acting on the viewer. */
     protected ViewerEffectSet _neffects = new ViewerEffectSet();
-
-    /** A predicate that matches all elements. */
-    protected static final Predicate<SceneElement> ALL_ELEMENTS = new Predicate<SceneElement>() {
-        public boolean isMatch (SceneElement element) {
-            return true;
-        }
-    };
 
     /** The default number of sound sources to allow. */
     protected static final int DEFAULT_SOURCES = 10;

@@ -193,7 +193,11 @@ public class PlaceableCursor extends Cursor
     {
         Implementation nimpl = (_config == null) ?
             null : _config.getCursorImplementation(_ctx, this, _impl);
-        _impl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        if (_impl != nimpl) {
+            _impl.dispose();
+            _impl = nimpl;
+        }
     }
 
     /** The prototype entry. */

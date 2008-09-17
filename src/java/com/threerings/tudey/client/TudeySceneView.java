@@ -8,17 +8,24 @@ import com.samskivert.util.HashIntMap;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
+import com.threerings.math.Ray;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
+import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.scene.HashScene;
+import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
+
+import com.samskivert.util.Predicate;
 
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 
 import com.threerings.tudey.client.sprite.EntrySprite;
+import com.threerings.tudey.client.sprite.Sprite;
 
 import static com.threerings.tudey.Log.*;
 
@@ -88,6 +95,38 @@ public class TudeySceneView extends SimpleScope
         } else {
             log.warning("Missing entry sprite to remove.", "id", id);
         }
+    }
+
+    /**
+     * Checks for an intersection between the provided ray and the sprites in the scene.
+     *
+     * @param location a vector to populate with the location of the intersection, if any.
+     * @return a reference to the first sprite intersected by the ray, or <code>null</code> for
+     * none.
+     */
+    public Sprite getIntersection (Ray ray, Vector3f location)
+    {
+        Predicate<Sprite> filter = Predicate.trueInstance();
+        return getIntersection(ray, location, filter);
+    }
+
+    /**
+     * Checks for an intersection between the provided ray and the sprites in the scene.
+     *
+     * @param location a vector to populate with the location of the intersection, if any.
+     * @return a reference to the first sprite intersected by the ray, or <code>null</code> for
+     * none.
+     */
+    public Sprite getIntersection (Ray ray, Vector3f location, final Predicate<Sprite> filter)
+    {
+        Model model = (Model)_scene.getIntersection(ray, location, new Predicate<SceneElement>() {
+            public boolean isMatch (SceneElement element) {
+                Object userObject = (element instanceof Model) ?
+                    ((Model)element).getUserObject() : null;
+                return userObject instanceof Sprite && filter.isMatch((Sprite)userObject);
+            }
+        });
+        return (model == null) ? null : (Sprite)model.getUserObject();
     }
 
     @Override // documentation inherited

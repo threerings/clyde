@@ -62,6 +62,7 @@ public class GlobalSprite extends EntrySprite
         {
             super(ctx, parentScope);
             _scene.add(_model = new Model(ctx));
+            _model.setUserObject((GlobalSprite)parentScope);
             setConfig(config);
         }
 
@@ -95,7 +96,7 @@ public class GlobalSprite extends EntrySprite
     public GlobalSprite (GlContext ctx, TudeySceneView view, GlobalEntry entry)
     {
         super(ctx, view);
-        setConfig(entry.sceneGlobal);
+        update(entry);
     }
 
     // documentation inherited from interface ConfigUpdateListener
@@ -105,9 +106,16 @@ public class GlobalSprite extends EntrySprite
     }
 
     @Override // documentation inherited
+    public Entry getEntry ()
+    {
+        return _entry;
+    }
+
+    @Override // documentation inherited
     public void update (Entry entry)
     {
-        setConfig(((GlobalEntry)entry).sceneGlobal);
+        _entry = (GlobalEntry)entry;
+        setConfig(_entry.sceneGlobal);
     }
 
     @Override // documentation inherited
@@ -152,8 +160,15 @@ public class GlobalSprite extends EntrySprite
     {
         Implementation nimpl = (_config == null) ?
             null : _config.getSpriteImplementation(_ctx, this, _impl);
-        _impl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        if (_impl != nimpl) {
+            _impl.dispose();
+            _impl = nimpl;
+        }
     }
+
+    /** The scene entry. */
+    protected GlobalEntry _entry;
 
     /** The global configuration. */
     protected SceneGlobalConfig _config;

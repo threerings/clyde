@@ -82,7 +82,7 @@ public abstract class EditorTool extends JPanel
      */
     public boolean allowsMouseCamera ()
     {
-        return true;
+        return false;
     }
 
     // documentation inherited from interface Tickable

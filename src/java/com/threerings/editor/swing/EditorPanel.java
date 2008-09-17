@@ -320,6 +320,19 @@ public class EditorPanel extends BasePropertyEditor
     }
 
     /**
+     * Returns the property editor for the property with the supplied name.
+     */
+    public PropertyEditor getPropertyEditor (String name)
+    {
+        for (PropertyEditor editor : _editors) {
+            if (name.equals(editor.getProperty().getName())) {
+                return editor;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Updates the editor state in response to an external change in the object's state.
      */
     public void update ()

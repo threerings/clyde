@@ -39,7 +39,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     @Override // documentation inherited
     public boolean allowsMouseCamera ()
     {
-        return false;
+        return !_cursorVisible;
     }
 
     @Override // documentation inherited
@@ -79,7 +79,8 @@ public class Placer extends ConfigTool<PlaceableConfig>
      */
     protected void updateCursor ()
     {
-        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
+        if (!(_cursorVisible = _entry.placeable != null &&
+                getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
             return;
         }
         // snap to tile grid/ninety degree rotations if shift not held down

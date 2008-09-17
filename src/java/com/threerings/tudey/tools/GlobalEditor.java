@@ -15,6 +15,7 @@ import com.samskivert.util.QuickSort;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.swing.editors.ArrayListEditor;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -38,6 +39,16 @@ public class GlobalEditor extends EditorTool
         // create and add the editor panel
         add(_epanel = new EditorPanel(editor));
         _epanel.addChangeListener(this);
+    }
+
+    /**
+     * Requests to start editing the specified entry.
+     */
+    public void edit (GlobalEntry entry)
+    {
+        // make the entry visible
+        int idx = ((EditableGlobals)_epanel.getObject()).getIndex(entry.getId());
+        ((ArrayListEditor)_epanel.getPropertyEditor("globals")).makeVisible(idx);
     }
 
     // documentation inherited from interface ChangeListener
@@ -70,6 +81,12 @@ public class GlobalEditor extends EditorTool
                 nglobal.setId(id);
             }
         }
+    }
+
+    @Override // documentation inherited
+    public boolean allowsMouseCamera ()
+    {
+        return true;
     }
 
     @Override // documentation inherited
@@ -106,12 +123,22 @@ public class GlobalEditor extends EditorTool
          */
         public GlobalEntry getGlobal (int id)
         {
-            for (GlobalEntry global : globals) {
-                if (global.getId() == id) {
-                    return global;
+            int idx = getIndex(id);
+            return (idx == -1) ? null : globals[idx];
+        }
+
+        /**
+         * Returns the index of the global with the supplied identifier, or <code>-1</code> if it
+         * couldn't be found.
+         */
+        public int getIndex (int id)
+        {
+            for (int ii = 0; ii < globals.length; ii++) {
+                if (globals[ii].getId() == id) {
+                    return ii;
                 }
             }
-            return null;
+            return -1;
         }
     }
 

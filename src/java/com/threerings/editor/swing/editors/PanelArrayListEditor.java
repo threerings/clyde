@@ -74,6 +74,14 @@ public class PanelArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
+    public void makeVisible (int idx)
+    {
+        EntryPanel panel = (EntryPanel)_panels.getComponent(idx);
+        panel.setCollapsed(false);
+        _panels.scrollRectToVisible(panel.getBounds());
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();

@@ -8,6 +8,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 
@@ -38,6 +39,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.util.SwingUtil;
+import com.samskivert.util.Predicate;
 
 import com.threerings.media.image.ImageUtil;
 import com.threerings.util.KeyboardManager.KeyObserver;
@@ -48,6 +50,8 @@ import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
+import com.threerings.math.Ray;
+import com.threerings.math.Vector3f;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.GlCanvasTool;
@@ -58,8 +62,11 @@ import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.Grid;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.sprite.EntrySprite;
+import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 
 import static com.threerings.tudey.Log.*;
 
@@ -67,7 +74,7 @@ import static com.threerings.tudey.Log.*;
  * The scene editor application.
  */
 public class SceneEditor extends GlCanvasTool
-    implements KeyObserver
+    implements KeyObserver, MouseListener
 {
     /**
      * The program entry point.
@@ -172,10 +179,10 @@ public class SceneEditor extends GlCanvasTool
         // create the tool box
         JPanel outer = new JPanel();
         _epanel.add(outer, GroupLayout.FIXED);
-        JPanel tpanel = new JPanel(new GridLayout(0, 2, 5, 5));
+        JPanel tpanel = new JPanel(new GridLayout(0, 3, 5, 5));
         outer.add(tpanel);
-        GlobalEditor gedit = new GlobalEditor(this);
-        addTool(tpanel, "global_editor", gedit);
+        addTool(tpanel, "global_editor", _globalEditor = new GlobalEditor(this));
+        addTool(tpanel, "arrow", _arrow = new Arrow(this));
         addTool(tpanel, "placer", new Placer(this));
 
         // create the option panel
@@ -183,10 +190,13 @@ public class SceneEditor extends GlCanvasTool
         _epanel.add(_opanel);
 
         // activate the global editor tool
-        setActiveTool(gedit);
+        setActiveTool(_globalEditor);
 
         // add ourself as a key observer
         _keymgr.registerKeyObserver(this);
+
+        // and as a mouse listener
+        _canvas.addMouseListener(this);
     }
 
     /**
@@ -256,6 +266,27 @@ public class SceneEditor extends GlCanvasTool
         _view.entryRemoved(id);
     }
 
+    /**
+     * Attempts to edit the object under the mouse cursor.
+     */
+    public void editMouseObject ()
+    {
+        if (!getMouseRay(_pick)) {
+            return;
+        }
+        Sprite sprite = _view.getIntersection(_pick, _pt, EDIT_FILTER);
+        if (sprite instanceof EntrySprite) {
+            Entry entry = ((EntrySprite)sprite).getEntry();
+            if (entry instanceof GlobalEntry) {
+                setActiveTool(_globalEditor);
+                _globalEditor.edit((GlobalEntry)entry);
+            } else {
+                setActiveTool(_arrow);
+                _arrow.edit(entry);
+            }
+        }
+    }
+
     // documentation inherited from interface KeyObserver
     public void handleKeyEvent (int id, int keyCode, long timestamp)
     {
@@ -271,6 +302,38 @@ public class SceneEditor extends GlCanvasTool
                 _altDown = pressed;
                 break;
         }
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseClicked (MouseEvent event)
+    {
+        if (mouseCameraEnabled() && event.getClickCount() == 2) {
+            editMouseObject();
+        }
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mousePressed (MouseEvent event)
+    {
+        // no-op
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseReleased (MouseEvent event)
+    {
+        // no-op
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseEntered (MouseEvent event)
+    {
+        // no-op
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseExited (MouseEvent event)
+    {
+        // no-op
     }
 
     @Override // documentation inherited
@@ -365,19 +428,16 @@ public class SceneEditor extends GlCanvasTool
         // mouse movement is enabled when the tool allows it or control is held down
         new MouseOrbiter(camhand, true) {
             public void mouseDragged (MouseEvent event) {
-                if (allowMovement()) {
+                if (mouseCameraEnabled()) {
                     super.mouseDragged(event);
                 } else {
                     super.mouseMoved(event);
                 }
             }
             public void mouseWheelMoved (MouseWheelEvent event) {
-                if (allowMovement()) {
+                if (mouseCameraEnabled()) {
                     super.mouseWheelMoved(event);
                 }
-            }
-            protected boolean allowMovement () {
-                return _activeTool.allowsMouseCamera() || isControlDown();
             }
         }.addTo(_canvas);
         return camhand;
@@ -455,6 +515,9 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void setActiveTool (EditorTool tool)
     {
+        if (_activeTool == tool) {
+            return;
+        }
         if (_activeTool != null) {
             _activeTool.deactivate();
             _opanel.remove(_activeTool);
@@ -479,6 +542,14 @@ public class SceneEditor extends GlCanvasTool
                     comp, ActionEvent.ACTION_PERFORMED, action));
             }
         });
+    }
+
+    /**
+     * Determines whether mouse camera control is enabled.
+     */
+    protected boolean mouseCameraEnabled ()
+    {
+        return _activeTool.allowsMouseCamera() || isControlDown();
     }
 
     /**
@@ -651,6 +722,12 @@ public class SceneEditor extends GlCanvasTool
     /** Tools mapped by name. */
     protected HashMap<String, EditorTool> _tools = new HashMap<String, EditorTool>();
 
+    /** The global editor tool. */
+    protected GlobalEditor _globalEditor;
+
+    /** The arrow tool. */
+    protected Arrow _arrow;
+
     /** The active tool. */
     protected EditorTool _activeTool;
 
@@ -669,9 +746,22 @@ public class SceneEditor extends GlCanvasTool
     /** Whether or not the shift, control, and/or alt keys are being held down. */
     protected boolean _shiftDown, _controlDown, _altDown;
 
+    /** Used for picking. */
+    protected Ray _pick = new Ray();
+
+    /** Holds the location of the pick result. */
+    protected Vector3f _pt = new Vector3f();
+
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);
 
     /** The size of the icon buttons. */
     protected static final Dimension ICON_BUTTON_SIZE = new Dimension(20, 20);
+
+    /** Used to filter out the sprites we can edit. */
+    protected static final Predicate<Sprite> EDIT_FILTER = new Predicate<Sprite>() {
+        public boolean isMatch (Sprite sprite) {
+            return sprite instanceof EntrySprite;
+        }
+    };
 }

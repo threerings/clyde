@@ -101,6 +101,7 @@ public abstract class ViewerEffectConfig extends DeepObject
                 }
                 public void update () {
                     model.getLocalTransform().getTranslation().set(translation);
+                    model.updateBounds();
                 }
                 protected Scene _scene;
             };

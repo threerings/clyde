@@ -162,6 +162,12 @@ public class TableArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
+    public void makeVisible (int idx)
+    {
+        setSelection(idx, -1);
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();

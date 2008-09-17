@@ -81,9 +81,6 @@ public class PlaceableConfig extends ParameterizedConfig
             if (impl instanceof PlaceableCursor.Original) {
                 ((PlaceableCursor.Original)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new PlaceableCursor.Original(ctx, scope, this);
             }
             return impl;
@@ -110,9 +107,6 @@ public class PlaceableConfig extends ParameterizedConfig
             if (impl instanceof PlaceableSprite.Prop) {
                 ((PlaceableSprite.Prop)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new PlaceableSprite.Prop(ctx, scope, this);
             }
             return impl;
@@ -131,9 +125,6 @@ public class PlaceableConfig extends ParameterizedConfig
             if (impl instanceof PlaceableSprite.Marker) {
                 ((PlaceableSprite.Marker)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new PlaceableSprite.Marker(ctx, scope, this);
             }
             return impl;

@@ -99,7 +99,7 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference<PlaceableConfig> placeable;
 
         /** The transform of the placeable. */
-        @Editable
+        @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
 
         @Override // documentation inherited

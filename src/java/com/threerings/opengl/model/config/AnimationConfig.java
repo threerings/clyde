@@ -207,9 +207,6 @@ public class AnimationConfig extends ParameterizedConfig
             if (impl instanceof Animation.Imported) {
                 ((Animation.Imported)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new Animation.Imported(ctx, scope, this);
             }
             return impl;
@@ -252,9 +249,6 @@ public class AnimationConfig extends ParameterizedConfig
             if (impl instanceof Animation.Procedural) {
                 ((Animation.Procedural)impl).setConfig(this);
             } else {
-                if (impl != null) {
-                    impl.dispose();
-                }
                 impl = new Animation.Procedural(ctx, scope, this);
             }
             return impl;

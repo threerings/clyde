@@ -22,6 +22,11 @@ public abstract class EntrySprite extends Sprite
     }
 
     /**
+     * Returns a reference to the most recently set entry state.
+     */
+    public abstract Entry getEntry ();
+
+    /**
      * Updates the sprite with new entry state.
      */
     public abstract void update (Entry entry);
