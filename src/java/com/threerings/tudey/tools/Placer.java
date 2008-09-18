@@ -41,7 +41,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     @Override // documentation inherited
     public void tick (float elapsed)
     {
-        if (_editor.isThirdButtonDown()) {
+        if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
             _editor.deleteMouseObject(SceneEditor.PLACEABLE_SPRITE_FILTER);
         }
         updateCursor();

@@ -43,7 +43,7 @@ public class Tiler extends ConfigTool<TileConfig>
     @Override // documentation inherited
     public void tick (float elapsed)
     {
-        if (_editor.isThirdButtonDown()) {
+        if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
             _editor.deleteMouseObject(SceneEditor.TILE_SPRITE_FILTER);
         }
         updateCursor();
@@ -100,6 +100,11 @@ public class Tiler extends ConfigTool<TileConfig>
      */
     protected void placeEntry ()
     {
+        // if there's another tile there, remove it
+        if (_scene.getEntry(_entry.getLocation()) != null) {
+            _scene.removeEntry(_entry.getLocation());
+        }
+        // add the tile
         _scene.addEntry((TileEntry)_entry.clone());
         _lastPlacement.set(_entry.getLocation());
     }

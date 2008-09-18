@@ -12,11 +12,13 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.util.GridBox;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 
@@ -80,6 +82,8 @@ public class TileCursor extends Cursor
             super(parentScope);
             _model = new Model(ctx);
             _model.setParentScope(this);
+            _footprint = new GridBox(ctx);
+            _footprint.getColor().set(Color4f.GREEN);
             setConfig(config);
         }
 
@@ -96,6 +100,9 @@ public class TileCursor extends Cursor
         {
             entry.getTransform(_config, _model.getLocalTransform());
             _model.updateBounds();
+
+            entry.getRegion(_config, _footprint.getRegion());
+            _footprint.setElevation(entry.elevation);
         }
 
         @Override // documentation inherited
@@ -108,6 +115,7 @@ public class TileCursor extends Cursor
         public void enqueue ()
         {
             _model.enqueue();
+            _footprint.enqueue();
         }
 
         /** The tile configuration. */
@@ -115,6 +123,9 @@ public class TileCursor extends Cursor
 
         /** The model. */
         protected Model _model;
+
+        /** The tile footprint. */
+        protected GridBox _footprint;
     }
 
     /**

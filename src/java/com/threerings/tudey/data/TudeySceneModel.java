@@ -23,6 +23,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepUtil;
 
 import com.threerings.opengl.gui.util.Point;
+import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -130,6 +131,23 @@ public class TudeySceneModel extends SceneModel
             result.setType(Transform3D.RIGID);
             result.getRotation().set(TudeySceneMetrics.ROTATIONS[rotation]);
             result.getTranslation().set(x, y, TudeySceneMetrics.getZ(elevation));
+        }
+
+        /**
+         * Populates the supplied rectangle with the region covered by this tile.
+         */
+        public void getRegion (TileConfig.Original config, Rectangle result)
+        {
+            // adjust for rotation
+            int width, height;
+            if (rotation == 0 || rotation == 2) {
+                width = config.width;
+                height = config.height;
+            } else {
+                width = config.height;
+                height = config.width;
+            }
+            result.set(_location.x, _location.y, width, height);
         }
 
         @Override // documentation inherited
