@@ -18,7 +18,9 @@ import com.threerings.config.ConfigReference;
 import com.threerings.util.ReflectionUtil;
 
 import com.threerings.math.Quaternion;
+import com.threerings.math.Transform2D;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -44,7 +46,9 @@ import com.threerings.editor.swing.editors.QuaternionEditor;
 import com.threerings.editor.swing.editors.ResourceEditor;
 import com.threerings.editor.swing.editors.StringEditor;
 import com.threerings.editor.swing.editors.TableArrayListEditor;
+import com.threerings.editor.swing.editors.Transform2DEditor;
 import com.threerings.editor.swing.editors.Transform3DEditor;
+import com.threerings.editor.swing.editors.Vector2fEditor;
 import com.threerings.editor.swing.editors.Vector3fEditor;
 
 import static com.threerings.editor.Log.*;
@@ -334,7 +338,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass(Short.class, NumberEditor.class);
         registerEditorClass(Short.TYPE, NumberEditor.class);
         registerEditorClass(String.class, StringEditor.class);
+        registerEditorClass(Transform2D.class, Transform2DEditor.class);
         registerEditorClass(Transform3D.class, Transform3DEditor.class);
+        registerEditorClass(Vector2f.class, Vector2fEditor.class);
         registerEditorClass(Vector3f.class, Vector3fEditor.class);
     }
 }

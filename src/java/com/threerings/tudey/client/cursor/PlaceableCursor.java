@@ -11,6 +11,7 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
@@ -80,6 +81,8 @@ public class PlaceableCursor extends Cursor
             super(parentScope);
             _model = new Model(ctx);
             _model.setParentScope(this);
+            _model.setRenderScheme(RenderScheme.TRANSLUCENT);
+            _model.getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
             setConfig(config);
         }
 

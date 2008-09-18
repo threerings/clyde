@@ -87,7 +87,7 @@ public class MaterialConfig extends ParameterizedConfig
                 null : ctx.getConfigManager().getConfig(RenderSchemeConfig.class, scheme);
             for (TechniqueConfig technique : processed) {
                 RenderSchemeConfig tconfig = technique.getSchemeConfig(ctx);
-                if ((sconfig == null) ? tconfig.isCompatibleWith(sconfig) :
+                if ((sconfig == null) ? (tconfig == null || tconfig.isCompatibleWith(sconfig)) :
                         sconfig.isCompatibleWith(tconfig)) {
                     return technique;
                 }

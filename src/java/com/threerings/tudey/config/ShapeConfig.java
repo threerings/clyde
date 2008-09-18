@@ -6,6 +6,7 @@ package com.threerings.tudey.config;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
 
 /**
@@ -101,6 +102,21 @@ public abstract class ShapeConfig extends DeepObject
     {
         /** The component shapes. */
         @Editable
-        public ShapeConfig[] shapes = new ShapeConfig[0];
+        public TransformedShape[] shapes = new TransformedShape[0];
+    }
+
+    /**
+     * Combines a shape with its transform.
+     */
+    public static class TransformedShape extends DeepObject
+        implements Exportable
+    {
+        /** The shape. */
+        @Editable
+        public ShapeConfig shape = new Point();
+
+        /** The shape's transform. */
+        @Editable(step=0.01)
+        public Transform2D transform = new Transform2D();
     }
 }

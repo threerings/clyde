@@ -34,6 +34,7 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.scene.AmbientLightInfluence;
@@ -404,6 +405,33 @@ public class Model extends DynamicScope
     public ModelConfig getConfig ()
     {
         return _config;
+    }
+
+    /**
+     * Sets the model's render scheme.
+     */
+    public void setRenderScheme (String scheme)
+    {
+        if (!ObjectUtil.equals(_renderScheme, scheme)) {
+            _renderScheme = scheme;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Returns the model's render scheme.
+     */
+    public String getRenderScheme ()
+    {
+        return _renderScheme;
+    }
+
+    /**
+     * Returns a reference to the model's color.
+     */
+    public Color4f getColor ()
+    {
+        return _color;
     }
 
     /**
@@ -925,6 +953,14 @@ public class Model extends DynamicScope
 
     /** The influences affecting this model. */
     protected SceneInfluenceSet _influences = new SceneInfluenceSet();
+
+    /** The model's render scheme. */
+    @Scoped
+    protected String _renderScheme;
+
+    /** The model's color. */
+    @Scoped
+    protected Color4f _color = new Color4f();
 
     /** The model's fog state. */
     @Scoped

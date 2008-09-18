@@ -71,7 +71,6 @@ public class Vector3fPanel extends BasePropertyEditor
             v3 = value.z;
         } else {
             v3 = value.length();
-            float nx, ny, nz;
             if (v3 > 0.0001f) {
                 v1 = (FloatMath.hypot(value.x, value.y) > 0.0001f) ?
                     FloatMath.toDegrees(FloatMath.atan2(-value.x, value.y)) : 0f;

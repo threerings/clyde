@@ -128,7 +128,7 @@ public class Surface extends SimpleScope
                 "material", _materialConfig.getName(), "scheme", scheme);
             MaterialConfig config = _ctx.getConfigManager().getConfig(
                 MaterialConfig.class, BLANK_MATERIAL);
-            technique = config.getTechnique(_ctx, scheme);
+            technique = config.getTechnique(_ctx, null);
         }
         if (_geometryConfig != null) {
             PassDescriptor[] passes = technique.getDescriptors(_ctx);
