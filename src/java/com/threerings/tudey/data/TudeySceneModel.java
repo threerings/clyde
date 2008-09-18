@@ -6,8 +6,9 @@ package com.threerings.tudey.data;
 import java.io.IOException;
 
 import java.util.Collection;
+import java.util.HashMap;
 
-import com.samskivert.util.HashIntMap;
+import com.samskivert.util.ObserverList;
 
 import com.threerings.whirled.data.SceneModel;
 
@@ -21,14 +22,20 @@ import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepUtil;
 
+import com.threerings.opengl.gui.util.Point;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.GlobalSprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
+import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
+import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.util.TudeySceneMetrics;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Contains a representation of a Tudey scene.
@@ -37,10 +44,115 @@ public class TudeySceneModel extends SceneModel
     implements Exportable
 {
     /**
+     * An interface for objects interested in changes to the scene model.
+     */
+    public interface Observer
+    {
+        /**
+         * Notes that an entry has been added to the scene.
+         */
+        public void entryAdded (Entry entry);
+
+        /**
+         * Notes that an entry has been updated within the scene.
+         */
+        public void entryUpdated (Entry oentry, Entry nentry);
+
+        /**
+         * Notes that an entry has been removed from the scene.
+         */
+        public void entryRemoved (Entry oentry);
+    }
+
+    /**
      * An entry in the scene.
      */
     public static abstract class Entry extends DeepObject
-        implements Exportable, Comparable<Entry>
+        implements Exportable
+    {
+        /**
+         * Returns the key for this entry.
+         */
+        public abstract Object getKey ();
+
+        /**
+         * Creates a sprite for this entry.
+         */
+        public abstract EntrySprite createSprite (GlContext ctx, TudeySceneView view);
+    }
+
+    /**
+     * A tile entry.  Tiles are identified by their locations.
+     */
+    public static class TileEntry extends Entry
+    {
+        /** The configuration of the tile. */
+        @Editable(nullable=false)
+        public ConfigReference<TileConfig> tile;
+
+        /** The tile's elevation. */
+        @Editable(min=Byte.MIN_VALUE, max=Byte.MAX_VALUE)
+        public int elevation;
+
+        /** The tile's rotation. */
+        @Editable(min=0, max=3)
+        public int rotation;
+
+        /**
+         * Returns a reference to the tile's location.
+         */
+        public Point getLocation ()
+        {
+            return _location;
+        }
+
+        /**
+         * Populates the supplied transform with the transform of this tile.
+         *
+         * @param config the resolved configuration of the tile.
+         */
+        public void getTransform (TileConfig.Original config, Transform3D result)
+        {
+            // adjust for rotation
+            int x = _location.x, y = _location.y;
+            switch (rotation) {
+                case 1:
+                    x += config.height;
+                    break;
+                case 2:
+                    x += config.width;
+                    y += config.height;
+                    break;
+                case 3:
+                    y += config.width;
+                    break;
+            }
+            result.setType(Transform3D.RIGID);
+            result.getRotation().set(TudeySceneMetrics.ROTATIONS[rotation]);
+            result.getTranslation().set(x, y, TudeySceneMetrics.getZ(elevation));
+        }
+
+        @Override // documentation inherited
+        public Object getKey ()
+        {
+            return _location;
+        }
+
+        @Override // documentation inherited
+        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        {
+            return new TileSprite(ctx, view, this);
+        }
+
+        /** The location of the tile. */
+        protected Point _location = new Point();
+    }
+
+    /**
+     * An entry identified by an integer id.
+     */
+    public static abstract class IdEntry extends Entry
+        implements Comparable<IdEntry>
     {
         /**
          * Sets the entry's unique identifier.
@@ -58,15 +170,16 @@ public class TudeySceneModel extends SceneModel
             return _id;
         }
 
-        /**
-         * Creates a sprite for this entry.
-         */
-        public abstract EntrySprite createSprite (GlContext ctx, TudeySceneView view);
-
         // documentation inherited from interface Comparable
-        public int compareTo (Entry other)
+        public int compareTo (IdEntry other)
         {
             return _id - other._id;
+        }
+
+        @Override // documentation inherited
+        public Object getKey ()
+        {
+            return _id;
         }
 
         /** The entry's unique identifier. */
@@ -76,7 +189,7 @@ public class TudeySceneModel extends SceneModel
     /**
      * A global entry.
      */
-    public static class GlobalEntry extends Entry
+    public static class GlobalEntry extends IdEntry
     {
         /** The configuration of the global. */
         @Editable(nullable=false)
@@ -92,7 +205,7 @@ public class TudeySceneModel extends SceneModel
     /**
      * A placeable entry.
      */
-    public static class PlaceableEntry extends Entry
+    public static class PlaceableEntry extends IdEntry
     {
         /** The configuration of the placeable. */
         @Editable(nullable=true)
@@ -126,42 +239,107 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
-     * Adds an entry to the scene, assigning it a unique id in the process.
+     * Adds an observer for scene changes.
      */
-    public void addEntry (Entry entry)
+    public void addObserver (Observer observer)
     {
-        entry.setId(++_lastEntryId);
-        _entries.put(_lastEntryId, entry);
+        _observers.add(observer);
+    }
+
+    /**
+     * Removes a scene observer.
+     */
+    public void removeObserver (Observer observer)
+    {
+        _observers.remove(observer);
+    }
+
+    /**
+     * Adds an entry to the scene, possibly assigning it a unique id in the process.
+     *
+     * @return true if the entry was successfully added, false if there was already
+     * an entry with the same id (in which case a warning will be logged).
+     */
+    public boolean addEntry (final Entry entry)
+    {
+        // assign id if appropriate
+        if (entry instanceof IdEntry) {
+            ((IdEntry)entry).setId(++_lastEntryId);
+        }
+        // add to map
+        Entry oentry = _entries.put(entry.getKey(), entry);
+        if (oentry != null) {
+            log.warning("Attempted to replace existing entry.", "oentry", oentry, "nentry", entry);
+            _entries.put(entry.getKey(), oentry);
+            return false;
+        }
+        // notify the observers
+        _observers.apply(new ObserverList.ObserverOp<Observer>() {
+            public boolean apply (Observer observer) {
+                observer.entryAdded(entry);
+                return true;
+            }
+        });
+        return true;
     }
 
     /**
      * Updates an entry within the scene.
      *
-     * @return a reference to the entry that was replaced, or <code>null</code> for none.
+     * @return a reference to the entry that was replaced, or <code>null</code> for none (in which
+     * case a warning will be logged).
      */
-    public Entry updateEntry (Entry entry)
+    public Entry updateEntry (final Entry nentry)
     {
-        return _entries.put(entry.getId(), entry);
+        // replace in map
+        final Entry oentry = _entries.put(nentry.getKey(), nentry);
+        if (oentry == null) {
+            log.warning("Attempted to update nonexistent entry.", "entry", nentry);
+            _entries.remove(nentry.getKey());
+            return null;
+        }
+        // notify the observers
+        _observers.apply(new ObserverList.ObserverOp<Observer>() {
+            public boolean apply (Observer observer) {
+                observer.entryUpdated(oentry, nentry);
+                return true;
+            }
+        });
+        return oentry;
     }
 
     /**
      * Removes an entry from the scene.
      *
-     * @return a reference to the entry that was remove, or <code>null</code> for none.
+     * @return a reference to the entry that was removed, or <code>null</code> for none (in which
+     * case a warning will be logged).
      */
-    public Entry removeEntry (int id)
+    public Entry removeEntry (Object key)
     {
-        return _entries.remove(id);
+        // remove from map
+        final Entry oentry = _entries.remove(key);
+        if (oentry == null) {
+            log.warning("Missing entry to remove.", "key", key);
+            return null;
+        }
+        // notify the observers
+        _observers.apply(new ObserverList.ObserverOp<Observer>() {
+            public boolean apply (Observer observer) {
+                observer.entryRemoved(oentry);
+                return true;
+            }
+        });
+        return oentry;
     }
 
     /**
-     * Looks up the entry with the supplied id.
+     * Looks up the entry with the supplied key.
      *
      * @return a reference to the identified entry, or <code>null</code> if not found.
      */
-    public Entry getEntry (int id)
+    public Entry getEntry (Object key)
     {
-        return _entries.get(id);
+        return _entries.get(key);
     }
 
     /**
@@ -191,7 +369,7 @@ public class TudeySceneModel extends SceneModel
     {
         in.defaultReadFields();
         for (Entry entry : in.read("entries", new Entry[0], Entry[].class)) {
-            _entries.put(entry.getId(), entry);
+            _entries.put(entry.getKey(), entry);
         }
     }
 
@@ -207,6 +385,9 @@ public class TudeySceneModel extends SceneModel
     /** The last entry id assigned. */
     protected int _lastEntryId;
 
-    /** Scene entries mapped by id. */
-    protected transient HashIntMap<Entry> _entries = new HashIntMap<Entry>();
+    /** Scene entries mapped by key. */
+    protected transient HashMap<Object, Entry> _entries = new HashMap<Object, Entry>();
+
+    /** The scene model observers. */
+    protected transient ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
 }

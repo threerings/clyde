@@ -24,6 +24,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -33,6 +34,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
@@ -63,7 +65,9 @@ import com.threerings.opengl.util.Grid;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EntrySprite;
+import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
@@ -76,6 +80,19 @@ import static com.threerings.tudey.Log.*;
 public class SceneEditor extends GlCanvasTool
     implements KeyObserver, MouseListener
 {
+    /** Allows only tile sprites. */
+    public static final Predicate<Sprite> TILE_SPRITE_FILTER =
+        new Predicate.InstanceOf<Sprite>(TileSprite.class);
+
+    /** Allows only placeable sprites. */
+    public static final Predicate<Sprite> PLACEABLE_SPRITE_FILTER =
+        new Predicate.InstanceOf<Sprite>(PlaceableSprite.class);
+
+    /** Allows tile and placeable sprites. */
+    @SuppressWarnings("unchecked")
+    public static final Predicate<Sprite> DEFAULT_SPRITE_FILTER =
+        new Predicate.Or<Sprite>(TILE_SPRITE_FILTER, PLACEABLE_SPRITE_FILTER);
+
     /**
      * The program entry point.
      */
@@ -179,11 +196,13 @@ public class SceneEditor extends GlCanvasTool
         // create the tool box
         JPanel outer = new JPanel();
         _epanel.add(outer, GroupLayout.FIXED);
-        JPanel tpanel = new JPanel(new GridLayout(0, 3, 5, 5));
+        ButtonGroup tgroup = new ButtonGroup();
+        JPanel tpanel = new JPanel(new GridLayout(0, 4, 5, 5));
         outer.add(tpanel);
-        addTool(tpanel, "global_editor", _globalEditor = new GlobalEditor(this));
-        addTool(tpanel, "arrow", _arrow = new Arrow(this));
-        addTool(tpanel, "placer", new Placer(this));
+        addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this));
+        addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
+        addTool(tpanel, tgroup, "tiler", new Tiler(this));
+        addTool(tpanel, tgroup, "placer", new Placer(this));
 
         // create the option panel
         _opanel = GroupLayout.makeVStretchBox(5);
@@ -240,30 +259,27 @@ public class SceneEditor extends GlCanvasTool
     }
 
     /**
-     * Adds an entry to the scene and notifies the view.
+     * Checks whether the first mouse button is being held down on the canvas.
      */
-    public void addEntry (Entry entry)
+    public boolean isFirstButtonDown ()
     {
-        _scene.addEntry(entry);
-        _view.entryAdded(entry);
+        return _firstButtonDown;
     }
 
     /**
-     * Updates an entry within the scene and notifies the view.
+     * Checks whether the second mouse button is being held down on the canvas.
      */
-    public void updateEntry (Entry entry)
+    public boolean isSecondButtonDown ()
     {
-        _scene.updateEntry(entry);
-        _view.entryUpdated(entry);
+        return _secondButtonDown;
     }
 
     /**
-     * Removes an entry from the scene and notifies the view.
+     * Checks whether the third mouse button is being held down on the canvas.
      */
-    public void removeEntry (int id)
+    public boolean isThirdButtonDown ()
     {
-        _scene.removeEntry(id);
-        _view.entryRemoved(id);
+        return _thirdButtonDown;
     }
 
     /**
@@ -274,7 +290,7 @@ public class SceneEditor extends GlCanvasTool
         if (!getMouseRay(_pick)) {
             return;
         }
-        Sprite sprite = _view.getIntersection(_pick, _pt, EDIT_FILTER);
+        Sprite sprite = _view.getIntersection(_pick, _pt, DEFAULT_SPRITE_FILTER);
         if (sprite instanceof EntrySprite) {
             Entry entry = ((EntrySprite)sprite).getEntry();
             if (entry instanceof GlobalEntry) {
@@ -284,6 +300,29 @@ public class SceneEditor extends GlCanvasTool
                 setActiveTool(_arrow);
                 _arrow.edit(entry);
             }
+        }
+    }
+
+    /**
+     * Attempts to delete the object under the mouse cursor.
+     */
+    public void deleteMouseObject ()
+    {
+        deleteMouseObject(DEFAULT_SPRITE_FILTER);
+    }
+
+    /**
+     * Attempts to delete the object under the mouse cursor.
+     */
+    public void deleteMouseObject (Predicate<Sprite> filter)
+    {
+        if (!getMouseRay(_pick)) {
+            return;
+        }
+        Sprite sprite = _view.getIntersection(_pick, _pt, filter);
+        if (sprite instanceof EntrySprite) {
+            Entry entry = ((EntrySprite)sprite).getEntry();
+            _scene.removeEntry(entry.getKey());
         }
     }
 
@@ -315,13 +354,33 @@ public class SceneEditor extends GlCanvasTool
     // documentation inherited from interface MouseListener
     public void mousePressed (MouseEvent event)
     {
-        // no-op
+        switch (event.getButton()) {
+            case MouseEvent.BUTTON1:
+                _firstButtonDown = true;
+                break;
+            case MouseEvent.BUTTON2:
+                _secondButtonDown = true;
+                break;
+            case MouseEvent.BUTTON3:
+                _thirdButtonDown = true;
+                break;
+        }
     }
 
     // documentation inherited from interface MouseListener
     public void mouseReleased (MouseEvent event)
     {
-        // no-op
+        switch (event.getButton()) {
+            case MouseEvent.BUTTON1:
+                _firstButtonDown = false;
+                break;
+            case MouseEvent.BUTTON2:
+                _secondButtonDown = false;
+                break;
+            case MouseEvent.BUTTON3:
+                _thirdButtonDown = false;
+                break;
+        }
     }
 
     // documentation inherited from interface MouseListener
@@ -485,16 +544,24 @@ public class SceneEditor extends GlCanvasTool
     /**
      * Adds a tool to the tool panel.
      */
-    protected void addTool (JPanel tpanel, String name, EditorTool tool)
+    protected void addTool (JPanel tpanel, ButtonGroup tgroup, String name, EditorTool tool)
     {
-        tpanel.add(createIconButton(name));
+        JToggleButton button = new JToggleButton(createIcon(name));
+        button.setPreferredSize(TOOL_BUTTON_SIZE);
+        button.setActionCommand(name);
+        button.addActionListener(this);
+
+        tpanel.add(button);
+        tgroup.add(button);
+
         _tools.put(name, tool);
+        tool.setButton(button);
     }
 
     /**
-     * Creates a button with the named icon.
+     * Creates the named icon.
      */
-    protected JButton createIconButton (String name)
+    protected ImageIcon createIcon (String name)
     {
         BufferedImage image;
         try {
@@ -503,11 +570,7 @@ public class SceneEditor extends GlCanvasTool
             log.warning("Error loading image.", "name", name, e);
             image = ImageUtil.createErrorImage(16, 16);
         }
-        JButton button = new JButton(new ImageIcon(image));
-        button.setPreferredSize(ICON_BUTTON_SIZE);
-        button.setActionCommand(name);
-        button.addActionListener(this);
-        return button;
+        return new ImageIcon(image);
     }
 
     /**
@@ -746,6 +809,9 @@ public class SceneEditor extends GlCanvasTool
     /** Whether or not the shift, control, and/or alt keys are being held down. */
     protected boolean _shiftDown, _controlDown, _altDown;
 
+    /** Whether or not each of the mouse buttons are being held down on the canvas. */
+    protected boolean _firstButtonDown, _secondButtonDown, _thirdButtonDown;
+
     /** Used for picking. */
     protected Ray _pick = new Ray();
 
@@ -755,13 +821,6 @@ public class SceneEditor extends GlCanvasTool
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);
 
-    /** The size of the icon buttons. */
-    protected static final Dimension ICON_BUTTON_SIZE = new Dimension(20, 20);
-
-    /** Used to filter out the sprites we can edit. */
-    protected static final Predicate<Sprite> EDIT_FILTER = new Predicate<Sprite>() {
-        public boolean isMatch (Sprite sprite) {
-            return sprite instanceof EntrySprite;
-        }
-    };
+    /** The size of the tool buttons. */
+    protected static final Dimension TOOL_BUTTON_SIZE = new Dimension(20, 20);
 }

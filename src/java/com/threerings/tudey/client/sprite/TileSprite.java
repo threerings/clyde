@@ -15,15 +15,15 @@ import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.config.PlaceableConfig;
+import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
-import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
+import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 
 /**
- * Represents a placeable entry.
+ * Represents a tile.
  */
-public class PlaceableSprite extends EntrySprite
-    implements ConfigUpdateListener<PlaceableConfig>
+public class TileSprite extends EntrySprite
+    implements ConfigUpdateListener<TileConfig>
 {
     /**
      * The actual sprite implementation.
@@ -39,9 +39,9 @@ public class PlaceableSprite extends EntrySprite
         }
 
         /**
-         * Updates the implementation to match the entry state.
+         * Updates the implementation to match the tile state.
          */
-        public void update (PlaceableEntry entry)
+        public void update (TileEntry entry)
         {
             // nothing by default
         }
@@ -54,32 +54,34 @@ public class PlaceableSprite extends EntrySprite
     }
 
     /**
-     * Superclass of the original implementations.
+     * An original implementation.
      */
-    public static abstract class Original extends Implementation
+    public static class Original extends Implementation
     {
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope)
+        public Original (GlContext ctx, Scope parentScope, TileConfig.Original config)
         {
             super(parentScope);
             _scene.add(_model = new Model(ctx));
             _model.setUserObject(parentScope);
+            setConfig(config);
         }
 
         /**
          * (Re)configures the implementation.
          */
-        public void setConfig (PlaceableConfig.Original config)
+        public void setConfig (TileConfig.Original config)
         {
-            _model.setConfig(config.model);
+            _model.setConfig((_config = config).model);
         }
 
         @Override // documentation inherited
-        public void update (PlaceableEntry entry)
+        public void update (TileEntry entry)
         {
-            _model.setLocalTransform(entry.transform);
+            entry.getTransform(_config, _model.getLocalTransform());
+            _model.updateBounds();
         }
 
         @Override // documentation inherited
@@ -88,6 +90,9 @@ public class PlaceableSprite extends EntrySprite
             super.dispose();
             _scene.remove(_model);
         }
+
+        /** The tile configuration. */
+        protected TileConfig.Original _config;
 
         /** The model. */
         protected Model _model;
@@ -98,46 +103,16 @@ public class PlaceableSprite extends EntrySprite
     }
 
     /**
-     * A prop implementation.
+     * Creates a new tile sprite.
      */
-    public static class Prop extends Original
-    {
-        /**
-         * Creates a new prop implementation.
-         */
-        public Prop (GlContext ctx, Scope parentScope, PlaceableConfig.Prop config)
-        {
-            super(ctx, parentScope);
-            setConfig(config);
-        }
-    }
-
-    /**
-     * A marker implementation.
-     */
-    public static class Marker extends Original
-    {
-        /**
-         * Creates a new marker implementation.
-         */
-        public Marker (GlContext ctx, Scope parentScope, PlaceableConfig.Marker config)
-        {
-            super(ctx, parentScope);
-            setConfig(config);
-        }
-    }
-
-    /**
-     * Creates a new placeable sprite.
-     */
-    public PlaceableSprite (GlContext ctx, TudeySceneView view, PlaceableEntry entry)
+    public TileSprite (GlContext ctx, TudeySceneView view, TileEntry entry)
     {
         super(ctx, view);
         update(entry);
     }
 
     // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<PlaceableConfig> event)
+    public void configUpdated (ConfigEvent<TileConfig> event)
     {
         updateFromConfig();
         _impl.update(_entry);
@@ -152,7 +127,7 @@ public class PlaceableSprite extends EntrySprite
     @Override // documentation inherited
     public void update (Entry entry)
     {
-        setConfig((_entry = (PlaceableEntry)entry).placeable);
+        setConfig((_entry = (TileEntry)entry).tile);
         _impl.update(_entry);
     }
 
@@ -167,17 +142,17 @@ public class PlaceableSprite extends EntrySprite
     }
 
     /**
-     * Sets the configuration of this placeable.
+     * Sets the configuration of this tile.
      */
-    protected void setConfig (ConfigReference<PlaceableConfig> ref)
+    protected void setConfig (ConfigReference<TileConfig> ref)
     {
-        setConfig(_ctx.getConfigManager().getConfig(PlaceableConfig.class, ref));
+        setConfig(_ctx.getConfigManager().getConfig(TileConfig.class, ref));
     }
 
     /**
-     * Sets the configuration of this placeable.
+     * Sets the configuration of this tile.
      */
-    protected void setConfig (PlaceableConfig config)
+    protected void setConfig (TileConfig config)
     {
         if (_config == config) {
             return;
@@ -192,7 +167,7 @@ public class PlaceableSprite extends EntrySprite
     }
 
     /**
-     * Updates the placeable to match its new or modified configuration.
+     * Updates the tile to match its new or modified configuration.
      */
     protected void updateFromConfig ()
     {
@@ -206,12 +181,12 @@ public class PlaceableSprite extends EntrySprite
     }
 
     /** The scene entry. */
-    protected PlaceableEntry _entry;
+    protected TileEntry _entry;
 
-    /** The placeable configuration. */
-    protected PlaceableConfig _config;
+    /** The tile configuration. */
+    protected TileConfig _config;
 
-    /** The placeable implementation. */
+    /** The tile implementation. */
     protected Implementation _impl = NULL_IMPLEMENTATION;
 
     /** An implementation that does nothing. */

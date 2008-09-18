@@ -5,11 +5,20 @@ package com.threerings.tudey.util;
 
 import com.samskivert.util.Config;
 
+import com.threerings.math.Quaternion;
+
 /**
  * Contains static methods relating to the Tudey coordinate system.
  */
 public class TudeySceneMetrics
 {
+    /** Rotations corresponding to each direction. */
+    public static final Quaternion[] ROTATIONS = {
+        new Quaternion(0f, 0f, 0f, 1f),
+        new Quaternion(0f, 0f, 0.707106781f, 0.707106781f),
+        new Quaternion(0f, 0f, 1f, 0f),
+        new Quaternion(0f, 0f, 0.707106781f, -0.707106781f) };
+
     /**
      * Returns the world space z coordinate corresponding to the given tile elevation.
      */

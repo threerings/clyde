@@ -10,6 +10,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -22,12 +23,14 @@ import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 
 /**
  * A tool to use in the scene editor.
  */
 public abstract class EditorTool extends JPanel
-    implements Tickable, Renderable, MouseListener, MouseMotionListener, MouseWheelListener
+    implements Tickable, Renderable, TudeySceneModel.Observer,
+        MouseListener, MouseMotionListener, MouseWheelListener
 {
     /**
      * Creates the tool.
@@ -36,6 +39,14 @@ public abstract class EditorTool extends JPanel
     {
         super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         _editor = editor;
+    }
+
+    /**
+     * Configures the tool with a reference to its button.
+     */
+    public void setButton (JToggleButton button)
+    {
+        _button = button;
     }
 
     /**
@@ -51,6 +62,8 @@ public abstract class EditorTool extends JPanel
      */
     public void activate ()
     {
+        _button.setSelected(true);
+
         GlCanvas canvas = _editor.getCanvas();
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
@@ -73,7 +86,10 @@ public abstract class EditorTool extends JPanel
      */
     public void sceneChanged (TudeySceneModel scene)
     {
-        // nothing by default
+        if (_scene != null) {
+            _scene.removeObserver(this);
+        }
+        (_scene = scene).addObserver(this);
     }
 
     /**
@@ -93,6 +109,24 @@ public abstract class EditorTool extends JPanel
 
     // documentation inherited from interface Renderable
     public void enqueue ()
+    {
+        // nothing by default
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryAdded (Entry entry)
+    {
+        // nothing by default
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryUpdated (Entry oentry, Entry nentry)
+    {
+        // nothing by default
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryRemoved (Entry oentry)
     {
         // nothing by default
     }
@@ -159,6 +193,12 @@ public abstract class EditorTool extends JPanel
 
     /** A reference to the creating editor. */
     protected SceneEditor _editor;
+
+    /** The tool's button. */
+    protected JToggleButton _button;
+
+    /** A reference to the scene. */
+    protected TudeySceneModel _scene;
 
     /** Used for picking. */
     protected Ray _pick = new Ray();

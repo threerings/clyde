@@ -43,20 +43,40 @@ public class Arrow extends EditorTool
         Object object = _epanel.getObject();
         if (object instanceof Entry) {
             Entry entry = (Entry)object;
-            _editor.updateEntry((Entry)entry.clone());
+            _scene.updateEntry((Entry)entry.clone());
         }
     }
 
     @Override // documentation inherited
     public void sceneChanged (TudeySceneModel scene)
     {
+        super.sceneChanged(scene);
         _epanel.setObject(null);
+    }
+
+    @Override // documentation inherited
+    public void entryRemoved (Entry oentry)
+    {
+        Object object = _epanel.getObject();
+        if (object instanceof Entry && ((Entry)object).getKey().equals(oentry.getKey())) {
+            _epanel.setObject(null);
+        }
+    }
+
+    @Override // documentation inherited
+    public void tick (float elapsed)
+    {
+        if (_editor.isThirdButtonDown()) {
+            _editor.deleteMouseObject();
+        }
     }
 
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        _editor.editMouseObject();
+        if (event.getButton() == MouseEvent.BUTTON1) {
+            _editor.editMouseObject();
+        }
     }
 
     /** The editor panel that we use to edit things. */

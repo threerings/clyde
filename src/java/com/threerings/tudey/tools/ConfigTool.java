@@ -66,6 +66,8 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
     @Override // documentation inherited
     public void sceneChanged (TudeySceneModel scene)
     {
+        super.sceneChanged(scene);
+
         // (re)create the config tree
         if (_tree != null) {
             _tree.dispose();

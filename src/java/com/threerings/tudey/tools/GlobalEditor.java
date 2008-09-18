@@ -63,19 +63,19 @@ public class GlobalEditor extends EditorTool
             GlobalEntry oglobal = entry.getValue();
             GlobalEntry nglobal = editable.getGlobal(id);
             if (nglobal == null) { // removed
-                _editor.removeEntry(id);
+                _scene.removeEntry(id);
                 it.remove();
 
             } else if (!nglobal.equals(oglobal)) { // modified
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
-                _editor.updateEntry(cglobal);
+                _scene.updateEntry(cglobal);
                 entry.setValue(cglobal);
             }
         }
         for (GlobalEntry nglobal : editable.globals) {
             if (nglobal.getId() == 0) { // added
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
-                _editor.addEntry(cglobal);
+                _scene.addEntry(cglobal);
                 int id = cglobal.getId();
                 _globals.put(id, cglobal);
                 nglobal.setId(id);
@@ -92,11 +92,14 @@ public class GlobalEditor extends EditorTool
     @Override // documentation inherited
     public void sceneChanged (TudeySceneModel scene)
     {
+        super.sceneChanged(scene);
+
         // extract the scene's globals
         _globals.clear();
         for (Entry entry : scene.getEntries()) {
             if (entry instanceof GlobalEntry) {
-                _globals.put(entry.getId(), (GlobalEntry)entry);
+                GlobalEntry global = (GlobalEntry)entry;
+                _globals.put(global.getId(), global);
             }
         }
 

@@ -3,7 +3,7 @@
 
 package com.threerings.tudey.client;
 
-import com.samskivert.util.HashIntMap;
+import java.util.HashMap;
 
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
@@ -33,6 +33,7 @@ import static com.threerings.tudey.Log.*;
  * Displays a view of a Tudey scene.
  */
 public class TudeySceneView extends SimpleScope
+    implements TudeySceneModel.Observer
 {
     /**
      * Creates a new scene view.
@@ -51,49 +52,18 @@ public class TudeySceneView extends SimpleScope
     public void setSceneModel (TudeySceneModel model)
     {
         // clear out the existing sprites
+        if (_sceneModel != null) {
+            _sceneModel.removeObserver(this);
+        }
         for (EntrySprite sprite : _entrySprites.values()) {
             sprite.dispose();
         }
         _entrySprites.clear();
 
         // create the new sprites
-         _sceneModel = model;
+        (_sceneModel = model).addObserver(this);
         for (Entry entry : _sceneModel.getEntries()) {
             addEntrySprite(entry);
-        }
-    }
-
-    /**
-     * Notes that an entry has been added to the scene.
-     */
-    public void entryAdded (Entry entry)
-    {
-        addEntrySprite(entry);
-    }
-
-    /**
-     * Notes that an entry has been updated within the scene.
-     */
-    public void entryUpdated (Entry entry)
-    {
-        EntrySprite sprite = _entrySprites.get(entry.getId());
-        if (sprite != null) {
-            sprite.update(entry);
-        } else {
-            log.warning("Missing sprite to update.", "entry", entry);
-        }
-    }
-
-    /**
-     * Notes that an entry has been removed from the scene.
-     */
-    public void entryRemoved (int id)
-    {
-        EntrySprite sprite = _entrySprites.remove(id);
-        if (sprite != null) {
-            sprite.dispose();
-        } else {
-            log.warning("Missing entry sprite to remove.", "id", id);
         }
     }
 
@@ -129,6 +99,34 @@ public class TudeySceneView extends SimpleScope
         return (model == null) ? null : (Sprite)model.getUserObject();
     }
 
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryAdded (Entry entry)
+    {
+        addEntrySprite(entry);
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryUpdated (Entry oentry, Entry nentry)
+    {
+        EntrySprite sprite = _entrySprites.get(nentry.getKey());
+        if (sprite != null) {
+            sprite.update(nentry);
+        } else {
+            log.warning("Missing sprite to update.", "entry", nentry);
+        }
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryRemoved (Entry oentry)
+    {
+        EntrySprite sprite = _entrySprites.remove(oentry.getKey());
+        if (sprite != null) {
+            sprite.dispose();
+        } else {
+            log.warning("Missing entry sprite to remove.", "entry", oentry);
+        }
+    }
+
     @Override // documentation inherited
     public String getScopeName ()
     {
@@ -152,7 +150,7 @@ public class TudeySceneView extends SimpleScope
      */
     protected void addEntrySprite (Entry entry)
     {
-        _entrySprites.put(entry.getId(), entry.createSprite(_ctx, this));
+        _entrySprites.put(entry.getKey(), entry.createSprite(_ctx, this));
     }
 
     /** The application context. */
@@ -166,5 +164,5 @@ public class TudeySceneView extends SimpleScope
     protected TudeySceneModel _sceneModel;
 
     /** Sprites corresponding to the scene entries. */
-    protected HashIntMap<EntrySprite> _entrySprites = new HashIntMap<EntrySprite>();
+    protected HashMap<Object, EntrySprite> _entrySprites = new HashMap<Object, EntrySprite>();
 }

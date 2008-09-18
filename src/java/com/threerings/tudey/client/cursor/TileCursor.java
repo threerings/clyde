@@ -17,14 +17,14 @@ import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.config.PlaceableConfig;
-import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
+import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 
 /**
- * A cursor for a placeable object.
+ * A cursor for tiles.
  */
-public class PlaceableCursor extends Cursor
-    implements ConfigUpdateListener<PlaceableConfig>
+public class TileCursor extends Cursor
+    implements ConfigUpdateListener<TileConfig>
 {
     /**
      * The actual cursor implementation.
@@ -43,7 +43,7 @@ public class PlaceableCursor extends Cursor
         /**
          * Updates the cursor state.
          */
-        public void update (PlaceableEntry entry)
+        public void update (TileEntry entry)
         {
             // nothing by default
         }
@@ -75,7 +75,7 @@ public class PlaceableCursor extends Cursor
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, PlaceableConfig.Original config)
+        public Original (GlContext ctx, Scope parentScope, TileConfig.Original config)
         {
             super(parentScope);
             _model = new Model(ctx);
@@ -86,15 +86,16 @@ public class PlaceableCursor extends Cursor
         /**
          * (Re)configures the implementation.
          */
-        public void setConfig (PlaceableConfig.Original config)
+        public void setConfig (TileConfig.Original config)
         {
-            _model.setConfig(config.model);
+            _model.setConfig((_config = config).model);
         }
 
         @Override // documentation inherited
-        public void update (PlaceableEntry entry)
+        public void update (TileEntry entry)
         {
-            _model.setLocalTransform(entry.transform);
+            entry.getTransform(_config, _model.getLocalTransform());
+            _model.updateBounds();
         }
 
         @Override // documentation inherited
@@ -109,30 +110,33 @@ public class PlaceableCursor extends Cursor
             _model.enqueue();
         }
 
+        /** The tile configuration. */
+        protected TileConfig.Original _config;
+
         /** The model. */
         protected Model _model;
     }
 
     /**
-     * Creates a new placeable cursor.
+     * Creates a new tile cursor.
      */
-    public PlaceableCursor (GlContext ctx, TudeySceneView view, PlaceableEntry entry)
+    public TileCursor (GlContext ctx, TudeySceneView view, TileEntry entry)
     {
         super(ctx, view);
         update(entry);
     }
 
     /**
-     * Updates the cursor with new entry state.
+     * Updates the cursor with new tile state.
      */
-    public void update (PlaceableEntry entry)
+    public void update (TileEntry entry)
     {
-        setConfig((_entry = entry).placeable);
+        setConfig((_entry = entry).tile);
         _impl.update(_entry);
     }
 
     // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<PlaceableConfig> event)
+    public void configUpdated (ConfigEvent<TileConfig> event)
     {
         updateFromConfig();
         _impl.update(_entry);
@@ -161,17 +165,17 @@ public class PlaceableCursor extends Cursor
     }
 
     /**
-     * Sets the configuration of the placeable.
+     * Sets the configuration of the tile.
      */
-    protected void setConfig (ConfigReference<PlaceableConfig> ref)
+    protected void setConfig (ConfigReference<TileConfig> ref)
     {
-        setConfig(_ctx.getConfigManager().getConfig(PlaceableConfig.class, ref));
+        setConfig(_ctx.getConfigManager().getConfig(TileConfig.class, ref));
     }
 
     /**
-     * Sets the configuration of the placeable.
+     * Sets the configuration of the tile.
      */
-    protected void setConfig (PlaceableConfig config)
+    protected void setConfig (TileConfig config)
     {
         if (_config == config) {
             return;
@@ -200,10 +204,10 @@ public class PlaceableCursor extends Cursor
     }
 
     /** The prototype entry. */
-    protected PlaceableEntry _entry;
+    protected TileEntry _entry;
 
-    /** The placeable config. */
-    protected PlaceableConfig _config;
+    /** The tile config. */
+    protected TileConfig _config;
 
     /** The cursor implementation. */
     protected Implementation _impl = NULL_IMPLEMENTATION;
