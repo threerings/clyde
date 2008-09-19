@@ -17,28 +17,26 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.tudey.config.ShapeConfig;
 
 /**
- * Renders the outline of a shape.
+ * Draws a shape.
  */
-public class ShapeOutline extends SimpleSceneElement
+public class ShapeElement extends SimpleSceneElement
 {
     /**
-     * Creates a new shape outline.
+     * Creates a new shape element.
      */
-    public ShapeOutline (GlContext ctx)
+    public ShapeElement (GlContext ctx)
     {
         super(ctx);
-        _list = new DisplayList(ctx.getRenderer());
     }
 
     /**
      * Sets the configuration of the shape to draw.
+     *
+     * @param outline if true, draw the outline of the shape; if false, draw the solid form.
      */
-    public void setConfig (ShapeConfig config)
+    public void setConfig (ShapeConfig config, boolean outline)
     {
-        // record the draw commands in our display list
-        _list.begin();
-        config.drawOutline();
-        _list.end();
+        _list = config.getList(_ctx, outline);
     }
 
     /**

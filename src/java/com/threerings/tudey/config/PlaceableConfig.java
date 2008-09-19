@@ -59,6 +59,14 @@ public class PlaceableConfig extends ParameterizedConfig
          */
         public abstract PlaceableSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, PlaceableSprite.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -84,6 +92,12 @@ public class PlaceableConfig extends ParameterizedConfig
                 impl = new PlaceableCursor.Original(ctx, scope, this);
             }
             return impl;
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            shape.invalidate();
         }
     }
 
@@ -195,6 +209,14 @@ public class PlaceableConfig extends ParameterizedConfig
         GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

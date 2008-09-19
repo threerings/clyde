@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.config;
 
+import java.lang.ref.SoftReference;
+
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.editor.Editable;
@@ -12,6 +14,10 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
+
+import com.threerings.opengl.renderer.DisplayList;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * The configuration for a shape.
@@ -29,7 +35,7 @@ public abstract class ShapeConfig extends DeepObject
     public static class Point extends ShapeConfig
     {
         @Override // documentation inherited
-        public void drawOutline ()
+        protected void draw (boolean outline)
         {
             GL11.glBegin(GL11.GL_POINTS);
             GL11.glVertex2f(0f, 0f);
@@ -47,7 +53,7 @@ public abstract class ShapeConfig extends DeepObject
         public float length = 1f;
 
         @Override // documentation inherited
-        public void drawOutline ()
+        protected void draw (boolean outline)
         {
             float hlength = length * 0.5f;
             GL11.glBegin(GL11.GL_LINES);
@@ -71,14 +77,14 @@ public abstract class ShapeConfig extends DeepObject
         public float length = 1f;
 
         @Override // documentation inherited
-        public void drawOutline ()
+        protected void draw (boolean outline)
         {
             float hwidth = width * 0.5f, hlength = length * 0.5f;
-            GL11.glBegin(GL11.GL_LINE_LOOP);
+            GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_QUADS);
             GL11.glVertex2f(-hwidth, -hlength);
-            GL11.glVertex2f(-hwidth, +hlength);
-            GL11.glVertex2f(+hwidth, +hlength);
             GL11.glVertex2f(+hwidth, -hlength);
+            GL11.glVertex2f(+hwidth, +hlength);
+            GL11.glVertex2f(-hwidth, +hlength);
             GL11.glEnd();
         }
     }
@@ -93,9 +99,9 @@ public abstract class ShapeConfig extends DeepObject
         public float radius = 1f;
 
         @Override // documentation inherited
-        public void drawOutline ()
+        protected void draw (boolean outline)
         {
-            GL11.glBegin(GL11.GL_LINE_LOOP);
+            GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
             for (int ii = 0; ii < CIRCLE_SEGMENTS; ii++) {
                 float angle = ii * CIRCLE_INCREMENT;
                 GL11.glVertex2f(FloatMath.cos(angle) * radius, FloatMath.sin(angle) * radius);
@@ -118,10 +124,10 @@ public abstract class ShapeConfig extends DeepObject
         public float length = 1f;
 
         @Override // documentation inherited
-        public void drawOutline ()
+        protected void draw (boolean outline)
         {
             float hlength = length * 0.5f;
-            GL11.glBegin(GL11.GL_LINE_LOOP);
+            GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
             for (int ii = 0, nn = CIRCLE_SEGMENTS / 2; ii <= nn; ii++) {
                 float angle = ii * CIRCLE_INCREMENT + FloatMath.HALF_PI;
                 GL11.glVertex2f(FloatMath.cos(angle) * radius - hlength,
@@ -146,9 +152,9 @@ public abstract class ShapeConfig extends DeepObject
         public Vertex[] vertices = new Vertex[0];
 
         @Override // documentation inherited
-        public void drawOutline ()
+        protected void draw (boolean outline)
         {
-            GL11.glBegin(GL11.GL_LINE_LOOP);
+            GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
             for (Vertex vertex : vertices) {
                 GL11.glVertex2f(vertex.x, vertex.y);
             }
@@ -177,7 +183,7 @@ public abstract class ShapeConfig extends DeepObject
         public TransformedShape[] shapes = new TransformedShape[0];
 
         @Override // documentation inherited
-        public void drawOutline ()
+        protected void draw (boolean outline)
         {
             for (TransformedShape tshape : shapes) {
                 Transform2D transform = tshape.transform;
@@ -190,7 +196,7 @@ public abstract class ShapeConfig extends DeepObject
                     GL11.glTranslatef(translation.x, translation.y, 0f);
                     GL11.glRotatef(FloatMath.toDegrees(rotation), 0f, 0f, 1f);
                     GL11.glScalef(scale, scale, scale);
-                    tshape.shape.drawOutline();
+                    tshape.shape.draw(outline);
                 } finally {
                     GL11.glPopMatrix();
                 }
@@ -214,9 +220,46 @@ public abstract class ShapeConfig extends DeepObject
     }
 
     /**
-     * Draws the outline of this shape in immediate mode.
+     * Returns the cached display list to draw this shape.
+     *
+     * @param outline if true, return the outline list; otherwise, the solid list.
      */
-    public abstract void drawOutline ();
+    public DisplayList getList (GlContext ctx, boolean outline)
+    {
+        SoftReference<DisplayList> ref = outline ? _outlineList : _solidList;
+        DisplayList list = (ref == null) ? null : ref.get();
+        if (list == null) {
+            ref = new SoftReference<DisplayList>(list = new DisplayList(ctx.getRenderer()));
+            if (outline) {
+                _outlineList = ref;
+            } else {
+                _solidList = ref;
+            }
+            list.begin();
+            draw(outline);
+            list.end();
+        }
+        return list;
+    }
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        _solidList = _outlineList = null;
+    }
+
+    /**
+     * Draws this shape in immediate mode.
+     *
+     * @param outline if true, draw the outline of the shape; otherwise, draw the solid form.
+     */
+    protected abstract void draw (boolean outline);
+
+    /** The display lists containing the solid and outline representations. */
+    @DeepOmit
+    protected transient SoftReference<DisplayList> _solidList, _outlineList;
 
     /** The number of segments to use when we render circles. */
     protected static final int CIRCLE_SEGMENTS = 16;

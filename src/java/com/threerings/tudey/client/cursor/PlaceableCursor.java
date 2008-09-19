@@ -19,7 +19,7 @@ import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.client.util.ShapeOutline;
+import com.threerings.tudey.client.util.ShapeElement;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 
@@ -85,7 +85,7 @@ public class PlaceableCursor extends Cursor
             _model.setParentScope(this);
             _model.setRenderScheme(RenderScheme.TRANSLUCENT);
             _model.getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
-            _footprint = new ShapeOutline(ctx);
+            _footprint = new ShapeElement(ctx);
             _footprint.getColor().set(Color4f.GREEN);
             setConfig(config);
         }
@@ -96,7 +96,7 @@ public class PlaceableCursor extends Cursor
         public void setConfig (PlaceableConfig.Original config)
         {
             _model.setConfig(config.model);
-            _footprint.setConfig(config.shape);
+            _footprint.setConfig(config.shape, true);
         }
 
         @Override // documentation inherited
@@ -123,7 +123,7 @@ public class PlaceableCursor extends Cursor
         protected Model _model;
 
         /** The footprint. */
-        protected ShapeOutline _footprint;
+        protected ShapeElement _footprint;
     }
 
     /**
