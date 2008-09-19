@@ -209,42 +209,42 @@ public class ToolUtil
      */
     public static void configureLog (String logfile)
     {
-        // potentially redirect stdout and stderr to a log file
-        File nlog = null;
-        if (System.getProperty("no_log_redir") == null) {
-            // first delete any previous previous log file
-            File olog = new File(getLogPath("old-" + logfile));
-            if (olog.exists()) {
-                olog.delete();
-            }
-
-            // next rename the previous log file
-            nlog = new File(getLogPath(logfile));
-            if (nlog.exists()) {
-                nlog.renameTo(olog);
-            }
-
-            // and now redirect our output
-            try {
-                PrintStream logOut = new PrintStream(
-                    new BufferedOutputStream(new FileOutputStream(nlog)), true);
-                System.setOut(logOut);
-                System.setErr(logOut);
-
-                // reconfigure the log manager, since it caches its reference to stderr
-                LogManager.getLogManager().readConfiguration();
-                OneLineLogFormatter.configureDefaultHandler();
-                RepeatRecordFilter.configureDefaultHandler(100);
-
-            } catch (IOException ioe) {
-                log.warning("Failed to open debug log.", "path", nlog, ioe);
-            }
+        // make sure we haven't already configured and that redirection is not disabled
+        if (_logConfigured || Boolean.getBoolean("no_log_redir")) {
+            return;
+        }
+        // first delete any previous previous log file
+        File olog = new File(getLogPath("old-" + logfile));
+        if (olog.exists()) {
+            olog.delete();
         }
 
-        // if we've redirected our log output, note where to
-        if (nlog != null) {
-            log.info("Logging to '" + nlog + "'.");
+        // next rename the previous log file
+        File nlog = new File(getLogPath(logfile));
+        if (nlog.exists()) {
+            nlog.renameTo(olog);
         }
+
+        // and now redirect our output
+        try {
+            PrintStream logOut = new PrintStream(
+                new BufferedOutputStream(new FileOutputStream(nlog)), true);
+            System.setOut(logOut);
+            System.setErr(logOut);
+
+            // reconfigure the log manager, since it caches its reference to stderr
+            LogManager.getLogManager().readConfiguration();
+            OneLineLogFormatter.configureDefaultHandler();
+            RepeatRecordFilter.configureDefaultHandler(100);
+
+        } catch (IOException ioe) {
+            log.warning("Failed to open debug log.", "path", nlog, ioe);
+            return;
+        }
+
+        // announce and note that we're configured
+        log.info("Logging to '" + nlog + "'.");
+        _logConfigured = true;
     }
 
     /**
@@ -391,6 +391,9 @@ public class ToolUtil
         }
         return appdir + File.separator + logfile;
     }
+
+    /** Set when we have configured our log to avoid reconfiguring. */
+    protected static boolean _logConfigured;
 
     /** The number of open windows.  When this reaches zero, we can exit the app. */
     protected static int _windowCount;
