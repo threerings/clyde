@@ -52,7 +52,7 @@ import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 import com.threerings.util.ToolUtil;
 
@@ -813,7 +813,7 @@ public class SceneEditor extends GlCanvasTool
     protected boolean _firstButtonDown, _secondButtonDown, _thirdButtonDown;
 
     /** Used for picking. */
-    protected Ray _pick = new Ray();
+    protected Ray3D _pick = new Ray3D();
 
     /** Holds the location of the pick result. */
     protected Vector3f _pt = new Vector3f();

@@ -15,7 +15,7 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -103,7 +103,7 @@ public class ArticulatedModel extends Model
         /**
          * Finds the intersection (if any) between a ray and the contents of this node.
          */
-        public boolean getIntersection (Ray ray, Vector3f result)
+        public boolean getIntersection (Ray3D ray, Vector3f result)
         {
             float rdist = Float.MAX_VALUE;
             Vector3f cresult = new Vector3f();
@@ -299,7 +299,7 @@ public class ArticulatedModel extends Model
         }
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray ray, Vector3f result)
+        public boolean getIntersection (Ray3D ray, Vector3f result)
         {
             // we must transform the ray from view space to model space before checking against
             // the collision mesh
@@ -1208,7 +1208,7 @@ public class ArticulatedModel extends Model
     }
 
     // documentation inherited from interface Intersectable
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
         Transform3D view = _ctx.getCompositor().getCamera().getViewTransform();

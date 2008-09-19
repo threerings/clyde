@@ -20,7 +20,7 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -162,7 +162,7 @@ public class Articulated extends Model.Implementation
         /**
          * Checks for an intersection between the mesh in this node (if any) and the supplied ray.
          */
-        public boolean getIntersection (Ray ray, Vector3f result)
+        public boolean getIntersection (Ray3D ray, Vector3f result)
         {
             return false;
         }
@@ -269,7 +269,7 @@ public class Articulated extends Model.Implementation
         }
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray ray, Vector3f result)
+        public boolean getIntersection (Ray3D ray, Vector3f result)
         {
             // transform the ray into model space before checking against the collision mesh
             CollisionMesh collision = ((ArticulatedConfig.MeshNode)_config).collision;
@@ -549,7 +549,7 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // exit early if there's no bounds intersection
         if (!_bounds.intersects(ray)) {
@@ -839,7 +839,7 @@ public class Articulated extends Model.Implementation
     /**
      * Checks for an intersection with the skin mesh.
      */
-    protected boolean getSkinIntersection (Ray ray, Vector3f result)
+    protected boolean getSkinIntersection (Ray3D ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
         CollisionMesh collision = _config.skin.collision;

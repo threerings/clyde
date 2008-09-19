@@ -19,7 +19,7 @@ import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Frustum;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -173,7 +173,7 @@ public abstract class Scene extends DynamicScope
      * @return a reference to the first element intersected by the ray, or <code>null</code> for
      * none.
      */
-    public SceneElement getIntersection (Ray ray, Vector3f location)
+    public SceneElement getIntersection (Ray3D ray, Vector3f location)
     {
         Predicate<SceneElement> filter = Predicate.trueInstance();
         return getIntersection(ray, location, filter);
@@ -188,7 +188,7 @@ public abstract class Scene extends DynamicScope
      * none.
      */
     public abstract SceneElement getIntersection (
-        Ray ray, Vector3f location, Predicate<SceneElement> filter);
+        Ray3D ray, Vector3f location, Predicate<SceneElement> filter);
 
     /**
      * Retrieves all scene elements whose bounds intersect the provided region.
@@ -424,7 +424,7 @@ public abstract class Scene extends DynamicScope
      * Searches for an intersection with the supplied elements.
      */
     protected SceneElement getIntersection (
-        ArrayList<SceneElement> elements, Ray ray, Vector3f location,
+        ArrayList<SceneElement> elements, Ray3D ray, Vector3f location,
         Predicate<SceneElement> filter)
     {
         SceneElement closest = null;

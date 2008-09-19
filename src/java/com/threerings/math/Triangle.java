@@ -158,7 +158,7 @@ public final class Triangle
      * @return true if the ray intersects this triangle (in which case the result will contain
      * the point of intersection), false if not.
      */
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // compute edges
         Vector3f e1 = _v2.subtract(_v1);

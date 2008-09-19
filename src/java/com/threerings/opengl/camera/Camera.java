@@ -6,7 +6,7 @@ package com.threerings.opengl.camera;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
 import com.threerings.math.Matrix4f;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
@@ -218,7 +218,7 @@ public class Camera
     /**
      * Populates the supplied object with a ray through the center of the viewport.
      */
-    public void getCenterRay (Ray result)
+    public void getCenterRay (Ray3D result)
     {
         getEyeRay((_left + _right) / 2f, (_bottom + _top) / 2f, result);
     }
@@ -226,7 +226,7 @@ public class Camera
     /**
      * Populates the supplied object with a ray through the specified viewport coordinates.
      */
-    public void getPickRay (int x, int y, Ray result)
+    public void getPickRay (int x, int y, Ray3D result)
     {
         // convert to fractional coordinates
         float tx = (float)(x - _viewport.x) / _viewport.width;
@@ -240,7 +240,7 @@ public class Camera
      * Populates the supplied object with a ray through the specified eye space coordinates (at the
      * near clip plane).
      */
-    protected void getEyeRay (float ex, float ey, Ray result)
+    protected void getEyeRay (float ex, float ey, Ray3D result)
     {
         result.getOrigin().set(ex, ey, -_near);
         if (_ortho) {

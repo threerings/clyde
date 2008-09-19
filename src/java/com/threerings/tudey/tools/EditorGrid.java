@@ -4,7 +4,7 @@
 package com.threerings.tudey.tools;
 
 import com.threerings.math.Plane;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.util.Grid;
@@ -81,7 +81,7 @@ public class EditorGrid extends Grid
     protected Plane _plane = new Plane(Plane.XY_PLANE);
 
     /** A working ray for intersection testing. */
-    protected Ray _target = new Ray();
+    protected Ray3D _target = new Ray3D();
 
     /** A working vector for intersection testing. */
     protected Vector3f _isect = new Vector3f();

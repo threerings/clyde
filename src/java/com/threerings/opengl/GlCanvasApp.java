@@ -25,7 +25,7 @@ import com.threerings.media.ManagedJFrame;
 import com.threerings.util.KeyboardManager;
 import com.threerings.util.KeyTranslatorImpl;
 
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
@@ -88,7 +88,7 @@ public abstract class GlCanvasApp extends GlApp
      * @return true if the mouse cursor is on the canvas (in which case the result will be
      * populated), false if it is not on the canvas.
      */
-    public boolean getMouseRay (Ray result)
+    public boolean getMouseRay (Ray3D result)
     {
         Point pt = _canvas.getMousePosition();
         if (pt == null) {
@@ -101,7 +101,7 @@ public abstract class GlCanvasApp extends GlApp
     /**
      * Finds the ray through the specified canvas coordinates.
      */
-    public void getPickRay (int x, int y, Ray result)
+    public void getPickRay (int x, int y, Ray3D result)
     {
         // flip vertically to convert to viewport coordinates
         _compositor.getCamera().getPickRay(x, _canvas.getHeight() - y - 1, result);

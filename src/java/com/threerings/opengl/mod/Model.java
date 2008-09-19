@@ -25,7 +25,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -198,7 +198,7 @@ public class Model extends DynamicScope
         }
 
         // documentation inherited from interface Intersectable
-        public boolean getIntersection (Ray ray, Vector3f result)
+        public boolean getIntersection (Ray3D ray, Vector3f result)
         {
             return false;
         }
@@ -739,7 +739,7 @@ public class Model extends DynamicScope
     }
 
     // documentation inherited from interface Intersectable
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         return _impl.getIntersection(ray, result);
     }

@@ -9,7 +9,7 @@ import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.QuickSort;
 
 import com.threerings.math.Box;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Triangle;
 import com.threerings.math.Vector3f;
 
@@ -58,7 +58,7 @@ public class CollisionMesh
      * @return true if the ray hit the mesh, in which case the result will be placed in the object
      * supplied.
      */
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         return _root.getIntersection(ray, result);
     }
@@ -127,7 +127,7 @@ public class CollisionMesh
          * @return true if the ray hit a triangle within the node, in which case the result will be
          * placed in the object supplied.
          */
-        public boolean getIntersection (Ray ray, Vector3f result)
+        public boolean getIntersection (Ray3D ray, Vector3f result)
         {
             return _bounds.intersects(ray) && computeIntersection(ray, result);
         }
@@ -139,7 +139,7 @@ public class CollisionMesh
          * @return true if the ray hit a triangle within the node, in which case the result will be
          * placed in the object supplied.
          */
-        protected abstract boolean computeIntersection (Ray ray, Vector3f result);
+        protected abstract boolean computeIntersection (Ray3D ray, Vector3f result);
 
         /** The bounds of the node. */
         protected Box _bounds;
@@ -162,7 +162,7 @@ public class CollisionMesh
         }
 
         @Override // documentation inherited
-        protected boolean computeIntersection (Ray ray, Vector3f result)
+        protected boolean computeIntersection (Ray3D ray, Vector3f result)
         {
             // check both children; if they both intersect, use closest intersection
             if (_left.getIntersection(ray, result)) {
@@ -198,7 +198,7 @@ public class CollisionMesh
         }
 
         @Override // documentation inherited
-        public boolean computeIntersection (Ray ray, Vector3f result)
+        public boolean computeIntersection (Ray3D ray, Vector3f result)
         {
             return _triangle.getIntersection(ray, result);
         }

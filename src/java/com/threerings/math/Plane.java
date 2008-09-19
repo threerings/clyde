@@ -148,7 +148,7 @@ public class Plane
      * @return true if the ray intersects the plane (in which case the result will contain
      * the point of intersection), false if not.
      */
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         float distance = getDistance(ray);
         if (Float.isNaN(distance) || distance < 0f) {
@@ -164,7 +164,7 @@ public class Plane
      *
      * @return the signed distance, or {Float#NaN} if the ray runs parallel to the plane.
      */
-    public float getDistance (Ray ray)
+    public float getDistance (Ray3D ray)
     {
         float dividend = -getDistance(ray.getOrigin());
         float divisor = _normal.dot(ray.getDirection());

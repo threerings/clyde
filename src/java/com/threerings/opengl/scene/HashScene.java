@@ -14,7 +14,7 @@ import com.samskivert.util.Predicate;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.util.GlContext;
@@ -89,7 +89,7 @@ public class HashScene extends Scene
 
     @Override // documentation inherited
     public SceneElement getIntersection (
-        Ray ray, Vector3f location, Predicate<SceneElement> filter)
+        Ray3D ray, Vector3f location, Predicate<SceneElement> filter)
     {
         // check for an intersection with the oversized elements
         SceneElement closest = getIntersection(_oversizedElements, ray, location, filter);
@@ -462,7 +462,7 @@ public class HashScene extends Scene
         /**
          * Checks for an intersection with this node.
          */
-        public T getIntersection (Ray ray, Vector3f location, Predicate<T> filter)
+        public T getIntersection (Ray3D ray, Vector3f location, Predicate<T> filter)
         {
             T closest = null;
             Vector3f origin = ray.getOrigin();
@@ -622,7 +622,7 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        public T getIntersection (Ray ray, Vector3f location, Predicate<T> filter)
+        public T getIntersection (Ray3D ray, Vector3f location, Predicate<T> filter)
         {
             T closest = super.getIntersection(ray, location, filter);
             Vector3f origin = ray.getOrigin();

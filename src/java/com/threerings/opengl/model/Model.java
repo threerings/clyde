@@ -11,7 +11,6 @@ import com.samskivert.util.PropertiesUtil;
 
 import com.threerings.math.Box;
 import com.threerings.math.Frustum;
-import com.threerings.math.Ray;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 

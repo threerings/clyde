@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import com.threerings.math.Box;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -68,7 +68,7 @@ public class StaticModel extends Model
     }
 
     // documentation inherited from interface Intersectable
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
         if (_cmesh == null || !_worldBounds.intersects(ray) ||

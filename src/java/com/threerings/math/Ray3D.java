@@ -6,13 +6,13 @@ package com.threerings.math;
 /**
  * A ray consisting of an origin point and a unit direction vector.
  */
-public final class Ray
+public final class Ray3D
 {
     /**
      * Creates a ray with the values contained in the supplied origin point and unit direction
      * vector.
      */
-    public Ray (Vector3f origin, Vector3f direction)
+    public Ray3D (Vector3f origin, Vector3f direction)
     {
         set(origin, direction);
     }
@@ -20,7 +20,7 @@ public final class Ray
     /**
      * Copy constructor.
      */
-    public Ray (Ray other)
+    public Ray3D (Ray3D other)
     {
         set(other);
     }
@@ -28,7 +28,7 @@ public final class Ray
     /**
      * Creates an empty (invalid) ray.
      */
-    public Ray ()
+    public Ray3D ()
     {
     }
 
@@ -53,7 +53,7 @@ public final class Ray
      *
      * @return a reference to this ray, for chaining.
      */
-    public Ray transformLocal (Transform3D transform)
+    public Ray3D transformLocal (Transform3D transform)
     {
         return transform(transform, this);
     }
@@ -63,9 +63,9 @@ public final class Ray
      *
      * @return a new ray containing the result.
      */
-    public Ray transform (Transform3D transform)
+    public Ray3D transform (Transform3D transform)
     {
-        return transform(transform, new Ray());
+        return transform(transform, new Ray3D());
     }
 
     /**
@@ -73,7 +73,7 @@ public final class Ray
      *
      * @return a reference to the result ray, for chaining.
      */
-    public Ray transform (Transform3D transform, Ray result)
+    public Ray3D transform (Transform3D transform, Ray3D result)
     {
         transform.transformPoint(_origin, result._origin);
         transform.transformVector(_direction, result._direction).normalizeLocal();
@@ -85,7 +85,7 @@ public final class Ray
      *
      * @return a reference to this ray, for chaining.
      */
-    public Ray set (Ray other)
+    public Ray3D set (Ray3D other)
     {
         return set(other.getOrigin(), other.getDirection());
     }
@@ -95,7 +95,7 @@ public final class Ray
      *
      * @return a reference to this ray, for chaining.
      */
-    public Ray set (Vector3f origin, Vector3f direction)
+    public Ray3D set (Vector3f origin, Vector3f direction)
     {
         _origin.set(origin);
         _direction.set(direction);

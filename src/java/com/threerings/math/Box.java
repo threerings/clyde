@@ -436,7 +436,7 @@ public final class Box
     /**
      * Determines whether the specified ray intersects this box.
      */
-    public boolean intersects (Ray ray)
+    public boolean intersects (Ray3D ray)
     {
         Vector3f dir = ray.getDirection();
         return
@@ -456,7 +456,7 @@ public final class Box
      * @return true if the ray intersects the box (in which case the result vector will be
      * populated with the location of the intersection), false if not.
      */
-    public boolean getIntersection (Ray ray, Vector3f result)
+    public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         Vector3f origin = ray.getOrigin();
         if (contains(origin)) {
@@ -507,10 +507,10 @@ public final class Box
     }
 
     /**
-     * Helper method for {@link #intersects(Ray)}.  Determines whether the ray intersects the box
+     * Helper method for {@link #intersects(Ray3D)}.  Determines whether the ray intersects the box
      * at the plane where x equals the value specified.
      */
-    protected boolean intersectsX (Ray ray, float x)
+    protected boolean intersectsX (Ray3D ray, float x)
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (x - origin.x) / dir.x;
@@ -523,10 +523,10 @@ public final class Box
     }
 
     /**
-     * Helper method for {@link #intersects(Ray)}.  Determines whether the ray intersects the box
+     * Helper method for {@link #intersects(Ray3D)}.  Determines whether the ray intersects the box
      * at the plane where y equals the value specified.
      */
-    protected boolean intersectsY (Ray ray, float y)
+    protected boolean intersectsY (Ray3D ray, float y)
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (y - origin.y) / dir.y;
@@ -539,10 +539,10 @@ public final class Box
     }
 
     /**
-     * Helper method for {@link #intersects(Ray)}.  Determines whether the ray intersects the box
+     * Helper method for {@link #intersects(Ray3D)}.  Determines whether the ray intersects the box
      * at the plane where z equals the value specified.
      */
-    protected boolean intersectsZ (Ray ray, float z)
+    protected boolean intersectsZ (Ray3D ray, float z)
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (z - origin.z) / dir.z;
@@ -559,7 +559,7 @@ public final class Box
      * intersects the box at the plane where x equals the value specified, or returns
      * {@link Float#MAX_VALUE} if there is no such intersection.
      */
-    protected float getIntersectionX (Ray ray, float x)
+    protected float getIntersectionX (Ray3D ray, float x)
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (x - origin.x) / dir.x;
@@ -576,7 +576,7 @@ public final class Box
      * intersects the box at the plane where y equals the value specified, or returns
      * {@link Float#MAX_VALUE} if there is no such intersection.
      */
-    protected float getIntersectionY (Ray ray, float y)
+    protected float getIntersectionY (Ray3D ray, float y)
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (y - origin.y) / dir.y;
@@ -593,7 +593,7 @@ public final class Box
      * intersects the box at the plane where z equals the value specified, or returns
      * {@link Float#MAX_VALUE} if there is no such intersection.
      */
-    protected float getIntersectionZ (Ray ray, float z)
+    protected float getIntersectionZ (Ray3D ray, float z)
     {
         Vector3f origin = ray.getOrigin(), dir = ray.getDirection();
         float t = (z - origin.z) / dir.z;

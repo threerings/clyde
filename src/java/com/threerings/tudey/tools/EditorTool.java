@@ -15,7 +15,7 @@ import javax.swing.JToggleButton;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlCanvas;
@@ -201,5 +201,5 @@ public abstract class EditorTool extends JPanel
     protected TudeySceneModel _scene;
 
     /** Used for picking. */
-    protected Ray _pick = new Ray();
+    protected Ray3D _pick = new Ray3D();
 }

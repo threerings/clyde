@@ -10,7 +10,7 @@ import com.samskivert.util.Predicate;
 
 import com.threerings.math.Box;
 import com.threerings.math.Frustum;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.util.GlContext;
@@ -46,7 +46,7 @@ public class SimpleScene extends Scene
 
     @Override // documentation inherited
     public SceneElement getIntersection (
-        Ray ray, Vector3f location, Predicate<SceneElement> filter)
+        Ray3D ray, Vector3f location, Predicate<SceneElement> filter)
     {
         return getIntersection(_elements, ray, location, filter);
     }

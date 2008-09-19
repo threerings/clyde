@@ -3,7 +3,7 @@
 
 package com.threerings.opengl.util;
 
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 /**
@@ -18,5 +18,5 @@ public interface Intersectable
      * @return true if the ray intersected the object (in which case the result will contain the
      * point of intersection), false otherwise.
      */
-    public boolean getIntersection (Ray ray, Vector3f result);
+    public boolean getIntersection (Ray3D ray, Vector3f result);
 }

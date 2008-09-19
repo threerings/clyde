@@ -8,7 +8,7 @@ import java.util.HashMap;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
-import com.threerings.math.Ray;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
@@ -74,7 +74,7 @@ public class TudeySceneView extends SimpleScope
      * @return a reference to the first sprite intersected by the ray, or <code>null</code> for
      * none.
      */
-    public Sprite getIntersection (Ray ray, Vector3f location)
+    public Sprite getIntersection (Ray3D ray, Vector3f location)
     {
         Predicate<Sprite> filter = Predicate.trueInstance();
         return getIntersection(ray, location, filter);
@@ -87,7 +87,7 @@ public class TudeySceneView extends SimpleScope
      * @return a reference to the first sprite intersected by the ray, or <code>null</code> for
      * none.
      */
-    public Sprite getIntersection (Ray ray, Vector3f location, final Predicate<Sprite> filter)
+    public Sprite getIntersection (Ray3D ray, Vector3f location, final Predicate<Sprite> filter)
     {
         SceneElement el = _scene.getIntersection(ray, location, new Predicate<SceneElement>() {
             public boolean isMatch (SceneElement element) {
