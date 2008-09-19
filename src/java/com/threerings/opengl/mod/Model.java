@@ -473,22 +473,6 @@ public class Model extends DynamicScope
     }
 
     /**
-     * Sets the model's user object reference.
-     */
-    public void setUserObject (Object object)
-    {
-        _userObject = object;
-    }
-
-    /**
-     * Returns the model's user object reference.
-     */
-    public Object getUserObject ()
-    {
-        return _userObject;
-    }
-
-    /**
      * Attaches the specified model at the given point.
      */
     public void attach (String point, Model model)
@@ -671,10 +655,24 @@ public class Model extends DynamicScope
         _impl.setTickPolicy(policy);
     }
 
+    /**
+     * Sets the model's user object reference.
+     */
+    public void setUserObject (Object object)
+    {
+        _userObject = object;
+    }
+
     // documentation inherited from interface SceneElement
     public TickPolicy getTickPolicy ()
     {
         return _impl.getTickPolicy();
+    }
+
+    // documentation inherited from interface SceneElement
+    public Object getUserObject ()
+    {
+        return _userObject;
     }
 
     // documentation inherited from interface SceneElement

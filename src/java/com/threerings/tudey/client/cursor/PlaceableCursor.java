@@ -13,11 +13,13 @@ import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.util.ShapeOutline;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 
@@ -83,6 +85,8 @@ public class PlaceableCursor extends Cursor
             _model.setParentScope(this);
             _model.setRenderScheme(RenderScheme.TRANSLUCENT);
             _model.getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
+            _footprint = new ShapeOutline(ctx);
+            _footprint.getColor().set(Color4f.GREEN);
             setConfig(config);
         }
 
@@ -92,12 +96,14 @@ public class PlaceableCursor extends Cursor
         public void setConfig (PlaceableConfig.Original config)
         {
             _model.setConfig(config.model);
+            _footprint.setConfig(config.shape);
         }
 
         @Override // documentation inherited
         public void update (PlaceableEntry entry)
         {
             _model.setLocalTransform(entry.transform);
+            _footprint.setTransform(entry.transform);
         }
 
         @Override // documentation inherited
@@ -110,10 +116,14 @@ public class PlaceableCursor extends Cursor
         public void enqueue ()
         {
             _model.enqueue();
+            _footprint.enqueue();
         }
 
         /** The model. */
         protected Model _model;
+
+        /** The footprint. */
+        protected ShapeOutline _footprint;
     }
 
     /**

@@ -44,6 +44,14 @@ public class DisplayList
     }
 
     /**
+     * Calls this display list.
+     */
+    public void call ()
+    {
+        GL11.glCallList(_id);
+    }
+
+    /**
      * Deletes this list, rendering it unusable.
      */
     public void delete ()

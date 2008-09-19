@@ -61,7 +61,7 @@ public class SimpleBatch extends Batch
         @Override // documentation inherited
         public boolean call ()
         {
-            GL11.glCallList(_list.getId());
+            _list.call();
             return _modifiesColorState;
         }
 

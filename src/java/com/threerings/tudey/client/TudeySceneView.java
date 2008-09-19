@@ -89,14 +89,13 @@ public class TudeySceneView extends SimpleScope
      */
     public Sprite getIntersection (Ray ray, Vector3f location, final Predicate<Sprite> filter)
     {
-        Model model = (Model)_scene.getIntersection(ray, location, new Predicate<SceneElement>() {
+        SceneElement el = _scene.getIntersection(ray, location, new Predicate<SceneElement>() {
             public boolean isMatch (SceneElement element) {
-                Object userObject = (element instanceof Model) ?
-                    ((Model)element).getUserObject() : null;
+                Object userObject = element.getUserObject();
                 return userObject instanceof Sprite && filter.isMatch((Sprite)userObject);
             }
         });
-        return (model == null) ? null : (Sprite)model.getUserObject();
+        return (el == null) ? null : (Sprite)el.getUserObject();
     }
 
     // documentation inherited from interface TudeySceneModel.Observer

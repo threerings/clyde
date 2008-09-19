@@ -23,6 +23,11 @@ public interface SceneElement extends SceneObject, Tickable, Intersectable, Rend
     public TickPolicy getTickPolicy ();
 
     /**
+     * Returns this element's user object reference.
+     */
+    public Object getUserObject ();
+
+    /**
      * Notes that the element was added to the specified scene.
      */
     public void wasAdded (Scene scene);
