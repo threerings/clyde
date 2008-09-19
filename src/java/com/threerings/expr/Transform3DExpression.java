@@ -80,7 +80,7 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
 
         /** The scale component. */
         @Editable
-        public FloatExpression scale = new FloatExpression.Constant();
+        public FloatExpression scale = new FloatExpression.Constant(1f);
 
         @Override // documentation inherited
         public Evaluator<Transform3D> createEvaluator (Scope scope)

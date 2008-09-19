@@ -9,7 +9,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 
 import java.util.prefs.Preferences;
 
@@ -197,6 +201,45 @@ public class ToolUtil
     }
 
     /**
+     * Unless directed otherwise by a system property, redirects console output to the named log
+     * file.
+     */
+    public static void configureLog (String logfile)
+    {
+        // potentially redirect stdout and stderr to a log file
+        File nlog = null;
+        if (System.getProperty("no_log_redir") == null) {
+            // first delete any previous previous log file
+            File olog = new File(getLogPath("old-" + logfile));
+            if (olog.exists()) {
+                olog.delete();
+            }
+
+            // next rename the previous log file
+            nlog = new File(getLogPath(logfile));
+            if (nlog.exists()) {
+                nlog.renameTo(olog);
+            }
+
+            // and now redirect our output
+            try {
+                PrintStream logOut = new PrintStream(
+                    new BufferedOutputStream(new FileOutputStream(nlog)), true);
+                System.setOut(logOut);
+                System.setErr(logOut);
+
+            } catch (IOException ioe) {
+                log.warning("Failed to open debug log.", "path", nlog, ioe);
+            }
+        }
+
+        // if we've redirected our log output, note where to
+        if (nlog != null) {
+            log.info("Logging to '" + nlog + "'.");
+        }
+    }
+
+    /**
      * Creates a menu with the specified name and mnemonic.
      */
     public static JMenu createMenu (MessageBundle msgs, String name, int mnemonic)
@@ -319,6 +362,26 @@ public class ToolUtil
         if (--_windowCount == 0) {
             System.exit(0);
         }
+    }
+
+    /**
+     * Returns the path at which to store the named log file.
+     */
+    protected static String getLogPath (String logfile)
+    {
+        String appdir = System.getProperty("appdir");
+        if (StringUtil.isBlank(appdir)) {
+            appdir = ".clyde";
+            String home = System.getProperty("user.home");
+            if (!StringUtil.isBlank(home)) {
+                appdir = home + File.separator + appdir;
+            }
+            File appfile = new File(appdir);
+            if (!appfile.exists()) {
+                appfile.mkdir();
+            }
+        }
+        return appdir + File.separator + logfile;
     }
 
     /** The number of open windows.  When this reaches zero, we can exit the app. */

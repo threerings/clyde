@@ -34,6 +34,21 @@ public abstract class FloatExpression extends DeepObject
         @Editable(step=0.01)
         public float value;
 
+        /**
+         * Creates a new constant expression with the specified value.
+         */
+        public Constant (float value)
+        {
+            this.value = value;
+        }
+
+        /**
+         * Creates a new constant expression with a value of zero.
+         */
+        public Constant ()
+        {
+        }
+
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {

@@ -62,6 +62,10 @@ public abstract class BaseConfigEditor extends JFrame
         _colorpos = colorpos;
         _msgs = _msgmgr.getBundle(msgs);
 
+        // configure the log file
+        ToolUtil.configureLog(msgs + ".log");
+
+        // initialize the title
         setTitle(_msgs.get("m.title"));
 
         // dispose when the window is closed

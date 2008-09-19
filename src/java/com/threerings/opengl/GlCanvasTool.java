@@ -49,6 +49,10 @@ public abstract class GlCanvasTool extends GlCanvasApp
      */
     public GlCanvasTool (String msgs)
     {
+        // configure the log file
+        ToolUtil.configureLog(msgs + ".log");
+
+        // resolve the message bundle
         _msgs = _msgmgr.getBundle(msgs);
 
         // create and initialize the editable preferences
