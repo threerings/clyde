@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import java.util.logging.LogManager;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -27,6 +28,8 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import com.samskivert.util.ListUtil;
+import com.samskivert.util.OneLineLogFormatter;
+import com.samskivert.util.RepeatRecordFilter;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.Editable;
@@ -227,6 +230,11 @@ public class ToolUtil
                     new BufferedOutputStream(new FileOutputStream(nlog)), true);
                 System.setOut(logOut);
                 System.setErr(logOut);
+
+                // reconfigure the log manager, since it caches its reference to stderr
+                LogManager.getLogManager().readConfiguration();
+                OneLineLogFormatter.configureDefaultHandler();
+                RepeatRecordFilter.configureDefaultHandler(100);
 
             } catch (IOException ioe) {
                 log.warning("Failed to open debug log.", "path", nlog, ioe);
