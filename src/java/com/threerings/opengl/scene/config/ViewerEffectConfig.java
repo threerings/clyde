@@ -15,6 +15,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
+import com.threerings.opengl.compositor.config.PostEffectConfig;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
@@ -28,7 +29,8 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({
     ViewerEffectConfig.Sound.class, ViewerEffectConfig.BackgroundColor.class,
-    ViewerEffectConfig.Skybox.class, ViewerEffectConfig.Particles.class })
+    ViewerEffectConfig.Skybox.class, ViewerEffectConfig.Particles.class,
+    ViewerEffectConfig.PostEffect.class })
 public abstract class ViewerEffectConfig extends DeepObject
     implements Exportable
 {
@@ -134,6 +136,27 @@ public abstract class ViewerEffectConfig extends DeepObject
                     model.setLocalTransform(transform);
                 }
                 protected Scene _scene;
+            };
+        }
+    }
+
+    /**
+     * Adds a post effect.
+     */
+    public static class PostEffect extends ViewerEffectConfig
+    {
+        /** The configuration of the post effect. */
+        @Editable(nullable=true)
+        public ConfigReference<PostEffectConfig> postEffect;
+
+        @Override // documentation inherited
+        public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
+        {
+            return new ViewerEffect() {
+                public void activate (Scene scene) {
+                }
+                public void deactivate () {
+                }
             };
         }
     }
