@@ -11,6 +11,15 @@ import com.threerings.export.Exportable;
 public final class Rect
     implements Exportable
 {
+    /** The zero rect. */
+    public static final Rect ZERO = new Rect(Vector2f.ZERO, Vector2f.ZERO);
+
+    /** The empty rect. */
+    public static final Rect EMPTY = new Rect(Vector2f.MAX_VALUE, Vector2f.MIN_VALUE);
+
+    /** A rect that's as large as rects can get. */
+    public static final Rect MAX_VALUE = new Rect(Vector2f.MIN_VALUE, Vector2f.MAX_VALUE);
+
     /**
      * Creates a rectangle with the values contained in the supplied minimum and maximum extents.
      */
@@ -52,13 +61,12 @@ public final class Rect
     }
 
     /**
-     * Determines whether the rectangle is empty (whether it contains the special values
-     * {@link Vector2f#MAX_VALUE} and {@link Vector2f#MIN_VALUE} for its minimum
-     * and maximum extents, respectively).
+     * Determines whether the rect is empty (whether any of its minima are greater than their
+     * corresponding maxima).
      */
     public boolean isEmpty ()
     {
-        return _minExtent.equals(Vector2f.MAX_VALUE) && _maxExtent.equals(Vector2f.MIN_VALUE);
+        return _minExtent.x > _maxExtent.x || _minExtent.y > _maxExtent.y;
     }
 
     /**
@@ -298,6 +306,16 @@ public final class Rect
     }
 
     /**
+     * Determines whether this rectangle completely contains the specified rectangle.
+     */
+    public boolean contains (Rect other)
+    {
+        Vector2f omin = other._minExtent, omax = other._maxExtent;
+        return omin.x >= _minExtent.x && omax.x <= _maxExtent.x &&
+            omin.y >= _minExtent.y && omax.y <= _maxExtent.y;
+    }
+
+    /**
      * Determines whether this rectangle intersects the specified other rectangle.
      */
     public boolean intersects (Rect other)
@@ -306,10 +324,133 @@ public final class Rect
             _maxExtent.y >= other._minExtent.y && _minExtent.y <= other._maxExtent.y;
     }
 
+    /**
+     * Determines whether the specified ray intersects this rectangle.
+     */
+    public boolean intersects (Ray2D ray)
+    {
+        Vector2f dir = ray.getDirection();
+        return
+            Math.abs(dir.x) > FloatMath.EPSILON &&
+                (intersectsX(ray, _minExtent.x) || intersectsX(ray, _maxExtent.x)) ||
+            Math.abs(dir.y) > FloatMath.EPSILON &&
+                (intersectsY(ray, _minExtent.y) || intersectsY(ray, _maxExtent.y));
+    }
+
+    /**
+     * Finds the location of the (first) intersection between the specified ray and this rectangle.
+     * This will be the ray origin if the ray starts inside the rectangle.
+     *
+     * @param result a vector to hold the location of the intersection.
+     * @return true if the ray intersects the rectangle (in which case the result vector will be
+     * populated with the location of the intersection), false if not.
+     */
+    public boolean getIntersection (Ray2D ray, Vector2f result)
+    {
+        Vector2f origin = ray.getOrigin();
+        if (contains(origin)) {
+            result.set(origin);
+            return true;
+        }
+        Vector2f dir = ray.getDirection();
+        float t = Float.MAX_VALUE;
+        if (Math.abs(dir.x) > FloatMath.EPSILON) {
+            t = Math.min(t, getIntersectionX(ray, _minExtent.x));
+            t = Math.min(t, getIntersectionX(ray, _maxExtent.x));
+        }
+        if (Math.abs(dir.y) > FloatMath.EPSILON) {
+            t = Math.min(t, getIntersectionY(ray, _minExtent.y));
+            t = Math.min(t, getIntersectionY(ray, _maxExtent.y));
+        }
+        if (t == Float.MAX_VALUE) {
+            return false;
+        }
+        origin.addScaled(dir, t, result);
+        return true;
+    }
+
     @Override // documentation inherited
     public String toString ()
     {
         return "[min=" + _minExtent + ", max=" + _maxExtent + "]";
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        return _minExtent.hashCode() + 31*_maxExtent.hashCode();
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!(other instanceof Rect)) {
+            return false;
+        }
+        Rect orect = (Rect)other;
+        return _minExtent.equals(orect._minExtent) && _maxExtent.equals(orect._maxExtent);
+    }
+
+    /**
+     * Helper method for {@link #intersects(Ray2D)}.  Determines whether the ray intersects the
+     * rectangle at the line where x equals the value specified.
+     */
+    protected boolean intersectsX (Ray2D ray, float x)
+    {
+        Vector2f origin = ray.getOrigin(), dir = ray.getDirection();
+        float t = (x - origin.x) / dir.x;
+        if (t < 0f) {
+            return false;
+        }
+        float iy = origin.y + t*dir.y;
+        return iy >= _minExtent.y && iy <= _maxExtent.y;
+    }
+
+    /**
+     * Helper method for {@link #intersects(Ray2D)}.  Determines whether the ray intersects the
+     * rectangle at the line where y equals the value specified.
+     */
+    protected boolean intersectsY (Ray2D ray, float y)
+    {
+        Vector2f origin = ray.getOrigin(), dir = ray.getDirection();
+        float t = (y - origin.y) / dir.y;
+        if (t < 0f) {
+            return false;
+        }
+        float ix = origin.x + t*dir.x;
+        return ix >= _minExtent.x && ix <= _maxExtent.x;
+    }
+
+    /**
+     * Helper method for {@link #getIntersection}.  Finds the <code>t</code> value where the ray
+     * intersects the rectangle at the line where x equals the value specified, or returns
+     * {@link Float#MAX_VALUE} if there is no such intersection.
+     */
+    protected float getIntersectionX (Ray2D ray, float x)
+    {
+        Vector2f origin = ray.getOrigin(), dir = ray.getDirection();
+        float t = (x - origin.x) / dir.x;
+        if (t < 0f) {
+            return Float.MAX_VALUE;
+        }
+        float iy = origin.y + t*dir.y;
+        return (iy >= _minExtent.y && iy <= _maxExtent.y) ? t : Float.MAX_VALUE;
+    }
+
+    /**
+     * Helper method for {@link #getIntersection}.  Finds the <code>t</code> value where the ray
+     * intersects the rectangle at the line where y equals the value specified, or returns
+     * {@link Float#MAX_VALUE} if there is no such intersection.
+     */
+    protected float getIntersectionY (Ray2D ray, float y)
+    {
+        Vector2f origin = ray.getOrigin(), dir = ray.getDirection();
+        float t = (y - origin.y) / dir.y;
+        if (t < 0f) {
+            return Float.MAX_VALUE;
+        }
+        float ix = origin.x + t*dir.x;
+        return (ix >= _minExtent.x && ix <= _maxExtent.x) ? t : Float.MAX_VALUE;
     }
 
     /** The rectangle's minimum extent. */

@@ -28,7 +28,7 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({
     ViewerEffectConfig.Sound.class, ViewerEffectConfig.BackgroundColor.class,
-    ViewerEffectConfig.Skybox.class })
+    ViewerEffectConfig.Skybox.class, ViewerEffectConfig.Particles.class })
 public abstract class ViewerEffectConfig extends DeepObject
     implements Exportable
 {
@@ -102,6 +102,36 @@ public abstract class ViewerEffectConfig extends DeepObject
                 public void update () {
                     model.getLocalTransform().getTranslation().set(translation);
                     model.updateBounds();
+                }
+                protected Scene _scene;
+            };
+        }
+    }
+
+    /**
+     * Adds a particle effect.
+     */
+    public static class Particles extends ViewerEffectConfig
+    {
+        /** The configuration of the particle system model. */
+        @Editable(nullable=true)
+        public ConfigReference<ModelConfig> model;
+
+        @Override // documentation inherited
+        public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
+        {
+            final Model model = new Model(ctx, this.model);
+            final Transform3D transform = ctx.getCompositor().getCamera().getWorldTransform();
+            return new ViewerEffect() {
+                public void activate (Scene scene) {
+                    (_scene = scene).add(model);
+                }
+                public void deactivate () {
+                    _scene.remove(model);
+                    _scene = null;
+                }
+                public void update () {
+                    model.setLocalTransform(transform);
                 }
                 protected Scene _scene;
             };

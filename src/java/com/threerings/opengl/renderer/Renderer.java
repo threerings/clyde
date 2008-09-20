@@ -1712,8 +1712,9 @@ public class Renderer
         }
         Quaternion rotation = transform.getRotation();
         if (!rotation.equals(Quaternion.IDENTITY)) {
-            float angle = 2f * FloatMath.acos(rotation.w);
-            float rsina = 1f / FloatMath.sqrt(1f - rotation.w*rotation.w);
+            float w = FloatMath.clamp(rotation.w, -1f, +1f);
+            float angle = 2f * FloatMath.acos(w);
+            float rsina = 1f / FloatMath.sqrt(1f - w*w);
             GL11.glRotatef(FloatMath.toDegrees(angle),
                 rotation.x * rsina, rotation.y * rsina, rotation.z * rsina);
         }
