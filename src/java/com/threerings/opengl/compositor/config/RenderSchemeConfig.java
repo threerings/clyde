@@ -11,6 +11,9 @@ import com.threerings.editor.Editable;
  */
 public class RenderSchemeConfig extends ManagedConfig
 {
+    /** Used to indicate that a config reference is invalid. */
+    public static final RenderSchemeConfig INVALID = new RenderSchemeConfig();
+
     /** Whether or not the scheme is "special."  Normal schemes are compatible with all other
      * normal schemes and the null (default) scheme.  Special schemes are not compatible with
      * any other schemes. */

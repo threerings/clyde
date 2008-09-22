@@ -375,7 +375,7 @@ public class TechniqueConfig extends DeepObject
      */
     public RenderSchemeConfig getSchemeConfig (GlContext ctx)
     {
-        if (_schemeConfig == INVALID_SCHEME_CONFIG) {
+        if (_schemeConfig == RenderSchemeConfig.INVALID) {
             return (scheme == null) ? null :
                 ctx.getConfigManager().getConfig(RenderSchemeConfig.class, scheme);
         }
@@ -410,7 +410,7 @@ public class TechniqueConfig extends DeepObject
      */
     public void invalidate ()
     {
-        _schemeConfig = INVALID_SCHEME_CONFIG;
+        _schemeConfig = RenderSchemeConfig.INVALID;
         _descriptors = null;
     }
 
@@ -430,12 +430,9 @@ public class TechniqueConfig extends DeepObject
 
     /** The cached scheme config. */
     @DeepOmit
-    protected transient RenderSchemeConfig _schemeConfig = INVALID_SCHEME_CONFIG;
+    protected transient RenderSchemeConfig _schemeConfig = RenderSchemeConfig.INVALID;
 
     /** The cached pass descriptors. */
     @DeepOmit
     protected transient PassDescriptor[] _descriptors;
-
-    /** An invalid render scheme config. */
-    protected static final RenderSchemeConfig INVALID_SCHEME_CONFIG = new RenderSchemeConfig();
 }

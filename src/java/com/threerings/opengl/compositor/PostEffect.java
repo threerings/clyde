@@ -13,6 +13,8 @@ import com.threerings.opengl.compositor.config.PostEffectConfig;
 import com.threerings.opengl.compositor.config.PostEffectConfig.Technique;
 import com.threerings.opengl.util.GlContext;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * Handles a post effect.
  */
@@ -55,6 +57,12 @@ public class PostEffect extends SimpleScope
     protected void updateFromConfig ()
     {
         String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
+        Technique technique = _config.getTechnique(_ctx, scheme);
+        if (technique == null) {
+            log.warning("No technique available to render post effect.",
+                "config", _config.getName(), "scheme", scheme);
+        }
+
     }
 
     /** The application context. */

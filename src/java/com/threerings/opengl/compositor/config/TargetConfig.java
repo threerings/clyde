@@ -11,6 +11,7 @@ import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.config.TextureConfig;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Represents a single target to update within the post effect.
@@ -36,6 +37,13 @@ public abstract class TargetConfig extends DeepObject
         {
             refs.add(TextureConfig.class, texture);
         }
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
+            return config != null && config.isSupported(ctx);
+        }
     }
 
     /**
@@ -59,5 +67,18 @@ public abstract class TargetConfig extends DeepObject
     public void getUpdateReferences (ConfigReferenceSet refs)
     {
         // nothing by default
+    }
+
+    /**
+     * Determines whether this target config is supported by the hardware.
+     */
+    public boolean isSupported (GlContext ctx)
+    {
+        for (StepConfig step : steps) {
+            if (!step.isSupported(ctx)) {
+                return false;
+            }
+        }
+        return true;
     }
 }

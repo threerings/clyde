@@ -17,6 +17,7 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.ColorMaskState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.StencilState;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Represents a single step in the process of updating a target.
@@ -140,5 +141,21 @@ public abstract class StepConfig extends DeepObject
         /** The level of tesselation in the y direction. */
         @Editable(min=1, hgroup="d")
         public int divisionsY = 1;
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            MaterialConfig config = ctx.getConfigManager().getConfig(
+                MaterialConfig.class, material);
+            return config != null && config.getTechnique(ctx, null) != null;
+        }
+    }
+
+    /**
+     * Determines whether this step config is supported by the hardware.
+     */
+    public boolean isSupported (GlContext ctx)
+    {
+        return true;
     }
 }
