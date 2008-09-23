@@ -106,9 +106,9 @@ public class ReflectionUtil
         }
         Field field = _outers.get(clazz);
         if (field == null) {
-            Class eclazz = clazz.getEnclosingClass();
+            Class dclazz = clazz.getDeclaringClass();
             for (Field ofield : clazz.getDeclaredFields()) {
-                if (ofield.isSynthetic() && ofield.getType() == eclazz &&
+                if (ofield.isSynthetic() && ofield.getType() == dclazz &&
                         ofield.getName().startsWith("this")) {
                     field = ofield;
                     break;
@@ -134,7 +134,7 @@ public class ReflectionUtil
             return null;
         }
         if (!Inner.class.isAssignableFrom(clazz)) {
-            return clazz.getEnclosingClass();
+            return clazz.getDeclaringClass();
         }
         Class outer = _oclasses.get(clazz);
         if (outer == null) {
@@ -154,7 +154,7 @@ public class ReflectionUtil
      */
     public static boolean isInner (Class clazz)
     {
-        return (clazz.isMemberClass() && !Modifier.isStatic(clazz.getModifiers())) ||
+        return (clazz.getDeclaringClass() != null && !Modifier.isStatic(clazz.getModifiers())) ||
             Inner.class.isAssignableFrom(clazz);
     }
 
