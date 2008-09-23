@@ -330,6 +330,10 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(category="data")
         public Format format = Format.DEFAULT;
 
+        /** Used to create separate instances of the same configuration. */
+        @Editable(category="data")
+        public String identity = "";
+
         /** The minification filter. */
         @Editable(category="filter", hgroup="f")
         public MinFilter minFilter = MinFilter.LINEAR_MIPMAP_LINEAR;

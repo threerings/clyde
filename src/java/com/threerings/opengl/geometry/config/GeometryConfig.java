@@ -19,6 +19,7 @@ import org.lwjgl.opengl.GLContext;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntTuple;
 import com.samskivert.util.SoftCache;
 
 import com.threerings.export.Exportable;
@@ -670,6 +671,54 @@ public abstract class GeometryConfig extends DeepObject
     }
 
     /**
+     * Returns a shared {@link GeometryConfig} instance representing a quad extending from
+     * (-1, -1, 0) to (+1, +1, 0) with the specified number of divisions in x and y.
+     */
+    public static GeometryConfig getQuad (int divisionsX, int divisionsY)
+    {
+        IntTuple key = new IntTuple(divisionsX, divisionsY);
+        GeometryConfig quad = _quads.get(key);
+        if (quad == null) {
+            int vx = divisionsX + 1, vy = divisionsY + 1;
+            FloatBuffer floatArray = BufferUtils.createFloatBuffer(vx * vy * 8);
+            for (int ii = 0; ii <= divisionsY; ii++) {
+                float t = ii / (float)divisionsY;
+                float y = -1f + 2f * t;
+                for (int jj = 0; jj <= divisionsX; jj++) {
+                    float s = jj / (float)divisionsX;
+                    float x = -1f + 2f * s;
+                    floatArray.put(s).put(t);
+                    floatArray.put(0f).put(0f).put(1f);
+                    floatArray.put(x).put(y).put(0f);
+                }
+            }
+            floatArray.rewind();
+
+            ShortBuffer indices = BufferUtils.createShortBuffer(divisionsX * divisionsY * 2 * 3);
+            for (int ii = 0; ii < divisionsY; ii++) {
+                for (int jj = 0; jj < divisionsX; jj++) {
+                    short ll = (short)(ii*vx + jj);
+                    short ul = (short)(ll + vx);
+                    short ur = (short)(ul + 1);
+                    short lr = (short)(ll + 1);
+                    indices.put(ul).put(ll).put(ur);
+                    indices.put(ur).put(ll).put(lr);
+                }
+            }
+            indices.rewind();
+
+            ClientArrayConfig texCoordArray = new ClientArrayConfig(2, 32, 0, floatArray);
+            ClientArrayConfig normalArray = new ClientArrayConfig(3, 32, 8, floatArray);
+            ClientArrayConfig vertexArray = new ClientArrayConfig(3, 32, 20, floatArray);
+            _quads.put(key, quad = new IndexedStored(
+                new Box(new Vector3f(-1f, -1f, 0f), new Vector3f(+1f, +1f, 0f)), Mode.TRIANGLES,
+                new AttributeArrayConfig[0], new ClientArrayConfig[] { texCoordArray }, null,
+                normalArray, vertexArray, 0, indices.capacity() - 1, indices));
+        }
+        return quad;
+    }
+
+    /**
      * Returns the bounds of the geometry.
      */
     public abstract Box getBounds ();
@@ -679,4 +728,8 @@ public abstract class GeometryConfig extends DeepObject
      */
     public abstract Geometry createGeometry (
         GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes);
+
+    /** Cached quad geometry. */
+    protected static SoftCache<IntTuple, GeometryConfig> _quads =
+        new SoftCache<IntTuple, GeometryConfig>();
 }

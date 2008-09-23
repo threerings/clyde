@@ -7,6 +7,7 @@ import com.threerings.math.Plane;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 
+import com.threerings.opengl.compositor.config.PostEffectConfig;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Texture;
 
@@ -187,13 +188,34 @@ public abstract class Dependency
     }
 
     /**
+     * A post effect.
+     */
+    public static class PostEffect extends Dependency
+    {
+        /** The configuration of the effect. */
+        public PostEffectConfig config;
+
+        @Override // documentation inherited
+        public int hashCode ()
+        {
+            return System.identityHashCode(config);
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            return other instanceof PostEffect && ((PostEffect)other).config == config;
+        }
+    }
+
+    /**
      * Merges another dependency (for which {@link #equals} returns true) into this one.
      */
     public void merge (Dependency dependency)
     {
         // nothing by default
     }
-    
+
     /**
      * Resolves this dependency.
      */

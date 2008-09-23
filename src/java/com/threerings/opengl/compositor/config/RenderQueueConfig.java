@@ -113,8 +113,12 @@ public class RenderQueueConfig extends ManagedConfig
         }
     }
 
+    /** The type of the queue. */
+    @Editable(hgroup="t")
+    public String type = RenderQueue.NORMAL_TYPE;
+
     /** The priority of the queue. */
-    @Editable
+    @Editable(hgroup="t")
     public int priority;
 
     /** The queue's sort mode. */

@@ -12,6 +12,7 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.geometry.config.PassDescriptor;
@@ -35,7 +36,17 @@ public class Surface extends SimpleScope
         GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
         MaterialConfig materialConfig)
     {
-        this(ctx, parentScope, geometryConfig, materialConfig, null);
+        this(ctx, parentScope, geometryConfig, materialConfig, ctx.getCompositor().getGroup());
+    }
+
+    /**
+     * Creates a new surface.
+     */
+    public Surface (
+        GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
+        MaterialConfig materialConfig, RenderQueue.Group group)
+    {
+        this(ctx, parentScope, geometryConfig, materialConfig, null, group);
     }
 
     /**
@@ -44,7 +55,17 @@ public class Surface extends SimpleScope
     public Surface (
         GlContext ctx, Scope parentScope, Geometry geometry, MaterialConfig materialConfig)
     {
-        this(ctx, parentScope, null, materialConfig, geometry);
+        this(ctx, parentScope, geometry, materialConfig, ctx.getCompositor().getGroup());
+    }
+
+    /**
+     * Creates a new surface.
+     */
+    public Surface (
+        GlContext ctx, Scope parentScope, Geometry geometry,
+        MaterialConfig materialConfig, RenderQueue.Group group)
+    {
+        this(ctx, parentScope, null, materialConfig, geometry, group);
     }
 
     /**
@@ -106,12 +127,13 @@ public class Surface extends SimpleScope
      */
     protected Surface (
         GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
-        MaterialConfig materialConfig, Geometry geometry)
+        MaterialConfig materialConfig, Geometry geometry, RenderQueue.Group group)
     {
         super(parentScope);
         _ctx = ctx;
         _geometryConfig = geometryConfig;
         _geometry = geometry;
+        _group = group;
 
         setMaterialConfig(materialConfig);
     }
@@ -135,7 +157,7 @@ public class Surface extends SimpleScope
             _geometry = _geometryConfig.createGeometry(_ctx, this, technique.deformer, passes);
         }
         _boneMatrices = _geometry.getBoneMatrices();
-        _renderable = technique.createRenderable(_ctx, this, _geometry);
+        _renderable = technique.createRenderable(_ctx, this, _geometry, _group);
     }
 
     /** The application context. */
@@ -154,6 +176,9 @@ public class Surface extends SimpleScope
 
     /** The surface geometry. */
     protected Geometry _geometry;
+
+    /** The group into which we enqueue our batches. */
+    protected RenderQueue.Group _group;
 
     /** The renderable created from the configs. */
     protected Renderable _renderable;

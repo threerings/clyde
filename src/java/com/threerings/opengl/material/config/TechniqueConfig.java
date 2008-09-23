@@ -5,6 +5,7 @@ package com.threerings.opengl.material.config;
 
 import java.util.ArrayList;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -19,7 +20,9 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.RenderQueue;
+import com.threerings.opengl.compositor.config.PostEffectConfig;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.geometry.config.DeformerConfig;
@@ -43,16 +46,116 @@ public class TechniqueConfig extends DeepObject
     implements Exportable
 {
     /**
+     * Represents a dependency that must be resolved when rendering.
+     */
+    @EditorTypes({
+        StencilReflectionDependency.class, StencilRefractionDependency.class,
+        PostEffectDependency.class })
+    public static abstract class TechniqueDependency extends DeepObject
+        implements Exportable
+    {
+        /**
+         * Determines whether the dependency is supported.
+         */
+        public abstract boolean isSupported (GlContext ctx);
+
+        /**
+         * Creates the updater for this dependency.  The updater will update and add the
+         * dependency object to the compositor.
+         */
+        public abstract Updater createUpdater (GlContext ctx, Scope scope);
+    }
+
+    /**
+     * A dependency on a stencil reflection.
+     */
+    public static class StencilReflectionDependency extends TechniqueDependency
+    {
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return ctx.getRenderer().getStencilBits() > 0;
+        }
+
+        @Override // documentation inherited
+        public Updater createUpdater (final GlContext ctx, Scope scope)
+        {
+            final Dependency.StencilReflection dependency = new Dependency.StencilReflection();
+            return new Updater() {
+                public void update () {
+                    ctx.getCompositor().addDependency(dependency);
+                }
+            };
+        }
+    }
+
+    /**
+     * A dependency on a stencil refraction.
+     */
+    public static class StencilRefractionDependency extends TechniqueDependency
+    {
+        /** The refraction ratio (index of refraction below the surface over index of refraction
+         * above the surface). */
+        @Editable(step=0.01)
+        public float ratio = 1f;
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return ctx.getRenderer().getStencilBits() > 0;
+        }
+
+        @Override // documentation inherited
+        public Updater createUpdater (final GlContext ctx, Scope scope)
+        {
+            final Dependency.StencilRefraction dependency = new Dependency.StencilRefraction();
+            dependency.ratio = ratio;
+            return new Updater() {
+                public void update () {
+                    ctx.getCompositor().addDependency(dependency);
+                }
+            };
+        }
+    }
+
+    /**
+     * A dependency on a post effect.
+     */
+    public static class PostEffectDependency extends TechniqueDependency
+    {
+        /** The post effect reference. */
+        @Editable(nullable=true)
+        public ConfigReference<PostEffectConfig> postEffect;
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            PostEffectConfig config = ctx.getConfigManager().getConfig(
+                PostEffectConfig.class, postEffect);
+            return config != null && config.getTechnique(ctx, null) != null;
+        }
+
+        @Override // documentation inherited
+        public Updater createUpdater (final GlContext ctx, Scope scope)
+        {
+            final Dependency.PostEffect dependency = new Dependency.PostEffect();
+            dependency.config = ctx.getConfigManager().getConfig(
+                PostEffectConfig.class, postEffect);
+            return new Updater() {
+                public void update () {
+                    ctx.getCompositor().addDependency(dependency);
+                }
+            };
+        }
+    }
+
+    /**
      * Represents the manner in which we enqueue the technique's batches.
      */
-    @EditorTypes({ NormalEnqueuer.class, GroupedEnqueuer.class })
+    @EditorTypes({ NormalEnqueuer.class, CompoundEnqueuer.class, GroupedEnqueuer.class })
     public static abstract class Enqueuer extends DeepObject
         implements Exportable
     {
-        /** The queue into which we render. */
-        @Editable(editor="config", mode="render_queue", nullable=true, hgroup="q")
-        public String queue = RenderQueue.OPAQUE;
-
         /**
          * Adds the enqueuer's update references to the provided set.
          */
@@ -86,6 +189,10 @@ public class TechniqueConfig extends DeepObject
      */
     public static class NormalEnqueuer extends Enqueuer
     {
+        /** The queue into which we render. */
+        @Editable(editor="config", mode="render_queue", nullable=true, hgroup="q")
+        public String queue = RenderQueue.OPAQUE;
+
         /** The priority at which the batch is enqueued. */
         @Editable(hgroup="q")
         public int priority;
@@ -260,15 +367,11 @@ public class TechniqueConfig extends DeepObject
     }
 
     /**
-     * Invokes some number of sub-enqueuers within a group.
+     * Invokes some number of sub-enqueuers.
      */
-    public static class GroupedEnqueuer extends Enqueuer
+    public static class CompoundEnqueuer extends Enqueuer
     {
-        /** The group into which the batches are enqueued. */
-        @Editable(hgroup="q")
-        public int group;
-
-        /** The enqueuers for the group. */
+        /** The sub-enqueuers. */
         @Editable
         public Enqueuer[] enqueuers = new Enqueuer[0];
 
@@ -304,7 +407,6 @@ public class TechniqueConfig extends DeepObject
             GlContext ctx, Scope scope, final Geometry geometry,
             boolean update, RenderQueue.Group group, MutableInteger pidx)
         {
-            group = group.getQueue(this.queue).getGroup(this.group);
             final Renderable[] renderables = new Renderable[enqueuers.length];
             for (int ii = 0; ii < renderables.length; ii++) {
                 renderables[ii] = enqueuers[ii].createRenderable(
@@ -331,9 +433,37 @@ public class TechniqueConfig extends DeepObject
         }
     }
 
+    /**
+     * Invokes some number of sub-enqueuers within a group.
+     */
+    public static class GroupedEnqueuer extends CompoundEnqueuer
+    {
+        /** The queue into which we render. */
+        @Editable(editor="config", mode="render_queue", nullable=true, weight=-1, hgroup="q")
+        public String queue = RenderQueue.OPAQUE;
+
+        /** The group into which the batches are enqueued. */
+        @Editable(weight=-1, hgroup="q")
+        public int group;
+
+        @Override // documentation inherited
+        public Renderable createRenderable (
+            GlContext ctx, Scope scope, Geometry geometry,
+            boolean update, RenderQueue.Group group, MutableInteger pidx)
+        {
+            return super.createRenderable(
+                ctx, scope, geometry, update,
+                group.getQueue(this.queue).getGroup(this.group), pidx);
+        }
+    }
+
     /** The render scheme with which this technique is associated. */
     @Editable(editor="config", mode="render_scheme", nullable=true)
     public String scheme;
+
+    /** Basic material dependencies. */
+    @Editable
+    public TechniqueDependency[] dependencies = new TechniqueDependency[0];
 
     /** The deformer to apply to the geometry. */
     @Editable(nullable=true)
@@ -367,6 +497,11 @@ public class TechniqueConfig extends DeepObject
      */
     public boolean isSupported (GlContext ctx)
     {
+        for (TechniqueDependency dependency : dependencies) {
+            if (!dependency.isSupported(ctx)) {
+                return false;
+            }
+        }
         return enqueuer.isSupported(ctx);
     }
 
@@ -400,9 +535,17 @@ public class TechniqueConfig extends DeepObject
      */
     public Renderable createRenderable (GlContext ctx, Scope scope, Geometry geometry)
     {
+        return createRenderable(ctx, scope, geometry, ctx.getCompositor().getGroup());
+    }
+
+    /**
+     * Creates a renderable to render the supplied geometry using this technique.
+     */
+    public Renderable createRenderable (
+        GlContext ctx, Scope scope, Geometry geometry, RenderQueue.Group group)
+    {
         return enqueuer.createRenderable(
-            ctx, scope, geometry, geometry.requiresUpdate(),
-            ctx.getCompositor().getGroup(), new MutableInteger(0));
+            ctx, scope, geometry, geometry.requiresUpdate(), group, new MutableInteger(0));
     }
 
     /**

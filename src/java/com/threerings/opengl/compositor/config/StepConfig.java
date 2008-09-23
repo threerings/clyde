@@ -9,8 +9,14 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Executor;
+import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.compositor.RenderQueue;
+import com.threerings.opengl.geometry.config.GeometryConfig;
+import com.threerings.opengl.mat.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -18,13 +24,14 @@ import com.threerings.opengl.renderer.state.ColorMaskState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.StencilState;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Renderable;
 
 /**
  * Represents a single step in the process of updating a target.
  */
 @EditorTypes({
     StepConfig.Clear.class,
-    StepConfig.RenderScene.class,
+    StepConfig.RenderQueues.class,
     StepConfig.RenderQuad.class })
 public abstract class StepConfig extends DeepObject
     implements Exportable
@@ -91,38 +98,63 @@ public abstract class StepConfig extends DeepObject
         @Editable
         public Stencil stencil = new Stencil();
 
-        /**
-         * Performs the clear operation.
-         */
-        public void execute (Renderer renderer)
+        @Override // documentation inherited
+        public Executor createExecutor (final GlContext ctx, Scope scope)
         {
-            int bits = 0;
-            if (color.clear) {
-                bits |= GL11.GL_COLOR_BUFFER_BIT;
-                renderer.setClearColor(color.value);
-                renderer.setState(ColorMaskState.ALL);
-            }
-            if (depth.clear) {
-                bits |= GL11.GL_DEPTH_BUFFER_BIT;
-                renderer.setClearDepth(depth.value);
-                renderer.setState(DepthState.TEST_WRITE);
-            }
-            if (stencil.clear) {
-                bits |= GL11.GL_STENCIL_BUFFER_BIT;
-                renderer.setClearStencil(stencil.value);
-                renderer.setState(StencilState.DISABLED);
-            }
-            if (bits != 0) {
-                GL11.glClear(bits);
-            }
+            return new Executor() {
+                public void execute () {
+                    Renderer renderer = ctx.getRenderer();
+                    int bits = 0;
+                    if (color.clear) {
+                        bits |= GL11.GL_COLOR_BUFFER_BIT;
+                        renderer.setClearColor(color.value);
+                        renderer.setState(ColorMaskState.ALL);
+                    }
+                    if (depth.clear) {
+                        bits |= GL11.GL_DEPTH_BUFFER_BIT;
+                        renderer.setClearDepth(depth.value);
+                        renderer.setState(DepthState.TEST_WRITE);
+                    }
+                    if (stencil.clear) {
+                        bits |= GL11.GL_STENCIL_BUFFER_BIT;
+                        renderer.setClearStencil(stencil.value);
+                        renderer.setState(StencilState.DISABLED);
+                    }
+                    if (bits != 0) {
+                        GL11.glClear(bits);
+                    }
+                }
+            };
         }
     }
 
     /**
-     * Renders the scene.
+     * Renders a set of render queues.
      */
-    public static class RenderScene extends StepConfig
+    public static class RenderQueues extends StepConfig
     {
+        /** The type of queues to render. */
+        @Editable
+        public String queueType = RenderQueue.NORMAL_TYPE;
+
+        /** The minimum priority of the queues to render. */
+        @Editable(hgroup="p")
+        public int minPriority = Integer.MIN_VALUE;
+
+        /** The maximum priority of the queues to render. */
+        @Editable(hgroup="p")
+        public int maxPriority = Integer.MAX_VALUE;
+
+        @Override // documentation inherited
+        public Executor createExecutor (final GlContext ctx, Scope scope)
+        {
+            return new Executor() {
+                public void execute () {
+                    ctx.getCompositor().getGroup().renderQueues(
+                        queueType, minPriority, maxPriority);
+                }
+            };
+        }
     }
 
     /**
@@ -149,6 +181,35 @@ public abstract class StepConfig extends DeepObject
                 MaterialConfig.class, material);
             return config != null && config.getTechnique(ctx, null) != null;
         }
+
+        @Override // documentation inherited
+        public Executor createExecutor (final GlContext ctx, Scope scope)
+        {
+            MaterialConfig config = ctx.getConfigManager().getConfig(
+                MaterialConfig.class, material);
+            final RenderQueue.Group group = new RenderQueue.Group(ctx);
+            final Surface surface = new Surface(
+                ctx, scope, GeometryConfig.getQuad(divisionsX, divisionsY), config, group);
+            return new Executor() {
+                public void execute () {
+                    // save the projection matrix and load the identity matrix
+                    Renderer renderer = ctx.getRenderer();
+                    renderer.setMatrixMode(GL11.GL_PROJECTION);
+                    GL11.glPushMatrix();
+                    GL11.glLoadIdentity();
+
+                    // enqueue, sort, render, clear
+                    surface.enqueue();
+                    group.sortQueues();
+                    group.renderQueues();
+                    group.clearQueues();
+
+                    // restore the projection matrix
+                    renderer.setMatrixMode(GL11.GL_PROJECTION);
+                    GL11.glPopMatrix();
+                }
+            };
+        }
     }
 
     /**
@@ -158,4 +219,9 @@ public abstract class StepConfig extends DeepObject
     {
         return true;
     }
+
+    /**
+     * Creates the executor that will actually perform the step.
+     */
+    public abstract Executor createExecutor (GlContext ctx, Scope scope);
 }

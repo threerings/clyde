@@ -118,7 +118,7 @@ public class Compositor
 
         // apply the camera state, render and clear the queues
         _camera.apply(renderer);
-        _group.renderQueues();
+        _group.renderQueues(RenderQueue.NORMAL_TYPE);
         _group.clearQueues();
 
         // allow the renderer to clean up

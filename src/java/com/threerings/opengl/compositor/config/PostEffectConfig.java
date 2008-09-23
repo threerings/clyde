@@ -226,8 +226,6 @@ public class PostEffectConfig extends ParameterizedConfig
         /** The cached scheme config. */
         @DeepOmit
         protected transient RenderSchemeConfig _schemeConfig = RenderSchemeConfig.INVALID;
-
-
     }
 
     /** The actual post effect implementation. */

@@ -32,6 +32,9 @@ public class RenderQueue
     /** The name of the overlay queue. */
     public static final String OVERLAY = "Overlay";
 
+    /** The normal render queue type. */
+    public static final String NORMAL_TYPE = "normal";
+
     /**
      * Contains a group of render queues.
      */
@@ -75,6 +78,35 @@ public class RenderQueue
         {
             for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
                 _queues.get(ii).render();
+            }
+        }
+
+        /**
+         * Renders the contents of the queues of the specified type.
+         */
+        public void renderQueues (String type)
+        {
+            for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+                RenderQueue queue = _queues.get(ii);
+                if (queue._config.type.equals(type)) {
+                    queue.render();
+                }
+            }
+        }
+
+        /**
+         * Renders the contents of the queues of the specified type whose priority levels fall
+         * within the specified (inclusive) limits.
+         */
+        public void renderQueues (String type, int minPriority, int maxPriority)
+        {
+            for (int ii = 0, nn = _queues.size(); ii < nn; ii++) {
+                RenderQueue queue = _queues.get(ii);
+                RenderQueueConfig config = queue._config;
+                if (config.type.equals(type) && config.priority >= minPriority &&
+                        config.priority <= maxPriority) {
+                    queue.render();
+                }
             }
         }
 
