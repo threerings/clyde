@@ -44,11 +44,11 @@ public abstract class TargetConfig extends DeepObject
         public ConfigReference<TextureConfig> depth;
 
         /** The number of depth bits to request. */
-        @Editable(min=0)
+        @Editable(min=0, weight=-1, hgroup="b")
         public int depthBits;
 
         /** The number of stencil bits to request. */
-        @Editable(min=0)
+        @Editable(min=0, weight=-1, hgroup="b")
         public int stencilBits;
 
         /**

@@ -11,7 +11,7 @@ import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
-import org.lwjgl.opengl.glu.GLU;
+import org.lwjgl.util.glu.GLU;
 
 import com.threerings.opengl.util.GlUtil;
 
