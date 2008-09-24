@@ -36,7 +36,8 @@ public class TextureRenderer
         _height = height;
         _color = color;
         _depth = depth;
-        int twidth = color.getWidth(), theight = color.getHeight();
+        Texture tex = (color == null) ? depth : color;
+        int twidth = tex.getWidth(), theight = tex.getHeight();
 
         // first try fbos
         if (GLContext.getCapabilities().GL_EXT_framebuffer_object) {
@@ -72,8 +73,7 @@ public class TextureRenderer
         // then try pbuffers with or without rtt
         int pcaps = Pbuffer.getCapabilities();
         if ((pcaps & Pbuffer.PBUFFER_SUPPORTED) != 0) {
-            int target = getRenderTextureTarget(
-                color == null ? depth.getTarget() : color.getTarget());
+            int target = getRenderTextureTarget(tex.getTarget());
             boolean rectangle = (target == RenderTexture.RENDER_TEXTURE_RECTANGLE);
             _pwidth = width;
             _pheight = height;
@@ -150,6 +150,21 @@ public class TextureRenderer
             }
         } else {
             copyTextures();
+        }
+    }
+
+    /**
+     * Disposes of this texture renderer, rendering it unusable.
+     */
+    public void dispose ()
+    {
+        if (_framebuffer != null) {
+            _framebuffer.delete();
+            _framebuffer = null;
+        }
+        if (_pbuffer != null) {
+            _pbuffer.destroy();
+            _pbuffer = null;
         }
     }
 
