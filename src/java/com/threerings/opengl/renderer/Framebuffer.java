@@ -163,6 +163,7 @@ public class Framebuffer
      */
     protected void setAttachment (int attachment, Texture texture, int level, int param)
     {
+        Framebuffer obuffer = _renderer.getFramebuffer();
         _renderer.setFramebuffer(this);
         int target = texture.getTarget();
         if (target == GL11.GL_TEXTURE_1D) {
@@ -180,6 +181,7 @@ public class Framebuffer
                     TextureCubeMap.FACE_TARGETS[param] : target,
                 texture.getId(), level);
         }
+        _renderer.setFramebuffer(obuffer);
     }
 
     /**
@@ -187,10 +189,12 @@ public class Framebuffer
      */
     protected void setAttachment (int attachment, Renderbuffer renderbuffer)
     {
+        Framebuffer obuffer = _renderer.getFramebuffer();
         _renderer.setFramebuffer(this);
         EXTFramebufferObject.glFramebufferRenderbufferEXT(
             EXTFramebufferObject.GL_FRAMEBUFFER_EXT, attachment,
             EXTFramebufferObject.GL_RENDERBUFFER_EXT, renderbuffer.getId());
+        _renderer.setFramebuffer(obuffer);
     }
 
     @Override // documentation inherited

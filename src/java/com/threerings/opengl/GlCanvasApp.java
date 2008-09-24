@@ -107,6 +107,12 @@ public abstract class GlCanvasApp extends GlApp
         _compositor.getCamera().getPickRay(x, _canvas.getHeight() - y - 1, result);
     }
 
+    // documentation inherited from interface GlContext
+    public void makeCurrent ()
+    {
+        _canvas.makeCurrent();
+    }
+
     // documentation inherited from interface RunQueue
     public void postRunnable (Runnable run)
     {

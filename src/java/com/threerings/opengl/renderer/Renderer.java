@@ -27,8 +27,10 @@ import org.lwjgl.opengl.EXTTextureLODBias;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.Pbuffer;
 
 import com.samskivert.util.IntListUtil;
+import com.samskivert.util.ListUtil;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
@@ -99,6 +101,12 @@ public class Renderer
         } else {
             _maxVertexAttribs = 0;
         }
+
+        // get the initial draw/read buffers
+        GL11.glGetInteger(GL11.GL_DRAW_BUFFER, buf);
+        _drawBuffer = buf.get(0);
+        GL11.glGetInteger(GL11.GL_READ_BUFFER, buf);
+        _readBuffer = buf.get(0);
 
         // to make things easier for texture loading, we just keep this at one (default is four)
         GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
@@ -1795,6 +1803,35 @@ public class Renderer
     }
 
     /**
+     * Sets the active buffers for drawing and reading.
+     */
+    protected void setBuffers (int drawBuffer, int readBuffer)
+    {
+        if (_drawBuffer != drawBuffer) {
+            GL11.glDrawBuffer(_drawBuffer = drawBuffer);
+        }
+        if (_readBuffer != readBuffer) {
+            GL11.glReadBuffer(_readBuffer = readBuffer);
+        }
+    }
+
+    /**
+     * Returns the active draw buffer.
+     */
+    protected int getDrawBuffer ()
+    {
+        return _drawBuffer;
+    }
+
+    /**
+     * Returns the active read buffer.
+     */
+    protected int getReadBuffer ()
+    {
+        return _readBuffer;
+    }
+
+    /**
      * Binds the specified frame buffer.
      */
     protected void setFramebuffer (Framebuffer framebuffer)
@@ -1805,6 +1842,14 @@ public class Renderer
                 EXTFramebufferObject.GL_FRAMEBUFFER_EXT, id);
             _framebuffer = framebuffer;
         }
+    }
+
+    /**
+     * Returns a reference to the currently bound frame buffer.
+     */
+    protected Framebuffer getFramebuffer ()
+    {
+        return _framebuffer;
     }
 
     /**
@@ -1842,6 +1887,14 @@ public class Renderer
     protected synchronized void framebufferFinalized (int id)
     {
         _finalizedFramebuffers = IntListUtil.add(_finalizedFramebuffers, id);
+    }
+
+    /**
+     * Called when a pbuffer has been finalized.
+     */
+    protected synchronized void pbufferFinalized (Pbuffer pbuffer)
+    {
+        _finalizedPbuffers = ListUtil.add(_finalizedPbuffers, pbuffer);
     }
 
     /**
@@ -1898,6 +1951,14 @@ public class Renderer
             idbuf.put(_finalizedFramebuffers).rewind();
             EXTFramebufferObject.glDeleteFramebuffersEXT(idbuf);
             _finalizedFramebuffers = null;
+        }
+        if (_finalizedPbuffers != null) {
+            for (Object buf : _finalizedPbuffers) {
+                if (buf != null) {
+                    ((Pbuffer)buf).destroy();
+                }
+            }
+            _finalizedPbuffers = null;
         }
         if (_finalizedQueries != null) {
             IntBuffer idbuf = BufferUtils.createIntBuffer(_finalizedQueries.length);
@@ -2432,6 +2493,9 @@ public class Renderer
     /** The currently bound render buffer. */
     protected Renderbuffer _renderbuffer;
 
+    /** The active buffers for drawing and reading. */
+    protected int _drawBuffer = GL11.GL_BACK, _readBuffer = GL11.GL_BACK;
+
     /** The list of buffer objects to be deleted. */
     protected int[] _finalizedBufferObjects;
 
@@ -2440,6 +2504,9 @@ public class Renderer
 
     /** The list of frame buffers to be deleted. */
     protected int[] _finalizedFramebuffers;
+
+    /** The list of pbuffers to be destroyed. */
+    protected Object[] _finalizedPbuffers;
 
     /** The list of queries to be deleted. */
     protected int[] _finalizedQueries;
@@ -2466,5 +2533,12 @@ public class Renderer
     protected static final Program INVALID_PROGRAM = new Program();
 
     /** An invalid texture to force reapplication. */
-    protected static final Texture INVALID_TEXTURE = new Texture() {};
+    protected static final Texture INVALID_TEXTURE = new Texture() {
+        public int getWidth () {
+            return -1;
+        }
+        public int getHeight () {
+            return -1;
+        }
+    };
 }

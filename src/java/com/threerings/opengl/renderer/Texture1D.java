@@ -100,11 +100,24 @@ public class Texture1D extends Texture
     }
 
     /**
-     * Returns the width of this texture (only valid after {@link #setImage} is called).
+     * Copies part of the read buffer to the texture.
      */
+    public void copySubImage (int level, int xoffset, int x, int y, int width)
+    {
+        _renderer.setTexture(this);
+        GL11.glCopyTexSubImage1D(GL11.GL_TEXTURE_1D, level, xoffset, x, y, width);
+    }
+
+    @Override // documentation inherited
     public int getWidth ()
     {
         return _width;
+    }
+
+    @Override // documentation inherited
+    public int getHeight ()
+    {
+        return 1;
     }
 
     /** The dimension of the texture. */

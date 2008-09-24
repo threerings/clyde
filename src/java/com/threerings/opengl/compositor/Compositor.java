@@ -3,16 +3,20 @@
 
 package com.threerings.opengl.compositor;
 
+import java.lang.ref.SoftReference;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
 
-import com.samskivert.util.ComparableArrayList;
+import com.samskivert.util.QuickSort;
 
 import com.threerings.opengl.camera.Camera;
+import com.threerings.opengl.compositor.config.PostEffectConfig;
 import com.threerings.opengl.compositor.config.RenderQueueConfig;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.renderer.Color4f;
@@ -78,6 +82,22 @@ public class Compositor
     }
 
     /**
+     * Adds a post effect to apply.
+     */
+    public void addPostEffect (PostEffect effect)
+    {
+        _postEffects.add(effect);
+    }
+
+    /**
+     * Removes a post effect.
+     */
+    public void removePostEffect (PostEffect effect)
+    {
+        _postEffects.remove(effect);
+    }
+
+    /**
      * Renders the composited view.
      */
     public void renderView ()
@@ -86,42 +106,33 @@ public class Compositor
         for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
             _roots.get(ii).enqueue();
         }
-        // store and reset the color clear setting
-        boolean skipColorClear = _skipColorClear;
-        _skipColorClear = false;
-
         // reset the renderer stats
         Renderer renderer = _ctx.getRenderer();
         renderer.resetStats();
 
+        // add the in-built post effects
+        _combinedPostEffects.addAll(_postEffects);
+
         // resolve and clear the set of dependencies
         for (Dependency dependency : _dependencies.values()) {
-            dependency.resolve();
+            dependency.resolve(this);
         }
         _dependencies.clear();
 
         // sort the queues in preparation for rendering
         _group.sortQueues();
 
-        // clear the depth and stencil buffers (and the color buffer, if necessary)
-        int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
-        if (!skipColorClear) {
-            bits |= GL11.GL_COLOR_BUFFER_BIT;
-            renderer.setClearColor(_backgroundColor);
-            renderer.setState(ColorMaskState.ALL);
-        }
-        renderer.setClearDepth(1f);
-        renderer.setState(DepthState.TEST_WRITE);
-        renderer.setClearStencil(0);
-        renderer.setState(StencilState.DISABLED);
-        GL11.glClear(bits);
-
-        // apply the camera state, render and clear the queues
+        // apply the camera state
         _camera.apply(renderer);
-        _group.renderQueues(RenderQueue.NORMAL_TYPE);
-        _group.clearQueues();
 
-        // allow the renderer to clean up
+        // process the post effects in reverse order
+        QuickSort.sort(_combinedPostEffects);
+        renderPrevious(_combinedPostEffects.size());
+
+        // clean up
+        _skipColorClear = false;
+        _group.clearQueues();
+        _combinedPostEffects.clear();
         renderer.cleanup();
     }
 
@@ -144,6 +155,39 @@ public class Compositor
     public void setSkipColorClear ()
     {
         _skipColorClear = true;
+    }
+
+    /**
+     * Adds a post effect associated with a dependency.
+     */
+    public void addDependencyPostEffect (PostEffectConfig config)
+    {
+        SoftReference<PostEffect> ref = _cachedPostEffects.get(config);
+        PostEffect effect = (ref == null) ? null : ref.get();
+        if (effect == null) {
+            _cachedPostEffects.put(config, new SoftReference<PostEffect>(
+                effect = new PostEffect(_ctx, _ctx.getScope(), config)));
+        }
+        _combinedPostEffects.add(effect);
+    }
+
+    /**
+     * For the specified index within the list of combined post effects, renders the previous
+     * contents.
+     */
+    public void renderPrevious (int idx)
+    {
+        int minPriority = Integer.MIN_VALUE, maxPriority = Integer.MAX_VALUE;
+        if (idx > 0) {
+            int pidx = idx - 1;
+            PostEffect peffect = _combinedPostEffects.get(pidx);
+            peffect.render(pidx);
+            minPriority = peffect.getPriority() + 1;
+        }
+        if (idx < _combinedPostEffects.size()) {
+            maxPriority = _combinedPostEffects.get(idx).getPriority();
+        }
+        renderQueues(minPriority, maxPriority);
     }
 
     /**
@@ -170,6 +214,29 @@ public class Compositor
         return _group;
     }
 
+    /**
+     * Renders the contents of the queues within the specified priority range.
+     */
+    protected void renderQueues (int minPriority, int maxPriority)
+    {
+        // if the range includes the lower bound, perform the clear
+        if (minPriority == Integer.MIN_VALUE) {
+            Renderer renderer = _ctx.getRenderer();
+            int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
+            if (!_skipColorClear) {
+                bits |= GL11.GL_COLOR_BUFFER_BIT;
+                renderer.setClearColor(_backgroundColor);
+                renderer.setState(ColorMaskState.ALL);
+            }
+            renderer.setClearDepth(1f);
+            renderer.setState(DepthState.TEST_WRITE);
+            renderer.setClearStencil(0);
+            renderer.setState(StencilState.DISABLED);
+            GL11.glClear(bits);
+        }
+        _group.renderQueues(RenderQueue.NORMAL_TYPE, minPriority, maxPriority);
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -182,12 +249,22 @@ public class Compositor
     /** The roots of the view. */
     protected ArrayList<Renderable> _roots = new ArrayList<Renderable>();
 
+    /** The non-dependency post effects. */
+    protected ArrayList<PostEffect> _postEffects = new ArrayList<PostEffect>();
+
     /** The current set of dependencies. */
     protected HashMap<Dependency, Dependency> _dependencies = Maps.newHashMap();
+
+    /** The combined list of post effects. */
+    protected ArrayList<PostEffect> _combinedPostEffects = new ArrayList<PostEffect>();
 
     /** When set, indicates that we need not clear the color buffer. */
     protected boolean _skipColorClear;
 
     /** The base render queue group. */
     protected RenderQueue.Group _group;
+
+    /** Cached post effects. */
+    protected IdentityHashMap<PostEffectConfig, SoftReference<PostEffect>> _cachedPostEffects =
+        Maps.newIdentityHashMap();
 }

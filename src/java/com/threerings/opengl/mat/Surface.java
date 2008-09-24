@@ -17,7 +17,9 @@ import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.material.config.PassConfig;
 import com.threerings.opengl.material.config.TechniqueConfig;
+import com.threerings.opengl.material.config.TechniqueConfig.NormalEnqueuer;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
@@ -76,9 +78,9 @@ public class Surface extends SimpleScope
         if (_materialConfig != null) {
             _materialConfig.removeListener(this);
         }
-        _materialConfig = (config == null) ?
-            _ctx.getConfigManager().getConfig(MaterialConfig.class, BLANK_MATERIAL) : config;
-        _materialConfig.addListener(this);
+        if ((_materialConfig = config) != null) {
+            _materialConfig.addListener(this);
+        }
         updateFromConfigs();
     }
 
@@ -144,13 +146,12 @@ public class Surface extends SimpleScope
     protected void updateFromConfigs ()
     {
         String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
-        TechniqueConfig technique = _materialConfig.getTechnique(_ctx, scheme);
+        TechniqueConfig technique = (_materialConfig == null) ?
+            BLANK_TECHNIQUE : _materialConfig.getTechnique(_ctx, scheme);
         if (technique == null) {
             log.warning("No technique available to render material.",
                 "material", _materialConfig.getName(), "scheme", scheme);
-            MaterialConfig config = _ctx.getConfigManager().getConfig(
-                MaterialConfig.class, BLANK_MATERIAL);
-            technique = config.getTechnique(_ctx, null);
+            technique = BLANK_TECHNIQUE;
         }
         if (_geometryConfig != null) {
             PassDescriptor[] passes = technique.getDescriptors(_ctx);
@@ -183,6 +184,9 @@ public class Surface extends SimpleScope
     /** The renderable created from the configs. */
     protected Renderable _renderable;
 
-    /** The config to use when we're given a <code>null</code> material config. */
-    protected static final String BLANK_MATERIAL = "Basic/Blank";
+    /** A technique that renders the material as blank. */
+    protected static final TechniqueConfig BLANK_TECHNIQUE = new TechniqueConfig();
+    static {
+        ((NormalEnqueuer)BLANK_TECHNIQUE.enqueuer).passes = new PassConfig[] { new PassConfig() };
+    }
 }

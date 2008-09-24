@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.compositor;
 
+import java.lang.Comparable;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
@@ -19,12 +21,12 @@ import static com.threerings.opengl.Log.*;
  * Handles a post effect.
  */
 public class PostEffect extends SimpleScope
-    implements ConfigUpdateListener<PostEffectConfig>
+    implements ConfigUpdateListener<PostEffectConfig>, Comparable<PostEffect>
 {
     /**
      * Creates a new post effect.
      */
-    protected PostEffect (GlContext ctx, Scope parentScope, PostEffectConfig config)
+    public PostEffect (GlContext ctx, Scope parentScope, PostEffectConfig config)
     {
         super(parentScope);
         _ctx = ctx;
@@ -45,10 +47,34 @@ public class PostEffect extends SimpleScope
         updateFromConfig();
     }
 
+    /**
+     * Returns the effect's priority.
+     */
+    public int getPriority ()
+    {
+        return _priority;
+    }
+
+    /**
+     * Renders this post effect.
+     *
+     * @param idx the effect's index within the compositor list.
+     */
+    public void render (int idx)
+    {
+        _ctx.getCompositor().renderPrevious(idx);
+    }
+
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PostEffectConfig> event)
     {
         updateFromConfig();
+    }
+
+    // documentation inherited from interface Comparable
+    public int compareTo (PostEffect other)
+    {
+        return _priority - other._priority;
     }
 
     /**
@@ -56,11 +82,17 @@ public class PostEffect extends SimpleScope
      */
     protected void updateFromConfig ()
     {
+        // get the effect priority
+        _priority = (_config == null) ? 0 : _config.getPriority(_ctx);
+
+        // find a technique to render the effect
         String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
-        Technique technique = _config.getTechnique(_ctx, scheme);
+        Technique technique = (_config == null) ?
+            NOOP_TECHNIQUE : _config.getTechnique(_ctx, scheme);
         if (technique == null) {
             log.warning("No technique available to render post effect.",
                 "config", _config.getName(), "scheme", scheme);
+            technique = NOOP_TECHNIQUE;
         }
 
     }
@@ -70,4 +102,10 @@ public class PostEffect extends SimpleScope
 
     /** The post effect configuration. */
     protected PostEffectConfig _config;
+
+    /** The priority of the effect. */
+    protected int _priority;
+
+    /** A technique that does nothing. */
+    protected static final Technique NOOP_TECHNIQUE = new Technique();
 }

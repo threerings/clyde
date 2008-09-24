@@ -36,6 +36,11 @@ public class PostEffectConfig extends ParameterizedConfig
         public abstract void getUpdateReferences (ConfigReferenceSet refs);
 
         /**
+         * Gets the priority of the effect.
+         */
+        public abstract int getPriority (GlContext ctx);
+
+        /**
          * Returns a technique to use to render this effect.
          */
         public abstract Technique getTechnique (GlContext ctx, String scheme);
@@ -68,6 +73,12 @@ public class PostEffectConfig extends ParameterizedConfig
             for (Technique technique : techniques) {
                 technique.getUpdateReferences(refs);
             }
+        }
+
+        @Override // documentation inherited
+        public int getPriority (GlContext ctx)
+        {
+            return priority;
         }
 
         @Override // documentation inherited
@@ -139,6 +150,14 @@ public class PostEffectConfig extends ParameterizedConfig
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(PostEffectConfig.class, postEffect);
+        }
+
+        @Override // documentation inherited
+        public int getPriority (GlContext ctx)
+        {
+            PostEffectConfig config = ctx.getConfigManager().getConfig(
+                PostEffectConfig.class, postEffect);
+            return (config == null) ? 0 : config.getPriority(ctx);
         }
 
         @Override // documentation inherited
@@ -231,6 +250,14 @@ public class PostEffectConfig extends ParameterizedConfig
     /** The actual post effect implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Gets the priority of the effect.
+     */
+    public int getPriority (GlContext ctx)
+    {
+        return implementation.getPriority(ctx);
+    }
 
     /**
      * Finds a technique to render this effect.

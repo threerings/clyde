@@ -109,24 +109,29 @@ public class Texture3D extends Texture
     }
 
     /**
-     * Returns the width of this texture (only valid after {@link #setImage} is called).
+     * Copies part of the read buffer to the texture.
      */
+    public void copySubImage (
+        int level, int xoffset, int yoffset, int zoffset, int x, int y, int width, int height)
+    {
+        _renderer.setTexture(this);
+        GL12.glCopyTexSubImage3D(
+            GL12.GL_TEXTURE_3D, level, xoffset, yoffset, zoffset, x, y, width, height);
+    }
+
+    @Override // documentation inherited
     public int getWidth ()
     {
         return _width;
     }
 
-    /**
-     * Returns the height of this texture (only valid after {@link #setImage} is called).
-     */
+    @Override // documentation inherited
     public int getHeight ()
     {
         return _height;
     }
 
-    /**
-     * Returns the depth of this texture (only valid after {@link #setImage} is called).
-     */
+    @Override // documentation inherited
     public int getDepth ()
     {
         return _depth;

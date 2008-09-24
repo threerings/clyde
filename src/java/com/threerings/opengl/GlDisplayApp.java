@@ -59,6 +59,16 @@ public abstract class GlDisplayApp extends GlApp
         }
     }
 
+    // documentation inherited from interface GlContext
+    public void makeCurrent ()
+    {
+        try {
+            Display.makeCurrent();
+        } catch (LWJGLException e) {
+            log.warning("Failed to make context current.", e);
+        }
+    }
+
     // documentation inherited from interface RunQueue
     public void postRunnable (Runnable run)
     {

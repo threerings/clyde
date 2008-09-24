@@ -15,6 +15,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
+import com.threerings.opengl.compositor.PostEffect;
 import com.threerings.opengl.compositor.config.PostEffectConfig;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
@@ -150,12 +151,18 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<PostEffectConfig> postEffect;
 
         @Override // documentation inherited
-        public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
+        public ViewerEffect createViewerEffect (final GlContext ctx, Scope scope)
         {
+            PostEffectConfig config = ctx.getConfigManager().getConfig(
+                PostEffectConfig.class, postEffect);
+            final com.threerings.opengl.compositor.PostEffect effect =
+                new com.threerings.opengl.compositor.PostEffect(ctx, scope, config);
             return new ViewerEffect() {
                 public void activate (Scene scene) {
+                    ctx.getCompositor().addPostEffect(effect);
                 }
                 public void deactivate () {
+                    ctx.getCompositor().removePostEffect(effect);
                 }
             };
         }

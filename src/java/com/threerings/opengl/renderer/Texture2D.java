@@ -203,16 +203,22 @@ public class Texture2D extends Texture
     }
 
     /**
-     * Returns the width of this texture (only valid after {@link #setImage} is called).
+     * Copies part of the read buffer to the texture.
      */
+    public void copySubImage (
+        int level, int xoffset, int yoffset, int x, int y, int width, int height)
+    {
+        _renderer.setTexture(this);
+        GL11.glCopyTexSubImage2D(_target, level, xoffset, yoffset, x, y, width, height);
+    }
+
+    @Override // documentation inherited
     public int getWidth ()
     {
         return _width;
     }
 
-    /**
-     * Returns the height of this texture (only valid after {@link #setImage} is called).
-     */
+    @Override // documentation inherited
     public int getHeight ()
     {
         return _height;

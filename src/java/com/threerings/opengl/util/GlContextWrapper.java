@@ -53,6 +53,18 @@ public abstract class GlContextWrapper
     }
 
     // documentation inherited from interface GlContext
+    public void makeCurrent ()
+    {
+        _wrapped.makeCurrent();
+    }
+
+    // documentation inherited from interface GlContext
+    public void setRenderer (Renderer renderer)
+    {
+        _wrapped.setRenderer(renderer);
+    }
+
+    // documentation inherited from interface GlContext
     public Renderer getRenderer ()
     {
         return _wrapped.getRenderer();

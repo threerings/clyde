@@ -168,11 +168,14 @@ public class TextureCubeMap extends Texture
         }
     }
 
-    /**
-     * Returns the size (width and height) of each face (only valid after {@link #setImages} is
-     * called).
-     */
-    public int getSize ()
+    @Override // documentation inherited
+    public int getWidth ()
+    {
+        return _size;
+    }
+
+    @Override // documentation inherited
+    public int getHeight ()
     {
         return _size;
     }

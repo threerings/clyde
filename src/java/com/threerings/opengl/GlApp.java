@@ -139,6 +139,12 @@ public abstract class GlApp extends DynamicScope
     }
 
     // documentation inherited from interface GlContext
+    public void setRenderer (Renderer renderer)
+    {
+        _renderer = renderer;
+    }
+
+    // documentation inherited from interface GlContext
     public Renderer getRenderer ()
     {
         return _renderer;

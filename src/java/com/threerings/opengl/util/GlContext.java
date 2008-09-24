@@ -25,6 +25,16 @@ public interface GlContext extends AlContext
     public DynamicScope getScope ();
 
     /**
+     * Makes the OpenGL context current.
+     */
+    public void makeCurrent ();
+
+    /**
+     * Sets the renderer reference.
+     */
+    public void setRenderer (Renderer renderer);
+
+    /**
      * Returns a reference to the renderer.
      */
     public Renderer getRenderer ();

@@ -73,7 +73,42 @@ public abstract class Texture
      */
     public boolean hasAlpha ()
     {
-        return _format == GL11.GL_LUMINANCE_ALPHA || _format == GL11.GL_RGBA;
+        // these aren't all the alpha formats; just the ones in TextureConfig
+        return _format == GL11.GL_ALPHA ||
+            _format == ARBTextureCompression.GL_COMPRESSED_ALPHA_ARB ||
+            _format == GL11.GL_LUMINANCE_ALPHA ||
+            _format == ARBTextureCompression.GL_COMPRESSED_LUMINANCE_ALPHA_ARB ||
+            _format == GL11.GL_RGBA ||
+            _format == ARBTextureCompression.GL_COMPRESSED_RGBA_ARB;
+    }
+
+    /**
+     * Determines whether this is a depth texture.
+     */
+    public boolean isDepth ()
+    {
+        return _format == GL11.GL_DEPTH_COMPONENT ||
+            _format == ARBDepthTexture.GL_DEPTH_COMPONENT16_ARB ||
+            _format == ARBDepthTexture.GL_DEPTH_COMPONENT24_ARB ||
+            _format == ARBDepthTexture.GL_DEPTH_COMPONENT32_ARB;
+    }
+
+    /**
+     * Returns the width of the texture.
+     */
+    public abstract int getWidth ();
+
+    /**
+     * Returns the height of the texture.
+     */
+    public abstract int getHeight ();
+
+    /**
+     * Returns the depth of the texture.
+     */
+    public int getDepth ()
+    {
+        return 1;
     }
 
     /**

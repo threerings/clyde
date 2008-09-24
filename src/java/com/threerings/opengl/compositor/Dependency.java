@@ -10,6 +10,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.opengl.compositor.config.PostEffectConfig;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Texture;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Represents a dependency to be resolved in the course of rendering: shadows from a particular
@@ -196,6 +197,12 @@ public abstract class Dependency
         public PostEffectConfig config;
 
         @Override // documentation inherited
+        public void resolve (Compositor compositor)
+        {
+            compositor.addDependencyPostEffect(config);
+        }
+
+        @Override // documentation inherited
         public int hashCode ()
         {
             return System.identityHashCode(config);
@@ -219,7 +226,7 @@ public abstract class Dependency
     /**
      * Resolves this dependency.
      */
-    public void resolve ()
+    public void resolve (Compositor compositor)
     {
     }
 }
