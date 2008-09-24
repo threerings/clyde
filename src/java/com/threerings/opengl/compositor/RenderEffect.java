@@ -11,22 +11,22 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 
-import com.threerings.opengl.compositor.config.PostEffectConfig;
-import com.threerings.opengl.compositor.config.PostEffectConfig.Technique;
+import com.threerings.opengl.compositor.config.RenderEffectConfig;
+import com.threerings.opengl.compositor.config.RenderEffectConfig.Technique;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.*;
 
 /**
- * Handles a post effect.
+ * Handles a render effect.
  */
-public class PostEffect extends SimpleScope
-    implements ConfigUpdateListener<PostEffectConfig>, Comparable<PostEffect>
+public class RenderEffect extends SimpleScope
+    implements ConfigUpdateListener<RenderEffectConfig>, Comparable<RenderEffect>
 {
     /**
-     * Creates a new post effect.
+     * Creates a new render effect.
      */
-    public PostEffect (GlContext ctx, Scope parentScope, PostEffectConfig config)
+    public RenderEffect (GlContext ctx, Scope parentScope, RenderEffectConfig config)
     {
         super(parentScope);
         _ctx = ctx;
@@ -36,7 +36,7 @@ public class PostEffect extends SimpleScope
     /**
      * Sets the configuration of this effect.
      */
-    public void setConfig (PostEffectConfig config)
+    public void setConfig (RenderEffectConfig config)
     {
         if (_config != null) {
             _config.removeListener(this);
@@ -56,7 +56,7 @@ public class PostEffect extends SimpleScope
     }
 
     /**
-     * Renders this post effect.
+     * Renders this effect.
      *
      * @param idx the effect's index within the compositor list.
      */
@@ -66,13 +66,13 @@ public class PostEffect extends SimpleScope
     }
 
     // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<PostEffectConfig> event)
+    public void configUpdated (ConfigEvent<RenderEffectConfig> event)
     {
         updateFromConfig();
     }
 
     // documentation inherited from interface Comparable
-    public int compareTo (PostEffect other)
+    public int compareTo (RenderEffect other)
     {
         return _priority - other._priority;
     }
@@ -90,7 +90,7 @@ public class PostEffect extends SimpleScope
         Technique technique = (_config == null) ?
             NOOP_TECHNIQUE : _config.getTechnique(_ctx, scheme);
         if (technique == null) {
-            log.warning("No technique available to render post effect.",
+            log.warning("No technique available to render effect.",
                 "config", _config.getName(), "scheme", scheme);
             technique = NOOP_TECHNIQUE;
         }
@@ -100,8 +100,8 @@ public class PostEffect extends SimpleScope
     /** The application context. */
     protected GlContext _ctx;
 
-    /** The post effect configuration. */
-    protected PostEffectConfig _config;
+    /** The render effect configuration. */
+    protected RenderEffectConfig _config;
 
     /** The priority of the effect. */
     protected int _priority;

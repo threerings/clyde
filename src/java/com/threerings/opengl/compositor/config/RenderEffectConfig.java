@@ -19,12 +19,12 @@ import com.threerings.util.DeepOmit;
 import com.threerings.opengl.util.GlContext;
 
 /**
- * Describes a post effect.
+ * Describes a render effect.
  */
-public class PostEffectConfig extends ParameterizedConfig
+public class RenderEffectConfig extends ParameterizedConfig
 {
     /**
-     * Contains the actual implementation of the post effect.
+     * Contains the actual implementation of the effect.
      */
     @EditorTypes({ Original.class, Derived.class })
     public static abstract class Implementation extends DeepObject
@@ -63,7 +63,7 @@ public class PostEffectConfig extends ParameterizedConfig
         @Editable
         public int priority;
 
-        /** The techniques available to render the post effect. */
+        /** The techniques available to render the effect. */
         @Editable
         public Technique[] techniques = new Technique[0];
 
@@ -142,35 +142,35 @@ public class PostEffectConfig extends ParameterizedConfig
      */
     public static class Derived extends Implementation
     {
-        /** The post effect reference. */
+        /** The effect reference. */
         @Editable(nullable=true)
-        public ConfigReference<PostEffectConfig> postEffect;
+        public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override // documentation inherited
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
-            refs.add(PostEffectConfig.class, postEffect);
+            refs.add(RenderEffectConfig.class, renderEffect);
         }
 
         @Override // documentation inherited
         public int getPriority (GlContext ctx)
         {
-            PostEffectConfig config = ctx.getConfigManager().getConfig(
-                PostEffectConfig.class, postEffect);
+            RenderEffectConfig config = ctx.getConfigManager().getConfig(
+                RenderEffectConfig.class, renderEffect);
             return (config == null) ? 0 : config.getPriority(ctx);
         }
 
         @Override // documentation inherited
         public Technique getTechnique (GlContext ctx, String scheme)
         {
-            PostEffectConfig config = ctx.getConfigManager().getConfig(
-                PostEffectConfig.class, postEffect);
+            RenderEffectConfig config = ctx.getConfigManager().getConfig(
+                RenderEffectConfig.class, renderEffect);
             return (config == null) ? null : config.getTechnique(ctx, scheme);
         }
     }
 
     /**
-     * A technique available to render the post effect.
+     * A technique available to render the effect.
      */
     public static class Technique extends DeepObject
         implements Exportable
@@ -247,7 +247,7 @@ public class PostEffectConfig extends ParameterizedConfig
         protected transient RenderSchemeConfig _schemeConfig = RenderSchemeConfig.INVALID;
     }
 
-    /** The actual post effect implementation. */
+    /** The actual effect implementation. */
     @Editable
     public Implementation implementation = new Original();
 

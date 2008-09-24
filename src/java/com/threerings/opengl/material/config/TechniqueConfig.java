@@ -22,7 +22,7 @@ import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.RenderQueue;
-import com.threerings.opengl.compositor.config.PostEffectConfig;
+import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.geom.Geometry;
 import com.threerings.opengl.geometry.config.DeformerConfig;
@@ -50,7 +50,7 @@ public class TechniqueConfig extends DeepObject
      */
     @EditorTypes({
         StencilReflectionDependency.class, StencilRefractionDependency.class,
-        PostEffectDependency.class })
+        RenderEffectDependency.class })
     public static abstract class TechniqueDependency extends DeepObject
         implements Exportable
     {
@@ -119,28 +119,28 @@ public class TechniqueConfig extends DeepObject
     }
 
     /**
-     * A dependency on a post effect.
+     * A dependency on a render effect.
      */
-    public static class PostEffectDependency extends TechniqueDependency
+    public static class RenderEffectDependency extends TechniqueDependency
     {
-        /** The post effect reference. */
+        /** The effect reference. */
         @Editable(nullable=true)
-        public ConfigReference<PostEffectConfig> postEffect;
+        public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override // documentation inherited
         public boolean isSupported (GlContext ctx)
         {
-            PostEffectConfig config = ctx.getConfigManager().getConfig(
-                PostEffectConfig.class, postEffect);
+            RenderEffectConfig config = ctx.getConfigManager().getConfig(
+                RenderEffectConfig.class, renderEffect);
             return config != null && config.getTechnique(ctx, null) != null;
         }
 
         @Override // documentation inherited
         public Updater createUpdater (final GlContext ctx, Scope scope)
         {
-            final Dependency.PostEffect dependency = new Dependency.PostEffect();
+            final Dependency.RenderEffect dependency = new Dependency.RenderEffect();
             dependency.config = ctx.getConfigManager().getConfig(
-                PostEffectConfig.class, postEffect);
+                RenderEffectConfig.class, renderEffect);
             return new Updater() {
                 public void update () {
                     ctx.getCompositor().addDependency(dependency);

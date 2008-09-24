@@ -16,7 +16,7 @@ import com.google.common.collect.Maps;
 import com.samskivert.util.QuickSort;
 
 import com.threerings.opengl.camera.Camera;
-import com.threerings.opengl.compositor.config.PostEffectConfig;
+import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.compositor.config.RenderQueueConfig;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.renderer.Color4f;
@@ -82,19 +82,19 @@ public class Compositor
     }
 
     /**
-     * Adds a post effect to apply.
+     * Adds an effect to apply.
      */
-    public void addPostEffect (PostEffect effect)
+    public void addEffect (RenderEffect effect)
     {
-        _postEffects.add(effect);
+        _effects.add(effect);
     }
 
     /**
-     * Removes a post effect.
+     * Removes an effect.
      */
-    public void removePostEffect (PostEffect effect)
+    public void removeEffect (RenderEffect effect)
     {
-        _postEffects.remove(effect);
+        _effects.remove(effect);
     }
 
     /**
@@ -110,8 +110,8 @@ public class Compositor
         Renderer renderer = _ctx.getRenderer();
         renderer.resetStats();
 
-        // add the in-built post effects
-        _combinedPostEffects.addAll(_postEffects);
+        // add the in-built effects
+        _combinedEffects.addAll(_effects);
 
         // resolve and clear the set of dependencies
         for (Dependency dependency : _dependencies.values()) {
@@ -125,14 +125,14 @@ public class Compositor
         // apply the camera state
         _camera.apply(renderer);
 
-        // process the post effects in reverse order
-        QuickSort.sort(_combinedPostEffects);
-        renderPrevious(_combinedPostEffects.size());
+        // process the effects in reverse order
+        QuickSort.sort(_combinedEffects);
+        renderPrevious(_combinedEffects.size());
 
         // clean up
         _skipColorClear = false;
         _group.clearQueues();
-        _combinedPostEffects.clear();
+        _combinedEffects.clear();
         renderer.cleanup();
     }
 
@@ -158,21 +158,21 @@ public class Compositor
     }
 
     /**
-     * Adds a post effect associated with a dependency.
+     * Adds an effect associated with a dependency.
      */
-    public void addDependencyPostEffect (PostEffectConfig config)
+    public void addDependencyEffect (RenderEffectConfig config)
     {
-        SoftReference<PostEffect> ref = _cachedPostEffects.get(config);
-        PostEffect effect = (ref == null) ? null : ref.get();
+        SoftReference<RenderEffect> ref = _cachedEffects.get(config);
+        RenderEffect effect = (ref == null) ? null : ref.get();
         if (effect == null) {
-            _cachedPostEffects.put(config, new SoftReference<PostEffect>(
-                effect = new PostEffect(_ctx, _ctx.getScope(), config)));
+            _cachedEffects.put(config, new SoftReference<RenderEffect>(
+                effect = new RenderEffect(_ctx, _ctx.getScope(), config)));
         }
-        _combinedPostEffects.add(effect);
+        _combinedEffects.add(effect);
     }
 
     /**
-     * For the specified index within the list of combined post effects, renders the previous
+     * For the specified index within the list of combined effects, renders the previous
      * contents.
      */
     public void renderPrevious (int idx)
@@ -180,12 +180,12 @@ public class Compositor
         int minPriority = Integer.MIN_VALUE, maxPriority = Integer.MAX_VALUE;
         if (idx > 0) {
             int pidx = idx - 1;
-            PostEffect peffect = _combinedPostEffects.get(pidx);
+            RenderEffect peffect = _combinedEffects.get(pidx);
             peffect.render(pidx);
             minPriority = peffect.getPriority() + 1;
         }
-        if (idx < _combinedPostEffects.size()) {
-            maxPriority = _combinedPostEffects.get(idx).getPriority();
+        if (idx < _combinedEffects.size()) {
+            maxPriority = _combinedEffects.get(idx).getPriority();
         }
         renderQueues(minPriority, maxPriority);
     }
@@ -249,14 +249,14 @@ public class Compositor
     /** The roots of the view. */
     protected ArrayList<Renderable> _roots = new ArrayList<Renderable>();
 
-    /** The non-dependency post effects. */
-    protected ArrayList<PostEffect> _postEffects = new ArrayList<PostEffect>();
+    /** The non-dependency render effects. */
+    protected ArrayList<RenderEffect> _effects = new ArrayList<RenderEffect>();
 
     /** The current set of dependencies. */
     protected HashMap<Dependency, Dependency> _dependencies = Maps.newHashMap();
 
-    /** The combined list of post effects. */
-    protected ArrayList<PostEffect> _combinedPostEffects = new ArrayList<PostEffect>();
+    /** The combined list of render effects. */
+    protected ArrayList<RenderEffect> _combinedEffects = new ArrayList<RenderEffect>();
 
     /** When set, indicates that we need not clear the color buffer. */
     protected boolean _skipColorClear;
@@ -264,7 +264,7 @@ public class Compositor
     /** The base render queue group. */
     protected RenderQueue.Group _group;
 
-    /** Cached post effects. */
-    protected IdentityHashMap<PostEffectConfig, SoftReference<PostEffect>> _cachedPostEffects =
+    /** Cached render effects. */
+    protected IdentityHashMap<RenderEffectConfig, SoftReference<RenderEffect>> _cachedEffects =
         Maps.newIdentityHashMap();
 }

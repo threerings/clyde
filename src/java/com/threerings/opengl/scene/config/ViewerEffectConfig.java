@@ -15,8 +15,8 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
-import com.threerings.opengl.compositor.PostEffect;
-import com.threerings.opengl.compositor.config.PostEffectConfig;
+import com.threerings.opengl.compositor.RenderEffect;
+import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
@@ -31,7 +31,7 @@ import com.threerings.opengl.util.GlContext;
 @EditorTypes({
     ViewerEffectConfig.Sound.class, ViewerEffectConfig.BackgroundColor.class,
     ViewerEffectConfig.Skybox.class, ViewerEffectConfig.Particles.class,
-    ViewerEffectConfig.PostEffect.class })
+    ViewerEffectConfig.RenderEffect.class })
 public abstract class ViewerEffectConfig extends DeepObject
     implements Exportable
 {
@@ -142,27 +142,27 @@ public abstract class ViewerEffectConfig extends DeepObject
     }
 
     /**
-     * Adds a post effect.
+     * Adds a render effect.
      */
-    public static class PostEffect extends ViewerEffectConfig
+    public static class RenderEffect extends ViewerEffectConfig
     {
-        /** The configuration of the post effect. */
+        /** The configuration of the render effect. */
         @Editable(nullable=true)
-        public ConfigReference<PostEffectConfig> postEffect;
+        public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override // documentation inherited
         public ViewerEffect createViewerEffect (final GlContext ctx, Scope scope)
         {
-            PostEffectConfig config = ctx.getConfigManager().getConfig(
-                PostEffectConfig.class, postEffect);
-            final com.threerings.opengl.compositor.PostEffect effect =
-                new com.threerings.opengl.compositor.PostEffect(ctx, scope, config);
+            RenderEffectConfig config = ctx.getConfigManager().getConfig(
+                RenderEffectConfig.class, renderEffect);
+            final com.threerings.opengl.compositor.RenderEffect effect =
+                new com.threerings.opengl.compositor.RenderEffect(ctx, scope, config);
             return new ViewerEffect() {
                 public void activate (Scene scene) {
-                    ctx.getCompositor().addPostEffect(effect);
+                    ctx.getCompositor().addEffect(effect);
                 }
                 public void deactivate () {
-                    ctx.getCompositor().removePostEffect(effect);
+                    ctx.getCompositor().removeEffect(effect);
                 }
             };
         }
