@@ -2494,7 +2494,7 @@ public class Renderer
     protected Renderbuffer _renderbuffer;
 
     /** The active buffers for drawing and reading. */
-    protected int _drawBuffer = GL11.GL_BACK, _readBuffer = GL11.GL_BACK;
+    protected int _drawBuffer, _readBuffer;
 
     /** The list of buffer objects to be deleted. */
     protected int[] _finalizedBufferObjects;

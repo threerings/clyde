@@ -176,6 +176,11 @@ public class TextureRenderer
                 log.warning("Failed to make pbuffer context current.", e);
             }
         }
+        if (_color == null) {
+            _odraw = _renderer.getDrawBuffer();
+            _oread = _renderer.getReadBuffer();
+            _renderer.setBuffers(GL11.GL_NONE, GL11.GL_NONE);
+        }
         Camera camera = _ctx.getCompositor().getCamera();
         _oviewport.set(camera.getViewport());
         camera.getViewport().set(0, 0, _width, _height);
@@ -190,6 +195,9 @@ public class TextureRenderer
         Camera camera = _ctx.getCompositor().getCamera();
         camera.getViewport().set(_oviewport);
         camera.apply(_renderer);
+        if (_color == null) {
+            _renderer.setBuffers(_odraw, _oread);
+        }
         if (_framebuffer != null) {
             _renderer.setFramebuffer(_obuffer);
             _obuffer = null;
@@ -407,4 +415,7 @@ public class TextureRenderer
 
     /** The original context renderer. */
     protected Renderer _orenderer;
+
+    /** The original draw and read buffers. */
+    protected int _odraw, _oread;
 }

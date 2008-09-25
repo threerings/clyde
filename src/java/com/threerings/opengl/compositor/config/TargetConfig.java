@@ -70,7 +70,7 @@ public abstract class TargetConfig extends DeepObject
                 height = ctex.getHeight();
             }
             return new TextureRenderer(
-                ctx, width, height, ctex, dtex, new PixelFormat(0, depthBits, stencilBits));
+                ctx, width, height, ctex, dtex, new PixelFormat(8, depthBits, stencilBits));
         }
 
         @Override // documentation inherited

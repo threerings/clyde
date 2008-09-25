@@ -147,10 +147,9 @@ public abstract class ModelTool extends GlCanvasTool
                 EnvironmentModel envmod = _environmentModels[ii];
                 Model model = (omodels == null || omodels.length <= ii) ? null : omodels[ii];
                 if (model == null) {
-                    _scene.add(model = new Model(ModelTool.this, envmod.model));
-                } else {
-                    model.setConfig(envmod.model);
+                    _scene.add(model = new Model(ModelTool.this));
                 }
+                model.setConfig(envmod.model);
                 _environment[ii] = model;
                 model.setLocalTransform(envmod.transform);
             }

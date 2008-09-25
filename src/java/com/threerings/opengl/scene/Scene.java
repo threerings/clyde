@@ -457,8 +457,9 @@ public abstract class Scene extends DynamicScope
             }
             _transientPool.remove(ref);
         }
-        Model model = new Model(_ctx, ref);
+        Model model = new Model(_ctx);
         model.setParentScope(this);
+        model.setConfig(ref);
         model.setUserObject(ref);
         model.addObserver(_transientObserver);
         return model;
