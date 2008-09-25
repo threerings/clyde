@@ -19,7 +19,6 @@ import org.lwjgl.opengl.GLContext;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
-import com.samskivert.util.IntTuple;
 import com.samskivert.util.SoftCache;
 
 import com.threerings.export.Exportable;
@@ -29,6 +28,7 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector3f;
+import com.threerings.util.ArrayKey;
 import com.threerings.util.DeepObject;
 import com.threerings.util.IdentityKey;
 import com.threerings.util.Shallow;
@@ -676,8 +676,8 @@ public abstract class GeometryConfig extends DeepObject
      */
     public static GeometryConfig getQuad (int divisionsX, int divisionsY)
     {
-        IntTuple key = new IntTuple(divisionsX, divisionsY);
-        GeometryConfig quad = _quads.get(key);
+        ArrayKey key = new ArrayKey("quad", divisionsX, divisionsY);
+        GeometryConfig quad = _generated.get(key);
         if (quad == null) {
             int vx = divisionsX + 1, vy = divisionsY + 1;
             FloatBuffer floatArray = BufferUtils.createFloatBuffer(vx * vy * 8);
@@ -710,7 +710,7 @@ public abstract class GeometryConfig extends DeepObject
             ClientArrayConfig texCoordArray = new ClientArrayConfig(2, 32, 0, floatArray);
             ClientArrayConfig normalArray = new ClientArrayConfig(3, 32, 8, floatArray);
             ClientArrayConfig vertexArray = new ClientArrayConfig(3, 32, 20, floatArray);
-            _quads.put(key, quad = new IndexedStored(
+            _generated.put(key, quad = new IndexedStored(
                 new Box(new Vector3f(-1f, -1f, 0f), new Vector3f(+1f, +1f, 0f)), Mode.TRIANGLES,
                 new AttributeArrayConfig[0], new ClientArrayConfig[] { texCoordArray }, null,
                 normalArray, vertexArray, 0, indices.capacity() - 1, indices));
@@ -729,7 +729,7 @@ public abstract class GeometryConfig extends DeepObject
     public abstract Geometry createGeometry (
         GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes);
 
-    /** Cached quad geometry. */
-    protected static SoftCache<IntTuple, GeometryConfig> _quads =
-        new SoftCache<IntTuple, GeometryConfig>();
+    /** Cached generated configs. */
+    protected static SoftCache<ArrayKey, GeometryConfig> _generated =
+        new SoftCache<ArrayKey, GeometryConfig>();
 }

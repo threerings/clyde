@@ -14,7 +14,6 @@ import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderEffect;
-import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.renderer.config.TextureConfig;
@@ -57,13 +56,21 @@ public abstract class TargetConfig extends DeepObject
         public TextureRenderer createTextureRenderer (GlContext ctx)
         {
             TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
+            com.threerings.opengl.renderer.Texture ctex =
+                (cconfig == null) ? null : cconfig.getTexture(ctx);
             TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
-            Dimension size = (cconfig == null) ? dconfig.getSize(ctx) : cconfig.getSize(ctx);
+            com.threerings.opengl.renderer.Texture dtex =
+                (dconfig == null) ? null : dconfig.getTexture(ctx);
+            int width, height;
+            if (ctex == null) {
+                width = dtex.getWidth();
+                height = dtex.getHeight();
+            } else {
+                width = ctex.getWidth();
+                height = ctex.getHeight();
+            }
             return new TextureRenderer(
-                ctx, size.width, size.height,
-                (cconfig == null) ? null : cconfig.getTexture(ctx),
-                (dconfig == null) ? null : dconfig.getTexture(ctx),
-                new PixelFormat(0, depthBits, stencilBits));
+                ctx, width, height, ctex, dtex, new PixelFormat(0, depthBits, stencilBits));
         }
 
         @Override // documentation inherited

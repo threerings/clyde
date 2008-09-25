@@ -198,7 +198,7 @@ public class ConfigManager
     public <T extends ManagedConfig> T getConfig (
         Class<T> clazz, String name, String firstKey, Object firstValue, Object... otherArgs)
     {
-        return getConfig(clazz, name, createArgumentMap(firstKey, firstValue, otherArgs));
+        return getConfig(clazz, name, new ArgumentMap(firstKey, firstValue, otherArgs));
     }
 
     /**
@@ -265,7 +265,7 @@ public class ConfigManager
     public <T extends ManagedConfig> T getConfig (
         Class<T> clazz, int id, String firstKey, Object firstValue, Object... otherArgs)
     {
-        return getConfig(clazz, id, createArgumentMap(firstKey, firstValue, otherArgs));
+        return getConfig(clazz, id, new ArgumentMap(firstKey, firstValue, otherArgs));
     }
 
     /**
@@ -466,20 +466,6 @@ public class ConfigManager
         ConfigGroup<T> group = new ConfigGroup<T>(clazz);
         group.init(this);
         _groups.put(clazz, group);
-    }
-
-    /**
-     * Creates a new argument map from the supplied parameters.
-     */
-    protected static ArgumentMap createArgumentMap (
-        String firstKey, Object firstValue, Object... otherArgs)
-    {
-        ArgumentMap args = new ArgumentMap();
-        args.put(firstKey, firstValue);
-        for (int ii = 0; ii < otherArgs.length; ii += 2) {
-            args.put((String)otherArgs[ii], otherArgs[ii + 1]);
-        }
-        return args;
     }
 
     /** The type of this manager. */

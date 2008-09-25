@@ -14,6 +14,8 @@ import org.lwjgl.opengl.Pbuffer;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.opengl.RenderTexture;
 
+import com.threerings.opengl.camera.Camera;
+import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.*;
@@ -41,7 +43,8 @@ public class TextureRenderer
 
         // first try fbos
         if (GLContext.getCapabilities().GL_EXT_framebuffer_object) {
-            _framebuffer = new Framebuffer(_renderer);
+            Framebuffer obuffer = _renderer.getFramebuffer();
+            _renderer.setFramebuffer(_framebuffer = new Framebuffer(_renderer));
 
             // attach the color texture
             if (color != null) {
@@ -55,7 +58,7 @@ public class TextureRenderer
                 int dbits = pformat.getDepthBits();
                 if (dbits > 0) {
                     Renderbuffer dbuf = new Renderbuffer(_renderer);
-                    dbuf.setStorage(getDepthFormat(dbits), twidth, theight);
+                    dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, twidth, theight);
                     _framebuffer.setDepthAttachment(dbuf);
                 }
             }
@@ -64,10 +67,31 @@ public class TextureRenderer
             int sbits = pformat.getStencilBits();
             if (sbits > 0) {
                 Renderbuffer sbuf = new Renderbuffer(_renderer);
-                sbuf.setStorage(getStencilFormat(sbits), twidth, theight);
+                sbuf.setStorage(GL11.GL_STENCIL_INDEX, twidth, theight);
                 _framebuffer.setStencilAttachment(sbuf);
             }
-            return;
+
+            // if we have no color buffer, disable draw and read
+            if (color == null) {
+                GL11.glDrawBuffer(GL11.GL_NONE);
+                GL11.glReadBuffer(GL11.GL_NONE);
+            }
+
+            // get the status
+            int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(
+                EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
+
+            // restore the old frame buffer
+            _renderer.setFramebuffer(obuffer);
+
+            // process the status
+            if (status == EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT) {
+                return; // success!
+            } else if (status != EXTFramebufferObject.GL_FRAMEBUFFER_UNSUPPORTED_EXT) {
+                log.warning("Framebuffer incomplete.", "status", status);
+            }
+            deleteFramebuffer(_framebuffer);
+            _framebuffer = null;
         }
 
         // then try pbuffers with or without rtt
@@ -96,6 +120,38 @@ public class TextureRenderer
     }
 
     /**
+     * Returns the configured width of the renderer.
+     */
+    public int getWidth ()
+    {
+        return _width;
+    }
+
+    /**
+     * Returns the configured height of the renderer.
+     */
+    public int getHeight ()
+    {
+        return _height;
+    }
+
+    /**
+     * Returns a reference to the color texture (if any).
+     */
+    public Texture getColor ()
+    {
+        return _color;
+    }
+
+    /**
+     * Returns a reference to the depth texture (if any).
+     */
+    public Texture getDepth ()
+    {
+        return _depth;
+    }
+
+    /**
      * Starts rendering to the texture.
      */
     public void startRender ()
@@ -120,11 +176,10 @@ public class TextureRenderer
                 log.warning("Failed to make pbuffer context current.", e);
             }
         }
-        if (_color == null) {
-            _odraw = _renderer.getDrawBuffer();
-            _oread = _renderer.getReadBuffer();
-            _renderer.setBuffers(GL11.GL_NONE, GL11.GL_NONE);
-        }
+        Camera camera = _ctx.getCompositor().getCamera();
+        _oviewport.set(camera.getViewport());
+        camera.getViewport().set(0, 0, _width, _height);
+        camera.apply(_renderer);
     }
 
     /**
@@ -132,9 +187,9 @@ public class TextureRenderer
      */
     public void commitRender ()
     {
-        if (_color == null) {
-            _renderer.setBuffers(_odraw, _oread);
-        }
+        Camera camera = _ctx.getCompositor().getCamera();
+        camera.getViewport().set(_oviewport);
+        camera.apply(_renderer);
         if (_framebuffer != null) {
             _renderer.setFramebuffer(_obuffer);
             _obuffer = null;
@@ -159,7 +214,7 @@ public class TextureRenderer
     public void dispose ()
     {
         if (_framebuffer != null) {
-            _framebuffer.delete();
+            deleteFramebuffer(_framebuffer);
             _framebuffer = null;
         }
         if (_pbuffer != null) {
@@ -185,6 +240,10 @@ public class TextureRenderer
             }
         } catch (LWJGLException e) {
             log.warning("Failed to create pbuffer.", e);
+            if (_pbuffer != null) {
+                _pbuffer.destroy();
+                _pbuffer = null;
+            }
         }
     }
 
@@ -292,6 +351,27 @@ public class TextureRenderer
         }
     }
 
+    /**
+     * Deletes the specified frame buffer and its render buffer attachments.
+     */
+    protected static void deleteFramebuffer (Framebuffer framebuffer)
+    {
+        maybeDeleteAttachment(framebuffer.getColorAttachment());
+        maybeDeleteAttachment(framebuffer.getDepthAttachment());
+        maybeDeleteAttachment(framebuffer.getStencilAttachment());
+        framebuffer.delete();
+    }
+
+    /**
+     * Deletes the supplied attachment if it is a {@link Renderbuffer}.
+     */
+    protected static void maybeDeleteAttachment (Object attachment)
+    {
+        if (attachment instanceof Renderbuffer) {
+            ((Renderbuffer)attachment).delete();
+        }
+    }
+
     /** The renderer context. */
     protected GlContext _ctx;
 
@@ -319,12 +399,12 @@ public class TextureRenderer
     /** The pbuffer object, if supported. */
     protected Pbuffer _pbuffer;
 
+    /** The original viewport. */
+    protected Rectangle _oviewport = new Rectangle();
+
     /** The originally bound frame buffer. */
     protected Framebuffer _obuffer;
 
     /** The original context renderer. */
     protected Renderer _orenderer;
-
-    /** The original draw and read buffers. */
-    protected int _odraw, _oread;
 }

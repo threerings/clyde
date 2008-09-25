@@ -18,6 +18,24 @@ import com.threerings.util.DeepUtil;
 public class ArgumentMap extends TreeMap<String, Object>
     implements Copyable
 {
+    /**
+     * Creates an argument map with the supplied arguments.
+     */
+    public ArgumentMap (String firstKey, Object firstValue, Object... otherArgs)
+    {
+        put(firstKey, firstValue);
+        for (int ii = 0; ii < otherArgs.length; ii += 2) {
+            put((String)otherArgs[ii], otherArgs[ii + 1]);
+        }
+    }
+
+    /**
+     * Creates an empty map.
+     */
+    public ArgumentMap ()
+    {
+    }
+
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
     {

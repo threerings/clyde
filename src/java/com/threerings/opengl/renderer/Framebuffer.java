@@ -74,6 +74,15 @@ public class Framebuffer
     }
 
     /**
+     * Returns a reference to the color target of this frame buffer (either a {@link Texture} or
+     * a {@link Renderbuffer}, or <code>null</code>).
+     */
+    public Object getColorAttachment ()
+    {
+        return _colorAttachment;
+    }
+
+    /**
      * Attaches a texture to the depth target of this frame buffer.
      */
     public void setDepthAttachment (Texture texture)
@@ -109,6 +118,15 @@ public class Framebuffer
     }
 
     /**
+     * Returns a reference to the depth target of this frame buffer (either a {@link Texture} or
+     * a {@link Renderbuffer}, or <code>null</code>).
+     */
+    public Object getDepthAttachment ()
+    {
+        return _depthAttachment;
+    }
+
+    /**
      * Attaches a texture to the stencil target of this frame buffer.
      */
     public void setStencilAttachment (Texture texture)
@@ -141,6 +159,36 @@ public class Framebuffer
             setAttachment(EXTFramebufferObject.GL_STENCIL_ATTACHMENT_EXT, renderbuffer);
             _stencilAttachment = renderbuffer;
         }
+    }
+
+    /**
+     * Returns a reference to the stencil target of this frame buffer (either a {@link Texture} or
+     * a {@link Renderbuffer}, or <code>null</code>).
+     */
+    public Object getStencilAttachment ()
+    {
+        return _stencilAttachment;
+    }
+
+    /**
+     * Checks whether the frame buffer is "complete."
+     */
+    public boolean isComplete ()
+    {
+        return checkStatus() == EXTFramebufferObject.GL_FRAMEBUFFER_COMPLETE_EXT;
+    }
+
+    /**
+     * Checks the status of the frame buffer.
+     */
+    public int checkStatus ()
+    {
+        Framebuffer obuffer = _renderer.getFramebuffer();
+        _renderer.setFramebuffer(this);
+        int status = EXTFramebufferObject.glCheckFramebufferStatusEXT(
+            EXTFramebufferObject.GL_FRAMEBUFFER_EXT);
+        _renderer.setFramebuffer(obuffer);
+        return status;
     }
 
     /**

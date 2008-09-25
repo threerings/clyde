@@ -11,7 +11,6 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
-import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderQueue;

@@ -29,7 +29,6 @@ import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
-import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.Texture1D;
@@ -308,11 +307,6 @@ public class TextureConfig extends ParameterizedConfig
         public abstract boolean isSupported (GlContext ctx);
 
         /**
-         * Returns the configured size of the texture.
-         */
-        public abstract Dimension getSize (GlContext ctx);
-
-        /**
          * Returns the texture corresponding to this configuration.
          */
         public abstract Texture getTexture (GlContext ctx);
@@ -451,11 +445,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             /**
-             * Gets the size of the texture.
-             */
-            public abstract Dimension getSize (GlContext ctx);
-
-            /**
              * Loads the texture with the contents.
              */
             public abstract void load (
@@ -470,12 +459,6 @@ public class TextureConfig extends ParameterizedConfig
             /** The width of the texture. */
             @Editable(min=1)
             public int width = 1;
-
-            @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return new Dimension(width, 1);
-            }
 
             @Override // documentation inherited
             public void load (
@@ -515,12 +498,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return UNKNOWN_DIMENSION;
-            }
-
-            @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture1D texture, Format format, boolean border, boolean mipmap)
             {
@@ -541,12 +518,6 @@ public class TextureConfig extends ParameterizedConfig
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
-        }
-
-        @Override // documentation inherited
-        public Dimension getSize (GlContext ctx)
-        {
-            return contents.getSize(ctx);
         }
 
         @Override // documentation inherited
@@ -583,11 +554,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             /**
-             * Gets the size of the texture.
-             */
-            public abstract Dimension getSize (GlContext ctx);
-
-            /**
              * Loads the texture with the contents.
              */
             public abstract void load (
@@ -606,12 +572,6 @@ public class TextureConfig extends ParameterizedConfig
             /** The height of the texture. */
             @Editable(min=1, hgroup="d")
             public int height = 1;
-
-            @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return new Dimension(width, height);
-            }
 
             @Override // documentation inherited
             public void load (
@@ -651,12 +611,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return UNKNOWN_DIMENSION;
-            }
-
-            @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture2D texture, Format format, boolean border, boolean mipmap)
             {
@@ -677,12 +631,6 @@ public class TextureConfig extends ParameterizedConfig
         public void getUpdateResources (HashSet<String> paths)
         {
             contents.getUpdateResources(paths);
-        }
-
-        @Override // documentation inherited
-        public Dimension getSize (GlContext ctx)
-        {
-            return contents.getSize(ctx);
         }
 
         @Override // documentation inherited
@@ -737,11 +685,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             /**
-             * Gets the size of the texture.
-             */
-            public abstract Dimension getSize (GlContext ctx);
-
-            /**
              * Loads the texture with the contents.
              */
             public abstract void load (
@@ -764,12 +707,6 @@ public class TextureConfig extends ParameterizedConfig
             /** The depth of the texture. */
             @Editable(min=1, hgroup="d")
             public int depth = 1;
-
-            @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return new Dimension(width, height);
-            }
 
             @Override // documentation inherited
             public void load (
@@ -821,12 +758,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return UNKNOWN_DIMENSION;
-            }
-
-            @Override // documentation inherited
             public void load (
                 GlContext ctx, Texture3D texture, Format format, boolean border, boolean mipmap)
             {
@@ -854,12 +785,6 @@ public class TextureConfig extends ParameterizedConfig
         public boolean isSupported (GlContext ctx)
         {
             return super.isSupported(ctx) && GLContext.getCapabilities().OpenGL12;
-        }
-
-        @Override // documentation inherited
-        public Dimension getSize (GlContext ctx)
-        {
-            return contents.getSize(ctx);
         }
 
         @Override // documentation inherited
@@ -896,11 +821,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             /**
-             * Gets the size of the texture.
-             */
-            public abstract Dimension getSize (GlContext ctx);
-
-            /**
              * Loads the texture with the contents.
              */
             public abstract void load (
@@ -916,12 +836,6 @@ public class TextureConfig extends ParameterizedConfig
             /** The size of the textures. */
             @Editable(min=1)
             public int size = 1;
-
-            @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return new Dimension(size, size);
-            }
 
             @Override // documentation inherited
             public void load (
@@ -970,12 +884,6 @@ public class TextureConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return UNKNOWN_DIMENSION;
-            }
-
-            @Override // documentation inherited
             public void load (
                 GlContext ctx, TextureCubeMap texture, Format format,
                 boolean border, boolean mipmap)
@@ -1016,12 +924,6 @@ public class TextureConfig extends ParameterizedConfig
             {
                 negative.getUpdateResources(paths);
                 positive.getUpdateResources(paths);
-            }
-
-            @Override // documentation inherited
-            public Dimension getSize (GlContext ctx)
-            {
-                return UNKNOWN_DIMENSION;
             }
 
             @Override // documentation inherited
@@ -1115,12 +1017,6 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Dimension getSize (GlContext ctx)
-        {
-            return contents.getSize(ctx);
-        }
-
-        @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
         {
             return new TextureCubeMap(ctx.getRenderer());
@@ -1156,13 +1052,6 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Dimension getSize (GlContext ctx)
-        {
-            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
-            return (config == null) ? UNKNOWN_DIMENSION : config.getSize(ctx);
-        }
-
-        @Override // documentation inherited
         public Texture getTexture (GlContext ctx)
         {
             TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
@@ -1191,14 +1080,6 @@ public class TextureConfig extends ParameterizedConfig
     public boolean isSupported (GlContext ctx)
     {
         return implementation.isSupported(ctx);
-    }
-
-    /**
-     * Returns the configured size of the texture.
-     */
-    public Dimension getSize (GlContext ctx)
-    {
-        return implementation.getSize(ctx);
     }
 
     /**
@@ -1242,7 +1123,4 @@ public class TextureConfig extends ParameterizedConfig
         }
         return ctx.getImageCache().getBufferedImage(file, zations);
     }
-
-    /** A dimension to return when we don't know how big a texture is. */
-    protected static final Dimension UNKNOWN_DIMENSION = new Dimension(64, 64);
 }

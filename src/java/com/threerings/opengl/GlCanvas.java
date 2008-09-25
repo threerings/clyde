@@ -12,6 +12,7 @@ import javax.swing.JPopupMenu;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.AWTGLCanvas;
 import org.lwjgl.opengl.PixelFormat;
+import org.lwjgl.opengl.Util;
 
 import com.samskivert.util.Interval;
 import com.samskivert.util.RunQueue;
@@ -138,10 +139,16 @@ public class GlCanvas extends AWTGLCanvas
      */
     protected void updateFrame ()
     {
-        updateView();
-        if (isShowing()) {
-            renderView();
-            swapBuffers();
+        try {
+            updateView();
+            if (isShowing()) {
+                renderView();
+                swapBuffers();
+            }
+            Util.checkGLError();
+
+        } catch (Exception e) {
+            log.warning("Caught exception in frame loop.", e);
         }
     }
 
