@@ -90,6 +90,25 @@ public abstract class BasePropertyEditor extends JPanel
     }
 
     /**
+     * Returns the path of the property under the mouse cursor relative to this property.
+     */
+    public String getMousePath ()
+    {
+        Point pt = getMousePosition();
+        return (pt == null) ? "" : getMousePath(pt);
+    }
+
+    /**
+     * Returns the path of the property under the mouse cursor relative to this property.
+     *
+     * @param pt the location of the mouse cursor.
+     */
+    protected String getMousePath (Point pt)
+    {
+        return "";
+    }
+
+    /**
      * Returns a label for the supplied name, translating it if a translation exists.
      */
     protected String getLabel (String name)
@@ -130,54 +149,6 @@ public abstract class BasePropertyEditor extends JPanel
                 ((ChangeListener)listeners[ii + 1]).stateChanged(event);
             }
         }
-    }
-
-    /**
-     * Gets the path of the property under the mouse cursor.
-     */
-    protected void getMousePath (StringBuilder buf)
-    {
-        Point pt = getMousePosition();
-        if (pt == null) {
-            return;
-        }
-        String own = getPathComponent(pt);
-        if (own != null) {
-            if (buf.length() > 0) {
-                buf.append('.');
-            }
-            buf.append(own);
-        }
-        for (Container cont = this; cont != null; ) {
-            Component comp = cont.getComponentAt(pt);
-            if (comp == cont || !(comp instanceof Container)) {
-                return;
-
-            } else if (comp instanceof BasePropertyEditor && !skipChildPath(comp)) {
-                ((BasePropertyEditor)comp).getMousePath(buf);
-                return;
-            }
-            cont = (Container)comp;
-            pt = cont.getMousePosition();
-        }
-    }
-
-    /**
-     * Returns this panel's own path component at the specified point (or <code>null</code> for
-     * none).
-     */
-    protected String getPathComponent (Point pt)
-    {
-        return null;
-    }
-
-    /**
-     * Determines whether to ignore the specified component (which is contained within this
-     * one) when computing the path of the property under the mouse cursor.
-     */
-    protected boolean skipChildPath (Component comp)
-    {
-        return false;
     }
 
     /**

@@ -3,8 +3,6 @@
 
 package com.threerings.editor.swing;
 
-import java.awt.Point;
-
 import java.lang.reflect.Array;
 
 import java.io.File;
@@ -164,12 +162,6 @@ public abstract class PropertyEditor extends BasePropertyEditor
      * Updates the state of the editor from the object.
      */
     public abstract void update ();
-
-    @Override // documentation inherited
-    protected String getPathComponent (Point pt)
-    {
-        return _property.getName();
-    }
 
     /**
      * Override to perform custom initialization.

@@ -3,6 +3,7 @@
 
 package com.threerings.editor.swing;
 
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -153,6 +154,12 @@ public class ObjectPanel extends BasePropertyEditor
     public void stateChanged (ChangeEvent event)
     {
         fireStateChanged();
+    }
+
+    @Override // documentation inherited
+    protected String getMousePath (Point pt)
+    {
+        return _panel.getMousePath();
     }
 
     /**

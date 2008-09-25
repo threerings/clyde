@@ -3,6 +3,8 @@
 
 package com.threerings.editor.swing.editors;
 
+import java.awt.Point;
+
 import javax.swing.BorderFactory;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -40,6 +42,12 @@ public class ObjectEditor extends PropertyEditor
         add(_panel = new ObjectPanel(
             _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
         _panel.addChangeListener(this);
+    }
+
+    @Override // documentation inherited
+    protected String getMousePath (Point pt)
+    {
+        return _panel.getMousePath();
     }
 
     /** The object panel. */

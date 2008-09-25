@@ -6,6 +6,7 @@ package com.threerings.editor.swing;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Point;
@@ -174,19 +175,6 @@ public class EditorPanel extends BasePropertyEditor
     }
 
     /**
-     * Copies the path of the property under the mouse cursor to the clipboard.
-     */
-    protected void copyPropertyPath ()
-    {
-        StringBuilder buf = new StringBuilder();
-        getMousePath(buf);
-        if (buf.length() > 0) {
-            StringSelection contents = new StringSelection(buf.toString());
-            getToolkit().getSystemClipboard().setContents(contents, contents);
-        }
-    }
-
-    /**
      * Sets the object being edited.
      */
     public void setObject (Object object)
@@ -347,6 +335,38 @@ public class EditorPanel extends BasePropertyEditor
     public void stateChanged (ChangeEvent event)
     {
         fireStateChanged();
+    }
+
+    @Override // documentation inherited
+    protected String getMousePath (Point pt)
+    {
+        for (Container cont = this; cont != null; ) {
+            Component comp = cont.getComponentAt(pt);
+            if (comp == cont || !(comp instanceof Container)) {
+                return "";
+            } else if (comp instanceof PropertyEditor) {
+                PropertyEditor editor = (PropertyEditor)comp;
+                return "." + editor.getProperty().getName() + editor.getMousePath();
+            }
+            cont = (Container)comp;
+            pt = cont.getMousePosition();
+        }
+        return "";
+    }
+
+    /**
+     * Copies the path of the property under the mouse cursor to the clipboard.
+     */
+    protected void copyPropertyPath ()
+    {
+        String path = getMousePath();
+        if (path.startsWith(".")) {
+            path = path.substring(1);
+        }
+        if (path.length() > 0) {
+            StringSelection contents = new StringSelection(path);
+            getToolkit().getSystemClipboard().setContents(contents, contents);
+        }
     }
 
     /**

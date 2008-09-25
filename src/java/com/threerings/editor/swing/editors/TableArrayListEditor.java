@@ -368,15 +368,15 @@ public class TableArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
-    protected String getPathComponent (Point pt)
+    protected String getMousePath (Point pt)
     {
         if (getComponentAt(pt) == _opanel) {
-            return _property.getName() + "[" + _table.getSelectedRow() + "]";
+            return "[" + _table.getSelectedRow() + "]" + _opanel.getMousePath();
         }
         pt = SwingUtilities.convertPoint(this, pt, _table);
         int row = _table.rowAtPoint(pt);
         int col = _table.columnAtPoint(pt);
-        return _property.getName() + ((row == -1 || col == -1) ? "" :
+        return ((row == -1 || col == -1) ? "" :
             ("[" + row + "]" + _columns[col].getPathComponent()));
     }
 

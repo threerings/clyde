@@ -98,12 +98,13 @@ public class PanelArrayListEditor extends ArrayListEditor
     }
 
     @Override // documentation inherited
-    protected String getPathComponent (Point pt)
+    protected String getMousePath (Point pt)
     {
         Component comp = _panels.getComponentAt(
             SwingUtilities.convertPoint(this, pt, _panels));
         int idx = _panels.getComponentZOrder(comp);
-        return _property.getName() + (idx == -1 ? "" : ("[" + idx + "]"));
+        return (idx == -1) ? "" : ("[" + idx + "]" +
+            ((EntryPanel)comp).getObjectPanel().getMousePath());
     }
 
     @Override // documentation inherited
