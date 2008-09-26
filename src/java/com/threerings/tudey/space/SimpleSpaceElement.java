@@ -74,6 +74,12 @@ public abstract class SimpleSpaceElement
         _space = null;
     }
 
+    // documentation inherited from interface SpaceElement
+    public boolean getIntersection (Ray2D ray, Vector2f result)
+    {
+        return false;
+    }
+
     // documentation inherited from interface SpaceObject
     public Rect getBounds ()
     {
@@ -88,12 +94,6 @@ public abstract class SimpleSpaceElement
         }
         _lastVisit = visit;
         return true;
-    }
-
-    @Override // documentation inherited
-    public boolean getIntersection (Ray2D ray, Vector2f result)
-    {
-        return false;
     }
 
     /**
