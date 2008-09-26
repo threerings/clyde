@@ -17,6 +17,7 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.cursor.PlaceableCursor;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
+import com.threerings.tudey.shape.config.ShapeConfig;
 
 /**
  * The configuration of a placeable object.

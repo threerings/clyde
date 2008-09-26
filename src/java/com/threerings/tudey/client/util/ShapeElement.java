@@ -14,7 +14,7 @@ import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.scene.SimpleSceneElement;
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.tudey.config.ShapeConfig;
+import com.threerings.tudey.shape.config.ShapeConfig;
 
 /**
  * Draws a shape.

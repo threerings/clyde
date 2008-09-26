@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.tudey.config;
+package com.threerings.tudey.shape.config;
 
 import java.lang.ref.SoftReference;
 
@@ -11,6 +11,8 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Ray2D;
+import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
@@ -35,6 +37,12 @@ public abstract class ShapeConfig extends DeepObject
     public static class Point extends ShapeConfig
     {
         @Override // documentation inherited
+        protected void computeBounds (Rect bounds)
+        {
+            bounds.set(Rect.ZERO);
+        }
+
+        @Override // documentation inherited
         protected void draw (boolean outline)
         {
             GL11.glBegin(GL11.GL_POINTS);
@@ -51,6 +59,14 @@ public abstract class ShapeConfig extends DeepObject
         /** The length of the segment. */
         @Editable(min=0, step=0.01)
         public float length = 1f;
+
+        @Override // documentation inherited
+        protected void computeBounds (Rect bounds)
+        {
+            float hlength = length * 0.5f;
+            bounds.getMinimumExtent().set(-hlength, 0f);
+            bounds.getMaximumExtent().set(+hlength, 0f);
+        }
 
         @Override // documentation inherited
         protected void draw (boolean outline)
@@ -77,6 +93,14 @@ public abstract class ShapeConfig extends DeepObject
         public float length = 1f;
 
         @Override // documentation inherited
+        protected void computeBounds (Rect bounds)
+        {
+            float hwidth = width * 0.5f, hlength = length * 0.5f;
+            bounds.getMinimumExtent().set(-hwidth, -hlength);
+            bounds.getMaximumExtent().set(+hwidth, +hlength);
+        }
+
+        @Override // documentation inherited
         protected void draw (boolean outline)
         {
             float hwidth = width * 0.5f, hlength = length * 0.5f;
@@ -97,6 +121,13 @@ public abstract class ShapeConfig extends DeepObject
         /** The radius of the circle. */
         @Editable(min=0, step=0.01)
         public float radius = 1f;
+
+        @Override // documentation inherited
+        protected void computeBounds (Rect bounds)
+        {
+            bounds.getMinimumExtent().set(-radius, -radius);
+            bounds.getMaximumExtent().set(+radius, +radius);
+        }
 
         @Override // documentation inherited
         protected void draw (boolean outline)
@@ -122,6 +153,14 @@ public abstract class ShapeConfig extends DeepObject
         /** The length of the capsule. */
         @Editable(min=0, step=0.01, hgroup="c")
         public float length = 1f;
+
+        @Override // documentation inherited
+        protected void computeBounds (Rect bounds)
+        {
+            float hlength = length * 0.5f;
+            bounds.getMinimumExtent().set(-hlength - radius, -radius);
+            bounds.getMaximumExtent().set(+hlength + radius, +radius);
+        }
 
         @Override // documentation inherited
         protected void draw (boolean outline)
@@ -152,6 +191,15 @@ public abstract class ShapeConfig extends DeepObject
         public Vertex[] vertices = new Vertex[0];
 
         @Override // documentation inherited
+        protected void computeBounds (Rect bounds)
+        {
+            bounds.setToEmpty();
+            for (Vertex vertex : vertices) {
+                bounds.addLocal(vertex.createVector());
+            }
+        }
+
+        @Override // documentation inherited
         protected void draw (boolean outline)
         {
             GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
@@ -171,6 +219,14 @@ public abstract class ShapeConfig extends DeepObject
         /** The vertex coordinates. */
         @Editable(column=true)
         public float x, y;
+
+        /**
+         * Creates a vector from this vertex.
+         */
+        public Vector2f createVector ()
+        {
+            return new Vector2f(x, y);
+        }
     }
 
     /**
@@ -181,6 +237,24 @@ public abstract class ShapeConfig extends DeepObject
         /** The component shapes. */
         @Editable
         public TransformedShape[] shapes = new TransformedShape[0];
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            for (TransformedShape tshape : shapes) {
+                tshape.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
+        protected void computeBounds (Rect bounds)
+        {
+            bounds.setToEmpty();
+            for (TransformedShape tshape : shapes) {
+                bounds.addLocal(tshape.getBounds());
+            }
+        }
 
         @Override // documentation inherited
         protected void draw (boolean outline)
@@ -217,6 +291,52 @@ public abstract class ShapeConfig extends DeepObject
         /** The shape's transform. */
         @Editable(step=0.01)
         public Transform2D transform = new Transform2D();
+
+        /**
+         * Returns the bounds of the transformed shape.
+         */
+        public Rect getBounds ()
+        {
+            if (_bounds == null) {
+                _bounds = shape.getBounds().transform(transform);
+            }
+            return _bounds;
+        }
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            _bounds = null;
+        }
+
+        /** The bounds of the transformed shape. */
+        @DeepOmit
+        protected transient Rect _bounds;
+    }
+
+    /**
+     * Returns a reference to the bounds of the shape.
+     */
+    public Rect getBounds ()
+    {
+        if (_bounds == null) {
+            computeBounds(_bounds = new Rect());
+        }
+        return _bounds;
+    }
+
+    /**
+     * Finds the intersection of a ray with this object and places it in the supplied vector
+     * (if it exists).
+     *
+     * @return true if the ray intersected the object (in which case the result will contain the
+     * point of intersection), false otherwise.
+     */
+    public boolean getIntersection (Ray2D ray, Vector2f result)
+    {
+        return false;
     }
 
     /**
@@ -247,8 +367,14 @@ public abstract class ShapeConfig extends DeepObject
      */
     public void invalidate ()
     {
+        _bounds = null;
         _solidList = _outlineList = null;
     }
+
+    /**
+     * Computes the bounds of the shape and stores them in the provided object.
+     */
+    protected abstract void computeBounds (Rect bounds);
 
     /**
      * Draws this shape in immediate mode.
@@ -256,6 +382,10 @@ public abstract class ShapeConfig extends DeepObject
      * @param outline if true, draw the outline of the shape; otherwise, draw the solid form.
      */
     protected abstract void draw (boolean outline);
+
+    /** The bounds of the shape. */
+    @DeepOmit
+    protected transient Rect _bounds;
 
     /** The display lists containing the solid and outline representations. */
     @DeepOmit

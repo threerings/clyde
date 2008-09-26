@@ -407,6 +407,9 @@ public class HashScene extends Scene
         for (Node root : _influences.values()) {
             _bounds.addLocal(root.getBounds());
         }
+        for (Node root : _effects.values()) {
+            _bounds.addLocal(root.getBounds());
+        }
     }
 
     /**

@@ -61,6 +61,14 @@ public final class Rect
     }
 
     /**
+     * Returns the length of the rectangle's longest edge.
+     */
+    public float getLongestEdge ()
+    {
+        return Math.max(_maxExtent.x - _minExtent.x, _maxExtent.y - _minExtent.y);
+    }
+
+    /**
      * Determines whether the rect is empty (whether any of its minima are greater than their
      * corresponding maxima).
      */
@@ -155,6 +163,45 @@ public final class Rect
         result.getMaximumExtent().set(
             Math.max(_maxExtent.x, omax.x),
             Math.max(_maxExtent.y, omax.y));
+        return result;
+    }
+
+    /**
+     * Finds the intersection between this rectangle and another rectangle and places the result in
+     * this rectangle.
+     *
+     * @return a reference to this rectangle, for chaining.
+     */
+    public Rect intersectLocal (Rect other)
+    {
+        return intersect(other, this);
+    }
+
+    /**
+     * Finds the intersection between this rectangle and another rectangle.
+     *
+     * @return a new rectangle containing the result.
+     */
+    public Rect intersect (Rect other)
+    {
+        return intersect(other, new Rect());
+    }
+
+    /**
+     * Finds the intersection between this rectangle and another rectangle and places the result in
+     * the provided object.
+     *
+     * @return a reference to this rectangle, for chaining.
+     */
+    public Rect intersect (Rect other, Rect result)
+    {
+        Vector2f omin = other.getMinimumExtent(), omax = other.getMaximumExtent();
+        result.getMinimumExtent().set(
+            Math.max(_minExtent.x, omin.x),
+            Math.max(_minExtent.y, omin.y));
+        result.getMaximumExtent().set(
+            Math.min(_maxExtent.x, omax.x),
+            Math.min(_maxExtent.y, omax.y));
         return result;
     }
 
