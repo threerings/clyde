@@ -154,10 +154,10 @@ public abstract class GlCanvasApp extends GlApp
     @Override // documentation inherited
     protected void didInit ()
     {
-        // adjust the viewport on resize
+        // notify the renderer on resize
         _canvas.addComponentListener(new ComponentAdapter() {
             public void componentResized (ComponentEvent event) {
-                setViewport(0, 0, _canvas.getWidth(), _canvas.getHeight());
+                _renderer.setSize(_canvas.getWidth(), _canvas.getHeight());
             }
         });
 

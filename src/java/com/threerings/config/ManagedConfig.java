@@ -16,6 +16,7 @@ import com.threerings.resource.ResourceManager.ModificationObserver;
 
 import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
@@ -71,13 +72,38 @@ public abstract class ManagedConfig extends DeepObject
      */
     public ManagedConfig getInstance (String firstKey, Object firstValue, Object... otherArgs)
     {
-        return getInstance(new ArgumentMap(firstKey, firstValue, otherArgs));
+        return getInstance(null, firstKey, firstValue, otherArgs);
+    }
+
+    /**
+     * Returns the derived instance in the specified scope with the supplied arguments.
+     */
+    public ManagedConfig getInstance (
+        Scope scope, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        return getInstance(scope, new ArgumentMap(firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Returns the derived instance in the specified scope.
+     */
+    public ManagedConfig getInstance (Scope scope)
+    {
+        return getInstance(scope, null);
     }
 
     /**
      * Returns the derived instance with the supplied arguments.
      */
     public ManagedConfig getInstance (ArgumentMap args)
+    {
+        return getInstance(null, args);
+    }
+
+    /**
+     * Returns the derived instance in the specified scope with the supplied arguments.
+     */
+    public ManagedConfig getInstance (Scope scope, ArgumentMap args)
     {
         return this;
     }

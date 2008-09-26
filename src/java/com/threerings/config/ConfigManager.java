@@ -25,6 +25,7 @@ import com.threerings.export.BinaryImporter;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
+import com.threerings.expr.Scope;
 import com.threerings.util.Copyable;
 
 import static com.threerings.ClydeLog.*;
@@ -186,7 +187,19 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, ConfigReference<T> ref)
     {
-        return (ref == null) ? null : getConfig(clazz, ref.getName(), ref.getArguments());
+        return getConfig(clazz, ref, null);
+    }
+
+    /**
+     * Retrieves a configuration by class and reference.  If the configuration is not found in this
+     * manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (
+        Class<T> clazz, ConfigReference<T> ref, Scope scope)
+    {
+        return (ref == null) ? null : getConfig(clazz, ref.getName(), scope, ref.getArguments());
     }
 
     /**
@@ -198,7 +211,31 @@ public class ConfigManager
     public <T extends ManagedConfig> T getConfig (
         Class<T> clazz, String name, String firstKey, Object firstValue, Object... otherArgs)
     {
-        return getConfig(clazz, name, new ArgumentMap(firstKey, firstValue, otherArgs));
+        return getConfig(clazz, name, null, firstKey, firstValue, otherArgs);
+    }
+
+    /**
+     * Retrieves a configuration by class, name, and arguments.  If the configuration is not found
+     * in this manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (
+        Class<T> clazz, String name, Scope scope,
+        String firstKey, Object firstValue, Object... otherArgs)
+    {
+        return getConfig(clazz, name, scope, new ArgumentMap(firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Retrieves a configuration by class, name, and scope.  If the configuration is not found in
+     * this manager, the request will be forwarded to the parent, and so on.
+     *
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, Scope scope)
+    {
+        return getConfig(clazz, name, scope, null);
     }
 
     /**
@@ -210,8 +247,22 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> T getConfig (Class<T> clazz, String name, ArgumentMap args)
     {
+        return getConfig(clazz, name, null, args);
+    }
+
+    /**
+     * Retrieves a configuration by class, name, scope, and arguments.  If the configuration is not
+     * found in this manager, the request will be forwarded to the parent, and so on.
+     *
+     * @param scope the scope in which to create the config, or <code>null</code> for none.
+     * @param args the configuration arguments, or <code>null</code> for none.
+     * @return the requested configuration, or <code>null</code> if not found.
+     */
+    public <T extends ManagedConfig> T getConfig (
+        Class<T> clazz, String name, Scope scope, ArgumentMap args)
+    {
         T config = getConfig(clazz, name);
-        return (config == null) ? null : clazz.cast(config.getInstance(args));
+        return (config == null) ? null : clazz.cast(config.getInstance(scope, args));
     }
 
     /**

@@ -42,14 +42,6 @@ public class Compositor
     }
 
     /**
-     * Initializes the compositor once the renderer has been initialized.
-     */
-    public void init ()
-    {
-        _camera.getViewport().set(_ctx.getRenderer().getViewport());
-    }
-
-    /**
      * Returns a reference to the camera.
      */
     public Camera getCamera ()

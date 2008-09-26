@@ -24,6 +24,7 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Function;
 import com.threerings.expr.Variable;
 import com.threerings.expr.MutableFloat;
+import com.threerings.expr.MutableInteger;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
 
@@ -122,6 +123,14 @@ public class ScopeUtil
     public static MutableFloat resolve (Scope scope, String name, MutableFloat defvalue)
     {
         return resolve(scope, name, defvalue, MutableFloat.class);
+    }
+
+    /**
+     * Attempts to resolve a mutable integer symbol.
+     */
+    public static MutableInteger resolve (Scope scope, String name, MutableInteger defvalue)
+    {
+        return resolve(scope, name, defvalue, MutableInteger.class);
     }
 
     /**

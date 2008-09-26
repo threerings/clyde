@@ -16,6 +16,9 @@ import com.threerings.opengl.util.GlContext;
  */
 public class OrbitCameraHandler extends CameraHandler
 {
+    /**
+     * Creates a new orbit camera handler.
+     */
     public OrbitCameraHandler (GlContext ctx)
     {
         super(ctx);

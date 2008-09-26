@@ -7,9 +7,9 @@ import java.util.ArrayList;
 
 import com.samskivert.util.ObjectUtil;
 
+import com.threerings.config.BoundConfig;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
-import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -21,7 +21,7 @@ import com.threerings.opengl.util.GlContext;
 /**
  * Describes a render effect.
  */
-public class RenderEffectConfig extends ParameterizedConfig
+public class RenderEffectConfig extends BoundConfig
 {
     /**
      * Contains the actual implementation of the effect.

@@ -103,10 +103,10 @@ public abstract class SceneInfluenceConfig extends DeepObject
 
         // update the static bindings and add the dynamic updaters to the list
         for (ExpressionBinding binding : staticBindings) {
-            binding.createUpdater(scope, influence).update();
+            binding.createUpdater(ctx.getConfigManager(), scope, influence).update();
         }
         for (ExpressionBinding binding : dynamicBindings) {
-            updaters.add(binding.createUpdater(scope, influence));
+            updaters.add(binding.createUpdater(ctx.getConfigManager(), scope, influence));
         }
 
         return influence;

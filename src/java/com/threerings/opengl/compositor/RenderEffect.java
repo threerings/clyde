@@ -9,6 +9,8 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Scoped;
+import com.threerings.expr.DynamicScope;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 
@@ -16,6 +18,7 @@ import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.compositor.config.RenderEffectConfig.Technique;
 import com.threerings.opengl.compositor.config.TargetConfig;
 import com.threerings.opengl.gui.util.Rectangle;
+import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.util.GlContext;
 
@@ -24,8 +27,9 @@ import static com.threerings.opengl.Log.*;
 /**
  * Handles a render effect.
  */
-public class RenderEffect extends SimpleScope
-    implements ConfigUpdateListener<RenderEffectConfig>, Comparable<RenderEffect>
+public class RenderEffect extends DynamicScope
+    implements ConfigUpdateListener<RenderEffectConfig>, Renderer.Observer,
+        Comparable<RenderEffect>
 {
     /**
      * Handles a single effect target.
@@ -106,7 +110,7 @@ public class RenderEffect extends SimpleScope
         public void setConfig (TargetConfig.Texture config)
         {
             super.setConfig(config);
-            _renderer = config.createTextureRenderer(_ctx);
+            _renderer = config.getTextureRenderer(_ctx);
         }
 
         @Override // documentation inherited
@@ -154,22 +158,19 @@ public class RenderEffect extends SimpleScope
         }
     }
 
-    /** The name of the special width parameter. */
-    public static final String WIDTH = "Width";
-
-    /** The name of the special height parameter. */
-    public static final String HEIGHT = "Height";
-
-    /** The name of the special identity parameter. */
-    public static final String IDENTITY = "Identity";
-
     /**
      * Creates a new render effect.
      */
     public RenderEffect (GlContext ctx, Scope parentScope, RenderEffectConfig config)
     {
-        super(parentScope);
+        super("effect", parentScope);
         _ctx = ctx;
+
+        Renderer renderer = _ctx.getRenderer();
+        _width = renderer.getWidth();
+        _height = renderer.getHeight();
+        renderer.addObserver(this);
+
         setConfig(config);
     }
 
@@ -181,7 +182,8 @@ public class RenderEffect extends SimpleScope
         if (_config != null) {
             _config.removeListener(this);
         }
-        if ((_config = config) != null) {
+        _config = (config == null) ? null : (RenderEffectConfig)config.getInstance(this);
+        if (_config != null) {
             _config.addListener(this);
         }
         updateFromConfig();
@@ -218,6 +220,14 @@ public class RenderEffect extends SimpleScope
         updateFromConfig();
     }
 
+    // documentation inherited from interface Renderer.Observer
+    public void sizeChanged (int width, int height)
+    {
+        _width = width;
+        _height = height;
+        wasUpdated();
+    }
+
     // documentation inherited from interface Comparable
     public int compareTo (RenderEffect other)
     {
@@ -225,9 +235,10 @@ public class RenderEffect extends SimpleScope
     }
 
     @Override // documentation inherited
-    public String getScopeName ()
+    public void dispose ()
     {
-        return "effect";
+        super.dispose();
+        _ctx.getRenderer().removeObserver(this);
     }
 
     /**
@@ -243,22 +254,16 @@ public class RenderEffect extends SimpleScope
      */
     protected void updateFromConfig ()
     {
-        // create the derived configuration
-        Rectangle viewport = _ctx.getCompositor().getCamera().getViewport();
-        _dconfig = (_config == null) ? null : (RenderEffectConfig)_config.getInstance(
-            WIDTH, viewport.width, HEIGHT, viewport.height,
-            IDENTITY, String.valueOf(System.identityHashCode(this)));
-
         // get the effect priority
-        _priority = (_dconfig == null) ? 0 : _dconfig.getPriority(_ctx);
+        _priority = (_config == null) ? 0 : _config.getPriority(_ctx);
 
         // find a technique to render the effect
         String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
-        Technique technique = (_dconfig == null) ?
-            NOOP_TECHNIQUE : _dconfig.getTechnique(_ctx, scheme);
+        Technique technique = (_config == null) ?
+            NOOP_TECHNIQUE : _config.getTechnique(_ctx, scheme);
         if (technique == null) {
             log.warning("No technique available to render effect.",
-                "config", _dconfig.getName(), "scheme", scheme);
+                "config", _config.getName(), "scheme", scheme);
             technique = NOOP_TECHNIQUE;
         }
 
@@ -281,11 +286,16 @@ public class RenderEffect extends SimpleScope
     /** The application context. */
     protected GlContext _ctx;
 
+    /** The identity of the effect instance. */
+    @Scoped
+    protected String _identity = String.valueOf(System.identityHashCode(this));
+
+    /** The width and height of the renderer surface. */
+    @Scoped
+    protected int _width, _height;
+
     /** The render effect configuration. */
     protected RenderEffectConfig _config;
-
-    /** The derived configuration. */
-    protected RenderEffectConfig _dconfig;
 
     /** The priority of the effect. */
     protected int _priority;

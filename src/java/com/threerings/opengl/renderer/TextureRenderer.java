@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.renderer;
 
+import java.lang.ref.WeakReference;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.ARBDepthTexture;
 import org.lwjgl.opengl.ARBTextureCubeMap;
@@ -13,6 +15,8 @@ import org.lwjgl.opengl.GLContext;
 import org.lwjgl.opengl.Pbuffer;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.opengl.RenderTexture;
+
+import com.samskivert.util.SoftCache;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.gui.util.Rectangle;
@@ -27,10 +31,42 @@ import static com.threerings.opengl.Log.*;
 public class TextureRenderer
 {
     /**
+     * Retrieves the shared texture renderer instance for the supplied textures.
+     */
+    public static TextureRenderer getInstance (
+        GlContext ctx, Texture color, Texture depth, PixelFormat pformat)
+    {
+        int width, height;
+        if (color == null) {
+            width = depth.getWidth();
+            height = depth.getHeight();
+        } else {
+            width = color.getWidth();
+            height = color.getHeight();
+        }
+        return getInstance(ctx, color, depth, width, height, pformat);
+    }
+
+    /**
+     * Retrieves the shared texture renderer instance for the supplied textures.
+     */
+    public static TextureRenderer getInstance (
+        GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
+    {
+        InstanceKey key = new InstanceKey(color, depth);
+        TextureRenderer instance = _instances.get(key);
+        if (instance == null) {
+            _instances.put(key,
+                instance = new TextureRenderer(ctx, color, depth, width, height, pformat));
+        }
+        return instance;
+    }
+
+    /**
      * Creates a new texture renderer to render into the specified texture(s).
      */
     public TextureRenderer (
-        GlContext ctx, int width, int height, Texture color, Texture depth, PixelFormat pformat)
+        GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
     {
         _ctx = ctx;
         _renderer = ctx.getRenderer();
@@ -380,6 +416,35 @@ public class TextureRenderer
         }
     }
 
+    /**
+     * Identifies a shared texture renderer instance.
+     */
+    protected static class InstanceKey
+    {
+        public InstanceKey (Texture color, Texture depth)
+        {
+            _color = new WeakReference<Texture>(color);
+            _depth = new WeakReference<Texture>(depth);
+        }
+
+        @Override // documentation inherited
+        public int hashCode ()
+        {
+            return System.identityHashCode(_color.get()) ^
+                System.identityHashCode(_depth.get());
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            InstanceKey okey = (InstanceKey)other;
+            return _color.get() == okey._color.get() && _depth.get() == okey._depth.get();
+        }
+
+        /** The color and depth textures. */
+        protected WeakReference<Texture> _color, _depth;
+    }
+
     /** The renderer context. */
     protected GlContext _ctx;
 
@@ -418,4 +483,8 @@ public class TextureRenderer
 
     /** The original draw and read buffers. */
     protected int _odraw, _oread;
+
+    /** The shared texture renderer instances. */
+    protected static SoftCache<InstanceKey, TextureRenderer> _instances =
+        new SoftCache<InstanceKey, TextureRenderer>();
 }

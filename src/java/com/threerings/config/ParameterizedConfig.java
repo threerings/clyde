@@ -12,6 +12,7 @@ import com.samskivert.util.SoftCache;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
+import com.threerings.expr.Scope;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.DeepUtil;
 
@@ -35,10 +36,10 @@ public class ParameterizedConfig extends ManagedConfig
     }
 
     @Override // documentation inherited
-    public ParameterizedConfig getInstance (ArgumentMap args)
+    public ParameterizedConfig getInstance (Scope scope, ArgumentMap args)
     {
         if (args == null || args.isEmpty() || parameters.length == 0) {
-            return this;
+            return getBound(scope);
         }
         // filter the arguments, removing any non-parameters
         ArgumentMap oargs = args;
@@ -56,7 +57,7 @@ public class ParameterizedConfig extends ManagedConfig
                 }
             }
             if (args.isEmpty()) {
-                return this;
+                return getBound(scope);
             }
         }
         if (_derived == null) {
@@ -69,7 +70,7 @@ public class ParameterizedConfig extends ManagedConfig
             instance._base = this;
             applyArguments(instance, args);
         }
-        return instance;
+        return instance.getBound(scope);
     }
 
     @Override // documentation inherited
@@ -99,6 +100,14 @@ public class ParameterizedConfig extends ManagedConfig
             applyArguments(instance, entry.getKey());
             instance.wasUpdated();
         }
+    }
+
+    /**
+     * Returns an instance of this config bound in the specified scope.
+     */
+    protected ParameterizedConfig getBound (Scope scope)
+    {
+        return this;
     }
 
     /**

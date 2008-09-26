@@ -213,9 +213,7 @@ public abstract class GlApp extends DynamicScope
     protected void init ()
     {
         initRenderer();
-        _compositor.init();
         _camhand = createCameraHandler();
-        _camhand.updatePerspective();
 
         // add a root to call the enqueue method
         _compositor.addRoot(new Renderable() {
@@ -313,15 +311,6 @@ public abstract class GlApp extends DynamicScope
         Quaternion viewRotation = _viewTransform.getRotation();
         float angle = FloatMath.HALF_PI + 2f*FloatMath.atan2(viewRotation.x, viewRotation.w);
         _billboardRotation.fromAngleAxis(angle, Vector3f.UNIT_X);
-    }
-
-    /**
-     * Sets the viewport rectangle.
-     */
-    protected void setViewport (int x, int y, int width, int height)
-    {
-        _compositor.getCamera().getViewport().set(x, y, width, height);
-        _camhand.updatePerspective();
     }
 
     /** The OpenGL renderer. */

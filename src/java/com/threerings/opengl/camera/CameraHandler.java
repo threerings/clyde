@@ -5,6 +5,7 @@ package com.threerings.opengl.camera;
 
 import com.threerings.math.FloatMath;
 
+import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.util.Rectangle;
@@ -13,10 +14,19 @@ import com.threerings.opengl.gui.util.Rectangle;
  * Controls the camera parameters.
  */
 public abstract class CameraHandler
+    implements Renderer.Observer
 {
+    /**
+     * Creates a new camera handler.
+     */
     public CameraHandler (GlContext ctx)
     {
         _ctx = ctx;
+
+        // update the camera viewport and listen for changes
+        Renderer renderer = ctx.getRenderer();
+        sizeChanged(renderer.getWidth(), renderer.getHeight());
+        renderer.addObserver(this);
     }
 
     /**
@@ -55,19 +65,26 @@ public abstract class CameraHandler
     }
 
     /**
+     * Updates the camera position.
+     */
+    public abstract void updatePosition ();
+
+    // documentation inherited from interface Renderer.Observer
+    public void sizeChanged (int width, int height)
+    {
+        _ctx.getCompositor().getCamera().getViewport().set(0, 0, width, height);
+        updatePerspective();
+    }
+
+    /**
      * Updates the camera perspective parameters.
      */
-    public void updatePerspective ()
+    protected void updatePerspective ()
     {
         Camera camera = _ctx.getCompositor().getCamera();
         Rectangle viewport = camera.getViewport();
         camera.setPerspective(_fovy, (float)viewport.width / viewport.height, _near, _far);
     }
-
-    /**
-     * Updates the camera position.
-     */
-    public abstract void updatePosition ();
 
     /** The renderer context. */
     protected GlContext _ctx;

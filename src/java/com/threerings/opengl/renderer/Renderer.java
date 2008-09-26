@@ -31,6 +31,8 @@ import org.lwjgl.opengl.Pbuffer;
 
 import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ListUtil;
+import com.samskivert.util.ObserverList;
+import com.samskivert.util.WeakObserverList;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
@@ -50,6 +52,17 @@ import com.threerings.opengl.gui.util.Rectangle;
 public class Renderer
 {
     /**
+     * An interface for objects interested in renderer state changes.
+     */
+    public interface Observer
+    {
+        /**
+         * Notes that the size of the renderer's drawable surface has changed.
+         */
+        public void sizeChanged (int width, int height);
+    }
+
+    /**
      * Initializes the renderer.
      *
      * @param drawable the drawable surface with which this renderer will be used.
@@ -59,6 +72,8 @@ public class Renderer
     public void init (Drawable drawable, int width, int height)
     {
         _drawable = drawable;
+        _width = width;
+        _height = height;
 
         // find out how many alpha bit planes are in the frame buffer
         IntBuffer buf = BufferUtils.createIntBuffer(16);
@@ -147,6 +162,68 @@ public class Renderer
     }
 
     /**
+     * Returns a reference to the drawable target of this renderer.
+     */
+    public Drawable getDrawable ()
+    {
+        return _drawable;
+    }
+
+    /**
+     * Notes that the size of the renderer's drawable surface has changed.  This does not change
+     * the viewport, scissor region, etc.; it simply records the change and notifies the observers.
+     */
+    public void setSize (int width, int height)
+    {
+        if (_width == width && _height == height) {
+            return;
+        }
+        _width = width;
+        _height = height;
+
+        _observers.apply(new ObserverList.ObserverOp<Observer>() {
+            public boolean apply (Observer observer) {
+                observer.sizeChanged(_width, _height);
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Returns the width of the renderer's drawable surface.
+     */
+    public int getWidth ()
+    {
+        return _width;
+    }
+
+    /**
+     * Returns the height of the renderer's drawable surface.
+     */
+    public int getHeight ()
+    {
+        return _height;
+    }
+
+    /**
+     * Adds an observer to the list of objects interested in state changes.  Note that only a weak
+     * reference to the observer will be retained, and thus this will not prevent the observer
+     * from being garbage-collected.
+     */
+    public void addObserver (Observer observer)
+    {
+        _observers.add(observer);
+    }
+
+    /**
+     * Removes an observer from the list.
+     */
+    public void removeObserver (Observer observer)
+    {
+        _observers.remove(observer);
+    }
+
+    /**
      * Returns the number of alpha bit planes in the frame buffer.
      */
     public int getAlphaBits ()
@@ -200,14 +277,6 @@ public class Renderer
     public int getMaxVertexAttribs ()
     {
         return _maxVertexAttribs;
-    }
-
-    /**
-     * Returns a reference to the drawable target of this renderer.
-     */
-    public Drawable getDrawable ()
-    {
-        return _drawable;
     }
 
     /**
@@ -2198,6 +2267,12 @@ public class Renderer
 
     /** The drawable with which this renderer is being used. */
     protected Drawable _drawable;
+
+    /** The width and height of the drawable surface. */
+    protected int _width, _height;
+
+    /** The list of renderer observers. */
+    protected WeakObserverList<Observer> _observers = WeakObserverList.newFastUnsafe();
 
     /** The number of alpha bit planes in the frame buffer. */
     protected int _alphaBits;

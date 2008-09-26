@@ -76,11 +76,21 @@ public abstract class FloatExpression extends DeepObject
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
+            // first look for a mutable reference, then for a variable
             final MutableFloat reference = ScopeUtil.resolve(
-                scope, name, new MutableFloat(defvalue));
+                scope, name, (MutableFloat)null);
+            if (reference != null) {
+                return new Evaluator() {
+                    public float evaluate () {
+                        return reference.value;
+                    }
+                };
+            }
+            final Variable variable = ScopeUtil.resolve(
+                scope, name, Variable.newInstance(defvalue));
             return new Evaluator() {
                 public float evaluate () {
-                    return reference.value;
+                    return variable.getFloat();
                 }
             };
         }

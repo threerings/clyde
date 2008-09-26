@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 
 import com.samskivert.util.Tuple;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.PathProperty;
@@ -28,7 +29,9 @@ import static com.threerings.ClydeLog.*;
  */
 @EditorTypes({
     ExpressionBinding.FloatBinding.class,
+    ExpressionBinding.IntegerBinding.class,
     ExpressionBinding.Color4fBinding.class,
+    ExpressionBinding.StringBinding.class,
     ExpressionBinding.Transform3DBinding.class })
 public abstract class ExpressionBinding extends DeepObject
     implements Exportable
@@ -43,16 +46,45 @@ public abstract class ExpressionBinding extends DeepObject
         public FloatExpression expression = new FloatExpression.Constant();
 
         @Override // documentation inherited
-        public Updater createUpdater (Scope scope, Object object)
+        public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             final FloatExpression.Evaluator evaluator = expression.createEvaluator(scope);
-            final Tuple<Property, Object>[] targets = getTargets(object, Float.TYPE);
-            final Tuple<Property, Object>[] flags = getFlags(object);
+            final Tuple<Property, Object>[] targets = getTargets(cfgmgr, object, Float.TYPE);
+            final Tuple<Property, Object>[] flags = getFlags(cfgmgr, object);
             return new Updater() {
                 public void update () {
                     float value = evaluator.evaluate();
                     for (Tuple<Property, Object> target : targets) {
                         target.left.setFloat(target.right, value);
+                    }
+                    for (Tuple<Property, Object> flag : flags) {
+                        flag.left.setBoolean(flag.right, true);
+                    }
+                }
+            };
+        }
+    }
+
+    /**
+     * An integer binding.
+     */
+    public static class IntegerBinding extends ExpressionBinding
+    {
+        /** The expression that determines the value. */
+        @Editable
+        public IntegerExpression expression = new IntegerExpression.Constant();
+
+        @Override // documentation inherited
+        public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
+        {
+            final IntegerExpression.Evaluator evaluator = expression.createEvaluator(scope);
+            final Tuple<Property, Object>[] targets = getTargets(cfgmgr, object, Integer.TYPE);
+            final Tuple<Property, Object>[] flags = getFlags(cfgmgr, object);
+            return new Updater() {
+                public void update () {
+                    int value = evaluator.evaluate();
+                    for (Tuple<Property, Object> target : targets) {
+                        target.left.setInt(target.right, value);
                     }
                     for (Tuple<Property, Object> flag : flags) {
                         flag.left.setBoolean(flag.right, true);
@@ -72,9 +104,25 @@ public abstract class ExpressionBinding extends DeepObject
         public Color4fExpression expression = new Color4fExpression.Constant();
 
         @Override // documentation inherited
-        public Updater createUpdater (Scope scope, Object object)
+        public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
-            return createUpdater(scope, object, expression, Color4f.class);
+            return createUpdater(cfgmgr, scope, object, expression, Color4f.class);
+        }
+    }
+
+    /**
+     * A string binding.
+     */
+    public static class StringBinding extends ExpressionBinding
+    {
+        /** The expression that determines the value. */
+        @Editable
+        public StringExpression expression = new StringExpression.Constant();
+
+        @Override // documentation inherited
+        public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
+        {
+            return createUpdater(cfgmgr, scope, object, expression, String.class);
         }
     }
 
@@ -88,9 +136,9 @@ public abstract class ExpressionBinding extends DeepObject
         public Transform3DExpression expression = new Transform3DExpression.Constant();
 
         @Override // documentation inherited
-        public Updater createUpdater (Scope scope, Object object)
+        public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
-            return createUpdater(scope, object, expression, Transform3D.class);
+            return createUpdater(cfgmgr, scope, object, expression, Transform3D.class);
         }
     }
 
@@ -105,7 +153,7 @@ public abstract class ExpressionBinding extends DeepObject
     /**
      * Creates a value updater for the supplied context and target object.
      */
-    public abstract Updater createUpdater (Scope scope, Object object);
+    public abstract Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object);
 
     /**
      * Invalidates the paths, forcing them to be recreated.
@@ -119,11 +167,12 @@ public abstract class ExpressionBinding extends DeepObject
      * Creates an updater for an object expression.
      */
     protected <T> Updater createUpdater (
-        Scope scope, Object object, ObjectExpression<T> expression, Class<T> clazz)
+        ConfigManager cfgmgr, Scope scope, Object object,
+        ObjectExpression<T> expression, Class<T> clazz)
     {
         final ObjectExpression.Evaluator<T> evaluator = expression.createEvaluator(scope);
-        final Tuple<Property, Object>[] targets = getTargets(object, clazz);
-        final Tuple<Property, Object>[] flags = getFlags(object);
+        final Tuple<Property, Object>[] targets = getTargets(cfgmgr, object, clazz);
+        final Tuple<Property, Object>[] flags = getFlags(cfgmgr, object);
         return new Updater() {
             public void update () {
                 T value = evaluator.evaluate();
@@ -142,10 +191,11 @@ public abstract class ExpressionBinding extends DeepObject
      *
      * @param type the required type.
      */
-    protected Tuple<Property, Object>[] getTargets (Object object, Class type)
+    protected Tuple<Property, Object>[] getTargets (
+        ConfigManager cfgmgr, Object object, Class type)
     {
         if (_paths == null) {
-            _paths = createPaths(object, paths, type);
+            _paths = createPaths(cfgmgr, object, paths, type);
         }
         return resolvePaths(object, _paths);
     }
@@ -153,10 +203,10 @@ public abstract class ExpressionBinding extends DeepObject
     /**
      * Returns the array of property/object pairs representing the flags to set.
      */
-    protected Tuple<Property, Object>[] getFlags (Object object)
+    protected Tuple<Property, Object>[] getFlags (ConfigManager cfgmgr, Object object)
     {
         if (_flagPaths == null) {
-            _flagPaths = createPaths(object, flags, Boolean.TYPE);
+            _flagPaths = createPaths(cfgmgr, object, flags, Boolean.TYPE);
         }
         return resolvePaths(object, _flagPaths);
     }
@@ -166,11 +216,12 @@ public abstract class ExpressionBinding extends DeepObject
      *
      * @param type the required end type.
      */
-    protected Property[][] createPaths (Object reference, String[] paths, Class type)
+    protected Property[][] createPaths (
+        ConfigManager cfgmgr, Object reference, String[] paths, Class type)
     {
         ArrayList<Property[]> list = new ArrayList<Property[]>();
         for (String path : paths) {
-            Property[] props = PathProperty.createPath(null, reference, path);
+            Property[] props = PathProperty.createPath(cfgmgr, reference, path);
             if (props != null &&
                     ((Class<?>)props[props.length - 1].getType()).isAssignableFrom(type)) {
                 list.add(props);

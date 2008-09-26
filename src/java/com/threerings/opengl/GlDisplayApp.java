@@ -40,7 +40,7 @@ public abstract class GlDisplayApp extends GlApp
         try {
             Display.setDisplayMode(mode);
             if (Display.isCreated()) {
-                setViewport(0, 0, mode.getWidth(), mode.getHeight());
+                _renderer.setSize(mode.getWidth(), mode.getHeight());
             }
         } catch (LWJGLException e) {
             log.warning("Failed to set display mode.", "mode", mode, e);

@@ -51,9 +51,9 @@ public abstract class TargetConfig extends DeepObject
         public int stencilBits;
 
         /**
-         * Creates the texture renderer for this config.
+         * Retrieves the texture renderer for this config.
          */
-        public TextureRenderer createTextureRenderer (GlContext ctx)
+        public TextureRenderer getTextureRenderer (GlContext ctx)
         {
             TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
             com.threerings.opengl.renderer.Texture ctex =
@@ -61,16 +61,9 @@ public abstract class TargetConfig extends DeepObject
             TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
             com.threerings.opengl.renderer.Texture dtex =
                 (dconfig == null) ? null : dconfig.getTexture(ctx);
-            int width, height;
-            if (ctex == null) {
-                width = dtex.getWidth();
-                height = dtex.getHeight();
-            } else {
-                width = ctex.getWidth();
-                height = ctex.getHeight();
-            }
-            return new TextureRenderer(
-                ctx, width, height, ctex, dtex, new PixelFormat(8, depthBits, stencilBits));
+            int alphaBits = (ctex != null && ctex.hasAlpha()) ? 1 : 0;
+            return TextureRenderer.getInstance(
+                ctx, ctex, dtex, new PixelFormat(alphaBits, depthBits, stencilBits));
         }
 
         @Override // documentation inherited

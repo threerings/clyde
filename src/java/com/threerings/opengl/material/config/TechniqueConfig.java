@@ -356,10 +356,10 @@ public class TechniqueConfig extends DeepObject
             // update the static bindings and add the dynamic updaters to the list
             StateContainer container = new StateContainer(states);
             for (ExpressionBinding binding : pass.staticBindings) {
-                binding.createUpdater(scope, container).update();
+                binding.createUpdater(ctx.getConfigManager(), scope, container).update();
             }
             for (ExpressionBinding binding : pass.dynamicBindings) {
-                updaters.add(binding.createUpdater(scope, container));
+                updaters.add(binding.createUpdater(ctx.getConfigManager(), scope, container));
             }
 
             return new SimpleBatch(states, command);
