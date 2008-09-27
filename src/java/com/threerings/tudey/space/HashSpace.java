@@ -95,6 +95,38 @@ public class HashSpace extends Space
     }
 
     @Override // documentation inherited
+    public void getIntersecting (Intersector intersector, Collection<SpaceElement> results)
+    {
+        // get the oversized elements
+        getIntersecting(_oversizedElements, intersector, results);
+
+        // get the intersection with the top-level bounds
+        intersector.getBounds().intersect(_bounds, _rect);
+        if (_rect.isEmpty()) {
+            return;
+        }
+
+        // increment the visit counter
+        _visit++;
+
+        // visit the intersecting roots
+        Vector2f min = _rect.getMinimumExtent(), max = _rect.getMaximumExtent();
+        float rgran = 1f / _granularity;
+        int minx = (int)FloatMath.floor(min.x * rgran);
+        int maxx = (int)FloatMath.floor(max.x * rgran);
+        int miny = (int)FloatMath.floor(min.y * rgran);
+        int maxy = (int)FloatMath.floor(max.y * rgran);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                Node<SpaceElement> root = _elements.get(_coord.set(xx, yy));
+                if (root != null) {
+                    root.get(intersector, results);
+                }
+            }
+        }
+    }
+
+    @Override // documentation inherited
     public void getElements (Rect bounds, Collection<SpaceElement> results)
     {
         getIntersecting(_elements, _oversizedElements, bounds, results);
@@ -325,6 +357,16 @@ public class HashSpace extends Space
         }
 
         /**
+         * Retrieves all objects intersecting the provided intersector.
+         */
+        public void get (Intersector intersector, Collection<T> results)
+        {
+            if (intersector.getIntersectionType(_bounds) != Intersector.IntersectionType.NONE) {
+                getIntersecting(intersector, results);
+            }
+        }
+
+        /**
          * Retrieves all objects intersecting the provided bounds.
          */
         public void get (Rect bounds, Collection<T> results)
@@ -344,6 +386,20 @@ public class HashSpace extends Space
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
                 if (object.updateLastVisit(_visit)) {
+                    results.add(object);
+                }
+            }
+        }
+
+        /**
+         * Gets all objects in this node intersecting the provided intersector.
+         */
+        protected void getIntersecting (Intersector intersector, Collection<T> results)
+        {
+            for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
+                T object = _objects.get(ii);
+                if (object.updateLastVisit(_visit) &&
+                        intersector.intersects((SpaceElement)object)) {
                     results.add(object);
                 }
             }
@@ -470,12 +526,23 @@ public class HashSpace extends Space
         }
 
         @Override // documentation inherited
+        protected void getIntersecting (Intersector intersector, Collection<T> results)
+        {
+            super.getIntersecting(intersector, results);
+            for (Node<T> child : _children) {
+                if (child != null) {
+                    child.get(intersector, results);
+                }
+            }
+        }
+
+        @Override // documentation inherited
         protected void getIntersecting (Rect bounds, Collection<T> results)
         {
             super.getIntersecting(bounds, results);
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.getIntersecting(bounds, results);
+                    child.get(bounds, results);
                 }
             }
         }

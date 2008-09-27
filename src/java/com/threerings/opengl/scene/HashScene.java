@@ -683,7 +683,7 @@ public class HashScene extends Scene
             super.getIntersecting(bounds, results);
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.getIntersecting(bounds, results);
+                    child.get(bounds, results);
                 }
             }
         }

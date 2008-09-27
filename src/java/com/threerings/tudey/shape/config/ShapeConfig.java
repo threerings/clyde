@@ -21,6 +21,8 @@ import com.threerings.util.DeepOmit;
 import com.threerings.opengl.renderer.DisplayList;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.tudey.space.Intersector;
+
 /**
  * The configuration for a shape.
  */
@@ -36,6 +38,54 @@ public abstract class ShapeConfig extends DeepObject
      */
     public static class Point extends ShapeConfig
     {
+        @Override // documentation inherited
+        public boolean getIntersection (Ray2D ray, Vector2f result)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Point point)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Line line)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Quad quad)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Circle circle)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Capsule capsule)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Polygon polygon)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Compound compound)
+        {
+            return false;
+        }
+
         @Override // documentation inherited
         protected void computeBounds (Rect bounds)
         {
@@ -59,6 +109,54 @@ public abstract class ShapeConfig extends DeepObject
         /** The length of the segment. */
         @Editable(min=0, step=0.01)
         public float length = 1f;
+
+        @Override // documentation inherited
+        public boolean getIntersection (Ray2D ray, Vector2f result)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Point point)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Line line)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Quad quad)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Circle circle)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Capsule capsule)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Polygon polygon)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Compound compound)
+        {
+            return false;
+        }
 
         @Override // documentation inherited
         protected void computeBounds (Rect bounds)
@@ -93,6 +191,54 @@ public abstract class ShapeConfig extends DeepObject
         public float length = 1f;
 
         @Override // documentation inherited
+        public boolean getIntersection (Ray2D ray, Vector2f result)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Point point)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Line line)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Quad quad)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Circle circle)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Capsule capsule)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Polygon polygon)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Compound compound)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
         protected void computeBounds (Rect bounds)
         {
             float hwidth = width * 0.5f, hlength = length * 0.5f;
@@ -121,6 +267,54 @@ public abstract class ShapeConfig extends DeepObject
         /** The radius of the circle. */
         @Editable(min=0, step=0.01)
         public float radius = 1f;
+
+        @Override // documentation inherited
+        public boolean getIntersection (Ray2D ray, Vector2f result)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Point point)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Line line)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Quad quad)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Circle circle)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Capsule capsule)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Polygon polygon)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Compound compound)
+        {
+            return false;
+        }
 
         @Override // documentation inherited
         protected void computeBounds (Rect bounds)
@@ -153,6 +347,54 @@ public abstract class ShapeConfig extends DeepObject
         /** The length of the capsule. */
         @Editable(min=0, step=0.01, hgroup="c")
         public float length = 1f;
+
+        @Override // documentation inherited
+        public boolean getIntersection (Ray2D ray, Vector2f result)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Point point)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Line line)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Quad quad)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Circle circle)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Capsule capsule)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Polygon polygon)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Compound compound)
+        {
+            return false;
+        }
 
         @Override // documentation inherited
         protected void computeBounds (Rect bounds)
@@ -189,6 +431,54 @@ public abstract class ShapeConfig extends DeepObject
         /** The vertices of the polygon. */
         @Editable(editor="table")
         public Vertex[] vertices = new Vertex[0];
+
+        @Override // documentation inherited
+        public boolean getIntersection (Ray2D ray, Vector2f result)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Point point)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Line line)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Quad quad)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Circle circle)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Capsule capsule)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Polygon polygon)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Compound compound)
+        {
+            return false;
+        }
 
         @Override // documentation inherited
         protected void computeBounds (Rect bounds)
@@ -237,6 +527,54 @@ public abstract class ShapeConfig extends DeepObject
         /** The component shapes. */
         @Editable
         public TransformedShape[] shapes = new TransformedShape[0];
+
+        @Override // documentation inherited
+        public boolean getIntersection (Ray2D ray, Vector2f result)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Point point)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Line line)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Quad quad)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Circle circle)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Capsule capsule)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Polygon polygon)
+        {
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean intersects (Intersector.Compound compound)
+        {
+            return false;
+        }
 
         @Override // documentation inherited
         public void invalidate ()
@@ -334,10 +672,42 @@ public abstract class ShapeConfig extends DeepObject
      * @return true if the ray intersected the object (in which case the result will contain the
      * point of intersection), false otherwise.
      */
-    public boolean getIntersection (Ray2D ray, Vector2f result)
-    {
-        return false;
-    }
+    public abstract boolean getIntersection (Ray2D ray, Vector2f result);
+
+    /**
+     * Determines whether this shape intersects the supplied point.
+     */
+    public abstract boolean intersects (Intersector.Point point);
+
+    /**
+     * Determines whether this shape intersects the supplied line.
+     */
+    public abstract boolean intersects (Intersector.Line line);
+
+    /**
+     * Determines whether this shape intersects the supplied quad.
+     */
+    public abstract boolean intersects (Intersector.Quad quad);
+
+    /**
+     * Determines whether this shape intersects the supplied circle.
+     */
+    public abstract boolean intersects (Intersector.Circle circle);
+
+    /**
+     * Determines whether this shape intersects the supplied capsule.
+     */
+    public abstract boolean intersects (Intersector.Capsule capsule);
+
+    /**
+     * Determines whether this shape intersects the supplied polygon.
+     */
+    public abstract boolean intersects (Intersector.Polygon polygon);
+
+    /**
+     * Determines whether this shape intersects the supplied compound.
+     */
+    public abstract boolean intersects (Intersector.Compound compound);
 
     /**
      * Returns the cached display list to draw this shape.

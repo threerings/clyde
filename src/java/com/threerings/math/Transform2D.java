@@ -584,6 +584,25 @@ public final class Transform2D
     }
 
     /**
+     * Extracts an approximation of the uniform scale from this transform.
+     */
+    public float approximateUniformScale ()
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+            case RIGID:
+                return 1f;
+            case UNIFORM:
+                return _scale;
+            case AFFINE:
+            case GENERAL:
+                return (FloatMath.hypot(_matrix.m00, _matrix.m01) +
+                    FloatMath.hypot(_matrix.m10, _matrix.m11)) * 0.5f;
+        }
+    }
+
+    /**
      * Custom field write method.
      */
     public void writeFields (Exporter out)

@@ -82,9 +82,9 @@ public final class Rect
      *
      * @return a reference to this rectangle, for chaining.
      */
-    public Rect fromPoints (Vector2f[] points)
+    public Rect fromPoints (Vector2f... points)
     {
-        set(Vector2f.MAX_VALUE, Vector2f.MIN_VALUE);
+        setToEmpty();
         for (Vector2f point : points) {
             addLocal(point);
         }

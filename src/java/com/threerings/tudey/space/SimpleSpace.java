@@ -25,6 +25,12 @@ public class SimpleSpace extends Space
     }
 
     @Override // documentation inherited
+    public void getIntersecting (Intersector intersector, Collection<SpaceElement> results)
+    {
+        getIntersecting(_elements, intersector, results);
+    }
+
+    @Override // documentation inherited
     public void getElements (Rect bounds, Collection<SpaceElement> results)
     {
         getIntersecting(_elements, bounds, results);

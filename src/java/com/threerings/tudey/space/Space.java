@@ -66,6 +66,14 @@ public abstract class Space
         Ray2D ray, Vector2f location, Predicate<SpaceElement> filter);
 
     /**
+     * Retrieves all space elements that intersect the provided intersector.
+     *
+     * @param results a collection to hold the results of the search.
+     */
+    public abstract void getIntersecting (
+        Intersector intersector, Collection<SpaceElement> results);
+
+    /**
      * Retrieves all space elements whose bounds intersect the provided region.
      *
      * @param results a list to hold the results of the search.
@@ -118,6 +126,22 @@ public abstract class Space
             }
         }
         return closest;
+    }
+
+    /**
+     * Adds all elements from the provided list that intersect the given intersector to the
+     * specified results collection.
+     */
+    protected static void getIntersecting (
+        ArrayList<SpaceElement> elements, Intersector intersector,
+        Collection<SpaceElement> results)
+    {
+        for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
+            SpaceElement element = elements.get(ii);
+            if (intersector.intersects(element)) {
+                results.add(element);
+            }
+        }
     }
 
     /**

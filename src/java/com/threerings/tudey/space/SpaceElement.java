@@ -34,4 +34,39 @@ public interface SpaceElement extends SpaceObject
      * point of intersection), false otherwise.
      */
     public boolean getIntersection (Ray2D ray, Vector2f result);
+
+    /**
+     * Determines whether this element intersects the supplied point.
+     */
+    public boolean intersects (Intersector.Point point);
+
+    /**
+     * Determines whether this element intersects the supplied line.
+     */
+    public boolean intersects (Intersector.Line line);
+
+    /**
+     * Determines whether this element intersects the supplied quad.
+     */
+    public boolean intersects (Intersector.Quad quad);
+
+    /**
+     * Determines whether this element intersects the supplied circle.
+     */
+    public boolean intersects (Intersector.Circle circle);
+
+    /**
+     * Determines whether this element intersects the supplied capsule.
+     */
+    public boolean intersects (Intersector.Capsule capsule);
+
+    /**
+     * Determines whether this element intersects the supplied polygon.
+     */
+    public boolean intersects (Intersector.Polygon polygon);
+
+    /**
+     * Determines whether this element intersects the supplied compound.
+     */
+    public boolean intersects (Intersector.Compound compound);
 }

@@ -8,6 +8,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.shape.config.ShapeConfig;
+import com.threerings.tudey.space.Intersector;
 import com.threerings.tudey.space.SimpleSpaceElement;
 
 /**
@@ -43,6 +44,48 @@ public class Shape extends SimpleSpaceElement
         // then transform it back if we get a hit
         _transform.transformPointLocal(result);
         return true;
+    }
+
+    @Override // documentation inherited
+    public boolean intersects (Intersector.Point point)
+    {
+        return _config.intersects((Intersector.Point)point.transform(_transform.invert()));
+    }
+
+    @Override // documentation inherited
+    public boolean intersects (Intersector.Line line)
+    {
+        return _config.intersects((Intersector.Line)line.transform(_transform.invert()));
+    }
+
+    @Override // documentation inherited
+    public boolean intersects (Intersector.Quad quad)
+    {
+        return _config.intersects((Intersector.Quad)quad.transform(_transform.invert()));
+    }
+
+    @Override // documentation inherited
+    public boolean intersects (Intersector.Circle circle)
+    {
+        return _config.intersects((Intersector.Circle)circle.transform(_transform.invert()));
+    }
+
+    @Override // documentation inherited
+    public boolean intersects (Intersector.Capsule capsule)
+    {
+        return _config.intersects((Intersector.Capsule)capsule.transform(_transform.invert()));
+    }
+
+    @Override // documentation inherited
+    public boolean intersects (Intersector.Polygon polygon)
+    {
+        return _config.intersects((Intersector.Polygon)polygon.transform(_transform.invert()));
+    }
+
+    @Override // documentation inherited
+    public boolean intersects (Intersector.Compound compound)
+    {
+        return _config.intersects((Intersector.Compound)compound.transform(_transform.invert()));
     }
 
     @Override // documentation inherited

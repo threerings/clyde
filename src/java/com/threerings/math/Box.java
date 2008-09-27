@@ -112,9 +112,9 @@ public final class Box
      *
      * @return a reference to this box, for chaining.
      */
-    public Box fromPoints (Vector3f[] points)
+    public Box fromPoints (Vector3f... points)
     {
-        set(Vector3f.MAX_VALUE, Vector3f.MIN_VALUE);
+        setToEmpty();
         for (Vector3f point : points) {
             addLocal(point);
         }

@@ -80,6 +80,48 @@ public abstract class SimpleSpaceElement
         return false;
     }
 
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (Intersector.Point point)
+    {
+        return false;
+    }
+
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (Intersector.Line line)
+    {
+        return false;
+    }
+
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (Intersector.Quad quad)
+    {
+        return false;
+    }
+
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (Intersector.Circle circle)
+    {
+        return false;
+    }
+
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (Intersector.Capsule capsule)
+    {
+        return false;
+    }
+
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (Intersector.Polygon polygon)
+    {
+        return false;
+    }
+
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (Intersector.Compound compound)
+    {
+        return false;
+    }
+
     // documentation inherited from interface SpaceObject
     public Rect getBounds ()
     {
