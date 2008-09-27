@@ -80,12 +80,12 @@ public abstract class Intersector
     /**
      * A line segment intersector.
      */
-    public static class Line extends Intersector
+    public static class Segment extends Intersector
     {
         /**
-         * Creates a line between the specified points.
+         * Creates a segment between the specified points.
          */
-        public Line (Vector2f start, Vector2f end)
+        public Segment (Vector2f start, Vector2f end)
         {
             _start.set(start);
             _end.set(end);
@@ -93,9 +93,9 @@ public abstract class Intersector
         }
 
         /**
-         * Creates an uninitialized line.
+         * Creates an uninitialized segment.
          */
-        public Line ()
+        public Segment ()
         {
         }
 
@@ -126,11 +126,11 @@ public abstract class Intersector
         @Override // documentation inherited
         public Intersector transform (Transform2D transform, Intersector result)
         {
-            Line lresult = (result instanceof Line) ? ((Line)result) : new Line();
-            transform.transformPoint(_start, lresult._start);
-            transform.transformPoint(_end, lresult._end);
-            lresult.updateBounds();
-            return lresult;
+            Segment sresult = (result instanceof Segment) ? ((Segment)result) : new Segment();
+            transform.transformPoint(_start, sresult._start);
+            transform.transformPoint(_end, sresult._end);
+            sresult.updateBounds();
+            return sresult;
         }
 
         @Override // documentation inherited

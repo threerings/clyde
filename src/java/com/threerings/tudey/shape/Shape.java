@@ -53,9 +53,9 @@ public class Shape extends SimpleSpaceElement
     }
 
     @Override // documentation inherited
-    public boolean intersects (Intersector.Line line)
+    public boolean intersects (Intersector.Segment segment)
     {
-        return _config.intersects((Intersector.Line)line.transform(_transform.invert()));
+        return _config.intersects((Intersector.Segment)segment.transform(_transform.invert()));
     }
 
     @Override // documentation inherited

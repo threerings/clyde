@@ -27,8 +27,10 @@ import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.sprite.AreaSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.GlobalSprite;
+import com.threerings.tudey.client.sprite.PathSprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.config.PlaceableConfig;
@@ -238,6 +240,49 @@ public class TudeySceneModel extends SceneModel
         {
             return new PlaceableSprite(ctx, view, this);
         }
+    }
+
+    /**
+     * A path entry.
+     */
+    public static class PathEntry extends IdEntry
+    {
+        /** The path vertice. */
+        @Editable(editor="table")
+        public Vertex[] vertices = new Vertex[0];
+
+        @Override // documentation inherited
+        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        {
+            return new PathSprite(ctx, view, this);
+        }
+    }
+
+    /**
+     * An area entry.
+     */
+    public static class AreaEntry extends IdEntry
+    {
+        /** The path vertice. */
+        @Editable(editor="table")
+        public Vertex[] vertices = new Vertex[0];
+
+        @Override // documentation inherited
+        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        {
+            return new AreaSprite(ctx, view, this);
+        }
+    }
+
+    /**
+     * Represents a single vertex in a path or area.
+     */
+    public static class Vertex extends DeepObject
+        implements Exportable
+    {
+        /** The vertex coordinates. */
+        @Editable(column=true)
+        public float x, y;
     }
 
     /**

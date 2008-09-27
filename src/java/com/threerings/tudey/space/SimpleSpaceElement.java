@@ -87,7 +87,7 @@ public abstract class SimpleSpaceElement
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Line line)
+    public boolean intersects (Intersector.Segment segment)
     {
         return false;
     }

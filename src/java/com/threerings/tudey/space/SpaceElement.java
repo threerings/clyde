@@ -41,9 +41,9 @@ public interface SpaceElement extends SpaceObject
     public boolean intersects (Intersector.Point point);
 
     /**
-     * Determines whether this element intersects the supplied line.
+     * Determines whether this element intersects the supplied segment.
      */
-    public boolean intersects (Intersector.Line line);
+    public boolean intersects (Intersector.Segment segment);
 
     /**
      * Determines whether this element intersects the supplied quad.

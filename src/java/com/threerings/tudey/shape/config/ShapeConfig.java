@@ -27,7 +27,7 @@ import com.threerings.tudey.space.Intersector;
  * The configuration for a shape.
  */
 @EditorTypes({
-    ShapeConfig.Point.class, ShapeConfig.Line.class, ShapeConfig.Rectangle.class,
+    ShapeConfig.Point.class, ShapeConfig.Segment.class, ShapeConfig.Rectangle.class,
     ShapeConfig.Circle.class, ShapeConfig.Capsule.class, ShapeConfig.Polygon.class,
     ShapeConfig.Compound.class })
 public abstract class ShapeConfig extends DeepObject
@@ -51,7 +51,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean intersects (Intersector.Line line)
+        public boolean intersects (Intersector.Segment segment)
         {
             return false;
         }
@@ -104,7 +104,7 @@ public abstract class ShapeConfig extends DeepObject
     /**
      * A line segment.
      */
-    public static class Line extends ShapeConfig
+    public static class Segment extends ShapeConfig
     {
         /** The length of the segment. */
         @Editable(min=0, step=0.01)
@@ -123,7 +123,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean intersects (Intersector.Line line)
+        public boolean intersects (Intersector.Segment segment)
         {
             return false;
         }
@@ -203,7 +203,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean intersects (Intersector.Line line)
+        public boolean intersects (Intersector.Segment segment)
         {
             return false;
         }
@@ -281,7 +281,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean intersects (Intersector.Line line)
+        public boolean intersects (Intersector.Segment segment)
         {
             return false;
         }
@@ -361,7 +361,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean intersects (Intersector.Line line)
+        public boolean intersects (Intersector.Segment segment)
         {
             return false;
         }
@@ -445,7 +445,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean intersects (Intersector.Line line)
+        public boolean intersects (Intersector.Segment segment)
         {
             return false;
         }
@@ -541,7 +541,7 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean intersects (Intersector.Line line)
+        public boolean intersects (Intersector.Segment segment)
         {
             return false;
         }
@@ -680,9 +680,9 @@ public abstract class ShapeConfig extends DeepObject
     public abstract boolean intersects (Intersector.Point point);
 
     /**
-     * Determines whether this shape intersects the supplied line.
+     * Determines whether this shape intersects the supplied segment.
      */
-    public abstract boolean intersects (Intersector.Line line);
+    public abstract boolean intersects (Intersector.Segment segment);
 
     /**
      * Determines whether this shape intersects the supplied quad.
