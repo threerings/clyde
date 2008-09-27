@@ -239,6 +239,9 @@ public class RenderEffect extends DynamicScope
     {
         super.dispose();
         _ctx.getRenderer().removeObserver(this);
+        if (_config != null) {
+            _config.removeListener(this);
+        }
     }
 
     /**

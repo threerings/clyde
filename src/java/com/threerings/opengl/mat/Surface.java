@@ -121,7 +121,9 @@ public class Surface extends SimpleScope
     public void dispose ()
     {
         super.dispose();
-        _materialConfig.removeListener(this);
+        if (_materialConfig != null) {
+            _materialConfig.removeListener(this);
+        }
     }
 
     /**
