@@ -35,6 +35,7 @@ import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.model.tools.xml.ModelParser;
+import com.threerings.opengl.renderer.config.TextureConfig;
 import com.threerings.opengl.scene.config.ViewerAffecterConfig;
 import com.threerings.opengl.scene.config.SceneInfluencerConfig;
 import com.threerings.opengl.util.GlContext;
@@ -150,7 +151,8 @@ public class ModelConfig extends ParameterizedConfig
 
                 String material = DEFAULT_MATERIALS.get(tag);
                 this.material = new ConfigReference<MaterialConfig>(
-                    (material == null) ? DEFAULT_MATERIAL : material, "Texture", path);
+                    (material == null) ? DEFAULT_MATERIAL : material,
+                    "Texture", new ConfigReference<TextureConfig>(DEFAULT_TEXTURE, "File", path));
             }
 
             public MaterialMapping ()
@@ -519,13 +521,17 @@ public class ModelConfig extends ParameterizedConfig
     protected static ModelParser _parser;
 
     /** The default material for the default tag. */
-    protected static final String DEFAULT_MATERIAL = "Generic/Default";
+    protected static final String DEFAULT_MATERIAL = "Model/Opaque";
+
+    /** The default texture config (which we expect to take a single parameter, "File,"
+     * representing the texture image path). */
+    protected static final String DEFAULT_TEXTURE = "2D/File/Default";
 
     /** Maps tags to default materials (each of which we expect to take a single parameter,
-     * "Texture," representing the resource path of the material texture. */
+     * "Texture," representing the texture reference). */
     protected static final HashMap<String, String> DEFAULT_MATERIALS = Maps.newHashMap();
     static {
         DEFAULT_MATERIALS.put(DEFAULT_TAG, DEFAULT_MATERIAL);
-        DEFAULT_MATERIALS.put(SKINNED_TAG, "Generic/Default (Skinned)");
+        DEFAULT_MATERIALS.put(SKINNED_TAG, "Model/Skinned/Opaque");
     }
 }

@@ -73,7 +73,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     {
         _count++;
     }
-    
+
     /**
      * Decrements the count for this node.
      */
@@ -81,7 +81,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     {
         return --_count;
     }
-    
+
     /**
      * Sets whether or not this node is expanded in the tree.
      */
@@ -137,7 +137,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
             } else {
                 child.incrementCount();
             }
-            
+
         } else {
             // find (or create) next component in path, pass on the config
             String partial = decode(name.substring(0, idx));
@@ -265,7 +265,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
             ConfigTreeNode ochild = (ConfigTreeNode)children.get(ii);
             String oname = (String)ochild.getUserObject();
             boolean ofolder = ochild.getAllowsChildren();
-            if ((folder == ofolder) ? (name.compareTo(oname) <= 0) : folder) {
+            if ((folder == ofolder) ? (name.compareTo(oname) <= 0) : !folder) {
                 return ii;
             }
         }
@@ -396,7 +396,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
 
     /** The number of copies of this node. */
     protected int _count = 1;
-    
+
     /** Whether or not this node is expanded in the tree. */
     protected boolean _expanded;
 

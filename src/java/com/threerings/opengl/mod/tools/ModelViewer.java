@@ -220,8 +220,8 @@ public class ModelViewer extends ModelTool
         // set up the model
         ModelConfig config = new ModelConfig();
         config.init(_cfgmgr);
-        config.addListener(this);
         config.implementation = (ModelConfig.Derived)_epanel.getObject();
+        config.addListener(this);
         _scene.add(_model = new Model(this, config));
         _model.addObserver(this);
 

@@ -76,7 +76,8 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
 
         /** The material to use for the particle system. */
         @Editable(category="appearance", nullable=true)
-        public ConfigReference<MaterialConfig> material;
+        public ConfigReference<MaterialConfig> material =
+            new ConfigReference<MaterialConfig>(DEFAULT_MATERIAL);
 
         /** The number of texture divisions in the S direction. */
         @Editable(category="appearance", min=1)
@@ -410,4 +411,7 @@ public class ParticleSystemConfig extends ModelConfig.Implementation
             layer.invalidate();
         }
     }
+
+    /** The default layer material. */
+    protected static final String DEFAULT_MATERIAL = "Model/Translucent";
 }
