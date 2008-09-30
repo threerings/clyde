@@ -14,6 +14,7 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
@@ -84,7 +85,8 @@ public class PlaceableCursor extends Cursor
             _model = new Model(ctx);
             _model.setParentScope(this);
             _model.setRenderScheme(RenderScheme.TRANSLUCENT);
-            _model.getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
+            _model.setColorState(new ColorState());
+            _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
             _footprint = new ShapeElement(ctx);
             _footprint.getColor().set(Color4f.GREEN);
             setConfig(config);

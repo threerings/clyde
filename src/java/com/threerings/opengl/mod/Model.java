@@ -35,6 +35,7 @@ import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.scene.AmbientLightInfluence;
@@ -427,11 +428,22 @@ public class Model extends DynamicScope
     }
 
     /**
-     * Returns a reference to the model's color.
+     * Sets the model's color state.
      */
-    public Color4f getColor ()
+    public void setColorState (ColorState state)
     {
-        return _color;
+        if (_colorState != state) {
+            _colorState = state;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Returns a reference to the model's color state.
+     */
+    public ColorState getColorState ()
+    {
+        return _colorState;
     }
 
     /**
@@ -956,9 +968,9 @@ public class Model extends DynamicScope
     @Scoped
     protected String _renderScheme;
 
-    /** The model's color. */
+    /** The model's color state. */
     @Scoped
-    protected Color4f _color = new Color4f();
+    protected ColorState _colorState;
 
     /** The model's fog state. */
     @Scoped

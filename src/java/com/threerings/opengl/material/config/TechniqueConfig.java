@@ -32,6 +32,7 @@ import com.threerings.opengl.renderer.CompoundBatch;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
 import com.threerings.opengl.renderer.config.CoordSpace;
+import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.renderer.state.RenderState;
@@ -167,6 +168,11 @@ public class TechniqueConfig extends DeepObject
         public abstract boolean isSupported (GlContext ctx);
 
         /**
+         * Calls the appropriate corresponding rewrite method of {@link MaterialRewriter}.
+         */
+        public abstract Enqueuer rewrite (MaterialRewriter rewriter);
+
+        /**
          * Adds the descriptors for this enqueuer's passes (as encountered in a depth-first
          * traversal) to the provided list.
          */
@@ -218,6 +224,12 @@ public class TechniqueConfig extends DeepObject
                 }
             }
             return true;
+        }
+
+        @Override // documentation inherited
+        public Enqueuer rewrite (MaterialRewriter rewriter)
+        {
+            return rewriter.rewrite(this);
         }
 
         @Override // documentation inherited
@@ -333,6 +345,10 @@ public class TechniqueConfig extends DeepObject
             // initialize the states and draw command
             RenderState[] states = pass.createStates(ctx, scope, updaters);
             states[RenderState.ARRAY_STATE] = geometry.getArrayState(pidx.value);
+            if (states[RenderState.COLOR_STATE] == null) {
+                states[RenderState.COLOR_STATE] = ScopeUtil.resolve(
+                    scope, "colorState", ColorState.WHITE, ColorState.class);
+            }
             if (states[RenderState.FOG_STATE] == null) {
                 states[RenderState.FOG_STATE] = ScopeUtil.resolve(
                     scope, "fogState", FogState.DISABLED, FogState.class);
@@ -395,6 +411,12 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
+        public Enqueuer rewrite (MaterialRewriter rewriter)
+        {
+            return rewriter.rewrite(this);
+        }
+
+        @Override // documentation inherited
         public void getDescriptors (GlContext ctx, ArrayList<PassDescriptor> list)
         {
             for (Enqueuer enqueuer : enqueuers) {
@@ -445,6 +467,12 @@ public class TechniqueConfig extends DeepObject
         /** The group into which the batches are enqueued. */
         @Editable(weight=-1, hgroup="q")
         public int group;
+
+        @Override // documentation inherited
+        public Enqueuer rewrite (MaterialRewriter rewriter)
+        {
+            return rewriter.rewrite(this);
+        }
 
         @Override // documentation inherited
         public Renderable createRenderable (

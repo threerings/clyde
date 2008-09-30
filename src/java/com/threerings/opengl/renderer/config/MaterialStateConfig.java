@@ -200,7 +200,7 @@ public abstract class MaterialStateConfig extends DeepObject
 
     /** The color material mode. */
     @Editable(weight=1, hgroup="cm")
-    public ColorMaterialMode colorMaterialMode = ColorMaterialMode.DISABLED;
+    public ColorMaterialMode colorMaterialMode = ColorMaterialMode.AMBIENT_AND_DIFFUSE;
 
     /** The local viewer flag. */
     @Editable(hgroup="m3", weight=2)

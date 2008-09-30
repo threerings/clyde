@@ -42,9 +42,9 @@ public class PassConfig extends DeepObject
     @Editable
     public AlphaStateConfig alphaState = new AlphaStateConfig();
 
-    /** The color state to use in this pass. */
+    /** The color state to use in this pass (overriding the default). */
     @Editable(nullable=true)
-    public ColorStateConfig colorState = new ColorStateConfig();
+    public ColorStateConfig colorStateOverride;
 
     /** The color mask state to use in this pass. */
     @Editable
@@ -142,7 +142,8 @@ public class PassConfig extends DeepObject
     {
         RenderState[] states = RenderState.createEmptySet();
         states[RenderState.ALPHA_STATE] = alphaState.getState();
-        states[RenderState.COLOR_STATE] = (colorState == null) ? null : colorState.getState();
+        states[RenderState.COLOR_STATE] = (colorStateOverride == null) ?
+            null : colorStateOverride.getState();
         states[RenderState.COLOR_MASK_STATE] = colorMaskState.getState();
         states[RenderState.CULL_STATE] = cullState.getState();
         states[RenderState.DEPTH_STATE] = depthState.getState();

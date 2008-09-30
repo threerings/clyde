@@ -75,8 +75,9 @@ public class MaterialConfig extends ParameterizedConfig
         public TechniqueConfig getTechnique (GlContext ctx, String scheme)
         {
             // first look for an exact match for the scheme
-            TechniqueConfig[] processed = getProcessedTechniques(ctx);
-            for (TechniqueConfig technique : processed) {
+            ArrayList<TechniqueConfig> processed = getProcessedTechniques(ctx);
+            for (int ii = 0, nn = processed.size(); ii < nn; ii++) {
+                TechniqueConfig technique = processed.get(ii);
                 if (ObjectUtil.equals(technique.scheme, scheme)) {
                     return technique;
                 }
@@ -85,13 +86,34 @@ public class MaterialConfig extends ParameterizedConfig
             // then look for a compatible match
             RenderSchemeConfig sconfig = (scheme == null) ?
                 null : ctx.getConfigManager().getConfig(RenderSchemeConfig.class, scheme);
-            for (TechniqueConfig technique : processed) {
+            for (int ii = 0, nn = processed.size(); ii < nn; ii++) {
+                TechniqueConfig technique = processed.get(ii);
                 RenderSchemeConfig tconfig = technique.getSchemeConfig(ctx);
                 if ((sconfig == null) ? (tconfig == null || tconfig.isCompatibleWith(sconfig)) :
                         sconfig.isCompatibleWith(tconfig)) {
                     return technique;
                 }
             }
+
+            // then try to rewrite an existing technique
+            MaterialRewriter rewriter = (sconfig == null) ? null : sconfig.getMaterialRewriter();
+            if (rewriter == null) {
+                return null;
+            }
+            for (int ii = 0, nn = processed.size(); ii < nn; ii++) {
+                TechniqueConfig technique = processed.get(ii);
+                RenderSchemeConfig tconfig = technique.getSchemeConfig(ctx);
+                if (tconfig == null || tconfig.isCompatibleWith(null)) {
+                    TechniqueConfig rewritten = rewriter.rewrite(technique);
+                    if (rewritten != null) {
+                        rewritten.scheme = scheme;
+                        processed.add(rewritten);
+                        return rewritten;
+                    }
+                }
+            }
+
+            // finally, just give up
             return null;
         }
 
@@ -107,24 +129,23 @@ public class MaterialConfig extends ParameterizedConfig
         /**
          * Returns the lazily-constructed list of processed techniques.
          */
-        protected TechniqueConfig[] getProcessedTechniques (GlContext ctx)
+        protected ArrayList<TechniqueConfig> getProcessedTechniques (GlContext ctx)
         {
             if (_processedTechniques == null) {
-                ArrayList<TechniqueConfig> list = new ArrayList<TechniqueConfig>();
+                _processedTechniques = new ArrayList<TechniqueConfig>();
                 for (TechniqueConfig technique : techniques) {
                     TechniqueConfig processed = technique.process(ctx);
                     if (processed != null) {
-                        list.add(processed);
+                        _processedTechniques.add(processed);
                     }
                 }
-                _processedTechniques = list.toArray(new TechniqueConfig[list.size()]);
             }
             return _processedTechniques;
         }
 
         /** The cached list of supported techniques. */
         @DeepOmit
-        protected transient TechniqueConfig[] _processedTechniques;
+        protected transient ArrayList<TechniqueConfig> _processedTechniques;
     }
 
     /**
