@@ -75,7 +75,7 @@ public class XMLToBinaryTask extends Task
         System.out.println("Converting " + source + " to " + target + "...");
 
         // perform the conversion
-        XMLToBinaryConverter.convert(source, target);
+        XMLToBinaryConverter.convert(source.getPath(), target.getPath());
     }
 
     /** The directory in which we will generate our output (in a directory tree mirroring the
