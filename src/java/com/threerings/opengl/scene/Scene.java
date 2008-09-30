@@ -305,13 +305,16 @@ public abstract class Scene extends DynamicScope
         }
 
         // update the influences of any flagged elements
-        if (!_updateInfluences.isEmpty()) {
-            for (SceneElement element : _updateInfluences) {
+        int size = _updateInfluences.size();
+        if (size > 0) {
+            _updateArray = _updateInfluences.toArray(_updateArray);
+            _updateInfluences.clear();
+            for (int ii = 0; ii < size; ii++) {
+                SceneElement element = _updateArray[ii];
                 getInfluences(element.getBounds(), _influences);
                 element.setInfluences(_influences);
                 _influences.clear();
             }
-            _updateInfluences.clear();
         }
     }
 
@@ -504,6 +507,9 @@ public abstract class Scene extends DynamicScope
 
     /** The elements whose influence sets must be updated. */
     protected HashSet<SceneElement> _updateInfluences = new HashSet<SceneElement>();
+
+    /** Holds the scene elements while we're updating their influences. */
+    protected SceneElement[] _updateArray = new SceneElement[0];
 
     /** The effects currently acting on the viewer. */
     protected ViewerEffectSet _effects = new ViewerEffectSet();

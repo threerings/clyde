@@ -137,6 +137,14 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Checks whether this model can be influenced.
+         */
+        public boolean isInfluenceable ()
+        {
+            return true;
+        }
+
+        /**
          * Returns a reference to the bounds of the model.
          */
         public Box getBounds ()
@@ -710,11 +718,14 @@ public class Model extends DynamicScope
     // documentation inherited from interface SceneElement
     public void setInfluences (SceneInfluenceSet influences)
     {
-        if (_influences.equals(influences)) {
+        boolean influenceable = _impl.isInfluenceable();
+        if (influenceable ? _influences.equals(influences) : _influences.isEmpty()) {
             return;
         }
         _influences.clear();
-        _influences.addAll(influences);
+        if (influenceable) {
+            _influences.addAll(influences);
+        }
 
         // process the influences
         Box bounds = getBounds();

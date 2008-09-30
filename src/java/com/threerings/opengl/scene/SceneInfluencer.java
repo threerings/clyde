@@ -44,6 +44,12 @@ public class SceneInfluencer extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public boolean isInfluenceable ()
+    {
+        return false;
+    }
+
+    @Override // documentation inherited
     public Box getBounds ()
     {
         return _bounds;

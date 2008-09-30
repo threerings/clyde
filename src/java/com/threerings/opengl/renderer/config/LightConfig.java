@@ -69,7 +69,7 @@ public abstract class LightConfig extends DeepObject
     public static class Point extends LightConfig
     {
         /** The location of the light. */
-        @Editable(hgroup="p")
+        @Editable(step=0.01, hgroup="p")
         public Vector3f position = new Vector3f();
 
         /** The light's attenuation parameters. */
