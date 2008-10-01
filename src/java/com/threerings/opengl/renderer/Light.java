@@ -11,6 +11,9 @@ import com.threerings.math.Vector4f;
  */
 public class Light
 {
+    /** The basic light types. */
+    public enum Type { DIRECTIONAL, POINT, SPOT };
+
     /** The ambient light intensity. */
     public Color4f ambient = new Color4f(0f, 0f, 0f, 1f);
 
@@ -46,4 +49,22 @@ public class Light
 
     /** A hint as to whether or not this light should cast shadows. */
     public boolean castsShadows;
+
+    /**
+     * Determines whether this light is "compatible" with the specified other.  Lights are
+     * compatible if they have the same type (directional, point, spot) and hints.
+     */
+    public boolean isCompatible (Light olight)
+    {
+        return getType() == olight.getType() && castsShadows == olight.castsShadows;
+    }
+
+    /**
+     * Returns the basic type of this light.
+     */
+    public Type getType ()
+    {
+        return (position.w == 0f) ? Type.DIRECTIONAL :
+            (spotCutoff == 180f ? Type.POINT : Type.SPOT);
+    }
 }

@@ -62,11 +62,45 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
                 }
             }
             Light light = influence.getLight();
-            if (light != null) {
+            if (light != null && lights.size() < MAX_LIGHTS) {
                 lights.add(light);
             }
         }
-        return (closestAmbient == null) ? LightState.DISABLED :
-            new LightState(lights.toArray(new Light[lights.size()]), closestAmbient);
+        if (closestAmbient == null) {
+            return LightState.DISABLED;
+        }
+        if (canReuse(state, lights)) {
+            Light[] olights = state.getLights();
+            for (int ii = 0; ii < olights.length; ii++) {
+                olights[ii] = lights.get(ii);
+            }
+            state.getGlobalAmbient().set(closestAmbient);
+            return state;
+        }
+        return new LightState(lights.toArray(new Light[lights.size()]), closestAmbient);
     }
+
+    /**
+     * Determines whether we can reuse the specified state, given the provided new list of
+     * lights.
+     */
+    protected boolean canReuse (LightState state, ArrayList<Light> nlights)
+    {
+        if (state == null) {
+            return false;
+        }
+        Light[] olights = state.getLights();
+        if (olights == null || olights.length != nlights.size()) {
+            return false;
+        }
+        for (int ii = 0; ii < olights.length; ii++) {
+            if (!olights[ii].isCompatible(nlights.get(ii))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** The maximum number of lights we allow in a set. */
+    protected static final int MAX_LIGHTS = 3;
 }

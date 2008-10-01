@@ -33,6 +33,8 @@ import com.threerings.tudey.client.sprite.GlobalSprite;
 import com.threerings.tudey.client.sprite.PathSprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
+import com.threerings.tudey.config.AreaConfig;
+import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.config.TileConfig;
@@ -247,7 +249,11 @@ public class TudeySceneModel extends SceneModel
      */
     public static class PathEntry extends IdEntry
     {
-        /** The path vertice. */
+        /** The configuration of the path. */
+        @Editable(nullable=true)
+        public ConfigReference<PathConfig> path;
+
+        /** The path vertices. */
         @Editable(editor="table")
         public Vertex[] vertices = new Vertex[0];
 
@@ -263,7 +269,11 @@ public class TudeySceneModel extends SceneModel
      */
     public static class AreaEntry extends IdEntry
     {
-        /** The path vertice. */
+        /** The configuration of the area. */
+        @Editable(nullable=true)
+        public ConfigReference<AreaConfig> area;
+
+        /** The area vertices. */
         @Editable(editor="table")
         public Vertex[] vertices = new Vertex[0];
 
