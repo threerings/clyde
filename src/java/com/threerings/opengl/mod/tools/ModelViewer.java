@@ -15,6 +15,7 @@ import java.text.DecimalFormat;
 
 import java.util.prefs.Preferences;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -23,18 +24,19 @@ import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
-import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.Spacer;
+import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.editor.Property;
+import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.util.ChangeBlock;
 import com.threerings.util.ToolUtil;
@@ -99,25 +101,38 @@ public class ModelViewer extends ModelTool
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
         view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
 
-        // add the bottom panel
-        JPanel bottom = GroupLayout.makeVBox(
-            GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
-        _frame.add(bottom, BorderLayout.SOUTH);
+        // configure the side panel
+        _cpanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        _cpanel.setPreferredSize(new Dimension(350, 1));
+
+        // add the config editor
+        _cpanel.add(_epanel = new EditorPanel(this));
+
+        // add the animation control container
+        _apanel = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
+        _apanel.setBorder(BorderFactory.createTitledBorder(_msgs.get("m.animations")));
+        _cpanel.add(_apanel, GroupLayout.FIXED);
+        _apanel.setVisible(false);
 
         // add the track panel container
         _tpanels = GroupLayout.makeVBox(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
-        bottom.add(_tpanels);
-        _tpanels.setVisible(false);
+        _apanel.add(_tpanels);
+
+        // add the animation controls
+        JPanel buttons = new JPanel();
+        _apanel.add(buttons);
+        buttons.add(createButton("add_track"));
+        buttons.add(_removeTrack = createButton("remove_track"));
+        _removeTrack.setEnabled(false);
 
         // add the controls
         JPanel controls = new JPanel();
-        bottom.add(controls);
+        _cpanel.add(controls, GroupLayout.FIXED);
         controls.add(new JLabel(_msgs.get("m.global_speed")));
-        controls.add(_speedSlider = new JSlider(-200, +200, 0));
-        _speedSlider.setPreferredSize(new Dimension(400, _speedSlider.getPreferredSize().height));
-        _speedSlider.addChangeListener(this);
-        controls.add(_speedLabel = new JLabel());
-        updateSpeedLabel();
+        controls.add(_speedSpinner = new DraggableSpinner(1f, 0f, Float.MAX_VALUE, 0.01f));
+        _speedSpinner.setMinimumSize(_speedSpinner.getPreferredSize());
+        _speedSpinner.setMaximumSize(_speedSpinner.getPreferredSize());
+        _speedSpinner.addChangeListener(this);
 
         // configure the config editor
         ModelConfig.Derived impl = new ModelConfig.Derived();
@@ -144,8 +159,6 @@ public class ModelViewer extends ModelTool
             } finally {
                 _block.leave();
             }
-        } else { // event.getSource() == _speedSlider
-            updateSpeedLabel();
         }
     }
 
@@ -155,9 +168,9 @@ public class ModelViewer extends ModelTool
         // update the track panels
         Animation[] anims = _model.getAnimations();
         if (anims.length == 0) {
-            _tpanels.setVisible(false);
+            _apanel.setVisible(false);
         } else {
-            _tpanels.setVisible(true);
+            _apanel.setVisible(true);
             for (int ii = 0, nn = _tpanels.getComponentCount(); ii < nn; ii++) {
                 ((TrackPanel)_tpanels.getComponent(ii)).updateAnimations();
             }
@@ -196,10 +209,27 @@ public class ModelViewer extends ModelTool
     }
 
     @Override // documentation inherited
+    public void actionPerformed (ActionEvent event)
+    {
+        String action = event.getActionCommand();
+        if (action.equals("add_track")) {
+            _tpanels.add(new TrackPanel());
+            _removeTrack.setEnabled(true);
+            SwingUtil.refresh(_cpanel);
+        } else if (action.equals("remove_track")) {
+            _tpanels.remove(_tpanels.getComponentCount() - 1);
+            _removeTrack.setEnabled(_tpanels.getComponentCount() > 1);
+            SwingUtil.refresh(_cpanel);
+        } else {
+            super.actionPerformed(event);
+        }
+    }
+
+    @Override // documentation inherited
     protected JComponent createCanvasContainer ()
     {
         JSplitPane pane = new JSplitPane(
-            JSplitPane.VERTICAL_SPLIT, true, _canvas, _epanel = new EditorPanel(this));
+            JSplitPane.HORIZONTAL_SPLIT, true, _canvas, _cpanel = GroupLayout.makeVStretchBox(5));
         _canvas.setMinimumSize(new Dimension(1, 1));
         pane.setResizeWeight(1.0);
         pane.setOneTouchExpandable(true);
@@ -226,8 +256,8 @@ public class ModelViewer extends ModelTool
         _model.addObserver(this);
 
         // add the initial track panel
-        _tpanels.setVisible(_model.getAnimations().length > 0);
-        _tpanels.add(new TrackPanel(false));
+        _apanel.setVisible(_model.getAnimations().length > 0);
+        _tpanels.add(new TrackPanel());
     }
 
     @Override // documentation inherited
@@ -235,7 +265,7 @@ public class ModelViewer extends ModelTool
     {
         // scaled the elapsed time by the speed
         long nnow = System.currentTimeMillis();
-        _elapsed += (nnow - _lastUpdate) * getSpeed();
+        _elapsed += (nnow - _lastUpdate) * _speedSpinner.getFloatValue();
         _lastUpdate = nnow;
 
         // remove the integer portion for use as time increment
@@ -257,23 +287,6 @@ public class ModelViewer extends ModelTool
     }
 
     /**
-     * Updates the speed display.
-     */
-    protected void updateSpeedLabel ()
-    {
-        _speedLabel.setText(SPEED_FORMAT.format(getSpeed()));
-    }
-
-    /**
-     * Returns the speed as read from the slider.
-     */
-    protected double getSpeed ()
-    {
-        double base = (double)_speedSlider.getValue() / _speedSlider.getMaximum();
-        return Math.pow(20.0, base);
-    }
-
-    /**
      * A single panel for running animations.
      */
     protected class TrackPanel extends JPanel
@@ -281,29 +294,16 @@ public class ModelViewer extends ModelTool
     {
         /**
          * Creates a new animation panel.
-         *
-         * @param removable whether or not the panel is removable (the first panel is not).
          */
-        public TrackPanel (boolean removable)
+        public TrackPanel ()
         {
-            add(new JLabel(_msgs.get("m.animation")));
             add(_box = new JComboBox(_model.getAnimations()));
             _box.addActionListener(this);
-            add(new Spacer(10, 1));
+            add(new Spacer(1, 1));
             add(_start = new JButton(_msgs.get("m.start")));
             _start.addActionListener(this);
             add(_stop = new JButton(_msgs.get("m.stop")));
             _stop.addActionListener(this);
-            add(new Spacer(10, 1));
-
-            // depending on whether we can remove this panel, add the remove or add button
-            if (removable) {
-                add(_remove = new JButton(_msgs.get("m.remove_track")));
-                _remove.addActionListener(this);
-            } else {
-                add(_add = new JButton(_msgs.get("m.add_track")));
-                _add.addActionListener(this);
-            }
 
             // update the controls
             updateControls();
@@ -338,12 +338,6 @@ public class ModelViewer extends ModelTool
                 ((Animation)_box.getSelectedItem()).start();
             } else if (source == _stop) {
                 ((Animation)_box.getSelectedItem()).stop();
-            } else if (source == _add) {
-                _tpanels.add(new TrackPanel(true));
-                _frame.validate();
-            } else if (source == _remove) {
-                _tpanels.remove(this);
-                _frame.validate();
             }
         }
 
@@ -352,28 +346,31 @@ public class ModelViewer extends ModelTool
 
         /** The start and stop buttons. */
         protected JButton _start, _stop;
-
-        /** The add and remove buttons (only one of which will be used). */
-        protected JButton _add, _remove;
     }
+
+    /** The panel that holds the control bits. */
+    protected JPanel _cpanel;
 
     /** The editor panel we use to edit the model configuration. */
     protected EditorPanel _epanel;
 
+    /** The animation control container. */
+    protected JPanel _apanel;
+
     /** The container for the animation track panels. */
     protected JPanel _tpanels;
 
-    /** The speed control slider. */
-    protected JSlider _speedSlider;
+    /** The remove track button. */
+    protected JButton _removeTrack;
 
-    /** The speed display. */
-    protected JLabel _speedLabel;
+    /** The speed control spinner. */
+    protected DraggableSpinner _speedSpinner;
 
     /** The time of the last update. */
     protected long _lastUpdate = System.currentTimeMillis();
 
     /** Accumulated elapsed time. */
-    protected double _elapsed;
+    protected float _elapsed;
 
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
     protected ChangeBlock _block = new ChangeBlock();
