@@ -21,6 +21,7 @@ import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.Shader;
 import com.threerings.opengl.renderer.config.ShaderConfig.UniformConfig;
+import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.ShaderState;
 import com.threerings.opengl.util.GlContext;
 
@@ -43,7 +44,8 @@ public abstract class ShaderStateConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public ShaderState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        public ShaderState getState (
+            GlContext ctx, Scope scope, RenderState[] states, ArrayList<Updater> updaters)
         {
             return ShaderState.DISABLED;
         }
@@ -88,12 +90,13 @@ public abstract class ShaderStateConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public ShaderState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        public ShaderState getState (
+            GlContext ctx, Scope scope, RenderState[] states, ArrayList<Updater> updaters)
         {
             ShaderConfig vconfig = getShaderConfig(ctx, vertex);
             ShaderConfig fconfig = getShaderConfig(ctx, fragment);
-            Shader vshader = (vconfig == null) ? null : vconfig.getShader(ctx);
-            Shader fshader = (fconfig == null) ? null : fconfig.getShader(ctx);
+            Shader vshader = (vconfig == null) ? null : vconfig.getShader(ctx, scope, states);
+            Shader fshader = (fconfig == null) ? null : fconfig.getShader(ctx, scope, states);
             if (vshader == null && fshader == null) {
                 return ShaderState.DISABLED;
             }
@@ -166,5 +169,6 @@ public abstract class ShaderStateConfig extends DeepObject
     /**
      * Returns the corresponding shader state.
      */
-    public abstract ShaderState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters);
+    public abstract ShaderState getState (
+        GlContext ctx, Scope scope, RenderState[] states, ArrayList<Updater> updaters);
 }

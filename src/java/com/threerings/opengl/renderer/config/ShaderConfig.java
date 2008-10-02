@@ -35,6 +35,8 @@ import com.threerings.opengl.renderer.Program.Vector4fUniform;
 import com.threerings.opengl.renderer.Program.Matrix4fUniform;
 import com.threerings.opengl.renderer.Program.Uniform;
 import com.threerings.opengl.renderer.Shader;
+import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.renderer.util.SnippetUtil;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -73,7 +75,7 @@ public class ShaderConfig extends ParameterizedConfig
         /**
          * Returns the shader corresponding to this configuration.
          */
-        public abstract Shader getShader (GlContext ctx);
+        public abstract Shader getShader (GlContext ctx, Scope scope, RenderState[] states);
 
         /**
          * Returns the array of uniforms for this configuration.
@@ -140,7 +142,7 @@ public class ShaderConfig extends ParameterizedConfig
             /**
              * Returns the shader.
              */
-            public abstract Shader getShader (GlContext ctx);
+            public abstract Shader getShader (GlContext ctx, Scope scope, RenderState[] states);
         }
 
         /**
@@ -169,17 +171,14 @@ public class ShaderConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Shader getShader (GlContext ctx)
+            public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
             {
                 if (file == null) {
                     return null;
                 }
                 ArrayList<String> defs = new ArrayList<String>();
                 for (Definition definition : definitions) {
-                    String def = definition.getString();
-                    if (def != null) {
-                        defs.add(def);
-                    }
+                    definition.getDefinitions(scope, states, defs);
                 }
                 return ctx.getShaderCache().getShader(file, defs.toArray(new String[defs.size()]));
             }
@@ -207,9 +206,9 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Shader getShader (GlContext ctx)
+        public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
         {
-            return contents.getShader(ctx);
+            return contents.getShader(ctx, scope, states);
         }
     }
 
@@ -236,7 +235,7 @@ public class ShaderConfig extends ParameterizedConfig
             /**
              * Returns the shader.
              */
-            public abstract Shader getShader (GlContext ctx);
+            public abstract Shader getShader (GlContext ctx, Scope scope, RenderState[] states);
         }
 
         /**
@@ -265,17 +264,14 @@ public class ShaderConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Shader getShader (GlContext ctx)
+            public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
             {
                 if (file == null) {
                     return null;
                 }
                 ArrayList<String> defs = new ArrayList<String>();
                 for (Definition definition : definitions) {
-                    String def = definition.getString();
-                    if (def != null) {
-                        defs.add(def);
-                    }
+                    definition.getDefinitions(scope, states, defs);
                 }
                 return ctx.getShaderCache().getShader(file, defs.toArray(new String[defs.size()]));
             }
@@ -298,9 +294,9 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Shader getShader (GlContext ctx)
+        public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
         {
-            return contents.getShader(ctx);
+            return contents.getShader(ctx, scope, states);
         }
     }
 
@@ -329,10 +325,10 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Shader getShader (GlContext ctx)
+        public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
         {
             ShaderConfig config = getConfig(ctx);
-            return (config == null) ? null : config.getShader(ctx);
+            return (config == null) ? null : config.getShader(ctx, scope, states);
         }
 
         @Override // documentation inherited
@@ -557,7 +553,8 @@ public class ShaderConfig extends ParameterizedConfig
      */
     @EditorTypes({
         BooleanDefinition.class, ColorDefinition.class, FloatDefinition.class,
-        IntegerDefinition.class, StringDefinition.class, TransformDefinition.class })
+        IntegerDefinition.class, StringDefinition.class, TransformDefinition.class,
+        FogParamSnippet.class, TexCoordSnippet.class, VertexLightingSnippet.class })
     public static abstract class Definition extends DeepObject
         implements Exportable
     {
@@ -566,11 +563,10 @@ public class ShaderConfig extends ParameterizedConfig
         public String name = "";
 
         /**
-         * Returns the string for this definition.
-         *
-         * @return the definition string, or <code>null</code> to omit the definition.
+         * Retrieves the definitions for this config and adds them to the provided list.
          */
-        public abstract String getString ();
+        public abstract void getDefinitions (
+            Scope scope, RenderState[] states, ArrayList<String> defs);
     }
 
     /**
@@ -583,9 +579,11 @@ public class ShaderConfig extends ParameterizedConfig
         public boolean value;
 
         @Override // documentation inherited
-        public String getString ()
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
-            return value ? name : null;
+            if (value) {
+                defs.add(name);
+            }
         }
     }
 
@@ -599,13 +597,13 @@ public class ShaderConfig extends ParameterizedConfig
         public Color4f value = new Color4f();
 
         @Override // documentation inherited
-        public String getString ()
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
-            return name + " vec4(" +
+            defs.add(name + " vec4(" +
                 GLSL_FLOAT.format(value.r) + ", " +
                 GLSL_FLOAT.format(value.g) + ", " +
                 GLSL_FLOAT.format(value.b) + ", " +
-                GLSL_FLOAT.format(value.a) + ")";
+                GLSL_FLOAT.format(value.a) + ")");
         }
     }
 
@@ -619,9 +617,9 @@ public class ShaderConfig extends ParameterizedConfig
         public float value;
 
         @Override // documentation inherited
-        public String getString ()
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
-            return name + " " + GLSL_FLOAT.format(value);
+            defs.add(name + " " + GLSL_FLOAT.format(value));
         }
     }
 
@@ -635,9 +633,9 @@ public class ShaderConfig extends ParameterizedConfig
         public int value;
 
         @Override // documentation inherited
-        public String getString ()
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
-            return name + " " + value;
+            defs.add(name + " " + value);
         }
     }
 
@@ -651,9 +649,9 @@ public class ShaderConfig extends ParameterizedConfig
         public String value = "";
 
         @Override // documentation inherited
-        public String getString ()
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
-            return name + " " + value;
+            defs.add(name + " " + value);
         }
     }
 
@@ -667,11 +665,11 @@ public class ShaderConfig extends ParameterizedConfig
         public Transform3D value = new Transform3D();
 
         @Override // documentation inherited
-        public String getString ()
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
             value.update(Transform3D.GENERAL);
             Matrix4f matrix = value.getMatrix();
-            return name + " mat4(" +
+            defs.add(name + " mat4(" +
                 GLSL_FLOAT.format(matrix.m00) + ", " +
                 GLSL_FLOAT.format(matrix.m01) + ", " +
                 GLSL_FLOAT.format(matrix.m02) + ", " +
@@ -690,7 +688,54 @@ public class ShaderConfig extends ParameterizedConfig
                 GLSL_FLOAT.format(matrix.m30) + ", " +
                 GLSL_FLOAT.format(matrix.m31) + ", " +
                 GLSL_FLOAT.format(matrix.m32) + ", " +
-                GLSL_FLOAT.format(matrix.m33) + ")";
+                GLSL_FLOAT.format(matrix.m33) + ")");
+        }
+    }
+
+    /**
+     * Defines a snippet that sets the fog parameter value to simulate the behavior of the
+     * fixed-function pipeline.
+     */
+    public static class FogParamSnippet extends Definition
+    {
+        @Override // documentation inherited
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        {
+            SnippetUtil.getFogParam(name, states, defs);
+        }
+    }
+
+    /**
+     * Defines a snippet that sets the tex coords to simulate the behavior of the fixed-function
+     * pipeline.
+     */
+    public static class TexCoordSnippet extends Definition
+    {
+        /** The variable containing the location of the vertex in eye space. */
+        @Editable
+        public String eyeVertex = "eyeVertex";
+
+        /** The variable containing the normal in eye space. */
+        @Editable
+        public String eyeNormal = "eyeNormal";
+
+        @Override // documentation inherited
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        {
+            SnippetUtil.getTexCoord(name, eyeVertex, eyeNormal, states, defs);
+        }
+    }
+
+    /**
+     * Defines a snippet that sets the front and/or back colors to simulate the behavior of the
+     * fixed-function pipeline.
+     */
+    public static class VertexLightingSnippet extends Definition
+    {
+        @Override // documentation inherited
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        {
+            SnippetUtil.getVertexLighting(name, states, defs);
         }
     }
 
@@ -709,9 +754,9 @@ public class ShaderConfig extends ParameterizedConfig
     /**
      * Returns the shader corresponding to this configuration.
      */
-    public Shader getShader (GlContext ctx)
+    public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
     {
-        return implementation.getShader(ctx);
+        return implementation.getShader(ctx, scope, states);
     }
 
     /**

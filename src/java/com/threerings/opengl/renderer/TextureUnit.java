@@ -118,4 +118,20 @@ public class TextureUnit
     public TextureUnit ()
     {
     }
+
+    /**
+     * Checks whether all of the unit's gen modes equal the supplied mode.
+     */
+    public boolean allGenModesEqual (int mode)
+    {
+        return genModeS == mode && genModeT == mode && genModeR == mode && genModeQ == mode;
+    }
+
+    /**
+     * Checks whether any of the unit's gen modes equal the supplied mode.
+     */
+    public boolean anyGenModesEqual (int mode)
+    {
+        return genModeS == mode || genModeT == mode || genModeR == mode || genModeQ == mode;
+    }
 }
