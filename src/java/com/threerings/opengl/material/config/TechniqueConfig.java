@@ -345,18 +345,6 @@ public class TechniqueConfig extends DeepObject
             // initialize the states and draw command
             RenderState[] states = pass.createStates(ctx, scope, updaters);
             states[RenderState.ARRAY_STATE] = geometry.getArrayState(pidx.value);
-            if (states[RenderState.COLOR_STATE] == null) {
-                states[RenderState.COLOR_STATE] = ScopeUtil.resolve(
-                    scope, "colorState", ColorState.WHITE, ColorState.class);
-            }
-            if (states[RenderState.FOG_STATE] == null) {
-                states[RenderState.FOG_STATE] = ScopeUtil.resolve(
-                    scope, "fogState", FogState.DISABLED, FogState.class);
-            }
-            if (states[RenderState.LIGHT_STATE] == null) {
-                states[RenderState.LIGHT_STATE] = ScopeUtil.resolve(
-                    scope, "lightState", LightState.DISABLED, LightState.class);
-            }
             CoordSpace space = geometry.getCoordSpace(pidx.value);
             if (space == CoordSpace.EYE) {
                 states[RenderState.TRANSFORM_STATE] = TransformState.IDENTITY;

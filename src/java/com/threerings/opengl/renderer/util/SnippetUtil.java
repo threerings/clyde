@@ -25,7 +25,6 @@ import com.threerings.opengl.renderer.state.TextureState;
  */
 public class SnippetUtil
 {
-
     /**
      * Creates a fog parameter snippet.
      */
@@ -48,7 +47,6 @@ public class SnippetUtil
         String def = _texCoords.get(key);
         if (def == null) {
             _texCoords.put(key, def = createTexCoordDef(name, eyeVertex, eyeNormal, units));
-            System.out.println(def);
         }
         defs.add(def);
     }
