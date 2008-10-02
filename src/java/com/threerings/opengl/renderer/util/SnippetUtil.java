@@ -4,7 +4,6 @@
 package com.threerings.opengl.renderer.util;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 import org.lwjgl.opengl.GL11;
 
@@ -14,9 +13,9 @@ import com.threerings.util.ArrayKey;
 
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.TextureUnit;
+import com.threerings.opengl.renderer.state.CullState;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
-import com.threerings.opengl.renderer.state.MaterialState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.TextureState;
 
@@ -28,10 +27,24 @@ public class SnippetUtil
     /**
      * Creates a fog parameter snippet.
      */
-    public static void getFogParam (String name, RenderState[] states, ArrayList<String> defs)
+    public static void getFogParam (
+        String name, String eyeVertex, String fogParam, RenderState[] states,
+        ArrayList<String> defs)
     {
         FogState state = (FogState)states[RenderState.FOG_STATE];
-
+        int mode = (state == null) ? -1 : state.getFogMode();
+        if (mode == -1) {
+            defs.add("DECLARE_" + name);
+            defs.add("SET_" + name);
+            return;
+        }
+        defs.add("DECLARE_" + name + " varying float " + fogParam + ";");
+        ArrayKey key = new ArrayKey(name, eyeVertex, fogParam, mode);
+        String def = _fogParams.get(key);
+        if (def == null) {
+            _fogParams.put(key, def = createFogParamDef(name, eyeVertex, fogParam, mode));
+        }
+        defs.add(def);
     }
 
     /**
@@ -55,10 +68,43 @@ public class SnippetUtil
      * Creates a vertex lighting snippet.
      */
     public static void getVertexLighting (
-        String name, RenderState[] states, ArrayList<String> defs)
+        String name, String eyeVertex, String eyeNormal, RenderState[] states,
+        ArrayList<String> defs)
     {
+        CullState cstate = (CullState)states[RenderState.CULL_STATE];
         LightState lstate = (LightState)states[RenderState.LIGHT_STATE];
+        int cullFace = (cstate == null) ? -1 : cstate.getCullFace();
+        Light[] lights = (lstate == null) ? null : lstate.getLights();
+        ArrayKey key = createVertexLightingKey(name, eyeVertex, eyeNormal, cullFace, lights);
+        String def = _vertexLighting.get(key);
+        if (def == null) {
+            _vertexLighting.put(key, def = createVertexLightingDef(
+                name, eyeVertex, eyeNormal, cullFace, lights));
+        }
+        defs.add(def);
+    }
 
+    /**
+     * Creates and returns the definition for the supplied fog parameters.
+     */
+    protected static String createFogParamDef (
+        String name, String eyeVertex, String fogParam, int mode)
+    {
+        StringBuilder buf = new StringBuilder();
+        switch(mode) {
+            case GL11.GL_LINEAR:
+                buf.append(fogParam + " = clamp((gl_Fog.end - " + eyeVertex + ".z) * gl_Fog.scale");
+                break;
+            case GL11.GL_EXP:
+                buf.append(fogParam + " = clamp(exp(-gl_Fog.density * " + eyeVertex + ".z)");
+                break;
+            case GL11.GL_EXP2:
+                buf.append("float f = gl_Fog.density * " + eyeVertex + ".z; ");
+                buf.append(fogParam + " = clamp(exp(-f*f)");
+                break;
+        }
+        buf.append(", 0.0, 1.0); ");
+        return "SET_" + name + " { " + buf + "}";
     }
 
     /**
@@ -67,15 +113,13 @@ public class SnippetUtil
     protected static ArrayKey createTexCoordKey (
         String name, String eyeVertex, String eyeNormal, TextureUnit[] units)
     {
-        ArrayList<Object> list = new ArrayList<Object>();
-        Collections.addAll(list, name, eyeVertex, eyeNormal);
-        if (units != null) {
-            for (TextureUnit unit : units) {
-                list.add(unit == null ? null : new int[] {
-                    unit.genModeS, unit.genModeT, unit.genModeR, unit.genModeQ });
-            }
+        int[][] genModes = new int[units == null ? 0 : units.length][];
+        for (int ii = 0; ii < genModes.length; ii++) {
+            TextureUnit unit = units[ii];
+            genModes[ii] = (unit == null) ? null :
+                new int[] { unit.genModeS, unit.genModeT, unit.genModeR, unit.genModeQ };
         }
-        return new ArrayKey(list.toArray(new Object[list.size()]));
+        return new ArrayKey(name, eyeVertex, eyeNormal, genModes);
     }
 
     /**
@@ -87,8 +131,8 @@ public class SnippetUtil
         StringBuilder buf = new StringBuilder();
         if (units != null) {
             if (anySphereMapped(units)) {
-                buf.append("vec3 f = reflect(normalize(" + eyeVertex + ".xyz), normalize(" +
-                    eyeNormal + ".xyz)); ");
+                buf.append("vec3 f = reflect(normalize(" + eyeVertex + ".xyz), " +
+                    eyeNormal + "); ");
                 buf.append("float z1 = f.z + 1.0; ");
                 buf.append("float rm = 0.5 / sqrt(f.x*f.x + f.y*f.y + (z1*z1)); ");
                 buf.append("vec4 sphereTexCoord = vec4(f.x*rm + 0.5, f.y*rm + 0.5, 0.0, 1.0); ");
@@ -161,6 +205,107 @@ public class SnippetUtil
         }
     }
 
+    /**
+     * Creates and returns a key for the supplied vertex lighting parameters.
+     */
+    protected static ArrayKey createVertexLightingKey (
+        String name, String eyeVertex, String eyeNormal, int cullFace, Light[] lights)
+    {
+        Light.Type[] types;
+        if (lights != null) {
+            types = new Light.Type[lights.length];
+            for (int ii = 0; ii < types.length; ii++) {
+                Light light = lights[ii];
+                types[ii] = (light == null) ? null : light.getType();
+            }
+        } else {
+            types = null;
+        }
+        return new ArrayKey(name, eyeVertex, eyeNormal, cullFace, types);
+    }
+
+    /**
+     * Creates and returns the definition for the supplied vertex lighting parameters.
+     */
+    protected static String createVertexLightingDef (
+        String name, String eyeVertex, String eyeNormal, int cullFace, Light[] lights)
+    {
+        StringBuilder buf = new StringBuilder();
+        if (cullFace == -1 || cullFace == GL11.GL_BACK) {
+            buf.append(createVertexLightingSide("Front", eyeVertex, eyeNormal, lights));
+        }
+        if (cullFace == -1 || cullFace == GL11.GL_FRONT) {
+            buf.append(createVertexLightingSide("Back", eyeVertex, eyeNormal, lights));
+        }
+        return name + " { " + buf + "}";
+    }
+
+    /**
+     * Creates and returns the expression for a single vertex-lit side.
+     */
+    protected static String createVertexLightingSide (
+        String side, String eyeVertex, String eyeNormal, Light[] lights)
+    {
+        String variable = "gl_" + side + "Color";
+        if (lights == null) {
+            return variable + " = gl_Color; ";
+        }
+        StringBuilder buf = new StringBuilder();
+        buf.append(variable + " = gl_" + side + "LightModelProduct.sceneColor; ");
+        for (int ii = 0; ii < lights.length; ii++) {
+            Light light = lights[ii];
+            if (light == null) {
+                continue;
+            }
+            switch (light.getType()) {
+                case DIRECTIONAL:
+                    addDirectionalLight(ii, side, eyeNormal, buf);
+                    break;
+                case POINT:
+                    addPointLight(ii, side, eyeVertex, eyeNormal, buf);
+                    break;
+                case SPOT:
+                    addSpotLight(ii, side, eyeVertex, eyeNormal, buf);
+                    break;
+            }
+        }
+        return buf.toString();
+    }
+
+    /**
+     * Adds the influence of a directional light.
+     */
+    protected static void addDirectionalLight (
+        int idx, String side, String eyeNormal, StringBuilder buf)
+    {
+        buf.append("gl_" + side + "Color += gl_" + side + "LightProduct[" + idx +
+            "].ambient + gl_" + side + "LightProduct[" + idx + "].diffuse * max(dot(" +
+            eyeNormal + ", gl_LightSource[" + idx + "].position), 0.0); ");
+    }
+
+    /**
+     * Adds the influence of a point light.
+     */
+    protected static void addPointLight (
+        int idx, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
+    {
+    }
+
+    /**
+     * Adds the influence of a spot light.
+     */
+    protected static void addSpotLight (
+        int idx, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
+    {
+    }
+
+    /** Cached fog param snippets. */
+    protected static SoftCache<ArrayKey, String> _fogParams = new SoftCache<ArrayKey, String>();
+
     /** Cached tex coord snippets. */
     protected static SoftCache<ArrayKey, String> _texCoords = new SoftCache<ArrayKey, String>();
+
+    /** Cached vertex lighting snippets. */
+    protected static SoftCache<ArrayKey, String> _vertexLighting =
+        new SoftCache<ArrayKey, String>();
 }

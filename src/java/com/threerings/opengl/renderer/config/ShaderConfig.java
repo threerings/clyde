@@ -698,10 +698,18 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static class FogParamSnippet extends Definition
     {
+        /** The variable containing the location of the vertex in eye space. */
+        @Editable
+        public String eyeVertex = "eyeVertex";
+
+        /** The name of the fog parameter variable. */
+        @Editable
+        public String fogParam = "fogParam";
+
         @Override // documentation inherited
         public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
-            SnippetUtil.getFogParam(name, states, defs);
+            SnippetUtil.getFogParam(name, eyeVertex, fogParam, states, defs);
         }
     }
 
@@ -732,10 +740,18 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static class VertexLightingSnippet extends Definition
     {
+        /** The variable containing the location of the vertex in eye space. */
+        @Editable
+        public String eyeVertex = "eyeVertex";
+
+        /** The variable containing the normal in eye space. */
+        @Editable
+        public String eyeNormal = "eyeNormal";
+
         @Override // documentation inherited
         public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
-            SnippetUtil.getVertexLighting(name, states, defs);
+            SnippetUtil.getVertexLighting(name, eyeVertex, eyeNormal, states, defs);
         }
     }
 
