@@ -163,7 +163,6 @@ public class ShaderCache extends ResourceCache
             appendDefs(buf, key.ddefs);
             buf.append(getSource(key.path));
             Shader shader = new Shader(_ctx.getRenderer(), type.intValue());
-            System.out.println(buf);
             if (!shader.setSource(buf.toString())) {
                 log.warning(
                     "Error compiling shader.", "defs", key.defs, "ddefs",
