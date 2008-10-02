@@ -24,12 +24,12 @@ import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 /**
  * Places individual tiles.
  */
-public class Tiler extends ConfigTool<TileConfig>
+public class TileBrush extends ConfigTool<TileConfig>
 {
     /**
-     * Creates the placer tool.
+     * Creates the tile brush tool.
      */
-    public Tiler (SceneEditor editor)
+    public TileBrush (SceneEditor editor)
     {
         super(editor, TileConfig.class, new TileReference());
     }

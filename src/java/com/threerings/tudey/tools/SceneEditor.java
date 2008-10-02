@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.tools;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -35,11 +36,14 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import javax.swing.filechooser.FileFilter;
 
 import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.HGroupLayout;
+import com.samskivert.swing.Spacer;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.Predicate;
 
@@ -189,6 +193,25 @@ public class SceneEditor extends GlCanvasTool
             }
         });
 
+        // populate the tool bar
+        _toolbar.setLayout(new HGroupLayout(GroupLayout.STRETCH));
+        _toolbar.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+        _toolbar.setFloatable(false);
+        _toolbar.setRollover(true);
+        _toolbar.add(createIconButton("save"), GroupLayout.FIXED);
+        _toolbar.add(new Spacer(80, 1), GroupLayout.FIXED);
+        _toolbar.add(_markers = createToggleButton("markers"), GroupLayout.FIXED);
+        _markers.setSelected(true);
+        _toolbar.add(_light = createToggleButton("light"), GroupLayout.FIXED);
+        _light.setSelected(true);
+        _toolbar.add(_fog = createToggleButton("fog"), GroupLayout.FIXED);
+        _fog.setSelected(true);
+        _toolbar.add(_sound = createToggleButton("sound"), GroupLayout.FIXED);
+        _sound.setSelected(true);
+        _toolbar.add(new Spacer(1, 1));
+        _toolbar.add(createIconButton("raise_grid"), GroupLayout.FIXED);
+        _toolbar.add(createIconButton("lower_grid"), GroupLayout.FIXED);
+
         // configure the edit panel
         _epanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         _epanel.setPreferredSize(new Dimension(350, 1));
@@ -197,19 +220,26 @@ public class SceneEditor extends GlCanvasTool
         JPanel outer = new JPanel();
         _epanel.add(outer, GroupLayout.FIXED);
         ButtonGroup tgroup = new ButtonGroup();
-        JPanel tpanel = new JPanel(new GridLayout(0, 4, 5, 5));
+        JPanel tpanel = new JPanel(new GridLayout(0, 7, 5, 5));
         outer.add(tpanel);
-        addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this));
         addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
-        addTool(tpanel, tgroup, "tiler", new Tiler(this));
+        addTool(tpanel, tgroup, "selector", new Selector(this));
+        addTool(tpanel, tgroup, "mover", new Mover(this));
         addTool(tpanel, tgroup, "placer", new Placer(this));
+        addTool(tpanel, tgroup, "path_definer", new PathDefiner(this));
+        addTool(tpanel, tgroup, "area_definer", new AreaDefiner(this));
+        addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this));
+        addTool(tpanel, tgroup, "tile_brush", new TileBrush(this));
+        addTool(tpanel, tgroup, "ground_brush", new GroundBrush(this));
+        addTool(tpanel, tgroup, "wall_brush", new WallBrush(this));
+        addTool(tpanel, tgroup, "eraser", new Eraser(this));
 
         // create the option panel
         _opanel = GroupLayout.makeVStretchBox(5);
         _epanel.add(_opanel);
 
-        // activate the global editor tool
-        setActiveTool(_globalEditor);
+        // activate the arrow tool
+        setActiveTool(_arrow);
 
         // add ourself as a key observer
         _keymgr.registerKeyObserver(this);
@@ -442,8 +472,11 @@ public class SceneEditor extends GlCanvasTool
     @Override // documentation inherited
     protected JComponent createCanvasContainer ()
     {
+        JPanel ccont = new JPanel(new BorderLayout());
+        ccont.add(_toolbar = new JToolBar(), BorderLayout.NORTH);
+        ccont.add(_canvas, BorderLayout.CENTER);
         JSplitPane pane = new JSplitPane(
-            JSplitPane.HORIZONTAL_SPLIT, true, _canvas, _epanel = GroupLayout.makeVStretchBox(5));
+            JSplitPane.HORIZONTAL_SPLIT, true, ccont, _epanel = GroupLayout.makeVStretchBox(5));
         _canvas.setMinimumSize(new Dimension(1, 1));
         pane.setResizeWeight(1.0);
         pane.setOneTouchExpandable(true);
@@ -546,16 +579,41 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void addTool (JPanel tpanel, ButtonGroup tgroup, String name, EditorTool tool)
     {
-        JToggleButton button = new JToggleButton(createIcon(name));
-        button.setPreferredSize(TOOL_BUTTON_SIZE);
-        button.setActionCommand(name);
-        button.addActionListener(this);
-
+        JToggleButton button = createToggleButton(name);
         tpanel.add(button);
         tgroup.add(button);
 
         _tools.put(name, tool);
         tool.setButton(button);
+    }
+
+    /**
+     * Creates an icon button with the specified name.
+     */
+    protected JButton createIconButton (String name)
+    {
+        JButton button = new JButton(createIcon(name));
+        button.setMinimumSize(TOOL_BUTTON_SIZE);
+        button.setMaximumSize(TOOL_BUTTON_SIZE);
+        button.setPreferredSize(TOOL_BUTTON_SIZE);
+        button.setActionCommand(name);
+        button.addActionListener(this);
+        return button;
+    }
+
+    /**
+     * Creates a toggle button with different icons for the unselected and selected states.
+     */
+    protected JToggleButton createToggleButton (String name)
+    {
+        JToggleButton button = new JToggleButton(createIcon(name));
+        button.setSelectedIcon(createIcon(name + "_select"));
+        button.setMinimumSize(TOOL_BUTTON_SIZE);
+        button.setMaximumSize(TOOL_BUTTON_SIZE);
+        button.setPreferredSize(TOOL_BUTTON_SIZE);
+        button.setActionCommand(name);
+        button.addActionListener(this);
+        return button;
     }
 
     /**
@@ -568,7 +626,7 @@ public class SceneEditor extends GlCanvasTool
             image = _rsrcmgr.getImageResource("media/tudey/" + name + ".png");
         } catch (IOException e) {
             log.warning("Error loading image.", "name", name, e);
-            image = ImageUtil.createErrorImage(16, 16);
+            image = ImageUtil.createErrorImage(24, 24);
         }
         return new ImageIcon(image);
     }
@@ -776,6 +834,12 @@ public class SceneEditor extends GlCanvasTool
     /** The file chooser for importing and exporting scene files. */
     protected JFileChooser _exportChooser;
 
+    /** The tool bar. */
+    protected JToolBar _toolbar;
+
+    /** Toggle buttons. */
+    protected JToggleButton _markers, _light, _fog, _sound;
+
     /** The panel that holds the editor bits. */
     protected JPanel _epanel;
 
@@ -822,5 +886,5 @@ public class SceneEditor extends GlCanvasTool
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);
 
     /** The size of the tool buttons. */
-    protected static final Dimension TOOL_BUTTON_SIZE = new Dimension(20, 20);
+    protected static final Dimension TOOL_BUTTON_SIZE = new Dimension(28, 28);
 }
