@@ -201,13 +201,9 @@ public class SceneEditor extends GlCanvasTool
         _toolbar.add(createIconButton("save"), GroupLayout.FIXED);
         _toolbar.add(new Spacer(80, 1), GroupLayout.FIXED);
         _toolbar.add(_markers = createToggleButton("markers"), GroupLayout.FIXED);
-        _markers.setSelected(true);
         _toolbar.add(_light = createToggleButton("light"), GroupLayout.FIXED);
-        _light.setSelected(true);
         _toolbar.add(_fog = createToggleButton("fog"), GroupLayout.FIXED);
-        _fog.setSelected(true);
         _toolbar.add(_sound = createToggleButton("sound"), GroupLayout.FIXED);
-        _sound.setSelected(true);
         _toolbar.add(new Spacer(1, 1));
         _toolbar.add(createIconButton("raise_grid"), GroupLayout.FIXED);
         _toolbar.add(createIconButton("lower_grid"), GroupLayout.FIXED);
@@ -464,6 +460,14 @@ public class SceneEditor extends GlCanvasTool
             _grid.setElevation(Math.min(_grid.getElevation() + 1, Byte.MAX_VALUE));
         } else if (action.equals("lower_grid")) {
             _grid.setElevation(Math.max(_grid.getElevation() - 1, Byte.MIN_VALUE));
+        } else if (action.equals("markers")) {
+
+        } else if (action.equals("light")) {
+
+        } else if (action.equals("fog")) {
+
+        } else if (action.equals("sound")) {
+
         } else {
             super.actionPerformed(event);
         }
