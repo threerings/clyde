@@ -554,7 +554,8 @@ public class ShaderConfig extends ParameterizedConfig
     @EditorTypes({
         BooleanDefinition.class, ColorDefinition.class, FloatDefinition.class,
         IntegerDefinition.class, StringDefinition.class, TransformDefinition.class,
-        FogParamSnippet.class, TexCoordSnippet.class, VertexLightingSnippet.class })
+        FogParamSnippet.class, FogBlendSnippet.class, TexCoordSnippet.class,
+        VertexLightingSnippet.class })
     public static abstract class Definition extends DeepObject
         implements Exportable
     {
@@ -710,6 +711,23 @@ public class ShaderConfig extends ParameterizedConfig
         public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
         {
             SnippetUtil.getFogParam(name, eyeVertex, fogParam, states, defs);
+        }
+    }
+
+    /**
+     * Defines a snippet that blends in the fog according to the fog parameter to simulate the
+     * behavior of the fixed-function pipeline.
+     */
+    public static class FogBlendSnippet extends Definition
+    {
+        /** The name of the fog parameter variable. */
+        @Editable
+        public String fogParam = "fogParam";
+
+        @Override // documentation inherited
+        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        {
+            SnippetUtil.getFogBlend(name, fogParam, states, defs);
         }
     }
 

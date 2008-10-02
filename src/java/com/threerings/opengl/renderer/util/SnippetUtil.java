@@ -48,6 +48,24 @@ public class SnippetUtil
     }
 
     /**
+     * Creates a fog blend snippet.
+     */
+    public static void getFogBlend (
+        String name, String fogParam, RenderState[] states, ArrayList<String> defs)
+    {
+        FogState state = (FogState)states[RenderState.FOG_STATE];
+        int mode = (state == null) ? -1 : state.getFogMode();
+        if (mode == -1) {
+            defs.add("DECLARE_" + name);
+            defs.add("BLEND_" + name);
+            return;
+        }
+        defs.add("DECLARE_" + name + " varying float " + fogParam + ";");
+        defs.add("BLEND_" + name + " gl_FragColor.rgb = mix(gl_Fog.color.rgb, gl_FragColor.rgb, " +
+            fogParam + ");");
+    }
+
+    /**
      * Retrieves a tex coord snippet.
      */
     public static void getTexCoord (
@@ -93,10 +111,10 @@ public class SnippetUtil
         StringBuilder buf = new StringBuilder();
         switch(mode) {
             case GL11.GL_LINEAR:
-                buf.append(fogParam + " = clamp((gl_Fog.end - " + eyeVertex + ".z) * gl_Fog.scale");
+                buf.append(fogParam + " = clamp((gl_Fog.end + " + eyeVertex + ".z) * gl_Fog.scale");
                 break;
             case GL11.GL_EXP:
-                buf.append(fogParam + " = clamp(exp(-gl_Fog.density * " + eyeVertex + ".z)");
+                buf.append(fogParam + " = clamp(exp(gl_Fog.density * " + eyeVertex + ".z)");
                 break;
             case GL11.GL_EXP2:
                 buf.append("float f = gl_Fog.density * " + eyeVertex + ".z; ");
