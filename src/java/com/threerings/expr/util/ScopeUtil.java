@@ -142,6 +142,14 @@ public class ScopeUtil
     }
 
     /**
+     * Attempts to resolve a boolean symbol.
+     */
+    public static Boolean resolve (Scope scope, String name, Boolean defvalue)
+    {
+        return resolve(scope, name, defvalue, Boolean.class);
+    }
+
+    /**
      * Attempts to resolve the identified symbol in the given scope.  If not found there,
      * searches the parent of that scope, and so on.
      *

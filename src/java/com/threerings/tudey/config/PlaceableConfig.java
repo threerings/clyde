@@ -10,6 +10,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
@@ -137,6 +138,9 @@ public class PlaceableConfig extends ParameterizedConfig
         public PlaceableSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
+            if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
+                return null;
+            }
             if (impl instanceof PlaceableSprite.Marker) {
                 ((PlaceableSprite.Marker)impl).setConfig(this);
             } else {

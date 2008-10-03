@@ -56,6 +56,7 @@ import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
+import com.threerings.expr.Scoped;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 import com.threerings.util.ToolUtil;
@@ -461,13 +462,17 @@ public class SceneEditor extends GlCanvasTool
         } else if (action.equals("lower_grid")) {
             _grid.setElevation(Math.max(_grid.getElevation() - 1, Byte.MIN_VALUE));
         } else if (action.equals("markers")) {
-
+            _markersVisible = !_markers.isSelected();
+            wasUpdated();
         } else if (action.equals("light")) {
-
+            _lightingEnabled = !_light.isSelected();
+            wasUpdated();
         } else if (action.equals("fog")) {
-
+            _fogEnabled = !_fog.isSelected();
+            wasUpdated();
         } else if (action.equals("sound")) {
-
+            _soundEnabled = !_sound.isSelected();
+            wasUpdated();
         } else {
             super.actionPerformed(event);
         }
@@ -484,8 +489,8 @@ public class SceneEditor extends GlCanvasTool
         _canvas.setMinimumSize(new Dimension(1, 1));
         pane.setResizeWeight(1.0);
         pane.setOneTouchExpandable(true);
-        bindAction(pane, KeyEvent.VK_UP, 0, "raise_grid");
-        bindAction(pane, KeyEvent.VK_DOWN, 0, "lower_grid");
+        bindAction(ccont, KeyEvent.VK_UP, 0, "raise_grid");
+        bindAction(ccont, KeyEvent.VK_DOWN, 0, "lower_grid");
         return pane;
     }
 
@@ -870,6 +875,22 @@ public class SceneEditor extends GlCanvasTool
 
     /** The scene view. */
     protected TudeySceneView _view;
+
+    /** Whether or not markers are visible. */
+    @Scoped
+    protected boolean _markersVisible = true;
+
+    /** Whether or not lighting is enabled. */
+    @Scoped
+    protected boolean _lightingEnabled = true;
+
+    /** Whether or not fog is enabled. */
+    @Scoped
+    protected boolean _fogEnabled = true;
+
+    /** Whether or not sound is enabled. */
+    @Scoped
+    protected boolean _soundEnabled = true;
 
     /** A casted reference to the editor grid. */
     protected EditorGrid _grid;

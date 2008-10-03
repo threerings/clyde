@@ -11,6 +11,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -44,7 +45,8 @@ public abstract class SceneInfluenceConfig extends DeepObject
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
-            return new AmbientLightInfluence(color);
+            return ScopeUtil.resolve(scope, "lightingEnabled", true) ?
+                new AmbientLightInfluence(color) : createNoopInfluence();
         }
     }
 
@@ -61,7 +63,8 @@ public abstract class SceneInfluenceConfig extends DeepObject
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
-            return new FogInfluence(state.getState());
+            return ScopeUtil.resolve(scope, "fogEnabled", true) ?
+                new FogInfluence(state.getState()) : createNoopInfluence();
         }
     }
 
@@ -78,7 +81,9 @@ public abstract class SceneInfluenceConfig extends DeepObject
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
-            return new LightInfluence(light.createLight(ctx, scope, updaters));
+            return ScopeUtil.resolve(scope, "lightingEnabled", true) ?
+                new LightInfluence(light.createLight(ctx, scope, updaters)) :
+                    createNoopInfluence();
         }
     }
 
@@ -117,4 +122,12 @@ public abstract class SceneInfluenceConfig extends DeepObject
      */
     protected abstract SceneInfluence createInfluence (
         GlContext ctx, Scope scope, ArrayList<Updater> updaters);
+
+    /**
+     * Creates an influence that does nothing.
+     */
+    protected static SceneInfluence createNoopInfluence ()
+    {
+        return new SceneInfluence() { };
+    }
 }

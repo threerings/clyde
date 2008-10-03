@@ -8,6 +8,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
@@ -139,6 +140,14 @@ public class PlaceableSprite extends EntrySprite
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PlaceableConfig> event)
     {
+        updateFromConfig();
+        _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
         updateFromConfig();
         _impl.update(_entry);
     }

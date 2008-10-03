@@ -47,6 +47,9 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Override // documentation inherited
         public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
         {
+            if (!ScopeUtil.resolve(scope, "soundEnabled", true)) {
+                return createNoopEffect();
+            }
             Transform3D transform = ScopeUtil.resolve(scope, "worldTransform", new Transform3D());
             final Sounder sounder = new Sounder(ctx, scope, transform, this.sounder);
             return new ViewerEffect() {
@@ -172,4 +175,12 @@ public abstract class ViewerEffectConfig extends DeepObject
      * Creates the actual effect object.
      */
     public abstract ViewerEffect createViewerEffect (GlContext ctx, Scope scope);
+
+    /**
+     * Creates an effect that does nothing.
+     */
+    protected static ViewerEffect createNoopEffect ()
+    {
+        return new ViewerEffect() { };
+    }
 }
