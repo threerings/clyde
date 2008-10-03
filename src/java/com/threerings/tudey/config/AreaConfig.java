@@ -10,6 +10,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -62,6 +63,9 @@ public class AreaConfig extends ParameterizedConfig
         public AreaSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, AreaSprite.Implementation impl)
         {
+            if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
+                return null;
+            }
             if (impl instanceof AreaSprite.Original) {
                 ((AreaSprite.Original)impl).setConfig(this);
             } else {

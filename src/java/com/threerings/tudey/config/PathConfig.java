@@ -10,6 +10,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -62,6 +63,9 @@ public class PathConfig extends ParameterizedConfig
         public PathSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, PathSprite.Implementation impl)
         {
+            if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
+                return null;
+            }
             if (impl instanceof PathSprite.Original) {
                 ((PathSprite.Original)impl).setConfig(this);
             } else {

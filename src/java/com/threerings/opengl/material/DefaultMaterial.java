@@ -76,7 +76,7 @@ public class DefaultMaterial extends Material
         if (GLContext.getCapabilities().GL_ARB_vertex_shader &&
             _skinProgram == null && !_disableShaders) {
             Shader vert = _ctx.getShaderCache().getShader(
-                "shader/vertex/skin.vert", "MAX_BONE_COUNT " + SkinMesh.MAX_BONE_COUNT);
+                "shader/vertex/skin_old.vert", "MAX_BONE_COUNT " + SkinMesh.MAX_BONE_COUNT);
             if (vert == null) { // compilation error
                 _disableShaders = true;
                 return;
@@ -93,7 +93,7 @@ public class DefaultMaterial extends Material
             _skinProgram.relink();
 
             vert = _ctx.getShaderCache().getShader(
-                "shader/vertex/skin.vert", "MAX_BONE_COUNT " + SkinMesh.MAX_BONE_COUNT,
+                "shader/vertex/skin_old.vert", "MAX_BONE_COUNT " + SkinMesh.MAX_BONE_COUNT,
                 "SPHERE_MAP");
             program = _ctx.getShaderCache().getProgram(vert, null);
             _skinProgramSphere = program;
