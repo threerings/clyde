@@ -10,13 +10,16 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.cursor.TileCursor;
 import com.threerings.tudey.client.sprite.TileSprite;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
  * The configuration of a tile.
@@ -78,6 +81,14 @@ public class TileConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
 
+        /** The tile boundary vertices. */
+        @Editable
+        public BoundaryVertex[] boundaryVertices = new BoundaryVertex[0];
+
+        /** The tile boundary edges. */
+        @Editable
+        public BoundaryEdge[] boundaryEdges = new BoundaryEdge[0];
+
         /** Indicates where the tile is passable. */
         @Editable(width=3)
         public boolean[][] passable = new boolean[][] { { false } };
@@ -85,6 +96,38 @@ public class TileConfig extends ParameterizedConfig
         /** Indicates where the tile is penetrable. */
         @Editable(width=3)
         public boolean[][] penetrable = new boolean[][] { { false } };
+
+        /**
+         * Finds the transform of the tile at the specified coordinates.
+         */
+        public void getTransform (int x, int y, int elevation, int rotation, Transform3D result)
+        {
+            TudeySceneMetrics.getTileTransform(width, height, x, y, elevation, rotation, result);
+        }
+
+        /**
+         * Finds the region covered by the tile at the specified coordinates.
+         */
+        public void getRegion (int x, int y, int rotation, Rectangle result)
+        {
+            TudeySceneMetrics.getTileRegion(width, height, x, y, rotation, result);
+        }
+
+        /**
+         * Returns the width of the tile under the supplied rotation.
+         */
+        public int getWidth (int rotation)
+        {
+            return TudeySceneMetrics.getTileWidth(width, height, rotation);
+        }
+
+        /**
+         * Returns the height of the tile under the supplied rotation.
+         */
+        public int getHeight (int rotation)
+        {
+            return TudeySceneMetrics.getTileHeight(width, height, rotation);
+        }
 
         @Override // documentation inherited
         public TileCursor.Implementation getCursorImplementation (
@@ -141,6 +184,32 @@ public class TileConfig extends ParameterizedConfig
             TileConfig config = ctx.getConfigManager().getConfig(TileConfig.class, tile);
             return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
         }
+    }
+
+    /**
+     * Represents a single tile boundary vertex.
+     */
+    public static class BoundaryVertex extends DeepObject
+        implements Exportable
+    {
+        /** The ground type of the vertex. */
+        @Editable(editor="config", mode="ground", nullable=true, hgroup="g")
+        public String ground;
+
+        /** The elevation of the vertex (relative to the tile elevation). */
+        @Editable(hgroup="g")
+        public int elevation;
+    }
+
+    /**
+     * Represents a single tile boundary edge.
+     */
+    public static class BoundaryEdge extends DeepObject
+        implements Exportable
+    {
+        /** The wall type of the edge. */
+        @Editable(editor="config", mode="wall", nullable=true)
+        public String wall;
     }
 
     /** The actual tile implementation. */

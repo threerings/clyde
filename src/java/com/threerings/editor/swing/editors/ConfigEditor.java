@@ -18,7 +18,7 @@ import com.threerings.editor.swing.PropertyEditor;
 import static com.threerings.editor.Log.*;
 
 /**
- * Editor for enumerated type properties.
+ * Editor for simple string config references.
  */
 public class ConfigEditor extends PropertyEditor
     implements ActionListener

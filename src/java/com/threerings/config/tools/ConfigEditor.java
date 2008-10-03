@@ -183,8 +183,8 @@ public class ConfigEditor extends BaseConfigEditor
             _tabs.add(new ManagerPanel(cfgmgr), getLabel(cfgmgr.getType()), 0);
         }
 
-        // activate the last tab
-        final ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(_tabs.getTabCount() - 1);
+        // activate the first tab
+        final ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(0);
         _tabs.setSelectedComponent(panel);
         panel.activate();
 

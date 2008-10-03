@@ -75,7 +75,7 @@ public class GridBox extends SimpleTransformable
     {
         float lx = _region.x, ux = _region.x + _region.width;
         float ly = _region.y, uy = _region.y + _region.height;
-        float z = TudeySceneMetrics.getZ(_elevation);
+        float z = TudeySceneMetrics.getTileZ(_elevation);
 
         GL11.glBegin(GL11.GL_LINE_LOOP);
         GL11.glVertex3f(lx, ly, z);

@@ -48,7 +48,7 @@ public class EditorGrid extends Grid
      */
     public float getZ ()
     {
-        return TudeySceneMetrics.getZ(_elevation);
+        return TudeySceneMetrics.getTileZ(_elevation);
     }
 
     /**
