@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.tools;
 
+import javax.swing.BorderFactory;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
@@ -73,6 +74,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
             _tree.dispose();
         }
         _pane.setViewportView(_tree = new ConfigTree(scene.getConfigManager().getGroups(_clazz)));
+        _tree.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         _tree.addTreeSelectionListener(this);
     }
 

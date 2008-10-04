@@ -81,7 +81,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
      */
     protected void updateCursor ()
     {
-        if (!(_cursorVisible = _entry.placeable != null &&
+        if (!(_cursorVisible = (_entry.placeable != null) &&
                 getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
             return;
         }

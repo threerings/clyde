@@ -3,12 +3,14 @@
 
 package com.threerings.tudey.tools;
 
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
-import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
+
+import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.util.GridBox;
 import com.threerings.tudey.config.GroundConfig;
@@ -31,9 +33,9 @@ public class GroundBrush extends ConfigTool<GroundConfig>
     public void init ()
     {
         _inner = new GridBox(_editor);
-        _inner.getColor().set(0f, 0.75f, 0f, 1f);
+        _inner.getColor().set(0f, 1f, 0f, 1f);
         _outer = new GridBox(_editor);
-        _outer.getColor().set(0f, 1f, 0f, 1f);
+        _outer.getColor().set(0f, 0.5f, 0f, 1f);
     }
 
     @Override // documentation inherited
@@ -52,6 +54,16 @@ public class GroundBrush extends ConfigTool<GroundConfig>
     }
 
     @Override // documentation inherited
+    public void mousePressed (MouseEvent event)
+    {
+        int button = event.getButton();
+        boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
+        if ((paint || erase) && _cursorVisible) {
+            paintGround(erase, true);
+        }
+    }
+
+    @Override // documentation inherited
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         if (_cursorVisible) {
@@ -64,15 +76,14 @@ public class GroundBrush extends ConfigTool<GroundConfig>
      */
     protected void updateCursor ()
     {
-        GroundReference gref = (GroundReference)_eref;
-        if (!(_cursorVisible = gref.ground != null && getMousePlaneIntersection(_isect) &&
-                !_editor.isControlDown())) {
+        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
             return;
         }
-        int width = TudeySceneMetrics.getTileWidth(gref.width, gref.height, _rotation);
-        int height = TudeySceneMetrics.getTileHeight(gref.width, gref.height, _rotation);
-        int iwidth = width - 1, iheight = height - 1;
-        int owidth = width + 1, oheight = height + 1;
+        GroundReference gref = (GroundReference)_eref;
+        int vwidth = gref.width - 1, vheight = gref.height - 1;
+        int iwidth = TudeySceneMetrics.getTileWidth(vwidth, vheight, _rotation);
+        int iheight = TudeySceneMetrics.getTileHeight(vwidth, vheight, _rotation);
+        int owidth = iwidth + 2, oheight = iheight + 2;
 
         int x = Math.round(_isect.x - iwidth*0.5f), y = Math.round(_isect.y - iheight*0.5f);
         _inner.getRegion().set(x, y, iwidth, iheight);
@@ -81,6 +92,28 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         int elevation = _editor.getGrid().getElevation();
         _inner.setElevation(elevation);
         _outer.setElevation(elevation);
+
+        // if we are dragging, consider performing another paint operation
+        boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
+        if ((paint || erase) && !_inner.getRegion().equals(_lastPainted)) {
+            paintGround(erase, false);
+        }
+    }
+
+    /**
+     * Paints the cursor region with ground.
+     *
+     * @param erase if true, erase the region by painting with the null ground type.
+     * @param revise if true, replace existing ground tiles with different variants.
+     */
+    protected void paintGround (boolean erase, boolean revise)
+    {
+        ConfigReference<GroundConfig> ref = erase ? null : _eref.getReference();
+        String ground = (ref == null) ? null : ref.getName();
+        Rectangle region = _inner.getRegion();
+        _lastPainted.set(region);
+
+
     }
 
     /**
@@ -121,6 +154,9 @@ public class GroundBrush extends ConfigTool<GroundConfig>
 
     /** The rotation of the cursor. */
     protected int _rotation;
+
+    /** The last painted region. */
+    protected Rectangle _lastPainted = new Rectangle();
 
     /** Holds the result on an intersection test. */
     protected Vector3f _isect = new Vector3f();
