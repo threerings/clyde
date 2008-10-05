@@ -7,6 +7,7 @@ import java.io.IOException;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.WeakHashMap;
 
 import com.samskivert.util.ObserverList;
 
@@ -14,6 +15,7 @@ import com.threerings.whirled.data.SceneModel;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
@@ -81,6 +83,16 @@ public class TudeySceneModel extends SceneModel
         public abstract Object getKey ();
 
         /**
+         * Sets this entry's config reference.
+         */
+        public abstract void setReference (ConfigReference reference);
+
+        /**
+         * Returns a reference to this entry's config reference.
+         */
+        public abstract ConfigReference getReference ();
+
+        /**
          * Creates a sprite for this entry.
          */
         public abstract EntrySprite createSprite (GlContext ctx, TudeySceneView view);
@@ -133,6 +145,20 @@ public class TudeySceneModel extends SceneModel
         public Object getKey ()
         {
             return _location;
+        }
+
+        @Override // documentation inherited
+        public void setReference (ConfigReference reference)
+        {
+            @SuppressWarnings("unchecked") ConfigReference<TileConfig> ref =
+                (ConfigReference<TileConfig>)reference;
+            tile = ref;
+        }
+
+        @Override // documentation inherited
+        public ConfigReference getReference ()
+        {
+            return tile;
         }
 
         @Override // documentation inherited
@@ -193,6 +219,20 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference<SceneGlobalConfig> sceneGlobal;
 
         @Override // documentation inherited
+        public void setReference (ConfigReference reference)
+        {
+            @SuppressWarnings("unchecked") ConfigReference<SceneGlobalConfig> ref =
+                (ConfigReference<SceneGlobalConfig>)reference;
+            sceneGlobal = ref;
+        }
+
+        @Override // documentation inherited
+        public ConfigReference getReference ()
+        {
+            return sceneGlobal;
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
         {
             return new GlobalSprite(ctx, view, this);
@@ -211,6 +251,20 @@ public class TudeySceneModel extends SceneModel
         /** The transform of the placeable. */
         @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
+
+        @Override // documentation inherited
+        public void setReference (ConfigReference reference)
+        {
+            @SuppressWarnings("unchecked") ConfigReference<PlaceableConfig> ref =
+                (ConfigReference<PlaceableConfig>)reference;
+            placeable = ref;
+        }
+
+        @Override // documentation inherited
+        public ConfigReference getReference ()
+        {
+            return placeable;
+        }
 
         @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
@@ -233,6 +287,20 @@ public class TudeySceneModel extends SceneModel
         public Vertex[] vertices = new Vertex[0];
 
         @Override // documentation inherited
+        public void setReference (ConfigReference reference)
+        {
+            @SuppressWarnings("unchecked") ConfigReference<PathConfig> ref =
+                (ConfigReference<PathConfig>)reference;
+            path = ref;
+        }
+
+        @Override // documentation inherited
+        public ConfigReference getReference ()
+        {
+            return path;
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
         {
             return new PathSprite(ctx, view, this);
@@ -251,6 +319,20 @@ public class TudeySceneModel extends SceneModel
         /** The area vertices. */
         @Editable(editor="table")
         public Vertex[] vertices = new Vertex[0];
+
+        @Override // documentation inherited
+        public void setReference (ConfigReference reference)
+        {
+            @SuppressWarnings("unchecked") ConfigReference<AreaConfig> ref =
+                (ConfigReference<AreaConfig>)reference;
+            area = ref;
+        }
+
+        @Override // documentation inherited
+        public ConfigReference getReference ()
+        {
+            return area;
+        }
 
         @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
@@ -321,7 +403,8 @@ public class TudeySceneModel extends SceneModel
             _entries.put(entry.getKey(), oentry);
             return false;
         }
-        // notify the observers
+        // update reference and notify the observers
+        canonicalizeReference(entry);
         _observers.apply(new ObserverList.ObserverOp<Observer>() {
             public boolean apply (Observer observer) {
                 observer.entryAdded(entry);
@@ -346,7 +429,8 @@ public class TudeySceneModel extends SceneModel
             _entries.remove(nentry.getKey());
             return null;
         }
-        // notify the observers
+        // update the reference and notify the observers
+        canonicalizeReference(nentry);
         _observers.apply(new ObserverList.ObserverOp<Observer>() {
             public boolean apply (Observer observer) {
                 observer.entryUpdated(oentry, nentry);
@@ -418,6 +502,7 @@ public class TudeySceneModel extends SceneModel
         in.defaultReadFields();
         for (Entry entry : in.read("entries", new Entry[0], Entry[].class)) {
             _entries.put(entry.getKey(), entry);
+            _references.put(entry.getReference(), entry.getReference());
         }
     }
 
@@ -425,6 +510,25 @@ public class TudeySceneModel extends SceneModel
     public Object clone ()
     {
         return DeepUtil.copy(this, null);
+    }
+
+    /**
+     * Ensures that the entry's reference, if non-null, points to one of the references in the
+     * {@link #_references} set (that is, that all entries whose references are equal point to
+     * the same reference instance).
+     */
+    protected void canonicalizeReference (Entry entry)
+    {
+        ConfigReference eref = entry.getReference();
+        if (eref == null) {
+            return;
+        }
+        ConfigReference cref = _references.get(eref);
+        if (cref == null) {
+            _references.put(eref, eref);
+        } else {
+            entry.setReference(cref);
+        }
     }
 
     /** The scene configuration manager. */
@@ -435,6 +539,11 @@ public class TudeySceneModel extends SceneModel
 
     /** Scene entries mapped by key. */
     protected transient HashMap<Object, Entry> _entries = new HashMap<Object, Entry>();
+
+    /** The set of entry references (used to ensure that entries with equal references use the same
+     * instance. */
+    protected transient WeakHashMap<ConfigReference, ConfigReference> _references =
+        new WeakHashMap<ConfigReference, ConfigReference>();
 
     /** The scene model observers. */
     protected transient ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
