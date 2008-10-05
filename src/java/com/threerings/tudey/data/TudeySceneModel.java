@@ -503,6 +503,9 @@ public class TudeySceneModel extends SceneModel
         for (Entry entry : in.read("entries", new Entry[0], Entry[].class)) {
             _entries.put(entry.getKey(), entry);
             _references.put(entry.getReference(), entry.getReference());
+            if (entry instanceof IdEntry) {
+                _lastEntryId = Math.max(_lastEntryId, ((IdEntry)entry).getId());
+            }
         }
     }
 
@@ -534,11 +537,11 @@ public class TudeySceneModel extends SceneModel
     /** The scene configuration manager. */
     protected ConfigManager _cfgmgr = new ConfigManager();
 
-    /** The last entry id assigned. */
-    protected int _lastEntryId;
-
     /** Scene entries mapped by key. */
     protected transient HashMap<Object, Entry> _entries = new HashMap<Object, Entry>();
+
+    /** The last entry id assigned. */
+    protected transient int _lastEntryId;
 
     /** The set of entry references (used to ensure that entries with equal references use the same
      * instance. */
