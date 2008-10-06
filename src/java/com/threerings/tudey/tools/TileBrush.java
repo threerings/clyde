@@ -13,13 +13,12 @@ import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.gui.util.Point;
-
 import com.threerings.tudey.client.cursor.TileCursor;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.util.Coord;
 
 /**
  * Places individual tiles.
@@ -147,7 +146,7 @@ public class TileBrush extends ConfigTool<TileConfig>
     protected boolean _cursorVisible;
 
     /** The location at which we last placed. */
-    protected Point _lastPlacement = new Point();
+    protected Coord _lastPlacement = new Coord();
 
     /** Holds the result on an intersection test. */
     protected Vector3f _isect = new Vector3f();

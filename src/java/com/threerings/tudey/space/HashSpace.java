@@ -16,6 +16,8 @@ import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.util.Coord;
+
 /**
  * A space that uses a hybrid spatial hashing/quadtree scheme to store elements.
  */
@@ -584,51 +586,6 @@ public class HashSpace extends Space
      */
     protected class LeafNode<T extends SpaceObject> extends Node<T>
     {
-    }
-
-    /**
-     * The coordinates of a hash cell.
-     */
-    protected static class Coord
-        implements Cloneable
-    {
-        /** The coordinates of the cell. */
-        public int x, y;
-
-        /**
-         * Sets the fields of the coord.
-         *
-         * @return a reference to this coord, for chaining.
-         */
-        public Coord set (int x, int y)
-        {
-            this.x = x;
-            this.y = y;
-            return this;
-        }
-
-        @Override // documentation inherited
-        public Object clone ()
-        {
-            try {
-                return super.clone();
-            } catch (CloneNotSupportedException e) {
-                return null; // won't happen
-            }
-        }
-
-        @Override // documentation inherited
-        public int hashCode ()
-        {
-            return x + 31*y;
-        }
-
-        @Override // documentation inherited
-        public boolean equals (Object other)
-        {
-            Coord ocoord = (Coord)other;
-            return x == ocoord.x && y == ocoord.y;
-        }
     }
 
     /** The size of the root nodes. */

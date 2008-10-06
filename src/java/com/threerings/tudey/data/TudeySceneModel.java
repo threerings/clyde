@@ -9,6 +9,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.WeakHashMap;
 
+import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntMap;
+import com.samskivert.util.IntMaps;
 import com.samskivert.util.ObserverList;
 
 import com.threerings.whirled.data.SceneModel;
@@ -24,7 +27,6 @@ import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepUtil;
 
-import com.threerings.opengl.gui.util.Point;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.GlContext;
 
@@ -40,6 +42,8 @@ import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.util.Coord;
+import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
@@ -118,7 +122,7 @@ public class TudeySceneModel extends SceneModel
         /**
          * Returns a reference to the tile's location.
          */
-        public Point getLocation ()
+        public Coord getLocation ()
         {
             return _location;
         }
@@ -168,7 +172,7 @@ public class TudeySceneModel extends SceneModel
         }
 
         /** The location of the tile. */
-        protected Point _location = new Point();
+        protected Coord _location = new Coord();
     }
 
     /**
@@ -500,6 +504,15 @@ public class TudeySceneModel extends SceneModel
         throws IOException
     {
         in.defaultReadFields();
+
+        // initialize the reverse mapping and highest id for tile configs
+        for (IntMap.IntEntry<ConfigReference<TileConfig>> entry : _tileConfigs.intEntrySet()) {
+            int id = entry.getIntKey();
+            _tileConfigIds.put(entry.getValue(), id);
+            _lastTileConfigId = Math.max(_lastTileConfigId, id);
+        }
+
+        // read the entries, initialize the reference map, find the highest entry id
         for (Entry entry : in.read("entries", new Entry[0], Entry[].class)) {
             _entries.put(entry.getKey(), entry);
             _references.put(entry.getReference(), entry.getReference());
@@ -536,6 +549,19 @@ public class TudeySceneModel extends SceneModel
 
     /** The scene configuration manager. */
     protected ConfigManager _cfgmgr = new ConfigManager();
+
+    /** Tile config references mapped by id. */
+    protected HashIntMap<ConfigReference<TileConfig>> _tileConfigs = IntMaps.newHashIntMap();
+
+    /** The encoded tiles. */
+    protected CoordIntMap _tiles = new CoordIntMap();
+
+    /** Tile config ids mapped by reference. */
+    protected transient WeakHashMap<ConfigReference<TileConfig>, Integer> _tileConfigIds =
+        new WeakHashMap<ConfigReference<TileConfig>, Integer>();
+
+    /** The last tile config id assigned. */
+    protected transient int _lastTileConfigId;
 
     /** Scene entries mapped by key. */
     protected transient HashMap<Object, Entry> _entries = new HashMap<Object, Entry>();
