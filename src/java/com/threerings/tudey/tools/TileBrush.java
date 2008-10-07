@@ -105,11 +105,7 @@ public class TileBrush extends ConfigTool<TileConfig>
             _scene.removeEntry(coord);
         }
         // add the tile
-        try {
-            _scene.addEntry((TileEntry)_entry.clone());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        _scene.addEntry((TileEntry)_entry.clone());
         _lastPlacement.set(_entry.getLocation());
     }
 
