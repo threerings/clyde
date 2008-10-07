@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.samskivert.util.IntListUtil;
+
 import com.threerings.export.Exportable;
 import com.threerings.export.Importer;
 import com.threerings.util.DeepObject;
@@ -23,6 +25,76 @@ import com.threerings.util.DeepObject;
 public class CoordIntMap extends AbstractMap<Coord, Integer>
     implements Exportable
 {
+    /**
+     * An entry in the map.
+     */
+    public static class CoordIntEntry
+        implements Entry<Coord, Integer>
+    {
+        /**
+         * Sets the value of the entry as an integer.
+         *
+         * @return the original value of the entry.
+         */
+        public int setIntValue (int value)
+        {
+            int ovalue = _values[_idx];
+            _values[_idx] = value;
+            return ovalue;
+        }
+
+        /**
+         * Returns the value of the entry as an integer.
+         */
+        public int getIntValue ()
+        {
+            return _values[_idx];
+        }
+
+        // documentation inherited from interface Entry
+        public Coord getKey ()
+        {
+            return _key;
+        }
+
+        // documentation inherited from interface Entry
+        public Integer getValue ()
+        {
+            return getIntValue();
+        }
+
+        // documentation inherited from interface Entry
+        public Integer setValue (Integer value)
+        {
+            return setIntValue(value);
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            if (!(other instanceof CoordIntEntry)) {
+                return false;
+            }
+            CoordIntEntry oentry = (CoordIntEntry)other;
+            return _key.equals(oentry._key) && getIntValue() == oentry.getIntValue();
+        }
+
+        @Override // documentation inherited
+        public int hashCode ()
+        {
+            return _key.hashCode() ^ getIntValue();
+        }
+
+        /** The coordinate key. */
+        protected Coord _key = new Coord();
+
+        /** The array in which the value is located. */
+        protected int[] _values;
+
+        /** The index of the value within the array. */
+        protected int _idx;
+    }
+
     /**
      * Creates a new coord int map with a top-level cell size of 8x8 and with the value -1
      * representing the absence of an entry.
@@ -117,29 +189,16 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
     }
 
     /**
-     * Clears out the map contents.
+     * Determines whether this map contains the specified value.
      */
-    public void clear ()
+    public boolean containsValue (int value)
     {
-        _cells.clear();
-        _size = 0;
-        _modcount++;
-    }
-
-    /**
-     * Returns the number of entries in the map.
-     */
-    public int size ()
-    {
-        return _size;
-    }
-
-    /**
-     * Determines whether the map is empty.
-     */
-    public boolean isEmpty ()
-    {
-        return _size == 0;
+        for (Cell cell : _cells.values()) {
+            if (cell.containsValue(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -157,24 +216,53 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         }
     }
 
-    @Override // documentation inherited
-    public Set<Entry<Coord, Integer>> entrySet ()
+    /**
+     * Returns a set view of the map entries.
+     */
+    public Set<CoordIntEntry> coordIntEntrySet ()
     {
-        return new AbstractSet<Entry<Coord, Integer>>() {
-            public Iterator<Entry<Coord, Integer>> iterator () {
-                return new Iterator<Entry<Coord, Integer>>() {
+        return new AbstractSet<CoordIntEntry>() {
+            public Iterator<CoordIntEntry> iterator () {
+                return new Iterator<CoordIntEntry>() {
                     public boolean hasNext () {
                         checkConcurrentModification();
                         return _count < _size;
                     }
-                    public Entry<Coord, Integer> next () {
+                    public CoordIntEntry next () {
                         checkConcurrentModification();
-
-                        return null;
+                        if (_centry == null) {
+                            _centry = _cit.next();
+                        }
+                        while (true) {
+                            int[] values = _centry.getValue().getValues();
+                            for (; _idx < values.length; _idx++) {
+                                int value = values[_idx];
+                                if (value != _empty) {
+                                    Coord coord = _centry.getKey();
+                                    _dummy.getKey().set(
+                                        (coord.x << _granularity) | (_idx & _mask),
+                                        (coord.y << _granularity) | (_idx >> _granularity));
+                                    _dummy._values = values;
+                                    _dummy._idx = _idx;
+                                    _idx++;
+                                    _count++;
+                                    return _dummy;
+                                }
+                            }
+                            _centry = _cit.next();
+                            _idx = 0;
+                        }
                     }
                     public void remove () {
                         checkConcurrentModification();
-
+                        Cell cell = _centry.getValue();
+                        cell.remove(_idx);
+                        if (cell.size() == 0) {
+                            _cit.remove();
+                            _centry = null;
+                            _idx = 0;
+                        }
+                        _size--;
                         _count--;
                         _omodcount = _modcount;
                     }
@@ -185,9 +273,10 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
                     }
                     protected Iterator<Entry<Coord, Cell>> _cit = _cells.entrySet().iterator();
                     protected Entry<Coord, Cell> _centry;
-
+                    protected int _idx;
                     protected int _count;
                     protected int _omodcount = _modcount;
+                    protected CoordIntEntry _dummy = new CoordIntEntry();
                 };
             }
             public int size () {
@@ -197,10 +286,77 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
     }
 
     @Override // documentation inherited
+    public Set<Entry<Coord, Integer>> entrySet ()
+    {
+        Set<?> cset = (Set)coordIntEntrySet();
+        @SuppressWarnings("unchecked") Set<Entry<Coord, Integer>> set =
+            (Set<Entry<Coord, Integer>>)cset;
+        return set;
+    }
+
+    @Override // documentation inherited
+    public boolean containsKey (Object key)
+    {
+        if (!(key instanceof Coord)) {
+            return false;
+        }
+        Coord coord = (Coord)key;
+        return containsKey(coord.x, coord.y);
+    }
+
+    @Override // documentation inherited
+    public boolean containsValue (Object value)
+    {
+        return value instanceof Integer && containsValue(((Integer)value).intValue());
+    }
+
+    @Override // documentation inherited
+    public Integer get (Object key)
+    {
+        if (!(key instanceof Coord)) {
+            return null;
+        }
+        Coord coord = (Coord)key;
+        int value = get(coord.x, coord.y);
+        return (value == _empty) ? null : value;
+    }
+
+    @Override // documentation inherited
     public Integer put (Coord key, Integer value)
     {
         int ovalue = put(key.x, key.y, value);
         return (ovalue == _empty) ? null : ovalue;
+    }
+
+    @Override // documentation inherited
+    public Integer remove (Object key)
+    {
+        if (!(key instanceof Coord)) {
+            return null;
+        }
+        Coord coord = (Coord)key;
+        int ovalue = remove(coord.x, coord.y);
+        return (ovalue == _empty) ? null : ovalue;
+    }
+
+    @Override // documentation inherited
+    public void clear ()
+    {
+        _cells.clear();
+        _size = 0;
+        _modcount++;
+    }
+
+    @Override // documentation inherited
+    public int size ()
+    {
+        return _size;
+    }
+
+    @Override // documentation inherited
+    public boolean isEmpty ()
+    {
+        return _size == 0;
     }
 
     /**
@@ -233,6 +389,22 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         {
             _values = new int[1 << _granularity << _granularity];
             Arrays.fill(_values, _empty);
+        }
+
+        /**
+         * Returns a reference to the cell's array of values.
+         */
+        public int[] getValues ()
+        {
+            return _values;
+        }
+
+        /**
+         * Determines whether this cell contains the specified value.
+         */
+        public boolean containsValue (int value)
+        {
+            return IntListUtil.contains(_values, value);
         }
 
         /**
@@ -275,6 +447,16 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
                 _modcount++;
             }
             return ovalue;
+        }
+
+        /**
+         * Removes the value at the specified index.
+         */
+        public void remove (int idx)
+        {
+            _values[idx] = _empty;
+            _size--;
+            _modcount++;
         }
 
         /**
@@ -324,7 +506,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
     protected transient int _size;
 
     /** The modification count (used to detect concurrent modifications). */
-    protected int _modcount;
+    protected transient int _modcount;
 
     /** A coord to reuse for queries. */
     protected transient Coord _coord = new Coord();

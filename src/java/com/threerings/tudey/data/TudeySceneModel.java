@@ -5,9 +5,14 @@ package com.threerings.tudey.data;
 
 import java.io.IOException;
 
+import java.util.AbstractCollection;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.WeakHashMap;
+
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap;
@@ -44,6 +49,7 @@ import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
+import com.threerings.tudey.util.CoordIntMap.CoordIntEntry;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
@@ -125,6 +131,16 @@ public class TudeySceneModel extends SceneModel
         public Coord getLocation ()
         {
             return _location;
+        }
+
+        /**
+         * Returns the encoded form of this tile entry.
+         *
+         * @param idx the tile config index.
+         */
+        public int encode (int idx)
+        {
+            return (idx << 16) | ((elevation & 0x3FFF) << 2) | rotation;
         }
 
         /**
@@ -401,14 +417,13 @@ public class TudeySceneModel extends SceneModel
             ((IdEntry)entry).setId(++_lastEntryId);
         }
         // add to map
-        Entry oentry = _entries.put(entry.getKey(), entry);
+        Entry oentry = add(entry);
         if (oentry != null) {
-            log.warning("Attempted to replace existing entry.", "oentry", oentry, "nentry", entry);
-            _entries.put(entry.getKey(), oentry);
+            log.warning("Attempted to replace existing entry.",
+                "oentry", oentry, "nentry", entry);
             return false;
         }
-        // update reference and notify the observers
-        canonicalizeReference(entry);
+        // notify the observers and report success
         _observers.apply(new ObserverList.ObserverOp<Observer>() {
             public boolean apply (Observer observer) {
                 observer.entryAdded(entry);
@@ -427,14 +442,12 @@ public class TudeySceneModel extends SceneModel
     public Entry updateEntry (final Entry nentry)
     {
         // replace in map
-        final Entry oentry = _entries.put(nentry.getKey(), nentry);
+        final Entry oentry = update(nentry);
         if (oentry == null) {
             log.warning("Attempted to update nonexistent entry.", "entry", nentry);
-            _entries.remove(nentry.getKey());
             return null;
         }
-        // update the reference and notify the observers
-        canonicalizeReference(nentry);
+        // notify the observers and return the old entry
         _observers.apply(new ObserverList.ObserverOp<Observer>() {
             public boolean apply (Observer observer) {
                 observer.entryUpdated(oentry, nentry);
@@ -453,12 +466,12 @@ public class TudeySceneModel extends SceneModel
     public Entry removeEntry (Object key)
     {
         // remove from map
-        final Entry oentry = _entries.remove(key);
+        final Entry oentry = remove(key);
         if (oentry == null) {
             log.warning("Missing entry to remove.", "key", key);
             return null;
         }
-        // notify the observers
+        // notify the observers and return the old entry
         _observers.apply(new ObserverList.ObserverOp<Observer>() {
             public boolean apply (Observer observer) {
                 observer.entryRemoved(oentry);
@@ -475,7 +488,12 @@ public class TudeySceneModel extends SceneModel
      */
     public Entry getEntry (Object key)
     {
-        return _entries.get(key);
+        if (!(key instanceof Coord)) {
+            return _entries.get(key);
+        }
+        Coord coord = (Coord)key;
+        int value = _tiles.get(coord.x, coord.y);
+        return (value == -1) ? null : decodeTileEntry(coord, value);
     }
 
     /**
@@ -483,7 +501,31 @@ public class TudeySceneModel extends SceneModel
      */
     public Collection<Entry> getEntries ()
     {
-        return _entries.values();
+        return new AbstractCollection<Entry>() {
+            public Iterator<Entry> iterator () {
+                return new Iterator<Entry>() {
+                    public boolean hasNext () {
+                        return _tit.hasNext() || _eit.hasNext();
+                    }
+                    public Entry next () {
+                        if (_tit.hasNext()) {
+                            CoordIntEntry entry = _tit.next();
+                            return decodeTileEntry(entry.getKey(), entry.getIntValue());
+                        } else {
+                            return _eit.next();
+                        }
+                    }
+                    public void remove () {
+                        throw new UnsupportedOperationException();
+                    }
+                    protected Iterator<CoordIntEntry> _tit = _tiles.coordIntEntrySet().iterator();
+                    protected Iterator<Entry> _eit = _entries.values().iterator();
+                };
+            }
+            public int size () {
+                return _tiles.size() + _entries.size();
+            }
+        };
     }
 
     /**
@@ -505,11 +547,15 @@ public class TudeySceneModel extends SceneModel
     {
         in.defaultReadFields();
 
-        // initialize the reverse mapping and highest id for tile configs
-        for (IntMap.IntEntry<ConfigReference<TileConfig>> entry : _tileConfigs.intEntrySet()) {
-            int id = entry.getIntKey();
-            _tileConfigIds.put(entry.getValue(), id);
-            _lastTileConfigId = Math.max(_lastTileConfigId, id);
+        // initialize the tile config counts
+        for (CoordIntEntry entry : _tiles.coordIntEntrySet()) {
+            int idx = getTileConfigIndex(entry.getIntValue());
+            _tileConfigs.get(idx).count++;
+        }
+
+        // initialize the reverse mapping for the tile configs
+        for (int ii = 0, nn = _tileConfigs.size(); ii < nn; ii++) {
+            _tileConfigIds.put(_tileConfigs.get(ii).tile, ii);
         }
 
         // read the entries, initialize the reference map, find the highest entry id
@@ -526,6 +572,88 @@ public class TudeySceneModel extends SceneModel
     public Object clone ()
     {
         return DeepUtil.copy(this, null);
+    }
+
+    /**
+     * Performs the actual addition of the specified entry.
+     *
+     * @return the replaced entry.
+     */
+    protected Entry add (Entry entry)
+    {
+        if (!(entry instanceof TileEntry)) {
+            Entry oentry = _entries.put(entry.getKey(), entry);
+            if (oentry == null) {
+                canonicalizeReference(entry);
+            } else {
+                // replace the old entry (a warning will be logged)
+                _entries.put(entry.getKey(), oentry);
+            }
+            return oentry;
+        }
+        TileEntry tentry = (TileEntry)entry;
+        Coord coord = tentry.getLocation();
+        int idx = addTileConfig(tentry.tile);
+        int ovalue = _tiles.put(coord.x, coord.y, tentry.encode(idx));
+        if (ovalue != -1) {
+            // replace the old value (a warning will be logged)
+            _tiles.put(coord.x, coord.y, ovalue);
+            removeTileConfig(idx);
+            return decodeTileEntry(coord, ovalue);
+        }
+        return null;
+    }
+
+    /**
+     * Performs the actual update of the specified entry.
+     *
+     * @return the replaced entry.
+     */
+    protected Entry update (Entry nentry)
+    {
+        if (!(nentry instanceof TileEntry)) {
+            Entry oentry = _entries.put(nentry.getKey(), nentry);
+            if (oentry == null) {
+                // remove the entry (a warning will be logged)
+                _entries.remove(nentry.getKey());
+            } else {
+                canonicalizeReference(nentry);
+            }
+            return oentry;
+        }
+        TileEntry tentry = (TileEntry)nentry;
+        Coord coord = tentry.getLocation();
+        int idx = addTileConfig(tentry.tile);
+        int ovalue = _tiles.put(coord.x, coord.y, tentry.encode(idx));
+        if (ovalue == -1) {
+            // remove the value (a warning will be logged)
+            _tiles.remove(coord.x, coord.y);
+            removeTileConfig(idx);
+            return null;
+        }
+        TileEntry oentry = decodeTileEntry(coord, ovalue);
+        removeTileConfig(getTileConfigIndex(ovalue));
+        return oentry;
+    }
+
+    /**
+     * Performs the actual removal of the identified entry.
+     *
+     * @return the removed entry.
+     */
+    protected Entry remove (Object key)
+    {
+        if (!(key instanceof Coord)) {
+            return _entries.remove(key);
+        }
+        Coord coord = (Coord)key;
+        int ovalue = _tiles.get(coord.x, coord.y);
+        if (ovalue == -1) {
+            return null;
+        }
+        TileEntry oentry = decodeTileEntry(coord, ovalue);
+        removeTileConfig(getTileConfigIndex(ovalue));
+        return oentry;
     }
 
     /**
@@ -547,21 +675,101 @@ public class TudeySceneModel extends SceneModel
         }
     }
 
+    /**
+     * Adds a reference to the specified tile config and returns the index assigned to the config.
+     */
+    protected int addTileConfig (ConfigReference<TileConfig> tile)
+    {
+        TileConfigMapping mapping;
+        Integer idx = _tileConfigIds.get(tile);
+        if (idx == null) {
+            mapping = new TileConfigMapping(tile);
+            for (int ii = 0, nn = _tileConfigs.size(); ii < nn; ii++) {
+                if (_tileConfigs.get(ii) == null) {
+                    idx = ii;
+                    _tileConfigs.set(ii, mapping);
+                    break;
+                }
+            }
+            if (idx == null) {
+                idx = _tileConfigs.size();
+                _tileConfigs.add(mapping);
+            }
+            _tileConfigIds.put(tile, idx);
+        } else {
+            mapping = _tileConfigs.get(idx);
+        }
+        mapping.count++;
+        return idx;
+    }
+
+    /**
+     * Removes a reference for the indexed tile config.
+     */
+    protected void removeTileConfig (int idx)
+    {
+        TileConfigMapping mapping = _tileConfigs.get(idx);
+        if (--mapping.count == 0) {
+            _tileConfigs.set(idx, null);
+            _tileConfigIds.remove(mapping.tile);
+        }
+    }
+
+    /**
+     * Decodes the specified tile entry.
+     */
+    protected TileEntry decodeTileEntry (Coord coord, int value)
+    {
+        TileEntry entry = new TileEntry();
+        entry.getLocation().set(coord);
+        entry.tile = _tileConfigs.get(getTileConfigIndex(value)).tile;
+        entry.elevation = (value << 16) >> 18;
+        entry.rotation = value & 0x03;
+        return entry;
+    }
+
+    /**
+     * Extracts the tile configuration index from the supplied encoded tile.
+     */
+    protected static int getTileConfigIndex (int value)
+    {
+        return value >>> 16;
+    }
+
+    /**
+     * Represents a type of tile identified by an integer id.
+     */
+    protected static class TileConfigMapping extends DeepObject
+        implements Exportable
+    {
+        /** The tile configuration. */
+        public ConfigReference<TileConfig> tile;
+
+        /** The number of tiles of this type. */
+        public transient int count;
+
+        public TileConfigMapping (ConfigReference<TileConfig> tile)
+        {
+            this.tile = tile;
+        }
+
+        public TileConfigMapping ()
+        {
+        }
+    }
+
     /** The scene configuration manager. */
     protected ConfigManager _cfgmgr = new ConfigManager();
-
-    /** Tile config references mapped by id. */
-    protected HashIntMap<ConfigReference<TileConfig>> _tileConfigs = IntMaps.newHashIntMap();
 
     /** The encoded tiles. */
     protected CoordIntMap _tiles = new CoordIntMap();
 
-    /** Tile config ids mapped by reference. */
-    protected transient WeakHashMap<ConfigReference<TileConfig>, Integer> _tileConfigIds =
-        new WeakHashMap<ConfigReference<TileConfig>, Integer>();
+    /** Tile config references by id. */
+    protected ArrayList<TileConfigMapping> _tileConfigs = new ArrayList<TileConfigMapping>();
 
-    /** The last tile config id assigned. */
-    protected transient int _lastTileConfigId;
+    /** Tile config ids mapped by reference. */
+    protected transient HashMap<ConfigReference<TileConfig>, Integer> _tileConfigIds =
+        Maps.newHashMap();
 
     /** Scene entries mapped by key. */
     protected transient HashMap<Object, Entry> _entries = new HashMap<Object, Entry>();
