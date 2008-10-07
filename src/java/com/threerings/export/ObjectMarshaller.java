@@ -43,7 +43,14 @@ public class ObjectMarshaller
             try {
                 _reader.invoke(object, importer);
             } catch (InvocationTargetException ite) {
-                throw (IOException)ite.getTargetException();
+                Throwable t = ite.getTargetException();
+                if (t instanceof IOException) {
+                    throw (IOException)t;
+                } else if (t instanceof RuntimeException) {
+                    throw (RuntimeException)t;
+                } else {
+                    throw new IOException("Error invoking custom read method [error=" + t + "].");
+                }
             } catch (IllegalAccessException iae) {
                 throw new IOException("Error invoking custom read method [error=" + iae + "].");
             }

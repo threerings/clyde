@@ -555,7 +555,10 @@ public class TudeySceneModel extends SceneModel
 
         // initialize the reverse mapping for the tile configs
         for (int ii = 0, nn = _tileConfigs.size(); ii < nn; ii++) {
-            _tileConfigIds.put(_tileConfigs.get(ii).tile, ii);
+            TileConfigMapping mapping = _tileConfigs.get(ii);
+            if (mapping != null) {
+                _tileConfigIds.put(mapping.tile, ii);
+            }
         }
 
         // read the entries, initialize the reference map, find the highest entry id
@@ -647,7 +650,7 @@ public class TudeySceneModel extends SceneModel
             return _entries.remove(key);
         }
         Coord coord = (Coord)key;
-        int ovalue = _tiles.get(coord.x, coord.y);
+        int ovalue = _tiles.remove(coord.x, coord.y);
         if (ovalue == -1) {
             return null;
         }

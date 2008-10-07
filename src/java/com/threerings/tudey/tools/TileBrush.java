@@ -100,11 +100,16 @@ public class TileBrush extends ConfigTool<TileConfig>
     protected void placeEntry ()
     {
         // if there's another tile there, remove it
-        if (_scene.getEntry(_entry.getLocation()) != null) {
-            _scene.removeEntry(_entry.getLocation());
+        Coord coord = _entry.getLocation();
+        if (_scene.getEntry(coord) != null) {
+            _scene.removeEntry(coord);
         }
         // add the tile
-        _scene.addEntry((TileEntry)_entry.clone());
+        try {
+            _scene.addEntry((TileEntry)_entry.clone());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         _lastPlacement.set(_entry.getLocation());
     }
 
