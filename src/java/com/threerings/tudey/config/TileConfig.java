@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -26,6 +27,9 @@ import com.threerings.tudey.util.TudeySceneMetrics;
  */
 public class TileConfig extends ParameterizedConfig
 {
+    /** Used when we can't resolve the tile's underlying original implementation. */
+    public static final Original NULL_ORIGINAL = new Original();
+
     /**
      * Contains the actual implementation of the tile.
      */
@@ -40,6 +44,11 @@ public class TileConfig extends ParameterizedConfig
         {
             // nothing by default
         }
+
+        /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (ConfigManager cfgmgr);
 
         /**
          * Creates or updates a cursor implementation for this configuration.
@@ -130,6 +139,12 @@ public class TileConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
+        }
+
+        @Override // documentation inherited
         public TileCursor.Implementation getCursorImplementation (
             GlContext ctx, Scope scope, TileCursor.Implementation impl)
         {
@@ -167,6 +182,13 @@ public class TileConfig extends ParameterizedConfig
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(TileConfig.class, tile);
+        }
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            TileConfig config = cfgmgr.getConfig(TileConfig.class, tile);
+            return (config == null) ? null : config.getOriginal(cfgmgr);
         }
 
         @Override // documentation inherited
@@ -215,6 +237,14 @@ public class TileConfig extends ParameterizedConfig
     /** The actual tile implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Returns a reference to the config's underlying original implementation.
+     */
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+        return implementation.getOriginal(cfgmgr);
+    }
 
     /**
      * Creates or updates a cursor implementation for this configuration.

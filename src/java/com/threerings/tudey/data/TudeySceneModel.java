@@ -14,16 +14,13 @@ import java.util.WeakHashMap;
 
 import com.google.common.collect.Maps;
 
-import com.samskivert.util.HashIntMap;
-import com.samskivert.util.IntMap;
-import com.samskivert.util.IntMaps;
+import com.samskivert.util.ArrayIntSet;
 import com.samskivert.util.ObserverList;
 
 import com.threerings.whirled.data.SceneModel;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
@@ -50,7 +47,6 @@ import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.CoordIntMap.CoordIntEntry;
-import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
 
@@ -144,6 +140,16 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
+         * Resolves the tile's configuration.
+         */
+        public TileConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            TileConfig config = cfgmgr.getConfig(TileConfig.class, tile);
+            TileConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+            return (original == null) ? TileConfig.NULL_ORIGINAL : original;
+        }
+
+        /**
          * Populates the supplied transform with the transform of this tile.
          *
          * @param config the resolved configuration of the tile.
@@ -159,6 +165,22 @@ public class TudeySceneModel extends SceneModel
         public void getRegion (TileConfig.Original config, Rectangle result)
         {
             config.getRegion(_location.x, _location.y, rotation, result);
+        }
+
+        /**
+         * Returns the width of this tile after rotation.
+         */
+        public int getWidth (TileConfig.Original config)
+        {
+            return config.getWidth(rotation);
+        }
+
+        /**
+         * Returns the height of this tile after rotation.
+         */
+        public int getHeight (TileConfig.Original config)
+        {
+            return config.getHeight(rotation);
         }
 
         @Override // documentation inherited
@@ -378,6 +400,12 @@ public class TudeySceneModel extends SceneModel
     public void init (ConfigManager cfgmgr)
     {
         _cfgmgr.init("scene", cfgmgr);
+
+        // create the tile shadows now that we have the config manager
+        for (CoordIntEntry entry : _tiles.coordIntEntrySet()) {
+            TileEntry tentry = decodeTileEntry(entry.getKey(), entry.getIntValue());
+            createShadow(tentry);
+        }
     }
 
     /**
@@ -529,6 +557,37 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Retrieves all of the tile entries intersecting the supplied region.
+     */
+    public void getTileEntries (Rectangle region, Collection<TileEntry> results)
+    {
+        ArrayIntSet pairs = new ArrayIntSet();
+        for (int yy = region.y, yymax = yy + region.height; yy < yymax; yy++) {
+            for (int xx = region.x, xxmax = xx + region.width; xx < xxmax; xx++) {
+                int pair = _tileCoords.get(xx, yy);
+                if (pair != EMPTY_COORD) {
+                    pairs.add(pair);
+                }
+            }
+        }
+        for (int ii = 0, nn = pairs.size(); ii < nn; ii++) {
+            TileEntry entry = getTileEntry(pairs.get(ii));
+            if (entry != null) {
+                results.add(entry);
+            }
+        }
+    }
+
+    /**
+     * Returns the tile entry intersecting the specified coordinates, if any.
+     */
+    public TileEntry getTileEntry (int x, int y)
+    {
+        int pair = _tileCoords.get(x, y);
+        return (pair == EMPTY_COORD) ? null : getTileEntry(pair);
+    }
+
+    /**
      * Custom field write method.
      */
     public void writeFields (Exporter out)
@@ -604,6 +663,7 @@ public class TudeySceneModel extends SceneModel
             removeTileConfig(idx);
             return decodeTileEntry(coord, ovalue);
         }
+        createShadow(tentry);
         return null;
     }
 
@@ -636,6 +696,8 @@ public class TudeySceneModel extends SceneModel
         }
         TileEntry oentry = decodeTileEntry(coord, ovalue);
         removeTileConfig(getTileConfigIndex(ovalue));
+        deleteShadow(oentry);
+        createShadow(tentry);
         return oentry;
     }
 
@@ -656,7 +718,49 @@ public class TudeySceneModel extends SceneModel
         }
         TileEntry oentry = decodeTileEntry(coord, ovalue);
         removeTileConfig(getTileConfigIndex(ovalue));
+        deleteShadow(oentry);
         return oentry;
+    }
+
+    /**
+     * Creates the shadow data for the specified tile.
+     */
+    protected void createShadow (TileEntry entry)
+    {
+        int pair = entry.getLocation().encode();
+        entry.getRegion(entry.getConfig(_cfgmgr), _region);
+        for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
+            for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
+                _tileCoords.put(xx, yy, pair);
+            }
+        }
+    }
+
+    /**
+     * Deletes the shadow data for the supplied tile.
+     */
+    protected void deleteShadow (TileEntry entry)
+    {
+        entry.getRegion(entry.getConfig(_cfgmgr), _region);
+        for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
+            for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
+                _tileCoords.remove(xx, yy);
+            }
+        }
+    }
+
+    /**
+     * Retrieves the tile entry identified by the provided encoded coordinate pair.
+     */
+    protected TileEntry getTileEntry (int pair)
+    {
+        int x = Coord.decodeX(pair), y = Coord.decodeY(pair);
+        int value = _tiles.get(x, y);
+        if (value == -1) {
+            log.warning("Tile shadow points to nonexistent tile.", "x", x, "y", y);
+            return null;
+        }
+        return decodeTileEntry(x, y, value);
     }
 
     /**
@@ -723,8 +827,16 @@ public class TudeySceneModel extends SceneModel
      */
     protected TileEntry decodeTileEntry (Coord coord, int value)
     {
+        return decodeTileEntry(coord.x, coord.y, value);
+    }
+
+    /**
+     * Decodes the specified tile entry.
+     */
+    protected TileEntry decodeTileEntry (int x, int y, int value)
+    {
         TileEntry entry = new TileEntry();
-        entry.getLocation().set(coord);
+        entry.getLocation().set(x, y);
         entry.tile = _tileConfigs.get(getTileConfigIndex(value)).tile;
         entry.elevation = (value << 16) >> 18;
         entry.rotation = value & 0x03;
@@ -774,6 +886,9 @@ public class TudeySceneModel extends SceneModel
     protected transient HashMap<ConfigReference<TileConfig>, Integer> _tileConfigIds =
         Maps.newHashMap();
 
+    /** Maps locations to the encoded coordinates of any tiles intersecting them. */
+    protected transient CoordIntMap _tileCoords = new CoordIntMap(3, EMPTY_COORD);
+
     /** Scene entries mapped by key. */
     protected transient HashMap<Object, Entry> _entries = new HashMap<Object, Entry>();
 
@@ -787,4 +902,10 @@ public class TudeySceneModel extends SceneModel
 
     /** The scene model observers. */
     protected transient ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
+
+    /** Region object to reuse. */
+    protected transient Rectangle _region = new Rectangle();
+
+    /** The value we use to signify an empty coordinate location. */
+    protected static final int EMPTY_COORD = Coord.encode(Short.MIN_VALUE, Short.MIN_VALUE);
 }

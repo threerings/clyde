@@ -6,12 +6,16 @@ package com.threerings.tudey.tools;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
+import java.util.ArrayList;
+
 import com.samskivert.util.Predicate;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
+
+import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.cursor.TileCursor;
 import com.threerings.tudey.client.sprite.TileSprite;
@@ -89,8 +93,13 @@ public class TileBrush extends ConfigTool<TileConfig>
         _cursor.update(_entry);
 
         // if we are dragging, consider performing another placement
-        if (_editor.isFirstButtonDown() && !_entry.getLocation().equals(_lastPlacement)) {
-            placeEntry();
+        Coord coord = _entry.getLocation();
+        if (_editor.isFirstButtonDown() && !coord.equals(_lastPlacement)) {
+            TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());
+            if (Math.abs(coord.x - _lastPlacement.x) >= _entry.getWidth(config) ||
+                    Math.abs(coord.y - _lastPlacement.y) >= _entry.getHeight(config)) {
+                placeEntry();
+            }
         }
     }
 
@@ -99,10 +108,13 @@ public class TileBrush extends ConfigTool<TileConfig>
      */
     protected void placeEntry ()
     {
-        // if there's another tile there, remove it
-        Coord coord = _entry.getLocation();
-        if (_scene.getEntry(coord) != null) {
-            _scene.removeEntry(coord);
+        // remove any tiles underneath
+        Rectangle region = new Rectangle();
+        _entry.getRegion(_entry.getConfig(_editor.getConfigManager()), region);
+        ArrayList<TileEntry> underneath = new ArrayList<TileEntry>();
+        _scene.getTileEntries(region, underneath);
+        for (TileEntry entry : underneath) {
+            _scene.removeEntry(entry.getKey());
         }
         // add the tile
         _scene.addEntry((TileEntry)_entry.clone());

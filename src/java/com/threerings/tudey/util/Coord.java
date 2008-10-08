@@ -21,11 +21,44 @@ public class Coord
     public int x, y;
 
     /**
+     * Encodes the supplied coordinates (presumed to be in [-32768, +32767]) into a single
+     * integer.
+     */
+    public static int encode (int x, int y)
+    {
+        return (x << 16) | (y & 0xFFFF);
+    }
+
+    /**
+     * Extracts the x component from the specified encoded coordinate pair.
+     */
+    public static int decodeX (int pair)
+    {
+        return pair >> 16;
+    }
+
+    /**
+     * Extracts the y component from the specified encoded coordinate pair.
+     */
+    public static int decodeY (int pair)
+    {
+        return (pair << 16) >> 16;
+    }
+
+    /**
      * Creates a coord from two components.
      */
     public Coord (int x, int y)
     {
         set(x, y);
+    }
+
+    /**
+     * Creates a coord from the supplied encoded coordinate pair.
+     */
+    public Coord (int pair)
+    {
+        set(pair);
     }
 
     /**
@@ -72,6 +105,16 @@ public class Coord
     }
 
     /**
+     * Sets the fields of the coord to those contained in the supplied encoded coordinate pair.
+     *
+     * @return a reference to this coord, for chaining.
+     */
+    public Coord set (int pair)
+    {
+        return set(decodeX(pair), decodeY(pair));
+    }
+
+    /**
      * Sets the fields of the coord.
      *
      * @return a reference to this coord, for chaining.
@@ -81,6 +124,14 @@ public class Coord
         this.x = x;
         this.y = y;
         return this;
+    }
+
+    /**
+     * Returns an encoded version of this coord.
+     */
+    public int encode ()
+    {
+        return encode(x, y);
     }
 
     // documentation inherited from interface Encodable
