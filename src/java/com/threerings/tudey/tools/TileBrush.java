@@ -89,21 +89,22 @@ public class TileBrush extends ConfigTool<TileConfig>
                 getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
             return;
         }
-        _entry.getLocation().set((int)FloatMath.floor(_isect.x), (int)FloatMath.floor(_isect.y));
+        TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());
+        int width = _entry.getWidth(config), height = _entry.getHeight(config);
+        Coord location = _entry.getLocation();
+        location.set(Math.round(_isect.x - width*0.5f), Math.round(_isect.y - height*0.5f));
         _entry.elevation = _editor.getGrid().getElevation();
         _cursor.update(_entry);
 
         // if we are dragging, consider performing another placement
         boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
-        Coord coord = _entry.getLocation();
-        if ((paint || erase) && !coord.equals(_lastPlacement)) {
+        if ((paint || erase) && !location.equals(_lastPlacement)) {
             if (erase) {
                 paintTile(true);
             } else {
                 // make sure we've moved at least one tile length in one direction
-                TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());
-                if (Math.abs(coord.x - _lastPlacement.x) >= _entry.getWidth(config) ||
-                        Math.abs(coord.y - _lastPlacement.y) >= _entry.getHeight(config)) {
+                if (Math.abs(location.x - _lastPlacement.x) >= width ||
+                        Math.abs(location.y - _lastPlacement.y) >= height) {
                     paintTile(false);
                 }
             }
