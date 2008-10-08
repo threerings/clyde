@@ -38,10 +38,10 @@ public class BinaryExporter extends Exporter
     /** Indicates that a stored class is a non-static inner class. */
     public static final byte INNER_CLASS_FLAG = (byte)(1 << 1);
 
-    /** Indicates that a stored class is a collection. */
+    /** Indicates that a stored class is a (non-{@link Exportable}) collection. */
     public static final byte COLLECTION_CLASS_FLAG = (byte)(1 << 2);
 
-    /** Indicates that the stored class is a map. */
+    /** Indicates that the stored class is a (non-{@link Exportable}) map. */
     public static final byte MAP_CLASS_FLAG = (byte)(1 << 3);
 
     /** We seed the class map with these class references.
@@ -335,10 +335,12 @@ public class BinaryExporter extends Exporter
         if (ReflectionUtil.isInner(clazz)) {
             flags |= INNER_CLASS_FLAG;
         }
-        if (Collection.class.isAssignableFrom(clazz)) {
-            flags |= COLLECTION_CLASS_FLAG;
-        } else if (Map.class.isAssignableFrom(clazz)) {
-            flags |= MAP_CLASS_FLAG;
+        if (!Exportable.class.isAssignableFrom(clazz)) {
+            if (Collection.class.isAssignableFrom(clazz)) {
+                flags |= COLLECTION_CLASS_FLAG;
+            } else if (Map.class.isAssignableFrom(clazz)) {
+                flags |= MAP_CLASS_FLAG;
+            }
         }
         return flags;
     }
