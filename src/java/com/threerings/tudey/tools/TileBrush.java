@@ -46,12 +46,11 @@ public class TileBrush extends ConfigTool<TileConfig>
     @Override // documentation inherited
     public void tick (float elapsed)
     {
-        if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
-            _editor.deleteMouseObject(SceneEditor.TILE_SPRITE_FILTER);
-        }
         updateCursor();
         if (_cursorVisible) {
             _cursor.tick(elapsed);
+        } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
+            _editor.deleteMouseObject(SceneEditor.TILE_SPRITE_FILTER);
         }
     }
 
@@ -66,8 +65,10 @@ public class TileBrush extends ConfigTool<TileConfig>
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
-            placeEntry();
+        int button = event.getButton();
+        boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
+        if ((paint || erase) && _cursorVisible) {
+            paintTile(erase);
         }
     }
 
@@ -93,20 +94,28 @@ public class TileBrush extends ConfigTool<TileConfig>
         _cursor.update(_entry);
 
         // if we are dragging, consider performing another placement
+        boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
         Coord coord = _entry.getLocation();
-        if (_editor.isFirstButtonDown() && !coord.equals(_lastPlacement)) {
-            TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());
-            if (Math.abs(coord.x - _lastPlacement.x) >= _entry.getWidth(config) ||
-                    Math.abs(coord.y - _lastPlacement.y) >= _entry.getHeight(config)) {
-                placeEntry();
+        if ((paint || erase) && !coord.equals(_lastPlacement)) {
+            if (erase) {
+                paintTile(true);
+            } else {
+                // make sure we've moved at least one tile length in one direction
+                TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());
+                if (Math.abs(coord.x - _lastPlacement.x) >= _entry.getWidth(config) ||
+                        Math.abs(coord.y - _lastPlacement.y) >= _entry.getHeight(config)) {
+                    paintTile(false);
+                }
             }
         }
     }
 
     /**
-     * Places the current entry.
+     * Paints the current tile.
+     *
+     * @param erase if true, just erase the tiles under the entry.
      */
-    protected void placeEntry ()
+    protected void paintTile (boolean erase)
     {
         // remove any tiles underneath
         Rectangle region = new Rectangle();
@@ -116,8 +125,10 @@ public class TileBrush extends ConfigTool<TileConfig>
         for (TileEntry entry : underneath) {
             _scene.removeEntry(entry.getKey());
         }
-        // add the tile
-        _scene.addEntry((TileEntry)_entry.clone());
+        // add the tile if we're not erasing
+        if (!erase) {
+            _scene.addEntry((TileEntry)_entry.clone());
+        }
         _lastPlacement.set(_entry.getLocation());
     }
 

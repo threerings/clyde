@@ -6,6 +6,8 @@ package com.threerings.tudey.tools;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
+import java.util.ArrayList;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.Vector3f;
@@ -14,6 +16,7 @@ import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.util.GridBox;
 import com.threerings.tudey.config.GroundConfig;
+import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
@@ -110,10 +113,20 @@ public class GroundBrush extends ConfigTool<GroundConfig>
     {
         ConfigReference<GroundConfig> ref = erase ? null : _eref.getReference();
         String ground = (ref == null) ? null : ref.getName();
-        Rectangle region = _inner.getRegion();
-        _lastPainted.set(region);
+        Rectangle iregion = _inner.getRegion();
+        _lastPainted.set(iregion);
 
+        // get all potentially affected tiles
+        Rectangle oregion = _outer.getRegion();
+        ArrayList<TileEntry> affected = new ArrayList<TileEntry>();
+        _scene.getTileEntries(oregion, affected);
 
+        // step over the painted vertices
+        for (int yy = iregion.y, yymax = yy + iregion.height; yy <= yymax; yy++) {
+            for (int xx = iregion.x, xxmax = xx + iregion.width; xx <= xxmax; xx++) {
+
+            }
+        }
     }
 
     /**

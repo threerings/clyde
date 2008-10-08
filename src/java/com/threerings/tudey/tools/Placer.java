@@ -41,12 +41,11 @@ public class Placer extends ConfigTool<PlaceableConfig>
     @Override // documentation inherited
     public void tick (float elapsed)
     {
-        if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
-            _editor.deleteMouseObject(SceneEditor.PLACEABLE_SPRITE_FILTER);
-        }
         updateCursor();
         if (_cursorVisible) {
             _cursor.tick(elapsed);
+        } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
+            _editor.deleteMouseObject(SceneEditor.PLACEABLE_SPRITE_FILTER);
         }
     }
 
@@ -61,8 +60,10 @@ public class Placer extends ConfigTool<PlaceableConfig>
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
-            placeEntry();
+        int button = event.getButton();
+        boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
+        if ((paint || erase) && _cursorVisible) {
+            placeEntry(erase);
         }
     }
 
@@ -96,16 +97,19 @@ public class Placer extends ConfigTool<PlaceableConfig>
         _cursor.update(_entry);
 
         // if we are dragging, consider performing another placement
-        if (_editor.isFirstButtonDown() &&
+        boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
+        if ((paint || erase) &&
                 transform.getTranslation().distance(_lastPlacement) >= MIN_SPACING) {
-            placeEntry();
+            placeEntry(erase);
         }
     }
 
     /**
      * Places the current entry.
+     *
+     * @param erase if true, erase the placeables under the entry.
      */
-    protected void placeEntry ()
+    protected void placeEntry (boolean erase)
     {
         _scene.addEntry((PlaceableEntry)_entry.clone());
         _lastPlacement.set(_entry.transform.getTranslation());
