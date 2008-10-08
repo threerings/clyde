@@ -154,6 +154,12 @@ public class ConfigTree extends JTree
             ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
             if (node != null) {
                 if (node.decrementCount() == 0) {
+                    if (!isEditable()) {
+                        // remove any internal nodes made empty by the removal
+                        while (node.getSiblingCount() == 1 && node.getLevel() > 1) {
+                            node = (ConfigTreeNode)node.getParent();
+                        }
+                    }
                     ((DefaultTreeModel)getModel()).removeNodeFromParent(node);
                 }
             } else {
@@ -349,7 +355,7 @@ public class ConfigTree extends JTree
         ((DefaultTreeModel)getModel()).reload();
 
         // expand the paths up to a point
-        root.expandPaths(this, 8);
+        root.expandPaths(this, 1);
     }
 
     /**
