@@ -128,6 +128,10 @@ public class ModelCache
      */
     public Model getPrototype (String name, String variant)
     {
+        // TEMP: rewrite particle effect names
+        if (name.contains("particle/") && !name.contains("particle/old/")) {
+            name = name.replace("particle/", "particle/old/");
+        }
         ModelKey key = new ModelKey(name, variant);
         Model prototype = _prototypes.get(key);
         if (prototype == null) {
