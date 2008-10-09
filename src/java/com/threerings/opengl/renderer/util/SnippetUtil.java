@@ -150,7 +150,7 @@ public class SnippetUtil
         if (units != null) {
             if (anySphereMapped(units)) {
                 buf.append("vec3 f = reflect(normalize(" + eyeVertex + ".xyz), " +
-                    eyeNormal + "); ");
+                    eyeNormal + ".xyz); ");
                 buf.append("float z1 = f.z + 1.0; ");
                 buf.append("float rm = 0.5 / sqrt(f.x*f.x + f.y*f.y + (z1*z1)); ");
                 buf.append("vec4 sphereTexCoord = vec4(f.x*rm + 0.5, f.y*rm + 0.5, 0.0, 1.0); ");
