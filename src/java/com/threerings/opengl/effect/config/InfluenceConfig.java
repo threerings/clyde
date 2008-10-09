@@ -24,7 +24,8 @@ import com.threerings.opengl.effect.Particle;
     InfluenceConfig.Gravity.class, InfluenceConfig.Wind.class,
     InfluenceConfig.LinearDrag.class, InfluenceConfig.QuadraticDrag.class,
     InfluenceConfig.CylindricalVortex.class, InfluenceConfig.ToroidalVortex.class,
-    InfluenceConfig.Wander.class, InfluenceConfig.Jitter.class })
+    InfluenceConfig.Wander.class, InfluenceConfig.Jitter.class,
+    InfluenceConfig.AngularAcceleration.class })
 public abstract class InfluenceConfig extends DeepObject
     implements Exportable
 {
@@ -342,6 +343,30 @@ public abstract class InfluenceConfig extends DeepObject
                         NoiseUtil.getNoise(time, pid + 2) * strength);
                 }
                 protected float _time;
+            };
+        }
+    }
+
+    /**
+     * Applies an angular acceleration.
+     */
+    public static class AngularAcceleration extends InfluenceConfig
+    {
+        /** The acceleration vector. */
+        @Editable(scale=Math.PI/180.0)
+        public Vector3f acceleration = new Vector3f();
+
+        @Override // documentation inherited
+        public Influence createInfluence (final Layer layer)
+        {
+            return new Influence() {
+                public void tick (float elapsed) {
+                    acceleration.mult(elapsed, _delta);
+                }
+                public void apply (Particle particle) {
+                    particle.getAngularVelocity().addLocal(_delta);
+                }
+                protected Vector3f _delta = new Vector3f();
             };
         }
     }
