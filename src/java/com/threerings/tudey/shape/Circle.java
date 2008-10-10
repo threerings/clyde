@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.shape;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -43,6 +44,14 @@ public class Circle extends Shape
         return _center;
     }
 
+    /**
+     * Checks whether the circle contains the specified point.
+     */
+    public boolean contains (Vector2f pt)
+    {
+        return _center.distanceSquared(pt) <= radius*radius;
+    }
+
     @Override // documentation inherited
     public void updateBounds ()
     {
@@ -64,7 +73,27 @@ public class Circle extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
-        return false;
+        // see if we start inside the circle
+        Vector2f origin = ray.getOrigin();
+        if (contains(origin)) {
+            result.set(origin);
+            return true;
+        }
+        // then if we intersect the circle
+        float ax = origin.x - _center.x, ay = origin.y - _center.y;
+        Vector2f dir = ray.getDirection();
+        float b = 2f*(dir.x*ax + dir.y*ay);
+        float c = ax*ax + ay*ay - radius*radius;
+        float radicand = b*b - 4f*c;
+        if (radicand < 0f) {
+            return false;
+        }
+        float t = (-b - FloatMath.sqrt(radicand)) * 0.5f;
+        if (t < 0f) {
+            return false;
+        }
+        origin.addScaled(dir, t, result);
+        return true;
     }
 
     @Override // documentation inherited
@@ -88,13 +117,29 @@ public class Circle extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        return point.getLocation().distance(_center) <= radius;
+        return contains(point.getLocation());
     }
 
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        return false;
+        // see if we start or end inside the circle
+        Vector2f start = segment.getStart(), end = segment.getEnd();
+        if (contains(start) || contains(end)) {
+            return true;
+        }
+        // then if we intersect the circle
+        float ax = start.x - _center.x, ay = start.y - _center.y;
+        float dx = end.x - start.x, dy = end.y - start.y;
+        float a = dx*dx + dy*dy;
+        float b = 2f*(dx*ax + dy*ay);
+        float c = ax*ax + ay*ay - radius*radius;
+        float radicand = b*b - 4f*a*c;
+        if (radicand < 0f) {
+            return false;
+        }
+        float t = (-b - FloatMath.sqrt(radicand)) / (2f*a);
+        return t >= 0f && t <= 1f;
     }
 
     @Override // documentation inherited
