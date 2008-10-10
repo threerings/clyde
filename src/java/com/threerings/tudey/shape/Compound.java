@@ -76,13 +76,28 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
-        return false;
+        Vector2f closest = result;
+        for (Shape shape : _shapes) {
+            if (shape.getIntersection(ray, result)) {
+                result = updateClosest(ray.getOrigin(), result, closest);
+            }
+        }
+        return (result != closest);
     }
 
     @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
-        return IntersectionType.NONE;
+        IntersectionType type = IntersectionType.NONE;
+        for (Shape shape : _shapes) {
+            switch (shape.getIntersectionType(rect)) {
+                case CONTAINS:
+                    return IntersectionType.CONTAINS;
+                case INTERSECTS:
+                    type = IntersectionType.INTERSECTS;
+            }
+        }
+        return type;
     }
 
     @Override // documentation inherited
@@ -100,42 +115,66 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
+        for (Shape shape : _shapes) {
+            if (shape.intersects(point)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        return false;
-    }
-
-    @Override // documentation inherited
-    public boolean intersects (Quad quad)
-    {
+        for (Shape shape : _shapes) {
+            if (shape.intersects(segment)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
+        for (Shape shape : _shapes) {
+            if (shape.intersects(circle)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
+        for (Shape shape : _shapes) {
+            if (shape.intersects(capsule)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
+        for (Shape shape : _shapes) {
+            if (shape.intersects(polygon)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
+        for (Shape shape : _shapes) {
+            if (compound.intersects(shape)) {
+                return true;
+            }
+        }
         return false;
     }
 

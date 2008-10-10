@@ -109,12 +109,6 @@ public class Polygon extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Quad quad)
-    {
-        return false;
-    }
-
-    @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
         return false;
@@ -135,7 +129,7 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
-        return false;
+        return compound.intersects(this);
     }
 
     /**

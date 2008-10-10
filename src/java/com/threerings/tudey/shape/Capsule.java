@@ -109,12 +109,6 @@ public class Capsule extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Quad quad)
-    {
-        return false;
-    }
-
-    @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
         return false;
@@ -129,13 +123,13 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
-        return false;
+        return polygon.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
-        return false;
+        return compound.intersects(this);
     }
 
     /** The start and end vertices of the capsule. */

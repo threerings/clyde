@@ -69,7 +69,7 @@ public class Segment extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
-        return false;
+        return ray.getIntersection(_start, _end, result);
     }
 
     @Override // documentation inherited
@@ -93,7 +93,17 @@ public class Segment extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        return false;
+        Vector2f pt = point.getLocation();
+        float dx = _end.x - _start.x, dy = _end.y - _start.y;
+        if (dx == 0f && dy == 0f) {
+            return _start.equals(pt);
+        } else if (Math.abs(dx) > Math.abs(dy)) {
+            float t = (pt.x - _start.x) / dx;
+            return t >= 0f && t <= 1f && _start.y + t*dy == pt.y;
+        } else {
+            float t = (pt.y - _start.y) / dy;
+            return t >= 0f && t <= 1f && _start.x + t*dx == pt.x;
+        }
     }
 
     @Override // documentation inherited
@@ -103,33 +113,27 @@ public class Segment extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Quad quad)
-    {
-        return false;
-    }
-
-    @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
-        return false;
+        return circle.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
-        return false;
+        return capsule.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
-        return false;
+        return polygon.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
-        return false;
+        return compound.intersects(this);
     }
 
     /** The start and end vertices. */

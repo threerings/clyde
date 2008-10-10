@@ -10,7 +10,6 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.shape.Point;
 import com.threerings.tudey.shape.Segment;
-import com.threerings.tudey.shape.Quad;
 import com.threerings.tudey.shape.Circle;
 import com.threerings.tudey.shape.Capsule;
 import com.threerings.tudey.shape.Polygon;
@@ -86,12 +85,6 @@ public abstract class SimpleSpaceElement
 
     // documentation inherited from interface SpaceElement
     public boolean intersects (Segment segment)
-    {
-        return false;
-    }
-
-    // documentation inherited from interface SpaceElement
-    public boolean intersects (Quad quad)
     {
         return false;
     }

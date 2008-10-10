@@ -58,7 +58,11 @@ public class Point extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
-        return false;
+        boolean isect = ray.intersects(_location);
+        if (isect) {
+            result.set(_location);
+        }
+        return isect;
     }
 
     @Override // documentation inherited
@@ -82,43 +86,37 @@ public class Point extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        return false;
+        return point.getLocation().equals(_location);
     }
 
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        return false;
-    }
-
-    @Override // documentation inherited
-    public boolean intersects (Quad quad)
-    {
-        return false;
+        return segment.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
-        return false;
+        return circle.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
-        return false;
+        return capsule.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
-        return false;
+        return polygon.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
-        return false;
+        return compound.intersects(this);
     }
 
     /** The location of the point. */

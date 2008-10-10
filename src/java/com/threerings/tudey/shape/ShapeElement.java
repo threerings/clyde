@@ -64,12 +64,6 @@ public class ShapeElement extends SimpleSpaceElement
     }
 
     @Override // documentation inherited
-    public boolean intersects (Quad quad)
-    {
-        return _shape.intersects(quad);
-    }
-
-    @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
         return _shape.intersects(circle);

@@ -88,7 +88,7 @@ public class Circle extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        return false;
+        return point.getLocation().distance(_center) <= radius;
     }
 
     @Override // documentation inherited
@@ -98,33 +98,27 @@ public class Circle extends Shape
     }
 
     @Override // documentation inherited
-    public boolean intersects (Quad quad)
-    {
-        return false;
-    }
-
-    @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
-        return false;
+        return circle.getCenter().distance(_center) <= (circle.radius + radius);
     }
 
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
-        return false;
+        return capsule.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
-        return false;
+        return polygon.intersects(this);
     }
 
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
-        return false;
+        return compound.intersects(this);
     }
 
     /** The center of the circle. */

@@ -96,7 +96,7 @@ public abstract class ShapeConfig extends DeepObject
         protected Shape createShape ()
         {
             float hwidth = width * 0.5f, hheight = height * 0.5f;
-            return new com.threerings.tudey.shape.Quad(
+            return new com.threerings.tudey.shape.Polygon(
                 new Vector2f(-hwidth, -hheight), new Vector2f(+hwidth, -hheight),
                 new Vector2f(+hwidth, +hheight), new Vector2f(-hwidth, +hheight));
         }

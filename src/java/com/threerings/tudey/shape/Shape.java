@@ -97,11 +97,6 @@ public abstract class Shape
     public abstract boolean intersects (Segment segment);
 
     /**
-     * Checks for an intersection with this shape and the specified quad.
-     */
-    public abstract boolean intersects (Quad quad);
-
-    /**
      * Checks for an intersection with this shape and the specified circle.
      */
     public abstract boolean intersects (Circle circle);
@@ -120,6 +115,20 @@ public abstract class Shape
      * Checks for an intersection with this shape and the specified compound.
      */
     public abstract boolean intersects (Compound compound);
+
+    /**
+     * Updates the value of the closest point and returns a new result vector reference.
+     */
+    protected static Vector2f updateClosest (Vector2f origin, Vector2f result, Vector2f closest)
+    {
+        if (result == closest) {
+            return new Vector2f();
+        }
+        if (origin.distanceSquared(result) < origin.distanceSquared(closest)) {
+            closest.set(result);
+        }
+        return result;
+    }
 
     /** The bounds of the shape. */
     protected Rect _bounds = new Rect();

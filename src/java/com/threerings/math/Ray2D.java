@@ -102,6 +102,32 @@ public final class Ray2D
         return this;
     }
 
+    /**
+     * Determines whether the ray intersects the specified point.
+     */
+    public boolean intersects (Vector2f pt)
+    {
+        if (Math.abs(_direction.x) > Math.abs(_direction.y)) {
+            float t = (pt.x - _origin.x) / _direction.x;
+            return t >= 0f && _origin.y + t*_direction.y == pt.y;
+        } else {
+            float t = (pt.y - _origin.y) / _direction.y;
+            return t >= 0f && _origin.x + t*_direction.x == pt.x;
+        }
+    }
+
+    /**
+     * Finds the intersection between the ray and a line segment with the given start and end
+     * points.
+     *
+     * @return true if the ray intersected the segment (in which case the result will contain the
+     * point of intersection), false otherwise.
+     */
+    public boolean getIntersection (Vector2f start, Vector2f end, Vector2f result)
+    {
+        return false;
+    }
+
     @Override // documentation inherited
     public String toString ()
     {

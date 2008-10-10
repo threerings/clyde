@@ -8,7 +8,6 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.shape.Point;
 import com.threerings.tudey.shape.Segment;
-import com.threerings.tudey.shape.Quad;
 import com.threerings.tudey.shape.Circle;
 import com.threerings.tudey.shape.Capsule;
 import com.threerings.tudey.shape.Polygon;
@@ -52,11 +51,6 @@ public interface SpaceElement extends SpaceObject
      * Determines whether this element intersects the supplied segment.
      */
     public boolean intersects (Segment segment);
-
-    /**
-     * Determines whether this element intersects the supplied quad.
-     */
-    public boolean intersects (Quad quad);
 
     /**
      * Determines whether this element intersects the supplied circle.
