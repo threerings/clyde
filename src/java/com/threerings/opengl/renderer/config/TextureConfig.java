@@ -30,6 +30,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.Texture1D;
 import com.threerings.opengl.renderer.Texture2D;
@@ -280,7 +281,7 @@ public class TextureConfig extends ParameterizedConfig
      * Contains the actual implementation of the texture.
      */
     @EditorTypes({
-        Original1D.class, Original2D.class, OriginalRectangle.class,
+        Original1D.class, Original2D.class, Original2DTarget.class, OriginalRectangle.class,
         Original3D.class, OriginalCubeMap.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
@@ -392,7 +393,6 @@ public class TextureConfig extends ParameterizedConfig
             Texture texture = (_texture == null) ? null : _texture.get();
             if (texture == null) {
                 _texture = new SoftReference<Texture>(texture = createTexture(ctx));
-                load(ctx, texture);
                 texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
                 texture.setMaxAnisotropy(maxAnisotropy);
                 texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
@@ -413,11 +413,6 @@ public class TextureConfig extends ParameterizedConfig
          * Creates the texture for this configuration.
          */
         protected abstract Texture createTexture (GlContext ctx);
-
-        /**
-         * Loads the texture with its initial contents.
-         */
-        protected abstract void load (GlContext ctx, Texture texture);
 
         /** The texture corresponding to this configuration. */
         @DeepOmit
@@ -523,13 +518,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
         {
-            return new Texture1D(ctx.getRenderer());
-        }
-
-        @Override // documentation inherited
-        protected void load (GlContext ctx, Texture texture)
-        {
-            contents.load(ctx, (Texture1D)texture, format, border, minFilter.isMipmapped());
+            Texture1D texture = new Texture1D(ctx.getRenderer());
+            contents.load(ctx, texture, format, border, minFilter.isMipmapped());
+            return texture;
         }
     }
 
@@ -636,13 +627,21 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
         {
-            return new Texture2D(ctx.getRenderer(), false);
+            Texture2D texture = new Texture2D(ctx.getRenderer(), false);
+            contents.load(ctx, texture, format, border, minFilter.isMipmapped());
+            return texture;
         }
+    }
 
+    /**
+     * A 2D texture that matches the dimensions of the render surface.
+     */
+    public static class Original2DTarget extends Original
+    {
         @Override // documentation inherited
-        protected void load (GlContext ctx, Texture texture)
+        protected Texture createTexture (GlContext ctx)
         {
-            contents.load(ctx, (Texture2D)texture, format, border, minFilter.isMipmapped());
+            return new Texture2DTarget(ctx.getRenderer(), format, border, minFilter.isMipmapped());
         }
     }
 
@@ -660,7 +659,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
         {
-            return new Texture2D(ctx.getRenderer(), true);
+            Texture2D texture = new Texture2D(ctx.getRenderer(), true);
+            contents.load(ctx, texture, format, border, minFilter.isMipmapped());
+            return texture;
         }
     }
 
@@ -790,13 +791,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
         {
-            return new Texture3D(ctx.getRenderer());
-        }
-
-        @Override // documentation inherited
-        protected void load (GlContext ctx, Texture texture)
-        {
-            contents.load(ctx, (Texture3D)texture, format, border, minFilter.isMipmapped());
+            Texture3D texture = new Texture3D(ctx.getRenderer());
+            contents.load(ctx, texture, format, border, minFilter.isMipmapped());
+            return texture;
         }
     }
 
@@ -1019,13 +1016,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         protected Texture createTexture (GlContext ctx)
         {
-            return new TextureCubeMap(ctx.getRenderer());
-        }
-
-        @Override // documentation inherited
-        protected void load (GlContext ctx, Texture texture)
-        {
-            contents.load(ctx, (TextureCubeMap)texture, format, border, minFilter.isMipmapped());
+            TextureCubeMap texture = new TextureCubeMap(ctx.getRenderer());
+            contents.load(ctx, texture, format, border, minFilter.isMipmapped());
+            return texture;
         }
     }
 
@@ -1122,5 +1115,38 @@ public class TextureConfig extends ParameterizedConfig
                 colorizations[ii].colorization);
         }
         return ctx.getImageCache().getBufferedImage(file, zations);
+    }
+
+    /**
+     * A texture that automatically adjusts itself to match the dimensions of the render surface.
+     */
+    protected static class Texture2DTarget extends Texture2D
+        implements Renderer.Observer
+    {
+        public Texture2DTarget (Renderer renderer, Format format, boolean border, boolean mipmap)
+        {
+            super(renderer);
+            _format = format;
+            _border = border;
+            _mipmap = mipmap;
+
+            sizeChanged(renderer.getWidth(), renderer.getHeight());
+            renderer.addObserver(this);
+        }
+
+        // documentation inherited from interface Renderer.Observer
+        public void sizeChanged (int width, int height)
+        {
+            setImage(_format.getConstant(null), width, height, _border, _mipmap);
+        }
+
+        /** The requested format. */
+        protected Format _format;
+
+        /** Whether or not to include a border. */
+        protected boolean _border;
+
+        /** Whether or not to define mipmaps. */
+        protected boolean _mipmap;
     }
 }

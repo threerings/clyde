@@ -18,7 +18,6 @@ import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.compositor.config.RenderEffectConfig.Technique;
 import com.threerings.opengl.compositor.config.TargetConfig;
 import com.threerings.opengl.gui.util.Rectangle;
-import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.util.GlContext;
 
@@ -28,8 +27,7 @@ import static com.threerings.opengl.Log.*;
  * Handles a render effect.
  */
 public class RenderEffect extends DynamicScope
-    implements ConfigUpdateListener<RenderEffectConfig>, Renderer.Observer,
-        Comparable<RenderEffect>
+    implements ConfigUpdateListener<RenderEffectConfig>, Comparable<RenderEffect>
 {
     /**
      * Handles a single effect target.
@@ -165,12 +163,6 @@ public class RenderEffect extends DynamicScope
     {
         super("effect", parentScope);
         _ctx = ctx;
-
-        Renderer renderer = _ctx.getRenderer();
-        _width = renderer.getWidth();
-        _height = renderer.getHeight();
-        renderer.addObserver(this);
-
         setConfig(config);
     }
 
@@ -220,14 +212,6 @@ public class RenderEffect extends DynamicScope
         updateFromConfig();
     }
 
-    // documentation inherited from interface Renderer.Observer
-    public void sizeChanged (int width, int height)
-    {
-        _width = width;
-        _height = height;
-        wasUpdated();
-    }
-
     // documentation inherited from interface Comparable
     public int compareTo (RenderEffect other)
     {
@@ -238,7 +222,6 @@ public class RenderEffect extends DynamicScope
     public void dispose ()
     {
         super.dispose();
-        _ctx.getRenderer().removeObserver(this);
         if (_config != null) {
             _config.removeListener(this);
         }
@@ -292,10 +275,6 @@ public class RenderEffect extends DynamicScope
     /** The identity of the effect instance. */
     @Scoped
     protected String _identity = String.valueOf(System.identityHashCode(this));
-
-    /** The width and height of the renderer surface. */
-    @Scoped
-    protected int _width, _height;
 
     /** The render effect configuration. */
     protected RenderEffectConfig _config;

@@ -36,19 +36,14 @@ public class TextureRenderer
     public static TextureRenderer getInstance (
         GlContext ctx, Texture color, Texture depth, PixelFormat pformat)
     {
-        int width, height;
-        if (color == null) {
-            width = depth.getWidth();
-            height = depth.getHeight();
-        } else {
-            width = color.getWidth();
-            height = color.getHeight();
-        }
-        return getInstance(ctx, color, depth, width, height, pformat);
+        return getInstance(ctx, color, depth, -1, -1, pformat);
     }
 
     /**
      * Retrieves the shared texture renderer instance for the supplied textures.
+     *
+     * @param width the width of the render surface, or -1 to match the texture dimensions.
+     * @param height the height of the render surface, or -1.
      */
     public static TextureRenderer getInstance (
         GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
@@ -64,18 +59,30 @@ public class TextureRenderer
 
     /**
      * Creates a new texture renderer to render into the specified texture(s).
+     *
+     * @param width the width of the render surface, or -1 to match the texture dimensions.
+     * @param height the height of the render surface, or -1.
      */
     public TextureRenderer (
         GlContext ctx, Texture color, Texture depth, int width, int height, PixelFormat pformat)
     {
         _ctx = ctx;
         _renderer = ctx.getRenderer();
-        _width = width;
-        _height = height;
         _color = color;
         _depth = depth;
+        _pformat = pformat;
         Texture tex = (color == null) ? depth : color;
         int twidth = tex.getWidth(), theight = tex.getHeight();
+
+        // match the texture dimensions if unspecified
+        if (width == -1) {
+            _width = twidth;
+            _height = theight;
+            _matchTextureDimensions = true;
+        } else {
+            _width = width;
+            _height = height;
+        }
 
         // first try fbos (temporarily disabled)
         if (false && GLContext.getCapabilities().GL_EXT_framebuffer_object) {
@@ -135,9 +142,8 @@ public class TextureRenderer
         if (false && (pcaps & Pbuffer.PBUFFER_SUPPORTED) != 0) {
             int target = getRenderTextureTarget(tex.getTarget());
             boolean rectangle = (target == RenderTexture.RENDER_TEXTURE_RECTANGLE);
-            _pwidth = width;
-            _pheight = height;
-            _pformat = pformat;
+            _pwidth = _width;
+            _pheight = _height;
             if ((pcaps & Pbuffer.RENDER_TEXTURE_SUPPORTED) != 0 &&
                     (!rectangle || (pcaps & Pbuffer.RENDER_TEXTURE_RECTANGLE_SUPPORTED) != 0) &&
                     (depth == null || (pcaps & Pbuffer.RENDER_DEPTH_TEXTURE_SUPPORTED) != 0)) {
@@ -192,6 +198,13 @@ public class TextureRenderer
      */
     public void startRender ()
     {
+        if (_matchTextureDimensions) {
+            Texture tex = (_color == null) ? _depth : _color;
+            int twidth = tex.getWidth(), theight = tex.getHeight();
+            if (_width != twidth || _height != theight) {
+                resize(twidth, theight);
+            }
+        }
         if (_framebuffer != null) {
             _obuffer = _renderer.getFramebuffer();
             _renderer.setFramebuffer(_framebuffer);
@@ -264,6 +277,43 @@ public class TextureRenderer
         if (_pbuffer != null) {
             _pbuffer.destroy();
             _pbuffer = null;
+        }
+    }
+
+    @Override // documentation inherited
+    protected void finalize ()
+        throws Throwable
+    {
+        super.finalize();
+        if (_pbuffer != null) {
+            _renderer.pbufferFinalized(_pbuffer);
+        }
+    }
+
+    /**
+     * Resizes the texture render state to match the supplied dimensions.
+     */
+    protected void resize (int width, int height)
+    {
+        _width = width;
+        _height = height;
+
+        if (_framebuffer != null) {
+            // resize the depth and/or stencil render buffers
+            if (_depth == null && _pformat.getDepthBits() > 0) {
+                Renderbuffer dbuf = new Renderbuffer(_renderer);
+                dbuf.setStorage(GL11.GL_DEPTH_COMPONENT, width, height);
+                _framebuffer.setDepthAttachment(dbuf);
+            }
+            if (_pformat.getStencilBits() > 0) {
+                Renderbuffer sbuf = new Renderbuffer(_renderer);
+                sbuf.setStorage(GL11.GL_STENCIL_INDEX, width, height);
+                _framebuffer.setStencilAttachment(sbuf);
+            }
+        } else if (_pbuffer != null) {
+            _pwidth = width;
+            _pheight = height;
+            initPbuffer();
         }
     }
 
@@ -340,16 +390,6 @@ public class TextureRenderer
         _renderer.setTexture(texture);
         if (texture instanceof Texture2D) {
             GL11.glCopyTexSubImage2D(texture.getTarget(), 0, 0, 0, 0, 0, _width, _height);
-        }
-    }
-
-    @Override // documentation inherited
-    protected void finalize ()
-        throws Throwable
-    {
-        super.finalize();
-        if (_pbuffer != null) {
-            _renderer.pbufferFinalized(_pbuffer);
         }
     }
 
@@ -454,6 +494,12 @@ public class TextureRenderer
     /** The width and height of the render surface. */
     protected int _width, _height;
 
+    /** If true, change the render surface dimensions to match the texture dimensions. */
+    protected boolean _matchTextureDimensions;
+
+    /** The requested pixel format. */
+    protected PixelFormat _pformat;
+
     /** The color and/or depth textures to which we render. */
     protected Texture _color, _depth;
 
@@ -462,9 +508,6 @@ public class TextureRenderer
 
     /** The dimensions of the Pbuffer. */
     protected int _pwidth, _pheight;
-
-    /** The format of the Pbuffer. */
-    protected PixelFormat _pformat;
 
     /** The render-to-texture configuration. */
     protected RenderTexture _rtex;
