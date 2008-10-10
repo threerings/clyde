@@ -19,6 +19,12 @@ import static com.threerings.opengl.Log.*;
  */
 public abstract class GlDisplayApp extends GlApp
 {
+    public GlDisplayApp ()
+    {
+        // enable vsync unless configured otherwise
+        Display.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+    }
+
     /**
      * Returns an array containing the available display modes.
      */

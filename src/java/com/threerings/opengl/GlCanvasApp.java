@@ -154,6 +154,9 @@ public abstract class GlCanvasApp extends GlApp
     @Override // documentation inherited
     protected void didInit ()
     {
+        // enable vsync unless configured otherwise
+        _canvas.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+
         // notify the renderer on resize
         _canvas.addComponentListener(new ComponentAdapter() {
             public void componentResized (ComponentEvent event) {

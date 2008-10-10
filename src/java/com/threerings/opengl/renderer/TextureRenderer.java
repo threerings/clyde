@@ -77,8 +77,8 @@ public class TextureRenderer
         Texture tex = (color == null) ? depth : color;
         int twidth = tex.getWidth(), theight = tex.getHeight();
 
-        // first try fbos
-        if (GLContext.getCapabilities().GL_EXT_framebuffer_object) {
+        // first try fbos (temporarily disabled)
+        if (false && GLContext.getCapabilities().GL_EXT_framebuffer_object) {
             Framebuffer obuffer = _renderer.getFramebuffer();
             _renderer.setFramebuffer(_framebuffer = new Framebuffer(_renderer));
 
@@ -130,9 +130,9 @@ public class TextureRenderer
             _framebuffer = null;
         }
 
-        // then try pbuffers with or without rtt
+        // then try pbuffers with or without rtt (temporarily disabled)
         int pcaps = Pbuffer.getCapabilities();
-        if ((pcaps & Pbuffer.PBUFFER_SUPPORTED) != 0) {
+        if (false && (pcaps & Pbuffer.PBUFFER_SUPPORTED) != 0) {
             int target = getRenderTextureTarget(tex.getTarget());
             boolean rectangle = (target == RenderTexture.RENDER_TEXTURE_RECTANGLE);
             _pwidth = width;
