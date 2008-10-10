@@ -11,8 +11,6 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
-import com.threerings.math.Ray2D;
-import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
@@ -21,7 +19,7 @@ import com.threerings.util.DeepOmit;
 import com.threerings.opengl.renderer.DisplayList;
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.tudey.space.Intersector;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * The configuration for a shape.
@@ -39,57 +37,9 @@ public abstract class ShapeConfig extends DeepObject
     public static class Point extends ShapeConfig
     {
         @Override // documentation inherited
-        public boolean getIntersection (Ray2D ray, Vector2f result)
+        protected Shape createShape ()
         {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Point point)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Segment segment)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Quad quad)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Circle circle)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Capsule capsule)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Polygon polygon)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Compound compound)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        protected void computeBounds (Rect bounds)
-        {
-            bounds.set(Rect.ZERO);
+            return new com.threerings.tudey.shape.Point(Vector2f.ZERO);
         }
 
         @Override // documentation inherited
@@ -111,59 +61,11 @@ public abstract class ShapeConfig extends DeepObject
         public float length = 1f;
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray2D ray, Vector2f result)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Point point)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Segment segment)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Quad quad)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Circle circle)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Capsule capsule)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Polygon polygon)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Compound compound)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        protected void computeBounds (Rect bounds)
+        protected Shape createShape ()
         {
             float hlength = length * 0.5f;
-            bounds.getMinimumExtent().set(-hlength, 0f);
-            bounds.getMaximumExtent().set(+hlength, 0f);
+            return new com.threerings.tudey.shape.Segment(
+                new Vector2f(-hlength, 0f), new Vector2f(+hlength, 0f));
         }
 
         @Override // documentation inherited
@@ -186,75 +88,28 @@ public abstract class ShapeConfig extends DeepObject
         @Editable(min=0, step=0.01, hgroup="r")
         public float width = 1f;
 
-        /** The length of the rectangle. */
+        /** The height of the rectangle. */
         @Editable(min=0, step=0.01, hgroup="r")
-        public float length = 1f;
+        public float height = 1f;
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray2D ray, Vector2f result)
+        protected Shape createShape ()
         {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Point point)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Segment segment)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Quad quad)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Circle circle)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Capsule capsule)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Polygon polygon)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Compound compound)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        protected void computeBounds (Rect bounds)
-        {
-            float hwidth = width * 0.5f, hlength = length * 0.5f;
-            bounds.getMinimumExtent().set(-hwidth, -hlength);
-            bounds.getMaximumExtent().set(+hwidth, +hlength);
+            float hwidth = width * 0.5f, hheight = height * 0.5f;
+            return new com.threerings.tudey.shape.Quad(
+                new Vector2f(-hwidth, -hheight), new Vector2f(+hwidth, -hheight),
+                new Vector2f(+hwidth, +hheight), new Vector2f(-hwidth, +hheight));
         }
 
         @Override // documentation inherited
         protected void draw (boolean outline)
         {
-            float hwidth = width * 0.5f, hlength = length * 0.5f;
+            float hwidth = width * 0.5f, hheight = height * 0.5f;
             GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_QUADS);
-            GL11.glVertex2f(-hwidth, -hlength);
-            GL11.glVertex2f(+hwidth, -hlength);
-            GL11.glVertex2f(+hwidth, +hlength);
-            GL11.glVertex2f(-hwidth, +hlength);
+            GL11.glVertex2f(-hwidth, -hheight);
+            GL11.glVertex2f(+hwidth, -hheight);
+            GL11.glVertex2f(+hwidth, +hheight);
+            GL11.glVertex2f(-hwidth, +hheight);
             GL11.glEnd();
         }
     }
@@ -269,58 +124,9 @@ public abstract class ShapeConfig extends DeepObject
         public float radius = 1f;
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray2D ray, Vector2f result)
+        protected Shape createShape ()
         {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Point point)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Segment segment)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Quad quad)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Circle circle)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Capsule capsule)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Polygon polygon)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Compound compound)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        protected void computeBounds (Rect bounds)
-        {
-            bounds.getMinimumExtent().set(-radius, -radius);
-            bounds.getMaximumExtent().set(+radius, +radius);
+            return new com.threerings.tudey.shape.Circle(Vector2f.ZERO, radius);
         }
 
         @Override // documentation inherited
@@ -349,59 +155,11 @@ public abstract class ShapeConfig extends DeepObject
         public float length = 1f;
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray2D ray, Vector2f result)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Point point)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Segment segment)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Quad quad)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Circle circle)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Capsule capsule)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Polygon polygon)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Compound compound)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        protected void computeBounds (Rect bounds)
+        protected Shape createShape ()
         {
             float hlength = length * 0.5f;
-            bounds.getMinimumExtent().set(-hlength - radius, -radius);
-            bounds.getMaximumExtent().set(+hlength + radius, +radius);
+            return new com.threerings.tudey.shape.Capsule(
+                new Vector2f(-hlength, 0f), new Vector2f(+hlength, 0f), radius);
         }
 
         @Override // documentation inherited
@@ -433,60 +191,13 @@ public abstract class ShapeConfig extends DeepObject
         public Vertex[] vertices = new Vertex[0];
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray2D ray, Vector2f result)
+        protected Shape createShape ()
         {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Point point)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Segment segment)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Quad quad)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Circle circle)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Capsule capsule)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Polygon polygon)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Compound compound)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        protected void computeBounds (Rect bounds)
-        {
-            bounds.setToEmpty();
-            for (Vertex vertex : vertices) {
-                bounds.addLocal(vertex.createVector());
+            Vector2f[] vectors = new Vector2f[vertices.length];
+            for (int ii = 0; ii < vertices.length; ii++) {
+                vectors[ii] = vertices[ii].createVector();
             }
+            return new com.threerings.tudey.shape.Polygon(vectors);
         }
 
         @Override // documentation inherited
@@ -529,54 +240,6 @@ public abstract class ShapeConfig extends DeepObject
         public TransformedShape[] shapes = new TransformedShape[0];
 
         @Override // documentation inherited
-        public boolean getIntersection (Ray2D ray, Vector2f result)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Point point)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Segment segment)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Quad quad)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Circle circle)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Capsule capsule)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Polygon polygon)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
-        public boolean intersects (Intersector.Compound compound)
-        {
-            return false;
-        }
-
-        @Override // documentation inherited
         public void invalidate ()
         {
             super.invalidate();
@@ -586,12 +249,13 @@ public abstract class ShapeConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        protected void computeBounds (Rect bounds)
+        protected Shape createShape ()
         {
-            bounds.setToEmpty();
-            for (TransformedShape tshape : shapes) {
-                bounds.addLocal(tshape.getBounds());
+            Shape[] tshapes = new Shape[shapes.length];
+            for (int ii = 0; ii < shapes.length; ii++) {
+                tshapes[ii] = shapes[ii].getShape();
             }
+            return new com.threerings.tudey.shape.Compound(tshapes);
         }
 
         @Override // documentation inherited
@@ -631,14 +295,14 @@ public abstract class ShapeConfig extends DeepObject
         public Transform2D transform = new Transform2D();
 
         /**
-         * Returns the bounds of the transformed shape.
+         * Returns the transformed shape.
          */
-        public Rect getBounds ()
+        public Shape getShape ()
         {
-            if (_bounds == null) {
-                _bounds = shape.getBounds().transform(transform);
+            if (_shape == null) {
+                _shape = shape.getShape().transform(transform);
             }
-            return _bounds;
+            return _shape;
         }
 
         /**
@@ -646,68 +310,25 @@ public abstract class ShapeConfig extends DeepObject
          */
         public void invalidate ()
         {
-            _bounds = null;
+            shape.invalidate();
+            _shape = null;
         }
 
-        /** The bounds of the transformed shape. */
+        /** The transformed shape. */
         @DeepOmit
-        protected transient Rect _bounds;
+        protected transient Shape _shape;
     }
 
     /**
-     * Returns a reference to the bounds of the shape.
+     * Returns a reference to the untransformed shape.
      */
-    public Rect getBounds ()
+    public Shape getShape ()
     {
-        if (_bounds == null) {
-            computeBounds(_bounds = new Rect());
+        if (_shape == null) {
+            _shape = createShape();
         }
-        return _bounds;
+        return _shape;
     }
-
-    /**
-     * Finds the intersection of a ray with this object and places it in the supplied vector
-     * (if it exists).
-     *
-     * @return true if the ray intersected the object (in which case the result will contain the
-     * point of intersection), false otherwise.
-     */
-    public abstract boolean getIntersection (Ray2D ray, Vector2f result);
-
-    /**
-     * Determines whether this shape intersects the supplied point.
-     */
-    public abstract boolean intersects (Intersector.Point point);
-
-    /**
-     * Determines whether this shape intersects the supplied segment.
-     */
-    public abstract boolean intersects (Intersector.Segment segment);
-
-    /**
-     * Determines whether this shape intersects the supplied quad.
-     */
-    public abstract boolean intersects (Intersector.Quad quad);
-
-    /**
-     * Determines whether this shape intersects the supplied circle.
-     */
-    public abstract boolean intersects (Intersector.Circle circle);
-
-    /**
-     * Determines whether this shape intersects the supplied capsule.
-     */
-    public abstract boolean intersects (Intersector.Capsule capsule);
-
-    /**
-     * Determines whether this shape intersects the supplied polygon.
-     */
-    public abstract boolean intersects (Intersector.Polygon polygon);
-
-    /**
-     * Determines whether this shape intersects the supplied compound.
-     */
-    public abstract boolean intersects (Intersector.Compound compound);
 
     /**
      * Returns the cached display list to draw this shape.
@@ -737,14 +358,14 @@ public abstract class ShapeConfig extends DeepObject
      */
     public void invalidate ()
     {
-        _bounds = null;
+        _shape = null;
         _solidList = _outlineList = null;
     }
 
     /**
-     * Computes the bounds of the shape and stores them in the provided object.
+     * Creates the untransformed shape corresponding to this config.
      */
-    protected abstract void computeBounds (Rect bounds);
+    protected abstract Shape createShape ();
 
     /**
      * Draws this shape in immediate mode.
@@ -753,9 +374,9 @@ public abstract class ShapeConfig extends DeepObject
      */
     protected abstract void draw (boolean outline);
 
-    /** The bounds of the shape. */
+    /** The untransformed shape. */
     @DeepOmit
-    protected transient Rect _bounds;
+    protected transient Shape _shape;
 
     /** The display lists containing the solid and outline representations. */
     @DeepOmit

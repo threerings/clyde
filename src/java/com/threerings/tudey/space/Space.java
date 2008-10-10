@@ -12,6 +12,8 @@ import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.Shape;
+
 /**
  * Base class for spaces.
  */
@@ -66,12 +68,11 @@ public abstract class Space
         Ray2D ray, Vector2f location, Predicate<SpaceElement> filter);
 
     /**
-     * Retrieves all space elements that intersect the provided intersector.
+     * Retrieves all space elements that intersect the provided shape.
      *
      * @param results a collection to hold the results of the search.
      */
-    public abstract void getIntersecting (
-        Intersector intersector, Collection<SpaceElement> results);
+    public abstract void getIntersecting (Shape shape, Collection<SpaceElement> results);
 
     /**
      * Retrieves all space elements whose bounds intersect the provided region.
@@ -129,16 +130,15 @@ public abstract class Space
     }
 
     /**
-     * Adds all elements from the provided list that intersect the given intersector to the
+     * Adds all elements from the provided list that intersect the given shape to the
      * specified results collection.
      */
     protected static void getIntersecting (
-        ArrayList<SpaceElement> elements, Intersector intersector,
-        Collection<SpaceElement> results)
+        ArrayList<SpaceElement> elements, Shape shape, Collection<SpaceElement> results)
     {
         for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
             SpaceElement element = elements.get(ii);
-            if (intersector.intersects(element)) {
+            if (shape.intersects(element)) {
                 results.add(element);
             }
         }

@@ -90,14 +90,6 @@ public class TileConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
 
-        /** The tile boundary vertices. */
-        @Editable
-        public BoundaryVertex[] boundaryVertices = new BoundaryVertex[0];
-
-        /** The tile boundary edges. */
-        @Editable
-        public BoundaryEdge[] boundaryEdges = new BoundaryEdge[0];
-
         /** Indicates where the tile is passable. */
         @Editable(width=3)
         public boolean[][] passable = new boolean[][] { { false } };
@@ -206,32 +198,6 @@ public class TileConfig extends ParameterizedConfig
             TileConfig config = ctx.getConfigManager().getConfig(TileConfig.class, tile);
             return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
         }
-    }
-
-    /**
-     * Represents a single tile boundary vertex.
-     */
-    public static class BoundaryVertex extends DeepObject
-        implements Exportable
-    {
-        /** The ground type of the vertex. */
-        @Editable(editor="config", mode="ground", nullable=true, hgroup="g")
-        public String ground;
-
-        /** The elevation of the vertex (relative to the tile elevation). */
-        @Editable(hgroup="g")
-        public int elevation;
-    }
-
-    /**
-     * Represents a single tile boundary edge.
-     */
-    public static class BoundaryEdge extends DeepObject
-        implements Exportable
-    {
-        /** The wall type of the edge. */
-        @Editable(editor="config", mode="wall", nullable=true)
-        public String wall;
     }
 
     /** The actual tile implementation. */

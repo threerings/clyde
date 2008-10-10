@@ -8,6 +8,14 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.Point;
+import com.threerings.tudey.shape.Segment;
+import com.threerings.tudey.shape.Quad;
+import com.threerings.tudey.shape.Circle;
+import com.threerings.tudey.shape.Capsule;
+import com.threerings.tudey.shape.Polygon;
+import com.threerings.tudey.shape.Compound;
+
 /**
  * A simple implementation of the {@link SpaceElement} interface.
  */
@@ -42,19 +50,9 @@ public abstract class SimpleSpaceElement
     }
 
     /**
-     * Updates the bounds of the element.  The default implementation transforms the bounds
-     * returned by {@link #getLocalBounds}.
+     * Updates the bounds of the element.
      */
-    public void updateBounds ()
-    {
-        // and the world bounds
-        computeBounds(_nbounds);
-        if (!_bounds.equals(_nbounds)) {
-            boundsWillChange();
-            _bounds.set(_nbounds);
-            boundsDidChange();
-        }
-    }
+    public abstract void updateBounds ();
 
     // documentation inherited from interface SpaceElement
     public Object getUserObject ()
@@ -81,43 +79,43 @@ public abstract class SimpleSpaceElement
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Point point)
+    public boolean intersects (Point point)
     {
         return false;
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Segment segment)
+    public boolean intersects (Segment segment)
     {
         return false;
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Quad quad)
+    public boolean intersects (Quad quad)
     {
         return false;
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Circle circle)
+    public boolean intersects (Circle circle)
     {
         return false;
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Capsule capsule)
+    public boolean intersects (Capsule capsule)
     {
         return false;
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Polygon polygon)
+    public boolean intersects (Polygon polygon)
     {
         return false;
     }
 
     // documentation inherited from interface SpaceElement
-    public boolean intersects (Intersector.Compound compound)
+    public boolean intersects (Compound compound)
     {
         return false;
     }
@@ -136,24 +134,6 @@ public abstract class SimpleSpaceElement
         }
         _lastVisit = visit;
         return true;
-    }
-
-    /**
-     * Computes the bounds of the element and places them in the provided result object.  The
-     * default implementation simply transforms the bounds returned by {@link #getLocalBounds}.
-     */
-    protected void computeBounds (Rect result)
-    {
-        getLocalBounds().transform(_transform, result);
-    }
-
-    /**
-     * Returns the local bounds of the element.  Default implementation returns {@link Rect#ZERO};
-     * override to return actual local bounds.
-     */
-    protected Rect getLocalBounds ()
-    {
-        return Rect.ZERO;
     }
 
     /**
@@ -181,9 +161,6 @@ public abstract class SimpleSpaceElement
 
     /** The bounds of the element. */
     protected Rect _bounds = new Rect();
-
-    /** Holds the new bounds of the element when updating. */
-    protected Rect _nbounds = new Rect();
 
     /** The element's user object. */
     protected Object _userObject;

@@ -16,6 +16,7 @@ import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.Coord;
 
 /**
@@ -97,13 +98,13 @@ public class HashSpace extends Space
     }
 
     @Override // documentation inherited
-    public void getIntersecting (Intersector intersector, Collection<SpaceElement> results)
+    public void getIntersecting (Shape shape, Collection<SpaceElement> results)
     {
         // get the oversized elements
-        getIntersecting(_oversizedElements, intersector, results);
+        getIntersecting(_oversizedElements, shape, results);
 
         // get the intersection with the top-level bounds
-        intersector.getBounds().intersect(_bounds, _rect);
+        shape.getBounds().intersect(_bounds, _rect);
         if (_rect.isEmpty()) {
             return;
         }
@@ -122,7 +123,7 @@ public class HashSpace extends Space
             for (int xx = minx; xx <= maxx; xx++) {
                 Node<SpaceElement> root = _elements.get(_coord.set(xx, yy));
                 if (root != null) {
-                    root.get(intersector, results);
+                    root.get(shape, results);
                 }
             }
         }
@@ -359,12 +360,12 @@ public class HashSpace extends Space
         }
 
         /**
-         * Retrieves all objects intersecting the provided intersector.
+         * Retrieves all objects intersecting the provided shape.
          */
-        public void get (Intersector intersector, Collection<T> results)
+        public void get (Shape shape, Collection<T> results)
         {
-            if (intersector.getIntersectionType(_bounds) != Intersector.IntersectionType.NONE) {
-                getIntersecting(intersector, results);
+            if (shape.getIntersectionType(_bounds) != Shape.IntersectionType.NONE) {
+                getIntersecting(shape, results);
             }
         }
 
@@ -394,14 +395,14 @@ public class HashSpace extends Space
         }
 
         /**
-         * Gets all objects in this node intersecting the provided intersector.
+         * Gets all objects in this node intersecting the provided shape.
          */
-        protected void getIntersecting (Intersector intersector, Collection<T> results)
+        protected void getIntersecting (Shape shape, Collection<T> results)
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
                 if (object.updateLastVisit(_visit) &&
-                        intersector.intersects((SpaceElement)object)) {
+                        shape.intersects((SpaceElement)object)) {
                     results.add(object);
                 }
             }
@@ -528,12 +529,12 @@ public class HashSpace extends Space
         }
 
         @Override // documentation inherited
-        protected void getIntersecting (Intersector intersector, Collection<T> results)
+        protected void getIntersecting (Shape shape, Collection<T> results)
         {
-            super.getIntersecting(intersector, results);
+            super.getIntersecting(shape, results);
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.get(intersector, results);
+                    child.get(shape, results);
                 }
             }
         }

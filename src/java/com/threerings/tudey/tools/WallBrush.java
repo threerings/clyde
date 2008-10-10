@@ -6,6 +6,8 @@ package com.threerings.tudey.tools;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
+import java.util.ArrayList;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
@@ -15,6 +17,7 @@ import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.util.GridBox;
 import com.threerings.tudey.config.WallConfig;
+import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
@@ -33,10 +36,8 @@ public class WallBrush extends ConfigTool<WallConfig>
     @Override // documentation inherited
     public void init ()
     {
-        _inner = new GridBox(_editor);
-        _inner.getColor().set(1f, 1f, 0f, 1f);
-        _outer = new GridBox(_editor);
-        _outer.getColor().set(0.5f, 0.5f, 0f, 1f);
+        _cursor = new GridBox(_editor);
+        _cursor.getColor().set(1f, 1f, 0f, 1f);
     }
 
     @Override // documentation inherited
@@ -49,8 +50,7 @@ public class WallBrush extends ConfigTool<WallConfig>
     public void enqueue ()
     {
         if (_cursorVisible) {
-            _inner.enqueue();
-            _outer.enqueue();
+            _cursor.enqueue();
         }
     }
 
@@ -80,35 +80,16 @@ public class WallBrush extends ConfigTool<WallConfig>
         if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
             return;
         }
-        // adjust the rotation when we cross an edge
-        int tx = (int)FloatMath.floor(_isect.x), ty = (int)FloatMath.floor(_isect.y);
-        if (_lx == tx && _ly != ty) {
-            _rotation = 0;
-        } else if (_lx != tx && _ly == ty) {
-            _rotation = 1;
-        }
-        _lx = tx;
-        _ly = ty;
-
         WallReference wref = (WallReference)_eref;
-        int ewidth = wref.width, eheight = wref.height - 1;
-        int iwidth = TudeySceneMetrics.getTileWidth(ewidth, eheight, _rotation);
-        int iheight = TudeySceneMetrics.getTileHeight(ewidth, eheight, _rotation);
-        int xoff = TudeySceneMetrics.getTileWidth(0, 1, _rotation);
-        int yoff = TudeySceneMetrics.getTileHeight(0, 1, _rotation);
-        int owidth = iwidth + 2*xoff, oheight = iheight + 2*yoff;
-
-        int x = Math.round(_isect.x - iwidth*0.5f), y = Math.round(_isect.y - iheight*0.5f);
-        _inner.getRegion().set(x, y, iwidth, iheight);
-        _outer.getRegion().set(x - xoff, y - yoff, owidth, oheight);
-
-        int elevation = _editor.getGrid().getElevation();
-        _inner.setElevation(elevation);
-        _outer.setElevation(elevation);
+        int width = TudeySceneMetrics.getTileWidth(wref.width, wref.height, _rotation);
+        int height = TudeySceneMetrics.getTileHeight(wref.width, wref.height, _rotation);
+        int x = Math.round(_isect.x - width*0.5f), y = Math.round(_isect.y - height*0.5f);
+        _cursor.getRegion().set(x, y, width, height);
+        _cursor.setElevation(_editor.getGrid().getElevation());
 
         // if we are dragging, consider performing another paint operation
         boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
-        if ((paint || erase) && !_inner.getRegion().equals(_lastPainted)) {
+        if ((paint || erase) && !_cursor.getRegion().equals(_lastPainted)) {
             paintWall(erase, false);
         }
     }
@@ -123,8 +104,16 @@ public class WallBrush extends ConfigTool<WallConfig>
     {
         ConfigReference<WallConfig> ref = erase ? null : _eref.getReference();
         String wall = (ref == null) ? null : ref.getName();
-        Rectangle region = _inner.getRegion();
+        Rectangle region = _cursor.getRegion();
         _lastPainted.set(region);
+
+        // get the surrounding tiles
+        Rectangle outer = new Rectangle(region);
+        outer.grow(1, 1);
+        ArrayList<TileEntry> surrounding = new ArrayList<TileEntry>();
+        _scene.getTileEntries(outer, surrounding);
+
+
     }
 
     /**
@@ -157,8 +146,8 @@ public class WallBrush extends ConfigTool<WallConfig>
         }
     }
 
-    /** The inner and outer cursors. */
-    protected GridBox _inner, _outer;
+    /** The cursor. */
+    protected GridBox _cursor;
 
     /** Whether or not the cursor is in the window. */
     protected boolean _cursorVisible;

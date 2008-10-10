@@ -6,6 +6,14 @@ package com.threerings.tudey.space;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.Point;
+import com.threerings.tudey.shape.Segment;
+import com.threerings.tudey.shape.Quad;
+import com.threerings.tudey.shape.Circle;
+import com.threerings.tudey.shape.Capsule;
+import com.threerings.tudey.shape.Polygon;
+import com.threerings.tudey.shape.Compound;
+
 /**
  * Interface for elements that can be embedded into spaces.
  */
@@ -38,35 +46,35 @@ public interface SpaceElement extends SpaceObject
     /**
      * Determines whether this element intersects the supplied point.
      */
-    public boolean intersects (Intersector.Point point);
+    public boolean intersects (Point point);
 
     /**
      * Determines whether this element intersects the supplied segment.
      */
-    public boolean intersects (Intersector.Segment segment);
+    public boolean intersects (Segment segment);
 
     /**
      * Determines whether this element intersects the supplied quad.
      */
-    public boolean intersects (Intersector.Quad quad);
+    public boolean intersects (Quad quad);
 
     /**
      * Determines whether this element intersects the supplied circle.
      */
-    public boolean intersects (Intersector.Circle circle);
+    public boolean intersects (Circle circle);
 
     /**
      * Determines whether this element intersects the supplied capsule.
      */
-    public boolean intersects (Intersector.Capsule capsule);
+    public boolean intersects (Capsule capsule);
 
     /**
      * Determines whether this element intersects the supplied polygon.
      */
-    public boolean intersects (Intersector.Polygon polygon);
+    public boolean intersects (Polygon polygon);
 
     /**
      * Determines whether this element intersects the supplied compound.
      */
-    public boolean intersects (Intersector.Compound compound);
+    public boolean intersects (Compound compound);
 }

@@ -12,6 +12,8 @@ import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.Shape;
+
 /**
  * A simple, "flat" space implementation.
  */
@@ -25,9 +27,9 @@ public class SimpleSpace extends Space
     }
 
     @Override // documentation inherited
-    public void getIntersecting (Intersector intersector, Collection<SpaceElement> results)
+    public void getIntersecting (Shape shape, Collection<SpaceElement> results)
     {
-        getIntersecting(_elements, intersector, results);
+        getIntersecting(_elements, shape, results);
     }
 
     @Override // documentation inherited
