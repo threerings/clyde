@@ -53,6 +53,31 @@ public class Capsule extends Shape
         return _end;
     }
 
+    /**
+     * Checks whether the capsule contains the specified point.
+     */
+    public boolean contains (Vector2f pt)
+    {
+        // see if the point lies before the start (this also handles the case where start and
+        // end are equal)
+        float a = _end.x - _start.x, b = _end.y - _start.y;
+        float dp = a*pt.x + b*pt.y;
+        if (dp <= a*_start.x + b*_start.y) {
+            float dx = pt.x - _start.x, dy = pt.y - _start.y;
+            return dx*dx + dy*dy <= radius*radius;
+        }
+        // now see if it lies after the end
+        if (dp >= a*_end.x + b*_end.y) {
+            float dx = pt.x - _end.x, dy = pt.y - _end.y;
+            return dx*dx + dy*dy <= radius*radius;
+        }
+        // it's in the middle, so check the distance to the line
+        a = _start.y - _end.y;
+        b = _end.x - _start.x;
+        float d = a*(pt.x - _start.x) + b*(pt.y - _start.y);
+        return d*d <= radius * (a*a + b*b);
+    }
+
     @Override // documentation inherited
     public void updateBounds ()
     {
@@ -100,7 +125,7 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        return false;
+        return contains(point.getLocation());
     }
 
     @Override // documentation inherited

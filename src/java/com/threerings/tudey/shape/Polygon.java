@@ -11,7 +11,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.space.SpaceElement;
 
 /**
- * A polygon.
+ * A convex polygon.
  */
 public class Polygon extends Shape
 {
@@ -49,6 +49,23 @@ public class Polygon extends Shape
     public Vector2f getVertex (int idx)
     {
         return _vertices[idx];
+    }
+
+    /**
+     * Checks whether the polygon contains the specified point.
+     */
+    public boolean contains (Vector2f pt)
+    {
+        // check the point against each edge
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+            if (a*pt.x + b*pt.y < a*start.x + b*start.y) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override // documentation inherited
@@ -99,7 +116,7 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        return false;
+        return contains(point.getLocation());
     }
 
     @Override // documentation inherited

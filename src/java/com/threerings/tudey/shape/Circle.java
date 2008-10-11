@@ -99,7 +99,39 @@ public class Circle extends Shape
     @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
-        return IntersectionType.NONE;
+        // test the points of the rect against the circle
+        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+        float r2 = radius*radius;
+        int ccount =
+            (contains(min.x, min.y, r2) ? 1 : 0) +
+            (contains(max.x, min.y, r2) ? 1 : 0) +
+            (contains(max.x, max.y, r2) ? 1 : 0) +
+            (contains(min.x, max.y, r2) ? 1 : 0);
+        if (ccount > 0) {
+            return (ccount == 4) ? IntersectionType.CONTAINS : IntersectionType.INTERSECTS;
+        }
+        // handle the non-corner cases
+        if (_center.x < min.x) { // left
+            return (_center.y >= min.y && _center.y <= max.y && (min.x - _center.x) <= radius) ?
+                IntersectionType.INTERSECTS : IntersectionType.NONE;
+
+        } else if (_center.x > max.x) { // right
+            return (_center.y >= min.y && _center.y <= max.y && (_center.x - max.x) <= radius) ?
+                IntersectionType.INTERSECTS : IntersectionType.NONE;
+
+        } else { // middle
+            if (_center.y < min.y) { // middle-bottom
+                return (min.y - _center.y) <= radius ?
+                    IntersectionType.INTERSECTS : IntersectionType.NONE;
+
+            } else if (_center.y > max.y) { // middle-top
+                return (_center.y - max.y) <= radius ?
+                    IntersectionType.INTERSECTS : IntersectionType.NONE;
+
+            } else { // middle-middle
+                return IntersectionType.INTERSECTS;
+            }
+        }
     }
 
     @Override // documentation inherited
@@ -164,6 +196,15 @@ public class Circle extends Shape
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
+    }
+
+    /**
+     * Checks whether the circle contains the specified point.
+     */
+    protected boolean contains (float x, float y, float r2)
+    {
+        float dx = x - _center.x, dy = y - _center.y;
+        return dx*dx + dy*dy <= r2;
     }
 
     /** The center of the circle. */
