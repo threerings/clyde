@@ -56,12 +56,20 @@ public class Polygon extends Shape
      */
     public boolean contains (Vector2f pt)
     {
+        return contains(pt.x, pt.y);
+    }
+
+    /**
+     * Checks whether the polygon contains the specified point.
+     */
+    public boolean contains (float x, float y)
+    {
         // check the point against each edge
         for (int ii = 0; ii < _vertices.length; ii++) {
             Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
             float a = start.y - end.y;
             float b = end.x - start.x;
-            if (a*pt.x + b*pt.y < a*start.x + b*start.y) {
+            if (a*x + b*y < a*start.x + b*start.y) {
                 return false;
             }
         }
@@ -92,12 +100,38 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
+        // see if we start inside the polygon
+        Vector2f origin = ray.getOrigin();
+        if (contains(origin)) {
+            result.set(origin);
+            return true;
+        }
+        // check the ray against each edge (making sure it's on the right side)
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+            if (a*origin.x + b*origin.y <= a*start.x + b*start.y &&
+                    ray.getIntersection(start, end, result)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
+        // check the corners of the rectangle
+        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+        int ccount =
+            (contains(min.x, min.y) ? 1 : 0) +
+            (contains(max.x, min.y) ? 1 : 0) +
+            (contains(max.x, max.y) ? 1 : 0) +
+            (contains(min.x, max.y) ? 1 : 0);
+        if (ccount > 0) {
+            return (ccount == 4) ? IntersectionType.CONTAINS : IntersectionType.INTERSECTS;
+        }
         return IntersectionType.NONE;
     }
 
