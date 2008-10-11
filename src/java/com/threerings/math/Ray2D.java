@@ -125,13 +125,54 @@ public final class Ray2D
      */
     public boolean getIntersection (Vector2f start, Vector2f end, Vector2f result)
     {
-        return false;
+        // ray is a + t*b, segment is c + s*d
+        float ax = _origin.x, ay = _origin.y;
+        float bx = _direction.x, by = _direction.y;
+        float cx = start.x, cy = start.y;
+        float dx = end.x - start.x, dy = end.y - start.y;
+
+        float divisor = bx*dy - by*dx;
+        if (Math.abs(divisor) < FloatMath.EPSILON) {
+            // the lines are parallel (or the segment is zero-length)
+            float t = Math.min(getIntersection(start), getIntersection(end));
+            boolean isect = (t != Float.MAX_VALUE);
+            if (isect) {
+                _origin.addScaled(_direction, t, result);
+            }
+            return isect;
+        }
+        float cxax = cx - ax, cyay = cy - ay;
+        float s = (by*cxax - bx*cyay) / divisor;
+        if (s < 0f || s > 1f) {
+            return false;
+        }
+        float t = (dy*cxax - dx*cyay) / divisor;
+        boolean isect = (t >= 0f);
+        if (isect) {
+            _origin.addScaled(_direction, t, result);
+        }
+        return isect;
     }
 
     @Override // documentation inherited
     public String toString ()
     {
         return "[origin=" + _origin + ", direction=" + _direction + "]";
+    }
+
+    /**
+     * Returns the parameter of the ray when it intersects the supplied point, or
+     * {@link Float.MAX_VALUE} if there is no such intersection.
+     */
+    protected float getIntersection (Vector2f pt)
+    {
+        if (Math.abs(_direction.x) > Math.abs(_direction.y)) {
+            float t = (pt.x - _origin.x) / _direction.x;
+            return (t >= 0f && _origin.y + t*_direction.y == pt.y) ? t : Float.MAX_VALUE;
+        } else {
+            float t = (pt.y - _origin.y) / _direction.y;
+            return (t >= 0f && _origin.x + t*_direction.x == pt.x) ? t : Float.MAX_VALUE;
+        }
     }
 
     /** The ray's point of origin. */

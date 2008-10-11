@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.shape;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -111,7 +112,28 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
-        return false;
+        // this test is equivalent to checking the line segment from _start to _end against
+        // a circle with the same center as the parameter and a radius equal to the sum of
+        // the capsule radius and the circle radius
+
+        // see if we start or end inside the circle
+        Vector2f center = circle.getCenter();
+        float r = circle.radius + radius, r2 = r*r;
+        if (_start.distanceSquared(center) <= r2 || _end.distanceSquared(center) <= r2) {
+            return true;
+        }
+        // then if we intersect the circle
+        float ax = _start.x - center.x, ay = _start.y - center.y;
+        float dx = _end.x - _start.x, dy = _end.y - _start.y;
+        float a = dx*dx + dy*dy;
+        float b = 2f*(dx*ax + dy*ay);
+        float c = ax*ax + ay*ay - r2;
+        float radicand = b*b - 4f*a*c;
+        if (radicand < 0f) {
+            return false;
+        }
+        float t = (-b - FloatMath.sqrt(radicand)) / (2f*a);
+        return t >= 0f && t <= 1f;
     }
 
     @Override // documentation inherited

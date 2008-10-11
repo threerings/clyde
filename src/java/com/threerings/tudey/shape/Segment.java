@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.shape;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -48,6 +49,23 @@ public class Segment extends Shape
         return _end;
     }
 
+    /**
+     * Determines whether this segment intersects the specified point.
+     */
+    public boolean intersects (Vector2f pt)
+    {
+        float dx = _end.x - _start.x, dy = _end.y - _start.y;
+        if (dx == 0f && dy == 0f) {
+            return _start.equals(pt);
+        } else if (Math.abs(dx) > Math.abs(dy)) {
+            float t = (pt.x - _start.x) / dx;
+            return t >= 0f && t <= 1f && _start.y + t*dy == pt.y;
+        } else {
+            float t = (pt.y - _start.y) / dy;
+            return t >= 0f && t <= 1f && _start.x + t*dx == pt.x;
+        }
+    }
+
     @Override // documentation inherited
     public void updateBounds ()
     {
@@ -75,7 +93,19 @@ public class Segment extends Shape
     @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
-        return IntersectionType.NONE;
+        // see if we start or end inside the rectangle
+        if (rect.contains(_start) || rect.contains(_end)) {
+            return IntersectionType.INTERSECTS;
+        }
+        // then whether we intersect one of its sides
+        float dx = _end.x - _start.x, dy = _end.y - _start.y;
+        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+        return
+            Math.abs(dx) > FloatMath.EPSILON &&
+                (intersectsX(rect, min.x, dx, dy) || intersectsX(rect, max.x, dx, dy)) ||
+            Math.abs(dy) > FloatMath.EPSILON &&
+                (intersectsY(rect, min.y, dx, dy) || intersectsY(rect, max.y, dx, dy)) ?
+                    IntersectionType.INTERSECTS : IntersectionType.NONE;
     }
 
     @Override // documentation inherited
@@ -93,23 +123,31 @@ public class Segment extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        Vector2f pt = point.getLocation();
-        float dx = _end.x - _start.x, dy = _end.y - _start.y;
-        if (dx == 0f && dy == 0f) {
-            return _start.equals(pt);
-        } else if (Math.abs(dx) > Math.abs(dy)) {
-            float t = (pt.x - _start.x) / dx;
-            return t >= 0f && t <= 1f && _start.y + t*dy == pt.y;
-        } else {
-            float t = (pt.y - _start.y) / dy;
-            return t >= 0f && t <= 1f && _start.x + t*dx == pt.x;
-        }
+        return intersects(point.getLocation());
     }
 
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        return false;
+        // this is a + t*b, other is c + s*d
+        Vector2f ostart = segment.getStart(), oend = segment.getEnd();
+        float ax = _start.x, ay = _start.y;
+        float bx = _end.x - _start.x, by = _end.y - _start.y;
+        float cx = ostart.x, cy = ostart.y;
+        float dx = oend.x - ostart.x, dy = oend.y - ostart.y;
+
+        float divisor = bx*dy - by*dx;
+        if (Math.abs(divisor) < FloatMath.EPSILON) {
+            // the segments are parallel (or zero-length)
+            return intersects(ostart) || intersects(oend) || segment.intersects(_start);
+        }
+        float cxax = cx - ax, cyay = cy - ay;
+        float s = (by*cxax - bx*cyay) / divisor;
+        if (s < 0f || s > 1f) {
+            return false;
+        }
+        float t = (dy*cxax - dx*cyay) / divisor;
+        return (t >= 0f && t <= 1f);
     }
 
     @Override // documentation inherited
@@ -134,6 +172,52 @@ public class Segment extends Shape
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
+    }
+
+    /**
+     * Helper method for {@link #getIntersectionType}.  Determines whether the segment intersects
+     * the rectangle at the line where x equals the value specified.
+     */
+    protected boolean intersectsX (Rect rect, float x, float dx, float dy)
+    {
+        float t = (x - _start.x) / dx;
+        if (t < 0f || t > 1f) {
+            return false;
+        }
+        float iy = _start.y + t*dy;
+        return iy >= rect.getMinimumExtent().y && iy <= rect.getMaximumExtent().y;
+    }
+
+    /**
+     * Helper method for {@link #getIntersectionType}.  Determines whether the segment intersects
+     * the rectangle at the line where y equals the value specified.
+     */
+    protected boolean intersectsY (Rect rect, float y, float dx, float dy)
+    {
+        float t = (y - _start.y) / dy;
+        if (t < 0f || t > 1f) {
+            return false;
+        }
+        float ix = _start.x + t*dx;
+        return ix >= rect.getMinimumExtent().x && ix <= rect.getMaximumExtent().x;
+    }
+
+    /**
+     * Returns the parameter of the segment when it intersects the supplied point, or
+     * {@link Float.MAX_VALUE} if there is no such intersection.
+     */
+    protected float getIntersection (Vector2f pt)
+    {
+        float dx = _end.x - _start.x, dy = _end.y - _start.y;
+        if (dx == 0f && dy == 0f) {
+            return _start.equals(pt) ? 0f : Float.MAX_VALUE;
+        } else if (Math.abs(dx) > Math.abs(dy)) {
+            float t = (pt.x - _start.x) / dx;
+            return (t >= 0f && t <= 1f && _start.y + t*dy == pt.y) ? t : Float.MAX_VALUE;
+        } else {
+            float t = (pt.y - _start.y) / dy;
+            return (t >= 0f && t <= 1f && _start.x + t*dx == pt.x) ? t : Float.MAX_VALUE;
+        }
     }
 
     /** The start and end vertices. */
