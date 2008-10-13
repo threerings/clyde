@@ -156,13 +156,58 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
+        // see if we start inside the polygon
+        Vector2f origin = segment.getStart(), terminus = segment.getEnd();
+        if (contains(origin)) {
+            return true;
+        }
+        // check the segment against each edge (making sure it's on the right side)
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+            if (a*origin.x + b*origin.y <= a*start.x + b*start.y &&
+                    segment.intersects(start, end)) {
+                return true;
+            }
+        }
         return false;
     }
 
     @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
-        return false;
+        // find the first edge that the circle's center is outside
+        Vector2f center = circle.getCenter();
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+            float l2 = a*a + b*b;
+            float d = a*center.x + b*center.y - a*start.x - b*start.y;
+            if (d >= 0f) {
+                continue;
+            }
+            // now classify with respect to the adjacent edges
+            Vector2f previous = _vertices[(ii + _vertices.length - 1) % _vertices.length];
+            a = previous.y - start.y;
+            b = start.x - previous.x;
+            if (a*center.x + b*center.y <= a*previous.x + b*previous.y) {
+                // left: closest feature is start vertex
+                return start.distanceSquared(center) <= circle.radius*circle.radius;
+            }
+            Vector2f next = _vertices[(ii + 2) % _vertices.length];
+            a = end.y - next.y;
+            b = next.x - end.x;
+            if (a*center.x + b*center.y > a*end.x + b*end.y) {
+                // middle: closest feature is edge
+                return d*d <= l2*circle.radius*circle.radius;
+            } else {
+                // right: closest feature is end vertex
+                return end.distanceSquared(center) <= circle.radius*circle.radius;
+            }
+        }
+        return true; // center is inside all edges
     }
 
     @Override // documentation inherited
@@ -174,7 +219,7 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
-        return false;
+        return intersectsOnAxes(polygon) && polygon.intersectsOnAxes(this);
     }
 
     @Override // documentation inherited
@@ -192,6 +237,45 @@ public class Polygon extends Shape
         for (int ii = 0; ii < vcount; ii++) {
             _vertices[ii] = new Vector2f();
         }
+    }
+
+    /**
+     * Tests the edges of this polygon as potential separating axes for this polygon and the
+     * specified other.
+     *
+     * @return false if the polygons are disjoint on any of this polygon's axes, true if they
+     * intersect on all axes.
+     */
+    protected boolean intersectsOnAxes (Polygon other)
+    {
+        // consider each edge of this polygon as a potential separating axis
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+
+            // find the extents of this polygon's projection
+            float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
+            for (Vector2f vertex : _vertices) {
+                float proj = a*vertex.x + b*vertex.y;
+                min = Math.min(min, proj);
+                max = Math.max(max, proj);
+            }
+
+            // and those of the other
+            float omin = Float.MAX_VALUE, omax = Float.MIN_VALUE;
+            for (Vector2f vertex : other._vertices) {
+                float proj = a*vertex.x + b*vertex.y;
+                omin = Math.min(omin, proj);
+                omax = Math.max(omax, proj);
+            }
+
+            // see if the extents are disjoint
+            if (max < omin || min > omax) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** The vertices of the polygon. */

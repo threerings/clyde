@@ -54,16 +54,33 @@ public class Segment extends Shape
      */
     public boolean intersects (Vector2f pt)
     {
-        float dx = _end.x - _start.x, dy = _end.y - _start.y;
-        if (dx == 0f && dy == 0f) {
-            return _start.equals(pt);
-        } else if (Math.abs(dx) > Math.abs(dy)) {
-            float t = (pt.x - _start.x) / dx;
-            return t >= 0f && t <= 1f && _start.y + t*dy == pt.y;
-        } else {
-            float t = (pt.y - _start.y) / dy;
-            return t >= 0f && t <= 1f && _start.x + t*dx == pt.x;
+        return intersects(_start, _end, pt);
+    }
+
+    /**
+     * Determines whether this segment intersects the segment with the provided start
+     * and end points.
+     */
+    public boolean intersects (Vector2f ostart, Vector2f oend)
+    {
+        // this is a + t*b, other is c + s*d
+        float ax = _start.x, ay = _start.y;
+        float bx = _end.x - _start.x, by = _end.y - _start.y;
+        float cx = ostart.x, cy = ostart.y;
+        float dx = oend.x - ostart.x, dy = oend.y - ostart.y;
+
+        float divisor = bx*dy - by*dx;
+        if (Math.abs(divisor) < FloatMath.EPSILON) {
+            // the segments are parallel (or zero-length)
+            return intersects(ostart) || intersects(oend) || intersects(ostart, oend, _start);
         }
+        float cxax = cx - ax, cyay = cy - ay;
+        float s = (by*cxax - bx*cyay) / divisor;
+        if (s < 0f || s > 1f) {
+            return false;
+        }
+        float t = (dy*cxax - dx*cyay) / divisor;
+        return (t >= 0f && t <= 1f);
     }
 
     @Override // documentation inherited
@@ -129,25 +146,7 @@ public class Segment extends Shape
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        // this is a + t*b, other is c + s*d
-        Vector2f ostart = segment.getStart(), oend = segment.getEnd();
-        float ax = _start.x, ay = _start.y;
-        float bx = _end.x - _start.x, by = _end.y - _start.y;
-        float cx = ostart.x, cy = ostart.y;
-        float dx = oend.x - ostart.x, dy = oend.y - ostart.y;
-
-        float divisor = bx*dy - by*dx;
-        if (Math.abs(divisor) < FloatMath.EPSILON) {
-            // the segments are parallel (or zero-length)
-            return intersects(ostart) || intersects(oend) || segment.intersects(_start);
-        }
-        float cxax = cx - ax, cyay = cy - ay;
-        float s = (by*cxax - bx*cyay) / divisor;
-        if (s < 0f || s > 1f) {
-            return false;
-        }
-        float t = (dy*cxax - dx*cyay) / divisor;
-        return (t >= 0f && t <= 1f);
+        return intersects(segment.getStart(), segment.getEnd());
     }
 
     @Override // documentation inherited
@@ -217,6 +216,23 @@ public class Segment extends Shape
         } else {
             float t = (pt.y - _start.y) / dy;
             return (t >= 0f && t <= 1f && _start.x + t*dx == pt.x) ? t : Float.MAX_VALUE;
+        }
+    }
+
+    /**
+     * Checks whether the segment from start to end intersects the specified point.
+     */
+    protected static boolean intersects (Vector2f start, Vector2f end, Vector2f pt)
+    {
+        float dx = end.x - start.x, dy = end.y - start.y;
+        if (dx == 0f && dy == 0f) {
+            return start.equals(pt);
+        } else if (Math.abs(dx) > Math.abs(dy)) {
+            float t = (pt.x - start.x) / dx;
+            return t >= 0f && t <= 1f && start.y + t*dy == pt.y;
+        } else {
+            float t = (pt.y - start.y) / dy;
+            return t >= 0f && t <= 1f && start.x + t*dx == pt.x;
         }
     }
 
