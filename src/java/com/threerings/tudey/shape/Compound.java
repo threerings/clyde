@@ -76,6 +76,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
+        if (!_bounds.intersects(ray)) {
+            return false;
+        }
         Vector2f closest = result;
         for (Shape shape : _shapes) {
             if (shape.getIntersection(ray, result)) {
@@ -88,6 +91,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
+        if (!rect.intersects(_bounds)) {
+            return IntersectionType.NONE;
+        }
         IntersectionType type = IntersectionType.NONE;
         for (Shape shape : _shapes) {
             switch (shape.getIntersectionType(rect)) {
@@ -115,6 +121,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
+        if (!point.getBounds().intersects(_bounds)) {
+            return false;
+        }
         for (Shape shape : _shapes) {
             if (shape.intersects(point)) {
                 return true;
@@ -126,6 +135,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
+        if (!segment.getBounds().intersects(_bounds)) {
+            return false;
+        }
         for (Shape shape : _shapes) {
             if (shape.intersects(segment)) {
                 return true;
@@ -137,6 +149,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
+        if (!circle.getBounds().intersects(_bounds)) {
+            return false;
+        }
         for (Shape shape : _shapes) {
             if (shape.intersects(circle)) {
                 return true;
@@ -148,6 +163,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
+        if (!capsule.getBounds().intersects(_bounds)) {
+            return false;
+        }
         for (Shape shape : _shapes) {
             if (shape.intersects(capsule)) {
                 return true;
@@ -159,6 +177,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
+        if (!polygon.getBounds().intersects(_bounds)) {
+            return false;
+        }
         for (Shape shape : _shapes) {
             if (shape.intersects(polygon)) {
                 return true;
@@ -170,6 +191,9 @@ public class Compound extends Shape
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
+        if (!compound.getBounds().intersects(_bounds)) {
+            return false;
+        }
         for (Shape shape : _shapes) {
             if (compound.intersects(shape)) {
                 return true;

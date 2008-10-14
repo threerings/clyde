@@ -25,19 +25,35 @@ public class ShapeElement extends SimpleSpaceElement
     }
 
     /**
+     * Creates a new shape element.
+     */
+    public ShapeElement (Shape localShape)
+    {
+        setLocalShape(localShape);
+    }
+
+    /**
      * Sets the configuration of the shape.
      */
     public void setConfig (ShapeConfig config)
     {
-        _config = config;
+        setLocalShape(config.getShape());
+    }
+
+    /**
+     * Sets the local shape reference.
+     */
+    public void setLocalShape (Shape shape)
+    {
+        _localShape = shape;
         updateBounds();
     }
 
     @Override // documentation inherited
     public void updateBounds ()
     {
-        _shape = _config.getShape().transform(_transform, _shape);
-        Rect sbounds = _shape.getBounds();
+        _worldShape = _localShape.transform(_transform, _worldShape);
+        Rect sbounds = _worldShape.getBounds();
         if (!_bounds.equals(sbounds)) {
             boundsWillChange();
             _bounds.set(sbounds);
@@ -48,48 +64,48 @@ public class ShapeElement extends SimpleSpaceElement
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
-        return _shape.getIntersection(ray, result);
+        return _worldShape.getIntersection(ray, result);
     }
 
     @Override // documentation inherited
     public boolean intersects (Point point)
     {
-        return _shape.intersects(point);
+        return _worldShape.intersects(point);
     }
 
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        return _shape.intersects(segment);
+        return _worldShape.intersects(segment);
     }
 
     @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
-        return _shape.intersects(circle);
+        return _worldShape.intersects(circle);
     }
 
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
-        return _shape.intersects(capsule);
+        return _worldShape.intersects(capsule);
     }
 
     @Override // documentation inherited
     public boolean intersects (Polygon polygon)
     {
-        return _shape.intersects(polygon);
+        return _worldShape.intersects(polygon);
     }
 
     @Override // documentation inherited
     public boolean intersects (Compound compound)
     {
-        return _shape.intersects(compound);
+        return _worldShape.intersects(compound);
     }
 
-    /** The configuration of the shape. */
-    protected ShapeConfig _config;
+    /** The untransformed shape. */
+    protected Shape _localShape;
 
     /** The transformed shape. */
-    protected Shape _shape;
+    protected Shape _worldShape;
 }

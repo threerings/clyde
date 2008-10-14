@@ -25,7 +25,10 @@ import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepUtil;
 
@@ -44,6 +47,10 @@ import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.shape.Compound;
+import com.threerings.tudey.shape.Point;
+import com.threerings.tudey.shape.Polygon;
+import com.threerings.tudey.shape.Segment;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
@@ -321,12 +328,6 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
-        {
-            return new PlaceableSprite(ctx, view, this);
-        }
-
-        @Override // documentation inherited
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
             PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
@@ -338,6 +339,12 @@ public class TudeySceneModel extends SceneModel
             element.updateBounds();
             element.setUserObject(this);
             return element;
+        }
+
+        @Override // documentation inherited
+        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        {
+            return new PlaceableSprite(ctx, view, this);
         }
     }
 
@@ -369,9 +376,29 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public SpaceElement createElement (ConfigManager cfgmgr)
+        {
+            return (vertices.length == 0) ? null :
+                new ShapeElement(vertices.length == 1 ?
+                    new Point(vertices[0].createVector()) : createShape(0, vertices.length - 1));
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
         {
             return new PathSprite(ctx, view, this);
+        }
+
+        /**
+         * Creates a shape using the identified region of the vertices.
+         */
+        protected Shape createShape (int idx0, int idx1)
+        {
+            if (idx1 - idx0 == 1) {
+                return new Segment(vertices[idx0].createVector(), vertices[idx1].createVector());
+            }
+            int mid = (idx0 + idx1) / 2;
+            return new Compound(createShape(idx0, mid), createShape(mid, idx1));
         }
     }
 
@@ -403,9 +430,52 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public SpaceElement createElement (ConfigManager cfgmgr)
+        {
+            Shape shape;
+            if (vertices.length == 0) {
+                return null;
+            } else if (vertices.length == 1) {
+                shape = new Point(vertices[0].createVector());
+            } else if (vertices.length == 2) {
+                shape = new Segment(vertices[0].createVector(), vertices[1].createVector());
+            } else {
+                Vector2f[] vectors = new Vector2f[vertices.length];
+                boolean reversed = isReversed();
+                for (int ii = 0; ii < vectors.length; ii++) {
+                    int idx = reversed ? (vectors.length - ii - 1) : ii;
+                    vectors[ii] = vertices[idx].createVector();
+                }
+                shape = new Polygon(vectors);
+            }
+            return new ShapeElement(shape);
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
         {
             return new AreaSprite(ctx, view, this);
+        }
+
+        /**
+         * Checks whether the vertices are given in the "wrong" (clockwise) winding order.
+         */
+        protected boolean isReversed ()
+        {
+            int cw = 0, ccw = 0;
+            for (int ii = 0; ii < vertices.length; ii++) {
+                Vertex v0 = vertices[ii];
+                Vertex v1 = vertices[(ii + 1) % vertices.length];
+                Vertex v2 = vertices[(ii + 2) % vertices.length];
+                float x1 = v1.x - v0.x, y1 = v1.y - v0.y;
+                float x2 = v2.x - v1.x, y2 = v2.y - v1.y;
+                if (x1*y2 - y1*x2 < 0f) {
+                    cw++;
+                } else {
+                    ccw++;
+                }
+            }
+            return cw > ccw;
         }
     }
 
@@ -418,6 +488,14 @@ public class TudeySceneModel extends SceneModel
         /** The vertex coordinates. */
         @Editable(column=true)
         public float x, y;
+
+        /**
+         * Creates a vector from this vertex.
+         */
+        public Vector2f createVector ()
+        {
+            return new Vector2f(x, y);
+        }
     }
 
     /**
@@ -592,12 +670,39 @@ public class TudeySceneModel extends SceneModel
      */
     public void getEntries (Shape shape, Collection<Entry> results)
     {
-        // find intersecting elements
-        _space.getIntersecting(shape, _intersecting);
-        for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
-            results.add((Entry)_intersecting.get(ii).getUserObject());
+        // find intersecting tiles
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = (int)FloatMath.floor(min.x);
+        int maxx = (int)FloatMath.floor(max.x);
+        int miny = (int)FloatMath.floor(min.y);
+        int maxy = (int)FloatMath.floor(max.y);
+        ArrayIntSet pairs = new ArrayIntSet();
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                int pair = _tileCoords.get(xx, yy);
+                if (pair != EMPTY_COORD) {
+                    _rect.getMinimumExtent().set(xx, yy);
+                    _rect.getMaximumExtent().set(xx + 1f, yy + 1f);
+                    if (shape.getIntersectionType(_rect) != Shape.IntersectionType.NONE) {
+                        pairs.add(pair);
+                    }
+                }
+            }
         }
-        _intersecting.clear();
+        for (int ii = 0, nn = pairs.size(); ii < nn; ii++) {
+            TileEntry entry = getTileEntry(pairs.get(ii));
+            if (entry != null) {
+                results.add(entry);
+            }
+        }
+
+        // find intersecting elements
+        ArrayList<SpaceElement> intersecting = new ArrayList<SpaceElement>();
+        _space.getIntersecting(shape, intersecting);
+        for (int ii = 0, nn = intersecting.size(); ii < nn; ii++) {
+            results.add((Entry)intersecting.get(ii).getUserObject());
+        }
     }
 
     /**
@@ -986,8 +1091,8 @@ public class TudeySceneModel extends SceneModel
     /** Region object to reuse. */
     protected transient Rectangle _region = new Rectangle();
 
-    /** (Re)used to hold intersecting elements. */
-    protected transient ArrayList<SpaceElement> _intersecting = new ArrayList<SpaceElement>();
+    /** Bounds object to reuse. */
+    protected transient Rect _rect = new Rect();
 
     /** The value we use to signify an empty coordinate location. */
     protected static final int EMPTY_COORD = Coord.encode(Short.MIN_VALUE, Short.MIN_VALUE);
