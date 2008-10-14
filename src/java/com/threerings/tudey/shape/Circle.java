@@ -73,27 +73,7 @@ public class Circle extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
-        // see if we start inside the circle
-        Vector2f origin = ray.getOrigin();
-        if (contains(origin)) {
-            result.set(origin);
-            return true;
-        }
-        // then if we intersect the circle
-        float ax = origin.x - _center.x, ay = origin.y - _center.y;
-        Vector2f dir = ray.getDirection();
-        float b = 2f*(dir.x*ax + dir.y*ay);
-        float c = ax*ax + ay*ay - radius*radius;
-        float radicand = b*b - 4f*c;
-        if (radicand < 0f) {
-            return false;
-        }
-        float t = (-b - FloatMath.sqrt(radicand)) * 0.5f;
-        if (t < 0f) {
-            return false;
-        }
-        origin.addScaled(dir, t, result);
-        return true;
+        return ray.getIntersection(_center, radius, result);
     }
 
     @Override // documentation inherited

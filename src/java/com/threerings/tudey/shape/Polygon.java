@@ -122,17 +122,43 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
-        // check the corners of the rectangle
-        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
-        int ccount =
-            (contains(min.x, min.y) ? 1 : 0) +
-            (contains(max.x, min.y) ? 1 : 0) +
-            (contains(max.x, max.y) ? 1 : 0) +
-            (contains(min.x, max.y) ? 1 : 0);
-        if (ccount > 0) {
-            return (ccount == 4) ? IntersectionType.CONTAINS : IntersectionType.INTERSECTS;
+        // make sure the bounds intersect (this is equivalent to doing a separating axis test
+        // using the axes of the rectangle)
+        if (!_bounds.intersects(rect)) {
+            return IntersectionType.NONE;
         }
-        return IntersectionType.NONE;
+
+        // consider each edge of this polygon as a potential separating axis
+        int ccount = 0;
+        Vector2f rmin = rect.getMinimumExtent(), rmax = rect.getMaximumExtent();
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+
+            // find the extents of this polygon's projection
+            float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
+            for (Vector2f vertex : _vertices) {
+                float proj = a*vertex.x + b*vertex.y;
+                min = Math.min(min, proj);
+                max = Math.max(max, proj);
+            }
+
+            // and those of the rectangle
+            float p0 = a*rmin.x + b*rmin.y, p1 = a*rmax.x + b*rmin.y;
+            float p2 = a*rmax.x + b*rmax.y, p3 = a*rmin.x + b*rmax.y;
+            float omin = Math.min(Math.min(p0, p1), Math.min(p2, p3));
+            float omax = Math.max(Math.max(p0, p1), Math.max(p2, p3));
+
+            // see if the extents are disjoint (and check for containment)
+            if (max < omin || min > omax) {
+                return IntersectionType.NONE;
+            } else if (omin >= min && omax <= max) {
+                ccount++;
+            }
+        }
+        return (ccount == _vertices.length) ?
+            IntersectionType.CONTAINS : IntersectionType.INTERSECTS;
     }
 
     @Override // documentation inherited
@@ -157,7 +183,7 @@ public class Polygon extends Shape
     public boolean intersects (Segment segment)
     {
         // see if we start inside the polygon
-        Vector2f origin = segment.getStart(), terminus = segment.getEnd();
+        Vector2f origin = segment.getStart();
         if (contains(origin)) {
             return true;
         }

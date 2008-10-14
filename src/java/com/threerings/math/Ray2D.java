@@ -154,6 +154,35 @@ public final class Ray2D
         return isect;
     }
 
+    /**
+     * Finds the intersection between the ray and a circle with the given center and radius.
+     *
+     * @return true if the ray intersected the circle (in which case the result will contain the
+     * point of intersection), false otherwise.
+     */
+    public boolean getIntersection (Vector2f center, float radius, Vector2f result)
+    {
+        // see if we start inside the circle
+        if (_origin.distanceSquared(center) <= radius*radius) {
+            result.set(_origin);
+            return true;
+        }
+        // then if we intersect the circle
+        float ax = _origin.x - center.x, ay = _origin.y - center.y;
+        float b = 2f*(_direction.x*ax + _direction.y*ay);
+        float c = ax*ax + ay*ay - radius*radius;
+        float radicand = b*b - 4f*c;
+        if (radicand < 0f) {
+            return false;
+        }
+        float t = (-b - FloatMath.sqrt(radicand)) * 0.5f;
+        boolean isect = (t >= 0f);
+        if (isect) {
+            _origin.addScaled(_direction, t, result);
+        }
+        return isect;
+    }
+
     @Override // documentation inherited
     public String toString ()
     {

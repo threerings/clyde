@@ -83,7 +83,7 @@ public class Capsule extends Shape
         a = _start.y - _end.y;
         b = _end.x - _start.x;
         float d = a*(x - _start.x) + b*(y - _start.y);
-        return d*d <= radius * (a*a + b*b);
+        return d*d <= radius*radius * (a*a + b*b);
     }
 
     @Override // documentation inherited
@@ -109,6 +109,12 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
+        // see if we start inside the capsule
+        Vector2f origin = ray.getOrigin();
+        if (contains(origin)) {
+            result.set(origin);
+            return true;
+        }
         return false;
     }
 
