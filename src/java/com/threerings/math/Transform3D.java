@@ -495,6 +495,48 @@ public final class Transform3D
     }
 
     /**
+     * Flattens this 3D transform into a 2D transform (removing the z component).
+     *
+     * @return a new transform containing the result.
+     */
+    public Transform2D flatten ()
+    {
+        return flatten(new Transform2D());
+    }
+
+    /**
+     * Flattens this 3D transform into a 2D transform, placing the result in the provided
+     * object.
+     *
+     * @return a reference to the result object, for chaining.
+     */
+    public Transform2D flatten (Transform2D result)
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+                return result.setToIdentity();
+            case RIGID:
+            case UNIFORM:
+                result.setType(_type);
+                result.getTranslation().set(_translation.x, _translation.y);
+                result.setRotation(_rotation.getRotationZ());
+                if (_type == UNIFORM) {
+                    result.setScale(_scale);
+                }
+                return result;
+            case AFFINE:
+            case GENERAL:
+                result.setType(_type);
+                result.getMatrix().set(
+                    _matrix.m00, _matrix.m10, _matrix.m30,
+                    _matrix.m01, _matrix.m11, _matrix.m31,
+                    _matrix.m03, _matrix.m13, _matrix.m33);
+                return result;
+        }
+    }
+
+    /**
      * Transforms a point in-place by this transform.
      *
      * @return a reference to the point, for chaining.

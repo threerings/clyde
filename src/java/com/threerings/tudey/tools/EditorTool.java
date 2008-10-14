@@ -15,6 +15,7 @@ import javax.swing.JToggleButton;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
@@ -202,4 +203,7 @@ public abstract class EditorTool extends JPanel
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();
+
+    /** The fine rotation increment. */
+    protected static final float FINE_ROTATION_INCREMENT = FloatMath.toRadians(5f);
 }

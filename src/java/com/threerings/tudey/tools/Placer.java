@@ -161,9 +161,6 @@ public class Placer extends ConfigTool<PlaceableConfig>
     /** Holds the result on an intersection test. */
     protected Vector3f _isect = new Vector3f();
 
-    /** The fine rotation increment. */
-    protected static final float FINE_ROTATION_INCREMENT = FloatMath.toRadians(5f);
-
     /** The minimum spacing between placements when dragging. */
     protected static final float MIN_SPACING = 0.5f;
 }

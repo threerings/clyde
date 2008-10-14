@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -25,6 +26,9 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  */
 public class PlaceableConfig extends ParameterizedConfig
 {
+    /** Used when we can't resolve the placeable's underlying original implementation. */
+    public static final Original NULL_ORIGINAL = new Marker();
+
     /**
      * Contains the actual implementation of the placeable.
      */
@@ -39,6 +43,11 @@ public class PlaceableConfig extends ParameterizedConfig
         {
             // nothing by default
         }
+
+        /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (ConfigManager cfgmgr);
 
         /**
          * Creates or updates a cursor implementation for this configuration.
@@ -83,6 +92,12 @@ public class PlaceableConfig extends ParameterizedConfig
         /** The shape of the placeable. */
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
+        }
 
         @Override // documentation inherited
         public PlaceableCursor.Implementation getCursorImplementation (
@@ -166,6 +181,13 @@ public class PlaceableConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
+            return (config == null) ? null : config.getOriginal(cfgmgr);
+        }
+
+        @Override // documentation inherited
         public PlaceableCursor.Implementation getCursorImplementation (
             GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
         {
@@ -187,6 +209,14 @@ public class PlaceableConfig extends ParameterizedConfig
     /** The actual placeable implementation. */
     @Editable
     public Implementation implementation = new Prop();
+
+    /**
+     * Returns a reference to the config's underlying original implementation.
+     */
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+        return implementation.getOriginal(cfgmgr);
+    }
 
     /**
      * Creates or updates a cursor implementation for this configuration.

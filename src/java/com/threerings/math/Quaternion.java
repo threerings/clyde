@@ -454,6 +454,15 @@ public final class Quaternion
     }
 
     /**
+     * Returns the amount of rotation about the z axis (for the purpose of flattening the
+     * rotation).
+     */
+    public float getRotationZ ()
+    {
+        return FloatMath.atan2(2f*(x*y + z*w), 1f - 2f*(y*y + z*z));
+    }
+
+    /**
      * Integrates in-place the provided angular velocity over the specified timestep.
      *
      * @return a reference to this quaternion, for chaining.

@@ -17,14 +17,14 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.tudey.shape.config.ShapeConfig;
 
 /**
- * Draws a shape.
+ * Draws a shape from its config.
  */
-public class ShapeElement extends SimpleSceneElement
+public class ShapeConfigElement extends SimpleSceneElement
 {
     /**
-     * Creates a new shape element.
+     * Creates a new shape config element.
      */
-    public ShapeElement (GlContext ctx)
+    public ShapeConfigElement (GlContext ctx)
     {
         super(ctx);
     }

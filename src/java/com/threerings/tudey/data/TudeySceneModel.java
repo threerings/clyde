@@ -44,6 +44,10 @@ import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.shape.ShapeElement;
+import com.threerings.tudey.space.HashSpace;
+import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.CoordIntMap.CoordIntEntry;
@@ -97,6 +101,14 @@ public class TudeySceneModel extends SceneModel
          * Returns a reference to this entry's config reference.
          */
         public abstract ConfigReference getReference ();
+
+        /**
+         * Creates the space element for this entry (or returns <code>null</code> for none).
+         */
+        public SpaceElement createElement (ConfigManager cfgmgr)
+        {
+            return null;
+        }
 
         /**
          * Creates a sprite for this entry.
@@ -313,6 +325,20 @@ public class TudeySceneModel extends SceneModel
         {
             return new PlaceableSprite(ctx, view, this);
         }
+
+        @Override // documentation inherited
+        public SpaceElement createElement (ConfigManager cfgmgr)
+        {
+            PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
+            PlaceableConfig.Original original = (config == null) ?
+                null : config.getOriginal(cfgmgr);
+            original = (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
+            ShapeElement element = new ShapeElement(original.shape);
+            transform.flatten(element.getTransform());
+            element.updateBounds();
+            element.setUserObject(this);
+            return element;
+        }
     }
 
     /**
@@ -405,6 +431,11 @@ public class TudeySceneModel extends SceneModel
         for (CoordIntEntry entry : _tiles.coordIntEntrySet()) {
             TileEntry tentry = decodeTileEntry(entry.getKey(), entry.getIntValue());
             createShadow(tentry);
+        }
+
+        // likewise with the shapes
+        for (Entry entry : _entries.values()) {
+            addElement(entry);
         }
     }
 
@@ -557,6 +588,19 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Retrieves all entries intersecting the supplied shape.
+     */
+    public void getEntries (Shape shape, Collection<Entry> results)
+    {
+        // find intersecting elements
+        _space.getIntersecting(shape, _intersecting);
+        for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
+            results.add((Entry)_intersecting.get(ii).getUserObject());
+        }
+        _intersecting.clear();
+    }
+
+    /**
      * Retrieves all of the tile entries intersecting the supplied region.
      */
     public void getTileEntries (Rectangle region, Collection<TileEntry> results)
@@ -647,6 +691,7 @@ public class TudeySceneModel extends SceneModel
             Entry oentry = _entries.put(entry.getKey(), entry);
             if (oentry == null) {
                 canonicalizeReference(entry);
+                addElement(entry);
             } else {
                 // replace the old entry (a warning will be logged)
                 _entries.put(entry.getKey(), oentry);
@@ -681,6 +726,8 @@ public class TudeySceneModel extends SceneModel
                 _entries.remove(nentry.getKey());
             } else {
                 canonicalizeReference(nentry);
+                removeElement(oentry);
+                addElement(nentry);
             }
             return oentry;
         }
@@ -709,7 +756,11 @@ public class TudeySceneModel extends SceneModel
     protected Entry remove (Object key)
     {
         if (!(key instanceof Coord)) {
-            return _entries.remove(key);
+            Entry oentry = _entries.remove(key);
+            if (oentry != null) {
+                removeElement(oentry);
+            }
+            return oentry;
         }
         Coord coord = (Coord)key;
         int ovalue = _tiles.remove(coord.x, coord.y);
@@ -720,6 +771,29 @@ public class TudeySceneModel extends SceneModel
         removeTileConfig(getTileConfigIndex(ovalue));
         deleteShadow(oentry);
         return oentry;
+    }
+
+    /**
+     * Adds the entry's space element to the hash space.
+     */
+    protected void addElement (Entry entry)
+    {
+        SpaceElement element = entry.createElement(_cfgmgr);
+        if (element != null) {
+            _space.add(element);
+            _elements.put(entry.getKey(), element);
+        }
+    }
+
+    /**
+     * Removes the entry's space element from the hash space.
+     */
+    protected void removeElement (Entry entry)
+    {
+        SpaceElement element = _elements.remove(entry.getKey());
+        if (element != null) {
+            _space.remove(element);
+        }
     }
 
     /**
@@ -890,7 +964,7 @@ public class TudeySceneModel extends SceneModel
     protected transient CoordIntMap _tileCoords = new CoordIntMap(3, EMPTY_COORD);
 
     /** Scene entries mapped by key. */
-    protected transient HashMap<Object, Entry> _entries = new HashMap<Object, Entry>();
+    protected transient HashMap<Object, Entry> _entries = Maps.newHashMap();
 
     /** The last entry id assigned. */
     protected transient int _lastEntryId;
@@ -900,11 +974,20 @@ public class TudeySceneModel extends SceneModel
     protected transient WeakHashMap<ConfigReference, ConfigReference> _references =
         new WeakHashMap<ConfigReference, ConfigReference>();
 
+    /** The space containing the (non-tile) entry shapes. */
+    protected transient HashSpace _space = new HashSpace(64f, 6);
+
+    /** Maps entry keys to space elements. */
+    protected transient HashMap<Object, SpaceElement> _elements = Maps.newHashMap();
+
     /** The scene model observers. */
     protected transient ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
 
     /** Region object to reuse. */
     protected transient Rectangle _region = new Rectangle();
+
+    /** (Re)used to hold intersecting elements. */
+    protected transient ArrayList<SpaceElement> _intersecting = new ArrayList<SpaceElement>();
 
     /** The value we use to signify an empty coordinate location. */
     protected static final int EMPTY_COORD = Coord.encode(Short.MIN_VALUE, Short.MIN_VALUE);
