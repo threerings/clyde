@@ -135,25 +135,17 @@ public class Polygon extends Shape
             Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
             float a = start.y - end.y;
             float b = end.x - start.x;
+            float c = a*start.x + b*start.y;
 
-            // find the extents of this polygon's projection
-            float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
-            for (Vector2f vertex : _vertices) {
-                float proj = a*vertex.x + b*vertex.y;
-                min = Math.min(min, proj);
-                max = Math.max(max, proj);
-            }
-
-            // and those of the rectangle
-            float p0 = a*rmin.x + b*rmin.y, p1 = a*rmax.x + b*rmin.y;
-            float p2 = a*rmax.x + b*rmax.y, p3 = a*rmin.x + b*rmax.y;
-            float omin = Math.min(Math.min(p0, p1), Math.min(p2, p3));
-            float omax = Math.max(Math.max(p0, p1), Math.max(p2, p3));
-
-            // see if the extents are disjoint (and check for containment)
-            if (max < omin || min > omax) {
+            // determine how many vertices fall inside/outside the edge
+            int inside =
+                (a*rmin.x + b*rmin.y >= c ? 1 : 0) +
+                (a*rmax.x + b*rmin.y >= c ? 1 : 0) +
+                (a*rmax.x + b*rmax.y >= c ? 1 : 0) +
+                (a*rmin.x + b*rmax.y >= c ? 1 : 0);
+            if (inside == 0) {
                 return IntersectionType.NONE;
-            } else if (omin >= min && omax <= max) {
+            } else if (inside == 4) {
                 ccount++;
             }
         }
@@ -275,31 +267,20 @@ public class Polygon extends Shape
     protected boolean intersectsOnAxes (Polygon other)
     {
         // consider each edge of this polygon as a potential separating axis
+    OUTER:
         for (int ii = 0; ii < _vertices.length; ii++) {
             Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
             float a = start.y - end.y;
             float b = end.x - start.x;
+            float c = a*start.x + b*start.y;
 
-            // find the extents of this polygon's projection
-            float min = Float.MAX_VALUE, max = Float.MIN_VALUE;
-            for (Vector2f vertex : _vertices) {
-                float proj = a*vertex.x + b*vertex.y;
-                min = Math.min(min, proj);
-                max = Math.max(max, proj);
-            }
-
-            // and those of the other
-            float omin = Float.MAX_VALUE, omax = Float.MIN_VALUE;
+            // if all vertices fall outside the edge, the polygons are disjoint
             for (Vector2f vertex : other._vertices) {
-                float proj = a*vertex.x + b*vertex.y;
-                omin = Math.min(omin, proj);
-                omax = Math.max(omax, proj);
+                if (a*vertex.x + b*vertex.y >= c) {
+                    continue OUTER;
+                }
             }
-
-            // see if the extents are disjoint
-            if (max < omin || min > omax) {
-                return false;
-            }
+            return false;
         }
         return true;
     }
