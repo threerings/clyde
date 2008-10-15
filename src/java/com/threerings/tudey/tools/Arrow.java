@@ -66,7 +66,7 @@ public class Arrow extends EditorTool
     @Override // documentation inherited
     public void tick (float elapsed)
     {
-        if (_editor.isThirdButtonDown()) {
+        if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
             _editor.deleteMouseObject();
         }
     }
@@ -74,7 +74,7 @@ public class Arrow extends EditorTool
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        if (event.getButton() == MouseEvent.BUTTON1) {
+        if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isControlDown()) {
             _editor.editMouseObject();
         }
     }

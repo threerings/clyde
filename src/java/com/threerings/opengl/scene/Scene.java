@@ -66,7 +66,7 @@ public abstract class Scene extends DynamicScope
     public void spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
     {
         Model model = getFromTransientPool(ref);
-        model.getLocalTransform().set(transform);
+        model.setLocalTransform(transform);
         add(model);
     }
 
@@ -460,9 +460,8 @@ public abstract class Scene extends DynamicScope
             }
             _transientPool.remove(ref);
         }
-        Model model = new Model(_ctx);
+        Model model = new Model(_ctx, ref);
         model.setParentScope(this);
-        model.setConfig(ref);
         model.setUserObject(ref);
         model.addObserver(_transientObserver);
         return model;
