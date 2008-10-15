@@ -10,6 +10,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
+import com.threerings.math.Transform2D;
 
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.mod.Model;
@@ -23,6 +24,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.util.ShapeConfigElement;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * A cursor for a placeable object.
@@ -42,6 +44,14 @@ public class PlaceableCursor extends Cursor
         public Implementation (Scope parentScope)
         {
             super(parentScope);
+        }
+
+        /**
+         * Returns a reference to the transformed shape.
+         */
+        public Shape getShape ()
+        {
+            return null;
         }
 
         /**
@@ -99,6 +109,13 @@ public class PlaceableCursor extends Cursor
         {
             _model.setConfig(config.model);
             _footprint.setConfig(config.shape, true);
+            _localShape = config.shape.getShape();
+        }
+
+        @Override // documentation inherited
+        public Shape getShape ()
+        {
+            return _worldShape;
         }
 
         @Override // documentation inherited
@@ -106,6 +123,8 @@ public class PlaceableCursor extends Cursor
         {
             _model.setLocalTransform(entry.transform);
             _footprint.setTransform(entry.transform);
+            entry.transform.flatten(_transform);
+            _worldShape = _localShape.transform(_transform, _worldShape);
         }
 
         @Override // documentation inherited
@@ -126,6 +145,15 @@ public class PlaceableCursor extends Cursor
 
         /** The footprint. */
         protected ShapeConfigElement _footprint;
+
+        /** The flattened transform. */
+        protected Transform2D _transform = new Transform2D();
+
+        /** The untransformed shape. */
+        protected Shape _localShape;
+
+        /** The transformed shape. */
+        protected Shape _worldShape;
     }
 
     /**
@@ -135,6 +163,15 @@ public class PlaceableCursor extends Cursor
     {
         super(ctx, view);
         update(entry);
+    }
+
+    /**
+     * Returns a reference to the transformed shape of the placeable (or <code>null</code> for
+     * none).
+     */
+    public Shape getShape ()
+    {
+        return _impl.getShape();
     }
 
     /**

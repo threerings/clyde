@@ -6,6 +6,8 @@ package com.threerings.tudey.tools;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
+import java.util.ArrayList;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
@@ -16,7 +18,9 @@ import com.threerings.tudey.client.cursor.PlaceableCursor;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.config.PlaceableConfig;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * The placeable placer tool.
@@ -60,10 +64,8 @@ public class Placer extends ConfigTool<PlaceableConfig>
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        int button = event.getButton();
-        boolean paint = (button == MouseEvent.BUTTON1), erase = (button == MouseEvent.BUTTON3);
-        if ((paint || erase) && _cursorVisible) {
-            placeEntry(erase);
+        if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
+            placeEntry();
         }
     }
 
@@ -97,19 +99,28 @@ public class Placer extends ConfigTool<PlaceableConfig>
         _cursor.update(_entry);
 
         // if we are dragging, consider performing another placement
-        boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
-        if ((paint || erase) &&
+        if (_editor.isThirdButtonDown()) {
+            Shape shape = _cursor.getShape();
+            if (shape != null) {
+                _scene.getEntries(_cursor.getShape(), _entries);
+                for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
+                    Entry entry = _entries.get(ii);
+                    if (entry instanceof PlaceableEntry) {
+                        _scene.removeEntry(entry.getKey());
+                    }
+                }
+                _entries.clear();
+            }
+        } else if (_editor.isFirstButtonDown() &&
                 transform.getTranslation().distance(_lastPlacement) >= MIN_SPACING) {
-            placeEntry(erase);
+            placeEntry();
         }
     }
 
     /**
      * Places the current entry.
-     *
-     * @param erase if true, erase the placeables under the entry.
      */
-    protected void placeEntry (boolean erase)
+    protected void placeEntry ()
     {
         _scene.addEntry((PlaceableEntry)_entry.clone());
         _lastPlacement.set(_entry.transform.getTranslation());
@@ -160,6 +171,9 @@ public class Placer extends ConfigTool<PlaceableConfig>
 
     /** Holds the result on an intersection test. */
     protected Vector3f _isect = new Vector3f();
+
+    /** Holds the entries intersecting the cursor. */
+    protected ArrayList<Entry> _entries = new ArrayList<Entry>();
 
     /** The minimum spacing between placements when dragging. */
     protected static final float MIN_SPACING = 0.5f;
