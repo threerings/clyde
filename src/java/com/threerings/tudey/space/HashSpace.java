@@ -6,6 +6,7 @@ package com.threerings.tudey.space;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.collect.Maps;
 
@@ -51,25 +52,29 @@ public class HashSpace extends Space
         // increment the visit counter
         _visit++;
 
-        // find the starting cell
-        float rgran = 1f / _granularity;
-        int xx = (int)FloatMath.floor(_pt.x * rgran);
-        int yy = (int)FloatMath.floor(_pt.y * rgran);
-
         // determine the integer directions on each axis
+        Vector2f origin = ray.getOrigin();
         Vector2f dir = ray.getDirection();
         int xdir = (int)Math.signum(dir.x);
         int ydir = (int)Math.signum(dir.y);
+
+        // find the starting lines
+        float rgran = 1f / _granularity;
+        float px = _pt.x * rgran, py = _pt.y * rgran;
+        int lx = (int)(xdir < 0 ? FloatMath.ceil(px) : FloatMath.floor(px));
+        int ly = (int)(ydir < 0 ? FloatMath.ceil(py) : FloatMath.floor(py));
 
         // step through each cell that the ray intersects, returning the first hit or bailing
         // out when we exceed the bounds
         Vector2f result = new Vector2f();
         do {
-            Node<SpaceElement> root = _elements.get(_coord.set(xx, yy));
+            _coord.set(
+                lx - (xdir < 0 ? 1 : 0),
+                ly - (ydir < 0 ? 1 : 0));
+            Node<SpaceElement> root = _elements.get(_coord);
             if (root != null) {
                 SpaceElement element = root.getIntersection(ray, result, filter);
                 if (element != null) {
-                    Vector2f origin = ray.getOrigin();
                     if (closest == null || origin.distanceSquared(result) <
                             origin.distanceSquared(location)) {
                         closest = element;
@@ -79,19 +84,19 @@ public class HashSpace extends Space
                 }
             }
             float xt = (xdir == 0) ? Float.MAX_VALUE :
-                ((xx + xdir) * _granularity - _pt.x) / dir.x;
+                ((lx + xdir) * _granularity - origin.x) / dir.x;
             float yt = (ydir == 0) ? Float.MAX_VALUE :
-                ((yy + ydir) * _granularity - _pt.y) / dir.y;
+                ((ly + ydir) * _granularity - origin.y) / dir.y;
             float t = (xt < yt) ? xt : yt;
             if (xt == t) {
-                xx += xdir;
+                lx += xdir;
             }
             if (yt == t) {
-                yy += ydir;
+                ly += ydir;
             }
-            _pt.addScaledLocal(dir, t);
-
-        } while (_bounds.contains(_pt));
+        } while (
+            _coord.x >= _minCoord.x && _coord.x <= _maxCoord.x &&
+            _coord.y >= _minCoord.y && _coord.y <= _maxCoord.y);
 
         // no luck
         return closest;
@@ -184,7 +189,7 @@ public class HashSpace extends Space
                 Node<T> root = roots.get(_coord.set(xx, yy));
                 if (root == null) {
                     roots.put((Coord)_coord.clone(), root = createRoot(xx, yy));
-                    _bounds.addLocal(root.getBounds());
+                    addBounds(_coord, root);
                 }
                 root.add(object, level);
             }
@@ -297,9 +302,33 @@ public class HashSpace extends Space
     protected void recomputeBounds ()
     {
         _bounds.setToEmpty();
-        for (Node root : _elements.values()) {
-            _bounds.addLocal(root.getBounds());
+        _minCoord.set(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        _maxCoord.set(Integer.MIN_VALUE, Integer.MIN_VALUE);
+        addBounds(_elements);
+    }
+
+    /**
+     * Adds the bounds of the specified roots.
+     */
+    protected <T extends SpaceObject> void addBounds (HashMap<Coord, Node<T>> roots)
+    {
+        for (Map.Entry<Coord, Node<T>> entry : roots.entrySet()) {
+            addBounds(entry.getKey(), entry.getValue());
         }
+    }
+
+    /**
+     * Adds the bounds of the specified coordinate/node mapping.
+     */
+    protected <T extends SpaceObject> void addBounds (Coord coord, Node<T> node)
+    {
+        _bounds.addLocal(node.getBounds());
+        _minCoord.set(
+            Math.min(coord.x, _minCoord.x),
+            Math.min(coord.y, _minCoord.y));
+       _maxCoord.set(
+            Math.max(coord.x, _maxCoord.x),
+            Math.max(coord.y, _maxCoord.y));
     }
 
     /**
@@ -603,6 +632,12 @@ public class HashSpace extends Space
 
     /** The bounds of the roots (does not include the oversized objects). */
     protected Rect _bounds = new Rect();
+
+    /** The minimum coordinate. */
+    protected Coord _minCoord = new Coord(Integer.MAX_VALUE, Integer.MAX_VALUE);
+
+    /** The maximum coordinate. */
+    protected Coord _maxCoord = new Coord(Integer.MIN_VALUE, Integer.MIN_VALUE);
 
     /** The visit counter. */
     protected int _visit;
