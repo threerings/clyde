@@ -58,6 +58,7 @@ import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.CoordIntMap.CoordIntEntry;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
 
@@ -110,6 +111,14 @@ public class TudeySceneModel extends SceneModel
         public abstract ConfigReference getReference ();
 
         /**
+         * Raises or lowers the entry by the specified amount.
+         */
+        public void raise (int amount)
+        {
+            // nothing by default
+        }
+
+        /**
          * Creates the space element for this entry (or returns <code>null</code> for none).
          */
         public SpaceElement createElement (ConfigManager cfgmgr)
@@ -133,7 +142,7 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference<TileConfig> tile;
 
         /** The tile's elevation. */
-        @Editable(min=Byte.MIN_VALUE, max=Byte.MAX_VALUE)
+        @Editable
         public int elevation;
 
         /** The tile's rotation. */
@@ -220,6 +229,12 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return tile;
+        }
+
+        @Override // documentation inherited
+        public void raise (int amount)
+        {
+            elevation += amount;
         }
 
         @Override // documentation inherited
@@ -325,6 +340,13 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return placeable;
+        }
+
+        @Override // documentation inherited
+        public void raise (int amount)
+        {
+            transform.setType(Transform3D.UNIFORM);
+            transform.getTranslation().z += TudeySceneMetrics.getTileZ(amount);
         }
 
         @Override // documentation inherited

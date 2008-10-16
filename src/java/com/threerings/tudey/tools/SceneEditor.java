@@ -495,14 +495,22 @@ public class SceneEditor extends GlCanvasTool
             importScene();
         } else if (action.equals("export")) {
             exportScene();
+        } else if (action.equals("cut")) {
+
+        } else if (action.equals("copy")) {
+
         } else if (action.equals("delete")) {
             deleteSelection();
+        } else if (action.equals("raise")) {
+            raiseSelection(+1);
+        } else if (action.equals("lower")) {
+            raiseSelection(-1);
         } else if (action.equals("configs")) {
             new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("raise_grid")) {
-            _grid.setElevation(Math.min(_grid.getElevation() + 1, Byte.MAX_VALUE));
+            _grid.setElevation(_grid.getElevation() + 1);
         } else if (action.equals("lower_grid")) {
-            _grid.setElevation(Math.max(_grid.getElevation() - 1, Byte.MIN_VALUE));
+            _grid.setElevation(_grid.getElevation() - 1);
         } else if (action.equals("markers")) {
             _markersVisible = !_markers.isSelected();
             wasUpdated();
@@ -874,12 +882,34 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void deleteSelection ()
     {
-        ArrayList<Entry> entries = new ArrayList<Entry>();
-        _scene.getEntries(_selection.getShape(), entries);
-        for (int ii = 0, nn = entries.size(); ii < nn; ii++) {
-            _scene.removeEntry(entries.get(ii).getKey());
+        for (Entry entry : getSelectedEntries()) {
+            _scene.removeEntry(entry.getKey());
         }
         setSelection(null);
+    }
+
+    /**
+     * Raises or lowers the entries under the selection region by the specified amount.
+     */
+    protected void raiseSelection (int amount)
+    {
+        for (Entry entry : getSelectedEntries()) {
+            Entry centry = (Entry)entry.clone();
+            centry.raise(amount);
+            if (!centry.equals(entry)) {
+                _scene.updateEntry(centry);
+            }
+        }
+    }
+
+    /**
+     * Returns a new list containing the selected entries.
+     */
+    protected ArrayList<Entry> getSelectedEntries ()
+    {
+        ArrayList<Entry> entries = new ArrayList<Entry>();
+        _scene.getEntries(_selection.getShape(), entries);
+        return entries;
     }
 
     /** The file to attempt to load on initialization, if any. */
