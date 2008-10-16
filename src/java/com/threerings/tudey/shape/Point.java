@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.shape;
 
+import org.lwjgl.opengl.GL11;
+
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -117,6 +119,14 @@ public class Point extends Shape
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
+    }
+
+    @Override // documentation inherited
+    public void draw (boolean outline)
+    {
+        GL11.glBegin(GL11.GL_POINTS);
+        GL11.glVertex2f(_location.x, _location.y);
+        GL11.glEnd();
     }
 
     /** The location of the point. */

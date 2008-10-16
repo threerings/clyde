@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.shape;
 
+import org.lwjgl.opengl.GL11;
+
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -200,6 +202,14 @@ public class Compound extends Shape
             }
         }
         return false;
+    }
+
+    @Override // documentation inherited
+    public void draw (boolean outline)
+    {
+        for (Shape shape : _shapes) {
+            shape.draw(outline);
+        }
     }
 
     /** The shapes of which this shape is composed. */

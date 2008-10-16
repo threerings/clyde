@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.shape;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -117,6 +118,13 @@ public abstract class Shape
     public abstract boolean intersects (Compound compound);
 
     /**
+     * Draws this shape in immediate mode.
+     *
+     * @param outline if true, draw the outline of the shape; otherwise, the solid form.
+     */
+    public abstract void draw (boolean outline);
+
+    /**
      * Updates the value of the closest point and returns a new result vector reference.
      */
     protected static Vector2f updateClosest (Vector2f origin, Vector2f result, Vector2f closest)
@@ -132,4 +140,10 @@ public abstract class Shape
 
     /** The bounds of the shape. */
     protected Rect _bounds = new Rect();
+
+    /** The number of segments to use when we render circles. */
+    protected static final int CIRCLE_SEGMENTS = 16;
+
+    /** The increment angle between circle segments. */
+    protected static final float CIRCLE_INCREMENT = FloatMath.TWO_PI / CIRCLE_SEGMENTS;
 }

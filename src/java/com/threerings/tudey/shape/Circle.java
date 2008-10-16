@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.shape;
 
+import org.lwjgl.opengl.GL11;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
@@ -176,6 +178,19 @@ public class Circle extends Shape
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
+    }
+
+    @Override // documentation inherited
+    public void draw (boolean outline)
+    {
+        GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
+        for (int ii = 0; ii < CIRCLE_SEGMENTS; ii++) {
+            float angle = ii * CIRCLE_INCREMENT;
+            GL11.glVertex2f(
+                _center.x + FloatMath.cos(angle) * radius,
+                _center.y + FloatMath.sin(angle) * radius);
+        }
+        GL11.glEnd();
     }
 
     /**

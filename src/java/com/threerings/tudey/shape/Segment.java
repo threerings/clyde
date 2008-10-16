@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.shape;
 
+import org.lwjgl.opengl.GL11;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
@@ -171,6 +173,15 @@ public class Segment extends Shape
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
+    }
+
+    @Override // documentation inherited
+    public void draw (boolean outline)
+    {
+        GL11.glBegin(GL11.GL_LINES);
+        GL11.glVertex2f(_start.x, _start.y);
+        GL11.glVertex2f(_end.x, _end.y);
+        GL11.glEnd();
     }
 
     /**

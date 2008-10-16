@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.prefs.Preferences;
 
@@ -73,9 +74,12 @@ import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.TileSprite;
+import com.threerings.tudey.client.util.ShapeSceneElement;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
 
@@ -134,24 +138,33 @@ public class SceneEditor extends GlCanvasTool
         file.add(createMenuItem("import", KeyEvent.VK_I, -1));
         file.add(createMenuItem("export", KeyEvent.VK_E, -1));
         file.addSeparator();
-        file.add(_importSelection = createMenuItem("import_selection", KeyEvent.VK_M, -1));
+        file.add(createMenuItem("import_selection", KeyEvent.VK_M, -1));
         file.add(_exportSelection = createMenuItem("export_selection", KeyEvent.VK_X, -1));
+        _exportSelection.setEnabled(false);
         file.addSeparator();
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
         edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
+        _cut.setEnabled(false);
         edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
+        _copy.setEnabled(false);
         edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
+        _paste.setEnabled(false);
         edit.add(new JMenuItem(
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+        _delete.setEnabled(false);
         edit.addSeparator();
         edit.add(_rotateCW = createMenuItem("rotate_cw", KeyEvent.VK_R, -1));
+        _rotateCW.setEnabled(false);
         edit.add(_rotateCCW = createMenuItem("rotate_ccw", KeyEvent.VK_O, -1));
+        _rotateCCW.setEnabled(false);
         edit.addSeparator();
         edit.add(_raise = createMenuItem("raise", KeyEvent.VK_A, -1));
+        _raise.setEnabled(false);
         edit.add(_lower = createMenuItem("lower", KeyEvent.VK_L, -1));
+        _lower.setEnabled(false);
         edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
         edit.add(createMenuItem("resources", KeyEvent.VK_S, KeyEvent.VK_E));
@@ -310,6 +323,33 @@ public class SceneEditor extends GlCanvasTool
     }
 
     /**
+     * Sets the selection shape.
+     */
+    public void setSelection (Shape selection)
+    {
+        _selection.setShape(selection);
+
+        // update the ui bits
+        boolean enable = (selection != null);
+        _exportSelection.setEnabled(enable);
+        _cut.setEnabled(enable);
+        _copy.setEnabled(enable);
+        _delete.setEnabled(enable);
+        _rotateCW.setEnabled(enable);
+        _rotateCCW.setEnabled(enable);
+        _raise.setEnabled(enable);
+        _lower.setEnabled(enable);
+    }
+
+    /**
+     * Returns a reference to the selection shape.
+     */
+    public Shape getSelection ()
+    {
+        return _selection.getShape();
+    }
+
+    /**
      * Attempts to edit the object under the mouse cursor.
      */
     public void editMouseObject ()
@@ -455,6 +495,8 @@ public class SceneEditor extends GlCanvasTool
             importScene();
         } else if (action.equals("export")) {
             exportScene();
+        } else if (action.equals("delete")) {
+            deleteSelection();
         } else if (action.equals("configs")) {
             new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("raise_grid")) {
@@ -552,6 +594,9 @@ public class SceneEditor extends GlCanvasTool
         // create the scene view
         _view = new TudeySceneView(this, this);
 
+        // initialize the selection
+        _selection = new ShapeSceneElement(this, true);
+
         // initialize the tools
         for (EditorTool tool : _tools.values()) {
             tool.init();
@@ -573,6 +618,10 @@ public class SceneEditor extends GlCanvasTool
         _view.tick(elapsed);
         _activeTool.tick(elapsed);
         _grid.tick(elapsed);
+
+        // update the selection transform
+        _selection.getTransform().getTranslation().z =
+            TudeySceneMetrics.getTileZ(_grid.getElevation());
     }
 
     @Override // documentation inherited
@@ -580,6 +629,7 @@ public class SceneEditor extends GlCanvasTool
     {
         super.enqueueView();
         _view.enqueue();
+        _selection.enqueue();
         _activeTool.enqueue();
     }
 
@@ -819,14 +869,27 @@ public class SceneEditor extends GlCanvasTool
         _frame.setTitle(title);
     }
 
+    /**
+     * Deletes the entries under the selected region.
+     */
+    protected void deleteSelection ()
+    {
+        ArrayList<Entry> entries = new ArrayList<Entry>();
+        _scene.getEntries(_selection.getShape(), entries);
+        for (int ii = 0, nn = entries.size(); ii < nn; ii++) {
+            _scene.removeEntry(entries.get(ii).getKey());
+        }
+        setSelection(null);
+    }
+
     /** The file to attempt to load on initialization, if any. */
     protected File _initScene;
 
     /** The revert menu item. */
     protected JMenuItem _revert;
 
-    /** The selection import and export menu items. */
-    protected JMenuItem _importSelection, _exportSelection;
+    /** The selection export menu item. */
+    protected JMenuItem _exportSelection;
 
     /** The edit menu actions. */
     protected Action _cut, _copy, _paste, _delete;
@@ -900,6 +963,9 @@ public class SceneEditor extends GlCanvasTool
 
     /** Whether or not each of the mouse buttons are being held down on the canvas. */
     protected boolean _firstButtonDown, _secondButtonDown, _thirdButtonDown;
+
+    /** The selection element. */
+    protected ShapeSceneElement _selection;
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();

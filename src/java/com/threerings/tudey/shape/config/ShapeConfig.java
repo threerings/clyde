@@ -10,7 +10,9 @@ import org.lwjgl.opengl.GL11;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
@@ -331,6 +333,21 @@ public abstract class ShapeConfig extends DeepObject
     }
 
     /**
+     * Returns a reference to the untransformed bounds of the shape.
+     */
+    public Box getBounds ()
+    {
+        if (_bounds == null) {
+            Rect rect = getShape().getBounds();
+            Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+            _bounds = new Box();
+            _bounds.getMinimumExtent().set(min.x, min.y, 0f);
+            _bounds.getMaximumExtent().set(max.x, max.y, 0f);
+        }
+        return _bounds;
+    }
+
+    /**
      * Returns the cached display list to draw this shape.
      *
      * @param outline if true, return the outline list; otherwise, the solid list.
@@ -359,6 +376,7 @@ public abstract class ShapeConfig extends DeepObject
     public void invalidate ()
     {
         _shape = null;
+        _bounds = null;
         _solidList = _outlineList = null;
     }
 
@@ -377,6 +395,10 @@ public abstract class ShapeConfig extends DeepObject
     /** The untransformed shape. */
     @DeepOmit
     protected transient Shape _shape;
+
+    /** The untransformed bounds of the shape. */
+    @DeepOmit
+    protected transient Box _bounds;
 
     /** The display lists containing the solid and outline representations. */
     @DeepOmit

@@ -5,6 +5,8 @@ package com.threerings.tudey.client.util;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.math.Box;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.DisplayList;
 import com.threerings.opengl.renderer.state.ColorState;
@@ -36,7 +38,9 @@ public class ShapeConfigElement extends SimpleSceneElement
      */
     public void setConfig (ShapeConfig config, boolean outline)
     {
+        _localBounds = config.getBounds();
         _list = config.getList(_ctx, outline);
+        updateBounds();
     }
 
     /**
@@ -59,12 +63,21 @@ public class ShapeConfigElement extends SimpleSceneElement
     }
 
     @Override // documentation inherited
+    protected Box getLocalBounds ()
+    {
+        return _localBounds;
+    }
+
+    @Override // documentation inherited
     protected void draw ()
     {
         // make sure we're in modelview matrix mode before calling the list
         _ctx.getRenderer().setMatrixMode(GL11.GL_MODELVIEW);
         _list.call();
     }
+
+    /** The local bounds of the shape. */
+    protected Box _localBounds;
 
     /** The display list containing the shape draw commands. */
     protected DisplayList _list;

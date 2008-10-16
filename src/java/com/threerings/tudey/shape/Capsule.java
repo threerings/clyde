@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.shape;
 
+import org.lwjgl.opengl.GL11;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
@@ -201,6 +203,26 @@ public class Capsule extends Shape
     public boolean intersects (Compound compound)
     {
         return compound.intersects(this);
+    }
+
+    @Override // documentation inherited
+    public void draw (boolean outline)
+    {
+        float offset = FloatMath.atan2(_end.x - _start.x, _start.y - _end.y);
+        GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
+        for (int ii = 0, nn = CIRCLE_SEGMENTS / 2; ii <= nn; ii++) {
+            float angle = ii * CIRCLE_INCREMENT + offset;
+            GL11.glVertex2f(
+                _start.x + FloatMath.cos(angle) * radius,
+                _start.y + FloatMath.sin(angle) * radius);
+        }
+        for (int ii = 0, nn = CIRCLE_SEGMENTS / 2; ii <= nn; ii++) {
+            float angle = ii * CIRCLE_INCREMENT - offset;
+            GL11.glVertex2f(
+                _end.x + FloatMath.cos(angle) * radius,
+                _end.y + FloatMath.sin(angle) * radius);
+        }
+        GL11.glEnd();
     }
 
     /** The start and end vertices of the capsule. */
