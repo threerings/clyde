@@ -8,6 +8,7 @@ import java.awt.event.MouseWheelEvent;
 
 import java.util.ArrayList;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.Vector3f;
@@ -16,7 +17,10 @@ import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.util.GridBox;
 import com.threerings.tudey.config.GroundConfig;
+import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.util.Coord;
+import com.threerings.tudey.util.CoordSet;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
@@ -83,9 +87,8 @@ public class GroundBrush extends ConfigTool<GroundConfig>
             return;
         }
         GroundReference gref = (GroundReference)_eref;
-        int vwidth = gref.width - 1, vheight = gref.height - 1;
-        int iwidth = TudeySceneMetrics.getTileWidth(vwidth, vheight, _rotation);
-        int iheight = TudeySceneMetrics.getTileHeight(vwidth, vheight, _rotation);
+        int iwidth = TudeySceneMetrics.getTileWidth(gref.width, gref.height, _rotation);
+        int iheight = TudeySceneMetrics.getTileHeight(gref.width, gref.height, _rotation);
         int owidth = iwidth + 2, oheight = iheight + 2;
 
         int x = Math.round(_isect.x - iwidth*0.5f), y = Math.round(_isect.y - iheight*0.5f);
@@ -111,22 +114,72 @@ public class GroundBrush extends ConfigTool<GroundConfig>
      */
     protected void paintGround (boolean erase, boolean revise)
     {
-        ConfigReference<GroundConfig> ref = erase ? null : _eref.getReference();
-        String ground = (ref == null) ? null : ref.getName();
+        ConfigManager cfgmgr = _editor.getConfigManager();
+        GroundConfig config = cfgmgr.getConfig(
+            GroundConfig.class, erase ? null : _eref.getReference());
+        GroundConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
         Rectangle iregion = _inner.getRegion();
         _lastPainted.set(iregion);
 
-        // get all potentially affected tiles
-        Rectangle oregion = _outer.getRegion();
-        ArrayList<TileEntry> affected = new ArrayList<TileEntry>();
-        _scene.getTileEntries(oregion, affected);
+        // if no config, erase
+        if (original == null) {
+            for (int yy = iregion.y, yymax = yy + iregion.height; yy < yymax; yy++) {
+                for (int xx = iregion.x, xxmax = xx + iregion.width; xx < xxmax; xx++) {
+                    TileEntry entry = _scene.getTileEntry(xx, yy);
+                    if (entry != null) {
+                        _scene.removeEntry(entry.getKey());
+                    }
+                }
+            }
+            return;
+        }
 
-        // step over the painted vertices
-        for (int yy = iregion.y, yymax = yy + iregion.height; yy <= yymax; yy++) {
-            for (int xx = iregion.x, xxmax = xx + iregion.width; xx <= xxmax; xx++) {
-
+        // find the coordinates that need to be painted
+        CoordSet coords = new CoordSet();
+        if (revise) {
+            coords.addAll(iregion);
+        } else {
+            for (int yy = iregion.y, yymax = yy + iregion.height; yy < yymax; yy++) {
+                for (int xx = iregion.x, xxmax = xx + iregion.width; xx < xxmax; xx++) {
+                    if (!original.isFloor(_scene.getTileEntry(xx, yy))) {
+                        coords.add(xx, yy);
+                    }
+                }
             }
         }
+
+        // cover floor tiles randomly until filled in
+        Rectangle region = new Rectangle();
+        while (!coords.isEmpty()) {
+            TileEntry entry = original.createFloor(cfgmgr, iregion.width, iregion.height);
+            if (entry == null) {
+                return; // no appropriate tiles
+            }
+            Coord coord = entry.getLocation();
+            coords.pickRandom(coord);
+            TileConfig.Original tconfig = entry.getConfig(cfgmgr);
+            int twidth = entry.getWidth(tconfig);
+            int theight = entry.getHeight(tconfig);
+            coord.set(
+                Math.min(coord.x, iregion.x + iregion.width - twidth),
+                Math.min(coord.y, iregion.y + iregion.height - theight));
+            entry.elevation = _editor.getGrid().getElevation();
+            addEntry(entry, region.set(coord.x, coord.y, twidth, theight));
+            coords.removeAll(region);
+        }
+    }
+
+    /**
+     * Adds the specified entry, removing any entries underneath it.
+     */
+    protected void addEntry (TileEntry entry, Rectangle region)
+    {
+        ArrayList<TileEntry> underneath = new ArrayList<TileEntry>();
+        _scene.getTileEntries(region, underneath);
+        for (int ii = 0, nn = underneath.size(); ii < nn; ii++) {
+            _scene.removeEntry(underneath.get(ii).getKey());
+        }
+        _scene.addEntry(entry);
     }
 
     /**

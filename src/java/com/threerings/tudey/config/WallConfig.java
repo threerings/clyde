@@ -64,36 +64,9 @@ public class WallConfig extends ParameterizedConfig
     public static class Case extends DeepObject
         implements Exportable
     {
-        /** The constraint on the north edge. */
-        @Editable(nullable=true)
-        public Edge north;
-
-        /** The constraint on the west edge. */
-        @Editable(nullable=true)
-        public Edge west;
-
-        /** The constraint on the south edge. */
-        @Editable(nullable=true)
-        public Edge south;
-
-        /** The constraint on the east edge. */
-        @Editable(nullable=true)
-        public Edge east;
-
         /** The tiles for this case. */
         @Editable
         public Tile[] tiles = new Tile[0];
-    }
-
-    /**
-     * Represents a constraint on a tile edge.
-     */
-    public static class Edge extends DeepObject
-        implements Exportable
-    {
-        /** The relative elevation. */
-        @Editable
-        public int elevation;
     }
 
     /**
@@ -105,6 +78,10 @@ public class WallConfig extends ParameterizedConfig
         /** The tile reference. */
         @Editable(nullable=true)
         public ConfigReference<TileConfig> tile;
+
+        /** The weight of the tile (affects how often it occurs). */
+        @Editable(min=0, step=0.01)
+        public float weight = 1f;
     }
 
     /** The actual wall implementation. */
