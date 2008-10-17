@@ -41,15 +41,14 @@ public class Vector3fPanel extends BasePropertyEditor
         setBackground(null);
         _spinners = new JSpinner[_mode == Mode.NORMALIZED ? 2 : 3];
         if (_mode == Mode.CARTESIAN || _mode == Mode.ANGLES) {
-            float xzextent = Float.MAX_VALUE, yextent = Float.MAX_VALUE;
+            float extent = Float.MAX_VALUE;
             if (_mode == Mode.ANGLES) {
-                xzextent = 180f;
-                yextent = 90f;
+                extent = 180f;
                 _scale = FloatMath.PI/180f;
             }
-            _spinners[0] = addSpinnerPanel("x", -xzextent, +xzextent, step);
-            _spinners[1] = addSpinnerPanel("y", -yextent, +yextent, step);
-            _spinners[2] = addSpinnerPanel("z", -xzextent, +xzextent, step);
+            _spinners[0] = addSpinnerPanel("x", -extent, +extent, step);
+            _spinners[1] = addSpinnerPanel("y", -extent, +extent, step);
+            _spinners[2] = addSpinnerPanel("z", -extent, +extent, step);
         } else {
             _spinners[0] = addSpinnerPanel("azimuth", -180f, +180f, 1f);
             _spinners[1] = addSpinnerPanel("elevation", -90f, +90f, 1f);
