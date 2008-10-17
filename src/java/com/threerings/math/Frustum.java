@@ -17,12 +17,13 @@ public class Frustum
      */
     public Frustum ()
     {
-        // initialize the planes and vertices of the frustum
-        for (int ii = 0; ii < 6; ii++) {
-            _planes[ii] = new Plane();
-        }
+        // initialize the vertices and planes of the frustum
         for (int ii = 0; ii < 8; ii++) {
             _vertices[ii] = new Vector3f();
+        }
+        for (int ii = 0; ii < 6; ii++) {
+            _planes[ii] = new Plane();
+            _extents[ii] = new Box();
         }
     }
 
@@ -162,46 +163,30 @@ public class Frustum
      */
     public IntersectionType getIntersectionType (Box box)
     {
-        // exit quickly in cases where the bounding boxes don't overlap
+        // exit quickly in cases where the bounding boxes don't overlap (equivalent to a separating
+        // axis test using the axes of the box)
         if (!_bounds.intersects(box)) {
             return IntersectionType.NONE;
         }
 
-        // check the vertices of the frustum against the box
-        Vector3f min = box.getMinimumExtent(), max = box.getMaximumExtent();
+        // consider each side of the frustum as a potential separating axis
         int ccount = 0;
-        for (int ii = 0; ii < 3; ii++) {
-            int lcount = 0, gcount = 0;
-            for (Vector3f vertex : _vertices) {
-                if (vertex.get(ii) < min.get(ii)) {
-                    lcount++;
-                } else if (vertex.get(ii) > max.get(ii)) {
-                    gcount++;
+        for (int ii = 0; ii < 6; ii++) {
+            // determine how many vertices fall inside/outside the plane and compute cross
+            // product extents
+            int inside = 0;
+            Plane plane = _planes[ii];
+            Vector3f normal = plane.getNormal();
+            _extent.setToEmpty();
+            for (int jj = 0; jj < 8; jj++) {
+                if (plane.getDistance(box.getVertex(jj, _vertex)) <= 0f) {
+                    inside++;
                 }
+                _extent.addLocal(_vertex.cross(normal, _vector));
             }
-            if (lcount == _vertices.length || gcount == _vertices.length) {
+            if (inside == 0 || !_extents[ii].intersects(_extent)) {
                 return IntersectionType.NONE;
-            } else if (lcount == 0 && gcount == 0) {
-                ccount++;
-            }
-        }
-        if (ccount == 3) {
-            // the frustum is entirely contained in the box
-            return IntersectionType.INTERSECTS;
-        }
-
-        // check the vertices of the box against the planes of the frustum
-        ccount = 0;
-        for (Plane plane : _planes) {
-            int outside = 0;
-            for (int ii = 0; ii < 8; ii++) {
-                if (plane.getDistance(box.getVertex(ii, _vertex)) > 0f) {
-                    outside++;
-                }
-            }
-            if (outside == 8) {
-                return IntersectionType.NONE;
-            } else if (outside == 0) {
+            } else if (inside == 8) {
                 ccount++;
             }
         }
@@ -220,6 +205,16 @@ public class Frustum
         _planes[4].fromPoints(_vertices[3], _vertices[2], _vertices[6]); // top
         _planes[5].fromPoints(_vertices[4], _vertices[5], _vertices[1]); // bottom
         _bounds.fromPoints(_vertices);
+
+        // compute the cross product extents
+        for (int ii = 0; ii < 6; ii++) {
+            Box extents = _extents[ii];
+            extents.setToEmpty();
+            Vector3f normal = _planes[ii].getNormal();
+            for (Vector3f vertex : _vertices) {
+                extents.addLocal(vertex.cross(normal, _vector));
+            }
+        }
     }
 
     /** The vertices of the frustum. */
@@ -232,6 +227,15 @@ public class Frustum
     /** The frustum's bounding box (as derived from the vertices). */
     protected Box _bounds = new Box();
 
+    /** Cross product extents for the six planes. */
+    protected Box[] _extents = new Box[6];
+
     /** A working vertex. */
     protected static Vector3f _vertex = new Vector3f();
+
+    /** A working vector. */
+    protected static Vector3f _vector = new Vector3f();
+
+    /** A working box. */
+    protected static Box _extent = new Box();
 }
