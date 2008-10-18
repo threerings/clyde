@@ -7,6 +7,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.samskivert.util.IntTuple;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
@@ -166,6 +170,57 @@ public class GroundBrush extends ConfigTool<GroundConfig>
             entry.elevation = _editor.getGrid().getElevation();
             addEntry(entry, region.set(coord.x, coord.y, twidth, theight));
             coords.removeAll(region);
+        }
+
+        // find the border tiles that need to be updated
+        coords.clear();
+        coords.addAll(_outer.getRegion());
+        coords.removeAll(iregion);
+        HashMap<IntTuple, CoordSet> sets = new HashMap<IntTuple, CoordSet>();
+        for (Coord coord : coords) {
+            TileEntry entry = _scene.getTileEntry(coord.x, coord.y);
+            if (original.isFloor(entry)) {
+                continue; // if it's already floor, leave it alone
+            }
+            // classify the tile based on its surroundings
+            int pattern = GroundConfig.createPattern(
+                original.isFloor(_scene.getTileEntry(coord.x, coord.y + 1)),
+                original.isFloor(_scene.getTileEntry(coord.x - 1, coord.y + 1)),
+                original.isFloor(_scene.getTileEntry(coord.x - 1, coord.y)),
+                original.isFloor(_scene.getTileEntry(coord.x - 1, coord.y - 1)),
+                original.isFloor(_scene.getTileEntry(coord.x, coord.y - 1)),
+                original.isFloor(_scene.getTileEntry(coord.x + 1, coord.y - 1)),
+                original.isFloor(_scene.getTileEntry(coord.x + 1, coord.y)),
+                original.isFloor(_scene.getTileEntry(coord.x + 1, coord.y + 1)));
+            IntTuple tuple = original.getCaseRotations(pattern);
+            if (tuple != null && (revise || !original.isEdge(entry, tuple))) {
+                CoordSet set = sets.get(tuple);
+                if (set == null) {
+                    sets.put(tuple, set = new CoordSet());
+                }
+                set.add(coord);
+            }
+        }
+
+        // add edge tiles as appropriate
+    OUTER:
+        for (Map.Entry<IntTuple, CoordSet> entry : sets.entrySet()) {
+            IntTuple tuple = entry.getKey();
+            CoordSet set = entry.getValue();
+            while (!set.isEmpty()) {
+                TileEntry tentry = original.createEdge(cfgmgr, tuple, 1, 1);
+                if (tentry == null) {
+                    continue OUTER; // no appropriate tiles
+                }
+                Coord coord = tentry.getLocation();
+                set.pickRandom(coord);
+                TileConfig.Original tconfig = tentry.getConfig(cfgmgr);
+                int twidth = tentry.getWidth(tconfig);
+                int theight = tentry.getHeight(tconfig);
+                tentry.elevation = _editor.getGrid().getElevation();
+                addEntry(tentry, region.set(coord.x, coord.y, twidth, theight));
+                set.removeAll(region);
+            }
         }
     }
 

@@ -5,6 +5,7 @@ package com.threerings.tudey.config;
 
 import java.util.ArrayList;
 
+import com.samskivert.util.IntTuple;
 import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.RandomUtil;
 
@@ -19,6 +20,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
  * The configuration of a ground type.
@@ -63,19 +65,25 @@ public class GroundConfig extends ParameterizedConfig
         @Editable
         public Tile[] floor = new Tile[0];
 
+        /** The edge cases (in order of priority). */
+        @Editable
+        public EdgeCase[] edgeCases = new EdgeCase[0];
+
         /**
          * Checks whether the specified entry qualifies as a floor tile.
          */
         public boolean isFloor (TileEntry entry)
         {
-            if (entry != null) {
-                for (Tile tile : floor) {
-                    if (tile.matches(entry)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return entry != null && matchesAny(floor, entry);
+        }
+
+        /**
+         * Checks whether the specified entry qualifies as an edge tile.
+         */
+        public boolean isEdge (TileEntry entry, IntTuple caseRotations)
+        {
+            return entry != null && ((1 << entry.rotation & caseRotations.right) != 0) &&
+                matchesAny(edgeCases[caseRotations.left].tiles, entry);
         }
 
         /**
@@ -87,19 +95,35 @@ public class GroundConfig extends ParameterizedConfig
             for (Tile tile : floor) {
                 tile.getRotations(cfgmgr, rotations, maxWidth, maxHeight);
             }
-            float tweight = 0f;
-            for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
-                tweight += rotations.get(ii).weight;
-            }
-            float random = RandomUtil.getFloat(tweight);
-            tweight = 0f;
-            for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
-                TileRotation rotation = rotations.get(ii);
-                if (random < (tweight += rotation.weight)) {
-                    return rotation.createEntry();
+            return createRandomEntry(rotations);
+        }
+
+        /**
+         * Determines the case and allowed rotations of the edge tile that matches the specified
+         * pattern.
+         */
+        public IntTuple getCaseRotations (int pattern)
+        {
+            for (int ii = 0; ii < edgeCases.length; ii++) {
+                int rotations = edgeCases[ii].getRotations(pattern);
+                if (rotations != 0) {
+                    return new IntTuple(ii, rotations);
                 }
             }
             return null;
+        }
+
+        /**
+         * Creates a new edge tile with the supplied case/rotations and maximum dimensions.
+         */
+        public TileEntry createEdge (
+            ConfigManager cfgmgr, IntTuple caseRotations, int maxWidth, int maxHeight)
+        {
+            ArrayList<TileRotation> rotations = new ArrayList<TileRotation>();
+            for (Tile tile : edgeCases[caseRotations.left].tiles) {
+                tile.getRotations(cfgmgr, rotations, caseRotations.right, maxWidth, maxHeight);
+            }
+            return createRandomEntry(rotations);
         }
 
         @Override // documentation inherited
@@ -122,6 +146,29 @@ public class GroundConfig extends ParameterizedConfig
             for (Tile tile : floor) {
                 tile.invalidate();
             }
+            for (EdgeCase edgeCase : edgeCases) {
+                edgeCase.invalidate();
+            }
+        }
+
+        /**
+         * Creates an entry using one of the supplied tile rotations.
+         */
+        protected TileEntry createRandomEntry (ArrayList<TileRotation> rotations)
+        {
+            float tweight = 0f;
+            for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
+                tweight += rotations.get(ii).weight;
+            }
+            float random = RandomUtil.getFloat(tweight);
+            tweight = 0f;
+            for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
+                TileRotation rotation = rotations.get(ii);
+                if (random < (tweight += rotation.weight)) {
+                    return rotation.createEntry();
+                }
+            }
+            return null;
         }
     }
 
@@ -146,6 +193,68 @@ public class GroundConfig extends ParameterizedConfig
             GroundConfig config = cfgmgr.getConfig(GroundConfig.class, ground);
             return (config == null) ? null : config.getOriginal(cfgmgr);
         }
+    }
+
+    /**
+     * Represents a single edge case.
+     */
+    public static class EdgeCase extends DeepObject
+        implements Exportable
+    {
+        /** The constraints in each direction. */
+        @Editable(hgroup="d")
+        public boolean n, nw, w, sw, s, se, e, ne;
+
+        /** The tiles for the case. */
+        @Editable
+        public Tile[] tiles = new Tile[0];
+
+        /**
+         * Returns a bit set containing the rotations of this case that match the specified
+         * pattern.
+         */
+        public int getRotations (int pattern)
+        {
+            int rotations = 0;
+            int[] patterns = getPatterns();
+            for (int ii = 0; ii < 4; ii++) {
+                if (patterns[ii] == pattern) {
+                    rotations |= (1 << ii);
+                }
+            }
+            return rotations;
+        }
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            for (Tile tile : tiles) {
+                tile.invalidate();
+            }
+            _patterns = null;
+        }
+
+        /**
+         * Gets the cached pattern rotations.
+         */
+        protected int[] getPatterns ()
+        {
+            if (_patterns == null) {
+                _patterns = new int[] {
+                    createPattern(n, nw, w, sw, s, se, e, ne),
+                    createPattern(e, ne, n, nw, w, sw, s, se),
+                    createPattern(s, se, e, ne, n, nw, w, sw),
+                    createPattern(w, sw, s, se, e, ne, n, nw)
+                };
+            }
+            return _patterns;
+        }
+
+        /** Constraint patterns for each rotation. */
+        @DeepOmit
+        protected transient int[] _patterns;
     }
 
     /**
@@ -188,9 +297,24 @@ public class GroundConfig extends ParameterizedConfig
         public void getRotations (
             ConfigManager cfgmgr, ArrayList<TileRotation> rotations, int maxWidth, int maxHeight)
         {
-            for (TileRotation rotation : getRotations(cfgmgr)) {
-                if (rotation.width <= maxWidth && rotation.height <= maxHeight) {
-                    rotations.add(rotation);
+            for (TileRotation tile : getRotations(cfgmgr)) {
+                if (tile.width <= maxWidth && tile.height <= maxHeight) {
+                    rotations.add(tile);
+                }
+            }
+        }
+
+        /**
+         * Adds the tile rotation options to the provided list.
+         */
+        public void getRotations (
+            ConfigManager cfgmgr, ArrayList<TileRotation> rotations,
+            int mask, int maxWidth, int maxHeight)
+        {
+            for (TileRotation tile : getRotations(cfgmgr)) {
+                if ((1 << tile.rotation & mask) != 0 && tile.width <= maxWidth &&
+                        tile.height <= maxHeight) {
+                    rotations.add(tile);
                 }
             }
         }
@@ -245,6 +369,19 @@ public class GroundConfig extends ParameterizedConfig
         protected transient TileRotation[] _rotations;
     }
 
+    /**
+     * Creates a bit pattern with the supplied directions.
+     */
+    public static int createPattern (
+        boolean n, boolean nw, boolean w, boolean sw,
+        boolean s, boolean se, boolean e, boolean ne)
+    {
+        return (n ? 1 : 0) << 7 | (nw ? 1 : 0) << 6 |
+            (w ? 1 : 0) << 5 | (sw ? 1 : 0) << 4 |
+            (s ? 1 : 0) << 3 | (se ? 1 : 0) << 2 |
+            (e ? 1 : 0) << 1 | (ne ? 1 : 0) << 0;
+    }
+
     /** The actual ground implementation. */
     @Editable
     public Implementation implementation = new Original();
@@ -269,6 +406,19 @@ public class GroundConfig extends ParameterizedConfig
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
+    }
+
+    /**
+     * Checks whether the specified entry matches any of the tiles in the given array.
+     */
+    protected static boolean matchesAny (Tile[] tiles, TileEntry entry)
+    {
+        for (Tile tile : tiles) {
+            if (tile.matches(entry)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

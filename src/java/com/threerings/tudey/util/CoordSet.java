@@ -90,6 +90,29 @@ public class CoordSet extends AbstractSet<Coord>
     }
 
     /**
+     * Determines whether the set contains all of the coordinates in the specified region.
+     */
+    public boolean containsAll (Rectangle region)
+    {
+        return containsAll(region.x, region.y, region.width, region.height);
+    }
+
+    /**
+     * Determines whether the set contains all of the coordinates in the specified region.
+     */
+    public boolean containsAll (int x, int y, int width, int height)
+    {
+        for (int yy = y, yymax = y + height; yy < yymax; yy++) {
+            for (int xx = x, xxmax = x + width; xx < xxmax; xx++) {
+                if (!contains(xx, yy)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
      * Determines whether the set contains the specified coordinates.
      */
     public boolean contains (int x, int y)
@@ -135,6 +158,14 @@ public class CoordSet extends AbstractSet<Coord>
     public Coord get (int idx, Coord result)
     {
         return result.set(_coords.get(idx));
+    }
+
+    /**
+     * Finds the largest covered region of this set and stores it in the provided rectangle.
+     */
+    public Rectangle getLargestRegion (Rectangle result)
+    {
+        return result;
     }
 
     @Override // documentation inherited

@@ -44,6 +44,14 @@ public final class Rectangle
     }
 
     /**
+     * Returns the area of the rectangle.
+     */
+    public int getArea ()
+    {
+        return width * height;
+    }
+
+    /**
      * Computes the intersection in-place of this rectangle and the specified other.
      *
      * @return a reference to this rectangle, for chaining.
