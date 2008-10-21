@@ -146,6 +146,11 @@ public class SceneEditor extends GlCanvasTool
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
+        edit.add(_undo = createAction("undo", KeyEvent.VK_U, KeyEvent.VK_Z));
+        _undo.setEnabled(false);
+        edit.add(_redo = createAction("redo", KeyEvent.VK_R, KeyEvent.VK_Y));
+        _redo.setEnabled(false);
+        edit.addSeparator();
         edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
         _cut.setEnabled(false);
         edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));
@@ -156,9 +161,9 @@ public class SceneEditor extends GlCanvasTool
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
         _delete.setEnabled(false);
         edit.addSeparator();
-        edit.add(_rotateCW = createMenuItem("rotate_cw", KeyEvent.VK_R, -1));
+        edit.add(_rotateCW = createMenuItem("rotate_cw", KeyEvent.VK_O, -1));
         _rotateCW.setEnabled(false);
-        edit.add(_rotateCCW = createMenuItem("rotate_ccw", KeyEvent.VK_O, -1));
+        edit.add(_rotateCCW = createMenuItem("rotate_ccw", KeyEvent.VK_E, -1));
         _rotateCCW.setEnabled(false);
         edit.addSeparator();
         edit.add(_raise = createMenuItem("raise", KeyEvent.VK_A, -1));
@@ -172,6 +177,8 @@ public class SceneEditor extends GlCanvasTool
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
+        view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
+        _showGrid.setSelected(true);
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
         _showCompass.setSelected(true);
@@ -511,6 +518,8 @@ public class SceneEditor extends GlCanvasTool
             _grid.setElevation(_grid.getElevation() + 1);
         } else if (action.equals("lower_grid")) {
             _grid.setElevation(_grid.getElevation() - 1);
+        } else if (action.equals("reorient")) {
+            ((OrbitCameraHandler)_camhand).getCoords().set(TudeySceneMetrics.getCameraCoords());
         } else if (action.equals("markers")) {
             _markersVisible = !_markers.isSelected();
             wasUpdated();
@@ -576,6 +585,10 @@ public class SceneEditor extends GlCanvasTool
                 super.updatePosition();
             }
         };
+
+        // initialize using configured parameters
+        TudeySceneMetrics.initCameraHandler(camhand);
+
         // mouse movement is enabled when the tool allows it or control is held down
         new MouseOrbiter(camhand, true) {
             public void mouseDragged (MouseEvent event) {
@@ -920,6 +933,9 @@ public class SceneEditor extends GlCanvasTool
 
     /** The selection export menu item. */
     protected JMenuItem _exportSelection;
+
+    /** The undo and redo actions. */
+    protected Action _undo, _redo;
 
     /** The edit menu actions. */
     protected Action _cut, _copy, _paste, _delete;

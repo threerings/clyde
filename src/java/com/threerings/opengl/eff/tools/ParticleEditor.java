@@ -128,6 +128,8 @@ public class ParticleEditor extends ModelTool
             createCheckBoxMenuItem("environment", KeyEvent.VK_E, KeyEvent.VK_V));
         _showEnvironment.setSelected(true);
         view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_D));
+        view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_R, KeyEvent.VK_I));
+        _showGrid.setSelected(true);
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));

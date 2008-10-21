@@ -5,9 +5,12 @@ package com.threerings.tudey.util;
 
 import com.samskivert.util.Config;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
+import com.threerings.math.SphereCoords;
 import com.threerings.math.Transform3D;
 
+import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
@@ -95,12 +98,69 @@ public class TudeySceneMetrics
         return Math.round(z / _elevationScale);
     }
 
+    /**
+     * Returns the camera's vertical field of view, in radians.
+     */
+    public static float getCameraFov ()
+    {
+        return _cameraFov;
+    }
+
+    /**
+     * Returns the distance to the camera's near clip plane.
+     */
+    public static float getCameraNear ()
+    {
+        return _cameraNear;
+    }
+
+    /**
+     * Returns the distance to the camera's far clip plane.
+     */
+    public static float getCameraFar ()
+    {
+        return _cameraFar;
+    }
+
+    /**
+     * Returns a reference to the camera's sphere coords relative to its target.
+     */
+    public static SphereCoords getCameraCoords ()
+    {
+        return _cameraCoords;
+    }
+
+    /**
+     * Initializes the supplied camera handler using the configured camera parameters.
+     */
+    public static void initCameraHandler (OrbitCameraHandler camhand)
+    {
+        camhand.setPerspective(_cameraFov, _cameraNear, _cameraFar);
+        camhand.getCoords().set(_cameraCoords);
+    }
+
     /** The number of world units per tile elevation unit. */
     protected static float _elevationScale;
+
+    /** The camera's vertical field of view (in radians). */
+    protected static float _cameraFov;
+
+    /** The camera's near and far clip plane distances. */
+    protected static float _cameraNear, _cameraFar;
+
+    /** The camera's sphere coords relative to its target. */
+    protected static SphereCoords _cameraCoords;
 
     static {
         // load the fields from the configuration
         Config config = new Config("/rsrc/config/tudey/scene");
         _elevationScale = config.getValue("elevation_scale", 0.5f);
+        _cameraFov = FloatMath.toRadians(config.getValue("camera_fov", 60f));
+        _cameraNear = config.getValue("camera_near", 1f);
+        _cameraFar = config.getValue("camera_far", 100f);
+        _cameraCoords = new SphereCoords(
+            FloatMath.toRadians(config.getValue("camera_azimuth", 0f)),
+            FloatMath.toRadians(config.getValue("camera_elevation", 45f)),
+            config.getValue("camera_distance", 10f));
     }
 }

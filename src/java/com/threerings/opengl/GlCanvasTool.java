@@ -123,7 +123,10 @@ public abstract class GlCanvasTool extends GlCanvasApp
         super.enqueueView();
 
         // enqueue the various renderables
-        _grid.enqueue();
+        // (TEMP: check for null refs until the old tools are gone)
+        if (_showGrid == null || _showGrid.isSelected()) {
+            _grid.enqueue();
+        }
         if (_showBounds.isSelected()) {
             _bounds.enqueue();
         }
@@ -335,7 +338,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     protected ToolUtil.EditablePrefs _eprefs;
 
     /** Toggles for the various renderables. */
-    protected JCheckBoxMenuItem _showBounds, _showCompass, _showStats;
+    protected JCheckBoxMenuItem _showBounds, _showCompass, _showGrid, _showStats;
 
     /** The preferences dialog. */
     protected JDialog _pdialog;

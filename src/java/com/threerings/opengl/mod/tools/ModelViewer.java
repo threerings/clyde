@@ -91,6 +91,8 @@ public class ModelViewer extends ModelTool
         view.add(_showEnvironment =
             createCheckBoxMenuItem("environment", KeyEvent.VK_E, KeyEvent.VK_V));
         _showEnvironment.setSelected(true);
+        view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
+        _showGrid.setSelected(true);
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_C, KeyEvent.VK_M));
         _showCompass.setSelected(true);
