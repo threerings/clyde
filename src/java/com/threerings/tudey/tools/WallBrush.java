@@ -6,18 +6,16 @@ package com.threerings.tudey.tools;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-import java.util.ArrayList;
-
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
-import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.util.GridBox;
 import com.threerings.tudey.config.WallConfig;
-import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.util.CoordSet;
+import com.threerings.tudey.util.TilePainter;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
@@ -36,8 +34,10 @@ public class WallBrush extends ConfigTool<WallConfig>
     @Override // documentation inherited
     public void init ()
     {
-        _cursor = new GridBox(_editor);
-        _cursor.getColor().set(1f, 1f, 0f, 1f);
+        _inner = new GridBox(_editor);
+        _inner.getColor().set(1f, 1f, 0f, 1f);
+        _outer = new GridBox(_editor);
+        _outer.getColor().set(0.5f, 0.5f, 0f, 1f);
     }
 
     @Override // documentation inherited
@@ -50,7 +50,8 @@ public class WallBrush extends ConfigTool<WallConfig>
     public void enqueue ()
     {
         if (_cursorVisible) {
-            _cursor.enqueue();
+            _inner.enqueue();
+            _outer.enqueue();
         }
     }
 
@@ -81,15 +82,21 @@ public class WallBrush extends ConfigTool<WallConfig>
             return;
         }
         WallReference wref = (WallReference)_eref;
-        int width = TudeySceneMetrics.getTileWidth(wref.width, wref.height, _rotation);
-        int height = TudeySceneMetrics.getTileHeight(wref.width, wref.height, _rotation);
-        int x = Math.round(_isect.x - width*0.5f), y = Math.round(_isect.y - height*0.5f);
-        _cursor.getRegion().set(x, y, width, height);
-        _cursor.setElevation(_editor.getGrid().getElevation());
+        int iwidth = TudeySceneMetrics.getTileWidth(wref.width, wref.height, _rotation);
+        int iheight = TudeySceneMetrics.getTileHeight(wref.width, wref.height, _rotation);
+        int owidth = iwidth + 2, oheight = iheight + 2;
+
+        int x = Math.round(_isect.x - iwidth*0.5f), y = Math.round(_isect.y - iheight*0.5f);
+        _inner.getRegion().set(x, y, iwidth, iheight);
+        _outer.getRegion().set(x - 1, y - 1, owidth, oheight);
+
+        int elevation = _editor.getGrid().getElevation();
+        _inner.setElevation(elevation);
+        _outer.setElevation(elevation);
 
         // if we are dragging, consider performing another paint operation
         boolean paint = _editor.isFirstButtonDown(), erase = _editor.isThirdButtonDown();
-        if ((paint || erase) && !_cursor.getRegion().equals(_lastPainted)) {
+        if ((paint || erase) && !_inner.getRegion().equals(_lastPainted)) {
             paintWall(erase, false);
         }
     }
@@ -102,18 +109,12 @@ public class WallBrush extends ConfigTool<WallConfig>
      */
     protected void paintWall (boolean erase, boolean revise)
     {
-        ConfigReference<WallConfig> ref = erase ? null : _eref.getReference();
-        String wall = (ref == null) ? null : ref.getName();
-        Rectangle region = _cursor.getRegion();
+        TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene);
+        Rectangle region = _inner.getRegion();
+        painter.paintWall(
+            new CoordSet(region), _eref.getReference(),
+            _editor.getGrid().getElevation(), erase, revise);
         _lastPainted.set(region);
-
-        // get the surrounding tiles
-        Rectangle outer = new Rectangle(region);
-        outer.grow(1, 1);
-        ArrayList<TileEntry> surrounding = new ArrayList<TileEntry>();
-        _scene.getTileEntries(outer, surrounding);
-
-
     }
 
     /**
@@ -146,17 +147,14 @@ public class WallBrush extends ConfigTool<WallConfig>
         }
     }
 
-    /** The cursor. */
-    protected GridBox _cursor;
+    /** The inner and outer cursors. */
+    protected GridBox _inner, _outer;
 
     /** Whether or not the cursor is in the window. */
     protected boolean _cursorVisible;
 
     /** The rotation of the cursor. */
     protected int _rotation;
-
-    /** The last tile coordinates. */
-    protected int _lx, _ly;
 
     /** The last painted region. */
     protected Rectangle _lastPainted = new Rectangle();

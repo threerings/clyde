@@ -18,11 +18,8 @@ public enum Direction
     EAST(+1, +0),
     NORTHEAST(+1, +1);
 
-    Direction (int x, int y)
-    {
-        _x = x;
-        _y = y;
-    }
+    /** The cardinal directions. */
+    public static final Direction[] CARDINAL_VALUES = { NORTH, WEST, SOUTH, EAST };
 
     /**
      * Returns the x offset corresponding to the direction.
@@ -38,6 +35,12 @@ public enum Direction
     public int getY ()
     {
         return _y;
+    }
+
+    Direction (int x, int y)
+    {
+        _x = x;
+        _y = y;
     }
 
     /** The x and y offsets corresponding to the direction. */

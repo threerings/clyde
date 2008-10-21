@@ -272,6 +272,34 @@ public class CoordSet extends AbstractSet<Coord>
         return result;
     }
 
+    /**
+     * Creates a new set containing the coordinates that border the coordinates in this set in the
+     * cardinal directions.
+     */
+    public CoordSet getCardinalBorder ()
+    {
+        return getCardinalBorder(new CoordSet());
+    }
+
+    /**
+     * Adds the coordinates that border the coordinates in this set in cardinal directions to the
+     * set provided.
+     *
+     * @return a reference to the result set, for chaining.
+     */
+    public CoordSet getCardinalBorder (CoordSet result)
+    {
+        for (Coord coord : this) {
+            for (Direction dir : Direction.CARDINAL_VALUES) {
+                int x = coord.x + dir.getX(), y = coord.y + dir.getY();
+                if (!contains(x, y)) {
+                    result.add(x, y);
+                }
+            }
+        }
+        return result;
+    }
+
     @Override // documentation inherited
     public boolean add (Coord coord)
     {
