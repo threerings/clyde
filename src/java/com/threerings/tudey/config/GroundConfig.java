@@ -61,6 +61,10 @@ public class GroundConfig extends ParameterizedConfig
      */
     public static class Original extends Implementation
     {
+        /** Whether or not to extend the edge. */
+        @Editable
+        public boolean extendEdge;
+
         /** The floor tiles. */
         @Editable
         public Tile[] floor = new Tile[0];
@@ -218,7 +222,8 @@ public class GroundConfig extends ParameterizedConfig
             int rotations = 0;
             int[] patterns = getPatterns();
             for (int ii = 0; ii < 4; ii++) {
-                if (patterns[ii] == pattern) {
+                int mask = patterns[ii];
+                if ((pattern & mask) == mask) {
                     rotations |= (1 << ii);
                 }
             }

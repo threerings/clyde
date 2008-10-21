@@ -8,6 +8,7 @@ import java.awt.event.MouseWheelEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import com.samskivert.util.IntTuple;
@@ -119,35 +120,49 @@ public class GroundBrush extends ConfigTool<GroundConfig>
     protected void paintGround (boolean erase, boolean revise)
     {
         ConfigManager cfgmgr = _editor.getConfigManager();
-        GroundConfig config = cfgmgr.getConfig(
-            GroundConfig.class, erase ? null : _eref.getReference());
+        GroundConfig config = cfgmgr.getConfig(GroundConfig.class, _eref.getReference());
         GroundConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
-        Rectangle iregion = _inner.getRegion();
+        Rectangle iregion = _inner.getRegion(), oregion = _outer.getRegion();
         _lastPainted.set(iregion);
 
-        // if no config, erase
+        // if no config, just erase the inner region
         if (original == null) {
-            for (int yy = iregion.y, yymax = yy + iregion.height; yy < yymax; yy++) {
-                for (int xx = iregion.x, xxmax = xx + iregion.width; xx < xxmax; xx++) {
-                    TileEntry entry = _scene.getTileEntry(xx, yy);
-                    if (entry != null) {
-                        _scene.removeEntry(entry.getKey());
-                    }
-                }
-            }
+            removeEntries(iregion);
+            return;
+        }
+
+        // if erasing, erase the outer region and update the edges
+        if (erase) {
+            removeEntries(oregion);
+            CoordSet coords = new CoordSet(oregion);
+            coords.removeAll(iregion);
+            updateEdges(coords, revise, original);
             return;
         }
 
         // find the coordinates that need to be painted
         CoordSet coords = new CoordSet();
-        if (revise) {
-            coords.addAll(iregion);
+        CoordSet border;
+        if (original.extendEdge) {
+            int maxx = oregion.x + oregion.width - 1;
+            int maxy = oregion.y + oregion.height - 1;
+            coords.addAll(oregion);
+            coords.remove(oregion.x, oregion.y);
+            coords.remove(maxx, oregion.y);
+            coords.remove(maxx, maxy);
+            coords.remove(oregion.x, maxy);
+            border = coords.getBorder();
         } else {
-            for (int yy = iregion.y, yymax = yy + iregion.height; yy < yymax; yy++) {
-                for (int xx = iregion.x, xxmax = xx + iregion.width; xx < xxmax; xx++) {
-                    if (!original.isFloor(_scene.getTileEntry(xx, yy))) {
-                        coords.add(xx, yy);
-                    }
+            coords.addAll(iregion);
+            border = new CoordSet(oregion);
+            border.removeAll(iregion);
+        }
+        if (!revise) {
+            // remove anything that's already a floor tile
+            for (Iterator<Coord> it = coords.iterator(); it.hasNext(); ) {
+                Coord coord = it.next();
+                if (original.isFloor(_scene.getTileEntry(coord.x, coord.y))) {
+                    it.remove();
                 }
             }
         }
@@ -155,27 +170,31 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         // cover floor tiles randomly until filled in
         Rectangle region = new Rectangle();
         while (!coords.isEmpty()) {
-            TileEntry entry = original.createFloor(cfgmgr, iregion.width, iregion.height);
+            coords.getLargestRegion(region);
+            TileEntry entry = original.createFloor(cfgmgr, region.width, region.height);
             if (entry == null) {
-                return; // no appropriate tiles
+                break; // no appropriate tiles
             }
             Coord coord = entry.getLocation();
-            coords.pickRandom(coord);
+            coords.pickRandom(region.width, region.height, coord);
             TileConfig.Original tconfig = entry.getConfig(cfgmgr);
             int twidth = entry.getWidth(tconfig);
             int theight = entry.getHeight(tconfig);
-            coord.set(
-                Math.min(coord.x, iregion.x + iregion.width - twidth),
-                Math.min(coord.y, iregion.y + iregion.height - theight));
             entry.elevation = _editor.getGrid().getElevation();
             addEntry(entry, region.set(coord.x, coord.y, twidth, theight));
             coords.removeAll(region);
         }
 
         // find the border tiles that need to be updated
-        coords.clear();
-        coords.addAll(_outer.getRegion());
-        coords.removeAll(iregion);
+        updateEdges(border, revise, original);
+    }
+
+    /**
+     * Updates the edge tiles in the specified coordinate set.
+     */
+    protected void updateEdges (CoordSet coords, boolean revise, GroundConfig.Original original)
+    {
+        // divide the coordinates up by case/rotation pairs
         HashMap<IntTuple, CoordSet> sets = new HashMap<IntTuple, CoordSet>();
         for (Coord coord : coords) {
             TileEntry entry = _scene.getTileEntry(coord.x, coord.y);
@@ -203,17 +222,20 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         }
 
         // add edge tiles as appropriate
+        ConfigManager cfgmgr = _editor.getConfigManager();
+        Rectangle region = new Rectangle();
     OUTER:
         for (Map.Entry<IntTuple, CoordSet> entry : sets.entrySet()) {
             IntTuple tuple = entry.getKey();
             CoordSet set = entry.getValue();
             while (!set.isEmpty()) {
-                TileEntry tentry = original.createEdge(cfgmgr, tuple, 1, 1);
+                set.getLargestRegion(region);
+                TileEntry tentry = original.createEdge(cfgmgr, tuple, region.width, region.height);
                 if (tentry == null) {
                     continue OUTER; // no appropriate tiles
                 }
                 Coord coord = tentry.getLocation();
-                set.pickRandom(coord);
+                set.pickRandom(region.width, region.height, coord);
                 TileConfig.Original tconfig = tentry.getConfig(cfgmgr);
                 int twidth = tentry.getWidth(tconfig);
                 int theight = tentry.getHeight(tconfig);
@@ -229,12 +251,20 @@ public class GroundBrush extends ConfigTool<GroundConfig>
      */
     protected void addEntry (TileEntry entry, Rectangle region)
     {
-        ArrayList<TileEntry> underneath = new ArrayList<TileEntry>();
-        _scene.getTileEntries(region, underneath);
-        for (int ii = 0, nn = underneath.size(); ii < nn; ii++) {
-            _scene.removeEntry(underneath.get(ii).getKey());
-        }
+        removeEntries(region);
         _scene.addEntry(entry);
+    }
+
+    /**
+     * Removes all entries within the specified region.
+     */
+    protected void removeEntries (Rectangle region)
+    {
+        ArrayList<TileEntry> results = new ArrayList<TileEntry>();
+        _scene.getTileEntries(region, results);
+        for (int ii = 0, nn = results.size(); ii < nn; ii++) {
+            _scene.removeEntry(results.get(ii).getKey());
+        }
     }
 
     /**

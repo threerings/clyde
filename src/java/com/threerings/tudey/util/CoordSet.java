@@ -4,6 +4,7 @@
 package com.threerings.tudey.util;
 
 import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Iterator;
 
 import com.samskivert.util.ArrayIntSet;
@@ -17,6 +18,37 @@ import com.threerings.opengl.gui.util.Rectangle;
  */
 public class CoordSet extends AbstractSet<Coord>
 {
+    /**
+     * Creates a coord set containing the contents of the supplied collection.
+     */
+    public CoordSet (Collection<Coord> collection)
+    {
+        addAll(collection);
+    }
+
+    /**
+     * Creates a coord set containing all of the coordinates in the supplied region.
+     */
+    public CoordSet (Rectangle region)
+    {
+        addAll(region);
+    }
+
+    /**
+     * Creates a coord set containing all of the coordinates in the supplied region.
+     */
+    public CoordSet (int x, int y, int width, int height)
+    {
+        addAll(x, y, width, height);
+    }
+
+    /**
+     * Creates an empty coord set.
+     */
+    public CoordSet ()
+    {
+    }
+
     /**
      * Adds all of the coordinates in the specified region.
      *
@@ -127,7 +159,7 @@ public class CoordSet extends AbstractSet<Coord>
      */
     public Coord pickRandom ()
     {
-        return pickRandom(new Coord());
+        return pickRandom(1, 1);
     }
 
     /**
@@ -137,7 +169,38 @@ public class CoordSet extends AbstractSet<Coord>
      */
     public Coord pickRandom (Coord result)
     {
-        return get(RandomUtil.getInt(size()), result);
+        return pickRandom(1, 1, result);
+    }
+
+    /**
+     * Selects a random coordinate that is the origin of a region within the set with the
+     * supplied dimensions.
+     *
+     * @return a new object containing the result.
+     */
+    public Coord pickRandom (int width, int height)
+    {
+        return pickRandom(width, height, new Coord());
+    }
+
+    /**
+     * Selects a random coordinate that is the origin of a region within the set with the
+     * supplied dimensions and places it in the provided object.
+     *
+     * @return a reference to the result object, for chaining.
+     */
+    public Coord pickRandom (int width, int height, Coord result)
+    {
+        if (width == 1 && height == 1) {
+            return get(RandomUtil.getInt(size()), result);
+        }
+        CoordSet origins = new CoordSet();
+        for (Coord coord : this) {
+            if (containsAll(coord.x, coord.y, width, height)) {
+                origins.add(coord);
+            }
+        }
+        return origins.pickRandom(result);
     }
 
     /**
@@ -165,6 +228,47 @@ public class CoordSet extends AbstractSet<Coord>
      */
     public Rectangle getLargestRegion (Rectangle result)
     {
+        result.set(0, 0, 0, 0);
+        for (Coord coord : this) {
+            int maxWidth = Integer.MAX_VALUE;
+            for (int yy = coord.y; contains(coord.x, yy); yy++) {
+                int height = yy - coord.y + 1;
+                int width = 1;
+                while (width < maxWidth && contains(coord.x + width, yy)) {
+                    width++;
+                }
+                maxWidth = width;
+                if (width * height > result.getArea()) {
+                    result.set(coord.x, coord.y, width, height);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Creates a new set containing the coordinates that border the coordinates in this set.
+     */
+    public CoordSet getBorder ()
+    {
+        return getBorder(new CoordSet());
+    }
+
+    /**
+     * Adds the coordinates that border the coordinates in this set to the provided set.
+     *
+     * @return a reference to the result set, for chaining.
+     */
+    public CoordSet getBorder (CoordSet result)
+    {
+        for (Coord coord : this) {
+            for (Direction dir : Direction.values()) {
+                int x = coord.x + dir.getX(), y = coord.y + dir.getY();
+                if (!contains(x, y)) {
+                    result.add(x, y);
+                }
+            }
+        }
         return result;
     }
 
