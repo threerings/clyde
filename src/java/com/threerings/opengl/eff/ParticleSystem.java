@@ -24,6 +24,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
+import com.threerings.opengl.effect.config.ParticleSystemConfig.GroupPriority;
 import com.threerings.opengl.mat.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.mod.Model;
@@ -226,11 +227,23 @@ public class ParticleSystem extends Model.Implementation
             float amount = _geometryRadius * msize;
             _bounds.expandLocal(amount, amount, amount);
 
+            // get the center of the bounds
+            GroupPriority priorityMode = _config.priorityMode;
+            if (priorityMode == null) {
+                _bounds.getCenter(_center);
+            }
+
             // add layer bounds to the system bounds
             if (_config.moveParticlesWithEmitter) {
                 _bounds.transformLocal(_worldTransform);
             }
             _parentBounds.addLocal(_bounds);
+
+            // and the group bounds, if applicable
+            if (priorityMode != null) {
+                ((ParticleSystem)_parentScope).getGroupBounds(
+                    priorityMode.group).addLocal(_bounds);
+            }
 
             return false;
         }
@@ -295,6 +308,17 @@ public class ParticleSystem extends Model.Implementation
                     particle.depth = xform.transformPointZ(particle.getPosition());
                 }
                 QuickSort.sort(_particles, 0, _living.value - 1, DEPTH_COMP);
+            }
+
+            // update the center if necessary
+            GroupPriority priorityMode = _config.priorityMode;
+            if (priorityMode != null) {
+                Box bounds = ((ParticleSystem)_parentScope).getGroupBounds(priorityMode.group);
+                bounds.getCenter(_center);
+                Transform3D xform = _ctx.getCompositor().getCamera().getWorldTransform();
+                xform.getRotation().transformUnitZ(_vector).multLocal(
+                    priorityMode.priority * 0.0001f);
+                pointToLayer(_center.addLocal(_vector), false);
             }
 
             // enqueue the surface
@@ -374,6 +398,10 @@ public class ParticleSystem extends Model.Implementation
         /** The shared transform state. */
         @Scoped
         protected TransformState _transformState = new TransformState();
+
+        /** The layer center. */
+        @Scoped
+        protected Vector3f _center = new Vector3f();
 
         /** The layer surface. */
         protected Surface _surface;
@@ -463,6 +491,9 @@ public class ParticleSystem extends Model.Implementation
 
         // reset the bounds
         _nbounds.setToEmpty();
+        for (Box bounds : _groupBounds) {
+            bounds.setToEmpty();
+        }
 
         // tick the layers (they will expand the bounds)
         _completed = true;
@@ -532,6 +563,22 @@ public class ParticleSystem extends Model.Implementation
         }
     }
 
+    /**
+     * Returns the bounds of the group at the specified index.
+     */
+    protected Box getGroupBounds (int idx)
+    {
+        if (_groupBounds.length <= idx) {
+            Box[] obounds = _groupBounds;
+            _groupBounds = new Box[idx + 1];
+            System.arraycopy(obounds, 0, _groupBounds, 0, obounds.length);
+            for (int ii = obounds.length; ii < _groupBounds.length; ii++) {
+                _groupBounds[ii] = new Box();
+            }
+        }
+        return _groupBounds[idx];
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -568,11 +615,17 @@ public class ParticleSystem extends Model.Implementation
     @Scoped
     protected Box _nbounds = new Box();
 
+    /** World space bounds of each group. */
+    protected Box[] _groupBounds = new Box[0];
+
     /** The model's tick policy. */
     protected TickPolicy _tickPolicy = TickPolicy.ALWAYS;
 
     /** If true, the particle system has completed. */
     protected boolean _completed;
+
+    /** Working vector. */
+    protected static Vector3f _vector = new Vector3f();
 
     /** Sorts particles by decreasing depth. */
     protected static final Comparator<Particle> DEPTH_COMP = new Comparator<Particle>() {

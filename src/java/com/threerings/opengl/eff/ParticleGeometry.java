@@ -786,6 +786,12 @@ public abstract class ParticleGeometry extends DynamicGeometry
     }
 
     @Override // documentation inherited
+    public Vector3f getCenter ()
+    {
+        return _center;
+    }
+
+    @Override // documentation inherited
     public ArrayState getArrayState (int pass)
     {
         return _arrayStates[pass];
@@ -1007,6 +1013,10 @@ public abstract class ParticleGeometry extends DynamicGeometry
     /** The layer's transform state. */
     @Bound
     protected TransformState _transformState;
+
+    /** The center of the geometry. */
+    @Bound
+    protected Vector3f _center;
 
     /** The stride (number of floats) between adjacent vertices. */
     protected int _stride;
