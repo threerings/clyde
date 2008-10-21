@@ -45,7 +45,7 @@ public class StaticSetConfig extends ModelConfig.Imported
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
-        MeshSet mset = (meshes == null) ? null : meshes.get(model);
+        MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
         if (mset == null) {
             return null;
         }
