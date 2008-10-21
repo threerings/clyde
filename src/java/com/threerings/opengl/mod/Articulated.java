@@ -323,6 +323,7 @@ public class Articulated extends Model.Implementation
     {
         super(parentScope);
         _ctx = ctx;
+        _viewTransform = _transformState.getModelview();
         setConfig(config);
     }
 
@@ -912,7 +913,11 @@ public class Articulated extends Model.Implementation
 
     /** The view transform. */
     @Scoped
-    protected Transform3D _viewTransform = new Transform3D();
+    protected Transform3D _viewTransform;
+
+    /** The shared transform state. */
+    @Scoped
+    protected TransformState _transformState = new TransformState();
 
     /** The bounds of the model. */
     protected Box _bounds = new Box();

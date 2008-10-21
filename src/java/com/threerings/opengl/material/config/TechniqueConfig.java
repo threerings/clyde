@@ -250,7 +250,9 @@ public class TechniqueConfig extends DeepObject
             final Batch batch = (passes.length == 1) ?
                 createBatch(ctx, scope, geometry, passes[0], updaters, pidx) :
                 createBatch(ctx, scope, geometry, updaters, pidx);
-            final Transform3D modelview = getTransformState(batch).getModelview();
+            TransformState transformState = ScopeUtil.resolve(
+                scope, "transformState", TransformState.IDENTITY, TransformState.class);
+            final Transform3D modelview = transformState.getModelview();
             final Vector3f center = geometry.getCenter();
             if (update) {
                 if (updaters.isEmpty()) {

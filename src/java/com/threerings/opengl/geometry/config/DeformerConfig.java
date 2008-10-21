@@ -18,6 +18,7 @@ import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.geom.DynamicGeometry;
@@ -116,10 +117,14 @@ public abstract class DeformerConfig extends DeepObject
             final int vertexStride = vertexArray.stride / 4;
 
             // finally, create the draw command and the geometry itself
+            final Vector3f center = config.bounds.getCenter();
             final DrawCommand drawCommand = config.createDrawCommand(true);
             return new DynamicGeometry(dest, arrayBuffer, floatArray) {
                 public CoordSpace getCoordSpace (int pass) {
                     return CoordSpace.EYE;
+                }
+                public Vector3f getCenter () {
+                    return center;
                 }
                 public ArrayState getArrayState (int pass) {
                     return arrayStates[pass];
