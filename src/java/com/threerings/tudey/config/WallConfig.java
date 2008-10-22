@@ -63,6 +63,19 @@ public class WallConfig extends PaintableConfig
         public Case[] cases = new Case[0];
 
         /**
+         * Checks whether the specified entry matches any wall case.
+         */
+        public boolean isWall (TileEntry entry, int elevation)
+        {
+            for (Case caze : cases) {
+                if (matchesAny(caze.tiles, entry, elevation)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
          * Determines the case and allowed rotations of the wall tile that matches the specified
          * pattern.
          */

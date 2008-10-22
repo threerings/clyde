@@ -205,10 +205,10 @@ public abstract class PaintableConfig extends ParameterizedConfig
         boolean s, boolean se, boolean e, boolean ne)
     {
         return
-            (n ? 1 : 0) << 7 | (nw ? 1 : 0) << 6 |
-            (w ? 1 : 0) << 5 | (sw ? 1 : 0) << 4 |
-            (s ? 1 : 0) << 3 | (se ? 1 : 0) << 2 |
-            (e ? 1 : 0) << 1 | (ne ? 1 : 0) << 0;
+            (n ? 1 : 0) << 0 | (nw ? 1 : 0) << 1 |
+            (w ? 1 : 0) << 2 | (sw ? 1 : 0) << 3 |
+            (s ? 1 : 0) << 4 | (se ? 1 : 0) << 5 |
+            (e ? 1 : 0) << 6 | (ne ? 1 : 0) << 7;
     }
 
     /**

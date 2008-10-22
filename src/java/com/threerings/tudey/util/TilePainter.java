@@ -87,23 +87,8 @@ public class TilePainter
             }
         }
 
-        // cover floor tiles randomly until filled in
-        Rectangle region = new Rectangle();
-        while (!coords.isEmpty()) {
-            coords.getLargestRegion(region);
-            TileEntry entry = original.createFloor(_cfgmgr, region.width, region.height);
-            if (entry == null) {
-                break; // no appropriate tiles
-            }
-            Coord coord = entry.getLocation();
-            coords.pickRandom(region.width, region.height, coord);
-            TileConfig.Original tconfig = entry.getConfig(_cfgmgr);
-            int twidth = entry.getWidth(tconfig);
-            int theight = entry.getHeight(tconfig);
-            entry.elevation = elevation;
-            addEntry(entry, region.set(coord.x, coord.y, twidth, theight));
-            coords.removeAll(region);
-        }
+        // paint the floor
+        paintFloor(coords, ground, elevation);
 
         // find the border tiles that need to be updated
         updateGroundEdges(border, original, elevation, revise);
@@ -136,7 +121,108 @@ public class TilePainter
             return;
         }
 
+        // add the border
+        CoordSet ocoords = new CoordSet(coords);
+        coords.addAll(coords.getBorder());
 
+        // initialize the set of will-be-wall coordinates
+        CoordSet wcoords = new CoordSet();
+        if (erase) {
+            // paint over any non-wall tiles
+            for (Iterator<Coord> it = ocoords.iterator(); it.hasNext(); ) {
+                Coord coord = it.next();
+                if (!original.isWall(_scene.getTileEntry(coord.x, coord.y), elevation)) {
+                    it.remove();
+                }
+            }
+            paintFloor(ocoords, original.ground, elevation);
+        } else {
+            wcoords.addAll(ocoords);
+        }
+
+        // divide the coordinates up by case/rotation pairs
+        HashMap<IntTuple, CoordSet> sets = new HashMap<IntTuple, CoordSet>();
+        for (Coord coord : coords) {
+            TileEntry entry = _scene.getTileEntry(coord.x, coord.y);
+            if (!(wcoords.contains(coord) || original.isWall(entry, elevation))) {
+                continue; // only modify wall tiles
+            }
+            // classify the tile based on its surroundings
+            int pattern = 0;
+            for (Direction dir : Direction.CARDINAL_VALUES) {
+                int x = coord.x + dir.getX(), y = coord.y + dir.getY();
+                if (wcoords.contains(x, y) ||
+                        original.isWall(_scene.getTileEntry(x, y), elevation)) {
+                    pattern |= (1 << dir.ordinal());
+                }
+            }
+            IntTuple tuple = original.getWallCaseRotations(pattern);
+            if (tuple != null && (revise || !original.isWall(entry, tuple, elevation))) {
+                CoordSet set = sets.get(tuple);
+                if (set == null) {
+                    sets.put(tuple, set = new CoordSet());
+                }
+                set.add(coord);
+            }
+        }
+
+        // add wall tiles as appropriate
+        Rectangle region = new Rectangle();
+    OUTER:
+        for (Map.Entry<IntTuple, CoordSet> entry : sets.entrySet()) {
+            IntTuple tuple = entry.getKey();
+            CoordSet set = entry.getValue();
+            while (!set.isEmpty()) {
+                set.getLargestRegion(region);
+                TileEntry tentry = original.createWall(
+                    _cfgmgr, tuple, region.width, region.height);
+                if (tentry == null) {
+                    continue OUTER; // no appropriate tiles
+                }
+                Coord coord = tentry.getLocation();
+                set.pickRandom(region.width, region.height, coord);
+                TileConfig.Original tconfig = tentry.getConfig(_cfgmgr);
+                int twidth = tentry.getWidth(tconfig);
+                int theight = tentry.getHeight(tconfig);
+                tentry.elevation = elevation;
+                addEntry(tentry, region.set(coord.x, coord.y, twidth, theight));
+                set.removeAll(region);
+            }
+        }
+    }
+
+    /**
+     * Paints floor tiles in the specified region.
+     */
+    protected void paintFloor (
+        CoordSet coords, ConfigReference<GroundConfig> ground, int elevation)
+    {
+        GroundConfig config = _cfgmgr.getConfig(GroundConfig.class, ground);
+        GroundConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
+
+        // if no config, just erase the coordinates
+        if (original == null) {
+            removeEntries(coords);
+            return;
+        }
+
+        // cover floor tiles randomly until filled in
+        Rectangle region = new Rectangle();
+        while (!coords.isEmpty()) {
+            coords.getLargestRegion(region);
+            TileEntry entry = original.createFloor(_cfgmgr, region.width, region.height);
+            if (entry == null) {
+                break; // no appropriate tiles
+            }
+            Coord coord = entry.getLocation();
+            coords.pickRandom(region.width, region.height, coord);
+            TileConfig.Original tconfig = entry.getConfig(_cfgmgr);
+            int twidth = entry.getWidth(tconfig);
+            int theight = entry.getHeight(tconfig);
+            entry.elevation = elevation;
+            addEntry(entry, region.set(coord.x, coord.y, twidth, theight));
+            coords.removeAll(region);
+        }
     }
 
     /**
@@ -153,15 +239,13 @@ public class TilePainter
                 continue; // if it's already floor, leave it alone
             }
             // classify the tile based on its surroundings
-            int pattern = PaintableConfig.createPattern(
-                original.isFloor(_scene.getTileEntry(coord.x, coord.y + 1), elevation),
-                original.isFloor(_scene.getTileEntry(coord.x - 1, coord.y + 1), elevation),
-                original.isFloor(_scene.getTileEntry(coord.x - 1, coord.y), elevation),
-                original.isFloor(_scene.getTileEntry(coord.x - 1, coord.y - 1), elevation),
-                original.isFloor(_scene.getTileEntry(coord.x, coord.y - 1), elevation),
-                original.isFloor(_scene.getTileEntry(coord.x + 1, coord.y - 1), elevation),
-                original.isFloor(_scene.getTileEntry(coord.x + 1, coord.y), elevation),
-                original.isFloor(_scene.getTileEntry(coord.x + 1, coord.y + 1), elevation));
+            int pattern = 0;
+            for (Direction dir : Direction.values()) {
+                int x = coord.x + dir.getX(), y = coord.y + dir.getY();
+                if (original.isFloor(_scene.getTileEntry(x, y), elevation)) {
+                    pattern |= (1 << dir.ordinal());
+                }
+            }
             IntTuple tuple = original.getEdgeCaseRotations(pattern);
             if (tuple != null && (revise || !original.isEdge(entry, tuple, elevation))) {
                 CoordSet set = sets.get(tuple);
