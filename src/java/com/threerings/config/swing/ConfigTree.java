@@ -276,8 +276,6 @@ public class ConfigTree extends JTree
             }
             public boolean importData (JComponent comp, Transferable t) {
                 boolean local = t.isDataFlavorSupported(LOCAL_NODE_TRANSFER_FLAVOR);
-                DataFlavor flavor = local ?
-                    LOCAL_NODE_TRANSFER_FLAVOR : ToolUtil.SERIALIZED_WRAPPED_FLAVOR;
                 Object data;
                 try {
                     data = t.getTransferData(local ?

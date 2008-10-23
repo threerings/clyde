@@ -204,6 +204,29 @@ public class ToolUtil
     }
 
     /**
+     * Returns the wrapped transfer data from the supplied transferable, or <code>null</code> if
+     * the wrapped flavors are not supported (or an exception occurs).
+     */
+    public static Object getWrappedTransferData (Transferable t)
+    {
+        try {
+            Object data;
+            if (t.isDataFlavorSupported(LOCAL_WRAPPED_FLAVOR)) {
+                data = t.getTransferData(LOCAL_WRAPPED_FLAVOR);
+            } else if (t.isDataFlavorSupported(SERIALIZED_WRAPPED_FLAVOR)) {
+                data = t.getTransferData(SERIALIZED_WRAPPED_FLAVOR);
+            } else {
+                return null;
+            }
+            return ((SerializableWrapper)data).getObject();
+
+        } catch (Exception e) { // UnsupportedFlavorException, IOException
+            log.warning("Error retrieving transfer data.", "transferable", t, e);
+            return null;
+        }
+    }
+
+    /**
      * Unless directed otherwise by a system property, redirects console output to the named log
      * file.
      */

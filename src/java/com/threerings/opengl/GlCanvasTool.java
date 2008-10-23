@@ -127,7 +127,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         if (_showGrid == null || _showGrid.isSelected()) {
             _grid.enqueue();
         }
-        if (_showBounds.isSelected()) {
+        if (_bounds != null && _showBounds.isSelected()) {
             _bounds.enqueue();
         }
         if (_showCompass.isSelected()) {
@@ -154,7 +154,10 @@ public abstract class GlCanvasTool extends GlCanvasApp
     /**
      * Creates the debug bounds object.
      */
-    protected abstract DebugBounds createBounds ();
+    protected DebugBounds createBounds ()
+    {
+        return null;
+    }
 
     /**
      * Creates a menu with the specified name and mnemonic.

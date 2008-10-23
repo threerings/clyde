@@ -6,6 +6,9 @@ package com.threerings.tudey.tools;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -92,7 +95,7 @@ import static com.threerings.tudey.Log.*;
  * The scene editor application.
  */
 public class SceneEditor extends GlCanvasTool
-    implements EntryManipulator, KeyObserver, MouseListener
+    implements EntryManipulator, KeyObserver, MouseListener, ClipboardOwner
 {
     /** Allows only tile sprites. */
     public static final Predicate<Sprite> TILE_SPRITE_FILTER =
@@ -193,7 +196,6 @@ public class SceneEditor extends GlCanvasTool
         menubar.add(view);
         view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_G, KeyEvent.VK_D));
         _showGrid.setSelected(true);
-        view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
         _showCompass.setSelected(true);
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
@@ -225,6 +227,17 @@ public class SceneEditor extends GlCanvasTool
             }
             public String getDescription () {
                 return _msgs.get("m.xml_files");
+            }
+        });
+
+        // and the selection chooser
+        _selectionChooser = new JFileChooser(_prefs.get("selection_dir", null));
+        _selectionChooser.setFileFilter(new FileFilter() {
+            public boolean accept (File file) {
+                return file.isDirectory() || file.toString().toLowerCase().endsWith(".dat");
+            }
+            public String getDescription () {
+                return _msgs.get("m.selection_files");
             }
         });
 
@@ -515,6 +528,12 @@ public class SceneEditor extends GlCanvasTool
         // no-op
     }
 
+    // documentation inherited from interface ClipboardOwner
+    public void lostOwnership (Clipboard clipboard, Transferable contents)
+    {
+        _paste.setEnabled(false);
+    }
+
     @Override // documentation inherited
     public ConfigManager getConfigManager ()
     {
@@ -548,6 +567,10 @@ public class SceneEditor extends GlCanvasTool
             importScene();
         } else if (action.equals("export")) {
             exportScene();
+        } else if (action.equals("import_selection")) {
+            importSelection();
+        } else if (action.equals("export_selection")) {
+            exportSelection();
         } else if (action.equals("undo")) {
             _undomgr.undo();
             updateUndoActions();
@@ -555,9 +578,16 @@ public class SceneEditor extends GlCanvasTool
             _undomgr.redo();
             updateUndoActions();
         } else if (action.equals("cut")) {
-
+            copySelection();
+            deleteSelection();
         } else if (action.equals("copy")) {
-
+            copySelection();
+        } else if (action.equals("paste")) {
+            Transferable contents = _frame.getToolkit().getSystemClipboard().getContents(this);
+            Entry[] selection = (Entry[])ToolUtil.getWrappedTransferData(contents);
+            if (selection != null) {
+                floatSelection(selection);
+            }
         } else if (action.equals("delete")) {
             deleteSelection();
         } else if (action.equals("raise")) {
@@ -609,16 +639,6 @@ public class SceneEditor extends GlCanvasTool
     protected Grid createGrid ()
     {
         return (_grid = new EditorGrid(this));
-    }
-
-    @Override // documentation inherited
-    protected DebugBounds createBounds ()
-    {
-        return new DebugBounds(this) {
-            protected void draw () {
-                // ...
-            }
-        };
     }
 
     @Override // documentation inherited
@@ -934,6 +954,49 @@ public class SceneEditor extends GlCanvasTool
     }
 
     /**
+     * Brings up the selection import dialog.
+     */
+    protected void importSelection ()
+    {
+        if (_selectionChooser.showOpenDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+            File file = _selectionChooser.getSelectedFile();
+            try {
+                BinaryImporter in = new BinaryImporter(new FileInputStream(file));
+                floatSelection((Entry[])in.readObject());
+                in.close();
+            } catch (IOException e) {
+                log.warning("Failed to import selection [file=" + file +"].", e);
+            }
+        }
+        _prefs.put("selection_dir", _selectionChooser.getCurrentDirectory().toString());
+    }
+
+    /**
+     * Sets the supplied array as the floating selection.
+     */
+    protected void floatSelection (Entry[] selection)
+    {
+    }
+
+    /**
+     * Brings up the selection export dialog.
+     */
+    protected void exportSelection ()
+    {
+        if (_selectionChooser.showSaveDialog(_frame) == JFileChooser.APPROVE_OPTION) {
+            File file = _selectionChooser.getSelectedFile();
+            try {
+                BinaryExporter out = new BinaryExporter(new FileOutputStream(file));
+                out.writeObject(getSelectedEntries().toArray(new Entry[0]));
+                out.close();
+            } catch (IOException e) {
+                log.warning("Failed to export selection [file=" + file + "].", e);
+            }
+        }
+        _prefs.put("selection_dir", _selectionChooser.getCurrentDirectory().toString());
+    }
+
+    /**
      * Sets the file and updates the revert item and title bar.
      */
     protected void setFile (File file)
@@ -991,6 +1054,21 @@ public class SceneEditor extends GlCanvasTool
     }
 
     /**
+     * Copies the selected entries to the clipboard.
+     */
+    protected void copySelection ()
+    {
+        // create a cloned array
+        Entry[] selected = getSelectedEntries().toArray(new Entry[0]);
+        for (int ii = 0; ii < selected.length; ii++) {
+            selected[ii] = (Entry)selected[ii].clone();
+        }
+        Clipboard clipboard = _frame.getToolkit().getSystemClipboard();
+        clipboard.setContents(new ToolUtil.WrappedTransfer(selected), this);
+        _paste.setEnabled(true);
+    }
+
+    /**
      * Returns a new list containing the selected entries.
      */
     protected ArrayList<Entry> getSelectedEntries ()
@@ -1035,6 +1113,9 @@ public class SceneEditor extends GlCanvasTool
 
     /** The file chooser for importing and exporting scene files. */
     protected JFileChooser _exportChooser;
+
+    /** The file chooser for importing and exporting selections. */
+    protected JFileChooser _selectionChooser;
 
     /** The tool bar. */
     protected JToolBar _toolbar;
