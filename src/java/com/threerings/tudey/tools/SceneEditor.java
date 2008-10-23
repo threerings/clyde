@@ -40,7 +40,11 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.undo.UndoManager;
+import javax.swing.undo.UndoableEditSupport;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.HGroupLayout;
@@ -79,6 +83,7 @@ import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.EntryManipulator;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
@@ -87,7 +92,7 @@ import static com.threerings.tudey.Log.*;
  * The scene editor application.
  */
 public class SceneEditor extends GlCanvasTool
-    implements KeyObserver, MouseListener
+    implements EntryManipulator, KeyObserver, MouseListener
 {
     /** Allows only tile sprites. */
     public static final Predicate<Sprite> TILE_SPRITE_FILTER =
@@ -120,6 +125,15 @@ public class SceneEditor extends GlCanvasTool
 
         // set the title
         updateTitle();
+
+        // create the undo apparatus
+        _undoSupport = new UndoableEditSupport();
+        _undoSupport.addUndoableEditListener(_undomgr = new UndoManager());
+        _undoSupport.addUndoableEditListener(new UndoableEditListener() {
+            public void undoableEditHappened (UndoableEditEvent event) {
+                updateUndoActions();
+            }
+        });
 
         // populate the menu bar
         JMenuBar menubar = new JMenuBar();
@@ -396,8 +410,38 @@ public class SceneEditor extends GlCanvasTool
         Sprite sprite = _view.getIntersection(_pick, _pt, filter);
         if (sprite instanceof EntrySprite) {
             Entry entry = ((EntrySprite)sprite).getEntry();
-            _scene.removeEntry(entry.getKey());
+            removeEntry(entry.getKey());
         }
+    }
+
+    /**
+     * Increments the edit id, ensuring that any further edits will not be merged with previous
+     * ones.
+     */
+    public void incrementEditId ()
+    {
+        _editId++;
+    }
+
+    // documentation inherited from interface EntryManipulator
+    public void addEntry (Entry entry)
+    {
+        _undoSupport.postEdit(
+            new EntryEdit(_scene, _editId, new Entry[] { entry }, new Entry[0], new Object[0]));
+    }
+
+    // documentation inherited from interface EntryManipulator
+    public void updateEntry (Entry entry)
+    {
+        _undoSupport.postEdit(
+            new EntryEdit(_scene, _editId, new Entry[0], new Entry[] { entry }, new Object[0]));
+    }
+
+    // documentation inherited from interface EntryManipulator
+    public void removeEntry (Object key)
+    {
+        _undoSupport.postEdit(
+            new EntryEdit(_scene, _editId, new Entry[0], new Entry[0], new Object[] { key }));
     }
 
     // documentation inherited from interface KeyObserver
@@ -439,6 +483,7 @@ public class SceneEditor extends GlCanvasTool
                 _thirdButtonDown = true;
                 break;
         }
+        incrementEditId();
     }
 
     // documentation inherited from interface MouseListener
@@ -455,6 +500,7 @@ public class SceneEditor extends GlCanvasTool
                 _thirdButtonDown = false;
                 break;
         }
+        incrementEditId();
     }
 
     // documentation inherited from interface MouseListener
@@ -502,6 +548,12 @@ public class SceneEditor extends GlCanvasTool
             importScene();
         } else if (action.equals("export")) {
             exportScene();
+        } else if (action.equals("undo")) {
+            _undomgr.undo();
+            updateUndoActions();
+        } else if (action.equals("redo")) {
+            _undomgr.redo();
+            updateUndoActions();
         } else if (action.equals("cut")) {
 
         } else if (action.equals("copy")) {
@@ -848,6 +900,19 @@ public class SceneEditor extends GlCanvasTool
         for (EditorTool tool : _tools.values()) {
             tool.sceneChanged(scene);
         }
+
+        // clear the undo manager
+        _undomgr.discardAllEdits();
+        updateUndoActions();
+    }
+
+    /**
+     * Updates the enabled states of the undo and redo actions.
+     */
+    protected void updateUndoActions ()
+    {
+        _undo.setEnabled(_undomgr.canUndo());
+        _redo.setEnabled(_undomgr.canRedo());
     }
 
     /**
@@ -895,8 +960,13 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void deleteSelection ()
     {
-        for (Entry entry : getSelectedEntries()) {
-            _scene.removeEntry(entry.getKey());
+        _undoSupport.beginUpdate();
+        try {
+            for (Entry entry : getSelectedEntries()) {
+                removeEntry(entry.getKey());
+            }
+        } finally {
+            _undoSupport.endUpdate();
         }
         setSelection(null);
     }
@@ -906,12 +976,17 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void raiseSelection (int amount)
     {
-        for (Entry entry : getSelectedEntries()) {
-            Entry centry = (Entry)entry.clone();
-            centry.raise(amount);
-            if (!centry.equals(entry)) {
-                _scene.updateEntry(centry);
+        _undoSupport.beginUpdate();
+        try {
+            for (Entry entry : getSelectedEntries()) {
+                Entry centry = (Entry)entry.clone();
+                centry.raise(amount);
+                if (!centry.equals(entry)) {
+                    updateEntry(centry);
+                }
             }
+        } finally {
+            _undoSupport.endUpdate();
         }
     }
 
@@ -927,6 +1002,15 @@ public class SceneEditor extends GlCanvasTool
 
     /** The file to attempt to load on initialization, if any. */
     protected File _initScene;
+
+    /** The undo manager. */
+    protected UndoManager _undomgr;
+
+    /** The undoable edit support object. */
+    protected UndoableEditSupport _undoSupport;
+
+    /** The current edit id. */
+    protected int _editId;
 
     /** The revert menu item. */
     protected JMenuItem _revert;

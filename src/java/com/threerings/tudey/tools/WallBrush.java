@@ -109,7 +109,7 @@ public class WallBrush extends ConfigTool<WallConfig>
      */
     protected void paintWall (boolean erase, boolean revise)
     {
-        TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene);
+        TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene, _editor);
         Rectangle region = _inner.getRegion();
         painter.paintWall(
             new CoordSet(region), _eref.getReference(),

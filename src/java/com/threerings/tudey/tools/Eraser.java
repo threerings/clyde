@@ -107,7 +107,7 @@ public class Eraser extends EditorTool
             _shape = _options.shape.getShape().transform(_transform, _shape);
             _scene.getEntries(_shape, _entries);
             for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-                _scene.removeEntry(_entries.get(ii).getKey());
+                _editor.removeEntry(_entries.get(ii).getKey());
             }
             _entries.clear();
         }

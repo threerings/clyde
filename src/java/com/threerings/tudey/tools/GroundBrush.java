@@ -109,7 +109,7 @@ public class GroundBrush extends ConfigTool<GroundConfig>
      */
     protected void paintGround (boolean erase, boolean revise)
     {
-        TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene);
+        TilePainter painter = new TilePainter(_editor.getConfigManager(), _scene, _editor);
         Rectangle region = _inner.getRegion();
         painter.paintGround(
             new CoordSet(region), _eref.getReference(),

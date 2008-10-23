@@ -43,7 +43,7 @@ public class Arrow extends EditorTool
         Object object = _epanel.getObject();
         if (object instanceof Entry) {
             Entry entry = (Entry)object;
-            _scene.updateEntry((Entry)entry.clone());
+            _editor.updateEntry((Entry)entry.clone());
         }
     }
 

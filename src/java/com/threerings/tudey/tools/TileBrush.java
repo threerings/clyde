@@ -124,11 +124,11 @@ public class TileBrush extends ConfigTool<TileConfig>
         ArrayList<TileEntry> underneath = new ArrayList<TileEntry>();
         _scene.getTileEntries(region, underneath);
         for (TileEntry entry : underneath) {
-            _scene.removeEntry(entry.getKey());
+            _editor.removeEntry(entry.getKey());
         }
         // add the tile if we're not erasing
         if (!erase) {
-            _scene.addEntry((TileEntry)_entry.clone());
+            _editor.addEntry((TileEntry)_entry.clone());
         }
         _lastPlacement.set(_entry.getLocation());
     }

@@ -20,6 +20,7 @@ import com.threerings.tudey.config.PaintableConfig;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.config.WallConfig;
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 
 /**
@@ -30,10 +31,11 @@ public class TilePainter
     /**
      * Creates a new tile painter.
      */
-    public TilePainter (ConfigManager cfgmgr, TudeySceneModel scene)
+    public TilePainter (ConfigManager cfgmgr, TudeySceneModel scene, EntryManipulator manipulator)
     {
         _cfgmgr = cfgmgr;
         _scene = scene;
+        _manipulator = manipulator;
     }
 
     /**
@@ -287,7 +289,7 @@ public class TilePainter
     protected void addEntry (TileEntry entry, Rectangle region)
     {
         removeEntries(region);
-        _scene.addEntry(entry);
+        _manipulator.addEntry(entry);
     }
 
     /**
@@ -298,7 +300,7 @@ public class TilePainter
         ArrayList<TileEntry> results = new ArrayList<TileEntry>();
         _scene.getTileEntries(region, results);
         for (int ii = 0, nn = results.size(); ii < nn; ii++) {
-            _scene.removeEntry(results.get(ii).getKey());
+            _manipulator.removeEntry(results.get(ii).getKey());
         }
     }
 
@@ -310,7 +312,7 @@ public class TilePainter
         for (Coord coord : coords) {
             TileEntry entry = _scene.getTileEntry(coord.x, coord.y);
             if (entry != null) {
-                _scene.removeEntry(entry.getKey());
+                _manipulator.removeEntry(entry.getKey());
             }
         }
     }
@@ -320,4 +322,7 @@ public class TilePainter
 
     /** The scene into which we paint. */
     protected TudeySceneModel _scene;
+
+    /** The object used to modify the entries. */
+    protected EntryManipulator _manipulator;
 }

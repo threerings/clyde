@@ -106,7 +106,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
                 for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
                     Entry entry = _entries.get(ii);
                     if (entry instanceof PlaceableEntry) {
-                        _scene.removeEntry(entry.getKey());
+                        _editor.removeEntry(entry.getKey());
                     }
                 }
                 _entries.clear();
@@ -122,7 +122,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
      */
     protected void placeEntry ()
     {
-        _scene.addEntry((PlaceableEntry)_entry.clone());
+        _editor.addEntry((PlaceableEntry)_entry.clone());
         _lastPlacement.set(_entry.transform.getTranslation());
     }
 

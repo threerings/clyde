@@ -63,19 +63,19 @@ public class GlobalEditor extends EditorTool
             GlobalEntry oglobal = entry.getValue();
             GlobalEntry nglobal = editable.getGlobal(id);
             if (nglobal == null) { // removed
-                _scene.removeEntry(id);
+                _editor.removeEntry(id);
                 it.remove();
 
             } else if (!nglobal.equals(oglobal)) { // modified
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
-                _scene.updateEntry(cglobal);
+                _editor.updateEntry(cglobal);
                 entry.setValue(cglobal);
             }
         }
         for (GlobalEntry nglobal : editable.globals) {
             if (nglobal.getId() == 0) { // added
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
-                _scene.addEntry(cglobal);
+                _editor.addEntry(cglobal);
                 int id = cglobal.getId();
                 _globals.put(id, cglobal);
                 nglobal.setId(id);
