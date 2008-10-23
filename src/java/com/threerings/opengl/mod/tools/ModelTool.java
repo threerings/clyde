@@ -12,10 +12,12 @@ import javax.swing.JCheckBoxMenuItem;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.GlCanvasTool;
+import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.SimpleScene;
@@ -69,6 +71,10 @@ public abstract class ModelTool extends GlCanvasTool
     protected void didInit ()
     {
         super.didInit();
+
+        // adjust the limits on the camera handler
+        ((OrbitCameraHandler)_camhand).setCoordLimits(
+            -FloatMath.HALF_PI, +FloatMath.HALF_PI, 2f, 50f);
 
         // set up the scene
         _scene = new SimpleScene(this);
