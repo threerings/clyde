@@ -119,9 +119,9 @@ public class EntryEdit extends AbstractUndoableEdit
      */
     protected void swap (HashMap<Object, Entry> removed, HashMap<Object, Entry> added)
     {
-        // add back the entries we removed
+        // add back the entries we removed (retaining their ids)
         for (Map.Entry<Object, Entry> entry : removed.entrySet()) {
-            _scene.addEntry(entry.getValue());
+            _scene.addEntry(entry.getValue(), false);
             entry.setValue(null);
         }
 

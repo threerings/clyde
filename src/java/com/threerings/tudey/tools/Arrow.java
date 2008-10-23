@@ -40,10 +40,13 @@ public class Arrow extends EditorTool
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
-        Object object = _epanel.getObject();
-        if (object instanceof Entry) {
-            Entry entry = (Entry)object;
+        _editor.incrementEditId();
+        _ignoreUpdate = true;
+        try {
+            Entry entry = (Entry)_epanel.getObject();
             _editor.updateEntry((Entry)entry.clone());
+        } finally {
+            _ignoreUpdate = false;
         }
     }
 
@@ -55,10 +58,22 @@ public class Arrow extends EditorTool
     }
 
     @Override // documentation inherited
+    public void entryUpdated (Entry oentry, Entry nentry)
+    {
+        if (_ignoreUpdate) {
+            return;
+        }
+        Entry entry = (Entry)_epanel.getObject();
+        if (entry != null && entry.getKey().equals(oentry.getKey())) {
+            _epanel.setObject(nentry.clone());
+        }
+    }
+
+    @Override // documentation inherited
     public void entryRemoved (Entry oentry)
     {
-        Object object = _epanel.getObject();
-        if (object instanceof Entry && ((Entry)object).getKey().equals(oentry.getKey())) {
+        Entry entry = (Entry)_epanel.getObject();
+        if (entry != null && entry.getKey().equals(oentry.getKey())) {
             _epanel.setObject(null);
         }
     }
@@ -81,4 +96,7 @@ public class Arrow extends EditorTool
 
     /** The editor panel that we use to edit things. */
     protected EditorPanel _epanel;
+
+    /** Notes that we should ignore an update because we're the one effecting it. */
+    protected boolean _ignoreUpdate;
 }

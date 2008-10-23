@@ -9,6 +9,7 @@ import java.util.Iterator;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap.IntEntry;
 import com.samskivert.util.QuickSort;
@@ -22,6 +23,8 @@ import com.threerings.util.DeepObject;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * The global editor tool.
@@ -54,6 +57,8 @@ public class GlobalEditor extends EditorTool
     // documentation inherited from interface ChangeListener
     public void stateChanged (ChangeEvent event)
     {
+        _editor.incrementEditId();
+
         // compare the current state to the stored state
         EditableGlobals editable = (EditableGlobals)_epanel.getObject();
         for (Iterator<IntEntry<GlobalEntry>> it = _globals.intEntrySet().iterator();
@@ -63,19 +68,34 @@ public class GlobalEditor extends EditorTool
             GlobalEntry oglobal = entry.getValue();
             GlobalEntry nglobal = editable.getGlobal(id);
             if (nglobal == null) { // removed
-                _editor.removeEntry(id);
+                _ignoreRemove = true;
+                try {
+                    _editor.removeEntry(id);
+                } finally {
+                    _ignoreRemove = false;
+                }
                 it.remove();
 
             } else if (!nglobal.equals(oglobal)) { // modified
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
-                _editor.updateEntry(cglobal);
+                _ignoreUpdate = true;
+                try {
+                    _editor.updateEntry(cglobal);
+                } finally {
+                    _ignoreUpdate = false;
+                }
                 entry.setValue(cglobal);
             }
         }
         for (GlobalEntry nglobal : editable.globals) {
             if (nglobal.getId() == 0) { // added
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
-                _editor.addEntry(cglobal);
+                _ignoreAdd = true;
+                try {
+                    _editor.addEntry(cglobal);
+                } finally {
+                    _ignoreAdd = false;
+                }
                 int id = cglobal.getId();
                 _globals.put(id, cglobal);
                 nglobal.setId(id);
@@ -108,6 +128,58 @@ public class GlobalEditor extends EditorTool
         editable.globals = _globals.values().toArray(new GlobalEntry[_globals.size()]);
         QuickSort.sort(editable.globals);
         _epanel.setObject((EditableGlobals)editable.clone());
+    }
+
+    @Override // documentation inherited
+    public void entryAdded (Entry entry)
+    {
+        if (_ignoreAdd || !(entry instanceof GlobalEntry)) {
+            return;
+        }
+        GlobalEntry gentry = (GlobalEntry)entry;
+        int id = gentry.getId();
+        _globals.put(id, gentry);
+        EditableGlobals editable = (EditableGlobals)_epanel.getObject();
+        editable.globals = ArrayUtil.append(editable.globals, (GlobalEntry)entry.clone());
+        QuickSort.sort(editable.globals);
+        _epanel.update();
+    }
+
+    @Override // documentation inherited
+    public void entryUpdated (Entry oentry, Entry nentry)
+    {
+        if (_ignoreUpdate || !(oentry instanceof GlobalEntry)) {
+            return;
+        }
+        GlobalEntry entry = (GlobalEntry)nentry;
+        int id = entry.getId();
+        _globals.put(id, entry);
+        EditableGlobals editable = (EditableGlobals)_epanel.getObject();
+        int idx = editable.getIndex(id);
+        if (idx == -1) {
+            log.warning("Missing global entry to update.", "editable", editable, "entry", entry);
+        } else {
+            entry.copy(editable.globals[idx]);
+        }
+        _epanel.update();
+    }
+
+    @Override // documentation inherited
+    public void entryRemoved (Entry oentry)
+    {
+        if (_ignoreRemove || !(oentry instanceof GlobalEntry)) {
+            return;
+        }
+        int id = ((GlobalEntry)oentry).getId();
+        _globals.remove(id);
+        EditableGlobals editable = (EditableGlobals)_epanel.getObject();
+        int idx = editable.getIndex(id);
+        if (idx == -1) {
+            log.warning("Missing global entry to remove.", "editable", editable, "id", id);
+        } else {
+            editable.globals = ArrayUtil.splice(editable.globals, idx, 1);
+        }
+        _epanel.update();
     }
 
     /**
@@ -150,4 +222,7 @@ public class GlobalEditor extends EditorTool
 
     /** The current set of globals. */
     protected HashIntMap<GlobalEntry> _globals = new HashIntMap<GlobalEntry>();
+
+    /** Notes that we should ignore an add/update/remove because we're the one effecting it. */
+    protected boolean _ignoreAdd, _ignoreUpdate, _ignoreRemove;
 }

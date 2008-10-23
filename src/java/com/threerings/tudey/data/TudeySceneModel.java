@@ -564,15 +564,29 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
-     * Adds an entry to the scene, possibly assigning it a unique id in the process.
+     * Adds an entry to the scene, assigning it a unique id in the process if it is an
+     * {@link IdEntry}.
      *
+     * @return true if the entry was successfully added, false if there was already
+     * an entry with the same key (in which case a warning will be logged).
+     */
+    public boolean addEntry (Entry entry)
+    {
+        return addEntry(entry, true);
+    }
+
+    /**
+     * Adds an entry to the scene.
+     *
+     * @param assignId if true and the entry is an {@link IdEntry}, assign a unique id to
+     * the entry.
      * @return true if the entry was successfully added, false if there was already
      * an entry with the same id (in which case a warning will be logged).
      */
-    public boolean addEntry (final Entry entry)
+    public boolean addEntry (final Entry entry, boolean assignId)
     {
         // assign id if appropriate
-        if (entry instanceof IdEntry) {
+        if (assignId && entry instanceof IdEntry) {
             ((IdEntry)entry).setId(++_lastEntryId);
         }
         // add to map
