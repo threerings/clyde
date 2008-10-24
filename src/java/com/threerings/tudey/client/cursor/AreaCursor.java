@@ -7,29 +7,21 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
-import com.threerings.expr.Bound;
-import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
-
-import com.threerings.opengl.compositor.RenderScheme;
-import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.client.util.GridBox;
-import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.config.AreaConfig;
+import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
-import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 
 /**
- * A cursor for tiles.
+ * Represents an area entry.
  */
-public class TileCursor extends EntryCursor
-    implements ConfigUpdateListener<TileConfig>
+public class AreaCursor extends EntryCursor
+    implements ConfigUpdateListener<AreaConfig>
 {
     /**
      * The actual cursor implementation.
@@ -46,9 +38,9 @@ public class TileCursor extends EntryCursor
         }
 
         /**
-         * Updates the cursor state.
+         * Updates the implementation to match the area state.
          */
-        public void update (TileEntry entry)
+        public void update (AreaEntry entry)
         {
             // nothing by default
         }
@@ -73,79 +65,53 @@ public class TileCursor extends EntryCursor
     }
 
     /**
-     * The original implementation.
+     * An original implementation.
      */
     public static class Original extends Implementation
     {
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, TileConfig.Original config)
+        public Original (GlContext ctx, Scope parentScope, AreaConfig.Original config)
         {
             super(parentScope);
-            _model = new Model(ctx);
-            _model.setParentScope(this);
-            _model.setRenderScheme(RenderScheme.TRANSLUCENT);
-            _model.setColorState(new ColorState());
-            _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
-
-            _footprint = new GridBox(ctx);
-            _footprint.getColor().set(Color4f.GREEN);
             setConfig(config);
         }
 
         /**
          * (Re)configures the implementation.
          */
-        public void setConfig (TileConfig.Original config)
+        public void setConfig (AreaConfig.Original config)
         {
-            _model.setConfig((_config = config).model);
+            _config = config;
         }
 
         @Override // documentation inherited
-        public void update (TileEntry entry)
+        public void update (AreaEntry entry)
         {
-            entry.getTransform(_config, _model.getLocalTransform());
-            _model.updateBounds();
-
-            entry.getRegion(_config, _footprint.getRegion());
-            _footprint.setElevation(entry.elevation);
         }
 
         @Override // documentation inherited
-        public void tick (float elapsed)
+        public void dispose ()
         {
-            _model.tick(elapsed);
+            super.dispose();
         }
 
-        @Override // documentation inherited
-        public void enqueue ()
-        {
-            _model.enqueue();
-            _footprint.enqueue();
-        }
-
-        /** The tile configuration. */
-        protected TileConfig.Original _config;
-
-        /** The model. */
-        protected Model _model;
-
-        /** The tile footprint. */
-        protected GridBox _footprint;
+        /** The area configuration. */
+        protected AreaConfig.Original _config;
     }
 
     /**
-     * Creates a new tile cursor.
+     * Creates a new area cursor.
      */
-    public TileCursor (GlContext ctx, TudeySceneView view, TileEntry entry)
+    public AreaCursor (GlContext ctx, TudeySceneView view, AreaEntry entry)
     {
         super(ctx, view);
         update(entry);
     }
 
     // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<TileConfig> event)
+    public void configUpdated (ConfigEvent<AreaConfig> event)
     {
         updateFromConfig();
         _impl.update(_entry);
@@ -160,7 +126,7 @@ public class TileCursor extends EntryCursor
     @Override // documentation inherited
     public void update (Entry entry)
     {
-        setConfig((_entry = (TileEntry)entry).tile);
+        setConfig((_entry = (AreaEntry)entry).area);
         _impl.update(_entry);
     }
 
@@ -187,17 +153,17 @@ public class TileCursor extends EntryCursor
     }
 
     /**
-     * Sets the configuration of the tile.
+     * Sets the configuration of this path.
      */
-    protected void setConfig (ConfigReference<TileConfig> ref)
+    protected void setConfig (ConfigReference<AreaConfig> ref)
     {
-        setConfig(_ctx.getConfigManager().getConfig(TileConfig.class, ref));
+        setConfig(_ctx.getConfigManager().getConfig(AreaConfig.class, ref));
     }
 
     /**
-     * Sets the configuration of the tile.
+     * Sets the configuration of this area.
      */
-    protected void setConfig (TileConfig config)
+    protected void setConfig (AreaConfig config)
     {
         if (_config == config) {
             return;
@@ -212,7 +178,7 @@ public class TileCursor extends EntryCursor
     }
 
     /**
-     * Updates this cursor to match its configuration.
+     * Updates the area to match its new or modified configuration.
      */
     protected void updateFromConfig ()
     {
@@ -225,13 +191,13 @@ public class TileCursor extends EntryCursor
         }
     }
 
-    /** The prototype entry. */
-    protected TileEntry _entry;
+    /** The scene entry. */
+    protected AreaEntry _entry;
 
-    /** The tile config. */
-    protected TileConfig _config;
+    /** The area configuration. */
+    protected AreaConfig _config;
 
-    /** The cursor implementation. */
+    /** The area implementation. */
     protected Implementation _impl = NULL_IMPLEMENTATION;
 
     /** An implementation that does nothing. */

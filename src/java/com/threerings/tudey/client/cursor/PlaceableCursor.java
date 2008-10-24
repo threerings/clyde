@@ -23,13 +23,14 @@ import com.threerings.opengl.util.Tickable;
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.util.ShapeConfigElement;
 import com.threerings.tudey.config.PlaceableConfig;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.shape.Shape;
 
 /**
  * A cursor for a placeable object.
  */
-public class PlaceableCursor extends Cursor
+public class PlaceableCursor extends EntryCursor
     implements ConfigUpdateListener<PlaceableConfig>
 {
     /**
@@ -174,19 +175,23 @@ public class PlaceableCursor extends Cursor
         return _impl.getShape();
     }
 
-    /**
-     * Updates the cursor with new entry state.
-     */
-    public void update (PlaceableEntry entry)
-    {
-        setConfig((_entry = entry).placeable);
-        _impl.update(_entry);
-    }
-
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PlaceableConfig> event)
     {
         updateFromConfig();
+        _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public Entry getEntry ()
+    {
+        return _entry;
+    }
+
+    @Override // documentation inherited
+    public void update (Entry entry)
+    {
+        setConfig((_entry = (PlaceableEntry)entry).placeable);
         _impl.update(_entry);
     }
 

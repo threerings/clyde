@@ -16,6 +16,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.tudey.client.cursor.PathCursor;
 import com.threerings.tudey.client.sprite.PathSprite;
 
 /**
@@ -39,6 +40,17 @@ public class PathConfig extends ParameterizedConfig
         }
 
         /**
+         * Creates or updates a cursor implementation for this configuration.
+         *
+         * @param scope the path's expression scope.
+         * @param impl an existing implementation to reuse, if possible.
+         * @return either a reference to the existing implementation (if reused), a new
+         * implementation, or <code>null</code> if no implementation could be created.
+         */
+        public abstract PathCursor.Implementation getCursorImplementation (
+            GlContext ctx, Scope scope, PathCursor.Implementation impl);
+
+        /**
          * Creates or updates a sprite implementation for this configuration.
          *
          * @param scope the path's expression scope.
@@ -58,6 +70,18 @@ public class PathConfig extends ParameterizedConfig
         /** The color to use when showing this path in the scene editor. */
         @Editable(mode="alpha")
         public Color4f color = new Color4f();
+
+        @Override // documentation inherited
+        public PathCursor.Implementation getCursorImplementation (
+            GlContext ctx, Scope scope, PathCursor.Implementation impl)
+        {
+            if (impl instanceof PathCursor.Original) {
+                ((PathCursor.Original)impl).setConfig(this);
+            } else {
+                impl = new PathCursor.Original(ctx, scope, this);
+            }
+            return impl;
+        }
 
         @Override // documentation inherited
         public PathSprite.Implementation getSpriteImplementation (
@@ -91,6 +115,14 @@ public class PathConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public PathCursor.Implementation getCursorImplementation (
+            GlContext ctx, Scope scope, PathCursor.Implementation impl)
+        {
+            PathConfig config = ctx.getConfigManager().getConfig(PathConfig.class, path);
+            return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
+        }
+
+        @Override // documentation inherited
         public PathSprite.Implementation getSpriteImplementation (
             GlContext ctx, Scope scope, PathSprite.Implementation impl)
         {
@@ -102,6 +134,20 @@ public class PathConfig extends ParameterizedConfig
     /** The actual path implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Creates or updates a cursor implementation for this configuration.
+     *
+     * @param scope the path's expression scope.
+     * @param impl an existing implementation to reuse, if possible.
+     * @return either a reference to the existing implementation (if reused), a new
+     * implementation, or <code>null</code> if no implementation could be created.
+     */
+    public PathCursor.Implementation getCursorImplementation (
+        GlContext ctx, Scope scope, PathCursor.Implementation impl)
+    {
+        return implementation.getCursorImplementation(ctx, scope, impl);
+    }
 
     /**
      * Creates or updates a sprite implementation for this configuration.

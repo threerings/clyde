@@ -38,6 +38,11 @@ import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.cursor.AreaCursor;
+import com.threerings.tudey.client.cursor.EntryCursor;
+import com.threerings.tudey.client.cursor.PathCursor;
+import com.threerings.tudey.client.cursor.PlaceableCursor;
+import com.threerings.tudey.client.cursor.TileCursor;
 import com.threerings.tudey.client.sprite.AreaSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.GlobalSprite;
@@ -124,6 +129,14 @@ public class TudeySceneModel extends SceneModel
          * Creates the space element for this entry (or returns <code>null</code> for none).
          */
         public SpaceElement createElement (ConfigManager cfgmgr)
+        {
+            return null;
+        }
+
+        /**
+         * Creates a cursor for this entry (or returns <code>null</code> for none).
+         */
+        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
         {
             return null;
         }
@@ -257,6 +270,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        {
+            return new TileCursor(ctx, view, this);
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
         {
             return new TileSprite(ctx, view, this);
@@ -382,6 +401,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        {
+            return new PlaceableCursor(ctx, view, this);
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
         {
             return new PlaceableSprite(ctx, view, this);
@@ -430,6 +455,12 @@ public class TudeySceneModel extends SceneModel
             return (vertices.length == 0) ? null :
                 new ShapeElement(vertices.length == 1 ?
                     new Point(vertices[0].createVector()) : createShape(0, vertices.length - 1));
+        }
+
+        @Override // documentation inherited
+        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        {
+            return new PathCursor(ctx, view, this);
         }
 
         @Override // documentation inherited
@@ -507,6 +538,12 @@ public class TudeySceneModel extends SceneModel
                 shape = new Polygon(vectors);
             }
             return new ShapeElement(shape);
+        }
+
+        @Override // documentation inherited
+        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        {
+            return new AreaCursor(ctx, view, this);
         }
 
         @Override // documentation inherited
