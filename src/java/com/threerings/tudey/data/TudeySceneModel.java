@@ -28,6 +28,7 @@ import com.threerings.export.Importer;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Rect;
+import com.threerings.math.Transform2D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
@@ -116,6 +117,22 @@ public class TudeySceneModel extends SceneModel
          * Returns a reference to this entry's config reference.
          */
         public abstract ConfigReference getReference ();
+
+        /**
+         * Returns the elevation of the entry, or {@link Integer#MIN_VALUE} for none.
+         */
+        public int getElevation ()
+        {
+            return Integer.MIN_VALUE;
+        }
+
+        /**
+         * Finds the bounds of the entry.
+         */
+        public void getBounds (ConfigManager cfgmgr, Rect result)
+        {
+            result.setToEmpty();
+        }
 
         /**
          * Transforms the entry.
@@ -244,6 +261,21 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return tile;
+        }
+
+        @Override // documentation inherited
+        public int getElevation ()
+        {
+            return elevation;
+        }
+
+        @Override // documentation inherited
+        public void getBounds (ConfigManager cfgmgr, Rect result)
+        {
+            TileConfig.Original config = getConfig(cfgmgr);
+            result.getMinimumExtent().set(_location.x, _location.y);
+            result.getMaximumExtent().set(
+                _location.x + getWidth(config), _location.y + getHeight(config));
         }
 
         @Override // documentation inherited
@@ -381,6 +413,20 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public int getElevation ()
+        {
+            transform.update(Transform3D.RIGID);
+            return TudeySceneMetrics.getTileElevation(transform.getTranslation().z);
+        }
+
+        @Override // documentation inherited
+        public void getBounds (ConfigManager cfgmgr, Rect result)
+        {
+            Shape shape = getConfig(cfgmgr).shape.getShape().transform(new Transform2D(transform));
+            result.set(shape.getBounds());
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             xform.compose(transform, transform);
@@ -389,11 +435,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
-            PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
-            PlaceableConfig.Original original = (config == null) ?
-                null : config.getOriginal(cfgmgr);
-            original = (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
-            ShapeElement element = new ShapeElement(original.shape);
+            ShapeElement element = new ShapeElement(getConfig(cfgmgr).shape);
             element.getTransform().set(transform);
             element.updateBounds();
             element.setUserObject(this);
@@ -410,6 +452,17 @@ public class TudeySceneModel extends SceneModel
         public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
         {
             return new PlaceableSprite(ctx, view, this);
+        }
+
+        /**
+         * Returns the placeable config implementation.
+         */
+        protected PlaceableConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
+            PlaceableConfig.Original original = (config == null) ?
+                null : config.getOriginal(cfgmgr);
+            return (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
         }
     }
 
@@ -438,6 +491,15 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return path;
+        }
+
+        @Override // documentation inherited
+        public void getBounds (ConfigManager cfgmgr, Rect result)
+        {
+            result.setToEmpty();
+            for (Vertex vertex : vertices) {
+                result.addLocal(vertex.createVector());
+            }
         }
 
         @Override // documentation inherited
@@ -507,6 +569,15 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return area;
+        }
+
+        @Override // documentation inherited
+        public void getBounds (ConfigManager cfgmgr, Rect result)
+        {
+            result.setToEmpty();
+            for (Vertex vertex : vertices) {
+                result.addLocal(vertex.createVector());
+            }
         }
 
         @Override // documentation inherited

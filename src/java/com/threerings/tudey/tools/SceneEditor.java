@@ -275,7 +275,7 @@ public class SceneEditor extends GlCanvasTool
         outer.add(tpanel);
         addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
         addTool(tpanel, tgroup, "selector", new Selector(this));
-        addTool(tpanel, tgroup, "mover", new Mover(this));
+        addTool(tpanel, tgroup, "mover", _mover = new Mover(this));
         addTool(tpanel, tgroup, "placer", new Placer(this));
         addTool(tpanel, tgroup, "path_definer", new PathDefiner(this));
         addTool(tpanel, tgroup, "area_definer", new AreaDefiner(this));
@@ -1011,6 +1011,8 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void floatSelection (Entry[] selection)
     {
+        setActiveTool(_mover);
+        _mover.move(selection);
     }
 
     /**
@@ -1216,11 +1218,14 @@ public class SceneEditor extends GlCanvasTool
     /** Tools mapped by name. */
     protected HashMap<String, EditorTool> _tools = new HashMap<String, EditorTool>();
 
-    /** The global editor tool. */
-    protected GlobalEditor _globalEditor;
-
     /** The arrow tool. */
     protected Arrow _arrow;
+
+    /** The mover tool. */
+    protected Mover _mover;
+
+    /** The global editor tool. */
+    protected GlobalEditor _globalEditor;
 
     /** The active tool. */
     protected EditorTool _activeTool;

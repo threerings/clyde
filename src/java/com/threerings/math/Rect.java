@@ -61,6 +61,24 @@ public final class Rect
     }
 
     /**
+     * Returns the center of the rectangle as a new vector.
+     */
+    public Vector2f getCenter ()
+    {
+        return getCenter(new Vector2f());
+    }
+
+    /**
+     * Places the location of the center of the rectangle into the given result vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector2f getCenter (Vector2f result)
+    {
+        return _minExtent.add(_maxExtent, result).multLocal(0.5f);
+    }
+
+    /**
      * Returns the length of the rectangle's longest edge.
      */
     public float getLongestEdge ()
