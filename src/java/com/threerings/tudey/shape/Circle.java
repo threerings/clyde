@@ -63,6 +63,12 @@ public class Circle extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f getCenter (Vector2f result)
+    {
+        return result.set(_center);
+    }
+
+    @Override // documentation inherited
     public Shape transform (Transform2D transform, Shape result)
     {
         Circle cresult = (result instanceof Circle) ? ((Circle)result) : new Circle();

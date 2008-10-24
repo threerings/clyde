@@ -34,6 +34,23 @@ public abstract class Shape
     public abstract void updateBounds ();
 
     /**
+     * Retrieves the center of the shape.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector2f getCenter ()
+    {
+        return getCenter(new Vector2f());
+    }
+
+    /**
+     * Retrieves the center of the shape and places it in the supplied vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public abstract Vector2f getCenter (Vector2f result);
+
+    /**
      * Transforms this shape in-place.
      *
      * @return a reference to this shape, for chaining.

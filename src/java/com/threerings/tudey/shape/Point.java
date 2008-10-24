@@ -49,6 +49,12 @@ public class Point extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f getCenter (Vector2f result)
+    {
+        return result.set(_location);
+    }
+
+    @Override // documentation inherited
     public Shape transform (Transform2D transform, Shape result)
     {
         Point presult = (result instanceof Point) ? ((Point)result) : new Point();

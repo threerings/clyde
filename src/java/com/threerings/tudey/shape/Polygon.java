@@ -85,6 +85,16 @@ public class Polygon extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f getCenter (Vector2f result)
+    {
+        result.set(0f, 0f);
+        for (Vector2f vertex : _vertices) {
+            result.addLocal(vertex);
+        }
+        return result.multLocal(1f / _vertices.length);
+    }
+
+    @Override // documentation inherited
     public Shape transform (Transform2D transform, Shape result)
     {
         Polygon presult = (result instanceof Polygon) ?

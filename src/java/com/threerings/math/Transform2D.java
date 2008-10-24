@@ -89,6 +89,14 @@ public final class Transform2D
     }
 
     /**
+     * Creates a flattened version of the supplied transform.
+     */
+    public Transform2D (Transform3D transform)
+    {
+        set(transform);
+    }
+
+    /**
      * Copy constructor.
      */
     public Transform2D (Transform2D transform)
@@ -379,6 +387,40 @@ public final class Transform2D
                 return set(transform.getMatrix(), true);
             case GENERAL:
                 return set(transform.getMatrix(), false);
+        }
+    }
+
+    /**
+     * Sets the transform to a flattened version of a 3D transform.
+     *
+     * @return a reference to this transform, for chaining.
+     */
+    public Transform2D set (Transform3D transform)
+    {
+        int type = transform.getType();
+        switch (type) {
+            default:
+            case IDENTITY:
+                return setToIdentity();
+            case RIGID:
+            case UNIFORM:
+                setType(type);
+                Vector3f translation = transform.getTranslation();
+                _translation.set(translation.x, translation.y);
+                _rotation = transform.getRotation().getRotationZ();
+                if (type == UNIFORM) {
+                    _scale = transform.getScale();
+                }
+                return this;
+            case AFFINE:
+            case GENERAL:
+                setType(type);
+                Matrix4f matrix = transform.getMatrix();
+                _matrix.set(
+                    matrix.m00, matrix.m10, matrix.m30,
+                    matrix.m01, matrix.m11, matrix.m31,
+                    matrix.m03, matrix.m13, matrix.m33);
+                return this;
         }
     }
 

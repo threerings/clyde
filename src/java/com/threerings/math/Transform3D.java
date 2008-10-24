@@ -89,6 +89,14 @@ public final class Transform3D
     }
 
     /**
+     * Creates a transform from the supplied 2D transform.
+     */
+    public Transform3D (Transform2D transform)
+    {
+        set(transform);
+    }
+
+    /**
      * Copy constructor.
      */
     public Transform3D (Transform3D transform)
@@ -374,6 +382,41 @@ public final class Transform3D
     }
 
     /**
+     * Copies the values contained in another transform.
+     *
+     * @return a reference to this transform, for chaining.
+     */
+    public Transform3D set (Transform2D transform)
+    {
+        int type = transform.getType();
+        switch (type) {
+            default:
+            case IDENTITY:
+                return setToIdentity();
+            case RIGID:
+            case UNIFORM:
+                setType(type);
+                Vector2f translation = transform.getTranslation();
+                _translation.set(translation.x, translation.y, 0f);
+                _rotation.fromAngleAxis(transform.getRotation(), Vector3f.UNIT_Z);
+                if (type == UNIFORM) {
+                    _scale = transform.getScale();
+                }
+                return this;
+            case AFFINE:
+            case GENERAL:
+                setType(type);
+                Matrix3f matrix = transform.getMatrix();
+                _matrix.set(
+                    matrix.m00, matrix.m10, 0f, matrix.m20,
+                    matrix.m01, matrix.m11, 0f, matrix.m21,
+                    0f, 0f, 1f, 0f,
+                    matrix.m02, matrix.m12, 0f, matrix.m22);
+                return this;
+        }
+    }
+
+    /**
      * Sets the transform to the identity transform.
      *
      * @return a reference to this transform, for chaining.
@@ -492,48 +535,6 @@ public final class Transform3D
                 _translation, _rotation, _scale);
         }
         return this;
-    }
-
-    /**
-     * Flattens this 3D transform into a 2D transform (removing the z component).
-     *
-     * @return a new transform containing the result.
-     */
-    public Transform2D flatten ()
-    {
-        return flatten(new Transform2D());
-    }
-
-    /**
-     * Flattens this 3D transform into a 2D transform, placing the result in the provided
-     * object.
-     *
-     * @return a reference to the result object, for chaining.
-     */
-    public Transform2D flatten (Transform2D result)
-    {
-        switch (_type) {
-            default:
-            case IDENTITY:
-                return result.setToIdentity();
-            case RIGID:
-            case UNIFORM:
-                result.setType(_type);
-                result.getTranslation().set(_translation.x, _translation.y);
-                result.setRotation(_rotation.getRotationZ());
-                if (_type == UNIFORM) {
-                    result.setScale(_scale);
-                }
-                return result;
-            case AFFINE:
-            case GENERAL:
-                result.setType(_type);
-                result.getMatrix().set(
-                    _matrix.m00, _matrix.m10, _matrix.m30,
-                    _matrix.m01, _matrix.m11, _matrix.m31,
-                    _matrix.m03, _matrix.m13, _matrix.m33);
-                return result;
-        }
     }
 
     /**

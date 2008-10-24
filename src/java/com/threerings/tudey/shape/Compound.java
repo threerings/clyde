@@ -61,6 +61,17 @@ public class Compound extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f getCenter (Vector2f result)
+    {
+        result.set(0f, 0f);
+        Vector2f pt = new Vector2f();
+        for (Shape shape : _shapes) {
+            result.addLocal(shape.getCenter(pt));
+        }
+        return result.multLocal(1f / _shapes.length);
+    }
+
+    @Override // documentation inherited
     public Shape transform (Transform2D transform, Shape result)
     {
         Compound cresult = (result instanceof Compound) ?

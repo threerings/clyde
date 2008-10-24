@@ -94,6 +94,12 @@ public class Segment extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f getCenter (Vector2f result)
+    {
+        return _start.add(_end, result).multLocal(0.5f);
+    }
+
+    @Override // documentation inherited
     public Shape transform (Transform2D transform, Shape result)
     {
         Segment sresult = (result instanceof Segment) ? ((Segment)result) : new Segment();

@@ -26,9 +26,11 @@ import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Matrix4f;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepUtil;
 
@@ -111,9 +113,9 @@ public class TudeySceneModel extends SceneModel
         public abstract ConfigReference getReference ();
 
         /**
-         * Raises or lowers the entry by the specified amount.
+         * Transforms the entry.
          */
-        public void raise (int amount)
+        public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             // nothing by default
         }
@@ -232,9 +234,26 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public void raise (int amount)
+        public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
-            elevation += amount;
+            // update the elevation
+            xform.update(Transform3D.RIGID);
+            elevation += TudeySceneMetrics.getTileElevation(xform.getTranslation().z);
+
+            // find the transformed location of the tile center
+            TileConfig.Original config = getConfig(cfgmgr);
+            Vector3f center = xform.transformPointLocal(new Vector3f(
+                _location.x + getWidth(config) * 0.5f,
+                _location.y + getHeight(config) * 0.5f, 0f));
+
+            // adjust the rotation
+            int irot = Math.round(xform.getRotation().getRotationZ() / FloatMath.HALF_PI);
+            rotation = (rotation + irot) & 0x03;
+
+            // update the location
+            _location.set(
+                Math.round(center.x - getWidth(config) * 0.5f),
+                Math.round(center.y - getHeight(config) * 0.5f));
         }
 
         @Override // documentation inherited
@@ -343,10 +362,9 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public void raise (int amount)
+        public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
-            transform.setType(Transform3D.UNIFORM);
-            transform.getTranslation().z += TudeySceneMetrics.getTileZ(amount);
+            xform.compose(transform, transform);
         }
 
         @Override // documentation inherited
@@ -357,7 +375,7 @@ public class TudeySceneModel extends SceneModel
                 null : config.getOriginal(cfgmgr);
             original = (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
             ShapeElement element = new ShapeElement(original.shape);
-            transform.flatten(element.getTransform());
+            element.getTransform().set(transform);
             element.updateBounds();
             element.setUserObject(this);
             return element;
@@ -395,6 +413,15 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return path;
+        }
+
+        @Override // documentation inherited
+        public void transform (ConfigManager cfgmgr, Transform3D xform)
+        {
+            Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
+            for (Vertex vertex : vertices) {
+                vertex.transform(matrix);
+            }
         }
 
         @Override // documentation inherited
@@ -449,6 +476,15 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return area;
+        }
+
+        @Override // documentation inherited
+        public void transform (ConfigManager cfgmgr, Transform3D xform)
+        {
+            Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
+            for (Vertex vertex : vertices) {
+                vertex.transform(matrix);
+            }
         }
 
         @Override // documentation inherited
@@ -517,6 +553,16 @@ public class TudeySceneModel extends SceneModel
         public Vector2f createVector ()
         {
             return new Vector2f(x, y);
+        }
+
+        /**
+         * Transforms this vertex in-place by the supplied matrix.
+         */
+        public void transform (Matrix4f matrix)
+        {
+            float ox = x, oy = y;
+            x = ox*matrix.m00 + oy*matrix.m10 + matrix.m30;
+            y = ox*matrix.m01 + oy*matrix.m11 + matrix.m31;
         }
     }
 
@@ -652,6 +698,18 @@ public class TudeySceneModel extends SceneModel
             }
         });
         return oentry;
+    }
+
+    /**
+     * Determines whether the scene contains an entry with the supplied key.
+     */
+    public boolean containsEntry (Object key)
+    {
+        if (!(key instanceof Coord)) {
+            return _entries.containsKey(key);
+        }
+        Coord coord = (Coord)key;
+        return _tiles.containsKey(coord.x, coord.y);
     }
 
     /**

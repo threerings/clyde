@@ -65,7 +65,11 @@ import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 import com.threerings.expr.Scoped;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
+import com.threerings.math.Transform2D;
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.ToolUtil;
 
@@ -73,6 +77,7 @@ import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.camera.MouseOrbiter;
+import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.Grid;
 
@@ -82,9 +87,11 @@ import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.ShapeSceneElement;
+import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.EntryManipulator;
 import com.threerings.tudey.util.TudeySceneMetrics;
@@ -178,14 +185,14 @@ public class SceneEditor extends GlCanvasTool
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
         _delete.setEnabled(false);
         edit.addSeparator();
-        edit.add(_rotateCW = createMenuItem("rotate_cw", KeyEvent.VK_O, -1));
+        edit.add(_rotateCW = createMenuItem("rotate_ccw", KeyEvent.VK_O, KeyEvent.VK_LEFT));
         _rotateCW.setEnabled(false);
-        edit.add(_rotateCCW = createMenuItem("rotate_ccw", KeyEvent.VK_E, -1));
+        edit.add(_rotateCCW = createMenuItem("rotate_cw", KeyEvent.VK_E, KeyEvent.VK_RIGHT));
         _rotateCCW.setEnabled(false);
         edit.addSeparator();
-        edit.add(_raise = createMenuItem("raise", KeyEvent.VK_A, -1));
+        edit.add(_raise = createMenuItem("raise", KeyEvent.VK_A, KeyEvent.VK_UP));
         _raise.setEnabled(false);
-        edit.add(_lower = createMenuItem("lower", KeyEvent.VK_L, -1));
+        edit.add(_lower = createMenuItem("lower", KeyEvent.VK_L, KeyEvent.VK_DOWN));
         _lower.setEnabled(false);
         edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
@@ -365,6 +372,9 @@ public class SceneEditor extends GlCanvasTool
 
         // update the ui bits
         boolean enable = (selection != null);
+        if (enable) {
+            selection.getCenter(_selectionCenter);
+        }
         _exportSelection.setEnabled(enable);
         _cut.setEnabled(enable);
         _copy.setEnabled(enable);
@@ -434,6 +444,25 @@ public class SceneEditor extends GlCanvasTool
     public void incrementEditId ()
     {
         _editId++;
+    }
+
+    /**
+     * Adds an entry, removing any conflicting entries if necessary.
+     */
+    public void overwriteEntry (Entry entry)
+    {
+        if (entry instanceof TileEntry) {
+            TileEntry tentry = (TileEntry)entry;
+            TileConfig.Original config = tentry.getConfig(getConfigManager());
+            Rectangle region = new Rectangle();
+            tentry.getRegion(config, region);
+            ArrayList<TileEntry> results = new ArrayList<TileEntry>();
+            _scene.getTileEntries(region, results);
+            for (int ii = 0, nn = results.size(); ii < nn; ii++) {
+                removeEntry(results.get(ii).getKey());
+            }
+        }
+        addEntry(entry);
     }
 
     // documentation inherited from interface EntryManipulator
@@ -590,10 +619,16 @@ public class SceneEditor extends GlCanvasTool
             }
         } else if (action.equals("delete")) {
             deleteSelection();
+        } else if (action.equals("rotate_ccw")) {
+            rotateSelection(+1);
+        } else if (action.equals("rotate_cw")) {
+            rotateSelection(-1);
         } else if (action.equals("raise")) {
             raiseSelection(+1);
+            _grid.setElevation(_grid.getElevation() + 1);
         } else if (action.equals("lower")) {
             raiseSelection(-1);
+            _grid.setElevation(_grid.getElevation() - 1);
         } else if (action.equals("configs")) {
             new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("raise_grid")) {
@@ -1023,15 +1058,37 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void deleteSelection ()
     {
-        _undoSupport.beginUpdate();
-        try {
-            for (Entry entry : getSelectedEntries()) {
-                removeEntry(entry.getKey());
-            }
-        } finally {
-            _undoSupport.endUpdate();
+        incrementEditId();
+        for (Entry entry : getSelectedEntries()) {
+            removeEntry(entry.getKey());
         }
         setSelection(null);
+    }
+
+    /**
+     * Rotates the entries under the selection region by the specified amount.
+     */
+    protected void rotateSelection (int amount)
+    {
+        // if any of the selected entries are tiles, we must limit the center
+        // to corners and center points
+        Vector2f center = _selectionCenter;
+        ArrayList<Entry> selected = getSelectedEntries();
+        if (containsTiles(selected)) {
+            Vector2f c1 = new Vector2f(Math.round(center.x), Math.round(center.y));
+            Vector2f c2 = new Vector2f(
+                FloatMath.floor(center.x) + 0.5f, FloatMath.floor(center.y) + 0.5f);
+            center = (c1.distance(center) < c2.distance(center)) ? c1 : c2;
+        }
+        float rotation = FloatMath.HALF_PI * amount;
+        Vector2f translation = center.subtract(center.rotate(rotation));
+        Transform2D xform = new Transform2D(translation, rotation);
+
+        // transform the selection shape
+        _selection.getShape().transformLocal(xform);
+
+        // transform the entries
+        transformSelection(selected, new Transform3D(xform));
     }
 
     /**
@@ -1039,17 +1096,31 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void raiseSelection (int amount)
     {
-        _undoSupport.beginUpdate();
-        try {
-            for (Entry entry : getSelectedEntries()) {
-                Entry centry = (Entry)entry.clone();
-                centry.raise(amount);
-                if (!centry.equals(entry)) {
-                    updateEntry(centry);
-                }
+        Transform3D xform = new Transform3D(Transform3D.RIGID);
+        xform.getTranslation().z = TudeySceneMetrics.getTileZ(amount);
+        transformSelection(getSelectedEntries(), xform);
+    }
+
+    /**
+     * Transforms the selection.
+     */
+    protected void transformSelection (ArrayList<Entry> selected, Transform3D xform)
+    {
+        incrementEditId();
+        ArrayList<Entry> overwrites = new ArrayList<Entry>();
+        for (Entry entry : selected) {
+            Entry centry = (Entry)entry.clone();
+            centry.transform(getConfigManager(), xform);
+            Object key = entry.getKey(), ckey = centry.getKey();
+            if (!ckey.equals(key)) {
+                removeEntry(key);
+                overwrites.add(centry);
+            } else if (!centry.equals(entry)) {
+                updateEntry(centry);
             }
-        } finally {
-            _undoSupport.endUpdate();
+        }
+        for (Entry entry : overwrites) {
+            overwriteEntry(entry);
         }
     }
 
@@ -1076,6 +1147,19 @@ public class SceneEditor extends GlCanvasTool
         ArrayList<Entry> entries = new ArrayList<Entry>();
         _scene.getEntries(_selection.getShape(), entries);
         return entries;
+    }
+
+    /**
+     * Determines whether any of the specified entries are tiles.
+     */
+    protected boolean containsTiles (ArrayList<Entry> entries)
+    {
+        for (Entry entry : entries) {
+            if (entry instanceof TileEntry) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The file to attempt to load on initialization, if any. */
@@ -1177,6 +1261,9 @@ public class SceneEditor extends GlCanvasTool
 
     /** The selection element. */
     protected ShapeSceneElement _selection;
+
+    /** The center of the selection. */
+    protected Vector2f _selectionCenter = new Vector2f();
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();

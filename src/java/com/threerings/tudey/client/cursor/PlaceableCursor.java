@@ -123,7 +123,7 @@ public class PlaceableCursor extends Cursor
         {
             _model.setLocalTransform(entry.transform);
             _footprint.setTransform(entry.transform);
-            entry.transform.flatten(_transform);
+            _transform.set(entry.transform);
             _worldShape = _localShape.transform(_transform, _worldShape);
         }
 
