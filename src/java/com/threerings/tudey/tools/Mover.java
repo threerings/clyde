@@ -71,6 +71,14 @@ public class Mover extends EditorTool
     }
 
     @Override // documentation inherited
+    public void deactivate ()
+    {
+        // cancel any movement in process
+        super.deactivate();
+        move(new Entry[0]);
+    }
+
+    @Override // documentation inherited
     public void tick (float elapsed)
     {
         updateCursor();
@@ -91,7 +99,11 @@ public class Mover extends EditorTool
     public void mousePressed (MouseEvent event)
     {
         if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
-
+            // place the transformed entries and clear the tool
+            for (Entry entry : _tentries) {
+                _editor.overwriteEntry((Entry)entry.clone());
+            }
+            move(new Entry[0]);
         }
     }
 
@@ -127,7 +139,7 @@ public class Mover extends EditorTool
         _transform.getRotation().fromAngleAxis(_angle, Vector3f.UNIT_Z);
 
         // transform the entries and update the cursor
-        _cursor.update(transform(_entries, _transform));
+        _cursor.update(_tentries = transform(_entries, _transform));
     }
 
     /**
@@ -146,8 +158,11 @@ public class Mover extends EditorTool
     /** The cursor representing the selection that we're moving. */
     protected SelectionCursor _cursor;
 
-    /** The (centered) entries that we're moving. */
+    /** The (untransformed) entries that we're moving. */
     protected Entry[] _entries = new Entry[0];
+
+    /** The transformed entries. */
+    protected Entry[] _tentries;
 
     /** Whether or not any of the entries are tiles (in which case we must stay aligned). */
     protected boolean _tiles;

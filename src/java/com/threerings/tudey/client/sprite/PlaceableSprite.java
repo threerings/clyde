@@ -166,6 +166,13 @@ public class PlaceableSprite extends EntrySprite
     }
 
     @Override // documentation inherited
+    public void setSelected (boolean selected)
+    {
+        super.setSelected(selected);
+        _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
     public void dispose ()
     {
         super.dispose();

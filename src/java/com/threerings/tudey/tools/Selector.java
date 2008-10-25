@@ -5,12 +5,17 @@ package com.threerings.tudey.tools;
 
 import java.awt.event.MouseEvent;
 
+import com.threerings.editor.Editable;
+import com.threerings.editor.swing.EditorPanel;
+import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
+import com.threerings.util.DeepObject;
 
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.shape.Point;
 import com.threerings.tudey.shape.Polygon;
 
 /**
@@ -24,6 +29,11 @@ public class Selector extends EditorTool
     public Selector (SceneEditor editor)
     {
         super(editor);
+
+        // create and add the editor panel
+        EditorPanel epanel = new EditorPanel(editor);
+        add(epanel);
+        epanel.setObject(_options);
     }
 
     @Override // documentation inherited
@@ -42,7 +52,8 @@ public class Selector extends EditorTool
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isControlDown()) {
+        if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isControlDown() &&
+                getMousePlaneIntersection(_isect) && !selectionContainsIsect()) {
             _editor.setSelection(null);
         }
     }
@@ -52,9 +63,14 @@ public class Selector extends EditorTool
     {
         if (!_dragging && _editor.isFirstButtonDown() && !_editor.isControlDown() &&
                 getMousePlaneIntersection(_isect)) {
-            // store the anchor point
-            _anchor.set(_isect);
-            _dragging = true;
+            if (selectionContainsIsect()) {
+                // start moving the selection
+                _editor.moveSelection();
+            } else {
+                // start dragging a new rectangle
+                _anchor.set(_isect);
+                _dragging = true;
+            }
         }
     }
 
@@ -91,6 +107,29 @@ public class Selector extends EditorTool
         _selection.updateBounds();
         _editor.setSelection(_selection);
     }
+
+    /**
+     * Checks whether the selection shape contains the intersection point.
+     */
+    protected boolean selectionContainsIsect ()
+    {
+        Shape shape = _editor.getSelection();
+        return shape != null && shape.intersects(new Point(new Vector2f(_isect.x, _isect.y)));
+    }
+
+    /**
+     * Allows us to edit the tool options.
+     */
+    protected static class Options extends DeepObject
+        implements Exportable
+    {
+        /** The filter that determines which entries to select. */
+        @Editable
+        public Filter filter = new Filter();
+    }
+
+    /** The eraser options. */
+    protected Options _options = new Options();
 
     /** The selection shape. */
     protected Polygon _selection = new Polygon(4);

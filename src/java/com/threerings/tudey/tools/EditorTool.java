@@ -15,16 +15,25 @@ import javax.swing.JToggleButton;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
+import com.threerings.editor.Editable;
+import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
+import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.GlCanvas;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.PathEntry;
+import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
+import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * A tool to use in the scene editor.
@@ -190,6 +199,48 @@ public abstract class EditorTool extends JPanel
     {
         return _editor.getMouseRay(_pick) &&
             _editor.getGrid().getPlane().getIntersection(_pick, result);
+    }
+
+    /**
+     * Determines which kinds of entries we want to affect.
+     */
+    protected static class Filter extends DeepObject
+        implements Exportable
+    {
+        /** Whether or not we select tiles. */
+        @Editable(hgroup="t")
+        public boolean tiles = true;
+
+        /** Whether or not we select placeables. */
+        @Editable(hgroup="t")
+        public boolean placeables = true;
+
+        /** Whether or not we selected paths. */
+        @Editable(hgroup="p")
+        public boolean paths = true;
+
+        /** Whether or not we select areas. */
+        @Editable(hgroup="p")
+        public boolean areas = true;
+
+        /**
+         * Determines whether the specified entry matches this filter.
+         */
+        public boolean matches (Entry entry)
+        {
+            if (entry instanceof TileEntry) {
+                return tiles;
+            } else if (entry instanceof PlaceableEntry) {
+                return placeables;
+            } else if (entry instanceof PathEntry) {
+                return paths;
+            } else if (entry instanceof AreaEntry) {
+                return areas;
+            } else {
+                log.warning("Unknown entry type.", "class", entry.getClass());
+                return true;
+            }
+        }
     }
 
     /** A reference to the creating editor. */

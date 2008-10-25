@@ -68,6 +68,14 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Returns the sprite corresponding to the entry with the given key.
+     */
+    public EntrySprite getEntrySprite (Object key)
+    {
+        return _entrySprites.get(key);
+    }
+
+    /**
      * Checks for an intersection between the provided ray and the sprites in the scene.
      *
      * @param location a vector to populate with the location of the intersection, if any.

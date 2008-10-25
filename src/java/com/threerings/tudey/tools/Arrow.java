@@ -94,6 +94,11 @@ public class Arrow extends EditorTool
         }
     }
 
+    @Override // documentation inherited
+    public void mouseDragged (MouseEvent event)
+    {
+    }
+
     /** The editor panel that we use to edit things. */
     protected EditorPanel _epanel;
 

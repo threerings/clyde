@@ -107,7 +107,10 @@ public class Eraser extends EditorTool
             _shape = _options.shape.getShape().transform(_transform, _shape);
             _scene.getEntries(_shape, _entries);
             for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-                _editor.removeEntry(_entries.get(ii).getKey());
+                Entry entry = _entries.get(ii);
+                if (_options.filter.matches(entry)) {
+                    _editor.removeEntry(entry.getKey());
+                }
             }
             _entries.clear();
         }
@@ -122,6 +125,10 @@ public class Eraser extends EditorTool
         /** The shape of the eraser. */
         @Editable
         public ShapeConfig shape = new ShapeConfig.Rectangle();
+
+        /** The filter that determines what we want to erase. */
+        @Editable
+        public Filter filter = new Filter();
     }
 
     /** The eraser options. */

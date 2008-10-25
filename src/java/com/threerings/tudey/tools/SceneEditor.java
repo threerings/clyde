@@ -438,6 +438,29 @@ public class SceneEditor extends GlCanvasTool
     }
 
     /**
+     * Starts moving the current selection.
+     */
+    public void moveSelection ()
+    {
+        incrementEditId();
+        Entry[] entries = getSelectedEntries().toArray(new Entry[0]);
+        for (Entry entry : entries) {
+            removeEntry(entry.getKey());
+        }
+        setSelection(null);
+        move(entries);
+    }
+
+    /**
+     * Activates the supplied entries in the mover tool.
+     */
+    public void move (Entry... entries)
+    {
+        setActiveTool(_mover);
+        _mover.move(entries);
+    }
+
+    /**
      * Increments the edit id, ensuring that any further edits will not be merged with previous
      * ones.
      */
@@ -615,7 +638,7 @@ public class SceneEditor extends GlCanvasTool
             Transferable contents = _frame.getToolkit().getSystemClipboard().getContents(this);
             Entry[] selection = (Entry[])ToolUtil.getWrappedTransferData(contents);
             if (selection != null) {
-                floatSelection(selection);
+                move(selection);
             }
         } else if (action.equals("delete")) {
             deleteSelection();
@@ -997,22 +1020,13 @@ public class SceneEditor extends GlCanvasTool
             File file = _selectionChooser.getSelectedFile();
             try {
                 BinaryImporter in = new BinaryImporter(new FileInputStream(file));
-                floatSelection((Entry[])in.readObject());
+                move((Entry[])in.readObject());
                 in.close();
             } catch (IOException e) {
                 log.warning("Failed to import selection [file=" + file +"].", e);
             }
         }
         _prefs.put("selection_dir", _selectionChooser.getCurrentDirectory().toString());
-    }
-
-    /**
-     * Sets the supplied array as the floating selection.
-     */
-    protected void floatSelection (Entry[] selection)
-    {
-        setActiveTool(_mover);
-        _mover.move(selection);
     }
 
     /**
