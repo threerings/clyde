@@ -46,18 +46,8 @@ import static com.threerings.ClydeLog.*;
 public class ToolUtil
 {
     /** A data flavor for referenced local wrapped objects (on this VM). */
-    public static final DataFlavor LOCAL_WRAPPED_FLAVOR;
-    static {
-        DataFlavor flavor = null;
-        try {
-            flavor = new DataFlavor(
-                DataFlavor.javaJVMLocalObjectMimeType +
-                ";class=" + SerializableWrapper.class.getName());
-        } catch (ClassNotFoundException e) {
-             // won't happen
-        }
-        LOCAL_WRAPPED_FLAVOR = flavor;
-    }
+    public static final DataFlavor LOCAL_WRAPPED_FLAVOR =
+        createLocalFlavor(SerializableWrapper.class);
 
     /** A data flavor for serialized wrapped objects (from another VM). */
     public static final DataFlavor SERIALIZED_WRAPPED_FLAVOR =
@@ -201,6 +191,19 @@ public class ToolUtil
 
         /** The wrapped object. */
         protected SerializableWrapper _wrapper;
+    }
+
+    /**
+     * Creates a data flavor for transferring local references to objects of the specified class.
+     */
+    public static DataFlavor createLocalFlavor (Class clazz)
+    {
+        try {
+            return new DataFlavor(
+                DataFlavor.javaJVMLocalObjectMimeType + ";class=" + clazz.getName());
+        } catch (ClassNotFoundException e) {
+            return null; // won't happen
+        }
     }
 
     /**

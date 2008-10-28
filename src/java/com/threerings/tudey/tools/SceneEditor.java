@@ -195,6 +195,9 @@ public class SceneEditor extends GlCanvasTool
         edit.add(_lower = createMenuItem("lower", KeyEvent.VK_L, KeyEvent.VK_DOWN));
         _lower.setEnabled(false);
         edit.addSeparator();
+        edit.add(_saveToPalette = createMenuItem("save_to_palette", KeyEvent.VK_V, KeyEvent.VK_L));
+        _saveToPalette.setEnabled(false);
+        edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
         edit.add(createMenuItem("resources", KeyEvent.VK_S, KeyEvent.VK_E));
         edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_P));
@@ -283,6 +286,7 @@ public class SceneEditor extends GlCanvasTool
         addTool(tpanel, tgroup, "tile_brush", new TileBrush(this));
         addTool(tpanel, tgroup, "ground_brush", new GroundBrush(this));
         addTool(tpanel, tgroup, "wall_brush", new WallBrush(this));
+        addTool(tpanel, tgroup, "palette", _palette = new Palette(this));
         addTool(tpanel, tgroup, "eraser", new Eraser(this));
 
         // create the option panel
@@ -422,6 +426,7 @@ public class SceneEditor extends GlCanvasTool
         _rotateCCW.setEnabled(enable);
         _raise.setEnabled(enable);
         _lower.setEnabled(enable);
+        _saveToPalette.setEnabled(enable);
     }
 
     /**
@@ -742,6 +747,9 @@ public class SceneEditor extends GlCanvasTool
             raiseSelection(+1);
         } else if (action.equals("lower")) {
             raiseSelection(-1);
+        } else if (action.equals("save_to_palette")) {
+            setActiveTool(_palette);
+            _palette.add(_selection);
         } else if (action.equals("configs")) {
             new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("raise_grid")) {
@@ -1297,6 +1305,9 @@ public class SceneEditor extends GlCanvasTool
     /** The raise/lower menu items. */
     protected JMenuItem _raise, _lower;
 
+    /** The save-to-palette menu item. */
+    protected JMenuItem _saveToPalette;
+
     /** The file chooser for opening and saving scene files. */
     protected JFileChooser _chooser;
 
@@ -1332,6 +1343,9 @@ public class SceneEditor extends GlCanvasTool
 
     /** The global editor tool. */
     protected GlobalEditor _globalEditor;
+
+    /** The palette tool. */
+    protected Palette _palette;
 
     /** The active tool. */
     protected EditorTool _activeTool;

@@ -21,6 +21,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
+import com.threerings.util.MessageBundle;
 
 import com.threerings.opengl.GlCanvas;
 import com.threerings.opengl.util.Renderable;
@@ -49,6 +50,7 @@ public abstract class EditorTool extends JPanel
     {
         super(new VGroupLayout(GroupLayout.STRETCH, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         _editor = editor;
+        _msgs = _editor.getMessageManager().getBundle("scene");
     }
 
     /**
@@ -245,6 +247,9 @@ public abstract class EditorTool extends JPanel
 
     /** A reference to the creating editor. */
     protected SceneEditor _editor;
+
+    /** The editor message bundle. */
+    protected MessageBundle _msgs;
 
     /** The tool's button. */
     protected JToggleButton _button;
