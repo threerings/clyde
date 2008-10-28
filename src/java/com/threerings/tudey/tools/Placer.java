@@ -49,7 +49,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         if (_cursorVisible) {
             _cursor.tick(elapsed);
         } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
-            _editor.deleteMouseObject(SceneEditor.PLACEABLE_SPRITE_FILTER);
+            _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
         }
     }
 

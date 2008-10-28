@@ -20,7 +20,7 @@ import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.client.util.GridBox;
+import com.threerings.tudey.client.util.RectangleElement;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
@@ -89,7 +89,7 @@ public class TileCursor extends EntryCursor
             _model.setColorState(new ColorState());
             _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
 
-            _footprint = new GridBox(ctx);
+            _footprint = new RectangleElement(ctx, true);
             _footprint.getColor().set(Color4f.GREEN);
             setConfig(config);
         }
@@ -132,7 +132,7 @@ public class TileCursor extends EntryCursor
         protected Model _model;
 
         /** The tile footprint. */
-        protected GridBox _footprint;
+        protected RectangleElement _footprint;
     }
 
     /**

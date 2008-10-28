@@ -34,6 +34,7 @@ public class Arrow extends EditorTool
      */
     public void edit (Entry entry)
     {
+        _editor.setSelection(entry);
         _epanel.setObject(entry.clone());
     }
 
@@ -82,7 +83,7 @@ public class Arrow extends EditorTool
     public void tick (float elapsed)
     {
         if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
-            _editor.deleteMouseObject();
+            _editor.deleteMouseEntry();
         }
     }
 
@@ -90,13 +91,18 @@ public class Arrow extends EditorTool
     public void mousePressed (MouseEvent event)
     {
         if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isControlDown()) {
-            _editor.editMouseObject();
+            Entry entry = _editor.getMouseEntry();
+            if (entry != null) {
+                if (_editor.isSelected(entry)) {
+                    _editor.moveSelection();
+                } else {
+                    _editor.select(entry);
+                }
+            } else {
+                _editor.clearSelection();
+                _epanel.setObject(null);
+            }
         }
-    }
-
-    @Override // documentation inherited
-    public void mouseDragged (MouseEvent event)
-    {
     }
 
     /** The editor panel that we use to edit things. */

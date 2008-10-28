@@ -3,6 +3,10 @@
 
 package com.threerings.tudey.client.util;
 
+import com.threerings.math.Box;
+import com.threerings.math.Rect;
+import com.threerings.math.Vector2f;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.LineState;
@@ -33,6 +37,7 @@ public class ShapeSceneElement extends SimpleSceneElement
     public void setShape (Shape shape)
     {
         _shape = shape;
+        updateBounds();
     }
 
     /**
@@ -60,6 +65,20 @@ public class ShapeSceneElement extends SimpleSceneElement
         states[RenderState.LINE_STATE] = LineState.getInstance(3f);
         states[RenderState.POINT_STATE] = PointState.getInstance(3f);
         return states;
+    }
+
+    @Override // documentation inherited
+    protected void computeBounds (Box result)
+    {
+        if (_shape == null) {
+            result.setToEmpty();
+            return;
+        }
+        Rect bounds = _shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        result.getMinimumExtent().set(min.x, min.y, 0f);
+        result.getMaximumExtent().set(max.x, max.y, 0f);
+        result.transformLocal(_transform);
     }
 
     @Override // documentation inherited

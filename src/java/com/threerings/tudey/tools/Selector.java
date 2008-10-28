@@ -5,6 +5,8 @@ package com.threerings.tudey.tools;
 
 import java.awt.event.MouseEvent;
 
+import java.util.ArrayList;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.Exportable;
@@ -13,10 +15,10 @@ import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
-import com.threerings.tudey.data.TudeySceneModel;
-import com.threerings.tudey.shape.Shape;
-import com.threerings.tudey.shape.Point;
+import com.threerings.tudey.client.util.ShapeSceneElement;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.shape.Polygon;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
  * The selector tool.
@@ -37,10 +39,10 @@ public class Selector extends EditorTool
     }
 
     @Override // documentation inherited
-    public void sceneChanged (TudeySceneModel scene)
+    public void init ()
     {
-        super.sceneChanged(scene);
-        _editor.setSelection(null);
+        _cursor = new ShapeSceneElement(_editor, true);
+        _cursor.setShape(new Polygon(4));
     }
 
     @Override // documentation inherited
@@ -50,27 +52,26 @@ public class Selector extends EditorTool
     }
 
     @Override // documentation inherited
-    public void mousePressed (MouseEvent event)
+    public void enqueue ()
     {
-        if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isControlDown() &&
-                getMousePlaneIntersection(_isect) && !selectionContainsIsect()) {
-            _editor.setSelection(null);
+        if (_cursorVisible) {
+            _cursor.enqueue();
         }
     }
 
     @Override // documentation inherited
-    public void mouseDragged (MouseEvent event)
+    public void mousePressed (MouseEvent event)
     {
-        if (!_dragging && _editor.isFirstButtonDown() && !_editor.isControlDown() &&
-                getMousePlaneIntersection(_isect)) {
-            if (selectionContainsIsect()) {
-                // start moving the selection
-                _editor.moveSelection();
-            } else {
-                // start dragging a new rectangle
-                _anchor.set(_isect);
-                _dragging = true;
-            }
+        if (event.getButton() != MouseEvent.BUTTON1 || _editor.isControlDown()) {
+            return;
+        }
+        Entry entry = _editor.getMouseEntry();
+        if (entry != null && _editor.isSelected(entry)) {
+            _editor.moveSelection();
+        } else if (getMousePlaneIntersection(_isect)) {
+            _editor.clearSelection();
+            _anchor.set(_isect);
+            _dragging = true;
         }
     }
 
@@ -79,14 +80,19 @@ public class Selector extends EditorTool
      */
     protected void updateSelection ()
     {
-        if (!(_dragging && _editor.isFirstButtonDown() && getMousePlaneIntersection(_isect) &&
-                !_editor.isControlDown())) {
+        if (!(_cursorVisible = _dragging && _editor.isFirstButtonDown() &&
+                getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
             _dragging = false;
             return;
         }
+        // hold off displaying until the cursor is actually moved
+        if (_anchor.equals(_isect)) {
+            _cursorVisible = false;
+        }
         // snap to tile grid if shift not held down
         boolean gx = (_isect.x >= _anchor.x), gy = (_isect.y >= _anchor.y);
-        Vector2f corner = _selection.getVertex(0);
+        Polygon shape = (Polygon)_cursor.getShape();
+        Vector2f corner = shape.getVertex(0);
         if (!_editor.isShiftDown()) {
             corner.x = gx ? FloatMath.floor(_anchor.x) + 0.01f : FloatMath.ceil(_anchor.x) - 0.01f;
             corner.y = gy ? FloatMath.floor(_anchor.y) + 0.01f : FloatMath.ceil(_anchor.y) - 0.01f;
@@ -96,25 +102,48 @@ public class Selector extends EditorTool
             corner.set(_anchor.x, _anchor.y);
         }
         // adjust the ordering to ensure ccw orientation
-        _selection.getVertex(2).set(_isect.x, _isect.y);
+        shape.getVertex(2).set(_isect.x, _isect.y);
         if (gx ^ gy) {
-            _selection.getVertex(1).set(corner.x, _isect.y);
-            _selection.getVertex(3).set(_isect.x, corner.y);
+            shape.getVertex(1).set(corner.x, _isect.y);
+            shape.getVertex(3).set(_isect.x, corner.y);
         } else {
-            _selection.getVertex(1).set(_isect.x, corner.y);
-            _selection.getVertex(3).set(corner.x, _isect.y);
+            shape.getVertex(1).set(_isect.x, corner.y);
+            shape.getVertex(3).set(corner.x, _isect.y);
         }
-        _selection.updateBounds();
-        _editor.setSelection(_selection);
+        shape.updateBounds();
+
+        // update the elevation
+        _cursor.getTransform().getTranslation().z =
+            TudeySceneMetrics.getTileZ(_editor.getGrid().getElevation());
+
+        // update the selection
+        _scene.getEntries(shape, _entries);
+        for (int ii = _entries.size() - 1; ii >= 0; ii--) {
+            if (!_options.filter.matches(_entries.get(ii))) {
+                _entries.remove(ii);
+            }
+        }
+        if (!keysEqual(_entries, _editor.getSelection())) {
+            _editor.setSelection(_entries.toArray(new Entry[_entries.size()]));
+        }
+        _entries.clear();
     }
 
     /**
-     * Checks whether the selection shape contains the intersection point.
+     * Determines whether the given list and array contain entries with the same keys in the same
+     * order.
      */
-    protected boolean selectionContainsIsect ()
+    protected static boolean keysEqual (ArrayList<Entry> list, Entry[] array)
     {
-        Shape shape = _editor.getSelection();
-        return shape != null && shape.intersects(new Point(new Vector2f(_isect.x, _isect.y)));
+        if (list.size() != array.length) {
+            return false;
+        }
+        for (int ii = 0; ii < array.length; ii++) {
+            if (!list.get(ii).getKey().equals(array[ii].getKey())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -128,11 +157,14 @@ public class Selector extends EditorTool
         public Filter filter = new Filter();
     }
 
-    /** The eraser options. */
+    /** The selector options. */
     protected Options _options = new Options();
 
-    /** The selection shape. */
-    protected Polygon _selection = new Polygon(4);
+    /** The selection cursor. */
+    protected ShapeSceneElement _cursor;
+
+    /** Whether or not the cursor is in the window. */
+    protected boolean _cursorVisible;
 
     /** Whether we are currently dragging out. */
     protected boolean _dragging;
@@ -142,4 +174,7 @@ public class Selector extends EditorTool
 
     /** Holds the result on an intersection test. */
     protected Vector3f _isect = new Vector3f();
+
+    /** Holds the results of a shape query. */
+    protected ArrayList<Entry> _entries = new ArrayList<Entry>();
 }

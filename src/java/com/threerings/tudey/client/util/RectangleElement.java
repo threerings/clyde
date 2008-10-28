@@ -5,27 +5,30 @@ package com.threerings.tudey.client.util;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.math.Box;
+
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.LineState;
 import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.scene.SimpleSceneElement;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.SimpleTransformable;
 
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
- * Draws a box on the grid.
+ * Draws a grid-aligned rectangle.
  */
-public class GridBox extends SimpleTransformable
+public class RectangleElement extends SimpleSceneElement
 {
     /**
-     * Creates a new grid box.
+     * Creates a new rectangle element.
      */
-    public GridBox (GlContext ctx)
+    public RectangleElement (GlContext ctx, boolean outline)
     {
         super(ctx);
+        _outline = outline;
     }
 
     /**
@@ -71,13 +74,22 @@ public class GridBox extends SimpleTransformable
     }
 
     @Override // documentation inherited
+    protected void computeBounds (Box result)
+    {
+        float z = TudeySceneMetrics.getTileZ(_elevation);
+        result.getMinimumExtent().set(_region.x, _region.y, z);
+        result.getMaximumExtent().set(_region.x + _region.width, _region.y + _region.height, z);
+        result.transformLocal(_transform);
+    }
+
+    @Override // documentation inherited
     protected void draw ()
     {
         float lx = _region.x, ux = _region.x + _region.width;
         float ly = _region.y, uy = _region.y + _region.height;
         float z = TudeySceneMetrics.getTileZ(_elevation);
 
-        GL11.glBegin(GL11.GL_LINE_LOOP);
+        GL11.glBegin(_outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);
         GL11.glVertex3f(lx, ly, z);
         GL11.glVertex3f(lx, uy, z);
         GL11.glVertex3f(ux, uy, z);
@@ -90,4 +102,7 @@ public class GridBox extends SimpleTransformable
 
     /** The elevation at which to draw the region. */
     protected int _elevation;
+
+    /** Whether or not to draw the rectangle in outline mode. */
+    protected boolean _outline;
 }

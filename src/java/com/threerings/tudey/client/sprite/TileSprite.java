@@ -11,10 +11,12 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.util.RectangleElement;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
@@ -64,6 +66,7 @@ public class TileSprite extends EntrySprite
         public Original (GlContext ctx, Scope parentScope, TileConfig.Original config)
         {
             super(parentScope);
+            _ctx = ctx;
             _scene.add(_model = new Model(ctx));
             _model.setUserObject(parentScope);
             setConfig(config);
@@ -75,6 +78,17 @@ public class TileSprite extends EntrySprite
         public void setConfig (TileConfig.Original config)
         {
             _model.setConfig((_config = config).model);
+
+            // update the footprint
+            boolean selected = ((TileSprite)_parentScope).isSelected();
+            if (selected && _footprint == null) {
+                _footprint = new RectangleElement(_ctx, true);
+                _footprint.getColor().set(Color4f.GREEN);
+                _scene.add(_footprint);
+            } else if (!selected && _footprint != null) {
+                _scene.remove(_footprint);
+                _footprint = null;
+            }
         }
 
         @Override // documentation inherited
@@ -82,6 +96,12 @@ public class TileSprite extends EntrySprite
         {
             entry.getTransform(_config, _model.getLocalTransform());
             _model.updateBounds();
+
+            if (_footprint != null) {
+                entry.getRegion(_config, _footprint.getRegion());
+                _footprint.setElevation(entry.elevation);
+                _footprint.updateBounds();
+            }
         }
 
         @Override // documentation inherited
@@ -89,13 +109,22 @@ public class TileSprite extends EntrySprite
         {
             super.dispose();
             _scene.remove(_model);
+            if (_footprint != null) {
+                _scene.remove(_footprint);
+            }
         }
+
+        /** The renderer context. */
+        protected GlContext _ctx;
 
         /** The tile configuration. */
         protected TileConfig.Original _config;
 
         /** The model. */
         protected Model _model;
+
+        /** The tile footprint. */
+        protected RectangleElement _footprint;
 
         /** The scene to which we add our model. */
         @Bound
@@ -135,6 +164,7 @@ public class TileSprite extends EntrySprite
     public void setSelected (boolean selected)
     {
         super.setSelected(selected);
+        updateFromConfig();
         _impl.update(_entry);
     }
 

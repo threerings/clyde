@@ -53,6 +53,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.HGroupLayout;
 import com.samskivert.swing.Spacer;
 import com.samskivert.swing.util.SwingUtil;
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.Predicate;
 
 import com.threerings.media.image.ImageUtil;
@@ -67,6 +68,7 @@ import com.threerings.export.XMLImporter;
 import com.threerings.expr.Scoped;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
+import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
@@ -83,14 +85,12 @@ import com.threerings.opengl.util.Grid;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EntrySprite;
-import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.Sprite;
-import com.threerings.tudey.client.sprite.TileSprite;
-import com.threerings.tudey.client.util.ShapeSceneElement;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.EntryManipulator;
@@ -102,20 +102,20 @@ import static com.threerings.tudey.Log.*;
  * The scene editor application.
  */
 public class SceneEditor extends GlCanvasTool
-    implements EntryManipulator, KeyObserver, MouseListener, ClipboardOwner
+    implements EntryManipulator, TudeySceneModel.Observer,
+        KeyObserver, MouseListener, ClipboardOwner
 {
-    /** Allows only tile sprites. */
-    public static final Predicate<Sprite> TILE_SPRITE_FILTER =
-        new Predicate.InstanceOf<Sprite>(TileSprite.class);
+    /** Allows only tile entries. */
+    public static final Predicate<Entry> TILE_ENTRY_FILTER =
+        new Predicate.InstanceOf<Entry>(TileEntry.class);
 
-    /** Allows only placeable sprites. */
-    public static final Predicate<Sprite> PLACEABLE_SPRITE_FILTER =
-        new Predicate.InstanceOf<Sprite>(PlaceableSprite.class);
+    /** Allows only placeable entries. */
+    public static final Predicate<Entry> PLACEABLE_ENTRY_FILTER =
+        new Predicate.InstanceOf<Entry>(PlaceableEntry.class);
 
-    /** Allows tile and placeable sprites. */
-    @SuppressWarnings("unchecked")
-    public static final Predicate<Sprite> DEFAULT_SPRITE_FILTER =
-        new Predicate.Or<Sprite>(TILE_SPRITE_FILTER, PLACEABLE_SPRITE_FILTER);
+    /** Allows all entries except globals. */
+    public static final Predicate<Entry> DEFAULT_ENTRY_FILTER =
+        new Predicate.Not<Entry>(new Predicate.InstanceOf<Entry>(GlobalEntry.class));
 
     /**
      * The program entry point.
@@ -274,7 +274,7 @@ public class SceneEditor extends GlCanvasTool
         JPanel tpanel = new JPanel(new GridLayout(0, 7, 5, 5));
         outer.add(tpanel);
         addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
-        addTool(tpanel, tgroup, "selector", new Selector(this));
+        addTool(tpanel, tgroup, "selector", _selector = new Selector(this));
         addTool(tpanel, tgroup, "mover", _mover = new Mover(this));
         addTool(tpanel, tgroup, "placer", new Placer(this));
         addTool(tpanel, tgroup, "path_definer", new PathDefiner(this));
@@ -364,17 +364,56 @@ public class SceneEditor extends GlCanvasTool
     }
 
     /**
-     * Sets the selection shape.
+     * Clears the selection.
      */
-    public void setSelection (Shape selection)
+    public void clearSelection ()
     {
-        _selection.setShape(selection);
+        setSelection();
+    }
+
+    /**
+     * Selects the specified entries and switches to either the selector tool or the arrow
+     * tool, depending on whether multiple entries are selected.
+     */
+    public void select (Entry... selection)
+    {
+        if (selection.length > 1) {
+            setActiveTool(_selector);
+        } else if (selection.length > 0) {
+            setActiveTool(_arrow);
+            _arrow.edit(selection[0]);
+            return; // the arrow sets the selection
+        }
+        setSelection(selection);
+    }
+
+    /**
+     * Sets the selected elements.
+     */
+    public void setSelection (Entry... selection)
+    {
+        // update the sprites' selected states
+        for (Entry entry : _selection) {
+            EntrySprite sprite = _view.getEntrySprite(entry.getKey());
+            if (sprite != null) {
+                sprite.setSelected(false);
+            } else {
+                // this is fine; the sprite has already been deleted
+            }
+        }
+        for (Entry entry : (_selection = selection)) {
+            EntrySprite sprite = _view.getEntrySprite(entry.getKey());
+            if (sprite != null) {
+                sprite.setSelected(true);
+            } else {
+                log.warning("Missing sprite for selected entry.", "entry", entry);
+            }
+        }
+        // clear the selection pivot for the next rotation
+        _selectionPivot = null;
 
         // update the ui bits
-        boolean enable = (selection != null);
-        if (enable) {
-            selection.getCenter(_selectionCenter);
-        }
+        boolean enable = (selection.length > 0);
         _exportSelection.setEnabled(enable);
         _cut.setEnabled(enable);
         _copy.setEnabled(enable);
@@ -386,55 +425,76 @@ public class SceneEditor extends GlCanvasTool
     }
 
     /**
-     * Returns a reference to the selection shape.
+     * Returns the selected elements.
      */
-    public Shape getSelection ()
+    public Entry[] getSelection ()
     {
-        return _selection.getShape();
+        return _selection;
     }
 
     /**
-     * Attempts to edit the object under the mouse cursor.
+     * Determines whether the specified entry is selected.
      */
-    public void editMouseObject ()
+    public boolean isSelected (Entry entry)
     {
-        if (!getMouseRay(_pick)) {
-            return;
-        }
-        Sprite sprite = _view.getIntersection(_pick, _pt, DEFAULT_SPRITE_FILTER);
-        if (sprite instanceof EntrySprite) {
-            Entry entry = ((EntrySprite)sprite).getEntry();
-            if (entry instanceof GlobalEntry) {
-                setActiveTool(_globalEditor);
-                _globalEditor.edit((GlobalEntry)entry);
-            } else {
-                setActiveTool(_arrow);
-                _arrow.edit(entry);
-            }
+        return getSelectionIndex(entry) != -1;
+    }
+
+    /**
+     * Attempts to edit the entry under the mouse cursor.
+     */
+    public void editMouseEntry ()
+    {
+        Entry entry = getMouseEntry(DEFAULT_ENTRY_FILTER);
+        if (entry != null) {
+            setActiveTool(_arrow);
+            _arrow.edit(entry);
         }
     }
 
     /**
-     * Attempts to delete the object under the mouse cursor.
+     * Attempts to delete the entry under the mouse cursor.
      */
-    public void deleteMouseObject ()
+    public void deleteMouseEntry ()
     {
-        deleteMouseObject(DEFAULT_SPRITE_FILTER);
+        deleteMouseEntry(DEFAULT_ENTRY_FILTER);
     }
 
     /**
-     * Attempts to delete the object under the mouse cursor.
+     * Attempts to delete the entry under the mouse cursor.
      */
-    public void deleteMouseObject (Predicate<Sprite> filter)
+    public void deleteMouseEntry (Predicate<Entry> filter)
     {
-        if (!getMouseRay(_pick)) {
-            return;
-        }
-        Sprite sprite = _view.getIntersection(_pick, _pt, filter);
-        if (sprite instanceof EntrySprite) {
-            Entry entry = ((EntrySprite)sprite).getEntry();
+        Entry entry = getMouseEntry(filter);
+        if (entry != null) {
             removeEntry(entry.getKey());
         }
+    }
+
+    /**
+     * Returns a reference to the entry under the mouse cursor.
+     */
+    public Entry getMouseEntry ()
+    {
+        return getMouseEntry(DEFAULT_ENTRY_FILTER);
+    }
+
+    /**
+     * Returns a reference to the entry under the mouse cursor.
+     */
+    public Entry getMouseEntry (final Predicate<Entry> filter)
+    {
+        if (!getMouseRay(_pick)) {
+            return null;
+        }
+        EntrySprite sprite = (EntrySprite)_view.getIntersection(
+            _pick, _pt, new Predicate<Sprite>() {
+            public boolean isMatch (Sprite sprite) {
+                return sprite instanceof EntrySprite &&
+                    filter.isMatch(((EntrySprite)sprite).getEntry());
+            }
+        });
+        return (sprite == null) ? null : sprite.getEntry();
     }
 
     /**
@@ -442,12 +502,18 @@ public class SceneEditor extends GlCanvasTool
      */
     public void moveSelection ()
     {
+        removeAndMove(_selection);
+    }
+
+    /**
+     * Removes the specified entries, then activates them in the mover tool.
+     */
+    public void removeAndMove (Entry... entries)
+    {
         incrementEditId();
-        Entry[] entries = getSelectedEntries().toArray(new Entry[0]);
         for (Entry entry : entries) {
             removeEntry(entry.getKey());
         }
-        setSelection(null);
         move(entries);
     }
 
@@ -509,6 +575,32 @@ public class SceneEditor extends GlCanvasTool
             new EntryEdit(_scene, _editId, new Entry[0], new Entry[0], new Object[] { key }));
     }
 
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryAdded (Entry entry)
+    {
+        // no-op
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryUpdated (Entry oentry, Entry nentry)
+    {
+        // update selection
+        int idx = getSelectionIndex(oentry);
+        if (idx != -1) {
+            _selection[idx] = nentry;
+        }
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryRemoved (Entry oentry)
+    {
+        // update selection
+        int idx = getSelectionIndex(oentry);
+        if (idx != -1) {
+            setSelection(ArrayUtil.splice(_selection, idx, 1));
+        }
+    }
+
     // documentation inherited from interface KeyObserver
     public void handleKeyEvent (int id, int keyCode, long timestamp)
     {
@@ -530,7 +622,7 @@ public class SceneEditor extends GlCanvasTool
     public void mouseClicked (MouseEvent event)
     {
         if (mouseCameraEnabled() && event.getClickCount() == 2) {
-            editMouseObject();
+            editMouseEntry();
         }
     }
 
@@ -648,10 +740,8 @@ public class SceneEditor extends GlCanvasTool
             rotateSelection(-1);
         } else if (action.equals("raise")) {
             raiseSelection(+1);
-            _grid.setElevation(_grid.getElevation() + 1);
         } else if (action.equals("lower")) {
             raiseSelection(-1);
-            _grid.setElevation(_grid.getElevation() - 1);
         } else if (action.equals("configs")) {
             new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("raise_grid")) {
@@ -745,9 +835,6 @@ public class SceneEditor extends GlCanvasTool
         // create the scene view
         _view = new TudeySceneView(this, this);
 
-        // initialize the selection
-        _selection = new ShapeSceneElement(this, true);
-
         // initialize the tools
         for (EditorTool tool : _tools.values()) {
             tool.init();
@@ -769,10 +856,6 @@ public class SceneEditor extends GlCanvasTool
         _view.tick(elapsed);
         _activeTool.tick(elapsed);
         _grid.tick(elapsed);
-
-        // update the selection transform
-        _selection.getTransform().getTranslation().z =
-            TudeySceneMetrics.getTileZ(_grid.getElevation());
     }
 
     @Override // documentation inherited
@@ -780,7 +863,6 @@ public class SceneEditor extends GlCanvasTool
     {
         super.enqueueView();
         _view.enqueue();
-        _selection.enqueue();
         _activeTool.enqueue();
     }
 
@@ -968,7 +1050,10 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void setScene (TudeySceneModel scene)
     {
-        _scene = scene;
+        if (_scene != null) {
+            _scene.removeObserver(this);
+        }
+        (_scene = scene).addObserver(this);
         _scene.init(_cfgmgr);
 
         // update the view
@@ -979,7 +1064,8 @@ public class SceneEditor extends GlCanvasTool
             tool.sceneChanged(scene);
         }
 
-        // clear the undo manager
+        // clear the selection and undo manager
+        clearSelection();
         _undomgr.discardAllEdits();
         updateUndoActions();
     }
@@ -1038,7 +1124,7 @@ public class SceneEditor extends GlCanvasTool
             File file = _selectionChooser.getSelectedFile();
             try {
                 BinaryExporter out = new BinaryExporter(new FileOutputStream(file));
-                out.writeObject(getSelectedEntries().toArray(new Entry[0]));
+                out.writeObject(_selection);
                 out.close();
             } catch (IOException e) {
                 log.warning("Failed to export selection [file=" + file + "].", e);
@@ -1075,10 +1161,9 @@ public class SceneEditor extends GlCanvasTool
     protected void deleteSelection ()
     {
         incrementEditId();
-        for (Entry entry : getSelectedEntries()) {
+        for (Entry entry : _selection) {
             removeEntry(entry.getKey());
         }
-        setSelection(null);
     }
 
     /**
@@ -1086,25 +1171,33 @@ public class SceneEditor extends GlCanvasTool
      */
     protected void rotateSelection (int amount)
     {
-        // if any of the selected entries are tiles, we must limit the center
-        // to corners and center points
-        Vector2f center = _selectionCenter;
-        ArrayList<Entry> selected = getSelectedEntries();
-        if (containsTiles(selected)) {
-            Vector2f c1 = new Vector2f(Math.round(center.x), Math.round(center.y));
-            Vector2f c2 = new Vector2f(
-                FloatMath.floor(center.x) + 0.5f, FloatMath.floor(center.y) + 0.5f);
-            center = (c1.distance(center) < c2.distance(center)) ? c1 : c2;
+        // find the pivot point if not yet computed
+        if (_selectionPivot == null) {
+            Rect bounds = new Rect(), ebounds = new Rect();
+            boolean tiles = false;
+            for (Entry entry : _selection) {
+                tiles |= (entry instanceof TileEntry);
+                entry.getBounds(getConfigManager(), ebounds);
+                bounds.addLocal(ebounds);
+            }
+            Vector2f center = bounds.getCenter();
+            if (tiles) {
+                // choose the closer of the nearest intersection and the nearest middle point
+                Vector2f ci = new Vector2f(Math.round(center.x), Math.round(center.y));
+                Vector2f cm = new Vector2f(
+                    FloatMath.floor(center.x) + 0.5f, FloatMath.floor(center.y) + 0.5f);
+                center = center.distance(ci) < center.distance(cm) ? ci : cm;
+            }
+            _selectionPivot = center;
         }
         float rotation = FloatMath.HALF_PI * amount;
-        Vector2f translation = center.subtract(center.rotate(rotation));
+        Vector2f translation = _selectionPivot.subtract(_selectionPivot.rotate(rotation));
         Transform2D xform = new Transform2D(translation, rotation);
 
-        // transform the selection shape
-        _selection.getShape().transformLocal(xform);
-
-        // transform the entries
-        transformSelection(selected, new Transform3D(xform));
+        // transform the entries (retaining the pivot)
+        Vector2f opivot = _selectionPivot;
+        transformSelection(new Transform3D(xform));
+        _selectionPivot = opivot;
     }
 
     /**
@@ -1114,30 +1207,35 @@ public class SceneEditor extends GlCanvasTool
     {
         Transform3D xform = new Transform3D(Transform3D.RIGID);
         xform.getTranslation().z = TudeySceneMetrics.getTileZ(amount);
-        transformSelection(getSelectedEntries(), xform);
+        transformSelection(xform);
+        _grid.setElevation(_grid.getElevation() + amount);
     }
 
     /**
      * Transforms the selection.
      */
-    protected void transformSelection (ArrayList<Entry> selected, Transform3D xform)
+    protected void transformSelection (Transform3D xform)
     {
         incrementEditId();
         ArrayList<Entry> overwrites = new ArrayList<Entry>();
-        for (Entry entry : selected) {
-            Entry centry = (Entry)entry.clone();
-            centry.transform(getConfigManager(), xform);
-            Object key = entry.getKey(), ckey = centry.getKey();
-            if (!ckey.equals(key)) {
-                removeEntry(key);
-                overwrites.add(centry);
-            } else if (!centry.equals(entry)) {
-                updateEntry(centry);
+        Entry[] oselection = _selection;
+        Entry[] nselection = new Entry[oselection.length];
+        for (int ii = 0; ii < oselection.length; ii++) {
+            Entry oentry = oselection[ii];
+            Entry nentry = nselection[ii] = (Entry)oentry.clone();
+            nentry.transform(getConfigManager(), xform);
+            Object okey = oentry.getKey(), nkey = nentry.getKey();
+            if (!okey.equals(nkey)) {
+                removeEntry(okey);
+                overwrites.add(nentry);
+            } else {
+                updateEntry(nentry);
             }
         }
         for (Entry entry : overwrites) {
             overwriteEntry(entry);
         }
+        setSelection(nselection);
     }
 
     /**
@@ -1146,36 +1244,27 @@ public class SceneEditor extends GlCanvasTool
     protected void copySelection ()
     {
         // create a cloned array
-        Entry[] selected = getSelectedEntries().toArray(new Entry[0]);
-        for (int ii = 0; ii < selected.length; ii++) {
-            selected[ii] = (Entry)selected[ii].clone();
+        Entry[] selection = new Entry[_selection.length];
+        for (int ii = 0; ii < _selection.length; ii++) {
+            selection[ii] = (Entry)_selection[ii].clone();
         }
         Clipboard clipboard = _frame.getToolkit().getSystemClipboard();
-        clipboard.setContents(new ToolUtil.WrappedTransfer(selected), this);
+        clipboard.setContents(new ToolUtil.WrappedTransfer(selection), this);
         _paste.setEnabled(true);
     }
 
     /**
-     * Returns a new list containing the selected entries.
+     * Returns the index of the specified entry within the selection, or -1 if it is not selected.
      */
-    protected ArrayList<Entry> getSelectedEntries ()
+    protected int getSelectionIndex (Entry entry)
     {
-        ArrayList<Entry> entries = new ArrayList<Entry>();
-        _scene.getEntries(_selection.getShape(), entries);
-        return entries;
-    }
-
-    /**
-     * Determines whether any of the specified entries are tiles.
-     */
-    protected boolean containsTiles (ArrayList<Entry> entries)
-    {
-        for (Entry entry : entries) {
-            if (entry instanceof TileEntry) {
-                return true;
+        Object key = entry.getKey();
+        for (int ii = 0; ii < _selection.length; ii++) {
+            if (_selection[ii].getKey().equals(key)) {
+                return ii;
             }
         }
-        return false;
+        return -1;
     }
 
     /** The file to attempt to load on initialization, if any. */
@@ -1235,6 +1324,9 @@ public class SceneEditor extends GlCanvasTool
     /** The arrow tool. */
     protected Arrow _arrow;
 
+    /** The selector tool. */
+    protected Selector _selector;
+
     /** The mover tool. */
     protected Mover _mover;
 
@@ -1278,11 +1370,11 @@ public class SceneEditor extends GlCanvasTool
     /** Whether or not each of the mouse buttons are being held down on the canvas. */
     protected boolean _firstButtonDown, _secondButtonDown, _thirdButtonDown;
 
-    /** The selection element. */
-    protected ShapeSceneElement _selection;
+    /** The selected elements. */
+    protected Entry[] _selection = new Entry[0];
 
-    /** The center of the selection. */
-    protected Vector2f _selectionCenter = new Vector2f();
+    /** The center of rotation for the selection. */
+    protected Vector2f _selectionPivot;
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();

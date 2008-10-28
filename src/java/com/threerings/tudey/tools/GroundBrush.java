@@ -12,7 +12,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.gui.util.Rectangle;
 
-import com.threerings.tudey.client.util.GridBox;
+import com.threerings.tudey.client.util.RectangleElement;
 import com.threerings.tudey.config.GroundConfig;
 import com.threerings.tudey.util.CoordSet;
 import com.threerings.tudey.util.TilePainter;
@@ -34,9 +34,9 @@ public class GroundBrush extends ConfigTool<GroundConfig>
     @Override // documentation inherited
     public void init ()
     {
-        _inner = new GridBox(_editor);
+        _inner = new RectangleElement(_editor, true);
         _inner.getColor().set(0f, 1f, 0f, 1f);
-        _outer = new GridBox(_editor);
+        _outer = new RectangleElement(_editor, true);
         _outer.getColor().set(0f, 0.5f, 0f, 1f);
     }
 
@@ -148,7 +148,7 @@ public class GroundBrush extends ConfigTool<GroundConfig>
     }
 
     /** The inner and outer cursors. */
-    protected GridBox _inner, _outer;
+    protected RectangleElement _inner, _outer;
 
     /** Whether or not the cursor is in the window. */
     protected boolean _cursorVisible;

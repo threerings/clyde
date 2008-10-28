@@ -50,7 +50,7 @@ public class TileBrush extends ConfigTool<TileConfig>
         if (_cursorVisible) {
             _cursor.tick(elapsed);
         } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
-            _editor.deleteMouseObject(SceneEditor.TILE_SPRITE_FILTER);
+            _editor.deleteMouseEntry(SceneEditor.TILE_ENTRY_FILTER);
         }
     }
 

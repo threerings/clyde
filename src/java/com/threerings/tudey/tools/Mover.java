@@ -31,6 +31,14 @@ public class Mover extends EditorTool
     }
 
     /**
+     * Clears out anything being moved.
+     */
+    public void clear ()
+    {
+        move();
+    }
+
+    /**
      * Requests to start moving the specified entries.
      */
     public void move (Entry... entries)
@@ -75,7 +83,7 @@ public class Mover extends EditorTool
     {
         // cancel any movement in process
         super.deactivate();
-        move(new Entry[0]);
+        clear();
     }
 
     @Override // documentation inherited
@@ -98,12 +106,26 @@ public class Mover extends EditorTool
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        if (event.getButton() == MouseEvent.BUTTON1 && _cursorVisible) {
+        if (event.getButton() != MouseEvent.BUTTON1 || _editor.isControlDown()) {
+            return;
+        }
+        if (_cursorVisible) {
             // place the transformed entries and clear the tool
-            for (Entry entry : _tentries) {
-                _editor.overwriteEntry((Entry)entry.clone());
+            Entry[] selection = new Entry[_tentries.length];
+            for (int ii = 0; ii < _tentries.length; ii++) {
+                _editor.overwriteEntry(selection[ii] = (Entry)_tentries[ii].clone());
             }
-            move(new Entry[0]);
+            _editor.select(selection);
+            clear();
+        } else {
+            Entry entry = _editor.getMouseEntry();
+            if (entry != null) {
+                if (_editor.isSelected(entry)) {
+                    _editor.moveSelection();
+                } else {
+                    _editor.removeAndMove(entry);
+                }
+            }
         }
     }
 
