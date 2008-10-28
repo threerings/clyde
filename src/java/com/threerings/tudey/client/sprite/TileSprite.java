@@ -83,7 +83,7 @@ public class TileSprite extends EntrySprite
             boolean selected = ((TileSprite)_parentScope).isSelected();
             if (selected && _footprint == null) {
                 _footprint = new RectangleElement(_ctx, true);
-                _footprint.getColor().set(Color4f.GREEN);
+                _footprint.getColor().set(Color4f.GRAY);
                 _scene.add(_footprint);
             } else if (!selected && _footprint != null) {
                 _scene.remove(_footprint);

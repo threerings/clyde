@@ -99,7 +99,7 @@ public class PlaceableCursor extends EntryCursor
             _model.setColorState(new ColorState());
             _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
             _footprint = new ShapeConfigElement(ctx);
-            _footprint.getColor().set(Color4f.GREEN);
+            _footprint.getColor().set(Color4f.CYAN);
             setConfig(config);
         }
 

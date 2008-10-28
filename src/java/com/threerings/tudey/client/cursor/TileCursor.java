@@ -90,7 +90,7 @@ public class TileCursor extends EntryCursor
             _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
 
             _footprint = new RectangleElement(ctx, true);
-            _footprint.getColor().set(Color4f.GREEN);
+            _footprint.getColor().set(Color4f.CYAN);
             setConfig(config);
         }
 

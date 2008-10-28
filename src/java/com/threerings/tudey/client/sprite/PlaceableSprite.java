@@ -83,7 +83,7 @@ public class PlaceableSprite extends EntrySprite
             boolean selected = ((PlaceableSprite)_parentScope).isSelected();
             if (selected && _footprint == null) {
                 _footprint = new ShapeConfigElement(_ctx);
-                _footprint.getColor().set(Color4f.GREEN);
+                _footprint.getColor().set(Color4f.GRAY);
                 _footprint.setConfig(config.shape, true);
                 _scene.add(_footprint);
             } else if (!selected && _footprint != null) {
