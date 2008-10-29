@@ -166,15 +166,6 @@ public class PlaceableCursor extends EntryCursor
         update(entry);
     }
 
-    /**
-     * Returns a reference to the transformed shape of the placeable (or <code>null</code> for
-     * none).
-     */
-    public Shape getShape ()
-    {
-        return _impl.getShape();
-    }
-
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PlaceableConfig> event)
     {
@@ -186,6 +177,12 @@ public class PlaceableCursor extends EntryCursor
     public Entry getEntry ()
     {
         return _entry;
+    }
+
+    @Override // documentation inherited
+    public Shape getShape ()
+    {
+        return _impl.getShape();
     }
 
     @Override // documentation inherited

@@ -6,6 +6,8 @@ package com.threerings.tudey.tools;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
+import java.util.ArrayList;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
@@ -15,6 +17,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.tudey.client.cursor.SelectionCursor;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
@@ -137,6 +140,15 @@ public abstract class BaseMover extends EditorTool
 
         // transform the entries and update the cursor
         _cursor.update(_tentries = transform(_entries, _transform));
+
+        // erase if the third button is down
+        if (_editor.isThirdButtonDown()) {
+            _scene.getEntries(_cursor.getShape(), _underneath);
+            for (int ii = 0, nn = _underneath.size(); ii < nn; ii++) {
+                _editor.removeEntry(_underneath.get(ii).getKey());
+            }
+            _underneath.clear();
+        }
     }
 
     /**
@@ -195,4 +207,7 @@ public abstract class BaseMover extends EditorTool
 
     /** Holds the result of an intersection test. */
     protected Vector3f _isect = new Vector3f();
+
+    /** Holds the entries intersecting the cursor. */
+    protected ArrayList<Entry> _underneath = new ArrayList<Entry>();
 }

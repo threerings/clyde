@@ -12,6 +12,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.compositor.RenderScheme;
+import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
@@ -24,6 +25,8 @@ import com.threerings.tudey.client.util.RectangleElement;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.shape.Polygon;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * A cursor for tiles.
@@ -43,6 +46,14 @@ public class TileCursor extends EntryCursor
         public Implementation (Scope parentScope)
         {
             super(parentScope);
+        }
+
+        /**
+         * Returns a reference to the transformed shape.
+         */
+        public Shape getShape ()
+        {
+            return null;
         }
 
         /**
@@ -103,13 +114,27 @@ public class TileCursor extends EntryCursor
         }
 
         @Override // documentation inherited
+        public Shape getShape ()
+        {
+            return _shape;
+        }
+
+        @Override // documentation inherited
         public void update (TileEntry entry)
         {
             entry.getTransform(_config, _model.getLocalTransform());
             _model.updateBounds();
 
-            entry.getRegion(_config, _footprint.getRegion());
+            Rectangle region = _footprint.getRegion();
+            entry.getRegion(_config, region);
             _footprint.setElevation(entry.elevation);
+
+            // update the shape
+            _shape.getVertex(0).set(region.x, region.y);
+            _shape.getVertex(1).set(region.x + region.width, region.y);
+            _shape.getVertex(2).set(region.x + region.width, region.y + region.height);
+            _shape.getVertex(3).set(region.x, region.y + region.height);
+            _shape.updateBounds();
         }
 
         @Override // documentation inherited
@@ -133,6 +158,9 @@ public class TileCursor extends EntryCursor
 
         /** The tile footprint. */
         protected RectangleElement _footprint;
+
+        /** The shape of the tile. */
+        protected Polygon _shape = new Polygon(4);
     }
 
     /**
@@ -155,6 +183,12 @@ public class TileCursor extends EntryCursor
     public Entry getEntry ()
     {
         return _entry;
+    }
+
+    @Override // documentation inherited
+    public Shape getShape ()
+    {
+        return _impl.getShape();
     }
 
     @Override // documentation inherited

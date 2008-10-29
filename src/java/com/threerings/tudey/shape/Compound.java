@@ -50,6 +50,14 @@ public class Compound extends Shape
         return _shapes[idx];
     }
 
+    /**
+     * Returns a reference to the array of shapes.
+     */
+    public Shape[] getShapes ()
+    {
+        return _shapes;
+    }
+
     @Override // documentation inherited
     public void updateBounds ()
     {

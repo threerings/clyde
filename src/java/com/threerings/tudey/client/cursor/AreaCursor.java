@@ -16,6 +16,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.AreaConfig;
 import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * Represents an area entry.
@@ -35,6 +36,14 @@ public class AreaCursor extends EntryCursor
         public Implementation (Scope parentScope)
         {
             super(parentScope);
+        }
+
+        /**
+         * Returns a reference to the transformed shape.
+         */
+        public Shape getShape ()
+        {
+            return null;
         }
 
         /**
@@ -87,8 +96,15 @@ public class AreaCursor extends EntryCursor
         }
 
         @Override // documentation inherited
+        public Shape getShape ()
+        {
+            return _shape;
+        }
+
+        @Override // documentation inherited
         public void update (AreaEntry entry)
         {
+            _shape = entry.createShape();
         }
 
         @Override // documentation inherited
@@ -99,6 +115,9 @@ public class AreaCursor extends EntryCursor
 
         /** The area configuration. */
         protected AreaConfig.Original _config;
+
+        /** The area shape. */
+        protected Shape _shape;
     }
 
     /**
@@ -121,6 +140,12 @@ public class AreaCursor extends EntryCursor
     public Entry getEntry ()
     {
         return _entry;
+    }
+
+    @Override // documentation inherited
+    public Shape getShape ()
+    {
+        return _impl.getShape();
     }
 
     @Override // documentation inherited

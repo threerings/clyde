@@ -7,6 +7,7 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * Represents an entry.
@@ -25,6 +26,11 @@ public abstract class EntryCursor extends Cursor
      * Returns a reference to the most recently set entry state.
      */
     public abstract Entry getEntry ();
+
+    /**
+     * Returns a reference to the shape of the entry (or <code>null</code> for none).
+     */
+    public abstract Shape getShape ();
 
     /**
      * Updates the cursor with new entry state.

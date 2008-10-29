@@ -16,6 +16,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PathEntry;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * Represents a path entry.
@@ -35,6 +36,14 @@ public class PathCursor extends EntryCursor
         public Implementation (Scope parentScope)
         {
             super(parentScope);
+        }
+
+        /**
+         * Returns a reference to the transformed shape.
+         */
+        public Shape getShape ()
+        {
+            return null;
         }
 
         /**
@@ -87,8 +96,15 @@ public class PathCursor extends EntryCursor
         }
 
         @Override // documentation inherited
+        public Shape getShape ()
+        {
+            return _shape;
+        }
+
+        @Override // documentation inherited
         public void update (PathEntry entry)
         {
+            _shape = entry.createShape();
         }
 
         @Override // documentation inherited
@@ -99,6 +115,9 @@ public class PathCursor extends EntryCursor
 
         /** The path configuration. */
         protected PathConfig.Original _config;
+
+        /** The path shape. */
+        protected Shape _shape;
     }
 
     /**
@@ -121,6 +140,12 @@ public class PathCursor extends EntryCursor
     public Entry getEntry ()
     {
         return _entry;
+    }
+
+    @Override // documentation inherited
+    public Shape getShape ()
+    {
+        return _impl.getShape();
     }
 
     @Override // documentation inherited

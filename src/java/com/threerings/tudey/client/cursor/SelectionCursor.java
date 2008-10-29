@@ -10,6 +10,8 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.shape.Compound;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * A cursor for a selection.
@@ -22,6 +24,14 @@ public class SelectionCursor extends Cursor
     public SelectionCursor (GlContext ctx, TudeySceneView view)
     {
         super(ctx, view);
+    }
+
+    /**
+     * Returns a reference to the shape of the cursor.
+     */
+    public Compound getShape ()
+    {
+        return _shape;
     }
 
     /**
@@ -50,6 +60,20 @@ public class SelectionCursor extends Cursor
                 }
             }
         }
+        // update the compound shape
+        for (int ii = 0, nn = _cursors.size(); ii < nn; ii++) {
+            Shape shape = _cursors.get(ii).getShape();
+            if (shape != null) {
+                _shapes.add(shape);
+            }
+        }
+        int scount = _shapes.size();
+        if (_shape.getShapeCount() != scount) {
+            _shape = new Compound(scount);
+        }
+        _shapes.toArray(_shape.getShapes());
+        _shape.updateBounds();
+        _shapes.clear();
     }
 
     @Override // documentation inherited
@@ -86,4 +110,10 @@ public class SelectionCursor extends Cursor
 
     /** Maps entry keys to cursors. */
     protected HashMap<Object, EntryCursor> _cursorsByKey = new HashMap<Object, EntryCursor>();
+
+    /** The shape of the cursor. */
+    protected Compound _shape = new Compound();
+
+    /** Holds the component shapes when updating. */
+    protected ArrayList<Shape> _shapes = new ArrayList<Shape>();
 }
