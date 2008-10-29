@@ -8,6 +8,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
@@ -66,7 +67,7 @@ public class Palette extends BaseMover
      */
     public void add (Entry... entries)
     {
-        add(new PrefsTreeNode(_msgs.get("m.new_entry"), DeepUtil.copy(entries)));
+        _tree.insertNewNode(_msgs.get("m.new_entry"), DeepUtil.copy(entries));
     }
 
     // documentation inherited from interface TreeSelectionListener
@@ -86,32 +87,10 @@ public class Palette extends BaseMover
     {
         String action = event.getActionCommand();
         if (action.equals("new_folder")) {
-            add(new PrefsTreeNode(_msgs.get("m.new_folder"), null));
+            _tree.insertNewNode(_msgs.get("m.new_folder"), null);
         } else { // action.equals("delete")
-            PrefsTreeNode node = _tree.getSelectedNode();
-            PrefsTreeNode parent = (PrefsTreeNode)node.getParent();
-            int idx = parent.getIndex(node);
-            _tree.removeNodeFromParent(node);
-            PrefsTreeNode select;
-            int ccount = parent.getChildCount();
-            if (ccount > 0) {
-                select = (PrefsTreeNode)parent.getChildAt(Math.min(idx, ccount - 1));
-            } else if (!parent.isRoot()) {
-                select = parent;
-            } else {
-                return;
-            }
-            _tree.setSelectionPath(new TreePath(select.getPath()));
+            _tree.removeSelectedNode();
         }
-    }
-
-    /**
-     * Adds a new node under the root.
-     */
-    protected void add (PrefsTreeNode node)
-    {
-        _tree.insertNodeInto(node, _tree.getRootNode());
-        _tree.startEditingAtPath(new TreePath(node.getPath()));
     }
 
     /** The palette tree. */

@@ -15,7 +15,9 @@ import com.threerings.export.util.ExportUtil;
 import static com.threerings.ClydeLog.*;
 
 /**
- * A tree that reflects a {@link Preferences} node.
+ * A node in a {@link PrefsTree}.  Nodes are either internal nodes with <code>null</code> values
+ * (representing {@link Preferences} nodes) or leaf nodes with non-null values (representing
+ * properties set in the parent {@link Preferences} node).
  */
 public class PrefsTreeNode extends DefaultMutableTreeNode
 {

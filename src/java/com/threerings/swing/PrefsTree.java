@@ -5,6 +5,8 @@ package com.threerings.swing;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import java.util.prefs.Preferences;
 
@@ -22,7 +24,15 @@ import com.samskivert.util.ListUtil;
 import com.threerings.util.ToolUtil;
 
 /**
- * A tree that reflects a {@link Preferences} node.
+ * Provides a mechanism for {@link Preferences}-backed persistent storage of a tree of exportable
+ * objects.  Each internal node in the tree corresponds to a {@link Preferences} node underneath
+ * the root passed to the constructor, and each leaf node corresponds to a property set in its
+ * parent's {@link Preferences} node (with the value of the property being equal to the exported
+ * bytes of the node's object).  The tree displays the nodes in sorted order, and allows editing
+ * the nodes' names and dragging and dropping nodes within the tree (adjusting names as necessary
+ * to ensure uniqueness).  To keep the contents of the tree synchronized with the preferences,
+ * only use the {@link #removeNodeFromParent} and {@link #insertNodeInto} methods to modify the
+ * tree.  Currently, the tree will not reflect external changes made to the preferences.
  */
 public class PrefsTree extends JTree
 {
@@ -120,6 +130,16 @@ public class PrefsTree extends JTree
             }
         });
 
+        // add a listener for the delete key
+        addKeyListener(new KeyAdapter() {
+            public void keyPressed (KeyEvent event) {
+                if (event.getKeyCode() == KeyEvent.VK_DELETE) {
+                    removeSelectedNode();
+                    event.consume();
+                }
+            }
+        });
+
         // expand the paths up to a point
         getRootNode().expandPaths(this, 1);
     }
@@ -139,6 +159,41 @@ public class PrefsTree extends JTree
     {
         TreePath path = getSelectionPath();
         return (path == null) ? null : (PrefsTreeNode)path.getLastPathComponent();
+    }
+
+    /**
+     * Inserts a new node and starts editing it.
+     */
+    public void insertNewNode (String name, Object value)
+    {
+        PrefsTreeNode node = new PrefsTreeNode(name, value);
+        insertNodeInto(node, getRootNode());
+        startEditingAtPath(new TreePath(node.getPath()));
+    }
+
+    /**
+     * Removes the selected node and adjusts the selection sensibly.  Does nothing if no node is
+     * selected.
+     */
+    public void removeSelectedNode ()
+    {
+        PrefsTreeNode node = getSelectedNode();
+        if (node == null) {
+            return;
+        }
+        PrefsTreeNode parent = (PrefsTreeNode)node.getParent();
+        int idx = parent.getIndex(node);
+        removeNodeFromParent(node);
+        PrefsTreeNode select;
+        int ccount = parent.getChildCount();
+        if (ccount > 0) {
+            select = (PrefsTreeNode)parent.getChildAt(Math.min(idx, ccount - 1));
+        } else if (!parent.isRoot()) {
+            select = parent;
+        } else {
+            return;
+        }
+        setSelectionPath(new TreePath(select.getPath()));
     }
 
     /**
