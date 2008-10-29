@@ -413,18 +413,8 @@ public class ConfigTree extends JTree
     protected ManagedConfig _lconfig;
 
     /** A data flavor that provides access to the actual transfer object. */
-    protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR;
-    static {
-        DataFlavor flavor = null;
-        try {
-            flavor = new DataFlavor(
-                DataFlavor.javaJVMLocalObjectMimeType +
-                ";class=" + NodeTransfer.class.getName());
-        } catch (ClassNotFoundException e) {
-             // won't happen
-        }
-        LOCAL_NODE_TRANSFER_FLAVOR = flavor;
-    }
+    protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR =
+        ToolUtil.createLocalFlavor(NodeTransfer.class);
 
     /** The flavors available for node transfer. */
     protected static final DataFlavor[] NODE_TRANSFER_FLAVORS =
