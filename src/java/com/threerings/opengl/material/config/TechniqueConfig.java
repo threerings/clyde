@@ -13,6 +13,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Executor;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
@@ -51,20 +52,23 @@ public class TechniqueConfig extends DeepObject
      */
     @EditorTypes({
         StencilReflectionDependency.class, StencilRefractionDependency.class,
-        RenderEffectDependency.class })
+        RenderEffectDependency.class, SkipColorClearDependency.class })
     public static abstract class TechniqueDependency extends DeepObject
         implements Exportable
     {
         /**
          * Determines whether the dependency is supported.
          */
-        public abstract boolean isSupported (GlContext ctx);
+        public boolean isSupported (GlContext ctx)
+        {
+            return true;
+        }
 
         /**
-         * Creates the updater for this dependency.  The updater will update and add the
-         * dependency object to the compositor.
+         * Creates the executor for this dependency.  The updater will register the dependency with
+         * the compositor.
          */
-        public abstract Updater createUpdater (GlContext ctx, Scope scope);
+        public abstract Executor createExecutor (GlContext ctx, Scope scope);
     }
 
     /**
@@ -79,11 +83,11 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Updater createUpdater (final GlContext ctx, Scope scope)
+        public Executor createExecutor (final GlContext ctx, Scope scope)
         {
             final Dependency.StencilReflection dependency = new Dependency.StencilReflection();
-            return new Updater() {
-                public void update () {
+            return new Executor() {
+                public void execute () {
                     ctx.getCompositor().addDependency(dependency);
                 }
             };
@@ -107,12 +111,12 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Updater createUpdater (final GlContext ctx, Scope scope)
+        public Executor createExecutor (final GlContext ctx, Scope scope)
         {
             final Dependency.StencilRefraction dependency = new Dependency.StencilRefraction();
             dependency.ratio = ratio;
-            return new Updater() {
-                public void update () {
+            return new Executor() {
+                public void execute () {
                     ctx.getCompositor().addDependency(dependency);
                 }
             };
@@ -137,14 +141,32 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Updater createUpdater (final GlContext ctx, Scope scope)
+        public Executor createExecutor (final GlContext ctx, Scope scope)
         {
             final Dependency.RenderEffect dependency = new Dependency.RenderEffect();
             dependency.config = ctx.getConfigManager().getConfig(
                 RenderEffectConfig.class, renderEffect);
-            return new Updater() {
-                public void update () {
+            return new Executor() {
+                public void execute () {
                     ctx.getCompositor().addDependency(dependency);
+                }
+            };
+        }
+    }
+
+    /**
+     * A "dependency" that lets the compositor know that it can skip the color clear, because
+     * if we render something using this technique, then we know that we will be writing over
+     * all pixels.  Used for skyboxes.
+     */
+    public static class SkipColorClearDependency extends TechniqueDependency
+    {
+        @Override // documentation inherited
+        public Executor createExecutor (final GlContext ctx, Scope scope)
+        {
+            return new Executor() {
+                public void execute () {
+                    ctx.getCompositor().setSkipColorClear();
                 }
             };
         }
@@ -562,8 +584,23 @@ public class TechniqueConfig extends DeepObject
     public Renderable createRenderable (
         GlContext ctx, Scope scope, Geometry geometry, RenderQueue.Group group)
     {
-        return enqueuer.createRenderable(
+        final Renderable renderable = enqueuer.createRenderable(
             ctx, scope, geometry, geometry.requiresUpdate(), group, new MutableInteger(0));
+        if (dependencies.length == 0) {
+            return renderable;
+        }
+        final Executor[] executors = new Executor[dependencies.length];
+        for (int ii = 0; ii < dependencies.length; ii++) {
+            executors[ii] = dependencies[ii].createExecutor(ctx, scope);
+        }
+        return new Renderable() {
+            public void enqueue () {
+                for (Executor executor : executors) {
+                    executor.execute();
+                }
+                renderable.enqueue();
+            }
+        };
     }
 
     /**

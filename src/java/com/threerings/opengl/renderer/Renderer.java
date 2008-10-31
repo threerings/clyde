@@ -413,10 +413,10 @@ public class Renderer
         float left, float right, float bottom, float top, float near, float far, boolean ortho)
     {
         if (_left != left || _right != _right || _bottom != bottom ||
-            _top != top || _near != near || _far != far || _orthoProj != ortho) {
+            _top != top || _near != near || _far != far || _ortho != ortho) {
             setMatrixMode(GL11.GL_PROJECTION);
             GL11.glLoadIdentity();
-            if (_orthoProj = ortho) {
+            if (_ortho = ortho) {
                 GL11.glOrtho(
                     _left = left, _right = right, _bottom = bottom,
                     _top = top, _near = near, _far = far);
@@ -426,6 +426,62 @@ public class Renderer
                     _top = top, _near = near, _far = far);
             }
         }
+    }
+
+    /**
+     * Returns the left projection parameter.
+     */
+    public float getLeft ()
+    {
+        return _left;
+    }
+
+    /**
+     * Returns the right projection parameter.
+     */
+    public float getRight ()
+    {
+        return _right;
+    }
+
+    /**
+     * Returns the bottom projection parameter.
+     */
+    public float getBottom ()
+    {
+        return _bottom;
+    }
+
+    /**
+     * Returns the top projection parameter.
+     */
+    public float getTop ()
+    {
+        return _top;
+    }
+
+    /**
+     * Returns the near projection parameter.
+     */
+    public float getNear ()
+    {
+        return _near;
+    }
+
+    /**
+     * Returns the far projection parameter.
+     */
+    public float getFar ()
+    {
+        return _far;
+    }
+
+    /**
+     * Returns the ortho projection parameter.
+     */
+    public boolean isOrtho ()
+    {
+        return _ortho;
     }
 
     /**
@@ -2323,7 +2379,7 @@ public class Renderer
     protected float _left = -1f, _right = +1f, _bottom = -1f, _top = +1f, _near = +1f, _far = -1f;
 
     /** Whether or not we're using orthographic projection. */
-    protected boolean _orthoProj = true;
+    protected boolean _ortho = true;
 
     /** The user clip plane records. */
     protected ClipPlaneRecord[] _clipPlanes;

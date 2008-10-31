@@ -12,12 +12,15 @@ import com.samskivert.util.QuickSort;
 
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.renderer.state.DepthState;
 
 import com.threerings.opengl.compositor.RenderQueue;
 
@@ -75,41 +78,98 @@ public class RenderQueueConfig extends ManagedConfig
         protected Comparator<Batch> _comparator;
     }
 
-    /** The available render modes. */
-    public enum RenderMode
+    /**
+     * Base class for render modes.
+     */
+    @EditorTypes({ Normal.class, Ortho.class, Skybox.class })
+    public static abstract class RenderMode extends DeepObject
+        implements Exportable
     {
-        /** Renders the batches normally. */
-        NORMAL(),
-
-        /** Renders the batches in window space using an orthographic projection. */
-        ORTHO() {
-            public void render (Renderer renderer, RenderQueue queue) {
-                // make sure we have something to render
-                if (queue.isEmpty()) {
-                    return;
-                }
-
-                // save the projection matrix and replace it with the ortho matrix
-                renderer.setMatrixMode(GL11.GL_PROJECTION);
-                GL11.glPushMatrix();
-                GL11.glLoadIdentity();
-                Rectangle viewport = renderer.getViewport();
-                GL11.glOrtho(0f, viewport.width, 0f, viewport.height, -1f, +1f);
-
-                super.render(renderer, queue);
-
-                // restore the projection matrix
-                renderer.setMatrixMode(GL11.GL_PROJECTION);
-                GL11.glPopMatrix();
-            }
-        };
-
         /**
          * Renders the batches.
          */
         public void render (Renderer renderer, RenderQueue queue)
         {
             queue.renderLists(renderer);
+        }
+    }
+
+    /**
+     * The normal render mode.
+     */
+    public static class Normal extends RenderMode
+    {
+    }
+
+    /**
+     * The ortho render mode: switches to an ortho matrix (with pixel scale) before rendering.
+     */
+    public static class Ortho extends RenderMode
+    {
+        @Override // documentation inherited
+        public void render (Renderer renderer, RenderQueue queue) {
+            // make sure we have something to render
+            if (queue.isEmpty()) {
+                return;
+            }
+
+            // save the projection parameters
+            float oleft = renderer.getLeft(), oright = renderer.getRight();
+            float obottom = renderer.getBottom(), otop = renderer.getTop();
+            float onear = renderer.getNear(), ofar = renderer.getFar();
+            boolean oortho = renderer.isOrtho();
+
+            // set the orthographic projection
+            Rectangle viewport = renderer.getViewport();
+            renderer.setProjection(0f, viewport.width, 0f, viewport.height, -1f, +1f, true);
+
+            // render
+            super.render(renderer, queue);
+
+            // restore the original projection
+            renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, oortho);
+        }
+    }
+
+    /**
+     * The skybox render mode: scales the field of view before rendering and clears the z buffer
+     * afterwards.
+     */
+    public static class Skybox extends RenderMode
+    {
+        /** The scale to apply to the field of view. */
+        @Editable(min=0, step=0.01)
+        public float fovScale = 1f;
+
+        @Override // documentation inherited
+        public void render (Renderer renderer, RenderQueue queue) {
+            // make sure we have something to render
+            if (queue.isEmpty()) {
+                return;
+            }
+
+            // save the projection parameters
+            float oleft = renderer.getLeft(), oright = renderer.getRight();
+            float obottom = renderer.getBottom(), otop = renderer.getTop();
+            float onear = renderer.getNear(), ofar = renderer.getFar();
+            boolean oortho = renderer.isOrtho();
+
+            // apply field of view scale (assumes we're using on-axis perspective projection)
+            float tfov = otop / onear;
+            float scale = FloatMath.tan(fovScale * FloatMath.atan(tfov)) / tfov;
+            renderer.setProjection(
+                oleft * scale, oright * scale, obottom * scale, otop * scale, onear, ofar, false);
+
+            // render
+            super.render(renderer, queue);
+
+            // restore the original projection
+            renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, oortho);
+
+            // clear the z buffer
+            renderer.setClearDepth(1f);
+            renderer.setState(DepthState.TEST_WRITE);
+            GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
         }
     }
 
@@ -122,10 +182,10 @@ public class RenderQueueConfig extends ManagedConfig
     public int priority;
 
     /** The queue's sort mode. */
-    @Editable(hgroup="m")
+    @Editable
     public SortMode sortMode = SortMode.BACK_TO_FRONT;
 
     /** The queue's render mode. */
-    @Editable(hgroup="m")
-    public RenderMode renderMode = RenderMode.NORMAL;
+    @Editable
+    public RenderMode renderMode = new Normal();
 }
