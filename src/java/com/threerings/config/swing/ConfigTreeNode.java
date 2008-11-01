@@ -279,10 +279,10 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     {
         if (_expanded) {
             tree.expandPath(new TreePath(getPath()));
-        }
-        if (children != null) {
-            for (Object child : children) {
-                ((ConfigTreeNode)child).expandPaths(tree);
+            if (children != null) {
+                for (Object child : children) {
+                    ((ConfigTreeNode)child).expandPaths(tree);
+                }
             }
         }
     }

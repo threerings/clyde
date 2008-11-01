@@ -6,6 +6,9 @@ package com.threerings.config.swing;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
+import java.util.HashSet;
+import java.util.prefs.Preferences;
+
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
@@ -18,7 +21,9 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
+import com.samskivert.util.StringUtil;
 import com.samskivert.util.Tuple;
 
 import com.threerings.export.util.SerializableWrapper;
@@ -222,6 +227,10 @@ public class ConfigTree extends JTree
                 }
             }
             public void removeNodeFromParent (MutableTreeNode node) {
+                ConfigTreeNode ctnode = (ConfigTreeNode)node;
+                if (removeExpanded(ctnode)) {
+                    writeExpanded();
+                }
                 super.removeNodeFromParent(node);
                 if (!_block.enter()) {
                     return;
@@ -253,13 +262,18 @@ public class ConfigTree extends JTree
             }
         });
 
-        // the expansion listener simply notes expansion in the node state
+        // the expansion listener notes expansion in the node state and preferences
         addTreeExpansionListener(new TreeExpansionListener() {
             public void treeExpanded (TreeExpansionEvent event) {
-                ((ConfigTreeNode)event.getPath().getLastPathComponent()).setExpanded(true);
+                ConfigTreeNode node = (ConfigTreeNode)event.getPath().getLastPathComponent();
+                node.setExpanded(true);
+                addExpanded(node.getName());
+                node.expandPaths(ConfigTree.this);
             }
             public void treeCollapsed (TreeExpansionEvent event) {
-                ((ConfigTreeNode)event.getPath().getLastPathComponent()).setExpanded(false);
+                ConfigTreeNode node = (ConfigTreeNode)event.getPath().getLastPathComponent();
+                node.setExpanded(false);
+                removeExpanded(node.getName());
             }
         });
 
@@ -352,8 +366,24 @@ public class ConfigTree extends JTree
         }
         ((DefaultTreeModel)getModel()).reload();
 
-        // expand the paths up to a point
-        root.expandPaths(this, 1);
+        // the root is always expanded
+        root.setExpanded(true);
+
+        // read in the names of the paths to expand
+        String names = _prefs.get(_groups[0].getName() + ".expanded", null);
+        if (names == null) {
+            // just expand to a default level
+            root.expandPaths(this, 1);
+        } else {
+            for (String name : StringUtil.parseStringArray(names)) {
+                ConfigTreeNode node = root.getNode(name);
+                if (node != null) {
+                    _expanded.add(name);
+                    node.setExpanded(true);
+                }
+            }
+            root.expandPaths(this);
+        }
     }
 
     /**
@@ -363,6 +393,59 @@ public class ConfigTree extends JTree
     protected void selectedConfigUpdated ()
     {
         // nothing by default
+    }
+
+    /**
+     * Adds the named node to the expanded list.
+     */
+    protected void addExpanded (String name)
+    {
+        if (_expanded.add(name)) {
+            writeExpanded();
+        }
+    }
+
+    /**
+     * Removes the specified node and all of its descendents from the expanded list.
+     *
+     * @return whether or not any names were actually removed.
+     */
+    protected boolean removeExpanded (ConfigTreeNode node)
+    {
+        boolean changed = _expanded.remove(node.getName());
+        for (int ii = 0, nn = node.getChildCount(); ii < nn; ii++) {
+            changed |= removeExpanded((ConfigTreeNode)node.getChildAt(ii));
+        }
+        return changed;
+    }
+
+    /**
+     * Removes the named node from the expanded list.
+     */
+    protected void removeExpanded (String name)
+    {
+        if (_expanded.remove(name)) {
+            writeExpanded();
+        }
+    }
+
+    /**
+     * Writes the list of expanded nodes out to the preferences.
+     */
+    protected void writeExpanded ()
+    {
+        String group = _groups[0].getName();
+        String[] names = _expanded.toArray(new String[_expanded.size()]);
+        String value = StringUtil.joinEscaped(names);
+        if (value.length() > Preferences.MAX_VALUE_LENGTH) {
+            log.warning("Too many expanded paths to store in preferences, trimming.",
+                "group", group, "length", value.length());
+            do {
+                names = ArrayUtil.splice(names, names.length - 1);
+                value = StringUtil.joinEscaped(names);
+            } while (value.length() > Preferences.MAX_VALUE_LENGTH);
+        }
+        _prefs.put(group + ".expanded", value);
     }
 
     /**
@@ -406,11 +489,17 @@ public class ConfigTree extends JTree
     /** The configuration groups. */
     protected ConfigGroup<ManagedConfig>[] _groups;
 
+    /** The set of paths currently expanded. */
+    protected HashSet<String> _expanded = new HashSet<String>();
+
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
     protected ChangeBlock _block = new ChangeBlock();
 
     /** The configuration that we're listening to, if any. */
     protected ManagedConfig _lconfig;
+
+    /** The package preferences. */
+    protected static Preferences _prefs = Preferences.userNodeForPackage(ConfigTree.class);
 
     /** A data flavor that provides access to the actual transfer object. */
     protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR =

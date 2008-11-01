@@ -100,7 +100,7 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
     {
         if (getAllowsChildren()) {
             // simply attempting to retrieve the node will create it
-            getPreferenceNode(prefs);
+            getPreferenceNode(prefs).putBoolean(EXPANDED, _expanded);
             for (int ii = 0, nn = getChildCount(); ii < nn; ii++) {
                 ((PrefsTreeNode)getChildAt(ii)).addToPreferences(prefs);
             }
