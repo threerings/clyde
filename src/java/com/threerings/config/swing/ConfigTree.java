@@ -236,7 +236,7 @@ public class ConfigTree extends JTree
                     return;
                 }
                 try {
-                    ((ConfigTreeNode)node).removeConfigs(_groups[0]);
+                    ctnode.removeConfigs(_groups[0]);
                 } finally {
                     _block.leave();
                 }
