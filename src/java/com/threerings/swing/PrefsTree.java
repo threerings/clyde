@@ -62,13 +62,15 @@ public class PrefsTree extends JTree
         setEditable(true);
         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
-        // the expansion listener simply notes expansion in the node state
+        // the expansion listener notes expansion in the node state and preferences
         addTreeExpansionListener(new TreeExpansionListener() {
             public void treeExpanded (TreeExpansionEvent event) {
-                ((PrefsTreeNode)event.getPath().getLastPathComponent()).setExpanded(true);
+                ((PrefsTreeNode)event.getPath().getLastPathComponent()).setExpanded(
+                    PrefsTree.this, _prefs, true);
             }
             public void treeCollapsed (TreeExpansionEvent event) {
-                ((PrefsTreeNode)event.getPath().getLastPathComponent()).setExpanded(false);
+                ((PrefsTreeNode)event.getPath().getLastPathComponent()).setExpanded(
+                    PrefsTree.this, _prefs, false);
             }
         });
 
@@ -140,8 +142,8 @@ public class PrefsTree extends JTree
             }
         });
 
-        // expand the paths up to a point
-        getRootNode().expandPaths(this, 1);
+        // expand the paths as set
+        getRootNode().expandPaths(this);
     }
 
     /**

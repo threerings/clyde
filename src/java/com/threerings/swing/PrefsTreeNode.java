@@ -31,6 +31,9 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
         // create the value nodes, then the child nodes
         try {
             for (String key : prefs.keys()) {
+                if (key.equals(EXPANDED)) {
+                    continue;
+                }
                 byte[] bytes = prefs.getByteArray(key, null);
                 Object object = (bytes == null) ? null : ExportUtil.fromBytes(bytes);
                 if (object != null) {
@@ -43,6 +46,9 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
         } catch (BackingStoreException e) {
             log.warning("Error reading preferences.", "prefs", prefs, e);
         }
+
+        // initialize the expanded flag
+        _expanded = prefs.getBoolean(EXPANDED, true);
     }
 
     /**
@@ -65,9 +71,14 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
     /**
      * Sets whether or not this node is expanded in the tree.
      */
-    public void setExpanded (boolean expanded)
+    public void setExpanded (JTree tree, Preferences prefs, boolean expanded)
     {
-        _expanded = expanded;
+        getPreferenceNode(prefs).putBoolean(EXPANDED, _expanded = expanded);
+        if (_expanded && children != null) {
+            for (Object child : children) {
+                ((PrefsTreeNode)child).expandPaths(tree);
+            }
+        }
     }
 
     /**
@@ -148,26 +159,10 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
     {
         if (_expanded) {
             tree.expandPath(new TreePath(getPath()));
-        }
-        if (children != null) {
-            for (Object child : children) {
-                ((PrefsTreeNode)child).expandPaths(tree);
-            }
-        }
-    }
-
-    /**
-     * Expands all paths up to the specified depth.
-     */
-    public void expandPaths (JTree tree, int depth)
-    {
-        if (!getAllowsChildren()) {
-            return;
-        }
-        tree.expandPath(new TreePath(getPath()));
-        if (depth-- > 0 && children != null) {
-            for (Object child : children) {
-                ((PrefsTreeNode)child).expandPaths(tree, depth);
+            if (children != null) {
+                for (Object child : children) {
+                    ((PrefsTreeNode)child).expandPaths(tree);
+                }
             }
         }
     }
@@ -247,6 +242,9 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
 
     /** Whether or not this node is expanded in the tree. */
     protected boolean _expanded;
+
+    /** The name of the expanded property. */
+    protected static final String EXPANDED = "%EXPANDED%";
 
     /** Our replacement for the empty name. */
     protected static final String EMPTY_NAME = "%EMPTY%";
