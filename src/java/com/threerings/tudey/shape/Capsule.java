@@ -117,13 +117,7 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
-        // see if we start inside the capsule
-        Vector2f origin = ray.getOrigin();
-        if (contains(origin)) {
-            result.set(origin);
-            return true;
-        }
-        return false;
+        return ray.getIntersection(_start, _end, radius, result);
     }
 
     @Override // documentation inherited

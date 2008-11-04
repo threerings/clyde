@@ -155,6 +155,63 @@ public final class Ray2D
     }
 
     /**
+     * Finds the intersection between the ray and a capsule with the given start point, end point,
+     * and radius.
+     *
+     * @return true if the ray intersected the circle (in which case the result will contain the
+     * point of intersection), false otherwise.
+     */
+    public boolean getIntersection (Vector2f start, Vector2f end, float radius, Vector2f result)
+    {
+        // compute the segment's line parameters
+        float a = start.y - end.y, b = end.x - start.x;
+        float len = FloatMath.hypot(a, b);
+        if (len < FloatMath.EPSILON) { // start equals end; check as circle
+            return getIntersection(start, radius, result);
+        }
+        float rlen = 1f / len;
+        a *= rlen;
+        b *= rlen;
+        float c = -a*start.x - b*start.y;
+
+        // find out where the origin lies with respect to the top and bottom
+        float dist = a*_origin.x + b*_origin.y + c;
+        boolean above = (dist > radius), below = (dist < -radius);
+        float x, y;
+        if (above || below) { // check the intersection with the top/bottom boundary
+            float divisor = a*_direction.x + b*_direction.y;
+            if (Math.abs(divisor) < FloatMath.EPSILON) { // lines are parallel
+                return false;
+            }
+            c += (above ? -radius : +radius);
+            float t = (-a*_origin.x - b*_origin.y - c) / divisor;
+            if (t < 0f) { // wrong direction
+                return false;
+            }
+            x = _origin.x + t*_direction.x;
+            y = _origin.y + t*_direction.y;
+
+        } else { // middle; check the origin
+            x = _origin.x;
+            y = _origin.y;
+        }
+        // see where the test point lies with respect to the start and end boundaries
+        float tmp = a;
+        a = b;
+        b = -tmp;
+        c = -a*start.x - b*start.y;
+        dist = a*x + b*y + c;
+        if (dist < 0f) { // before start
+            return getIntersection(start, radius, result);
+        } else if (dist > len) { // after end
+            return getIntersection(end, radius, result);
+        } else { // middle
+            result.set(x, y);
+            return true;
+        }
+    }
+
+    /**
      * Finds the intersection between the ray and a circle with the given center and radius.
      *
      * @return true if the ray intersected the circle (in which case the result will contain the

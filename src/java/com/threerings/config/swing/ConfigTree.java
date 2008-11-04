@@ -396,7 +396,7 @@ public class ConfigTree extends JTree
     }
 
     /**
-     * Adds the named node to the expanded list.
+     * Adds the named node to the expanded set and writes out the set if it has changed.
      */
     protected void addExpanded (String name)
     {
@@ -406,7 +406,7 @@ public class ConfigTree extends JTree
     }
 
     /**
-     * Removes the specified node and all of its descendents from the expanded list.
+     * Removes the specified node and all of its descendents from the expanded set.
      *
      * @return whether or not any names were actually removed.
      */
@@ -420,7 +420,7 @@ public class ConfigTree extends JTree
     }
 
     /**
-     * Removes the named node from the expanded list.
+     * Removes the named node from the expanded set and writes out the set if it has changed.
      */
     protected void removeExpanded (String name)
     {
@@ -430,7 +430,7 @@ public class ConfigTree extends JTree
     }
 
     /**
-     * Writes the list of expanded nodes out to the preferences.
+     * Writes the set of expanded nodes out to the preferences.
      */
     protected void writeExpanded ()
     {
