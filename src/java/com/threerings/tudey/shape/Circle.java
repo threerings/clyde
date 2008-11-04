@@ -143,23 +143,7 @@ public class Circle extends Shape
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        // see if we start or end inside the circle
-        Vector2f start = segment.getStart(), end = segment.getEnd();
-        if (contains(start) || contains(end)) {
-            return true;
-        }
-        // then if we intersect the circle
-        float ax = start.x - _center.x, ay = start.y - _center.y;
-        float dx = end.x - start.x, dy = end.y - start.y;
-        float a = dx*dx + dy*dy;
-        float b = 2f*(dx*ax + dy*ay);
-        float c = ax*ax + ay*ay - radius*radius;
-        float radicand = b*b - 4f*a*c;
-        if (radicand < 0f) {
-            return false;
-        }
-        float t = (-b - FloatMath.sqrt(radicand)) / (2f*a);
-        return t >= 0f && t <= 1f;
+        return intersects(_center, radius, segment.getStart(), segment.getEnd());
     }
 
     @Override // documentation inherited

@@ -133,6 +133,30 @@ public class Capsule extends Shape
         if (ccount > 0) {
             return (ccount == 4) ? IntersectionType.CONTAINS : IntersectionType.INTERSECTS;
         }
+        // see if the rectangle contains the start or end points
+        if (rect.contains(_start) || rect.contains(_end)) {
+            return IntersectionType.INTERSECTS;
+        }
+        // handle non-corner cases
+        float dx = _end.x - _start.x, dy = _end.y - _start.y;
+        if (_start.x <= min.x) { // left
+            if (intersectsLeft(rect, dx, dy)) {
+                return IntersectionType.INTERSECTS;
+            }
+        } else if (_start.x >= max.x) { // right
+            if (intersectsRight(rect, dx, dy)) {
+                return IntersectionType.INTERSECTS;
+            }
+        }
+        if (_start.y <= min.y) { // bottom
+            if (intersectsBottom(rect, dx, dy)) {
+                return IntersectionType.INTERSECTS;
+            }
+        } else if (_start.y >= max.y) { // top
+            if (intersectsTop(rect, dx, dy)) {
+                return IntersectionType.INTERSECTS;
+            }
+        }
         return IntersectionType.NONE;
     }
 
@@ -157,7 +181,7 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public boolean intersects (Segment segment)
     {
-        return false;
+        return intersects(_start, _end, radius, segment.getStart(), segment.getEnd());
     }
 
     @Override // documentation inherited
@@ -190,7 +214,8 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
-        return false;
+        return intersects(
+            _start, _end, radius + capsule.radius, capsule.getStart(), capsule.getEnd());
     }
 
     @Override // documentation inherited
@@ -223,6 +248,94 @@ public class Capsule extends Shape
                 _end.y + FloatMath.sin(angle) * radius);
         }
         GL11.glEnd();
+    }
+
+    /**
+     * Helper method for {@link #getIntersectionType}.  Determines whether the capsule intersects
+     * the rectangle on the left side.
+     */
+    protected boolean intersectsLeft (Rect rect, float dx, float dy)
+    {
+        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+        float left = min.x - radius;
+        if (_start.x >= left) {
+            return _start.y >= min.y && _start.y <= max.y; // starts inside
+        }
+        if (Math.abs(dx) < FloatMath.EPSILON) {
+            return false; // parallel to edge
+        }
+        float t = (left - _start.x) / dx;
+        if (t < 0f || t > 1f) {
+            return false; // outside segment
+        }
+        float iy = _start.y + t*dy;
+        return iy >= min.y && iy <= max.y;
+    }
+
+    /**
+     * Helper method for {@link #getIntersectionType}.  Determines whether the capsule intersects
+     * the rectangle on the left side.
+     */
+    protected boolean intersectsRight (Rect rect, float dx, float dy)
+    {
+        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+        float right = max.x + radius;
+        if (_start.x <= right) {
+            return _start.y >= min.y && _start.y <= max.y; // starts inside
+        }
+        if (Math.abs(dx) < FloatMath.EPSILON) {
+            return false; // parallel to edge
+        }
+        float t = (right - _start.x) / dx;
+        if (t < 0f || t > 1f) {
+            return false; // outside segment
+        }
+        float iy = _start.y + t*dy;
+        return iy >= min.y && iy <= max.y;
+    }
+
+    /**
+     * Helper method for {@link #getIntersectionType}.  Determines whether the capsule intersects
+     * the rectangle on the left side.
+     */
+    protected boolean intersectsBottom (Rect rect, float dx, float dy)
+    {
+        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+        float bottom = min.y - radius;
+        if (_start.y >= bottom) {
+            return _start.x >= min.x && _start.x <= max.x; // starts inside
+        }
+        if (Math.abs(dy) < FloatMath.EPSILON) {
+            return false; // parallel to edge
+        }
+        float t = (bottom - _start.y) / dy;
+        if (t < 0f || t > 1f) {
+            return false; // outside segment
+        }
+        float ix = _start.x + t*dx;
+        return ix >= min.x && ix <= max.x;
+    }
+
+    /**
+     * Helper method for {@link #getIntersectionType}.  Determines whether the capsule intersects
+     * the rectangle on the left side.
+     */
+    protected boolean intersectsTop (Rect rect, float dx, float dy)
+    {
+        Vector2f min = rect.getMinimumExtent(), max = rect.getMaximumExtent();
+        float top = max.y + radius;
+        if (_start.y <= top) {
+            return _start.x >= min.x && _start.x <= max.x; // starts inside
+        }
+        if (Math.abs(dy) < FloatMath.EPSILON) {
+            return false; // parallel to edge
+        }
+        float t = (top - _start.y) / dy;
+        if (t < 0f || t > 1f) {
+            return false; // outside segment
+        }
+        float ix = _start.x + t*dx;
+        return ix >= min.x && ix <= max.x;
     }
 
     /** The start and end vertices of the capsule. */

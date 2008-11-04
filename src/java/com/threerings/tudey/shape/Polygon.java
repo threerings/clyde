@@ -5,6 +5,7 @@ package com.threerings.tudey.shape;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -243,7 +244,40 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public boolean intersects (Capsule capsule)
     {
-        return false;
+        // find the first edge that the origin is outside
+        Vector2f origin = capsule.getStart(), terminus = capsule.getEnd();
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+            float d = a*origin.x + b*origin.y - a*start.x - b*start.y;
+            if (d >= 0f) {
+                continue;
+            }
+            // check against the edge itself
+            if (intersects(start, end, capsule.radius, origin, terminus)) {
+                return true;
+            }
+            // now classify with respect to the adjacent edges
+            Vector2f previous = _vertices[(ii + _vertices.length - 1) % _vertices.length];
+            a = previous.y - start.y;
+            b = start.x - previous.x;
+            if (a*origin.x + b*origin.y <= a*previous.x + b*previous.y) {
+                // left: check against previous edge
+                return intersects(previous, start, capsule.radius, origin, terminus);
+            }
+            Vector2f next = _vertices[(ii + 2) % _vertices.length];
+            a = end.y - next.y;
+            b = next.x - end.x;
+            if (a*origin.x + b*origin.y > a*end.x + b*end.y) {
+                // middle: no dice
+                return false;
+            } else {
+                // right: check against next edge
+                return intersects(end, next, capsule.radius, origin, terminus);
+            }
+        }
+        return true; // origin is inside all edges
     }
 
     @Override // documentation inherited

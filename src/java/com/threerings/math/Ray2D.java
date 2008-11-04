@@ -176,7 +176,7 @@ public final class Ray2D
 
         // find out where the origin lies with respect to the top and bottom
         float dist = a*_origin.x + b*_origin.y + c;
-        boolean above = (dist > radius), below = (dist < -radius);
+        boolean above = (dist > +radius), below = (dist < -radius);
         float x, y;
         if (above || below) { // check the intersection with the top/bottom boundary
             float divisor = a*_direction.x + b*_direction.y;
