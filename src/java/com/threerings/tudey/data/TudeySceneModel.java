@@ -476,7 +476,7 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference<PathConfig> path;
 
         /** The path vertices. */
-        @Editable(editor="table")
+        @Editable
         public Vertex[] vertices = new Vertex[0];
 
         /**
@@ -527,7 +527,12 @@ public class TudeySceneModel extends SceneModel
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
             Shape shape = createShape();
-            return (shape == null) ? null : new ShapeElement(shape);
+            if (shape == null) {
+                return null;
+            }
+            ShapeElement element = new ShapeElement(shape);
+            element.setUserObject(this);
+            return element;
         }
 
         @Override // documentation inherited
@@ -565,7 +570,7 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference<AreaConfig> area;
 
         /** The area vertices. */
-        @Editable(editor="table")
+        @Editable
         public Vertex[] vertices = new Vertex[0];
 
         /**
@@ -624,7 +629,12 @@ public class TudeySceneModel extends SceneModel
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
             Shape shape = createShape();
-            return (shape == null) ? null : new ShapeElement(shape);
+            if (shape == null) {
+                return null;
+            }
+            ShapeElement element = new ShapeElement(shape);
+            element.setUserObject(this);
+            return element;
         }
 
         @Override // documentation inherited
@@ -668,8 +678,8 @@ public class TudeySceneModel extends SceneModel
         implements Exportable
     {
         /** The vertex coordinates. */
-        @Editable(column=true)
-        public float x, y;
+        @Editable(step=0.01, hgroup="c")
+        public float x, y, z;
 
         /**
          * Creates a vector from this vertex.
@@ -684,9 +694,10 @@ public class TudeySceneModel extends SceneModel
          */
         public void transform (Matrix4f matrix)
         {
-            float ox = x, oy = y;
-            x = ox*matrix.m00 + oy*matrix.m10 + matrix.m30;
-            y = ox*matrix.m01 + oy*matrix.m11 + matrix.m31;
+            float ox = x, oy = y, oz = z;
+            x = ox*matrix.m00 + oy*matrix.m10 + oz*matrix.m20 + matrix.m30;
+            y = ox*matrix.m01 + oy*matrix.m11 + oz*matrix.m21 + matrix.m31;
+            z = ox*matrix.m02 + oy*matrix.m12 + oz*matrix.m22 + matrix.m32;
         }
     }
 

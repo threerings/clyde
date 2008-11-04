@@ -62,9 +62,10 @@ public class Static extends Model.Implementation
     {
         // update the world transform
         if (_parentWorldTransform == null) {
-            return;
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
         }
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // and the world bounds
         _meshes.bounds.transform(_worldTransform, _nbounds);

@@ -11,7 +11,6 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
@@ -83,7 +82,7 @@ public class TileSprite extends EntrySprite
             boolean selected = ((TileSprite)_parentScope).isSelected();
             if (selected && _footprint == null) {
                 _footprint = new RectangleElement(_ctx, true);
-                _footprint.getColor().set(Color4f.GRAY);
+                _footprint.getColor().set(SELECTED_COLOR);
                 _scene.add(_footprint);
             } else if (!selected && _footprint != null) {
                 _scene.remove(_footprint);

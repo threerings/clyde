@@ -12,7 +12,6 @@ import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
@@ -83,7 +82,7 @@ public class PlaceableSprite extends EntrySprite
             boolean selected = ((PlaceableSprite)_parentScope).isSelected();
             if (selected && _footprint == null) {
                 _footprint = new ShapeConfigElement(_ctx);
-                _footprint.getColor().set(Color4f.GRAY);
+                _footprint.getColor().set(SELECTED_COLOR);
                 _footprint.setConfig(config.shape, true);
                 _scene.add(_footprint);
             } else if (!selected && _footprint != null) {
