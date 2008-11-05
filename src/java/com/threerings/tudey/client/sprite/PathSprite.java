@@ -14,7 +14,6 @@ import com.threerings.math.Quaternion;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
@@ -100,36 +99,17 @@ public class PathSprite extends EntrySprite
         @Override // documentation inherited
         public void update (PathEntry entry)
         {
-            // update the vertex and edge models
-            _vertices = maybeResize(_vertices, entry.vertices.length, VERTEX_MODEL);
-            float minz = Float.MAX_VALUE;
-            for (int ii = 0; ii < _vertices.length; ii++) {
-                Vertex vertex = entry.vertices[ii];
-                Model model = _vertices[ii];
-                model.getLocalTransform().getTranslation().set(vertex.x, vertex.y, vertex.z);
-                model.updateBounds();
-                minz = Math.min(minz, vertex.z);
-            }
-            _edges = maybeResize(_edges, _vertices.length - 1, EDGE_MODEL);
-            Vector3f translation = new Vector3f(), scale = new Vector3f(), vector = new Vector3f();
-            Quaternion rotation = new Quaternion();
-            for (int ii = 0; ii < _edges.length; ii++) {
-                Vertex v1 = entry.vertices[ii], v2 = entry.vertices[ii + 1];
-                vector.set(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
-                float length = vector.length();
-                if (length > FloatMath.EPSILON) {
-                    rotation.fromAnglesXZ(
-                        FloatMath.asin(vector.z / length),
-                        FloatMath.atan2(-vector.x, vector.y));
-                } else {
-                    rotation.set(Quaternion.IDENTITY);
-                }
-                Model model = _edges[ii];
-                model.getLocalTransform().set(
-                    translation.set(v1.x, v1.y, v1.z), rotation,
-                    scale.set(1f, length, 1f));
-                model.updateBounds();
-            }
+            // update the vertex models
+            _vertices = maybeResize(
+                _vertices, entry.vertices.length, _ctx, _scene,
+                VERTEX_MODEL, _colorState, _parentScope);
+            float minz = updateVertices(entry.vertices, _vertices);
+
+            // and the edge models
+            _edges = maybeResize(
+                _edges, entry.vertices.length - 1, _ctx, _scene,
+                EDGE_MODEL, _colorState, _parentScope);
+            updateEdges(entry.vertices, _edges);
 
             // update the footprint's elevation and shape
             if (_footprint != null) {
@@ -138,43 +118,12 @@ public class PathSprite extends EntrySprite
             }
         }
 
-        /**
-         * Resizes the specified array of models, adding models to or removing models from the
-         * scene as necessary.
-         *
-         * @param name the name of the model configuration to use.
-         * @return a new array, if resized; otherwise, a reference to the existing array.
-         */
-        protected Model[] maybeResize (Model[] omodels, int ncount, String name)
-        {
-            if (omodels.length == ncount) {
-                return omodels;
-            }
-            Model[] nmodels = new Model[ncount];
-            System.arraycopy(omodels, 0, nmodels, 0, Math.min(omodels.length, ncount));
-            for (int ii = omodels.length; ii < ncount; ii++) {
-                Model model = nmodels[ii] = new Model(_ctx);
-                model.setColorState(_colorState);
-                model.setUserObject(_parentScope);
-                _scene.add(model);
-                model.setConfig(name);
-            }
-            for (int ii = ncount; ii < omodels.length; ii++) {
-                _scene.remove(omodels[ii]);
-            }
-            return nmodels;
-        }
-
         @Override // documentation inherited
         public void dispose ()
         {
             super.dispose();
-            for (Model model : _vertices) {
-                _scene.remove(model);
-            }
-            for (Model model : _edges) {
-                _scene.remove(model);
-            }
+            _scene.removeAll(_vertices);
+            _scene.removeAll(_edges);
             if (_footprint != null) {
                 _scene.remove(_footprint);
             }
@@ -201,6 +150,82 @@ public class PathSprite extends EntrySprite
         /** The scene to which we add our models/footprint. */
         @Bound
         protected Scene _scene;
+    }
+
+    /** The name of the model to use to represent path and area vertices. */
+    public static final String VERTEX_MODEL = "editor/marker/vertex/model.dat";
+
+    /** The name of the model to use to represent path and area edges. */
+    public static final String EDGE_MODEL = "editor/marker/edge/model.dat";
+
+    /**
+     * Updates the supplied array of vertex models based on the vertex state.
+     *
+     * @return the minimum vertex z coordinate.
+     */
+    public static float updateVertices (Vertex[] vertices, Model[] models)
+    {
+        float minz = Float.MAX_VALUE;
+        for (int ii = 0; ii < models.length; ii++) {
+            Vertex vertex = vertices[ii];
+            Model model = models[ii];
+            model.getLocalTransform().getTranslation().set(vertex.x, vertex.y, vertex.z);
+            model.updateBounds();
+            minz = Math.min(minz, vertex.z);
+        }
+        return minz;
+    }
+
+    /**
+     * Updates the supplied array of edge models based on the vertex state.
+     */
+    public static void updateEdges (Vertex[] vertices, Model[] models)
+    {
+        Vector3f translation = new Vector3f(), scale = new Vector3f(), vector = new Vector3f();
+        Quaternion rotation = new Quaternion();
+        for (int ii = 0; ii < models.length; ii++) {
+            Vertex v1 = vertices[ii], v2 = vertices[(ii + 1) % vertices.length];
+            vector.set(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+            float length = vector.length();
+            if (length > FloatMath.EPSILON) {
+                rotation.fromAnglesXZ(
+                    FloatMath.asin(vector.z / length),
+                    FloatMath.atan2(-vector.x, vector.y));
+            } else {
+                rotation.set(Quaternion.IDENTITY);
+            }
+            Model model = models[ii];
+            model.getLocalTransform().set(
+                translation.set(v1.x, v1.y, v1.z), rotation,
+                scale.set(1f, length, 1f));
+            model.updateBounds();
+        }
+    }
+
+    /**
+     * Resizes the specified array of models if necessary, adding new models or removing
+     * models if necessary.
+     */
+    public static Model[] maybeResize (
+        Model[] omodels, int ncount, GlContext ctx, Scene scene,
+        String name, ColorState colorState, Object userObject)
+    {
+        if (omodels.length == ncount) {
+            return omodels;
+        }
+        Model[] nmodels = new Model[ncount];
+        System.arraycopy(omodels, 0, nmodels, 0, Math.min(omodels.length, ncount));
+        for (int ii = omodels.length; ii < ncount; ii++) {
+            Model model = nmodels[ii] = new Model(ctx);
+            model.setColorState(colorState);
+            model.setUserObject(userObject);
+            scene.add(model);
+            model.setConfig(name);
+        }
+        for (int ii = ncount; ii < omodels.length; ii++) {
+            scene.remove(omodels[ii]);
+        }
+        return nmodels;
     }
 
     /**

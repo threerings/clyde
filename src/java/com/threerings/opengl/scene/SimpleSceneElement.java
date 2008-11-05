@@ -8,6 +8,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.SimpleTransformable;
 
@@ -23,7 +24,43 @@ public abstract class SimpleSceneElement extends SimpleTransformable
      */
     public SimpleSceneElement (GlContext ctx)
     {
-        super(ctx);
+        this(ctx, RenderQueue.OPAQUE);
+    }
+
+    /**
+     * Creates a new simple scene element.
+     *
+     * @param queue the name of the queue into which we place the batch.
+     */
+    public SimpleSceneElement (GlContext ctx, String queue)
+    {
+        this(ctx, queue, 0);
+    }
+
+    /**
+     * Creates a new simple scene element.
+     *
+     * @param queue the name of the queue into which we place the batch.
+     * @param priority the priority level at which to enqueue the batch.
+     */
+    public SimpleSceneElement (GlContext ctx, String queue, int priority)
+    {
+        this(ctx, queue, priority, false, 0);
+    }
+
+    /**
+     * Creates a new simple scene element.
+     *
+     * @param queue the name of the queue into which we place the batch.
+     * @param priority the priority level at which to enqueue the batch.
+     * @param modifiesColorState if true, invalidate the color state after calling the
+     * {@link #draw} method.
+     * @param primitiveCount the primitive count to report to the renderer.
+     */
+    public SimpleSceneElement (
+        GlContext ctx, String queue, int priority, boolean modifiesColorState, int primitiveCount)
+    {
+        super(ctx, queue, priority, modifiesColorState, primitiveCount);
     }
 
     /**

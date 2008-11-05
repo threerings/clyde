@@ -53,10 +53,4 @@ public abstract class EntrySprite extends Sprite
 
     /** The color to use when rendering the footprints of selected sprites. */
     protected static final Color4f SELECTED_COLOR = Color4f.GRAY;
-
-    /** The name of the model to use to represent path and area vertices. */
-    protected static final String VERTEX_MODEL = "editor/marker/vertex/model.dat";
-
-    /** The name of the model to use to represent path and area edges. */
-    protected static final String EDGE_MODEL = "editor/marker/edge/model.dat";
 }

@@ -71,6 +71,16 @@ public abstract class Scene extends DynamicScope
     }
 
     /**
+     * Adds all of the specified elements to the scene.
+     */
+    public void addAll (SceneElement[] elements)
+    {
+        for (SceneElement element : elements) {
+            add(element);
+        }
+    }
+
+    /**
      * Adds an element to this scene.
      */
     public void add (SceneElement element)
@@ -89,6 +99,27 @@ public abstract class Scene extends DynamicScope
 
         // notify the element
         element.wasAdded(this);
+    }
+
+    /**
+     * Removes all of the specified elements from the scene.
+     */
+    public void removeAll (SceneElement[] elements)
+    {
+        removeAll(elements, true);
+    }
+
+    /**
+     * Removes all of the specified elements from the scene.
+     *
+     * @param clearParentScopes if true and the element is an instance of {@link DynamicScope},
+     * set the element's parent scope to <code>null</code>.
+     */
+    public void removeAll (SceneElement[] elements, boolean clearParentScopes)
+    {
+        for (SceneElement element : elements) {
+            remove(element, clearParentScopes);
+        }
     }
 
     /**

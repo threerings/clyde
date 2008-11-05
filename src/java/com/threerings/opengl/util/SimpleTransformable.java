@@ -4,6 +4,7 @@
 package com.threerings.opengl.util;
 
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.state.DepthState;
@@ -73,9 +74,12 @@ public abstract class SimpleTransformable extends SimpleRenderable
     {
         // update the transform state
         TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
-        _ctx.getCompositor().getCamera().getViewTransform().compose(
-            _transform, tstate.getModelview());
+        Transform3D modelview = tstate.getModelview();
+        _ctx.getCompositor().getCamera().getViewTransform().compose(_transform, modelview);
         tstate.setDirty(true);
+
+        // update the batch depth
+        _batch.depth = modelview.transformPointZ(getCenter());
 
         // queue up the batch
         super.enqueue();
@@ -94,6 +98,14 @@ public abstract class SimpleTransformable extends SimpleRenderable
      */
     protected SimpleTransformable ()
     {
+    }
+
+    /**
+     * Returns the transformable's model space center.
+     */
+    protected Vector3f getCenter ()
+    {
+        return Vector3f.ZERO;
     }
 
     /** The world space transform. */
