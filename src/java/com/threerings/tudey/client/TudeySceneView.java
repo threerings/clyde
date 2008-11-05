@@ -47,6 +47,14 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Returns a reference to the view scene.
+     */
+    public HashScene getScene ()
+    {
+        return _scene;
+    }
+
+    /**
      * Sets the scene model for this view.
      */
     public void setSceneModel (TudeySceneModel model)

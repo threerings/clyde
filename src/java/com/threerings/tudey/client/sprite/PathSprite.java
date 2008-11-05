@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.client.sprite;
 
+import com.samskivert.util.ListUtil;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
@@ -43,6 +45,24 @@ public class PathSprite extends EntrySprite
         public Implementation (Scope parentScope)
         {
             super(parentScope);
+        }
+
+        /**
+         * Returns the index of the specified model within the list of vertex models, or -1 if it
+         * is not a vertex.
+         */
+        public int getVertexIndex (Model model)
+        {
+            return -1;
+        }
+
+        /**
+         * Returns the index of the specified model within the list of edge models, or -1 if it is
+         * not an edge.
+         */
+        public int getEdgeIndex (Model model)
+        {
+            return -1;
         }
 
         /**
@@ -93,6 +113,18 @@ public class PathSprite extends EntrySprite
                 _scene.remove(_footprint);
                 _footprint = null;
             }
+        }
+
+        @Override // documentation inherited
+        public int getVertexIndex (Model model)
+        {
+            return ListUtil.indexOfRef(_vertices, model);
+        }
+
+        @Override // documentation inherited
+        public int getEdgeIndex (Model model)
+        {
+            return ListUtil.indexOfRef(_edges, model);
         }
 
         @Override // documentation inherited
@@ -231,6 +263,24 @@ public class PathSprite extends EntrySprite
     {
         super(ctx, view);
         update(entry);
+    }
+
+    /**
+     * Returns the index of the specified model within the list of vertex models, or -1 if it
+     * is not a vertex.
+     */
+    public int getVertexIndex (Model model)
+    {
+        return _impl.getVertexIndex(model);
+    }
+
+    /**
+     * Returns the index of the specified model within the list of edge models, or -1 if it is
+     * not an edge.
+     */
+    public int getEdgeIndex (Model model)
+    {
+        return _impl.getEdgeIndex(model);
     }
 
     // documentation inherited from interface ConfigUpdateListener

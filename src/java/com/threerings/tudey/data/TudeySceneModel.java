@@ -682,6 +682,16 @@ public class TudeySceneModel extends SceneModel
         public float x, y, z;
 
         /**
+         * Sets the coordinates of the vertex.
+         */
+        public void set (float x, float y, float z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        /**
          * Creates a vector from this vertex.
          */
         public Vector2f createVector ()
