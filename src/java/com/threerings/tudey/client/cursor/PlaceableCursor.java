@@ -14,7 +14,6 @@ import com.threerings.math.Transform2D;
 
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
@@ -99,7 +98,7 @@ public class PlaceableCursor extends EntryCursor
             _model.setColorState(new ColorState());
             _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
             _footprint = new ShapeConfigElement(ctx);
-            _footprint.getColor().set(Color4f.CYAN);
+            _footprint.getColor().set(FOOTPRINT_COLOR);
             setConfig(config);
         }
 

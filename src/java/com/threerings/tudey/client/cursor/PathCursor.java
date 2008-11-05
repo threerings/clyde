@@ -8,11 +8,17 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
+
+import com.threerings.opengl.compositor.RenderScheme;
+import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.sprite.PathSprite;
+import com.threerings.tudey.client.util.ShapeSceneElement;
 import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PathEntry;
@@ -84,6 +90,9 @@ public class PathCursor extends EntryCursor
         public Original (GlContext ctx, Scope parentScope, PathConfig.Original config)
         {
             super(parentScope);
+            _ctx = ctx;
+            _footprint = new ShapeSceneElement(ctx, true);
+            _footprint.getColor().set(FOOTPRINT_COLOR);
             setConfig(config);
         }
 
@@ -92,32 +101,96 @@ public class PathCursor extends EntryCursor
          */
         public void setConfig (PathConfig.Original config)
         {
-            _config = config;
+            // update the color state
+            _colorState.getColor().set(config.color).multLocal(0.5f);
         }
 
         @Override // documentation inherited
         public Shape getShape ()
         {
-            return _shape;
+            return _footprint.getShape();
         }
 
         @Override // documentation inherited
         public void update (PathEntry entry)
         {
-            _shape = entry.createShape();
+            // update the vertex models
+            _vertices = maybeResize(
+                _vertices, entry.vertices.length, _ctx, this,
+                PathSprite.VERTEX_MODEL, _colorState);
+            float minz = PathSprite.updateVertices(entry.vertices, _vertices);
+
+            // and the edge models
+            _edges = maybeResize(
+                _edges, entry.vertices.length - 1, _ctx, this,
+                PathSprite.EDGE_MODEL, _colorState);
+            PathSprite.updateEdges(entry.vertices, _edges);
+
+            // update the footprint's elevation and shape
+            _footprint.getTransform().getTranslation().z = minz;
+            _footprint.setShape(entry.createShape()); // this updates the bounds
         }
 
         @Override // documentation inherited
-        public void dispose ()
+        public void tick (float elapsed)
         {
-            super.dispose();
+            for (Model model : _vertices) {
+                model.tick(elapsed);
+            }
+            for (Model model : _edges) {
+                model.tick(elapsed);
+            }
         }
 
-        /** The path configuration. */
-        protected PathConfig.Original _config;
+        @Override // documentation inherited
+        public void enqueue ()
+        {
+            for (Model model : _vertices) {
+                model.enqueue();
+            }
+            for (Model model : _edges) {
+                model.enqueue();
+            }
+            _footprint.enqueue();
+        }
 
-        /** The path shape. */
-        protected Shape _shape;
+        /** The renderer context. */
+        protected GlContext _ctx;
+
+        /** The models representing the vertices. */
+        protected Model[] _vertices = new Model[0];
+
+        /** The models representing the edges. */
+        protected Model[] _edges = new Model[0];
+
+        /** The footprint. */
+        protected ShapeSceneElement _footprint;
+
+        /** The shared color state. */
+        protected ColorState _colorState = new ColorState();
+    }
+
+    /**
+     * Resizes the specified array of models if necessary, adding new models or removing
+     * models as required.
+     */
+    public static Model[] maybeResize (
+        Model[] omodels, int ncount, GlContext ctx, Scope parentScope,
+        String name, ColorState colorState)
+    {
+        if (omodels.length == ncount) {
+            return omodels;
+        }
+        Model[] nmodels = new Model[ncount];
+        System.arraycopy(omodels, 0, nmodels, 0, Math.min(omodels.length, ncount));
+        for (int ii = omodels.length; ii < ncount; ii++) {
+            Model model = nmodels[ii] = new Model(ctx);
+            model.setParentScope(parentScope);
+            model.setRenderScheme(RenderScheme.TRANSLUCENT);
+            model.setColorState(colorState);
+            model.setConfig(name);
+        }
+        return nmodels;
     }
 
     /**

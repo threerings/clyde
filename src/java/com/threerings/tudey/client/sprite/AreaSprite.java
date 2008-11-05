@@ -8,6 +8,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
@@ -78,8 +79,6 @@ public class AreaSprite extends EntrySprite
          */
         public void setConfig (AreaConfig.Original config)
         {
-            _config = config;
-
             // update the color state
             _colorState.getColor().set(config.color);
             _area.getColor().set(config.color).multLocal(0.5f);
@@ -136,9 +135,6 @@ public class AreaSprite extends EntrySprite
         /** The renderer context. */
         protected GlContext _ctx;
 
-        /** The area configuration. */
-        protected AreaConfig.Original _config;
-
         /** The models representing the vertices. */
         protected Model[] _vertices = new Model[0];
 
@@ -171,6 +167,14 @@ public class AreaSprite extends EntrySprite
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<AreaConfig> event)
     {
+        updateFromConfig();
+        _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
         updateFromConfig();
         _impl.update(_entry);
     }

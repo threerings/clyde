@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.client.cursor;
 
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -36,4 +37,7 @@ public abstract class EntryCursor extends Cursor
      * Updates the cursor with new entry state.
      */
     public abstract void update (Entry entry);
+
+    /** The color to use for footprints. */
+    protected static final Color4f FOOTPRINT_COLOR = Color4f.CYAN;
 }

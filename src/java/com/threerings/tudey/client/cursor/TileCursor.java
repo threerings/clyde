@@ -14,7 +14,6 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
@@ -101,7 +100,7 @@ public class TileCursor extends EntryCursor
             _model.getColorState().getColor().set(0.5f, 0.5f, 0.5f, 0.45f);
 
             _footprint = new RectangleElement(ctx, true);
-            _footprint.getColor().set(Color4f.CYAN);
+            _footprint.getColor().set(FOOTPRINT_COLOR);
             setConfig(config);
         }
 

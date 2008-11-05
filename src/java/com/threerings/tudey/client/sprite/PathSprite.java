@@ -8,6 +8,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
@@ -79,8 +80,6 @@ public class PathSprite extends EntrySprite
          */
         public void setConfig (PathConfig.Original config)
         {
-            _config = config;
-
             // update the color state
             _colorState.getColor().set(config.color);
 
@@ -131,9 +130,6 @@ public class PathSprite extends EntrySprite
 
         /** The renderer context. */
         protected GlContext _ctx;
-
-        /** The path configuration. */
-        protected PathConfig.Original _config;
 
         /** The models representing the vertices. */
         protected Model[] _vertices = new Model[0];
@@ -204,7 +200,7 @@ public class PathSprite extends EntrySprite
 
     /**
      * Resizes the specified array of models if necessary, adding new models or removing
-     * models if necessary.
+     * models as required.
      */
     public static Model[] maybeResize (
         Model[] omodels, int ncount, GlContext ctx, Scene scene,
@@ -240,6 +236,14 @@ public class PathSprite extends EntrySprite
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<PathConfig> event)
     {
+        updateFromConfig();
+        _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
         updateFromConfig();
         _impl.update(_entry);
     }
