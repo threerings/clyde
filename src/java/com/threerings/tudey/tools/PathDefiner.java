@@ -18,6 +18,8 @@ import com.threerings.opengl.scene.SceneElement;
 
 import com.threerings.tudey.client.sprite.PathSprite;
 import com.threerings.tudey.config.PathConfig;
+import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PathEntry;
 import com.threerings.tudey.data.TudeySceneModel.Vertex;
 
@@ -42,6 +44,13 @@ public class PathDefiner extends ConfigTool<PathConfig>
         if (_entry != null) {
             release();
         }
+    }
+
+    @Override // documentation inherited
+    public void sceneChanged (TudeySceneModel scene)
+    {
+        super.sceneChanged(scene);
+        _entry = null;
     }
 
     @Override // documentation inherited
@@ -117,6 +126,22 @@ public class PathDefiner extends ConfigTool<PathConfig>
         _entry = (PathEntry)_entry.clone();
         setMouseLocation(_entry.vertices[_idx]);
         _editor.updateEntry(_entry);
+    }
+
+    @Override // documentation inherited
+    public void entryUpdated (Entry oentry, Entry nentry)
+    {
+        if (_entry != null && _entry.getKey().equals(oentry.getKey()) && _entry != nentry) {
+            _entry = null;
+        }
+    }
+
+    @Override // documentation inherited
+    public void entryRemoved (Entry oentry)
+    {
+        if (_entry != null && _entry.getKey().equals(oentry.getKey())) {
+            _entry = null;
+        }
     }
 
     /**
