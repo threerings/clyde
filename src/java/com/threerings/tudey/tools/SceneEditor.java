@@ -841,7 +841,7 @@ public class SceneEditor extends GlCanvasTool
         super.didInit();
 
         // create the scene view
-        _view = new TudeySceneView(this, this);
+        _view = new TudeySceneView(this);
 
         // initialize the tools
         for (EditorTool tool : _tools.values()) {

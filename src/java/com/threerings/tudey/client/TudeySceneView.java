@@ -5,6 +5,9 @@ package com.threerings.tudey.client;
 
 import java.util.HashMap;
 
+import com.threerings.crowd.client.PlaceView;
+import com.threerings.crowd.data.PlaceObject;
+
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
@@ -33,14 +36,14 @@ import static com.threerings.tudey.Log.*;
  * Displays a view of a Tudey scene.
  */
 public class TudeySceneView extends SimpleScope
-    implements TudeySceneModel.Observer
+    implements PlaceView, TudeySceneModel.Observer
 {
     /**
      * Creates a new scene view.
      */
-    public TudeySceneView (GlContext ctx, Scope parentScope)
+    public TudeySceneView (GlContext ctx)
     {
-        super(parentScope);
+        super(ctx.getScope());
         _ctx = ctx;
         _scene = new HashScene(ctx, 64f, 6);
         _scene.setParentScope(this);
@@ -112,6 +115,16 @@ public class TudeySceneView extends SimpleScope
             }
         });
         return (el == null) ? null : (Sprite)el.getUserObject();
+    }
+
+    // documentation inherited from interface PlaceView
+    public void willEnterPlace (PlaceObject plobj)
+    {
+    }
+
+    // documentation inherited from interface PlaceView
+    public void didLeavePlace (PlaceObject plobj)
+    {
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
