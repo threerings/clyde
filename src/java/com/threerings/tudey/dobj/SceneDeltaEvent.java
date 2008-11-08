@@ -25,21 +25,26 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, Actor[] addedActors, int[] removedActorIds, Effect[] effects)
+        int targetOid, int sceneOid, int timestamp, Actor[] addedActors,
+        ActorDelta[] updatedActorDeltas, int[] removedActorIds, Effect[] effects)
     {
-        this(targetOid, sceneOid, addedActors, removedActorIds, effects, Transport.DEFAULT);
+        this(targetOid, sceneOid, timestamp, addedActors, updatedActorDeltas,
+            removedActorIds, effects, Transport.DEFAULT);
     }
 
     /**
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, Actor[] addedActors, int[] removedActorIds,
-        Effect[] effects, Transport transport)
+        int targetOid, int sceneOid, int timestamp, Actor[] addedActors,
+        ActorDelta[] updatedActorDeltas, int[] removedActorIds, Effect[] effects,
+        Transport transport)
     {
         super(targetOid, transport);
         _sceneOid = sceneOid;
+        _timestamp = timestamp;
         _addedActors = addedActors;
+        _updatedActorDeltas = updatedActorDeltas;
         _removedActorIds = removedActorIds;
         _effects = effects;
     }
@@ -60,12 +65,29 @@ public class SceneDeltaEvent extends DEvent
     }
 
     /**
+     * Returns the timestamp of the delta.
+     */
+    public long getTimestamp ()
+    {
+        return _timestamp;
+    }
+
+    /**
      * Returns the array of actors added to the scene since the last delta, or <code>null</code>
      * for none.
      */
     public Actor[] getAddedActors ()
     {
         return _addedActors;
+    }
+
+    /**
+     * Returns the array of deltas for actors updated since the last delta, or <code>null</code>
+     * for none.
+     */
+    public ActorDelta[] getUpdatedActorDeltas ()
+    {
+        return _updatedActorDeltas;
     }
 
     /**
@@ -89,8 +111,7 @@ public class SceneDeltaEvent extends DEvent
     public boolean applyToObject (DObject target)
         throws ObjectAccessException
     {
-        // nothing to do here
-        return true;
+        return true; // nothing to do here
     }
 
     @Override // documentation inherited
@@ -107,7 +128,9 @@ public class SceneDeltaEvent extends DEvent
         buf.append("DELTA:");
         super.toString(buf);
         buf.append(", sceneOid=").append(_sceneOid);
+        buf.append(", timestamp=").append(_timestamp);
         buf.append(", addedActors=").append(StringUtil.toString(_addedActors));
+        buf.append(", updatedActorDeltas=").append(StringUtil.toString(_updatedActorDeltas));
         buf.append(", removedActorIds=").append(StringUtil.toString(_removedActorIds));
         buf.append(", effects=").append(StringUtil.toString(_effects));
     }
@@ -115,8 +138,14 @@ public class SceneDeltaEvent extends DEvent
     /** The oid of the scene to which this event applies. */
     protected int _sceneOid;
 
+    /** The timestamp of the delta. */
+    protected long _timestamp;
+
     /** The actors added to the scene since the last delta (or <code>null</code>). */
     protected Actor[] _addedActors;
+
+    /** The deltas of any actors updated since the last delta (or <code>null</code). */
+    protected ActorDelta[] _updatedActorDeltas;
 
     /** The ids of the actors removed since the last delta (or <code>null</code>). */
     protected int[] _removedActorIds;
