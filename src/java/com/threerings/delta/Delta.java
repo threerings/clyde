@@ -3,11 +3,16 @@
 
 package com.threerings.delta;
 
+import java.io.IOException;
+
 import java.lang.reflect.Method;
 
 import java.util.HashMap;
 
+import com.google.common.collect.Maps;
+
 import com.threerings.io.Streamable;
+import com.threerings.io.Streamer;
 
 /**
  * Represents a set of changes that may be applied to an existing object to create a new object
@@ -49,12 +54,17 @@ public abstract class Delta
                 return new ReflectiveDelta(original, revised);
             }
             try {
-                creator.invoke(original, revised);
+                return (Delta)creator.invoke(original, revised);
             } catch (Exception e) {
                 throw new RuntimeException("Error invoking custom delta method " + creator, e);
             }
         }
-        return null;
+        Class clazz = original.getClass();
+        if (clazz.isArray()) {
+            return new ArrayDelta(original, revised);
+        } else {
+            throw new RuntimeException("Cannot create delta for " + clazz);
+        }
     }
 
     /**
@@ -76,4 +86,32 @@ public abstract class Delta
             // won't happen
         }
     }
+
+    /** Streamer for raw class references. */
+    protected static Streamer _classStreamer;
+
+    /** Maps primitive types to {@link Streamer} instances for corresponding wrappers. */
+    protected static HashMap<Class, Streamer> _wrapperStreamers = Maps.newHashMap();
+    static {
+        try {
+            _classStreamer = Streamer.getStreamer(Class.class);
+            _wrapperStreamers.put(Boolean.TYPE, Streamer.getStreamer(Boolean.class));
+            _wrapperStreamers.put(Byte.TYPE, Streamer.getStreamer(Byte.class));
+            _wrapperStreamers.put(Character.TYPE, Streamer.getStreamer(Character.class));
+            _wrapperStreamers.put(Double.TYPE, Streamer.getStreamer(Double.class));
+            _wrapperStreamers.put(Float.TYPE, Streamer.getStreamer(Float.class));
+            _wrapperStreamers.put(Integer.TYPE, Streamer.getStreamer(Integer.class));
+            _wrapperStreamers.put(Long.TYPE, Streamer.getStreamer(Long.class));
+            _wrapperStreamers.put(Short.TYPE, Streamer.getStreamer(Short.class));
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initialize ReflectiveDelta class", e);
+        }
+    }
+
+    /** A special value indicating that the field has been changed to <code>null</code>. */
+    protected static final Object NULL = new Object() {
+        public String toString () {
+            return "null";
+        }
+    };
 }

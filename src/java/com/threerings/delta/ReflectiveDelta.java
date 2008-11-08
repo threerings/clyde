@@ -14,6 +14,7 @@ import java.util.HashMap;
 
 import com.google.common.collect.Maps;
 
+import com.threerings.io.ArrayMask;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.Streamer;
@@ -64,6 +65,71 @@ public class ReflectiveDelta extends Delta
     {
     }
 
+    /**
+     * Custom write method.
+     */
+    public void writeObject (ObjectOutputStream out)
+        throws IOException
+    {
+        // write the class reference
+        _classStreamer.writeObject(_clazz, out, true);
+
+        // write the bitmask indicating which fields are changed
+        ArrayMask mask = new ArrayMask(_values.length);
+        for (int ii = 0; ii < _values.length; ii++) {
+            if (_values[ii] != null) {
+                mask.set(ii);
+            }
+        }
+        mask.writeTo(out);
+
+        // write the changed fields
+        Field[] fields = getFields(_clazz);
+        for (int ii = 0; ii < _values.length; ii++) {
+            Object value = _values[ii];
+            if (value == null) {
+                continue;
+            }
+            Class type = fields[ii].getType();
+            if (type.isPrimitive()) {
+                out.writeBareObject(value);
+            } else {
+                out.writeObject(value == NULL ? null : value);
+            }
+        }
+    }
+
+    /**
+     * Custom read method.
+     */
+    public void readObject (ObjectInputStream in)
+        throws IOException, ClassNotFoundException
+    {
+        // read the class reference
+        _clazz = (Class)_classStreamer.createObject(in);
+
+        // read the bitmask
+        Field[] fields = getFields(_clazz);
+        ArrayMask mask = new ArrayMask(fields.length);
+        mask.readFrom(in);
+
+        // read the changed fields
+        _values = new Object[fields.length];
+        for (int ii = 0; ii < _values.length; ii++) {
+            if (!mask.isSet(ii)) {
+                continue;
+            }
+            Class type = fields[ii].getType();
+            if (type.isPrimitive()) {
+                Streamer streamer = _wrapperStreamers.get(type);
+                _values[ii] = streamer.createObject(in);
+            } else {
+                Object value = in.readObject();
+                _values[ii] = (value == null) ? NULL : value;
+            }
+        }
+    }
+
     @Override // documentation inherited
     public Object apply (Object original)
     {
@@ -105,79 +171,19 @@ public class ReflectiveDelta extends Delta
         return revised;
     }
 
-    /**
-     * Custom write method.
-     */
-    public void writeObject (ObjectOutputStream out)
-        throws IOException
+    @Override // documentation inherited
+    public String toString ()
     {
-        // write the class reference
-        _classStreamer.writeObject(_clazz, out, true);
-
-        // write the bitmask indicating which fields are changed
-        byte[] mask = new byte[getMaskLength()];
-        for (int ii = 0; ii < _values.length; ii++) {
-            if (_values[ii] != null) {
-                int idx = ii / 8, bit = 1 << (ii % 8);
-                mask[idx] |= bit;
-            }
-        }
-        out.write(mask, 0, mask.length);
-
-        // write the changed fields
+        StringBuilder buf = new StringBuilder();
+        buf.append("[class=" + _clazz.getName());
         Field[] fields = getFields(_clazz);
         for (int ii = 0; ii < _values.length; ii++) {
             Object value = _values[ii];
-            if (value == null) {
-                continue;
-            }
-            Class type = fields[ii].getType();
-            if (type.isPrimitive()) {
-                out.writeBareObject(value);
-            } else {
-                out.writeObject(value == NULL ? null : value);
+            if (value != null) {
+                buf.append(", " + fields[ii].getName() + "=" + value);
             }
         }
-    }
-
-    /**
-     * Custom read method.
-     */
-    public void readObject (ObjectInputStream in)
-        throws IOException, ClassNotFoundException
-    {
-        // read the class reference
-        _clazz = (Class)_classStreamer.createObject(in);
-
-        // read the bitmask
-        Field[] fields = getFields(_clazz);
-        _values = new Object[fields.length];
-        byte[] mask = new byte[getMaskLength()];
-        in.read(mask, 0, mask.length);
-
-        // read the changed fields
-        for (int ii = 0; ii < _values.length; ii++) {
-            int idx = ii / 8, bit = 1 << (ii % 8);
-            if ((mask[idx] & bit) == 0) {
-                continue;
-            }
-            Class type = fields[ii].getType();
-            if (type.isPrimitive()) {
-                Streamer streamer = _wrapperStreamers.get(type);
-                _values[ii] = streamer.createObject(in);
-            } else {
-                Object value = in.readObject();
-                _values[ii] = (value == null) ? NULL : value;
-            }
-        }
-    }
-
-    /**
-     * Returns the length of the bitmask as derived from the length of the values array.
-     */
-    protected int getMaskLength ()
-    {
-        return (_values.length / 8) + (_values.length % 8 == 0 ? 0 : 1);
+        return buf.append("]").toString();
     }
 
     /**
@@ -226,29 +232,5 @@ public class ReflectiveDelta extends Delta
     protected Object[] _values;
 
     /** Cached lists of non-transient fields for deltable classes. */
-    protected static HashMap<Class, Field[]> _fields = new HashMap<Class, Field[]>();
-
-    /** Streamer for raw class references. */
-    protected static Streamer _classStreamer;
-
-    /** Maps primitive types to {@link Streamer} instances for corresponding wrappers. */
-    protected static HashMap<Class, Streamer> _wrapperStreamers = Maps.newHashMap();
-    static {
-        try {
-            _classStreamer = Streamer.getStreamer(Class.class);
-            _wrapperStreamers.put(Boolean.TYPE, Streamer.getStreamer(Boolean.class));
-            _wrapperStreamers.put(Byte.TYPE, Streamer.getStreamer(Byte.class));
-            _wrapperStreamers.put(Character.TYPE, Streamer.getStreamer(Character.class));
-            _wrapperStreamers.put(Double.TYPE, Streamer.getStreamer(Double.class));
-            _wrapperStreamers.put(Float.TYPE, Streamer.getStreamer(Float.class));
-            _wrapperStreamers.put(Integer.TYPE, Streamer.getStreamer(Integer.class));
-            _wrapperStreamers.put(Long.TYPE, Streamer.getStreamer(Long.class));
-            _wrapperStreamers.put(Short.TYPE, Streamer.getStreamer(Short.class));
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to initialize ReflectiveDelta class", e);
-        }
-    }
-
-    /** A special value indicating that the field has been changed to <code>null</code>. */
-    protected static final Object NULL = new Object() {};
+    protected static HashMap<Class, Field[]> _fields = Maps.newHashMap();
 }
