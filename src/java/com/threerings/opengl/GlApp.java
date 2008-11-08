@@ -43,7 +43,7 @@ import com.threerings.opengl.util.TextureCache;
  * A base class for OpenGL-based applications.
  */
 public abstract class GlApp extends DynamicScope
-    implements GlContext, EditorContext, RunQueue
+    implements GlContext, EditorContext
 {
     public GlApp ()
     {
@@ -54,7 +54,7 @@ public abstract class GlApp extends DynamicScope
         _msgmgr = new MessageManager("rsrc.i18n");
         _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
         _colorpos = ColorPository.loadColorPository(_rsrcmgr);
-        _soundmgr = SoundManager.createSoundManager(this);
+        _soundmgr = SoundManager.createSoundManager(RunQueue.AWT);
         _clipprov = new ResourceClipProvider(_rsrcmgr);
         _imgcache = new ImageCache(this, shouldCheckTimestamps());
         _texcache = new TextureCache(this);

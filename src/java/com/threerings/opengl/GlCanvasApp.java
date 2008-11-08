@@ -5,7 +5,6 @@ package com.threerings.opengl;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
@@ -111,19 +110,6 @@ public abstract class GlCanvasApp extends GlApp
     public void makeCurrent ()
     {
         _canvas.makeCurrent();
-    }
-
-    // documentation inherited from interface RunQueue
-    public void postRunnable (Runnable run)
-    {
-        // queue it on up on the awt thread
-        EventQueue.invokeLater(run);
-    }
-
-    // documentation inherited from interface RunQueue
-    public boolean isDispatchThread ()
-    {
-        return EventQueue.isDispatchThread();
     }
 
     @Override // documentation inherited
