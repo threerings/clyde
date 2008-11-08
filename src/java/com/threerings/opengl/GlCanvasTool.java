@@ -16,6 +16,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import com.samskivert.util.Interval;
+import com.samskivert.util.RunQueue;
 
 import com.threerings.math.Vector3f;
 
@@ -249,7 +250,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
             super(prefs);
 
             // initialize the refresh interval
-            _refreshInterval = new Interval(GlCanvasTool.this) {
+            _refreshInterval = new Interval(RunQueue.AWT) {
                 public void expired () {
                     _rsrcmgr.checkForModifications();
                 }
