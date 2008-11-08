@@ -54,7 +54,7 @@ public abstract class GlApp extends DynamicScope
         _msgmgr = new MessageManager("rsrc.i18n");
         _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
         _colorpos = ColorPository.loadColorPository(_rsrcmgr);
-        _soundmgr = SoundManager.createSoundManager(RunQueue.AWT);
+        _soundmgr = SoundManager.createSoundManager(getRunQueue());
         _clipprov = new ResourceClipProvider(_rsrcmgr);
         _imgcache = new ImageCache(this, shouldCheckTimestamps());
         _texcache = new TextureCache(this);
@@ -65,6 +65,11 @@ public abstract class GlApp extends DynamicScope
         // initialize our scoped fields
         _viewTransform = _compositor.getCamera().getViewTransform();
     }
+
+    /**
+     * Returns a reference to the application's run queue.
+     */
+    public abstract RunQueue getRunQueue ();
 
     /**
      * Returns a reference to the application's camera handler.

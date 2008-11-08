@@ -19,6 +19,7 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.samskivert.swing.util.SwingUtil;
+import com.samskivert.util.RunQueue;
 
 import com.threerings.media.ManagedJFrame;
 import com.threerings.util.KeyboardManager;
@@ -110,6 +111,12 @@ public abstract class GlCanvasApp extends GlApp
     public void makeCurrent ()
     {
         _canvas.makeCurrent();
+    }
+
+    @Override // documentation inherited
+    public RunQueue getRunQueue ()
+    {
+        return RunQueue.AWT;
     }
 
     @Override // documentation inherited

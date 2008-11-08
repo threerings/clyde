@@ -9,6 +9,7 @@ import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.samskivert.util.Queue;
+import com.samskivert.util.RunQueue;
 
 import com.threerings.opengl.gui.Root;
 
@@ -18,6 +19,7 @@ import static com.threerings.opengl.Log.*;
  * A base class for applications that use LWJGL's {@link Display} class.
  */
 public abstract class GlDisplayApp extends GlApp
+    implements RunQueue
 {
     public GlDisplayApp ()
     {
@@ -85,6 +87,12 @@ public abstract class GlDisplayApp extends GlApp
     public boolean isDispatchThread ()
     {
         return Thread.currentThread() == _dispatchThread;
+    }
+
+    @Override // documentation inherited
+    public RunQueue getRunQueue ()
+    {
+        return this;
     }
 
     @Override // documentation inherited
