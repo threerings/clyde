@@ -14,7 +14,6 @@ import java.util.HashMap;
 
 import com.google.common.collect.Maps;
 
-import com.threerings.io.ArrayMask;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.Streamer;
@@ -35,7 +34,8 @@ public class ReflectiveDelta extends Delta
     {
         // compare the fields
         Field[] fields = getFields(_clazz = original.getClass());
-        _values = new Object[fields.length];
+        _mask = new BareArrayMask(fields.length);
+        ArrayList<Object> values = new ArrayList<Object>();
         Object[] oarray = new Object[1], narray = new Object[1];
         for (int ii = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
@@ -43,19 +43,20 @@ public class ReflectiveDelta extends Delta
                 Object ovalue = oarray[0] = field.get(original);
                 Object nvalue = narray[0] = field.get(revised);
                 if (Arrays.deepEquals(oarray, narray)) {
-                    continue; // leave as null to indicate no change
-                } else if (nvalue == null) {
-                    nvalue = NULL;
-                } else if (Delta.checkDeltable(ovalue, nvalue)) {
+                    continue; // no change
+                }
+                if (Delta.checkDeltable(ovalue, nvalue)) {
                     nvalue = Delta.createDelta(ovalue, nvalue);
                 }
-                _values[ii] = nvalue;
+                _mask.set(ii);
+                values.add(nvalue);
 
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Failed to access " + field +
                     " for delta computation", e);
             }
         }
+        _values = values.toArray(new Object[values.size()]);
     }
 
     /**
@@ -75,26 +76,20 @@ public class ReflectiveDelta extends Delta
         _classStreamer.writeObject(_clazz, out, true);
 
         // write the bitmask indicating which fields are changed
-        ArrayMask mask = new ArrayMask(_values.length);
-        for (int ii = 0; ii < _values.length; ii++) {
-            if (_values[ii] != null) {
-                mask.set(ii);
-            }
-        }
-        mask.writeTo(out);
+        _mask.writeTo(out);
 
         // write the changed fields
         Field[] fields = getFields(_clazz);
-        for (int ii = 0; ii < _values.length; ii++) {
-            Object value = _values[ii];
-            if (value == null) {
+        for (int ii = 0, idx = 0; ii < fields.length; ii++) {
+            if (!_mask.isSet(ii)) {
                 continue;
             }
             Class type = fields[ii].getType();
+            Object value = _values[idx++];
             if (type.isPrimitive()) {
                 out.writeBareObject(value);
             } else {
-                out.writeObject(value == NULL ? null : value);
+                out.writeObject(value);
             }
         }
     }
@@ -110,24 +105,24 @@ public class ReflectiveDelta extends Delta
 
         // read the bitmask
         Field[] fields = getFields(_clazz);
-        ArrayMask mask = new ArrayMask(fields.length);
-        mask.readFrom(in);
+        _mask = new BareArrayMask(fields.length);
+        _mask.readFrom(in);
 
         // read the changed fields
-        _values = new Object[fields.length];
-        for (int ii = 0; ii < _values.length; ii++) {
-            if (!mask.isSet(ii)) {
+        ArrayList<Object> values = new ArrayList<Object>();
+        for (int ii = 0; ii < fields.length; ii++) {
+            if (!_mask.isSet(ii)) {
                 continue;
             }
             Class type = fields[ii].getType();
             if (type.isPrimitive()) {
                 Streamer streamer = _wrapperStreamers.get(type);
-                _values[ii] = streamer.createObject(in);
+                values.add(streamer.createObject(in));
             } else {
-                Object value = in.readObject();
-                _values[ii] = (value == null) ? NULL : value;
+                values.add(in.readObject());
             }
         }
+        _values = values.toArray(new Object[values.size()]);
     }
 
     @Override // documentation inherited
@@ -150,16 +145,17 @@ public class ReflectiveDelta extends Delta
 
         // set the fields
         Field[] fields = getFields(_clazz);
-        for (int ii = 0; ii < fields.length; ii++) {
+        for (int ii = 0, idx = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
-            Object value = _values[ii];
             try {
-                if (value == null) {
+                Object value;
+                if (_mask.isSet(ii)) {
+                    value = _values[idx++];
+                    if (value instanceof Delta) {
+                        value = ((Delta)value).apply(field.get(original));
+                    }
+                } else {
                     value = field.get(original);
-                } else if (value == NULL) {
-                    value = null;
-                } else if (value instanceof Delta) {
-                    value = ((Delta)value).apply(field.get(original));
                 }
                 field.set(revised, value);
 
@@ -177,10 +173,9 @@ public class ReflectiveDelta extends Delta
         StringBuilder buf = new StringBuilder();
         buf.append("[class=" + _clazz.getName());
         Field[] fields = getFields(_clazz);
-        for (int ii = 0; ii < _values.length; ii++) {
-            Object value = _values[ii];
-            if (value != null) {
-                buf.append(", " + fields[ii].getName() + "=" + value);
+        for (int ii = 0, idx = 0; ii < fields.length; ii++) {
+            if (_mask.isSet(ii)) {
+                buf.append(", " + fields[ii].getName() + "=" + _values[idx++]);
             }
         }
         return buf.append("]").toString();
@@ -225,10 +220,11 @@ public class ReflectiveDelta extends Delta
     /** The object class. */
     protected Class _clazz;
 
-    /** The values for each of the object's fields.  Each entry may be <code>null</code> to
-     * indicate that the entry hasn't changed, a {@link Delta} to apply to the original
-     * field value, the special {@link #NULL} value to indicate that the field has become
-     * <code>null</code>, or a new value for the field. */
+    /** The mask indicating which fields have changed. */
+    protected BareArrayMask _mask;
+
+    /** The values for each of the object's changed fields (either a new value or a {@link Delta}
+     * object). */
     protected Object[] _values;
 
     /** Cached lists of non-transient fields for deltable classes. */

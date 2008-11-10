@@ -24,12 +24,13 @@ public abstract class Delta
 {
     /**
      * Determines whether it is possible to create a {@link Delta} converting the original
-     * object to the revised object (both non-<code>null</code>).
+     * object to the revised object.
      */
     public static boolean checkDeltable (Object original, Object revised)
     {
-        Class clazz = original.getClass();
-        return revised.getClass() == clazz && (original instanceof Deltable || clazz.isArray());
+        Class oclazz = (original == null) ? null : original.getClass();
+        Class rclazz = (revised == null) ? null : revised.getClass();
+        return oclazz == rclazz && (original instanceof Deltable || oclazz.isArray());
     }
 
     /**
@@ -107,11 +108,4 @@ public abstract class Delta
             throw new RuntimeException("Failed to initialize ReflectiveDelta class", e);
         }
     }
-
-    /** A special value indicating that the field has been changed to <code>null</code>. */
-    protected static final Object NULL = new Object() {
-        public String toString () {
-            return "null";
-        }
-    };
 }
