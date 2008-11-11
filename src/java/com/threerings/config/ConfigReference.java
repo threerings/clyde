@@ -3,6 +3,8 @@
 
 package com.threerings.config;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -10,7 +12,7 @@ import com.threerings.util.DeepObject;
  * A reference to a configuration that can be embedded in, for example, other configurations.
  */
 public class ConfigReference<T extends ManagedConfig> extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Creates a new reference to the named configuration.

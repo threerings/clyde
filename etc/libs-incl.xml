@@ -6,6 +6,7 @@
     <include name="commons-collections.jar"/>
     <include name="commons-digester.jar"/>
     <include name="commons-io.jar"/>
+    <include name="commons-lang.jar"/>
     <include name="google-collect.jar"/>
     <include name="guice.jar"/>
     <include name="junit4.jar"/>

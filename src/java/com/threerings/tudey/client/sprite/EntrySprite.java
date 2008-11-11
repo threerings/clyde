@@ -10,7 +10,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 
 /**
- * Represents a placeable object.
+ * Represents a scene entry.
  */
 public abstract class EntrySprite extends Sprite
 {
