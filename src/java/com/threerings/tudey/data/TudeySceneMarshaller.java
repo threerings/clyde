@@ -17,13 +17,13 @@ import com.threerings.tudey.client.TudeySceneService;
 public class TudeySceneMarshaller extends InvocationMarshaller
     implements TudeySceneService
 {
-    /** The method id used to dispatch {@link #processInput} requests. */
-    public static final int PROCESS_INPUT = 1;
+    /** The method id used to dispatch {@link #enqueueInput} requests. */
+    public static final int ENQUEUE_INPUT = 1;
 
     // from interface TudeySceneService
-    public void processInput (Client arg1, long arg2, InputFrame[] arg3)
+    public void enqueueInput (Client arg1, long arg2, InputFrame[] arg3)
     {
-        sendRequest(arg1, PROCESS_INPUT, new Object[] {
+        sendRequest(arg1, ENQUEUE_INPUT, new Object[] {
             Long.valueOf(arg2), arg3
         }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
     }

@@ -16,10 +16,10 @@ import com.threerings.tudey.data.InputFrame;
 public interface TudeySceneService extends InvocationService
 {
     /**
-     * Processes a batch of input frames recorded on the client.
+     * Requests to enqueue a batch of input frames recorded on the client.
      *
      * @param acknowledge the timestamp of the last delta received by the client.
      */
     @TransportHint(type=Transport.Type.UNRELIABLE_UNORDERED)
-    public void processInput (Client client, long acknowledge, InputFrame[] frames);
+    public void enqueueInput (Client client, long acknowledge, InputFrame[] frames);
 }

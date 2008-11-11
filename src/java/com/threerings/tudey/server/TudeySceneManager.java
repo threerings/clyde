@@ -21,6 +21,8 @@ import com.threerings.tudey.data.Effect;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeySceneObject;
 
+import static com.threerings.tudey.Log.*;
+
 /**
  * Manager for Tudey scenes.
  */
@@ -57,8 +59,16 @@ public class TudeySceneManager extends SceneManager
     }
 
     // documentation inherited from interface TudeySceneProvider
-    public void processInput (ClientObject caller, long acknowledge, InputFrame[] frames)
+    public void enqueueInput (ClientObject caller, long acknowledge, InputFrame[] frames)
     {
+        // forward to client liaison
+        ClientLiaison client = _clients.get(caller.getOid());
+        if (client != null) {
+            client.enqueueInput(acknowledge, frames);
+        } else {
+            log.warning("Received input from unknown client.",
+                "who", caller.who(), "where", where());
+        }
     }
 
     @Override // documentation inherited

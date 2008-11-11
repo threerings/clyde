@@ -24,10 +24,10 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, long timestamp, AddedActor[] addedActors,
+        int targetOid, int sceneOid, long acknowledge, long timestamp, AddedActor[] addedActors,
         ActorDelta[] updatedActors, RemovedActor[] removedActors, Effect[] effects)
     {
-        this(targetOid, sceneOid, timestamp, addedActors, updatedActors,
+        this(targetOid, sceneOid, acknowledge, timestamp, addedActors, updatedActors,
             removedActors, effects, Transport.DEFAULT);
     }
 
@@ -35,12 +35,13 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, long timestamp, AddedActor[] addedActors,
+        int targetOid, int sceneOid, long acknowledge, long timestamp, AddedActor[] addedActors,
         ActorDelta[] updatedActors, RemovedActor[] removedActors, Effect[] effects,
         Transport transport)
     {
         super(targetOid, transport);
         _sceneOid = sceneOid;
+        _acknowledge = acknowledge;
         _timestamp = timestamp;
         _addedActors = addedActors;
         _updatedActors = updatedActors;
@@ -61,6 +62,14 @@ public class SceneDeltaEvent extends DEvent
     public int getSceneOid ()
     {
         return _sceneOid;
+    }
+
+    /**
+     * Returns the timestamp of the last input frame received by the server.
+     */
+    public long getAcknowledge ()
+    {
+        return _acknowledge;
     }
 
     /**
@@ -127,6 +136,7 @@ public class SceneDeltaEvent extends DEvent
         buf.append("DELTA:");
         super.toString(buf);
         buf.append(", sceneOid=").append(_sceneOid);
+        buf.append(", acknowledge=").append(_acknowledge);
         buf.append(", timestamp=").append(_timestamp);
         buf.append(", addedActors=").append(StringUtil.toString(_addedActors));
         buf.append(", updatedActors=").append(StringUtil.toString(_updatedActors));
@@ -136,6 +146,9 @@ public class SceneDeltaEvent extends DEvent
 
     /** The oid of the scene to which this event applies. */
     protected int _sceneOid;
+
+    /** The timestamp of the latest input frame received by the server. */
+    protected long _acknowledge;
 
     /** The timestamp of the delta. */
     protected long _timestamp;

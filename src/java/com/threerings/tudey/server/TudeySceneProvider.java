@@ -14,7 +14,7 @@ import com.threerings.tudey.data.InputFrame;
 public interface TudeySceneProvider extends InvocationProvider
 {
     /**
-     * Handles a {@link TudeySceneService#processInput} request.
+     * Handles a {@link TudeySceneService#enqueueInput} request.
      */
-    void processInput (ClientObject caller, long arg1, InputFrame[] arg2);
+    void enqueueInput (ClientObject caller, long arg1, InputFrame[] arg2);
 }
