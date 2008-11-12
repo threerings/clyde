@@ -237,8 +237,8 @@ public class TilePainter
         HashMap<IntTuple, CoordSet> sets = new HashMap<IntTuple, CoordSet>();
         for (Coord coord : coords) {
             TileEntry entry = _scene.getTileEntry(coord.x, coord.y);
-            if (original.isFloor(entry, elevation)) {
-                continue; // if it's already floor, leave it alone
+            if (entry != null && !original.isEdge(entry, elevation)) {
+                continue; // if it's not blank or an edge tile, leave it alone
             }
             // classify the tile based on its surroundings
             int pattern = 0;

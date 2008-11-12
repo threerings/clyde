@@ -83,6 +83,19 @@ public class GroundConfig extends PaintableConfig
         }
 
         /**
+         * Checks whether the specified entry matches any edge case.
+         */
+        public boolean isEdge (TileEntry entry, int elevation)
+        {
+            for (Case caze : edgeCases) {
+                if (matchesAny(caze.tiles, entry, elevation)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
          * Determines the case and allowed rotations of the edge tile that matches the specified
          * pattern.
          */
