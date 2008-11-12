@@ -57,7 +57,11 @@ public abstract class PaintableConfig extends ParameterizedConfig
         {
             int rotations = 0;
             int[] patterns = getPatterns();
+            boolean[] orientations = getOrientations();
             for (int ii = 0; ii < 4; ii++) {
+                if (!orientations[ii]) {
+                    continue;
+                }
                 int mask = patterns[ii];
                 if ((pattern & mask) == mask) {
                     rotations |= (1 << ii);
@@ -75,6 +79,7 @@ public abstract class PaintableConfig extends ParameterizedConfig
                 tile.invalidate();
             }
             _patterns = null;
+            _orientations = null;
         }
 
         /**
@@ -93,9 +98,30 @@ public abstract class PaintableConfig extends ParameterizedConfig
             return _patterns;
         }
 
+        /**
+         * Gets the cached pattern orientations.
+         */
+        protected boolean[] getOrientations ()
+        {
+            if (_orientations == null) {
+                _orientations = new boolean[4];
+                for (Tile tile : tiles) {
+                    _orientations[0] |= tile.north;
+                    _orientations[1] |= tile.west;
+                    _orientations[2] |= tile.south;
+                    _orientations[3] |= tile.east;
+                }
+            }
+            return _orientations;
+        }
+
         /** Constraint patterns for each rotation. */
         @DeepOmit
         protected transient int[] _patterns;
+
+        /** For each orientation, whether or not there are any tiles that allow it. */
+        @DeepOmit
+        protected transient boolean[] _orientations;
     }
 
     /**
