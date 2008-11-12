@@ -101,7 +101,7 @@ import static com.threerings.tudey.Log.*;
 /**
  * The scene editor application.
  */
-public class SceneEditor extends GlCanvasTool
+public class SceneEditor extends TudeyTool
     implements EntryManipulator, TudeySceneModel.Observer,
         KeyObserver, MouseListener, ClipboardOwner
 {
@@ -121,7 +121,12 @@ public class SceneEditor extends GlCanvasTool
      * The program entry point.
      */
     public static void main (String[] args)
+        throws Exception
     {
+        // start up our local server
+        createServer();
+
+        // start up the scene editor app
         new SceneEditor(args.length > 0 ? args[0] : null).startup();
     }
 
@@ -165,6 +170,8 @@ public class SceneEditor extends GlCanvasTool
         file.add(createMenuItem("import_selection", KeyEvent.VK_M, -1));
         file.add(_exportSelection = createMenuItem("export_selection", KeyEvent.VK_X, -1));
         _exportSelection.setEnabled(false);
+        file.addSeparator();
+        file.add(createMenuItem("test", KeyEvent.VK_T, KeyEvent.VK_B));
         file.addSeparator();
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
@@ -720,6 +727,8 @@ public class SceneEditor extends GlCanvasTool
             importSelection();
         } else if (action.equals("export_selection")) {
             exportSelection();
+        } else if (action.equals("test")) {
+            testScene();
         } else if (action.equals("undo")) {
             _undomgr.undo();
             updateUndoActions();
@@ -1161,6 +1170,13 @@ public class SceneEditor extends GlCanvasTool
             title = title + ": " + _file;
         }
         _frame.setTitle(title);
+    }
+
+    /**
+     * Enters the scene test mode.
+     */
+    protected void testScene ()
+    {
     }
 
     /**
