@@ -25,6 +25,8 @@ import com.threerings.whirled.util.SceneFactory;
 
 import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.GlView;
+import com.threerings.opengl.gui.Root;
+import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneFactory;
@@ -63,6 +65,10 @@ public abstract class TudeyTool extends GlCanvasTool
             }
         };
         _scenedir = new SceneDirector(this, _locdir, screp, new TudeySceneFactory());
+
+        // create the ui root
+        _root = createRoot();
+        _root.setModalShade(new Color4f(0f, 0f, 0f, 0.5f));
     }
 
     // documentation inherited from interface PresentsContext
@@ -119,6 +125,12 @@ public abstract class TudeyTool extends GlCanvasTool
         return _scenedir;
     }
 
+    // documentation inherited from interface TudeyContext
+    public Root getRoot ()
+    {
+        return _root;
+    }
+
     @Override // documentation inherited
     protected void didInit ()
     {
@@ -144,6 +156,7 @@ public abstract class TudeyTool extends GlCanvasTool
         if (_view != null) {
             _view.tick(elapsed);
         }
+        _root.tick(elapsed);
     }
 
     @Override // documentation inherited
@@ -153,6 +166,7 @@ public abstract class TudeyTool extends GlCanvasTool
         if (_view != null) {
             _view.enqueue();
         }
+        _root.enqueue();
     }
 
     /**
@@ -196,6 +210,9 @@ public abstract class TudeyTool extends GlCanvasTool
 
     /** Handles scene access. */
     protected SceneDirector _scenedir;
+
+    /** The user interface root. */
+    protected Root _root;
 
     /** The current view, if any. */
     protected GlView _view;

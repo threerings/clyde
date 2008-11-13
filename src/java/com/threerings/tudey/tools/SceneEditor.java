@@ -736,6 +736,7 @@ public class SceneEditor extends TudeyTool
         _showCompass.setSelected(_compassEnabled);
         _toolbar.setVisible(true);
         _epanel.setVisible(true);
+        _pane.resetToPreferredSizes();
         SwingUtil.refresh((JComponent)_frame.getContentPane());
     }
 
@@ -836,6 +837,7 @@ public class SceneEditor extends TudeyTool
         _pane = new JSplitPane(
             JSplitPane.HORIZONTAL_SPLIT, true, ccont, _epanel = GroupLayout.makeVStretchBox(5));
         _canvas.setMinimumSize(new Dimension(1, 1));
+        _canvas.setPreferredSize(new Dimension(1, 1));
         _pane.setResizeWeight(1.0);
         _pane.setOneTouchExpandable(true);
         bindAction(ccont, KeyEvent.VK_UP, 0, "raise_grid");

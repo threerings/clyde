@@ -20,8 +20,11 @@ import com.threerings.presents.server.PresentsDObjectMgr;
 import com.threerings.presents.server.PresentsSession;
 import com.threerings.presents.server.SessionFactory;
 
+import com.threerings.crowd.data.PlaceConfig;
 import com.threerings.crowd.server.CrowdClientResolver;
 
+import com.threerings.whirled.data.SceneModel;
+import com.threerings.whirled.server.SceneRegistry;
 import com.threerings.whirled.server.WhirledSession;
 import com.threerings.whirled.server.persist.DummySceneRepository;
 import com.threerings.whirled.server.persist.SceneRepository;
@@ -43,6 +46,11 @@ public class ToolServer extends TudeyServer
             super.configure();
             bind(PresentsDObjectMgr.class).to(LocalDObjectMgr.class);
             bind(SceneRepository.class).to(ToolSceneRepository.class);
+            bind(SceneRegistry.ConfigFactory.class).toInstance(new SceneRegistry.ConfigFactory() {
+                public PlaceConfig createPlaceConfig (SceneModel model) {
+                    return new ToolSceneConfig();
+                }
+            });
         }
     }
 

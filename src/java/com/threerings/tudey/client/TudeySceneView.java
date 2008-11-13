@@ -15,6 +15,9 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
+import com.threerings.opengl.gui.StretchWindow;
+import com.threerings.opengl.gui.StyleSheet;
+import com.threerings.opengl.gui.Window;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.scene.HashScene;
 import com.threerings.opengl.scene.SceneElement;
@@ -47,6 +50,25 @@ public class TudeySceneView extends SimpleScope
         _ctx = ctx;
         _scene = new HashScene(ctx, 64f, 6);
         _scene.setParentScope(this);
+
+        // create the input window
+        _inputWindow = new StretchWindow(ctx, null, null) {
+            public boolean shouldShadeBehind () {
+                return false;
+            }
+            protected void configureStyle (StyleSheet style) {
+                // no need to configure style; we're just a transparent window
+            }
+        };
+        _inputWindow.setModal(true);
+    }
+
+    /**
+     * Returns a reference to the window used to gather input events.
+     */
+    public Window getInputWindow ()
+    {
+        return _inputWindow;
     }
 
     /**
@@ -120,11 +142,13 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface GlView
     public void wasAdded ()
     {
+        _ctx.getRoot().addWindow(_inputWindow);
     }
 
     // documentation inherited from interface GlView
     public void wasRemoved ()
     {
+        _ctx.getRoot().removeWindow(_inputWindow);
     }
 
     // documentation inherited from interface Tickable
@@ -194,6 +218,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The application context. */
     protected TudeyContext _ctx;
+
+    /** A window used to gather input events. */
+    protected Window _inputWindow;
 
     /** The OpenGL scene. */
     @Scoped

@@ -3,8 +3,6 @@
 
 package com.threerings.opengl.gui;
 
-import com.threerings.opengl.renderer.Renderer;
-
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;

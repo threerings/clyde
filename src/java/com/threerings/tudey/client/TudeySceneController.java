@@ -11,6 +11,9 @@ import com.threerings.crowd.util.CrowdContext;
 
 import com.threerings.whirled.client.SceneController;
 
+import com.threerings.opengl.gui.event.KeyEvent;
+import com.threerings.opengl.gui.event.KeyListener;
+
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
@@ -23,7 +26,7 @@ import static com.threerings.tudey.Log.*;
  * The basic Tudey scene controller class.
  */
 public class TudeySceneController extends SceneController
-    implements SceneDeltaListener
+    implements SceneDeltaListener, KeyListener
 {
     // documentation inherited from interface SceneDeltaListener
     public void sceneDeltaReceived (SceneDeltaEvent event)
@@ -47,6 +50,16 @@ public class TudeySceneController extends SceneController
         }
     }
 
+    // documentation inherited from interface KeyListener
+    public void keyPressed (KeyEvent event)
+    {
+    }
+
+    // documentation inherited from interface KeyListener
+    public void keyReleased (KeyEvent event)
+    {
+    }
+
     @Override // documentation inherited
     public void willEnterPlace (PlaceObject plobj)
     {
@@ -55,6 +68,9 @@ public class TudeySceneController extends SceneController
 
         // listen to the client object for delta events
         _ctx.getClient().getClientObject().addListener(this);
+
+        // listen for input events
+        _tsview.getInputWindow().addListener(this);
     }
 
     @Override // documentation inherited
@@ -64,6 +80,9 @@ public class TudeySceneController extends SceneController
 
         // stop listening to the client object
         _ctx.getClient().getClientObject().removeListener(this);
+
+        // stop listening to input events
+        _tsview.getInputWindow().removeListener(this);
     }
 
     @Override // documentation inherited
