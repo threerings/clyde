@@ -56,6 +56,7 @@ import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.Predicate;
 
+import com.threerings.crowd.client.PlaceView;
 import com.threerings.media.image.ImageUtil;
 import com.threerings.util.KeyboardManager.KeyObserver;
 
@@ -697,6 +698,48 @@ public class SceneEditor extends TudeyTool
     }
 
     @Override // documentation inherited
+    public void setPlaceView (PlaceView view)
+    {
+        super.setPlaceView(view);
+        _testing = true;
+
+        // hide editor ui
+        if (_activeTool != null) {
+            _activeTool.deactivate();
+        }
+        _frame.getJMenuBar().setVisible(false);
+        _divsize = _pane.getDividerSize();
+        _gridEnabled = _showGrid.isSelected();
+        _showGrid.setSelected(false);
+        _compassEnabled = _showCompass.isSelected();
+        _showCompass.setSelected(false);
+        _pane.setDividerSize(0);
+        _toolbar.setVisible(false);
+        _epanel.setVisible(false);
+        SwingUtil.refresh((JComponent)_frame.getContentPane());
+    }
+
+    @Override // documentation inherited
+    public void clearPlaceView (PlaceView view)
+    {
+        // switch back to the editor view
+        setView(_view);
+        _testing = false;
+
+        // show editor ui
+        if (_activeTool != null) {
+            _activeTool.activate();
+        }
+        _frame.getJMenuBar().setVisible(true);
+        _pane.setDividerSize(_divsize);
+        _showGrid.setSelected(_gridEnabled);
+        _showCompass.setSelected(_compassEnabled);
+        _toolbar.setVisible(true);
+        _epanel.setVisible(true);
+        SwingUtil.refresh((JComponent)_frame.getContentPane());
+    }
+
+    @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
         String action = event.getActionCommand();
@@ -790,14 +833,14 @@ public class SceneEditor extends TudeyTool
         JPanel ccont = new JPanel(new BorderLayout());
         ccont.add(_toolbar = new JToolBar(), BorderLayout.NORTH);
         ccont.add(_canvas, BorderLayout.CENTER);
-        JSplitPane pane = new JSplitPane(
+        _pane = new JSplitPane(
             JSplitPane.HORIZONTAL_SPLIT, true, ccont, _epanel = GroupLayout.makeVStretchBox(5));
         _canvas.setMinimumSize(new Dimension(1, 1));
-        pane.setResizeWeight(1.0);
-        pane.setOneTouchExpandable(true);
+        _pane.setResizeWeight(1.0);
+        _pane.setOneTouchExpandable(true);
         bindAction(ccont, KeyEvent.VK_UP, 0, "raise_grid");
         bindAction(ccont, KeyEvent.VK_DOWN, 0, "lower_grid");
-        return pane;
+        return _pane;
     }
 
     @Override // documentation inherited
@@ -850,7 +893,7 @@ public class SceneEditor extends TudeyTool
         super.didInit();
 
         // create the scene view
-        _view = new TudeySceneView(this);
+        setView(_view = new TudeySceneView(this));
 
         // initialize the tools
         for (EditorTool tool : _tools.values()) {
@@ -870,17 +913,19 @@ public class SceneEditor extends TudeyTool
     protected void updateView (float elapsed)
     {
         super.updateView(elapsed);
-        _view.tick(elapsed);
-        _activeTool.tick(elapsed);
-        _grid.tick(elapsed);
+        if (!_testing) {
+            _activeTool.tick(elapsed);
+            _grid.tick(elapsed);
+        }
     }
 
     @Override // documentation inherited
     protected void enqueueView ()
     {
         super.enqueueView();
-        _view.enqueue();
-        _activeTool.enqueue();
+        if (!_testing) {
+            _activeTool.enqueue();
+        }
     }
 
     /**
@@ -979,7 +1024,7 @@ public class SceneEditor extends TudeyTool
      */
     protected boolean mouseCameraEnabled ()
     {
-        return _activeTool.allowsMouseCamera() || isControlDown();
+        return !_testing && (_activeTool.allowsMouseCamera() || isControlDown());
     }
 
     /**
@@ -1177,6 +1222,13 @@ public class SceneEditor extends TudeyTool
      */
     protected void testScene ()
     {
+        // configure the scene repository with a reference to our scene
+        _scene.sceneId = ++_sceneId;
+        _scene.version = 1;
+        _server.getSceneRepository().setSceneModel(_scene);
+
+        // request to enter
+        _scenedir.moveTo(_sceneId);
     }
 
     /**
@@ -1333,6 +1385,18 @@ public class SceneEditor extends TudeyTool
     /** The file chooser for importing and exporting selections. */
     protected JFileChooser _selectionChooser;
 
+    /** The split pane containing the canvas, toolbar, etc. */
+    protected JSplitPane _pane;
+
+    /** The size of the divider. */
+    protected int _divsize;
+
+    /** Whether or not the compass/grid are enabled. */
+    protected boolean _compassEnabled, _gridEnabled;
+
+    /** Set when we are in test mode. */
+    protected boolean _testing;
+
     /** The tool bar. */
     protected JToolBar _toolbar;
 
@@ -1374,6 +1438,9 @@ public class SceneEditor extends TudeyTool
 
     /** The scene view. */
     protected TudeySceneView _view;
+
+    /** The scene id used for testing. */
+    protected int _sceneId;
 
     /** Whether or not markers are visible. */
     @Scoped

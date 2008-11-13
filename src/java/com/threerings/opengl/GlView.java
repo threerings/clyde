@@ -7,32 +7,17 @@ import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 /**
- * A simple base class for OpenGL views.
+ * A simple interface for OpenGL views.
  */
-public abstract class GlView
-    implements Tickable, Renderable
+public interface GlView extends Tickable, Renderable
 {
     /**
      * Notifies the view that it is going to be rendered.
      */
-    public void wasAdded ()
-    {
-    }
+    public void wasAdded ();
 
     /**
      * Notifies the view that it will no longer be rendered.
      */
-    public void wasRemoved ()
-    {
-    }
-
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
-    }
-
-    // documentation inherited from interface Renderable
-    public void enqueue ()
-    {
-    }
+    public void wasRemoved ();
 }

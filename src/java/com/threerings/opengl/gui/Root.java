@@ -10,7 +10,6 @@ import java.awt.datatransfer.Transferable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.logging.Level;
 
 import org.lwjgl.opengl.GL11;
 
@@ -30,7 +29,6 @@ import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
-import static java.util.logging.Level.*;
 import static com.threerings.opengl.gui.Log.*;
 
 /**
@@ -74,7 +72,7 @@ public abstract class Root extends SimpleOverlay
                 (String)contents.getTransferData(DataFlavor.stringFlavor) : null;
 
         } catch (Exception e) {
-            log.log(WARNING, "Failed to access clipboard.", e);
+            log.warning("Failed to access clipboard.", e);
             return null;
         }
     }
@@ -198,7 +196,7 @@ public abstract class Root extends SimpleOverlay
 
         // first remove the window from our list
         if (!_windows.remove(window)) {
-            Log.log.warning("Requested to remove unmanaged window [window=" + window + "].");
+            log.warning("Requested to remove unmanaged window.", "window", window);
             Thread.dumpStack();
             return;
         }
@@ -518,7 +516,7 @@ public abstract class Root extends SimpleOverlay
                 }
                 win.render(renderer);
             } catch (Throwable t) {
-                Log.log.log(Level.WARNING, win + " failed in render()", t);
+                log.warning(win + " failed in render()", t);
             }
         }
     }
@@ -575,8 +573,7 @@ public abstract class Root extends SimpleOverlay
             try {
                 _globals.get(ii).eventDispatched(event);
             } catch (Exception e) {
-                Log.log.log(Level.WARNING, "Global event listener choked " +
-                            "[listener=" + _globals.get(ii) + "].", e);
+                log.warning("Global event listener choked.", "listener", _globals.get(ii), e);
             }
         }
 

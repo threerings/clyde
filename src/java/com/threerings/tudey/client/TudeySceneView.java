@@ -24,11 +24,11 @@ import com.threerings.opengl.util.Tickable;
 
 import com.samskivert.util.Predicate;
 
-import com.threerings.tudey.data.TudeySceneModel;
-import com.threerings.tudey.data.TudeySceneModel.Entry;
-
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.util.TudeyContext;
 
 import static com.threerings.tudey.Log.*;
 
@@ -36,12 +36,12 @@ import static com.threerings.tudey.Log.*;
  * Displays a view of a Tudey scene.
  */
 public class TudeySceneView extends SimpleScope
-    implements PlaceView, TudeySceneModel.Observer
+    implements GlView, PlaceView, TudeySceneModel.Observer
 {
     /**
      * Creates a new scene view.
      */
-    public TudeySceneView (GlContext ctx)
+    public TudeySceneView (TudeyContext ctx)
     {
         super(ctx.getScope());
         _ctx = ctx;
@@ -117,9 +117,32 @@ public class TudeySceneView extends SimpleScope
         return (el == null) ? null : (Sprite)el.getUserObject();
     }
 
+    // documentation inherited from interface GlView
+    public void wasAdded ()
+    {
+    }
+
+    // documentation inherited from interface GlView
+    public void wasRemoved ()
+    {
+    }
+
+    // documentation inherited from interface Tickable
+    public void tick (float elapsed)
+    {
+        _scene.tick(elapsed);
+    }
+
+    // documentation inherited from interface Renderable
+    public void enqueue ()
+    {
+        _scene.enqueue();
+    }
+
     // documentation inherited from interface PlaceView
     public void willEnterPlace (PlaceObject plobj)
     {
+        setSceneModel((TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel());
     }
 
     // documentation inherited from interface PlaceView
@@ -161,18 +184,6 @@ public class TudeySceneView extends SimpleScope
         return "view";
     }
 
-    // documentation inherited from interface Tickable
-    public void tick (float elapsed)
-    {
-        _scene.tick(elapsed);
-    }
-
-    // documentation inherited from interface Renderable
-    public void enqueue ()
-    {
-        _scene.enqueue();
-    }
-
     /**
      * Adds a sprite for the specified entry.
      */
@@ -182,7 +193,7 @@ public class TudeySceneView extends SimpleScope
     }
 
     /** The application context. */
-    protected GlContext _ctx;
+    protected TudeyContext _ctx;
 
     /** The OpenGL scene. */
     @Scoped

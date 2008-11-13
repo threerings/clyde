@@ -24,6 +24,7 @@ import com.threerings.whirled.util.NoSuchSceneException;
 import com.threerings.whirled.util.SceneFactory;
 
 import com.threerings.opengl.GlCanvasTool;
+import com.threerings.opengl.GlView;
 
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneFactory;
@@ -103,11 +104,13 @@ public abstract class TudeyTool extends GlCanvasTool
     // documentation inherited from interface CrowdContext
     public void setPlaceView (PlaceView view)
     {
+        setView((GlView)view);
     }
 
     // documentation inherited from interface CrowdContext
     public void clearPlaceView (PlaceView view)
     {
+        setView(null);
     }
 
     // documentation inherited from interface CrowdContext
@@ -132,6 +135,37 @@ public abstract class TudeyTool extends GlCanvasTool
 
         // log off of our local server
         _server.stopStandaloneClient(_client);
+    }
+
+    @Override // documentation inherited
+    protected void updateView (float elapsed)
+    {
+        super.updateView(elapsed);
+        if (_view != null) {
+            _view.tick(elapsed);
+        }
+    }
+
+    @Override // documentation inherited
+    protected void enqueueView ()
+    {
+        super.enqueueView();
+        if (_view != null) {
+            _view.enqueue();
+        }
+    }
+
+    /**
+     * Sets the current view.
+     */
+    protected void setView (GlView view)
+    {
+        if (_view != null) {
+            _view.wasRemoved();
+        }
+        if ((_view = view) != null) {
+            _view.wasAdded();
+        }
     }
 
     /**
@@ -162,6 +196,9 @@ public abstract class TudeyTool extends GlCanvasTool
 
     /** Handles scene access. */
     protected SceneDirector _scenedir;
+
+    /** The current view, if any. */
+    protected GlView _view;
 
     /** The tool server. */
     protected static ToolServer _server;

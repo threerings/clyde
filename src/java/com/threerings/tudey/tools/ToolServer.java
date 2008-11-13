@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.tools;
 
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
@@ -41,8 +42,16 @@ public class ToolServer extends TudeyServer
         @Override protected void configure () {
             super.configure();
             bind(PresentsDObjectMgr.class).to(LocalDObjectMgr.class);
-            bind(SceneRepository.class).to(DummySceneRepository.class);
+            bind(SceneRepository.class).to(ToolSceneRepository.class);
         }
+    }
+
+    /**
+     * Returns a reference to the scene repository.
+     */
+    public ToolSceneRepository getSceneRepository ()
+    {
+        return _scenerepo;
     }
 
     @Override // documentation inherited
@@ -97,4 +106,7 @@ public class ToolServer extends TudeyServer
     {
         client.standaloneLogoff();
     }
+
+    /** The scene repository. */
+    @Inject protected ToolSceneRepository _scenerepo;
 }

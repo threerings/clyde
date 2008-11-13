@@ -4,7 +4,6 @@
 package com.threerings.opengl.gui.text;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
 
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.AbstractUndoableEdit;
@@ -13,7 +12,7 @@ import javax.swing.undo.UndoableEditSupport;
 
 import com.samskivert.util.IntTuple;
 
-import com.threerings.opengl.gui.Log;
+import static com.threerings.opengl.gui.Log.*;
 
 /**
  * Defines the model that underlies the BUI text components.
@@ -290,7 +289,7 @@ public class Document
                         list.textRemoved(this, offset, length);
                     }
                 } catch (Throwable t) {
-                    Log.log.log(Level.WARNING, "Document listener choked on " +
+                    log.warning("Document listener choked on " +
                                 action + " [doc=" + this +
                                 ", offset=" + offset + ", length=" + length +
                                 ", listener=" + list + "].", t);

@@ -11,6 +11,7 @@ import org.lwjgl.opengl.PixelFormat;
 import com.samskivert.util.Queue;
 import com.samskivert.util.RunQueue;
 
+import com.threerings.opengl.gui.DisplayRoot;
 import com.threerings.opengl.gui.Root;
 
 import static com.threerings.opengl.Log.*;
@@ -89,6 +90,12 @@ public abstract class GlDisplayApp extends GlApp
         return Thread.currentThread() == _dispatchThread;
     }
 
+    // documentation inherited from interface RunQueue
+    public boolean isRunning ()
+    {
+        return _dispatchThread != null;
+    }
+
     @Override // documentation inherited
     public RunQueue getRunQueue ()
     {
@@ -98,7 +105,7 @@ public abstract class GlDisplayApp extends GlApp
     @Override // documentation inherited
     public Root createRoot ()
     {
-        return null;
+        return new DisplayRoot(this);
     }
 
     @Override // documentation inherited

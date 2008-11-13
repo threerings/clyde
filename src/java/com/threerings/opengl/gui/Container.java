@@ -4,7 +4,6 @@
 package com.threerings.opengl.gui;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
 
 import com.threerings.opengl.renderer.Renderer;
 
@@ -12,7 +11,7 @@ import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 
-import static com.threerings.opengl.gui.Log.log;
+import static com.threerings.opengl.gui.Log.*;
 
 /**
  * A user interface element that is meant to contain other interface
@@ -393,8 +392,7 @@ public class Container extends Component
             try {
                 op.apply(child);
             } catch (Exception e) {
-                log.log(Level.WARNING, "Child operation choked [op=" + op +
-                        ", child=" + child + "].", e);
+                log.warning("Child operation choked.", "op", op, "child", child, e);
             }
         }
     }

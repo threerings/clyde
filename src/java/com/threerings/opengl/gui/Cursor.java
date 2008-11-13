@@ -10,11 +10,12 @@ import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.util.logging.Level;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
+
+import static com.threerings.opengl.gui.Log.*;
 
 /**
  * Contains a cursor.
@@ -65,7 +66,7 @@ public class Cursor
             try {
                 Mouse.create();
             } catch (Throwable t) {
-                Log.log.log(Level.WARNING, "Problem creating mouse", t);
+                log.warning("Problem creating mouse.", t);
                 return;
             }
         }
@@ -74,7 +75,7 @@ public class Cursor
             try {
                 Mouse.setNativeCursor(cursor);
             } catch (Throwable t) {
-                Log.log.log(Level.WARNING, "Problem updating mouse cursor: ", t);
+                log.warning("Problem updating mouse cursor.", t);
             }
         }
     }

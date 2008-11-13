@@ -4,7 +4,6 @@
 package com.threerings.opengl.gui.text;
 
 import java.io.StringReader;
-import java.util.logging.Level;
 
 import java.awt.Container;
 import java.awt.Graphics2D;
@@ -30,9 +29,10 @@ import com.threerings.opengl.renderer.Renderer;
 
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Image;
-import com.threerings.opengl.gui.Log;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
+
+import static com.threerings.opengl.gui.Log.*;
 
 /**
  * Displays HTML using Java's HTML rendering support to layout and render the
@@ -89,8 +89,7 @@ public class HTMLView extends Component
             ss.loadRules(new StringReader(stylesheet), null);
             setStyleSheet(ss);
         } catch (Throwable t) {
-            Log.log.log(Level.WARNING, "Failed to parse stylesheet " +
-                        "[sheet=" + stylesheet + "].", t);
+            log.warning("Failed to parse stylesheet.", "sheet", stylesheet, t);
         }
     }
 
@@ -137,8 +136,7 @@ public class HTMLView extends Component
             _kit.read(new StringReader(contents), document, 0);
             setContents(document);
         } catch (Throwable t) {
-            Log.log.log(Level.WARNING, "Failed to parse HTML " +
-                        "[contents=" + contents + "].", t);
+            log.warning("Failed to parse HTML.", "contents", contents, t);
         }
     }
 
