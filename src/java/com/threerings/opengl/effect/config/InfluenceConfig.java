@@ -14,7 +14,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.NoiseUtil;
 
 import com.threerings.opengl.eff.Influence;
-import com.threerings.opengl.eff.ParticleSystem.Layer;
+import com.threerings.opengl.eff.BaseParticleSystem.Layer;
 import com.threerings.opengl.effect.Particle;
 
 /**

@@ -4,6 +4,7 @@
 package com.threerings.tudey.server;
 
 import com.samskivert.util.Queue;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.net.Transport;
 

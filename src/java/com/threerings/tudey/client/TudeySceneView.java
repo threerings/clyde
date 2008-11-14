@@ -5,6 +5,8 @@ package com.threerings.tudey.client;
 
 import java.util.HashMap;
 
+import com.samskivert.util.HashIntMap;
+
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.PlaceObject;
 
@@ -27,10 +29,18 @@ import com.threerings.opengl.util.Tickable;
 
 import com.samskivert.util.Predicate;
 
+import com.threerings.tudey.client.handler.EffectHandler;
+import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.data.Actor;
+import com.threerings.tudey.data.Effect;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.dobj.ActorDelta;
+import com.threerings.tudey.dobj.AddedActor;
+import com.threerings.tudey.dobj.RemovedActor;
+import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.util.TudeyContext;
 
 import static com.threerings.tudey.Log.*;
@@ -139,6 +149,53 @@ public class TudeySceneView extends SimpleScope
         return (el == null) ? null : (Sprite)el.getUserObject();
     }
 
+    /**
+     * Processes a scene delta received from the server.
+     */
+    public void processSceneDelta (SceneDeltaEvent event)
+    {
+        // create sprites for the actors added
+        AddedActor[] addedActors = event.getAddedActors();
+        if (addedActors != null) {
+            for (AddedActor added : addedActors) {
+            }
+        }
+
+        // notify the sprites of updated actors
+        ActorDelta[] updatedActors = event.getUpdatedActors();
+        if (updatedActors != null) {
+            for (ActorDelta updated : updatedActors) {
+                ActorSprite sprite = _actorSprites.get(updated.getId());
+                if (sprite != null) {
+
+                } else {
+                    log.warning("Missing sprite for updated actor.", "id", updated.getId());
+                }
+            }
+        }
+
+        // notify the sprites of removed actors
+        RemovedActor[] removedActors = event.getRemovedActors();
+        if (removedActors != null) {
+            for (RemovedActor removed : removedActors) {
+                ActorSprite sprite = _actorSprites.remove(removed.getId());
+                if (sprite != null) {
+                    sprite.wasRemoved(removed.getTimestamp());
+                } else {
+                    log.warning("Missing sprite for removed actor.", "id", removed.getId());
+                }
+            }
+        }
+
+        // create handlers for the effects fired
+        Effect[] effects = event.getEffects();
+        if (effects != null) {
+            for (Effect effect : effects) {
+                EffectHandler handler = effect.createHandler(_ctx, this);
+            }
+        }
+    }
+
     // documentation inherited from interface GlView
     public void wasAdded ()
     {
@@ -231,4 +288,7 @@ public class TudeySceneView extends SimpleScope
 
     /** Sprites corresponding to the scene entries. */
     protected HashMap<Object, EntrySprite> _entrySprites = new HashMap<Object, EntrySprite>();
+
+    /** Sprites corresponding to the actors in the scene. */
+    protected HashIntMap<ActorSprite> _actorSprites = new HashIntMap<ActorSprite>();
 }

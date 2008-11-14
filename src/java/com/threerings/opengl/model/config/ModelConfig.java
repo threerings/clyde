@@ -28,6 +28,7 @@ import com.threerings.math.Box;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.effect.config.MetaParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.material.config.MaterialConfig;
@@ -58,8 +59,8 @@ public class ModelConfig extends ParameterizedConfig
      */
     @EditorTypes({
         StaticConfig.class, StaticSetConfig.class, ArticulatedConfig.class,
-        ParticleSystemConfig.class, SceneInfluencerConfig.class, ViewerAffecterConfig.class,
-        Derived.class })
+        ParticleSystemConfig.class, MetaParticleSystemConfig.class, SceneInfluencerConfig.class,
+        ViewerAffecterConfig.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {

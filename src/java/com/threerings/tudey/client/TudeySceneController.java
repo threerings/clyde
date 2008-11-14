@@ -5,6 +5,8 @@ package com.threerings.tudey.client;
 
 import java.util.ArrayList;
 
+import com.samskivert.util.RunAnywhere;
+
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.PlaceObject;
 import com.threerings.crowd.util.CrowdContext;
@@ -13,6 +15,7 @@ import com.threerings.whirled.client.SceneController;
 
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.KeyListener;
+import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -26,7 +29,7 @@ import static com.threerings.tudey.Log.*;
  * The basic Tudey scene controller class.
  */
 public class TudeySceneController extends SceneController
-    implements SceneDeltaListener, KeyListener
+    implements SceneDeltaListener, KeyListener, Tickable
 {
     // documentation inherited from interface SceneDeltaListener
     public void sceneDeltaReceived (SceneDeltaEvent event)
@@ -48,6 +51,9 @@ public class TudeySceneController extends SceneController
         while (!_input.isEmpty() && _input.get(0).getTimestamp() <= acknowledge) {
             _input.remove(0);
         }
+
+        // pass it on to the view for visualization
+        _tsview.processSceneDelta(event);
     }
 
     // documentation inherited from interface KeyListener
@@ -58,6 +64,17 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface KeyListener
     public void keyReleased (KeyEvent event)
     {
+    }
+
+    // documentation inherited from interface Tickable
+    public void tick (float elapsed)
+    {
+        // perhaps transmit our acknowledgement and input frames
+        long now = RunAnywhere.currentTimeMillis();
+        if (now - _lastTransmit >= getTransmitInterval()) {
+            transmitInput();
+            _lastTransmit = now;
+        }
     }
 
     @Override // documentation inherited
@@ -71,6 +88,9 @@ public class TudeySceneController extends SceneController
 
         // listen for input events
         _tsview.getInputWindow().addListener(this);
+
+        // register with the root as a tick participant
+        _tctx.getRoot().addTickParticipant(this);
     }
 
     @Override // documentation inherited
@@ -78,17 +98,31 @@ public class TudeySceneController extends SceneController
     {
         super.didLeavePlace(plobj);
 
-        // stop listening to the client object
+        // stop listening to the client object, input events, ticks
         _ctx.getClient().getClientObject().removeListener(this);
-
-        // stop listening to input events
         _tsview.getInputWindow().removeListener(this);
+        _tctx.getRoot().removeTickParticipant(this);
     }
 
     @Override // documentation inherited
     protected PlaceView createPlaceView (CrowdContext ctx)
     {
         return (_tsview = new TudeySceneView((TudeyContext)ctx));
+    }
+
+    @Override // documentation inherited
+    protected void didInit ()
+    {
+        super.didInit();
+        _tctx = (TudeyContext)_ctx;
+    }
+
+    /**
+     * Returns the interval at which we transmit our input frames.
+     */
+    protected long getTransmitInterval ()
+    {
+        return 110L;
     }
 
     /**
@@ -100,6 +134,9 @@ public class TudeySceneController extends SceneController
             _ctx.getClient(), _lastDelta, _input.toArray(new InputFrame[_input.size()]));
     }
 
+    /** A casted reference to the context. */
+    protected TudeyContext _tctx;
+
     /** A casted reference to the scene view. */
     protected TudeySceneView _tsview;
 
@@ -109,8 +146,8 @@ public class TudeySceneController extends SceneController
     /** The list of outgoing input frames. */
     protected ArrayList<InputFrame> _input = new ArrayList<InputFrame>();
 
-    /** The timestamp of the last frame acknowledged by the client. */
-    protected long _acknowledged;
+    /** The time at which we last transmitted our input.  */
+    protected long _lastTransmit;
 
     /** The timestamp of the last delta received from the client. */
     protected long _lastDelta;

@@ -20,4 +20,12 @@ public abstract class ActorSprite extends Sprite
     {
         super(ctx, view);
     }
+
+    /**
+     * Notes that the actor to which this sprite corresponds was removed at the specified time.
+     */
+    public void wasRemoved (long timestamp)
+    {
+        // nothing by default
+    }
 }
