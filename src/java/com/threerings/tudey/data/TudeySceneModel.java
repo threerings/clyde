@@ -170,7 +170,7 @@ public class TudeySceneModel extends SceneModel
     public static class TileEntry extends Entry
     {
         /** The configuration of the tile. */
-        @Editable(nullable=false)
+        @Editable(nullable=true)
         public ConfigReference<TileConfig> tile;
 
         /** The tile's elevation. */
@@ -361,7 +361,7 @@ public class TudeySceneModel extends SceneModel
     public static class GlobalEntry extends IdEntry
     {
         /** The configuration of the global. */
-        @Editable(nullable=false)
+        @Editable(nullable=true)
         public ConfigReference<SceneGlobalConfig> sceneGlobal;
 
         @Override // documentation inherited

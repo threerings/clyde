@@ -33,6 +33,7 @@ import com.threerings.tudey.client.handler.EffectHandler;
 import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.client.util.TimeSmoother;
 import com.threerings.tudey.data.Actor;
 import com.threerings.tudey.data.Effect;
 import com.threerings.tudey.data.TudeySceneModel;
@@ -154,6 +155,15 @@ public class TudeySceneView extends SimpleScope
      */
     public void processSceneDelta (SceneDeltaEvent event)
     {
+        // create/update the timer smoother
+        long timestamp = event.getTimestamp();
+        if (_smoother == null) {
+            _smoother = new TimeSmoother(timestamp);
+            _smoothedTime = timestamp;
+        } else {
+            _smoother.update(timestamp);
+        }
+
         // create sprites for the actors added
         AddedActor[] addedActors = event.getAddedActors();
         if (addedActors != null) {
@@ -211,6 +221,9 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
+        if (_smoother != null) {
+            _smoothedTime = _smoother.getTime();
+        }
         _scene.tick(elapsed);
     }
 
@@ -285,6 +298,12 @@ public class TudeySceneView extends SimpleScope
 
     /** The scene model. */
     protected TudeySceneModel _sceneModel;
+
+    /** Smoother used to provide a smoothed time estimate. */
+    protected TimeSmoother _smoother;
+
+    /** The smoothed time. */
+    protected long _smoothedTime;
 
     /** Sprites corresponding to the scene entries. */
     protected HashMap<Object, EntrySprite> _entrySprites = new HashMap<Object, EntrySprite>();
