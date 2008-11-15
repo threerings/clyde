@@ -114,10 +114,10 @@ public class ParticleSystem extends BaseParticleSystem
         }
 
         @Override // documentation inherited
-        protected void initParticle (Particle particle)
+        protected void initParticle (int idx)
         {
             ParticleSystemConfig.Layer psconfig = (ParticleSystemConfig.Layer)_config;
-            particle.init(
+            _particles[idx].init(
                 _config.lifespan.getValue(), _config.alphaMode, _config.color, _config.size,
                 (psconfig.geometry.getSegments() > 0) ? psconfig.length : null,
                 (psconfig.textureDivisionsS > 1 || psconfig.textureDivisionsT > 1) ?

@@ -190,6 +190,14 @@ public final class Quaternion
     }
 
     /**
+     * Sets this quaternion from a set of normalized coordinate axes.
+     */
+    public Quaternion fromAxes (Vector3f s, Vector3f t, Vector3f r)
+    {
+        return set(t.z - r.y, r.x - s.z, s.y - t.x, 1f + s.x + t.y + r.z).normalizeLocal();
+    }
+
+    /**
      * Normalizes this quaternion in-place.
      *
      * @return a reference to this quaternion, for chaining.

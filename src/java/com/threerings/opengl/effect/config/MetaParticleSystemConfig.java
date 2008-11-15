@@ -18,6 +18,9 @@ import com.threerings.opengl.util.GlContext;
  */
 public class MetaParticleSystemConfig extends BaseParticleSystemConfig
 {
+    /** The different alignment modes. */
+    public enum Alignment { FIXED, BILLBOARD, VELOCITY };
+
     /**
      * A single layer of the system.
      */
@@ -26,6 +29,10 @@ public class MetaParticleSystemConfig extends BaseParticleSystemConfig
         /** The model to use for the particles. */
         @Editable(category="appearance", weight=-0.5, nullable=true)
         public ConfigReference<ModelConfig> model;
+
+        /** The alignment mode to use for the particles. */
+        @Editable(category="appearance", weight=-0.5)
+        public Alignment alignment = Alignment.FIXED;
     }
 
     /** The layers comprising the system. */

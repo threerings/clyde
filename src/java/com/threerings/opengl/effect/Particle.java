@@ -77,6 +77,14 @@ public final class Particle
     }
 
     /**
+     * Sets the particle's size.
+     */
+    public void setSize (float size)
+    {
+        _size = size;
+    }
+
+    /**
      * Returns the particle's size.
      */
     public float getSize ()

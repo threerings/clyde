@@ -22,6 +22,7 @@ import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.config.BaseParticleSystemConfig;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
@@ -137,12 +138,24 @@ public abstract class BaseParticleSystem extends Model.Implementation
             // update the living particles and the bounds
             _bounds.setToEmpty();
             float msize = 0f;
+            float scale = 1f;
+            if (!_config.moveParticlesWithEmitter) {
+                scale = _worldTransform.approximateUniformScale();
+            }
             for (int ii = 0; ii < _living.value; ii++) {
                 Particle particle = _particles[ii];
                 if (particle.tick(elapsed)) {
                     // apply the influences
                     for (Influence influence : _influences) {
                         influence.apply(particle);
+                    }
+                    // modulate by the inherited color, if any
+                    if (_colorState != null) {
+                        particle.getColor().multLocal(_colorState.getColor());
+                    }
+                    // multiply by the inherited scale, if any
+                    if (!_config.moveParticlesWithEmitter) {
+                        particle.setSize(particle.getSize() * scale);
                     }
                     // add to bounds
                     _bounds.addLocal(particle.getPosition());
@@ -151,15 +164,12 @@ public abstract class BaseParticleSystem extends Model.Implementation
                 } else {
                     // move this particle to the end of the list
                     if (ii != --_living.value) {
-                        _particles[ii] = _particles[_living.value];
-                        _particles[_living.value] = particle;
+                        swapParticles(ii, _living.value);
                         ii--; // update the swapped particle on the next iteration
                     }
                     // then to the end of the preliving list
                     if (_preliving != 0) {
-                        int idx = _living.value + _preliving;
-                        _particles[_living.value] = _particles[idx];
-                        _particles[idx] = particle;
+                        swapParticles(_living.value, _living.value + _preliving);
                     }
                 }
             }
@@ -182,7 +192,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
                     _shooter.shoot(particle).multLocal(_config.speed.getValue()),
                     _config.rotateVelocitiesWithEmitter);
                 _config.angularVelocity.getValue(particle.getAngularVelocity());
-                initParticle(particle);
+                initParticle(ii);
                 _living.value++;
                 _preliving = Math.max(_preliving - 1, 0);
                 _bounds.addLocal(particle.getPosition());
@@ -252,11 +262,21 @@ public abstract class BaseParticleSystem extends Model.Implementation
         }
 
         /**
-         * Initializes the supplied new particle.
+         * Swaps the two particles at the specified indices.
          */
-        protected void initParticle (Particle particle)
+        protected void swapParticles (int idx0, int idx1)
         {
-            particle.init(_config.lifespan.getValue(), _config.alphaMode,
+            Particle tmp = _particles[idx0];
+            _particles[idx0] = _particles[idx1];
+            _particles[idx1] = tmp;
+        }
+
+        /**
+         * Initializes the particle at the specified index.
+         */
+        protected void initParticle (int idx)
+        {
+            _particles[idx].init(_config.lifespan.getValue(), _config.alphaMode,
                 _config.color, _config.size, null, null);
         }
 
@@ -291,7 +311,12 @@ public abstract class BaseParticleSystem extends Model.Implementation
         @Bound("nbounds")
         protected Box _parentBounds;
 
+        /** The inherited color state. */
+        @Bound
+        protected ColorState _colorState;
+
         /** The layer's transform in world space. */
+        @Scoped
         protected Transform3D _worldTransform = new Transform3D();
 
         /** The inverse of the world space transform. */

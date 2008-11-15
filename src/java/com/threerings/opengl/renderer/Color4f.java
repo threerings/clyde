@@ -147,6 +147,36 @@ public final class Color4f
     }
 
     /**
+     * Multiplies this color in-place by another.
+     *
+     * @return a reference to this color, for chaining.
+     */
+    public Color4f multLocal (Color4f other)
+    {
+        return mult(other, this);
+    }
+
+    /**
+     * Multiplies this color by another.
+     *
+     * @return a new color containing the result.
+     */
+    public Color4f mult (Color4f other)
+    {
+        return mult(other, new Color4f());
+    }
+
+    /**
+     * Multiplies this color by another, storing the result in the object provided.
+     *
+     * @return a reference to the result object, for chaining.
+     */
+    public Color4f mult (Color4f other, Color4f result)
+    {
+        return result.set(r * other.r, g * other.g, b * other.b, a * other.a);
+    }
+
+    /**
      * Adds a color in-place to this one.
      *
      * @return a reference to this color, for chaining.

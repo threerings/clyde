@@ -907,6 +907,16 @@ public final class Matrix4f
             m02*vector.x + m12*vector.y + m22*vector.z);
     }
 
+    /**
+     * Returns an approximation of the uniform scale for this matrix.
+     */
+    public float approximateUniformScale ()
+    {
+        return (FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02) +
+            FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12) +
+            FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22)) / 3f;
+    }
+
     // documentation inherited from interface Encodable
     public String encodeToString ()
     {

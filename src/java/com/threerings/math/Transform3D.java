@@ -639,6 +639,24 @@ public final class Transform3D
     }
 
     /**
+     * Extracts an approximation of the uniform scale from this transform.
+     */
+    public float approximateUniformScale ()
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+            case RIGID:
+                return 1f;
+            case UNIFORM:
+                return _scale;
+            case AFFINE:
+            case GENERAL:
+                return _matrix.approximateUniformScale();
+        }
+    }
+
+    /**
      * Custom field write method.
      */
     public void writeFields (Exporter out)
