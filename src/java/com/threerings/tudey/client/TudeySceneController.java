@@ -225,6 +225,12 @@ public class TudeySceneController extends SceneController
      */
     protected void transmitInput ()
     {
+        // remove any input frames guaranteed to be expired
+        while (!_input.isEmpty() && _lastDelta >= _input.get(0).getTimestamp()) {
+            _input.remove(0);
+        }
+
+        // send off our request
         _tsobj.tudeySceneService.enqueueInput(
             _ctx.getClient(), _lastDelta, _input.toArray(new InputFrame[_input.size()]));
     }
@@ -262,7 +268,7 @@ public class TudeySceneController extends SceneController
     /** The time at which we last transmitted our input.  */
     protected long _lastTransmit;
 
-    /** The timestamp of the last delta received from the client. */
+    /** The timestamp of the last delta received from the server. */
     protected long _lastDelta;
 
     /** Used for picking. */

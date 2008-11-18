@@ -37,9 +37,27 @@ public abstract class Effect extends SimpleStreamableObject
     }
 
     /**
+     * Returns the time at which this effect expires (that is, when it should no longer be
+     * retransmitted to clients).
+     */
+    public long getExpiry ()
+    {
+        return _timestamp + getLifespan();
+    }
+
+    /**
      * Handles the effect on the client.
      */
     public abstract void handle (TudeyContext ctx, TudeySceneView view);
+
+    /**
+     * Returns the lifespan of the effect, which is the amount of time to continue retransmitting
+     * the effect to clients before discarding it.
+     */
+    protected long getLifespan ()
+    {
+        return 3000L;
+    }
 
     /** The time at which the effect was fired. */
     protected long _timestamp;

@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.client;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.samskivert.util.HashIntMap;
@@ -223,7 +224,7 @@ public class TudeySceneView extends SimpleScope
             }
         }
 
-        // create handlers for the effects fired
+        // enqueue the effects for handling
         Effect[] effects = event.getEffects();
         if (effects != null) {
             for (Effect effect : effects) {
@@ -232,7 +233,7 @@ public class TudeySceneView extends SimpleScope
                     continue; // already processed
                 }
                 _lastEffect = timestamp;
-                effect.handle(_ctx, this);
+                _pendingEffects.add(effect);
             }
         }
     }
@@ -254,10 +255,21 @@ public class TudeySceneView extends SimpleScope
     {
         if (_smoother != null) {
             _smoothedTime = _smoother.getTime();
+            long delayedTime = getDelayedTime();
+
+            // fire off any pending effects
+            while (!_pendingEffects.isEmpty() &&
+                    delayedTime >= _pendingEffects.get(0).getTimestamp()) {
+                _pendingEffects.remove(0).handle(_ctx, this);
+            }
         }
+
+        // tick the controller, if present
         if (_ctrl != null) {
             _ctrl.tick(elapsed);
         }
+
+        // tick the scene
         _scene.tick(elapsed);
     }
 
@@ -360,4 +372,7 @@ public class TudeySceneView extends SimpleScope
 
     /** The timestamp of the last effect processed. */
     protected long _lastEffect;
+
+    /** Effects waiting to be handled. */
+    protected ArrayList<Effect> _pendingEffects = new ArrayList<Effect>();
 }

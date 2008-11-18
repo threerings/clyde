@@ -5,6 +5,8 @@ package com.threerings.math;
 
 import java.io.IOException;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
@@ -14,7 +16,7 @@ import com.threerings.export.Importer;
  * and inversion by keeping track of the nature of the transform.
  */
 public final class Transform3D
-    implements Exportable
+    implements Exportable, Streamable
 {
     /** An identity transformation. */
     public static final int IDENTITY = 0;

@@ -3,7 +3,8 @@
 
 package com.threerings.tudey.server;
 
-import com.samskivert.util.Queue;
+import java.util.ArrayList;
+
 import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.net.Transport;
@@ -41,6 +42,11 @@ public class ClientLiaison
         // remember acknowledgement
         _acknowledged = Math.max(_acknowledged, acknowledge);
 
+        // remove any acknowledged effects
+        while (!_effects.isEmpty() && acknowledge >= _effects.get(0).getTimestamp()) {
+            _effects.remove(0);
+        }
+
         // enqueue input frames
         for (InputFrame frame : frames) {
             long timestamp = frame.getTimestamp();
@@ -51,7 +57,7 @@ public class ClientLiaison
             if (timestamp < _tsobj.timestamp) {
                 continue; // out of date
             }
-            _input.append(frame);
+            _pendingInput.add(frame);
         }
     }
 
@@ -61,11 +67,19 @@ public class ClientLiaison
      */
     public void postDelta ()
     {
+        // remove any expired effects
+        for (int ii = _effects.size() - 1; ii >= 0; ii--) {
+            if (_tsobj.timestamp >= _effects.get(ii).getExpiry()) {
+                _effects.remove(ii);
+            }
+        }
+
         // create and post the event
         _bodyobj.postEvent(new SceneDeltaEvent(
             _bodyobj.getOid(), _tsobj.getOid(), _lastInput, _tsobj.timestamp,
             new AddedActor[0], new ActorDelta[0], new RemovedActor[0],
-            new Effect[0], Transport.UNRELIABLE_UNORDERED));
+            _effects.toArray(new Effect[_effects.size()]),
+            Transport.UNRELIABLE_UNORDERED));
     }
 
     /** The scene manager that created the liaison. */
@@ -77,12 +91,15 @@ public class ClientLiaison
     /** The client body object. */
     protected BodyObject _bodyobj;
 
+    /** Effects fired since last acknowledged state. */
+    protected ArrayList<Effect> _effects = new ArrayList<Effect>();
+
     /** The timestamp of the last delta acknowledged by the client. */
     protected long _acknowledged;
 
     /** The timestamp of the last input frame received from the client. */
     protected long _lastInput;
 
-    /** The queue of pending input frames. */
-    protected Queue<InputFrame> _input = new Queue<InputFrame>();
+    /** The pending input frames. */
+    protected ArrayList<InputFrame> _pendingInput = new ArrayList<InputFrame>();
 }
