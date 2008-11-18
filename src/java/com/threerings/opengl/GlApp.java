@@ -72,14 +72,6 @@ public abstract class GlApp extends DynamicScope
     public abstract RunQueue getRunQueue ();
 
     /**
-     * Returns a reference to the application's camera handler.
-     */
-    public CameraHandler getCameraHandler ()
-    {
-        return _camhand;
-    }
-
-    /**
      * Sets the render scheme.
      */
     public void setRenderScheme (String scheme)
@@ -159,6 +151,12 @@ public abstract class GlApp extends DynamicScope
     public Compositor getCompositor ()
     {
         return _compositor;
+    }
+
+    // documentation inherited from interface GlContext
+    public CameraHandler getCameraHandler ()
+    {
+        return _camhand;
     }
 
     // documentation inherited from interfaces GlContext, EditorContext

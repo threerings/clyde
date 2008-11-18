@@ -12,14 +12,16 @@ import com.samskivert.util.RunAnywhere;
 import com.threerings.presents.data.ClientObject;
 
 import com.threerings.crowd.data.BodyObject;
+import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.whirled.server.SceneManager;
 
-import com.threerings.tudey.data.Actor;
-import com.threerings.tudey.data.Effect;
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
+import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.effect.Effect;
 
 import static com.threerings.tudey.Log.*;
 
@@ -32,7 +34,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Adds an actor to the scene.
      */
-    public void addActor (Actor actor)
+    public void addActor (Actor actor, long timestamp)
     {
     }
 
@@ -46,7 +48,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Removes the actor with the specified identifier from the scene.
      */
-    public void removeActor (int id)
+    public void removeActor (int id, long timestamp)
     {
     }
 
@@ -55,7 +57,6 @@ public class TudeySceneManager extends SceneManager
      */
     public void fireEffect (Effect effect)
     {
-
     }
 
     // documentation inherited from interface TudeySceneProvider
@@ -108,6 +109,15 @@ public class TudeySceneManager extends SceneManager
 
         // clear out the scene service
         _invmgr.clearDispatcher(_tsobj.tudeySceneService);
+    }
+
+    @Override // documentation inherited
+    protected void insertOccupantInfo (OccupantInfo info, BodyObject body)
+    {
+        // add the actor and fill in its id
+        ((TudeyOccupantInfo)info).actorId = 0;
+
+        super.insertOccupantInfo(info, body);
     }
 
     @Override // documentation inherited

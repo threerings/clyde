@@ -5,7 +5,7 @@ package com.threerings.tudey.dobj;
 
 import com.threerings.io.SimpleStreamableObject;
 
-import com.threerings.tudey.data.Actor;
+import com.threerings.tudey.data.actor.Actor;
 
 /**
  * Combines a newly added actor with the timestamp of the addition.

@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.data;
 
+import com.threerings.crowd.data.OccupantInfo;
+
 import com.threerings.whirled.data.SceneObject;
 
 /**

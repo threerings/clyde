@@ -6,7 +6,7 @@ package com.threerings.tudey.client.sprite;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.data.Actor;
+import com.threerings.tudey.data.actor.Actor;
 
 /**
  * Represents an active element of the scene.

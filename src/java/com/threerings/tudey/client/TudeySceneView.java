@@ -29,15 +29,14 @@ import com.threerings.opengl.util.Tickable;
 
 import com.samskivert.util.Predicate;
 
-import com.threerings.tudey.client.handler.EffectHandler;
 import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.util.TimeSmoother;
-import com.threerings.tudey.data.Actor;
-import com.threerings.tudey.data.Effect;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.AddedActor;
 import com.threerings.tudey.dobj.RemovedActor;
@@ -53,12 +52,21 @@ public class TudeySceneView extends SimpleScope
     implements GlView, PlaceView, TudeySceneModel.Observer
 {
     /**
-     * Creates a new scene view.
+     * Creates a new scene view for use in the editor.
      */
     public TudeySceneView (TudeyContext ctx)
     {
+        this(ctx, null);
+    }
+
+    /**
+     * Creates a new scene view.
+     */
+    public TudeySceneView (TudeyContext ctx, TudeySceneController ctrl)
+    {
         super(ctx.getScope());
         _ctx = ctx;
+        _ctrl = ctrl;
         _scene = new HashScene(ctx, 64f, 6);
         _scene.setParentScope(this);
 
@@ -88,6 +96,24 @@ public class TudeySceneView extends SimpleScope
     public HashScene getScene ()
     {
         return _scene;
+    }
+
+    /**
+     * Returns the delayed client time, which is the smoothed time minus a delay that compensates
+     * for network jitter and dropped packets.
+     */
+    public long getDelayedTime ()
+    {
+        return _smoothedTime - getBufferDelay();
+    }
+
+    /**
+     * Returns the smoothed estimate of the server time (plus network latency) calculated at
+     * the start of each tick.
+     */
+    public long getSmoothedTime ()
+    {
+        return _smoothedTime;
     }
 
     /**
@@ -201,7 +227,12 @@ public class TudeySceneView extends SimpleScope
         Effect[] effects = event.getEffects();
         if (effects != null) {
             for (Effect effect : effects) {
-                EffectHandler handler = effect.createHandler(_ctx, this);
+                timestamp = effect.getTimestamp();
+                if (timestamp <= _lastEffect) {
+                    continue; // already processed
+                }
+                _lastEffect = timestamp;
+                effect.handle(_ctx, this);
             }
         }
     }
@@ -224,6 +255,9 @@ public class TudeySceneView extends SimpleScope
         if (_smoother != null) {
             _smoothedTime = _smoother.getTime();
         }
+        if (_ctrl != null) {
+            _ctrl.tick(elapsed);
+        }
         _scene.tick(elapsed);
     }
 
@@ -242,6 +276,7 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface PlaceView
     public void didLeavePlace (PlaceObject plobj)
     {
+        _smoother = null;
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -279,6 +314,15 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Returns the delay with which to display information received from the server in order to
+     * compensate for network jitter and dropped packets.
+     */
+    protected long getBufferDelay ()
+    {
+        return 100L;
+    }
+
+    /**
      * Adds a sprite for the specified entry.
      */
     protected void addEntrySprite (Entry entry)
@@ -288,6 +332,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The application context. */
     protected TudeyContext _ctx;
+
+    /** The controller that created this view. */
+    protected TudeySceneController _ctrl;
 
     /** A window used to gather input events. */
     protected Window _inputWindow;
@@ -310,4 +357,7 @@ public class TudeySceneView extends SimpleScope
 
     /** Sprites corresponding to the actors in the scene. */
     protected HashIntMap<ActorSprite> _actorSprites = new HashIntMap<ActorSprite>();
+
+    /** The timestamp of the last effect processed. */
+    protected long _lastEffect;
 }

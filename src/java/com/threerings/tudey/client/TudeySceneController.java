@@ -5,6 +5,9 @@ package com.threerings.tudey.client;
 
 import java.util.ArrayList;
 
+import org.lwjgl.input.Keyboard;
+
+import com.samskivert.util.IntIntMap;
 import com.samskivert.util.RunAnywhere;
 
 import com.threerings.crowd.client.PlaceView;
@@ -13,8 +16,17 @@ import com.threerings.crowd.util.CrowdContext;
 
 import com.threerings.whirled.client.SceneController;
 
+import com.threerings.math.FloatMath;
+import com.threerings.math.Plane;
+import com.threerings.math.Ray3D;
+import com.threerings.math.Vector3f;
+
+import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.KeyListener;
+import com.threerings.opengl.gui.event.MouseEvent;
+import com.threerings.opengl.gui.event.MouseListener;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.data.InputFrame;
@@ -29,7 +41,7 @@ import static com.threerings.tudey.Log.*;
  * The basic Tudey scene controller class.
  */
 public class TudeySceneController extends SceneController
-    implements SceneDeltaListener, KeyListener, Tickable
+    implements SceneDeltaListener, KeyListener, MouseListener, Tickable
 {
     // documentation inherited from interface SceneDeltaListener
     public void sceneDeltaReceived (SceneDeltaEvent event)
@@ -59,16 +71,67 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface KeyListener
     public void keyPressed (KeyEvent event)
     {
+        maybeSetFlag(_keyFlags.get(event.getKeyCode()));
     }
 
     // documentation inherited from interface KeyListener
     public void keyReleased (KeyEvent event)
+    {
+        maybeClearFlag(_keyFlags.get(event.getKeyCode()));
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mousePressed (MouseEvent event)
+    {
+        maybeSetFlag(_buttonFlags[event.getButton()]);
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseReleased (MouseEvent event)
+    {
+        maybeClearFlag(_buttonFlags[event.getButton()]);
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseClicked (MouseEvent event)
+    {
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseEntered (MouseEvent event)
+    {
+    }
+
+    // documentation inherited from interface MouseListener
+    public void mouseExited (MouseEvent event)
     {
     }
 
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
+        // get the pick ray and the camera target plane
+        Root root = _tctx.getRoot();
+        _tctx.getCompositor().getCamera().getPickRay(root.getMouseX(), root.getMouseY(), _pick);
+        Vector3f target = ((OrbitCameraHandler)_tctx.getCameraHandler()).getTarget();
+        _tplane.set(Vector3f.UNIT_Z, -target.z);
+
+        // determine where they intersect and use that to calculate the requested direction
+        float direction = _lastDirection;
+        if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
+            direction = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
+        }
+
+        // perhaps enqueue an input frame
+        if (direction != _lastDirection || _frameFlags != _lastFlags) {
+            _input.add(new InputFrame(
+                _tsview.getSmoothedTime() + getInputAdvance(),
+                _lastDirection = direction, _lastFlags = _frameFlags));
+        }
+
+        // reset the frame flags
+        _frameFlags = _flags;
+
         // perhaps transmit our acknowledgement and input frames
         long now = RunAnywhere.currentTimeMillis();
         if (now - _lastTransmit >= getTransmitInterval()) {
@@ -88,9 +151,6 @@ public class TudeySceneController extends SceneController
 
         // listen for input events
         _tsview.getInputWindow().addListener(this);
-
-        // register with the root as a tick participant
-        _tctx.getRoot().addTickParticipant(this);
     }
 
     @Override // documentation inherited
@@ -98,16 +158,15 @@ public class TudeySceneController extends SceneController
     {
         super.didLeavePlace(plobj);
 
-        // stop listening to the client object, input events, ticks
+        // stop listening to the client object and input events
         _ctx.getClient().getClientObject().removeListener(this);
         _tsview.getInputWindow().removeListener(this);
-        _tctx.getRoot().removeTickParticipant(this);
     }
 
     @Override // documentation inherited
     protected PlaceView createPlaceView (CrowdContext ctx)
     {
-        return (_tsview = new TudeySceneView((TudeyContext)ctx));
+        return (_tsview = new TudeySceneView((TudeyContext)ctx, this));
     }
 
     @Override // documentation inherited
@@ -115,6 +174,21 @@ public class TudeySceneController extends SceneController
     {
         super.didInit();
         _tctx = (TudeyContext)_ctx;
+
+        // add the input flag mappings
+        _keyFlags.put(Keyboard.KEY_S, InputFrame.STRAFE);
+        _buttonFlags[MouseEvent.BUTTON1] = InputFrame.MOVE;
+    }
+
+    /**
+     * Returns the interval ahead of the smoothed server time (which estimates the server time plus
+     * one-way latency) at which we schedule input events.  This should be at least the transmit
+     * interval (which represents the maximum amount of time that events may be delayed) plus the
+     * two-way latency.
+     */
+    protected long getInputAdvance ()
+    {
+        return getTransmitInterval();
     }
 
     /**
@@ -123,6 +197,27 @@ public class TudeySceneController extends SceneController
     protected long getTransmitInterval ()
     {
         return 110L;
+    }
+
+    /**
+     * Sets the specified input flag, if valid.
+     */
+    protected void maybeSetFlag (int flag)
+    {
+        if (flag > 0) {
+            _flags |= flag;
+            _frameFlags |= flag;
+        }
+    }
+
+    /**
+     * Clears the specified input flag, if valid.
+     */
+    protected void maybeClearFlag (int flag)
+    {
+        if (flag > 0) {
+            _flags &= ~flag;
+        }
     }
 
     /**
@@ -143,12 +238,39 @@ public class TudeySceneController extends SceneController
     /** A casted reference to the scene object. */
     protected TudeySceneObject _tsobj;
 
+    /** Maps key codes to input flags. */
+    protected IntIntMap _keyFlags = new IntIntMap();
+
+    /** Maps mouse buttons to input flags. */
+    protected int[] _buttonFlags = new int[3];
+
+    /** The current value of the input flags. */
+    protected int _flags;
+
+    /** Contains all flags set during the current frame. */
+    protected int _frameFlags;
+
     /** The list of outgoing input frames. */
     protected ArrayList<InputFrame> _input = new ArrayList<InputFrame>();
+
+    /** The last direction we transmitted. */
+    protected float _lastDirection;
+
+    /** The last flags we transmitted. */
+    protected int _lastFlags;
 
     /** The time at which we last transmitted our input.  */
     protected long _lastTransmit;
 
     /** The timestamp of the last delta received from the client. */
     protected long _lastDelta;
+
+    /** Used for picking. */
+    protected Ray3D _pick = new Ray3D();
+
+    /** Contains the target plane for intersecting testing. */
+    protected Plane _tplane = new Plane();
+
+    /** Contains the result of the intersection test. */
+    protected Vector3f _isect = new Vector3f();
 }

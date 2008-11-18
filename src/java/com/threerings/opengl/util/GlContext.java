@@ -10,6 +10,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
 import com.threerings.openal.util.AlContext;
+import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -43,6 +44,11 @@ public interface GlContext extends AlContext
      * Returns a reference to the compositor.
      */
     public Compositor getCompositor ();
+
+    /**
+     * Returns a reference to the camera handler.
+     */
+    public CameraHandler getCameraHandler ();
 
     /**
      * Returns a reference to the resource manager.

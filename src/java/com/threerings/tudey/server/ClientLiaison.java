@@ -10,9 +10,9 @@ import com.threerings.presents.net.Transport;
 
 import com.threerings.crowd.data.BodyObject;
 
-import com.threerings.tudey.data.Effect;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeySceneObject;
+import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.AddedActor;
 import com.threerings.tudey.dobj.RemovedActor;

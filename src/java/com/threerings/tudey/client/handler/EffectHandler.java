@@ -8,7 +8,7 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.data.Effect;
+import com.threerings.tudey.data.effect.Effect;
 
 /**
  * Handles the display of a stateless effect.

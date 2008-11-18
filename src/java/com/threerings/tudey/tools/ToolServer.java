@@ -29,6 +29,7 @@ import com.threerings.whirled.server.WhirledSession;
 import com.threerings.whirled.server.persist.DummySceneRepository;
 import com.threerings.whirled.server.persist.SceneRepository;
 
+import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.server.TudeyServer;
 
 import static com.threerings.tudey.Log.*;
@@ -74,7 +75,7 @@ public class ToolServer extends TudeyServer
                 return WhirledSession.class;
             }
             public Class<? extends ClientResolver> getClientResolverClass (Name username) {
-                return CrowdClientResolver.class;
+                return ToolClientResolver.class;
             }
         });
     }
@@ -113,6 +114,18 @@ public class ToolServer extends TudeyServer
     public void stopStandaloneClient (Client client)
     {
         client.standaloneLogoff();
+    }
+
+    /**
+     * Client resolver class.
+     */
+    protected static class ToolClientResolver extends CrowdClientResolver
+    {
+        @Override // documentation inherited
+        public ClientObject createClientObject ()
+        {
+            return new TudeyBodyObject();
+        }
     }
 
     /** The scene repository. */

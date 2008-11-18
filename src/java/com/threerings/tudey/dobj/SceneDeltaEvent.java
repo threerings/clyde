@@ -10,7 +10,7 @@ import com.threerings.presents.dobj.DObject;
 import com.threerings.presents.dobj.ObjectAccessException;
 import com.threerings.presents.net.Transport;
 
-import com.threerings.tudey.data.Effect;
+import com.threerings.tudey.data.effect.Effect;
 
 /**
  * Represents an update to the dynamic state of the scene.  Each delta represents difference

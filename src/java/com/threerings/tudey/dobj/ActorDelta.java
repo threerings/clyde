@@ -5,7 +5,7 @@ package com.threerings.tudey.dobj;
 
 import com.threerings.delta.ReflectiveDelta;
 
-import com.threerings.tudey.data.Actor;
+import com.threerings.tudey.data.actor.Actor;
 
 /**
  * Extends {@link FieldDelta} to include the id of the affected actor.  Declared final for

@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.tudey.data;
+package com.threerings.tudey.data.actor;
 
 import com.threerings.io.Streamable;
 
