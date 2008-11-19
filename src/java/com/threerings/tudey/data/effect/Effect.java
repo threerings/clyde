@@ -8,6 +8,7 @@ import com.threerings.io.SimpleStreamableObject;
 import com.threerings.math.Rect;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.handler.EffectHandler;
 import com.threerings.tudey.util.TudeyContext;
 
 /**
@@ -57,9 +58,9 @@ public abstract class Effect extends SimpleStreamableObject
     }
 
     /**
-     * Handles the effect on the client.
+     * Creates a handler to visualize the effect on the client.
      */
-    public abstract void handle (TudeyContext ctx, TudeySceneView view);
+    public abstract EffectHandler createHandler (TudeyContext ctx, TudeySceneView view);
 
     /**
      * Returns the lifespan of the effect, which is the amount of time to continue retransmitting

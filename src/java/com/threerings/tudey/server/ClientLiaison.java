@@ -96,7 +96,7 @@ public class ClientLiaison
             Actor oactor = oactors.get(nactor.getId());
             if (oactor == null) {
                 _added.add(nactor);
-            } else {
+            } else if (!oactor.equals(nactor)) {
                 _updated.add(new ActorDelta(oactor, nactor));
             }
         }

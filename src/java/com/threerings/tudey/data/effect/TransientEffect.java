@@ -9,6 +9,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.opengl.model.config.ModelConfig;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.handler.EffectHandler;
 import com.threerings.tudey.util.TudeyContext;
 
 /**
@@ -32,9 +33,14 @@ public abstract class TransientEffect extends Effect
     }
 
     @Override // documentation inherited
-    public void handle (TudeyContext ctx, TudeySceneView view)
+    public EffectHandler createHandler (TudeyContext ctx, final TudeySceneView view)
     {
-        view.getScene().spawnTransient(getModel(), getTransform());
+        return new EffectHandler(ctx, view, this) {
+            protected boolean liveTick (float elapsed) {
+                view.getScene().spawnTransient(getModel(), getTransform());
+                return false;
+            }
+        };
     }
 
     /**

@@ -12,20 +12,36 @@ import com.threerings.tudey.data.actor.Actor;
  * Represents an active element of the scene.
  */
 public abstract class ActorSprite extends Sprite
+    implements TudeySceneView.TickParticipant
 {
     /**
      * Creates a new actor sprite.
      */
-    public ActorSprite (GlContext ctx, TudeySceneView view)
+    public ActorSprite (GlContext ctx, TudeySceneView view, long timestamp, Actor actor)
     {
         super(ctx, view);
+
+        // register as tick participant
+        view.addTickParticipant(this);
     }
 
     /**
-     * Notes that the actor to which this sprite corresponds was removed at the specified time.
+     * Updates this sprite with new state.
      */
-    public void wasRemoved (long timestamp)
+    public void update (long timestamp, Actor actor)
     {
-        // nothing by default
+    }
+
+    /**
+     * Notes that the actor has been removed.
+     */
+    public void remove (long timestamp)
+    {
+    }
+
+    // documentation inherited from interface TudeySceneView.TickParticipant
+    public boolean tick (long delayedTime)
+    {
+        return true;
     }
 }

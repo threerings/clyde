@@ -5,8 +5,10 @@ package com.threerings.tudey.client;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntMap.IntEntry;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.PlaceObject;
@@ -51,6 +53,20 @@ public class TudeySceneView extends SimpleScope
     implements GlView, PlaceView, TudeySceneModel.Observer
 {
     /**
+     * An interface for objects (such as sprites and observers) that require per-tick updates.
+     */
+    public interface TickParticipant
+    {
+        /**
+         * Ticks the participant.
+         *
+         * @param delayedTime the current delayed client time.
+         * @return true to continue ticking the participant, false to remove it from the list.
+         */
+        public boolean tick (long delayedTime);
+    }
+
+    /**
      * Creates a new scene view for use in the editor.
      */
     public TudeySceneView (TudeyContext ctx)
@@ -79,6 +95,9 @@ public class TudeySceneView extends SimpleScope
             }
         };
         _inputWindow.setModal(true);
+
+        // insert the baseline (empty) update record
+        _records.add(new UpdateRecord(0L, new HashIntMap<Actor>()));
     }
 
     /**
@@ -188,6 +207,104 @@ public class TudeySceneView extends SimpleScope
         } else {
             _smoother.update(timestamp);
         }
+
+        // store the ping estimate
+        _ping = event.getPing();
+
+        // remove all records before the reference
+        long reference = event.getReference();
+        while (reference > _records.get(0).getTimestamp()) {
+            _records.remove(0);
+        }
+        HashIntMap<Actor> oactors = _records.get(0).getActors();
+        HashIntMap<Actor> actors = new HashIntMap<Actor>();
+
+        // start with all the old actors
+        actors.putAll(oactors);
+
+        // add any new actors
+        Actor[] added = event.getAddedActors();
+        if (added != null) {
+            for (Actor actor : added) {
+                Actor oactor = actors.put(actor.getId(), actor);
+                if (oactor != null) {
+                    log.warning("Replacing existing actor.", "oactor", oactor, "nactor", actor);
+                }
+            }
+        }
+
+        // update any updated actors
+        ActorDelta[] updated = event.getUpdatedActorDeltas();
+        if (updated != null) {
+            for (ActorDelta delta : updated) {
+                int id = delta.getId();
+                Actor oactor = actors.get(id);
+                if (oactor != null) {
+                    actors.put(id, (Actor)delta.apply(oactor));
+                } else {
+                    log.warning("Missing actor for delta.", "delta", delta);
+                }
+            }
+        }
+
+        // remove any removed actors
+        int[] removed = event.getRemovedActorIds();
+        if (removed != null) {
+            for (int id : removed) {
+                actors.remove(id);
+            }
+        }
+
+        // record the update
+        _records.add(new UpdateRecord(timestamp, actors));
+
+        // create/update the sprites for actors in the set
+        for (Actor actor : actors.values()) {
+            int id = actor.getId();
+            ActorSprite sprite = _actorSprites.get(id);
+            if (sprite == null) {
+                _actorSprites.put(id, actor.createSprite(_ctx, this, timestamp));
+            } else {
+                sprite.update(timestamp, actor);
+            }
+        }
+
+        // remove sprites for actors no longer in the set
+        for (Iterator<IntEntry<ActorSprite>> it = _actorSprites.intEntrySet().iterator();
+                it.hasNext(); ) {
+            IntEntry<ActorSprite> entry = it.next();
+            if (!actors.containsKey(entry.getIntKey())) {
+                entry.getValue().remove(timestamp);
+                it.remove();
+            }
+        }
+
+        // create handlers for any effects fired since the last update
+        Effect[] fired = event.getEffectsFired();
+        if (fired != null) {
+            long last = _records.get(_records.size() - 2).getTimestamp();
+            for (Effect effect : fired) {
+                if (effect.getTimestamp() > last) {
+                    effect.createHandler(_ctx, this);
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds a participant to tick at each frame.
+     */
+    public void addTickParticipant (TickParticipant participant)
+    {
+        _tickParticipants.add(participant);
+    }
+
+    /**
+     * Removes a participant from the tick list.
+     */
+    public void removeTickParticipant (TickParticipant participant)
+    {
+        _tickParticipants.remove(participant);
     }
 
     // documentation inherited from interface GlView
@@ -215,11 +332,12 @@ public class TudeySceneView extends SimpleScope
             _ctrl.tick(elapsed);
         }
 
-        // fire off any pending effects
+        // tick the participants in reverse order, to allow removal
         long delayedTime = getDelayedTime();
-        while (!_pendingEffects.isEmpty() &&
-                delayedTime >= _pendingEffects.get(0).getTimestamp()) {
-            _pendingEffects.remove(0).handle(_ctx, this);
+        for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
+            if (!_tickParticipants.get(ii).tick(delayedTime)) {
+                _tickParticipants.remove(ii);
+            }
         }
 
         // tick the scene
@@ -295,6 +413,43 @@ public class TudeySceneView extends SimpleScope
         _entrySprites.put(entry.getKey(), entry.createSprite(_ctx, this));
     }
 
+    /**
+     * Contains the state at a single update.
+     */
+    protected static class UpdateRecord
+    {
+        /**
+         * Creates a new update record.
+         */
+        public UpdateRecord (long timestamp, HashIntMap<Actor> actors)
+        {
+            _timestamp = timestamp;
+            _actors = actors;
+        }
+
+        /**
+         * Returns the timestamp of this update.
+         */
+        public long getTimestamp ()
+        {
+            return _timestamp;
+        }
+
+        /**
+         * Returns the map of actors.
+         */
+        public HashIntMap<Actor> getActors ()
+        {
+            return _actors;
+        }
+
+        /** The timestamp of the update. */
+        protected long _timestamp;
+
+        /** The states of the actors. */
+        protected HashIntMap<Actor> _actors;
+    }
+
     /** The application context. */
     protected TudeyContext _ctx;
 
@@ -317,15 +472,18 @@ public class TudeySceneView extends SimpleScope
     /** The smoothed time. */
     protected long _smoothedTime;
 
+    /** The estimated ping time. */
+    protected int _ping;
+
+    /** Records of each update received from the server. */
+    protected ArrayList<UpdateRecord> _records = new ArrayList<UpdateRecord>();
+
     /** Sprites corresponding to the scene entries. */
     protected HashMap<Object, EntrySprite> _entrySprites = new HashMap<Object, EntrySprite>();
 
     /** Sprites corresponding to the actors in the scene. */
     protected HashIntMap<ActorSprite> _actorSprites = new HashIntMap<ActorSprite>();
 
-    /** The timestamp of the last effect processed. */
-    protected long _lastEffect;
-
-    /** Effects waiting to be handled. */
-    protected ArrayList<Effect> _pendingEffects = new ArrayList<Effect>();
+    /** The list of participants in the tick. */
+    protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
 }
