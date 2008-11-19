@@ -52,14 +52,14 @@ public class TudeySceneController extends SceneController
             return;
         }
         // make sure it's not a out of order or a repeat
-        long timestamp = event.getTimestamp();
+        int timestamp = event.getTimestamp();
         if (timestamp <= _lastDelta) {
             return;
         }
         _lastDelta = timestamp;
 
         // prune all acknowledged input frames
-        long acknowledge = event.getAcknowledge();
+        int acknowledge = event.getAcknowledge();
         while (!_input.isEmpty() && _input.get(0).getTimestamp() <= acknowledge) {
             _input.remove(0);
         }
@@ -186,7 +186,7 @@ public class TudeySceneController extends SceneController
      * interval (which represents the maximum amount of time that events may be delayed) plus the
      * two-way latency.
      */
-    protected long getInputAdvance ()
+    protected int getInputAdvance ()
     {
         return getTransmitInterval();
     }
@@ -194,9 +194,9 @@ public class TudeySceneController extends SceneController
     /**
      * Returns the interval at which we transmit our input frames.
      */
-    protected long getTransmitInterval ()
+    protected int getTransmitInterval ()
     {
-        return 110L;
+        return 110;
     }
 
     /**
@@ -270,7 +270,7 @@ public class TudeySceneController extends SceneController
     protected long _lastTransmit;
 
     /** The timestamp of the last delta received from the server. */
-    protected long _lastDelta;
+    protected int _lastDelta;
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();

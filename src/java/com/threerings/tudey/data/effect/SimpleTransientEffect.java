@@ -19,7 +19,7 @@ public class SimpleTransientEffect extends TransientEffect
      * Creates a new simple transient effect.
      */
     public SimpleTransientEffect (
-        long timestamp, ConfigReference<ModelConfig> model, Transform3D transform)
+        int timestamp, ConfigReference<ModelConfig> model, Transform3D transform)
     {
         super(timestamp);
         _model = model;

@@ -23,5 +23,5 @@ public interface TudeySceneService extends InvocationService
      */
     @TransportHint(type=Transport.Type.UNRELIABLE_UNORDERED)
     public void enqueueInput (
-        Client client, long acknowledge, long smoothedTime, InputFrame[] frames);
+        Client client, int acknowledge, int smoothedTime, InputFrame[] frames);
 }

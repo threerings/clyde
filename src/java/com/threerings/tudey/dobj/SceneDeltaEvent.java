@@ -25,7 +25,7 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, long acknowledge, int ping, long reference, long timestamp,
+        int targetOid, int sceneOid, int acknowledge, int ping, int reference, int timestamp,
         Actor[] addedActors, ActorDelta[] updatedActorDeltas, int[] removedActorIds,
         Effect[] effectsFired)
     {
@@ -37,7 +37,7 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, long acknowledge, int ping, long reference, long timestamp,
+        int targetOid, int sceneOid, int acknowledge, int ping, int reference, int timestamp,
         Actor[] addedActors, ActorDelta[] updatedActorDeltas, int[] removedActorIds,
         Effect[] effectsFired, Transport transport)
     {
@@ -71,7 +71,7 @@ public class SceneDeltaEvent extends DEvent
     /**
      * Returns the timestamp of the last input frame received by the server.
      */
-    public long getAcknowledge ()
+    public int getAcknowledge ()
     {
         return _acknowledge;
     }
@@ -88,7 +88,7 @@ public class SceneDeltaEvent extends DEvent
      * Returns the timestamp of the update that serves as a basis of comparison for this delta
      * (either the last delta known to be acknowledged by the client, or 0 for the baseline).
      */
-    public long getReference ()
+    public int getReference ()
     {
         return _reference;
     }
@@ -96,7 +96,7 @@ public class SceneDeltaEvent extends DEvent
     /**
      * Returns the timestamp of the delta.
      */
-    public long getTimestamp ()
+    public int getTimestamp ()
     {
         return _timestamp;
     }
@@ -171,17 +171,17 @@ public class SceneDeltaEvent extends DEvent
     protected int _sceneOid;
 
     /** The timestamp of the latest input frame received by the server. */
-    protected long _acknowledge;
+    protected int _acknowledge;
 
     /** The estimated ping time. */
     protected int _ping;
 
     /** The timestamp of the update that serves as a basis of comparison for this delta (either
      * the last delta known to be acknowledged by the client, or 0 for the baseline). */
-    protected long _reference;
+    protected int _reference;
 
     /** The timestamp of the delta. */
-    protected long _timestamp;
+    protected int _timestamp;
 
     /** The actors added to the scene since the referenced update (or <code>null</code>). */
     protected Actor[] _addedActors;

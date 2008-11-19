@@ -17,7 +17,7 @@ public class TimeSmoother
     /**
      * Creates a new smoother with the given initial clock value.
      */
-    public TimeSmoother (long time)
+    public TimeSmoother (int time)
     {
         _delta = _tdelta = time - RunAnywhere.currentTimeMillis();
     }
@@ -25,7 +25,7 @@ public class TimeSmoother
     /**
      * Updates the smoother with the current value of the clock being tracked.
      */
-    public void update (long time)
+    public void update (int time)
     {
         _dstamp = RunAnywhere.currentTimeMillis();
         _tdelta = time - _dstamp;
@@ -34,7 +34,7 @@ public class TimeSmoother
     /**
      * Returns the current smoothed time estimate.
      */
-    public long getTime ()
+    public int getTime ()
     {
         // approach the target delta if not yet there
         long now = RunAnywhere.currentTimeMillis();
@@ -49,7 +49,7 @@ public class TimeSmoother
             _delta += Math.max(-elapsed, diff);
             _dstamp = now;
         }
-        return now + _delta;
+        return (int)(now + _delta);
     }
 
     /** The current estimated difference between the tracked time and the timer time. */

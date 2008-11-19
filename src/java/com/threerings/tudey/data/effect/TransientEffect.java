@@ -20,7 +20,7 @@ public abstract class TransientEffect extends Effect
     /**
      * Creates a new transient effect.
      */
-    public TransientEffect (long timestamp)
+    public TransientEffect (int timestamp)
     {
         super(timestamp);
     }

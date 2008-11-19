@@ -7,6 +7,7 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.util.ActorHistory;
 
 /**
  * Represents an active element of the scene.
@@ -17,9 +18,12 @@ public abstract class ActorSprite extends Sprite
     /**
      * Creates a new actor sprite.
      */
-    public ActorSprite (GlContext ctx, TudeySceneView view, long timestamp, Actor actor)
+    public ActorSprite (GlContext ctx, TudeySceneView view, int timestamp, Actor actor)
     {
         super(ctx, view);
+
+        // create the history
+        _history = new ActorHistory(timestamp, actor, view.getBufferDelay() * 2);
 
         // register as tick participant
         view.addTickParticipant(this);
@@ -28,20 +32,24 @@ public abstract class ActorSprite extends Sprite
     /**
      * Updates this sprite with new state.
      */
-    public void update (long timestamp, Actor actor)
+    public void update (int timestamp, Actor actor)
     {
+        _history.record(timestamp, actor);
     }
 
     /**
      * Notes that the actor has been removed.
      */
-    public void remove (long timestamp)
+    public void remove (int timestamp)
     {
     }
 
     // documentation inherited from interface TudeySceneView.TickParticipant
-    public boolean tick (long delayedTime)
+    public boolean tick (int delayedTime)
     {
         return true;
     }
+
+    /** The history that we use to find interpolated actor state. */
+    protected ActorHistory _history;
 }

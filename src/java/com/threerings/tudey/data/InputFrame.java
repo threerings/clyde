@@ -21,7 +21,7 @@ public class InputFrame extends DeepObject
     /**
      * Creates a new input frame.
      */
-    public InputFrame (long timestamp, float direction, int flags)
+    public InputFrame (int timestamp, float direction, int flags)
     {
         _timestamp = timestamp;
         _direction = direction;
@@ -38,7 +38,7 @@ public class InputFrame extends DeepObject
     /**
      * Returns the timestamp of this frame.
      */
-    public long getTimestamp ()
+    public int getTimestamp ()
     {
         return _timestamp;
     }
@@ -67,7 +67,7 @@ public class InputFrame extends DeepObject
     }
 
     /** The timestamp of the input frame. */
-    protected long _timestamp;
+    protected int _timestamp;
 
     /** The direction requested by the user. */
     protected float _direction;

@@ -63,7 +63,7 @@ public class TudeySceneView extends SimpleScope
          * @param delayedTime the current delayed client time.
          * @return true to continue ticking the participant, false to remove it from the list.
          */
-        public boolean tick (long delayedTime);
+        public boolean tick (int delayedTime);
     }
 
     /**
@@ -97,7 +97,7 @@ public class TudeySceneView extends SimpleScope
         _inputWindow.setModal(true);
 
         // insert the baseline (empty) update record
-        _records.add(new UpdateRecord(0L, new HashIntMap<Actor>()));
+        _records.add(new UpdateRecord(0, new HashIntMap<Actor>()));
     }
 
     /**
@@ -120,16 +120,25 @@ public class TudeySceneView extends SimpleScope
      * Returns the delayed client time, which is the smoothed time minus a delay that compensates
      * for network jitter and dropped packets.
      */
-    public long getDelayedTime ()
+    public int getDelayedTime ()
     {
         return _smoothedTime - getBufferDelay();
+    }
+
+    /**
+     * Returns the delay with which to display information received from the server in order to
+     * compensate for network jitter and dropped packets.
+     */
+    public int getBufferDelay ()
+    {
+        return 100;
     }
 
     /**
      * Returns the smoothed estimate of the server time (plus network latency) calculated at
      * the start of each tick.
      */
-    public long getSmoothedTime ()
+    public int getSmoothedTime ()
     {
         return _smoothedTime;
     }
@@ -200,7 +209,7 @@ public class TudeySceneView extends SimpleScope
     public void processSceneDelta (SceneDeltaEvent event)
     {
         // create/update the timer smoother
-        long timestamp = event.getTimestamp();
+        int timestamp = event.getTimestamp();
         if (_smoother == null) {
             _smoother = new TimeSmoother(timestamp);
             _smoothedTime = timestamp;
@@ -212,7 +221,7 @@ public class TudeySceneView extends SimpleScope
         _ping = event.getPing();
 
         // remove all records before the reference
-        long reference = event.getReference();
+        int reference = event.getReference();
         while (reference > _records.get(0).getTimestamp()) {
             _records.remove(0);
         }
@@ -282,7 +291,7 @@ public class TudeySceneView extends SimpleScope
         // create handlers for any effects fired since the last update
         Effect[] fired = event.getEffectsFired();
         if (fired != null) {
-            long last = _records.get(_records.size() - 2).getTimestamp();
+            int last = _records.get(_records.size() - 2).getTimestamp();
             for (Effect effect : fired) {
                 if (effect.getTimestamp() > last) {
                     effect.createHandler(_ctx, this);
@@ -333,7 +342,7 @@ public class TudeySceneView extends SimpleScope
         }
 
         // tick the participants in reverse order, to allow removal
-        long delayedTime = getDelayedTime();
+        int delayedTime = getDelayedTime();
         for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
             if (!_tickParticipants.get(ii).tick(delayedTime)) {
                 _tickParticipants.remove(ii);
@@ -397,15 +406,6 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
-     * Returns the delay with which to display information received from the server in order to
-     * compensate for network jitter and dropped packets.
-     */
-    protected long getBufferDelay ()
-    {
-        return 100L;
-    }
-
-    /**
      * Adds a sprite for the specified entry.
      */
     protected void addEntrySprite (Entry entry)
@@ -421,7 +421,7 @@ public class TudeySceneView extends SimpleScope
         /**
          * Creates a new update record.
          */
-        public UpdateRecord (long timestamp, HashIntMap<Actor> actors)
+        public UpdateRecord (int timestamp, HashIntMap<Actor> actors)
         {
             _timestamp = timestamp;
             _actors = actors;
@@ -430,7 +430,7 @@ public class TudeySceneView extends SimpleScope
         /**
          * Returns the timestamp of this update.
          */
-        public long getTimestamp ()
+        public int getTimestamp ()
         {
             return _timestamp;
         }
@@ -444,7 +444,7 @@ public class TudeySceneView extends SimpleScope
         }
 
         /** The timestamp of the update. */
-        protected long _timestamp;
+        protected int _timestamp;
 
         /** The states of the actors. */
         protected HashIntMap<Actor> _actors;
@@ -470,7 +470,7 @@ public class TudeySceneView extends SimpleScope
     protected TimeSmoother _smoother;
 
     /** The smoothed time. */
-    protected long _smoothedTime;
+    protected int _smoothedTime;
 
     /** The estimated ping time. */
     protected int _ping;

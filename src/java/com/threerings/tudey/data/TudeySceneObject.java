@@ -21,7 +21,7 @@ public class TudeySceneObject extends SceneObject
     public TudeySceneMarshaller tudeySceneService;
 
     /** The current time. */
-    public transient long timestamp;
+    public transient int timestamp;
 
     // AUTO-GENERATED: METHODS START
     /**

@@ -30,9 +30,9 @@ public abstract class EffectHandler extends SimpleScope
     }
 
     // documentation inherited from interface TudeySceneView.TickParticipant
-    public boolean tick (long delayedTime)
+    public boolean tick (int delayedTime)
     {
-        long timestamp = _effect.getTimestamp();
+        int timestamp = _effect.getTimestamp();
         return delayedTime < timestamp || liveTick((delayedTime - timestamp) / 1000f);
     }
 

@@ -37,7 +37,7 @@ public class ClientLiaison
         _bodyobj = bodyobj;
 
         // insert the baseline (empty) tick record
-        _records.add(new TickRecord(0L, new HashIntMap<Actor>(), new Effect[0]));
+        _records.add(new TickRecord(0, new HashIntMap<Actor>(), new Effect[0]));
     }
 
     /**
@@ -45,7 +45,7 @@ public class ClientLiaison
      *
      * @param ping the ping calculated from the current time and the client's time estimate.
      */
-    public void enqueueInput (long acknowledge, long ping, InputFrame[] frames)
+    public void enqueueInput (int acknowledge, int ping, InputFrame[] frames)
     {
         // acknowledgement cannot decrease; if it has, this must be out-of-order
         if (acknowledge < _records.get(0).getTimestamp()) {
@@ -58,16 +58,17 @@ public class ClientLiaison
         }
 
         // remember ping
-        _ping = (int)ping;
+        _ping = ping;
 
         // enqueue input frames
+        int timestamp = _scenemgr.getTimestamp();
         for (InputFrame frame : frames) {
-            long timestamp = frame.getTimestamp();
-            if (timestamp <= _lastInput) {
+            int input = frame.getTimestamp();
+            if (input <= _lastInput) {
                 continue; // already processed
             }
-            _lastInput = timestamp;
-            if (timestamp < _tsobj.timestamp) {
+            _lastInput = input;
+            if (input <= timestamp) {
                 continue; // out of date
             }
             _pendingInput.add(frame);
@@ -85,7 +86,8 @@ public class ClientLiaison
         Effect[] effectsFired = _scenemgr.getEffectsFired(_interest);
 
         // record the tick
-        _records.add(new TickRecord(_tsobj.timestamp, actors, effectsFired));
+        int timestamp = _scenemgr.getTimestamp();
+        _records.add(new TickRecord(timestamp, actors, effectsFired));
 
         // the last acknowledged tick is the reference
         TickRecord reference = _records.get(0);
@@ -112,7 +114,7 @@ public class ClientLiaison
         // get all effects fired (not expired)
         for (int ii = 1, nn = _records.size(); ii < nn; ii++) {
             for (Effect effect : _records.get(ii).getEffectsFired()) {
-                if (_tsobj.timestamp < effect.getExpiry()) {
+                if (timestamp < effect.getExpiry()) {
                     _fired.add(effect);
                 }
             }
@@ -121,7 +123,7 @@ public class ClientLiaison
         // create and post the event
         _bodyobj.postEvent(new SceneDeltaEvent(
             _bodyobj.getOid(), _tsobj.getOid(), _lastInput, _ping,
-            reference.getTimestamp(), _tsobj.timestamp,
+            reference.getTimestamp(), timestamp,
             _added.isEmpty() ? null : _added.toArray(new Actor[_added.size()]),
             _updated.isEmpty() ? null : _updated.toArray(new ActorDelta[_updated.size()]),
             _removed.isEmpty() ? null : CollectionUtil.toIntArray(_removed),
@@ -143,7 +145,7 @@ public class ClientLiaison
         /**
          * Creates a new record.
          */
-        public TickRecord (long timestamp, HashIntMap<Actor> actors, Effect[] effectsFired)
+        public TickRecord (int timestamp, HashIntMap<Actor> actors, Effect[] effectsFired)
         {
             _timestamp = timestamp;
             _actors = actors;
@@ -153,7 +155,7 @@ public class ClientLiaison
         /**
          * Returns the timestamp of this record.
          */
-        public long getTimestamp ()
+        public int getTimestamp ()
         {
             return _timestamp;
         }
@@ -175,7 +177,7 @@ public class ClientLiaison
         }
 
         /** The timestamp of this record. */
-        protected long _timestamp;
+        protected int _timestamp;
 
         /** The actor states at this tick. */
         protected HashIntMap<Actor> _actors;
@@ -203,7 +205,7 @@ public class ClientLiaison
     protected int _ping;
 
     /** The timestamp of the last input frame received from the client. */
-    protected long _lastInput;
+    protected int _lastInput;
 
     /** The pending input frames. */
     protected ArrayList<InputFrame> _pendingInput = new ArrayList<InputFrame>();

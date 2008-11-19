@@ -37,6 +37,14 @@ public class TudeySceneManager extends SceneManager
     implements TudeySceneProvider
 {
     /**
+     * Returns the timestamp of the current tick.
+     */
+    public int getTimestamp ()
+    {
+        return _timestamp;
+    }
+
+    /**
      * Returns a reference to the actor influence space.
      */
     public HashSpace getInfluenceSpace ()
@@ -86,13 +94,13 @@ public class TudeySceneManager extends SceneManager
 
     // documentation inherited from interface TudeySceneProvider
     public void enqueueInput (
-        ClientObject caller, long acknowledge, long smoothedTime, InputFrame[] frames)
+        ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
     {
         // forward to client liaison
         ClientLiaison client = _clients.get(caller.getOid());
         if (client != null) {
             // ping is current time minus client's smoothed time estimate
-            long currentTime = _tsobj.timestamp + (RunAnywhere.currentTimeMillis() - _lastTick);
+            int currentTime = _timestamp + (int)(RunAnywhere.currentTimeMillis() - _lastTick);
             client.enqueueInput(acknowledge, currentTime - smoothedTime, frames);
         } else {
             log.warning("Received input from unknown client.",
@@ -169,9 +177,9 @@ public class TudeySceneManager extends SceneManager
     /**
      * Returns the interval at which we call the {@link #tick} method.
      */
-    protected long getTickInterval ()
+    protected int getTickInterval ()
     {
-        return 50L;
+        return 50;
     }
 
     /**
@@ -181,7 +189,7 @@ public class TudeySceneManager extends SceneManager
     {
         // update the scene timestamp
         long now = RunAnywhere.currentTimeMillis();
-        _tsobj.timestamp += (now - _lastTick);
+        _timestamp += (int)(now - _lastTick);
         _lastTick = now;
 
         // post deltas for all clients
@@ -201,6 +209,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The system time of the last tick. */
     protected long _lastTick;
+
+    /** The timestamp of the current tick. */
+    protected int _timestamp;
 
     /** Maps body oids to client liaisons. */
     protected HashIntMap<ClientLiaison> _clients = new HashIntMap<ClientLiaison>();
