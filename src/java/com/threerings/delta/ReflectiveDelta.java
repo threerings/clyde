@@ -12,8 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import com.google.common.collect.Maps;
-
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.Streamer;
@@ -33,12 +31,17 @@ public class ReflectiveDelta extends Delta
     public ReflectiveDelta (Object original, Object revised)
     {
         // compare the fields
-        Field[] fields = getFields(_clazz = original.getClass());
-        _mask = new BareArrayMask(fields.length);
+        ClassMapping cmap = getClassMapping(_clazz = original.getClass());
+        _mask = new BareArrayMask(cmap.getMaskLength());
+        Field[] fields = cmap.getFields();
         ArrayList<Object> values = new ArrayList<Object>();
         Object[] oarray = new Object[1], narray = new Object[1];
-        for (int ii = 0; ii < fields.length; ii++) {
+        for (int ii = 0, midx = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
+            if (Modifier.isFinal(field.getModifiers())) {
+                continue;
+            }
+            int idx = midx++;
             try {
                 Object ovalue = oarray[0] = field.get(original);
                 Object nvalue = narray[0] = field.get(revised);
@@ -48,7 +51,7 @@ public class ReflectiveDelta extends Delta
                 if (Delta.checkDeltable(ovalue, nvalue)) {
                     nvalue = Delta.createDelta(ovalue, nvalue);
                 }
-                _mask.set(ii);
+                _mask.set(idx);
                 values.add(nvalue);
 
             } catch (IllegalAccessException e) {
@@ -79,13 +82,14 @@ public class ReflectiveDelta extends Delta
         _mask.writeTo(out);
 
         // write the changed fields
-        Field[] fields = getFields(_clazz);
-        for (int ii = 0, idx = 0; ii < fields.length; ii++) {
-            if (!_mask.isSet(ii)) {
+        Field[] fields = getClassMapping(_clazz).getFields();
+        for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
+            Field field = fields[ii];
+            if (Modifier.isFinal(field.getModifiers()) || !_mask.isSet(midx++)) {
                 continue;
             }
-            Class type = fields[ii].getType();
-            Object value = _values[idx++];
+            Class type = field.getType();
+            Object value = _values[vidx++];
             if (type.isPrimitive()) {
                 out.writeBareObject(value);
             } else {
@@ -104,17 +108,19 @@ public class ReflectiveDelta extends Delta
         _clazz = (Class)_classStreamer.createObject(in);
 
         // read the bitmask
-        Field[] fields = getFields(_clazz);
-        _mask = new BareArrayMask(fields.length);
+        ClassMapping cmap = getClassMapping(_clazz);
+        _mask = new BareArrayMask(cmap.getMaskLength());
         _mask.readFrom(in);
 
         // read the changed fields
+        Field[] fields = cmap.getFields();
         ArrayList<Object> values = new ArrayList<Object>();
-        for (int ii = 0; ii < fields.length; ii++) {
-            if (!_mask.isSet(ii)) {
+        for (int ii = 0, midx = 0; ii < fields.length; ii++) {
+            Field field = fields[ii];
+            if (Modifier.isFinal(field.getModifiers()) || !_mask.isSet(midx++)) {
                 continue;
             }
-            Class type = fields[ii].getType();
+            Class type = field.getType();
             if (type.isPrimitive()) {
                 Streamer streamer = _wrapperStreamers.get(type);
                 values.add(streamer.createObject(in));
@@ -144,13 +150,13 @@ public class ReflectiveDelta extends Delta
         }
 
         // set the fields
-        Field[] fields = getFields(_clazz);
-        for (int ii = 0, idx = 0; ii < fields.length; ii++) {
+        Field[] fields = getClassMapping(_clazz).getFields();
+        for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
             try {
                 Object value;
-                if (_mask.isSet(ii)) {
-                    value = _values[idx++];
+                if (!Modifier.isFinal(field.getModifiers()) && _mask.isSet(midx++)) {
+                    value = _values[vidx++];
                     if (value instanceof Delta) {
                         value = ((Delta)value).apply(field.get(original));
                     }
@@ -172,27 +178,26 @@ public class ReflectiveDelta extends Delta
     {
         StringBuilder buf = new StringBuilder();
         buf.append("[class=" + _clazz.getName());
-        Field[] fields = getFields(_clazz);
-        for (int ii = 0, idx = 0; ii < fields.length; ii++) {
-            if (_mask.isSet(ii)) {
-                buf.append(", " + fields[ii].getName() + "=" + _values[idx++]);
+        Field[] fields = getClassMapping(_clazz).getFields();
+        for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
+            Field field = fields[ii];
+            if (!Modifier.isFinal(field.getModifiers()) && _mask.isSet(midx++)) {
+                buf.append(", " + field.getName() + "=" + _values[vidx++]);
             }
         }
         return buf.append("]").toString();
     }
 
     /**
-     * Returns an array containing the non-transient fields of the specified class.
+     * Returns the class mapping for the specified class.
      */
-    protected static Field[] getFields (Class clazz)
+    protected static ClassMapping getClassMapping (Class clazz)
     {
-        Field[] fields = _fields.get(clazz);
-        if (fields == null) {
-            ArrayList<Field> list = new ArrayList<Field>();
-            collectFields(clazz, list);
-            _fields.put(clazz, fields = list.toArray(new Field[list.size()]));
+        ClassMapping cmap = _classes.get(clazz);
+        if (cmap == null) {
+            _classes.put(clazz, cmap = new ClassMapping(clazz));
         }
-        return fields;
+        return cmap;
     }
 
     /**
@@ -217,6 +222,52 @@ public class ReflectiveDelta extends Delta
         }
     }
 
+    /**
+     * Contains cached information about a class.
+     */
+    protected static class ClassMapping
+    {
+        /**
+         * Creates a new mapping for the specified class.
+         */
+        public ClassMapping (Class clazz)
+        {
+            ArrayList<Field> fields = new ArrayList<Field>();
+            collectFields(clazz, fields);
+            _fields = fields.toArray(new Field[fields.size()]);
+
+            // count the non-final fields
+            for (Field field : _fields) {
+                if (!Modifier.isFinal(field.getModifiers())) {
+                    _maskLength++;
+                }
+            }
+        }
+
+        /**
+         * Returns a reference to the array of non-transient fields.
+         */
+        public Field[] getFields ()
+        {
+            return _fields;
+        }
+
+        /**
+         * Returns the number of elements in the field mask (the number of non-transient, non-final
+         * fields).
+         */
+        public int getMaskLength ()
+        {
+            return _maskLength;
+        }
+
+        /** The array of non-transient fields. */
+        protected Field[] _fields;
+
+        /** The number of elements in the field mask. */
+        protected int _maskLength;
+    }
+
     /** The object class. */
     protected Class _clazz;
 
@@ -227,6 +278,6 @@ public class ReflectiveDelta extends Delta
      * object). */
     protected Object[] _values;
 
-    /** Cached lists of non-transient fields for deltable classes. */
-    protected static HashMap<Class, Field[]> _fields = Maps.newHashMap();
+    /** Cached mappings for deltable classes. */
+    protected static HashMap<Class, ClassMapping> _classes = new HashMap<Class, ClassMapping>();
 }
