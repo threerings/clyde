@@ -39,8 +39,6 @@ import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
-import com.threerings.tudey.dobj.AddedActor;
-import com.threerings.tudey.dobj.RemovedActor;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.util.TudeyContext;
 
@@ -190,52 +188,6 @@ public class TudeySceneView extends SimpleScope
         } else {
             _smoother.update(timestamp);
         }
-
-        // create sprites for the actors added
-        AddedActor[] addedActors = event.getAddedActors();
-        if (addedActors != null) {
-            for (AddedActor added : addedActors) {
-            }
-        }
-
-        // notify the sprites of updated actors
-        ActorDelta[] updatedActors = event.getUpdatedActors();
-        if (updatedActors != null) {
-            for (ActorDelta updated : updatedActors) {
-                ActorSprite sprite = _actorSprites.get(updated.getId());
-                if (sprite != null) {
-
-                } else {
-                    log.warning("Missing sprite for updated actor.", "id", updated.getId());
-                }
-            }
-        }
-
-        // notify the sprites of removed actors
-        RemovedActor[] removedActors = event.getRemovedActors();
-        if (removedActors != null) {
-            for (RemovedActor removed : removedActors) {
-                ActorSprite sprite = _actorSprites.remove(removed.getId());
-                if (sprite != null) {
-                    sprite.wasRemoved(removed.getTimestamp());
-                } else {
-                    log.warning("Missing sprite for removed actor.", "id", removed.getId());
-                }
-            }
-        }
-
-        // enqueue the effects for handling
-        Effect[] effects = event.getEffects();
-        if (effects != null) {
-            for (Effect effect : effects) {
-                timestamp = effect.getTimestamp();
-                if (timestamp <= _lastEffect) {
-                    continue; // already processed
-                }
-                _lastEffect = timestamp;
-                _pendingEffects.add(effect);
-            }
-        }
     }
 
     // documentation inherited from interface GlView
@@ -253,20 +205,21 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
+        // update the smoothed time, if possible
         if (_smoother != null) {
             _smoothedTime = _smoother.getTime();
-            long delayedTime = getDelayedTime();
-
-            // fire off any pending effects
-            while (!_pendingEffects.isEmpty() &&
-                    delayedTime >= _pendingEffects.get(0).getTimestamp()) {
-                _pendingEffects.remove(0).handle(_ctx, this);
-            }
         }
 
         // tick the controller, if present
         if (_ctrl != null) {
             _ctrl.tick(elapsed);
+        }
+
+        // fire off any pending effects
+        long delayedTime = getDelayedTime();
+        while (!_pendingEffects.isEmpty() &&
+                delayedTime >= _pendingEffects.get(0).getTimestamp()) {
+            _pendingEffects.remove(0).handle(_ctx, this);
         }
 
         // tick the scene

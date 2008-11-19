@@ -37,7 +37,7 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
         switch (methodId) {
         case TudeySceneMarshaller.ENQUEUE_INPUT:
             ((TudeySceneProvider)provider).enqueueInput(
-                source, ((Long)args[0]).longValue(), (InputFrame[])args[1]
+                source, ((Long)args[0]).longValue(), ((Long)args[1]).longValue(), (InputFrame[])args[2]
             );
             return;
 

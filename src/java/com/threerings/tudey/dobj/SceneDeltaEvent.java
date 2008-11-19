@@ -10,6 +10,7 @@ import com.threerings.presents.dobj.DObject;
 import com.threerings.presents.dobj.ObjectAccessException;
 import com.threerings.presents.net.Transport;
 
+import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 
 /**
@@ -24,29 +25,32 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, long acknowledge, long timestamp, AddedActor[] addedActors,
-        ActorDelta[] updatedActors, RemovedActor[] removedActors, Effect[] effects)
+        int targetOid, int sceneOid, long acknowledge, int ping, long reference, long timestamp,
+        Actor[] addedActors, ActorDelta[] updatedActorDeltas, int[] removedActorIds,
+        Effect[] effectsFired)
     {
-        this(targetOid, sceneOid, acknowledge, timestamp, addedActors, updatedActors,
-            removedActors, effects, Transport.DEFAULT);
+        this(targetOid, sceneOid, acknowledge, ping, reference, timestamp, addedActors,
+            updatedActorDeltas, removedActorIds, effectsFired, Transport.DEFAULT);
     }
 
     /**
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, long acknowledge, long timestamp, AddedActor[] addedActors,
-        ActorDelta[] updatedActors, RemovedActor[] removedActors, Effect[] effects,
-        Transport transport)
+        int targetOid, int sceneOid, long acknowledge, int ping, long reference, long timestamp,
+        Actor[] addedActors, ActorDelta[] updatedActorDeltas, int[] removedActorIds,
+        Effect[] effectsFired, Transport transport)
     {
         super(targetOid, transport);
         _sceneOid = sceneOid;
         _acknowledge = acknowledge;
+        _ping = ping;
+        _reference = reference;
         _timestamp = timestamp;
         _addedActors = addedActors;
-        _updatedActors = updatedActors;
-        _removedActors = removedActors;
-        _effects = effects;
+        _updatedActorDeltas = updatedActorDeltas;
+        _removedActorIds = removedActorIds;
+        _effectsFired = effectsFired;
     }
 
     /**
@@ -73,6 +77,23 @@ public class SceneDeltaEvent extends DEvent
     }
 
     /**
+     * Returns the ping time estimate.
+     */
+    public int getPing ()
+    {
+        return _ping;
+    }
+
+    /**
+     * Returns the timestamp of the update that serves as a basis of comparison for this delta
+     * (either the last delta known to be acknowledged by the client, or 0 for the baseline).
+     */
+    public long getReference ()
+    {
+        return _reference;
+    }
+
+    /**
      * Returns the timestamp of the delta.
      */
     public long getTimestamp ()
@@ -84,35 +105,35 @@ public class SceneDeltaEvent extends DEvent
      * Returns a reference to the array of actors added to the scene since the last delta, or
      * <code>null</code> for none.
      */
-    public AddedActor[] getAddedActors ()
+    public Actor[] getAddedActors ()
     {
         return _addedActors;
     }
 
     /**
-     * Returns a reference to the array of actors updated since the last delta, or
+     * Returns a reference to the array of deltas for actors updated since the last delta, or
      * <code>null</code> for none.
      */
-    public ActorDelta[] getUpdatedActors ()
+    public ActorDelta[] getUpdatedActorDeltas ()
     {
-        return _updatedActors;
+        return _updatedActorDeltas;
     }
 
     /**
-     * Returns a reference to the array of actors removed from the scene since the last delta, or
-     * <code>null</code> for none.
+     * Returns a reference to the array of ids of actors removed from the scene since the last
+     * delta, or <code>null</code> for none.
      */
-    public RemovedActor[] getRemovedActors ()
+    public int[] getRemovedActorIds ()
     {
-        return _removedActors;
+        return _removedActorIds;
     }
 
     /**
      * Returns the array of effects fired since the last delta, or <code>null</code> for none.
      */
-    public Effect[] getEffects ()
+    public Effect[] getEffectsFired ()
     {
-        return _effects;
+        return _effectsFired;
     }
 
     @Override // documentation inherited
@@ -137,11 +158,13 @@ public class SceneDeltaEvent extends DEvent
         super.toString(buf);
         buf.append(", sceneOid=").append(_sceneOid);
         buf.append(", acknowledge=").append(_acknowledge);
+        buf.append(", ping=").append(_ping);
+        buf.append(", reference=").append(_reference);
         buf.append(", timestamp=").append(_timestamp);
         buf.append(", addedActors=").append(StringUtil.toString(_addedActors));
-        buf.append(", updatedActors=").append(StringUtil.toString(_updatedActors));
-        buf.append(", removedActors=").append(StringUtil.toString(_removedActors));
-        buf.append(", effects=").append(StringUtil.toString(_effects));
+        buf.append(", updatedActorDeltas=").append(StringUtil.toString(_updatedActorDeltas));
+        buf.append(", removedActorIds=").append(StringUtil.toString(_removedActorIds));
+        buf.append(", effectsFired=").append(StringUtil.toString(_effectsFired));
     }
 
     /** The oid of the scene to which this event applies. */
@@ -150,18 +173,25 @@ public class SceneDeltaEvent extends DEvent
     /** The timestamp of the latest input frame received by the server. */
     protected long _acknowledge;
 
+    /** The estimated ping time. */
+    protected int _ping;
+
+    /** The timestamp of the update that serves as a basis of comparison for this delta (either
+     * the last delta known to be acknowledged by the client, or 0 for the baseline). */
+    protected long _reference;
+
     /** The timestamp of the delta. */
     protected long _timestamp;
 
-    /** The actors added to the scene since the last delta (or <code>null</code>). */
-    protected AddedActor[] _addedActors;
+    /** The actors added to the scene since the referenced update (or <code>null</code>). */
+    protected Actor[] _addedActors;
 
-    /** The actors updated since the last delta (or <code>null</code). */
-    protected ActorDelta[] _updatedActors;
+    /** The deltas of the actors updated since the referenced update (or <code>null</code). */
+    protected ActorDelta[] _updatedActorDeltas;
 
-    /** The actors removed since the last delta (or <code>null</code>). */
-    protected RemovedActor[] _removedActors;
+    /** The ids of the actors removed since the referenced update (or <code>null</code>). */
+    protected int[] _removedActorIds;
 
     /** The effects fired since the last delta (or <code>null</code>). */
-    protected Effect[] _effects;
+    protected Effect[] _effectsFired;
 }

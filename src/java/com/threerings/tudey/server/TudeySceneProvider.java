@@ -16,5 +16,5 @@ public interface TudeySceneProvider extends InvocationProvider
     /**
      * Handles a {@link TudeySceneService#enqueueInput} request.
      */
-    void enqueueInput (ClientObject caller, long arg1, InputFrame[] arg2);
+    void enqueueInput (ClientObject caller, long arg1, long arg2, InputFrame[] arg3);
 }

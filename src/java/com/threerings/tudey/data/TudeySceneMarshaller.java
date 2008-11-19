@@ -21,10 +21,10 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int ENQUEUE_INPUT = 1;
 
     // from interface TudeySceneService
-    public void enqueueInput (Client arg1, long arg2, InputFrame[] arg3)
+    public void enqueueInput (Client arg1, long arg2, long arg3, InputFrame[] arg4)
     {
         sendRequest(arg1, ENQUEUE_INPUT, new Object[] {
-            Long.valueOf(arg2), arg3
+            Long.valueOf(arg2), Long.valueOf(arg3), arg4
         }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
     }
 }

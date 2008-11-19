@@ -5,6 +5,8 @@ package com.threerings.tudey.data.effect;
 
 import com.threerings.io.SimpleStreamableObject;
 
+import com.threerings.math.Rect;
+
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.util.TudeyContext;
 
@@ -43,6 +45,15 @@ public abstract class Effect extends SimpleStreamableObject
     public long getExpiry ()
     {
         return _timestamp + getLifespan();
+    }
+
+    /**
+     * Returns the effect's area of influence.  Clients are notified of effects when their
+     * areas of interest intersect the effect's area of influence.
+     */
+    public Rect getInfluence ()
+    {
+        return Rect.MAX_VALUE;
     }
 
     /**

@@ -232,7 +232,8 @@ public class TudeySceneController extends SceneController
 
         // send off our request
         _tsobj.tudeySceneService.enqueueInput(
-            _ctx.getClient(), _lastDelta, _input.toArray(new InputFrame[_input.size()]));
+            _ctx.getClient(), _lastDelta, _tsview.getSmoothedTime(),
+            _input.toArray(new InputFrame[_input.size()]));
     }
 
     /** A casted reference to the context. */

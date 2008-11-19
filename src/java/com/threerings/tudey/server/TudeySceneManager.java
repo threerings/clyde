@@ -17,11 +17,16 @@ import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.whirled.server.SceneManager;
 
+import com.threerings.math.Rect;
+
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
+import com.threerings.tudey.server.logic.ActorLogic;
+import com.threerings.tudey.space.HashSpace;
+import com.threerings.tudey.space.SpaceElement;
 
 import static com.threerings.tudey.Log.*;
 
@@ -32,24 +37,43 @@ public class TudeySceneManager extends SceneManager
     implements TudeySceneProvider
 {
     /**
-     * Adds an actor to the scene.
+     * Returns a reference to the actor influence space.
      */
-    public void addActor (Actor actor, long timestamp)
+    public HashSpace getInfluenceSpace ()
     {
+        return _influenceSpace;
     }
 
     /**
-     * Updates an actor within the scene.
+     * Returns a map containing all actors whose influence regions intersect the provided bounds.
      */
-    public void updateActor (Actor actor)
+    public HashIntMap<Actor> getActors (Rect bounds)
     {
+        _influenceSpace.getElements(bounds, _elements);
+        HashIntMap<Actor> map = new HashIntMap<Actor>();
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            Actor actor = ((ActorLogic)_elements.get(ii).getUserObject()).getActor();
+            map.put(actor.getId(), actor);
+        }
+        _elements.clear();
+        return map;
     }
 
     /**
-     * Removes the actor with the specified identifier from the scene.
+     * Returns an array containing all effects fired on the current tick whose influence regions
+     * intersect the provided bounds.
      */
-    public void removeActor (int id, long timestamp)
+    public Effect[] getEffectsFired (Rect bounds)
     {
+        for (int ii = 0, nn = _effectsFired.size(); ii < nn; ii++) {
+            Effect effect = _effectsFired.get(ii);
+            if (effect.getInfluence().intersects(bounds)) {
+                _effects.add(effect);
+            }
+        }
+        Effect[] array = _effects.toArray(new Effect[_effects.size()]);
+        _effects.clear();
+        return array;
     }
 
     /**
@@ -57,15 +81,19 @@ public class TudeySceneManager extends SceneManager
      */
     public void fireEffect (Effect effect)
     {
+        _effectsFired.add(effect);
     }
 
     // documentation inherited from interface TudeySceneProvider
-    public void enqueueInput (ClientObject caller, long acknowledge, InputFrame[] frames)
+    public void enqueueInput (
+        ClientObject caller, long acknowledge, long smoothedTime, InputFrame[] frames)
     {
         // forward to client liaison
         ClientLiaison client = _clients.get(caller.getOid());
         if (client != null) {
-            client.enqueueInput(acknowledge, frames);
+            // ping is current time minus client's smoothed time estimate
+            long currentTime = _tsobj.timestamp + (RunAnywhere.currentTimeMillis() - _lastTick);
+            client.enqueueInput(acknowledge, currentTime - smoothedTime, frames);
         } else {
             log.warning("Received input from unknown client.",
                 "who", caller.who(), "where", where());
@@ -160,6 +188,9 @@ public class TudeySceneManager extends SceneManager
         for (ClientLiaison client : _clients.values()) {
             client.postDelta();
         }
+
+        // clear the effect list
+        _effectsFired.clear();
     }
 
     /** A casted reference to the Tudey scene object. */
@@ -173,4 +204,16 @@ public class TudeySceneManager extends SceneManager
 
     /** Maps body oids to client liaisons. */
     protected HashIntMap<ClientLiaison> _clients = new HashIntMap<ClientLiaison>();
+
+    /** The actor influence space.  Used to find the actors within a client's area of interest. */
+    protected HashSpace _influenceSpace = new HashSpace(64f, 6);
+
+    /** The effects fired on the current tick. */
+    protected ArrayList<Effect> _effectsFired = new ArrayList<Effect>();
+
+    /** Holds collected elements during queries. */
+    protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();
+
+    /** Holds collected effects during queries. */
+    protected ArrayList<Effect> _effects = new ArrayList<Effect>();
 }
