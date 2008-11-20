@@ -21,6 +21,7 @@ public abstract class Sprite extends SimpleScope
     {
         super(view);
         _ctx = ctx;
+        _view = view;
     }
 
     @Override // documentation inherited
@@ -31,4 +32,7 @@ public abstract class Sprite extends SimpleScope
 
     /** The renderer context. */
     protected GlContext _ctx;
+
+    /** The parent view. */
+    protected TudeySceneView _view;
 }

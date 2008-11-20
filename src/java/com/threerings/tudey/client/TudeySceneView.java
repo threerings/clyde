@@ -35,6 +35,7 @@ import com.samskivert.util.Predicate;
 import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
@@ -201,6 +202,17 @@ public class TudeySceneView extends SimpleScope
             }
         });
         return (el == null) ? null : (Sprite)el.getUserObject();
+    }
+
+    /**
+     * Returns the z coordinate of the floor at the provided coordinates, or the provided default
+     * if no floor is found.
+     */
+    public float getFloorZ (float x, float y, float defvalue)
+    {
+        _ray.getOrigin().set(x, y, 10000f);
+        return (_scene.getIntersection(_ray, _isect, TILE_SPRITE_FILTER) == null) ?
+            defvalue : _isect.z;
     }
 
     /**
@@ -486,4 +498,18 @@ public class TudeySceneView extends SimpleScope
 
     /** The list of participants in the tick. */
     protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
+
+    /** Used to find the floor. */
+    protected Ray3D _ray = new Ray3D(Vector3f.ZERO, new Vector3f(0f, 0f, -1f));
+
+    /** Used to find the floor. */
+    protected Vector3f _isect = new Vector3f();
+
+    /** A predicate that only accepts elements whose user objects are tile sprites. */
+    protected static final Predicate<SceneElement> TILE_SPRITE_FILTER =
+        new Predicate<SceneElement>() {
+        public boolean isMatch (SceneElement element) {
+            return element.getUserObject() instanceof TileSprite;
+        }
+    };
 }

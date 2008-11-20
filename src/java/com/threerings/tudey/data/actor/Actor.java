@@ -54,6 +54,23 @@ public abstract class Actor extends DeepObject
     }
 
     /**
+     * Sets the timestamp at which the actor was destroyed.
+     */
+    public void setDestroyed (int destroyed)
+    {
+        _destroyed = destroyed;
+    }
+
+    /**
+     * Returns the timestamp at which the actor was destroyed, or {@link Integer.MAX_VALUE} if
+     * not yet destroyed.
+     */
+    public int getDestroyed ()
+    {
+        return _destroyed;
+    }
+
+    /**
      * Creates a sprite to represent this actor on the client.
      */
     public abstract ActorSprite createSprite (
@@ -82,4 +99,7 @@ public abstract class Actor extends DeepObject
 
     /** The timestamp at which the actor was created. */
     protected final int _created;
+
+    /** The timestamp at which the actor was destroyed. */
+    protected int _destroyed = Integer.MAX_VALUE;
 }

@@ -45,6 +45,14 @@ public class ActorHistory
     }
 
     /**
+     * Determines whether the actor has been destroyed at the specified timestamp.
+     */
+    public boolean isDestroyed (int timestamp)
+    {
+        return timestamp >= _entries.get(_entries.size() - 1).getActor().getDestroyed();
+    }
+
+    /**
      * Finds the state at the specified timestamp and places it into the result object.
      */
     public Actor get (int timestamp, Actor result)

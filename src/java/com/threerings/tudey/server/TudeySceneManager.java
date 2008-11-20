@@ -37,6 +37,36 @@ public class TudeySceneManager extends SceneManager
     implements TudeySceneProvider
 {
     /**
+     * An interface for objects that take part in the server tick.
+     */
+    public interface TickParticipant
+    {
+        /**
+         * Ticks the participant.
+         *
+         * @param timestamp the timestamp of the current tick.
+         * @return true to continue ticking the participant, false to remove it from the list.
+         */
+        public boolean tick (int timestamp);
+    }
+
+    /**
+     * Adds a participant to notify at each tick.
+     */
+    public void addTickParticipant (TickParticipant participant)
+    {
+        _tickParticipants.add(participant);
+    }
+
+    /**
+     * Removes a participant from the tick list.
+     */
+    public void removeTickParticipant (TickParticipant participant)
+    {
+        _tickParticipants.remove(participant);
+    }
+
+    /**
      * Returns the timestamp of the current tick.
      */
     public int getTimestamp ()
@@ -50,6 +80,14 @@ public class TudeySceneManager extends SceneManager
     public HashSpace getInfluenceSpace ()
     {
         return _influenceSpace;
+    }
+
+    /**
+     * Returns a new actor id.
+     */
+    public int nextActorId ()
+    {
+        return ++_lastActorId;
     }
 
     /**
@@ -150,8 +188,8 @@ public class TudeySceneManager extends SceneManager
     @Override // documentation inherited
     protected void insertOccupantInfo (OccupantInfo info, BodyObject body)
     {
-        // add the actor and fill in its id
-        ((TudeyOccupantInfo)info).actorId = 0;
+        // add the pawn and fill in its id
+        ((TudeyOccupantInfo)info).pawnId = 0;
 
         super.insertOccupantInfo(info, body);
     }
@@ -192,6 +230,13 @@ public class TudeySceneManager extends SceneManager
         _timestamp += (int)(now - _lastTick);
         _lastTick = now;
 
+        // tick the participants in reverse order, to allow removal
+        for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
+            if (!_tickParticipants.get(ii).tick(_timestamp)) {
+                _tickParticipants.remove(ii);
+            }
+        }
+
         // post deltas for all clients
         for (ClientLiaison client : _clients.values()) {
             client.postDelta();
@@ -213,8 +258,14 @@ public class TudeySceneManager extends SceneManager
     /** The timestamp of the current tick. */
     protected int _timestamp;
 
+    /** The last actor id assigned. */
+    protected int _lastActorId;
+
     /** Maps body oids to client liaisons. */
     protected HashIntMap<ClientLiaison> _clients = new HashIntMap<ClientLiaison>();
+
+    /** The list of participants in the tick. */
+    protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
 
     /** The actor influence space.  Used to find the actors within a client's area of interest. */
     protected HashSpace _influenceSpace = new HashSpace(64f, 6);
