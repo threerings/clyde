@@ -27,4 +27,15 @@ public class TudeySceneMarshaller extends InvocationMarshaller
             Integer.valueOf(arg2), Integer.valueOf(arg3), arg4
         }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
     }
+
+    /** The method id used to dispatch {@link #setTarget} requests. */
+    public static final int SET_TARGET = 2;
+
+    // from interface TudeySceneService
+    public void setTarget (Client arg1, int arg2)
+    {
+        sendRequest(arg1, SET_TARGET, new Object[] {
+            Integer.valueOf(arg2)
+        });
+    }
 }

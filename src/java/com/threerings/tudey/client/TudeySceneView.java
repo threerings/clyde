@@ -20,6 +20,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
+import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.StretchWindow;
 import com.threerings.opengl.gui.StyleSheet;
 import com.threerings.opengl.gui.Window;
@@ -284,7 +285,10 @@ public class TudeySceneView extends SimpleScope
             int id = actor.getId();
             ActorSprite sprite = _actorSprites.get(id);
             if (sprite == null) {
-                _actorSprites.put(id, actor.createSprite(_ctx, this, timestamp));
+                _actorSprites.put(id, sprite = actor.createSprite(_ctx, this, timestamp));
+                if (id == _ctrl.getTargetId()) {
+                    _targetSprite = sprite;
+                }
             } else {
                 sprite.update(timestamp, actor);
             }
@@ -295,7 +299,11 @@ public class TudeySceneView extends SimpleScope
                 it.hasNext(); ) {
             IntEntry<ActorSprite> entry = it.next();
             if (!actors.containsKey(entry.getIntKey())) {
-                entry.getValue().remove(timestamp);
+                ActorSprite sprite = entry.getValue();
+                sprite.remove(timestamp);
+                if (_targetSprite == sprite) {
+                    _targetSprite = null;
+                }
                 it.remove();
             }
         }
@@ -326,6 +334,14 @@ public class TudeySceneView extends SimpleScope
     public void removeTickParticipant (TickParticipant participant)
     {
         _tickParticipants.remove(participant);
+    }
+
+    /**
+     * Updates the target sprite based on the target id.
+     */
+    public void updateTargetSprite ()
+    {
+        _targetSprite = _actorSprites.get(_ctrl.getTargetId());
     }
 
     // documentation inherited from interface GlView
@@ -359,6 +375,12 @@ public class TudeySceneView extends SimpleScope
             if (!_tickParticipants.get(ii).tick(delayedTime)) {
                 _tickParticipants.remove(ii);
             }
+        }
+
+        // track the target sprite, if any
+        if (_targetSprite != null) {
+            Vector3f translation = _targetSprite.getModel().getLocalTransform().getTranslation();
+            ((OrbitCameraHandler)_ctx.getCameraHandler()).getTarget().set(translation);
         }
 
         // tick the scene
@@ -498,6 +520,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The list of participants in the tick. */
     protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
+
+    /** The sprite that the camera is tracking. */
+    protected ActorSprite _targetSprite;
 
     /** Used to find the floor. */
     protected Ray3D _ray = new Ray3D(Vector3f.ZERO, new Vector3f(0f, 0f, -1f));

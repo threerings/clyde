@@ -20,8 +20,19 @@ public class TudeySceneObject extends SceneObject
     /** Provides Tudey scene services. */
     public TudeySceneMarshaller tudeySceneService;
 
-    /** The current time. */
-    public transient int timestamp;
+    /**
+     * Returns the id of the first pawn in the occupant list.
+     */
+    public int getFirstPawnId ()
+    {
+        for (OccupantInfo info : occupantInfo) {
+            int pawnId = ((TudeyOccupantInfo)info).pawnId;
+            if (pawnId > 0) {
+                return pawnId;
+            }
+        }
+        return 0;
+    }
 
     // AUTO-GENERATED: METHODS START
     /**

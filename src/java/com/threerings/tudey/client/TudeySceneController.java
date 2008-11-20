@@ -10,7 +10,10 @@ import org.lwjgl.input.Keyboard;
 import com.samskivert.util.IntIntMap;
 import com.samskivert.util.RunAnywhere;
 
+import com.threerings.presents.data.ClientObject;
+
 import com.threerings.crowd.client.PlaceView;
+import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
 import com.threerings.crowd.util.CrowdContext;
 
@@ -30,6 +33,7 @@ import com.threerings.opengl.gui.event.MouseListener;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.dobj.SceneDeltaListener;
@@ -43,6 +47,14 @@ import static com.threerings.tudey.Log.*;
 public class TudeySceneController extends SceneController
     implements SceneDeltaListener, KeyListener, MouseListener, Tickable
 {
+    /**
+     * Returns the id of the actor that the camera should track.
+     */
+    public int getTargetId ()
+    {
+        return _targetId;
+    }
+
     // documentation inherited from interface SceneDeltaListener
     public void sceneDeltaReceived (SceneDeltaEvent event)
     {
@@ -71,7 +83,14 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface KeyListener
     public void keyPressed (KeyEvent event)
     {
-        maybeSetFlag(_keyFlags.get(event.getKeyCode()));
+        int code = event.getKeyCode();
+        if (_targetControlled) {
+            maybeSetFlag(_keyFlags.get(code));
+        } else if (code == Keyboard.KEY_LEFT) {
+            cycleTarget(false);
+        } else if (code == Keyboard.KEY_RIGHT) {
+            cycleTarget(true);
+        }
     }
 
     // documentation inherited from interface KeyListener
@@ -110,27 +129,10 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
-        // get the pick ray and the camera target plane
-        Root root = _tctx.getRoot();
-        _tctx.getCompositor().getCamera().getPickRay(root.getMouseX(), root.getMouseY(), _pick);
-        Vector3f target = ((OrbitCameraHandler)_tctx.getCameraHandler()).getTarget();
-        _tplane.set(Vector3f.UNIT_Z, -target.z);
-
-        // determine where they intersect and use that to calculate the requested direction
-        float direction = _lastDirection;
-        if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
-            direction = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
+        // update the input if we control our target
+        if (_targetControlled) {
+            updateInput();
         }
-
-        // perhaps enqueue an input frame
-        if (direction != _lastDirection || _frameFlags != _lastFlags) {
-            _input.add(new InputFrame(
-                _tsview.getSmoothedTime() + getInputAdvance(),
-                _lastDirection = direction, _lastFlags = _frameFlags));
-        }
-
-        // reset the frame flags
-        _frameFlags = _flags;
 
         // perhaps transmit our acknowledgement and input frames
         long now = RunAnywhere.currentTimeMillis();
@@ -147,10 +149,20 @@ public class TudeySceneController extends SceneController
         _tsobj = (TudeySceneObject)plobj;
 
         // listen to the client object for delta events
-        _ctx.getClient().getClientObject().addListener(this);
+        ClientObject clobj = _ctx.getClient().getClientObject();
+        clobj.addListener(this);
 
         // listen for input events
         _tsview.getInputWindow().addListener(this);
+
+        // if the player controls a pawn, then the target is and will always be that pawn.
+        // otherwise, the target starts out being the first pawn in the occupant list
+        _targetId = ((TudeyOccupantInfo)plobj.occupantInfo.get(clobj.getOid())).pawnId;
+        if (_targetId > 0) {
+            _targetControlled = true;
+        } else {
+            _targetId = _tsobj.getFirstPawnId();
+        }
     }
 
     @Override // documentation inherited
@@ -221,6 +233,34 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Updates the input for the current tick.
+     */
+    protected void updateInput ()
+    {
+        // get the pick ray and the camera target plane
+        Root root = _tctx.getRoot();
+        _tctx.getCompositor().getCamera().getPickRay(root.getMouseX(), root.getMouseY(), _pick);
+        Vector3f target = ((OrbitCameraHandler)_tctx.getCameraHandler()).getTarget();
+        _tplane.set(Vector3f.UNIT_Z, -target.z);
+
+        // determine where they intersect and use that to calculate the requested direction
+        float direction = _lastDirection;
+        if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
+            direction = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
+        }
+
+        // perhaps enqueue an input frame
+        if (direction != _lastDirection || _frameFlags != _lastFlags) {
+            _input.add(new InputFrame(
+                _tsview.getSmoothedTime() + getInputAdvance(),
+                _lastDirection = direction, _lastFlags = _frameFlags));
+        }
+
+        // reset the frame flags
+        _frameFlags = _flags;
+    }
+
+    /**
      * Sends all enqueued input to the server.
      */
     protected void transmitInput ()
@@ -236,6 +276,42 @@ public class TudeySceneController extends SceneController
             _input.toArray(new InputFrame[_input.size()]));
     }
 
+    /**
+     * Switches to the next or previous potential target in the occupant list.
+     */
+    protected void cycleTarget (boolean forward)
+    {
+        // get all the potential targets in a list
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        for (OccupantInfo info : _tsobj.occupantInfo) {
+            int pawnId = ((TudeyOccupantInfo)info).pawnId;
+            if (pawnId > 0) {
+                list.add(pawnId);
+            }
+        }
+        int size = list.size();
+        if (size == 0) {
+            return; // no available targets
+        }
+
+        // advance to the next or previous target
+        int idx = Math.max(list.indexOf(_targetId), 0);
+        int inc = forward ? 1 : (size - 1);
+        setTarget(list.get((idx + inc) % size));
+    }
+
+    /**
+     * Targets the pawn with the specified id.
+     */
+    protected void setTarget (int pawnId)
+    {
+        if (_targetId == pawnId) {
+            return;
+        }
+        _tsobj.tudeySceneService.setTarget(_ctx.getClient(), _targetId = pawnId);
+        _tsview.updateTargetSprite();
+    }
+
     /** A casted reference to the context. */
     protected TudeyContext _tctx;
 
@@ -244,6 +320,12 @@ public class TudeySceneController extends SceneController
 
     /** A casted reference to the scene object. */
     protected TudeySceneObject _tsobj;
+
+    /** The id of the actor that the camera should track. */
+    protected int _targetId;
+
+    /** Whether or not we are in control of the camera target. */
+    protected boolean _targetControlled;
 
     /** Maps key codes to input flags. */
     protected IntIntMap _keyFlags = new IntIntMap();

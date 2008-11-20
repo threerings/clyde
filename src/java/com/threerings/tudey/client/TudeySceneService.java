@@ -24,4 +24,10 @@ public interface TudeySceneService extends InvocationService
     @TransportHint(type=Transport.Type.UNRELIABLE_UNORDERED)
     public void enqueueInput (
         Client client, int acknowledge, int smoothedTime, InputFrame[] frames);
+
+    /**
+     * Requests to track the specified pawn.  This is only valid for clients that do not control
+     * a pawn of their own.
+     */
+    public void setTarget (Client client, int pawnId);
 }

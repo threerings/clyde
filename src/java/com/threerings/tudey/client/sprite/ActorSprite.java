@@ -50,6 +50,14 @@ public abstract class ActorSprite extends Sprite
     }
 
     /**
+     * Returns a reference to the sprite's model.
+     */
+    public Model getModel ()
+    {
+        return _model;
+    }
+
+    /**
      * Updates this sprite with new state.
      */
     public void update (int timestamp, Actor actor)

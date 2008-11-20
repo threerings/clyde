@@ -146,6 +146,12 @@ public class TudeySceneManager extends SceneManager
         }
     }
 
+    // documentation inherited from interface TudeySceneProvider
+    public void setTarget (ClientObject caller, int pawnId)
+    {
+
+    }
+
     @Override // documentation inherited
     protected PlaceObject createPlaceObject ()
     {

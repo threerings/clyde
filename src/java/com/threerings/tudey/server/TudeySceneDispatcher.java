@@ -41,6 +41,12 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
             );
             return;
 
+        case TudeySceneMarshaller.SET_TARGET:
+            ((TudeySceneProvider)provider).setTarget(
+                source, ((Integer)args[0]).intValue()
+            );
+            return;
+
         default:
             super.dispatchRequest(source, methodId, args);
             return;
