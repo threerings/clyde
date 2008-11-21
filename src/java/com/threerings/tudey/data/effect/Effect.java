@@ -5,10 +5,8 @@ package com.threerings.tudey.data.effect;
 
 import com.threerings.io.SimpleStreamableObject;
 
-import com.threerings.math.Rect;
-
 import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.client.handler.EffectHandler;
+import com.threerings.tudey.client.sprite.EffectSprite;
 import com.threerings.tudey.util.TudeyContext;
 
 /**
@@ -49,18 +47,9 @@ public abstract class Effect extends SimpleStreamableObject
     }
 
     /**
-     * Returns the effect's area of influence.  Clients are notified of effects when their
-     * areas of interest intersect the effect's area of influence.
+     * Creates a sprite to visualize the effect on the client.
      */
-    public Rect getInfluence ()
-    {
-        return Rect.MAX_VALUE;
-    }
-
-    /**
-     * Creates a handler to visualize the effect on the client.
-     */
-    public abstract EffectHandler createHandler (TudeyContext ctx, TudeySceneView view);
+    public abstract EffectSprite createSprite (TudeyContext ctx, TudeySceneView view);
 
     /**
      * Returns the lifespan of the effect, which is the amount of time to continue retransmitting

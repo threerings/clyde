@@ -1,9 +1,7 @@
 //
 // $Id$
 
-package com.threerings.tudey.client.handler;
-
-import com.threerings.expr.SimpleScope;
+package com.threerings.tudey.client.sprite;
 
 import com.threerings.opengl.util.GlContext;
 
@@ -13,16 +11,15 @@ import com.threerings.tudey.data.effect.Effect;
 /**
  * Handles the display of a stateless effect.
  */
-public abstract class EffectHandler extends SimpleScope
+public abstract class EffectSprite extends Sprite
     implements TudeySceneView.TickParticipant
 {
     /**
-     * Creates a new handler.
+     * Creates a new effect sprite.
      */
-    public EffectHandler (GlContext ctx, TudeySceneView view, Effect effect)
+    public EffectSprite (GlContext ctx, TudeySceneView view, Effect effect)
     {
-        super(view);
-        _ctx = ctx;
+        super(ctx, view);
         _effect = effect;
 
         // register as tick participant
@@ -36,12 +33,6 @@ public abstract class EffectHandler extends SimpleScope
         return delayedTime < timestamp || liveTick((delayedTime - timestamp) / 1000f);
     }
 
-    @Override // documentation inherited
-    public String getScopeName ()
-    {
-        return "handler";
-    }
-
     /**
      * Called to tick the handler once the delayed time has reached the effect's timestamp.
      *
@@ -49,9 +40,6 @@ public abstract class EffectHandler extends SimpleScope
      * @return true to continue ticking the handler, false to remove it from the tick list.
      */
     protected abstract boolean liveTick (float elapsed);
-
-    /** The renderer context. */
-    protected GlContext _ctx;
 
     /** The effect object. */
     protected Effect _effect;

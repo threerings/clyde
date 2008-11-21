@@ -17,14 +17,20 @@ import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.whirled.server.SceneManager;
 
+import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
 
+import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
+import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.server.logic.ActorLogic;
+import com.threerings.tudey.server.logic.EffectLogic;
 import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
 
@@ -48,6 +54,14 @@ public class TudeySceneManager extends SceneManager
          * @return true to continue ticking the participant, false to remove it from the list.
          */
         public boolean tick (int timestamp);
+    }
+
+    /**
+     * Returns a reference to the configuration manager for the scene.
+     */
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
     }
 
     /**
@@ -83,11 +97,99 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Returns a new actor id.
+     * Spawns an actor with the named configuration.
      */
-    public int nextActorId ()
+    public ActorLogic spawnActor (int timestamp, String name)
     {
-        return ++_lastActorId;
+        return spawnActor(timestamp, new ConfigReference<ActorConfig>(name));
+    }
+
+    /**
+     * Spawns an actor with the supplied name and arguments.
+     */
+    public ActorLogic spawnActor (
+        int timestamp, String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        return spawnActor(timestamp, new ConfigReference<ActorConfig>(
+            name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Spawns an actor with the referenced configuration.
+     */
+    public ActorLogic spawnActor (int timestamp, ConfigReference<ActorConfig> ref)
+    {
+        // attempt to resolve the implementation
+        ActorConfig config = _cfgmgr.getConfig(ActorConfig.class, ref);
+        ActorConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
+        if (original == null) {
+            log.warning("Failed to resolve actor config.", "actor", ref);
+            return null;
+        }
+
+        // create the logic object
+        ActorLogic logic;
+        try {
+            logic = (ActorLogic)Class.forName(original.getLogicClassName()).newInstance();
+        } catch (Exception e) {
+            log.warning("Failed to instantiate actor logic.",
+                "class", original.getLogicClassName(), e);
+            return null;
+        }
+
+        // initialize the logic and add it to the map
+        logic.init(this, ref, original, ++_lastActorId, timestamp);
+        _actors.put(_lastActorId, logic);
+
+        return logic;
+    }
+
+    /**
+     * Fires off an effect at the with the named configuration and the supplied timestamp.
+     */
+    public EffectLogic fireEffect (int timestamp, String name)
+    {
+        return fireEffect(timestamp, new ConfigReference<EffectConfig>(name));
+    }
+
+    /**
+     * Fires off an effect with the supplied name, arguments, and timestamp.
+     */
+    public EffectLogic fireEffect (
+        int timestamp, String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        return fireEffect(timestamp, new ConfigReference<EffectConfig>(
+            name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Fires off an effect with the referenced configuration and the given timestamp.
+     */
+    public EffectLogic fireEffect (int timestamp, ConfigReference<EffectConfig> ref)
+    {
+        // attempt to resolve the implementation
+        EffectConfig config = _cfgmgr.getConfig(EffectConfig.class, ref);
+        EffectConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
+        if (original == null) {
+            log.warning("Failed to resolve effect config.", "effect", ref);
+            return null;
+        }
+
+        // create the logic class
+        EffectLogic logic;
+        try {
+            logic = (EffectLogic)Class.forName(original.getLogicClassName()).newInstance();
+        } catch (Exception e) {
+            log.warning("Failed to instantiate effect logic.",
+                "class", original.getLogicClassName(), e);
+            return null;
+        }
+
+        // initialize the logic and add it to the list
+        logic.init(this, ref, original, timestamp);
+        _effectsFired.add(logic);
+
+        return logic;
     }
 
     /**
@@ -112,22 +214,14 @@ public class TudeySceneManager extends SceneManager
     public Effect[] getEffectsFired (Rect bounds)
     {
         for (int ii = 0, nn = _effectsFired.size(); ii < nn; ii++) {
-            Effect effect = _effectsFired.get(ii);
-            if (effect.getInfluence().intersects(bounds)) {
-                _effects.add(effect);
+            EffectLogic logic = _effectsFired.get(ii);
+            if (logic.getInfluence().intersects(bounds)) {
+                _effects.add(logic.getEffect());
             }
         }
         Effect[] array = _effects.toArray(new Effect[_effects.size()]);
         _effects.clear();
         return array;
-    }
-
-    /**
-     * Fires an effect in the current tick.
-     */
-    public void fireEffect (Effect effect)
-    {
-        _effectsFired.add(effect);
     }
 
     // documentation inherited from interface TudeySceneProvider
@@ -162,6 +256,9 @@ public class TudeySceneManager extends SceneManager
     protected void didStartup ()
     {
         super.didStartup();
+
+        // get a reference to the scene's config manager
+        _cfgmgr = ((TudeySceneModel)_scene.getSceneModel()).getConfigManager();
 
         // register and fill in our tudey scene service
         _tsobj.setTudeySceneService(_invmgr.registerDispatcher(new TudeySceneDispatcher(this)));
@@ -255,6 +352,9 @@ public class TudeySceneManager extends SceneManager
     /** A casted reference to the Tudey scene object. */
     protected TudeySceneObject _tsobj;
 
+    /** A reference to the scene model's configuration manager. */
+    protected ConfigManager _cfgmgr;
+
     /** The tick interval. */
     protected Interval _ticker;
 
@@ -273,11 +373,14 @@ public class TudeySceneManager extends SceneManager
     /** The list of participants in the tick. */
     protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
 
+    /** Actor logic objects mapped by id. */
+    protected HashIntMap<ActorLogic> _actors = new HashIntMap<ActorLogic>();
+
     /** The actor influence space.  Used to find the actors within a client's area of interest. */
     protected HashSpace _influenceSpace = new HashSpace(64f, 6);
 
-    /** The effects fired on the current tick. */
-    protected ArrayList<Effect> _effectsFired = new ArrayList<Effect>();
+    /** The logic for effects fired on the current tick. */
+    protected ArrayList<EffectLogic> _effectsFired = new ArrayList<EffectLogic>();
 
     /** Holds collected elements during queries. */
     protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();

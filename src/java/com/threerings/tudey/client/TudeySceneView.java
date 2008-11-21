@@ -314,7 +314,7 @@ public class TudeySceneView extends SimpleScope
             int last = _records.get(_records.size() - 2).getTimestamp();
             for (Effect effect : fired) {
                 if (effect.getTimestamp() > last) {
-                    effect.createHandler(_ctx, this);
+                    effect.createSprite(_ctx, this);
                 }
             }
         }
