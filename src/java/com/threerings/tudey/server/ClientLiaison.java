@@ -16,11 +16,13 @@ import com.threerings.crowd.data.BodyObject;
 import com.threerings.math.Rect;
 
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
+import com.threerings.tudey.server.logic.PawnLogic;
 
 /**
  * Handles interaction with a single client.
@@ -36,8 +38,25 @@ public class ClientLiaison
         _tsobj = (TudeySceneObject)scenemgr.getPlaceObject();
         _bodyobj = bodyobj;
 
+        // find the client's initial target
+        int targetId = _tsobj.getPawnId(bodyobj.getOid());
+        if (targetId > 0) {
+            _targetControlled = true;
+        } else {
+            targetId = _tsobj.getFirstPawnId();
+        }
+        _target = (PawnLogic)_scenemgr.getActorLogic(targetId);
+
         // insert the baseline (empty) tick record
         _records.add(new TickRecord(0, new HashIntMap<Actor>(), new Effect[0]));
+    }
+
+    /**
+     * Sets the client's target actor.
+     */
+    public void setTarget (PawnLogic target)
+    {
+        _target = target;
     }
 
     /**
@@ -81,6 +100,9 @@ public class ClientLiaison
      */
     public void postDelta ()
     {
+        // update the area of interest based on the target position
+
+
         // retrieve the states of the actors, effects fired in the client's area of interest
         HashIntMap<Actor> actors = _scenemgr.getActors(_interest);
         Effect[] effectsFired = _scenemgr.getEffectsFired(_interest);
@@ -194,6 +216,12 @@ public class ClientLiaison
 
     /** The client body object. */
     protected BodyObject _bodyobj;
+
+    /** The pawn that the client's camera is tracking. */
+    protected PawnLogic _target;
+
+    /** Whether or not the client is controlling the target pawn. */
+    protected boolean _targetControlled;
 
     /** The client's area of interest. */
     protected Rect _interest = new Rect();

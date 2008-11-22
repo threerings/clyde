@@ -6,12 +6,11 @@ package com.threerings.tudey.client.cursor;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.threerings.opengl.util.GlContext;
-
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.shape.Compound;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * A cursor for a selection.
@@ -21,7 +20,7 @@ public class SelectionCursor extends Cursor
     /**
      * Creates the cursor.
      */
-    public SelectionCursor (GlContext ctx, TudeySceneView view)
+    public SelectionCursor (TudeyContext ctx, TudeySceneView view)
     {
         super(ctx, view);
     }

@@ -3,12 +3,16 @@
 
 package com.threerings.tudey.data.actor;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Vector2f;
+
+import com.threerings.tudey.config.ActorConfig;
 
 /**
  * An actor capable of moving by itself.
  */
-public abstract class MobileActor extends MovableActor
+public class Mobile extends Actor
 {
     /** A flag indicating that the actor is in motion. */
     public static final int MOVING = (1 << 1);
@@ -16,15 +20,17 @@ public abstract class MobileActor extends MovableActor
     /**
      * Creates a new mobile actor.
      */
-    public MobileActor (int id, int created)
+    public Mobile (
+        ConfigReference<ActorConfig> config, int id, int created,
+        Vector2f translation, float rotation)
     {
-        super(id, created);
+        super(config, id, created, translation, rotation);
     }
 
     /**
      * No-arg constructor for deserialization.
      */
-    public MobileActor ()
+    public Mobile ()
     {
     }
 
@@ -47,7 +53,10 @@ public abstract class MobileActor extends MovableActor
     /**
      * Returns the actor's speed in units per second.
      */
-    public abstract float getSpeed ();
+    public float getSpeed ()
+    {
+        return 6f;
+    }
 
     @Override // documentation inherited
     public Actor extrapolate (float elapsed, Actor result)
@@ -56,7 +65,7 @@ public abstract class MobileActor extends MovableActor
 
         // if moving, extrapolate based on direction and speed
         if (isSet(MOVING)) {
-            MobileActor mresult = (MobileActor)result;
+            Mobile mresult = (Mobile)result;
             float speed = getSpeed();
             mresult.getTranslation().addLocal(
                 speed * FloatMath.cos(_direction),

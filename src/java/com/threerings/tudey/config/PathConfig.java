@@ -14,10 +14,10 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.cursor.PathCursor;
 import com.threerings.tudey.client.sprite.PathSprite;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * The configuration of a path.
@@ -48,7 +48,7 @@ public class PathConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract PathCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, PathCursor.Implementation impl);
+            TudeyContext ctx, Scope scope, PathCursor.Implementation impl);
 
         /**
          * Creates or updates a sprite implementation for this configuration.
@@ -59,7 +59,7 @@ public class PathConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract PathSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, PathSprite.Implementation impl);
+            TudeyContext ctx, Scope scope, PathSprite.Implementation impl);
     }
 
     /**
@@ -73,7 +73,7 @@ public class PathConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PathCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, PathCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
         {
             if (impl instanceof PathCursor.Original) {
                 ((PathCursor.Original)impl).setConfig(this);
@@ -85,7 +85,7 @@ public class PathConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PathSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, PathSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
         {
             if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
                 return null;
@@ -116,7 +116,7 @@ public class PathConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PathCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, PathCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
         {
             PathConfig config = ctx.getConfigManager().getConfig(PathConfig.class, path);
             return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
@@ -124,7 +124,7 @@ public class PathConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PathSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, PathSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
         {
             PathConfig config = ctx.getConfigManager().getConfig(PathConfig.class, path);
             return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
@@ -144,7 +144,7 @@ public class PathConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public PathCursor.Implementation getCursorImplementation (
-        GlContext ctx, Scope scope, PathCursor.Implementation impl)
+        TudeyContext ctx, Scope scope, PathCursor.Implementation impl)
     {
         return implementation.getCursorImplementation(ctx, scope, impl);
     }
@@ -158,7 +158,7 @@ public class PathConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public PathSprite.Implementation getSpriteImplementation (
-        GlContext ctx, Scope scope, PathSprite.Implementation impl)
+        TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }

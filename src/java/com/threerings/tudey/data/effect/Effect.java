@@ -5,21 +5,26 @@ package com.threerings.tudey.data.effect;
 
 import com.threerings.io.SimpleStreamableObject;
 
-import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.client.sprite.EffectSprite;
-import com.threerings.tudey.util.TudeyContext;
+import com.threerings.config.ConfigReference;
+import com.threerings.math.Vector2f;
+
+import com.threerings.tudey.config.EffectConfig;
 
 /**
  * Represents a stateless event occurring within the scene.
  */
-public abstract class Effect extends SimpleStreamableObject
+public class Effect extends SimpleStreamableObject
 {
     /**
      * Creates a new effect.
      */
-    public Effect (int timestamp)
+    public Effect (
+        ConfigReference<EffectConfig> config, int timestamp, Vector2f translation, float rotation)
     {
+        _config = config;
         _timestamp = timestamp;
+        _translation.set(translation);
+        _rotation = rotation;
     }
 
     /**
@@ -27,6 +32,14 @@ public abstract class Effect extends SimpleStreamableObject
      */
     public Effect ()
     {
+    }
+
+    /**
+     * Returns the effect's config reference.
+     */
+    public ConfigReference<EffectConfig> getConfig ()
+    {
+        return _config;
     }
 
     /**
@@ -38,28 +51,38 @@ public abstract class Effect extends SimpleStreamableObject
     }
 
     /**
-     * Returns the time at which this effect expires (that is, when it should no longer be
-     * retransmitted to clients).
+     * Returns a reference to the effect's translation vector.
+     */
+    public Vector2f getTranslation ()
+    {
+        return _translation;
+    }
+
+    /**
+     * Returns the effect's rotation angle.
+     */
+    public float getRotation ()
+    {
+        return _rotation;
+    }
+
+    /**
+     * Returns the time at which this effect expires.
      */
     public int getExpiry ()
     {
-        return _timestamp + getLifespan();
+        return _timestamp + 3000;
     }
 
-    /**
-     * Creates a sprite to visualize the effect on the client.
-     */
-    public abstract EffectSprite createSprite (TudeyContext ctx, TudeySceneView view);
-
-    /**
-     * Returns the lifespan of the effect, which is the amount of time to continue retransmitting
-     * the effect to clients before discarding it.
-     */
-    protected int getLifespan ()
-    {
-        return 3000;
-    }
+    /** The effect configuration. */
+    protected ConfigReference<EffectConfig> _config;
 
     /** The time at which the effect was fired. */
     protected int _timestamp;
+
+    /** The effect's translation. */
+    protected Vector2f _translation = new Vector2f();
+
+    /** The effect's rotation angle. */
+    protected float _rotation;
 }

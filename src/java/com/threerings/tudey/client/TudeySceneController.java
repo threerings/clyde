@@ -157,7 +157,7 @@ public class TudeySceneController extends SceneController
 
         // if the player controls a pawn, then the target is and will always be that pawn.
         // otherwise, the target starts out being the first pawn in the occupant list
-        _targetId = ((TudeyOccupantInfo)plobj.occupantInfo.get(clobj.getOid())).pawnId;
+        _targetId = _tsobj.getPawnId(clobj.getOid());
         if (_targetId > 0) {
             _targetControlled = true;
         } else {

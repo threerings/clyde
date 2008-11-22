@@ -36,7 +36,6 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepUtil;
 
 import com.threerings.opengl.gui.util.Rectangle;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.cursor.AreaCursor;
@@ -66,6 +65,7 @@ import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.CoordIntMap.CoordIntEntry;
+import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
@@ -153,7 +153,7 @@ public class TudeySceneModel extends SceneModel
         /**
          * Creates a cursor for this entry (or returns <code>null</code> for none).
          */
-        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return null;
         }
@@ -161,7 +161,7 @@ public class TudeySceneModel extends SceneModel
         /**
          * Creates a sprite for this entry.
          */
-        public abstract EntrySprite createSprite (GlContext ctx, TudeySceneView view);
+        public abstract EntrySprite createSprite (TudeyContext ctx, TudeySceneView view);
     }
 
     /**
@@ -302,13 +302,13 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new TileCursor(ctx, view, this);
         }
 
         @Override // documentation inherited
-        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new TileSprite(ctx, view, this);
         }
@@ -379,7 +379,7 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new GlobalSprite(ctx, view, this);
         }
@@ -443,13 +443,13 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new PlaceableCursor(ctx, view, this);
         }
 
         @Override // documentation inherited
-        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new PlaceableSprite(ctx, view, this);
         }
@@ -536,13 +536,13 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new PathCursor(ctx, view, this);
         }
 
         @Override // documentation inherited
-        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new PathSprite(ctx, view, this);
         }
@@ -638,13 +638,13 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public EntryCursor createCursor (GlContext ctx, TudeySceneView view)
+        public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new AreaCursor(ctx, view, this);
         }
 
         @Override // documentation inherited
-        public EntrySprite createSprite (GlContext ctx, TudeySceneView view)
+        public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new AreaSprite(ctx, view, this);
         }

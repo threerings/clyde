@@ -16,10 +16,10 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.cursor.TileCursor;
 import com.threerings.tudey.client.sprite.TileSprite;
+import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
@@ -59,7 +59,7 @@ public class TileConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract TileCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, TileCursor.Implementation impl);
+            TudeyContext ctx, Scope scope, TileCursor.Implementation impl);
 
         /**
          * Creates or updates a sprite implementation for this configuration.
@@ -70,7 +70,7 @@ public class TileConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract TileSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, TileSprite.Implementation impl);
+            TudeyContext ctx, Scope scope, TileSprite.Implementation impl);
     }
 
     /**
@@ -138,7 +138,7 @@ public class TileConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public TileCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, TileCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, TileCursor.Implementation impl)
         {
             if (impl instanceof TileCursor.Original) {
                 ((TileCursor.Original)impl).setConfig(this);
@@ -150,7 +150,7 @@ public class TileConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public TileSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, TileSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, TileSprite.Implementation impl)
         {
             if (impl instanceof TileSprite.Original) {
                 ((TileSprite.Original)impl).setConfig(this);
@@ -185,7 +185,7 @@ public class TileConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public TileCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, TileCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, TileCursor.Implementation impl)
         {
             TileConfig config = ctx.getConfigManager().getConfig(TileConfig.class, tile);
             return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
@@ -193,7 +193,7 @@ public class TileConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public TileSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, TileSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, TileSprite.Implementation impl)
         {
             TileConfig config = ctx.getConfigManager().getConfig(TileConfig.class, tile);
             return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
@@ -221,7 +221,7 @@ public class TileConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public TileCursor.Implementation getCursorImplementation (
-        GlContext ctx, Scope scope, TileCursor.Implementation impl)
+        TudeyContext ctx, Scope scope, TileCursor.Implementation impl)
     {
         return implementation.getCursorImplementation(ctx, scope, impl);
     }
@@ -235,7 +235,7 @@ public class TileConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public TileSprite.Implementation getSpriteImplementation (
-        GlContext ctx, Scope scope, TileSprite.Implementation impl)
+        TudeyContext ctx, Scope scope, TileSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }

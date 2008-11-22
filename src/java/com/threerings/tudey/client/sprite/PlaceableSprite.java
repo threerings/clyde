@@ -13,13 +13,13 @@ import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.scene.Scene;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.util.ShapeConfigElement;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents a placeable entry.
@@ -63,7 +63,7 @@ public class PlaceableSprite extends EntrySprite
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope)
+        public Original (TudeyContext ctx, Scope parentScope)
         {
             super(parentScope);
             _ctx = ctx;
@@ -111,7 +111,7 @@ public class PlaceableSprite extends EntrySprite
         }
 
         /** The renderer context. */
-        protected GlContext _ctx;
+        protected TudeyContext _ctx;
 
         /** The model. */
         protected Model _model;
@@ -132,7 +132,7 @@ public class PlaceableSprite extends EntrySprite
         /**
          * Creates a new prop implementation.
          */
-        public Prop (GlContext ctx, Scope parentScope, PlaceableConfig.Prop config)
+        public Prop (TudeyContext ctx, Scope parentScope, PlaceableConfig.Prop config)
         {
             super(ctx, parentScope);
             setConfig(config);
@@ -147,7 +147,7 @@ public class PlaceableSprite extends EntrySprite
         /**
          * Creates a new marker implementation.
          */
-        public Marker (GlContext ctx, Scope parentScope, PlaceableConfig.Marker config)
+        public Marker (TudeyContext ctx, Scope parentScope, PlaceableConfig.Marker config)
         {
             super(ctx, parentScope);
             setConfig(config);
@@ -157,7 +157,7 @@ public class PlaceableSprite extends EntrySprite
     /**
      * Creates a new placeable sprite.
      */
-    public PlaceableSprite (GlContext ctx, TudeySceneView view, PlaceableEntry entry)
+    public PlaceableSprite (TudeyContext ctx, TudeySceneView view, PlaceableEntry entry)
     {
         super(ctx, view);
         update(entry);

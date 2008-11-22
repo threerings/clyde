@@ -17,6 +17,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.Ray3D;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
@@ -34,6 +35,7 @@ import com.threerings.opengl.util.Tickable;
 import com.samskivert.util.Predicate;
 
 import com.threerings.tudey.client.sprite.ActorSprite;
+import com.threerings.tudey.client.sprite.EffectSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.TileSprite;
@@ -206,6 +208,25 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Gets the transform of an object on the floor with the provided coordinates.
+     */
+    public Transform3D getFloorTransform (float x, float y, float rotation)
+    {
+        return getFloorTransform(x, y, rotation, new Transform3D(Transform3D.UNIFORM));
+    }
+
+    /**
+     * Gets the transform of an object on the floor with the provided coordinates.
+     */
+    public Transform3D getFloorTransform (float x, float y, float rotation, Transform3D result)
+    {
+        Vector3f translation = result.getTranslation();
+        translation.set(x, y, getFloorZ(x, y, translation.z));
+        result.getRotation().fromAngleAxis(rotation, Vector3f.UNIT_Z);
+        return result;
+    }
+
+    /**
      * Returns the z coordinate of the floor at the provided coordinates, or the provided default
      * if no floor is found.
      */
@@ -285,7 +306,7 @@ public class TudeySceneView extends SimpleScope
             int id = actor.getId();
             ActorSprite sprite = _actorSprites.get(id);
             if (sprite == null) {
-                _actorSprites.put(id, sprite = actor.createSprite(_ctx, this, timestamp));
+                _actorSprites.put(id, sprite = new ActorSprite(_ctx, this, timestamp, actor));
                 if (id == _ctrl.getTargetId()) {
                     _targetSprite = sprite;
                 }
@@ -314,7 +335,7 @@ public class TudeySceneView extends SimpleScope
             int last = _records.get(_records.size() - 2).getTimestamp();
             for (Effect effect : fired) {
                 if (effect.getTimestamp() > last) {
-                    effect.createSprite(_ctx, this);
+                    new EffectSprite(_ctx, this, effect);
                 }
             }
         }

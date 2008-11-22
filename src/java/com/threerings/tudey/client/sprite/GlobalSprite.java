@@ -12,12 +12,12 @@ import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.scene.Scene;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents a global entry.
@@ -33,7 +33,7 @@ public class GlobalSprite extends EntrySprite
         /**
          * Creates a new implementation.
          */
-        public Implementation (GlContext ctx, Scope parentScope)
+        public Implementation (TudeyContext ctx, Scope parentScope)
         {
             super(parentScope);
             _ctx = ctx;
@@ -46,7 +46,7 @@ public class GlobalSprite extends EntrySprite
         }
 
         /** The renderer context. */
-        protected GlContext _ctx;
+        protected TudeyContext _ctx;
     }
 
     /**
@@ -58,7 +58,7 @@ public class GlobalSprite extends EntrySprite
          * Creates a new environment model implementation.
          */
         public EnvironmentModel (
-            GlContext ctx, Scope parentScope, SceneGlobalConfig.EnvironmentModel config)
+            TudeyContext ctx, Scope parentScope, SceneGlobalConfig.EnvironmentModel config)
         {
             super(ctx, parentScope);
             _scene.add(_model = new Model(ctx));
@@ -93,7 +93,7 @@ public class GlobalSprite extends EntrySprite
     /**
      * Creates a new global sprite.
      */
-    public GlobalSprite (GlContext ctx, TudeySceneView view, GlobalEntry entry)
+    public GlobalSprite (TudeyContext ctx, TudeySceneView view, GlobalEntry entry)
     {
         super(ctx, view);
         update(entry);

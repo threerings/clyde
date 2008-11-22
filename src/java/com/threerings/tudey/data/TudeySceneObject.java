@@ -21,6 +21,15 @@ public class TudeySceneObject extends SceneObject
     public TudeySceneMarshaller tudeySceneService;
 
     /**
+     * Returns the id of the pawn controlled by the client with the provided oid, or 0 if none.
+     */
+    public int getPawnId (int cloid)
+    {
+        TudeyOccupantInfo info = (TudeyOccupantInfo)occupantInfo.get(cloid);
+        return (info == null) ? 0 : info.pawnId;
+    }
+
+    /**
      * Returns the id of the first pawn in the occupant list.
      */
     public int getFirstPawnId ()

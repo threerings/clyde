@@ -4,11 +4,11 @@
 package com.threerings.tudey.client.cursor;
 
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents an entry.
@@ -18,7 +18,7 @@ public abstract class EntryCursor extends Cursor
     /**
      * Creates a new entry cursor.
      */
-    public EntryCursor (GlContext ctx, TudeySceneView view)
+    public EntryCursor (TudeyContext ctx, TudeySceneView view)
     {
         super(ctx, view);
     }

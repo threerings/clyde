@@ -12,7 +12,6 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -23,6 +22,7 @@ import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PathEntry;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents a path entry.
@@ -87,7 +87,7 @@ public class PathCursor extends EntryCursor
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, PathConfig.Original config)
+        public Original (TudeyContext ctx, Scope parentScope, PathConfig.Original config)
         {
             super(parentScope);
             _ctx = ctx;
@@ -155,7 +155,7 @@ public class PathCursor extends EntryCursor
         }
 
         /** The renderer context. */
-        protected GlContext _ctx;
+        protected TudeyContext _ctx;
 
         /** The models representing the vertices. */
         protected Model[] _vertices = new Model[0];
@@ -175,7 +175,7 @@ public class PathCursor extends EntryCursor
      * models as required.
      */
     public static Model[] maybeResize (
-        Model[] omodels, int ncount, GlContext ctx, Scope parentScope,
+        Model[] omodels, int ncount, TudeyContext ctx, Scope parentScope,
         String name, ColorState colorState)
     {
         if (omodels.length == ncount) {
@@ -196,7 +196,7 @@ public class PathCursor extends EntryCursor
     /**
      * Creates a new path cursor.
      */
-    public PathCursor (GlContext ctx, TudeySceneView view, PathEntry entry)
+    public PathCursor (TudeyContext ctx, TudeySceneView view, PathEntry entry)
     {
         super(ctx, view);
         update(entry);

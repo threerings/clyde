@@ -20,6 +20,7 @@ import com.threerings.whirled.server.SceneManager;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
+import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.EffectConfig;
@@ -31,6 +32,7 @@ import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.EffectLogic;
+import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
 
@@ -99,25 +101,29 @@ public class TudeySceneManager extends SceneManager
     /**
      * Spawns an actor with the named configuration.
      */
-    public ActorLogic spawnActor (int timestamp, String name)
+    public ActorLogic spawnActor (
+        int timestamp, Vector2f translation, float rotation, String name)
     {
-        return spawnActor(timestamp, new ConfigReference<ActorConfig>(name));
+        return spawnActor(timestamp, translation, rotation,
+            new ConfigReference<ActorConfig>(name));
     }
 
     /**
      * Spawns an actor with the supplied name and arguments.
      */
     public ActorLogic spawnActor (
-        int timestamp, String name, String firstKey, Object firstValue, Object... otherArgs)
+        int timestamp, Vector2f translation, float rotation, String name,
+        String firstKey, Object firstValue, Object... otherArgs)
     {
-        return spawnActor(timestamp, new ConfigReference<ActorConfig>(
-            name, firstKey, firstValue, otherArgs));
+        return spawnActor(timestamp, translation, rotation,
+            new ConfigReference<ActorConfig>(name, firstKey, firstValue, otherArgs));
     }
 
     /**
      * Spawns an actor with the referenced configuration.
      */
-    public ActorLogic spawnActor (int timestamp, ConfigReference<ActorConfig> ref)
+    public ActorLogic spawnActor (
+        int timestamp, Vector2f translation, float rotation, ConfigReference<ActorConfig> ref)
     {
         // attempt to resolve the implementation
         ActorConfig config = _cfgmgr.getConfig(ActorConfig.class, ref);
@@ -138,34 +144,38 @@ public class TudeySceneManager extends SceneManager
         }
 
         // initialize the logic and add it to the map
-        logic.init(this, ref, original, ++_lastActorId, timestamp);
+        logic.init(this, ref, original, ++_lastActorId, timestamp, translation, rotation);
         _actors.put(_lastActorId, logic);
 
         return logic;
     }
 
     /**
-     * Fires off an effect at the with the named configuration and the supplied timestamp.
-     */
-    public EffectLogic fireEffect (int timestamp, String name)
-    {
-        return fireEffect(timestamp, new ConfigReference<EffectConfig>(name));
-    }
-
-    /**
-     * Fires off an effect with the supplied name, arguments, and timestamp.
+     * Fires off an effect at the with the named configuration.
      */
     public EffectLogic fireEffect (
-        int timestamp, String name, String firstKey, Object firstValue, Object... otherArgs)
+        int timestamp, Vector2f translation, float rotation, String name)
     {
-        return fireEffect(timestamp, new ConfigReference<EffectConfig>(
-            name, firstKey, firstValue, otherArgs));
+        return fireEffect(timestamp, translation, rotation,
+            new ConfigReference<EffectConfig>(name));
     }
 
     /**
-     * Fires off an effect with the referenced configuration and the given timestamp.
+     * Fires off an effect with the supplied name and arguments.
      */
-    public EffectLogic fireEffect (int timestamp, ConfigReference<EffectConfig> ref)
+    public EffectLogic fireEffect (
+        int timestamp, Vector2f translation, float rotation, String name,
+        String firstKey, Object firstValue, Object... otherArgs)
+    {
+        return fireEffect(timestamp, translation, rotation,
+            new ConfigReference<EffectConfig>(name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Fires off an effect with the referenced configuration.
+     */
+    public EffectLogic fireEffect (
+        int timestamp, Vector2f translation, float rotation, ConfigReference<EffectConfig> ref)
     {
         // attempt to resolve the implementation
         EffectConfig config = _cfgmgr.getConfig(EffectConfig.class, ref);
@@ -186,10 +196,18 @@ public class TudeySceneManager extends SceneManager
         }
 
         // initialize the logic and add it to the list
-        logic.init(this, ref, original, timestamp);
+        logic.init(this, ref, original, timestamp, translation, rotation);
         _effectsFired.add(logic);
 
         return logic;
+    }
+
+    /**
+     * Returns the logic object for the actor with the provided id, if any.
+     */
+    public ActorLogic getActorLogic (int id)
+    {
+        return _actors.get(id);
     }
 
     /**
@@ -243,7 +261,30 @@ public class TudeySceneManager extends SceneManager
     // documentation inherited from interface TudeySceneProvider
     public void setTarget (ClientObject caller, int pawnId)
     {
+        // get the client liaison
+        int cloid = caller.getOid();
+        ClientLiaison client = _clients.get(cloid);
+        if (client == null) {
+            log.warning("Received target request from unknown client.",
+                "who", caller.who(), "where", where());
+            return;
+        }
 
+        // make sure they're not controlling a pawn of their own
+        if (_tsobj.getPawnId(cloid) > 0) {
+            log.warning("User with pawn tried to set target.",
+                "who", caller.who(), "pawnId", pawnId);
+            return;
+        }
+
+        // retrieve the actor and ensure it's a pawn
+        ActorLogic target = _actors.get(pawnId);
+        if (target instanceof PawnLogic) {
+            client.setTarget((PawnLogic)target);
+        } else {
+            log.warning("User tried to target non-pawn.", "who",
+                caller.who(), "actor", target.getActor());
+        }
     }
 
     @Override // documentation inherited
@@ -292,8 +333,13 @@ public class TudeySceneManager extends SceneManager
     protected void insertOccupantInfo (OccupantInfo info, BodyObject body)
     {
         // add the pawn and fill in its id
-        ((TudeyOccupantInfo)info).pawnId = 0;
-
+        ConfigReference<ActorConfig> ref = getPawnConfig(body);
+        if (ref != null) {
+            ActorLogic logic = spawnActor(_timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
+            if (logic != null) {
+                ((TudeyOccupantInfo)info).pawnId = logic.getActor().getId();
+            }
+        }
         super.insertOccupantInfo(info, body);
     }
 
@@ -347,6 +393,15 @@ public class TudeySceneManager extends SceneManager
 
         // clear the effect list
         _effectsFired.clear();
+    }
+
+    /**
+     * Returns a reference to the configuration to use for the specified body's pawn or
+     * <code>null</code> for none.
+     */
+    protected ConfigReference<ActorConfig> getPawnConfig (BodyObject body)
+    {
+        return null;
     }
 
     /** A casted reference to the Tudey scene object. */

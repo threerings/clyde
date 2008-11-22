@@ -12,13 +12,13 @@ import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.scene.Scene;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.util.RectangleElement;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents a tile.
@@ -62,7 +62,7 @@ public class TileSprite extends EntrySprite
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, TileConfig.Original config)
+        public Original (TudeyContext ctx, Scope parentScope, TileConfig.Original config)
         {
             super(parentScope);
             _ctx = ctx;
@@ -114,7 +114,7 @@ public class TileSprite extends EntrySprite
         }
 
         /** The renderer context. */
-        protected GlContext _ctx;
+        protected TudeyContext _ctx;
 
         /** The tile configuration. */
         protected TileConfig.Original _config;
@@ -133,7 +133,7 @@ public class TileSprite extends EntrySprite
     /**
      * Creates a new tile sprite.
      */
-    public TileSprite (GlContext ctx, TudeySceneView view, TileEntry entry)
+    public TileSprite (TudeyContext ctx, TudeySceneView view, TileEntry entry)
     {
         super(ctx, view);
         update(entry);

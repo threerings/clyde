@@ -15,7 +15,6 @@ import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -26,6 +25,7 @@ import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * A cursor for tiles.
@@ -90,7 +90,7 @@ public class TileCursor extends EntryCursor
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, TileConfig.Original config)
+        public Original (TudeyContext ctx, Scope parentScope, TileConfig.Original config)
         {
             super(parentScope);
             _model = new Model(ctx);
@@ -165,7 +165,7 @@ public class TileCursor extends EntryCursor
     /**
      * Creates a new tile cursor.
      */
-    public TileCursor (GlContext ctx, TudeySceneView view, TileEntry entry)
+    public TileCursor (TudeyContext ctx, TudeySceneView view, TileEntry entry)
     {
         super(ctx, view);
         update(entry);

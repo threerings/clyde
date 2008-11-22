@@ -14,9 +14,9 @@ import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.sprite.GlobalSprite;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * The configuration of a global scene object.
@@ -47,7 +47,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract GlobalSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, GlobalSprite.Implementation impl);
+            TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl);
     }
 
     /**
@@ -65,7 +65,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public GlobalSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, GlobalSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
         {
             if (impl instanceof GlobalSprite.EnvironmentModel) {
                 ((GlobalSprite.EnvironmentModel)impl).setConfig(this);
@@ -93,7 +93,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public GlobalSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, GlobalSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
         {
             SceneGlobalConfig config = ctx.getConfigManager().getConfig(
                 SceneGlobalConfig.class, sceneGlobal);
@@ -114,7 +114,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public GlobalSprite.Implementation getSpriteImplementation (
-        GlContext ctx, Scope scope, GlobalSprite.Implementation impl)
+        TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }

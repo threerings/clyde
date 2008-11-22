@@ -3,11 +3,11 @@
 
 package com.threerings.tudey.client.sprite;
 
+import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
-import com.threerings.opengl.util.GlContext;
-
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents a placeable object.
@@ -17,7 +17,7 @@ public abstract class Sprite extends SimpleScope
     /**
      * Creates a new sprite.
      */
-    public Sprite (GlContext ctx, TudeySceneView view)
+    public Sprite (TudeyContext ctx, TudeySceneView view)
     {
         super(view);
         _ctx = ctx;
@@ -30,9 +30,10 @@ public abstract class Sprite extends SimpleScope
         return "sprite";
     }
 
-    /** The renderer context. */
-    protected GlContext _ctx;
+    /** The application context. */
+    protected TudeyContext _ctx;
 
     /** The parent view. */
+    @Scoped
     protected TudeySceneView _view;
 }

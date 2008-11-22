@@ -14,10 +14,10 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.cursor.AreaCursor;
 import com.threerings.tudey.client.sprite.AreaSprite;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * The configuration of an area.
@@ -48,7 +48,7 @@ public class AreaConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract AreaCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, AreaCursor.Implementation impl);
+            TudeyContext ctx, Scope scope, AreaCursor.Implementation impl);
 
         /**
          * Creates or updates a sprite implementation for this configuration.
@@ -59,7 +59,7 @@ public class AreaConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract AreaSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, AreaSprite.Implementation impl);
+            TudeyContext ctx, Scope scope, AreaSprite.Implementation impl);
     }
 
     /**
@@ -73,7 +73,7 @@ public class AreaConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public AreaCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, AreaCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
         {
             if (impl instanceof AreaCursor.Original) {
                 ((AreaCursor.Original)impl).setConfig(this);
@@ -85,7 +85,7 @@ public class AreaConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public AreaSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, AreaSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
         {
             if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
                 return null;
@@ -116,7 +116,7 @@ public class AreaConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public AreaCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, AreaCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
         {
             AreaConfig config = ctx.getConfigManager().getConfig(AreaConfig.class, area);
             return (config == null) ? null : config.getCursorImplementation(ctx, scope, impl);
@@ -124,7 +124,7 @@ public class AreaConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public AreaSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, AreaSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
         {
             AreaConfig config = ctx.getConfigManager().getConfig(AreaConfig.class, area);
             return (config == null) ? null : config.getSpriteImplementation(ctx, scope, impl);
@@ -144,7 +144,7 @@ public class AreaConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public AreaCursor.Implementation getCursorImplementation (
-        GlContext ctx, Scope scope, AreaCursor.Implementation impl)
+        TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
     {
         return implementation.getCursorImplementation(ctx, scope, impl);
     }
@@ -158,7 +158,7 @@ public class AreaConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public AreaSprite.Implementation getSpriteImplementation (
-        GlContext ctx, Scope scope, AreaSprite.Implementation impl)
+        TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }

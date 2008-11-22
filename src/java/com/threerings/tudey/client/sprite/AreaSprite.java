@@ -16,7 +16,6 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.Scene;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.util.AreaElement;
@@ -24,6 +23,7 @@ import com.threerings.tudey.client.util.ShapeSceneElement;
 import com.threerings.tudey.config.AreaConfig;
 import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents an area entry.
@@ -85,7 +85,7 @@ public class AreaSprite extends EntrySprite
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, AreaConfig.Original config)
+        public Original (TudeyContext ctx, Scope parentScope, AreaConfig.Original config)
         {
             super(parentScope);
             _ctx = ctx;
@@ -165,7 +165,7 @@ public class AreaSprite extends EntrySprite
         }
 
         /** The renderer context. */
-        protected GlContext _ctx;
+        protected TudeyContext _ctx;
 
         /** The models representing the vertices. */
         protected Model[] _vertices = new Model[0];
@@ -190,7 +190,7 @@ public class AreaSprite extends EntrySprite
     /**
      * Creates a new area sprite.
      */
-    public AreaSprite (GlContext ctx, TudeySceneView view, AreaEntry entry)
+    public AreaSprite (TudeyContext ctx, TudeySceneView view, AreaEntry entry)
     {
         super(ctx, view);
         update(entry);

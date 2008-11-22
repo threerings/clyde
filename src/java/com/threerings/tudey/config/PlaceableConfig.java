@@ -15,11 +15,11 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.cursor.PlaceableCursor;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.shape.config.ShapeConfig;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * The configuration of a placeable object.
@@ -58,7 +58,7 @@ public class PlaceableConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract PlaceableCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, PlaceableCursor.Implementation impl);
+            TudeyContext ctx, Scope scope, PlaceableCursor.Implementation impl);
 
         /**
          * Creates or updates a sprite implementation for this configuration.
@@ -69,7 +69,7 @@ public class PlaceableConfig extends ParameterizedConfig
          * implementation, or <code>null</code> if no implementation could be created.
          */
         public abstract PlaceableSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, PlaceableSprite.Implementation impl);
+            TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl);
 
         /**
          * Invalidates any cached data.
@@ -101,7 +101,7 @@ public class PlaceableConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PlaceableCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, PlaceableCursor.Implementation impl)
         {
             if (impl instanceof PlaceableCursor.Original) {
                 ((PlaceableCursor.Original)impl).setConfig(this);
@@ -133,7 +133,7 @@ public class PlaceableConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PlaceableSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
             if (impl instanceof PlaceableSprite.Prop) {
                 ((PlaceableSprite.Prop)impl).setConfig(this);
@@ -151,7 +151,7 @@ public class PlaceableConfig extends ParameterizedConfig
     {
         @Override // documentation inherited
         public PlaceableSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
             if (!ScopeUtil.resolve(scope, "markersVisible", false)) {
                 return null;
@@ -189,7 +189,7 @@ public class PlaceableConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PlaceableCursor.Implementation getCursorImplementation (
-            GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
+            TudeyContext ctx, Scope scope, PlaceableCursor.Implementation impl)
         {
             PlaceableConfig config = ctx.getConfigManager().getConfig(
                 PlaceableConfig.class, placeable);
@@ -198,7 +198,7 @@ public class PlaceableConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public PlaceableSprite.Implementation getSpriteImplementation (
-            GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
+            TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
             PlaceableConfig config = ctx.getConfigManager().getConfig(
                 PlaceableConfig.class, placeable);
@@ -227,7 +227,7 @@ public class PlaceableConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public PlaceableCursor.Implementation getCursorImplementation (
-        GlContext ctx, Scope scope, PlaceableCursor.Implementation impl)
+        TudeyContext ctx, Scope scope, PlaceableCursor.Implementation impl)
     {
         return implementation.getCursorImplementation(ctx, scope, impl);
     }
@@ -241,7 +241,7 @@ public class PlaceableConfig extends ParameterizedConfig
      * implementation, or <code>null</code> if no implementation could be created.
      */
     public PlaceableSprite.Implementation getSpriteImplementation (
-        GlContext ctx, Scope scope, PlaceableSprite.Implementation impl)
+        TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
     }

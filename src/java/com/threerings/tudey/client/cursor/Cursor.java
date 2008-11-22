@@ -5,11 +5,11 @@ package com.threerings.tudey.client.cursor;
 
 import com.threerings.expr.SimpleScope;
 
-import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Base class for cursors (representations used when placing objects).
@@ -20,7 +20,7 @@ public abstract class Cursor extends SimpleScope
     /**
      * Creates the cursor.
      */
-    public Cursor (GlContext ctx, TudeySceneView view)
+    public Cursor (TudeyContext ctx, TudeySceneView view)
     {
         super(view);
         _ctx = ctx;
@@ -44,6 +44,6 @@ public abstract class Cursor extends SimpleScope
         return "cursor";
     }
 
-    /** The renderer context. */
-    protected GlContext _ctx;
+    /** The application context. */
+    protected TudeyContext _ctx;
 }

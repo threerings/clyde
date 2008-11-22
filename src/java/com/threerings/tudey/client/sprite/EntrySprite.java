@@ -4,10 +4,10 @@
 package com.threerings.tudey.client.sprite;
 
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents a scene entry.
@@ -17,7 +17,7 @@ public abstract class EntrySprite extends Sprite
     /**
      * Creates a new entry sprite.
      */
-    public EntrySprite (GlContext ctx, TudeySceneView view)
+    public EntrySprite (TudeyContext ctx, TudeySceneView view)
     {
         super(ctx, view);
     }

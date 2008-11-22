@@ -19,7 +19,6 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.Scene;
-import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.util.ShapeSceneElement;
@@ -27,6 +26,7 @@ import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PathEntry;
 import com.threerings.tudey.data.TudeySceneModel.Vertex;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents a path entry.
@@ -88,7 +88,7 @@ public class PathSprite extends EntrySprite
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, PathConfig.Original config)
+        public Original (TudeyContext ctx, Scope parentScope, PathConfig.Original config)
         {
             super(parentScope);
             _ctx = ctx;
@@ -161,7 +161,7 @@ public class PathSprite extends EntrySprite
         }
 
         /** The renderer context. */
-        protected GlContext _ctx;
+        protected TudeyContext _ctx;
 
         /** The models representing the vertices. */
         protected Model[] _vertices = new Model[0];
@@ -235,7 +235,7 @@ public class PathSprite extends EntrySprite
      * models as required.
      */
     public static Model[] maybeResize (
-        Model[] omodels, int ncount, GlContext ctx, Scene scene,
+        Model[] omodels, int ncount, TudeyContext ctx, Scene scene,
         String name, ColorState colorState, Object userObject)
     {
         if (omodels.length == ncount) {
@@ -259,7 +259,7 @@ public class PathSprite extends EntrySprite
     /**
      * Creates a new path sprite.
      */
-    public PathSprite (GlContext ctx, TudeySceneView view, PathEntry entry)
+    public PathSprite (TudeyContext ctx, TudeySceneView view, PathEntry entry)
     {
         super(ctx, view);
         update(entry);

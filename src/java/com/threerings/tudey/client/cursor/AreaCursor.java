@@ -11,7 +11,6 @@ import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -23,6 +22,7 @@ import com.threerings.tudey.config.AreaConfig;
 import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents an area entry.
@@ -87,7 +87,7 @@ public class AreaCursor extends EntryCursor
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, AreaConfig.Original config)
+        public Original (TudeyContext ctx, Scope parentScope, AreaConfig.Original config)
         {
             super(parentScope);
             _ctx = ctx;
@@ -161,7 +161,7 @@ public class AreaCursor extends EntryCursor
         }
 
         /** The renderer context. */
-        protected GlContext _ctx;
+        protected TudeyContext _ctx;
 
         /** The models representing the vertices. */
         protected Model[] _vertices = new Model[0];
@@ -182,7 +182,7 @@ public class AreaCursor extends EntryCursor
     /**
      * Creates a new area cursor.
      */
-    public AreaCursor (GlContext ctx, TudeySceneView view, AreaEntry entry)
+    public AreaCursor (TudeyContext ctx, TudeySceneView view, AreaEntry entry)
     {
         super(ctx, view);
         update(entry);

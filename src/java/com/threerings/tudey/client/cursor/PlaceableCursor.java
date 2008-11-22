@@ -15,7 +15,6 @@ import com.threerings.math.Transform2D;
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.mod.Model;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -25,6 +24,7 @@ import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * A cursor for a placeable object.
@@ -89,7 +89,7 @@ public class PlaceableCursor extends EntryCursor
         /**
          * Creates a new implementation.
          */
-        public Original (GlContext ctx, Scope parentScope, PlaceableConfig.Original config)
+        public Original (TudeyContext ctx, Scope parentScope, PlaceableConfig.Original config)
         {
             super(parentScope);
             _model = new Model(ctx);
@@ -159,7 +159,7 @@ public class PlaceableCursor extends EntryCursor
     /**
      * Creates a new placeable cursor.
      */
-    public PlaceableCursor (GlContext ctx, TudeySceneView view, PlaceableEntry entry)
+    public PlaceableCursor (TudeyContext ctx, TudeySceneView view, PlaceableEntry entry)
     {
         super(ctx, view);
         update(entry);
