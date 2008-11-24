@@ -5,11 +5,13 @@ package com.threerings.tudey.server.logic;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
+import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * Handles an effect on the server.
@@ -26,6 +28,7 @@ public class EffectLogic extends Logic
         super.init(scenemgr);
         _config = config;
         _effect = createEffect(ref, timestamp, translation, rotation);
+        _shape = config.shape.getShape().transform(new Transform2D(translation, rotation));
     }
 
     /**
@@ -37,12 +40,11 @@ public class EffectLogic extends Logic
     }
 
     /**
-     * Returns the effect's area of influence.  Clients are notified of effects when their
-     * areas of interest intersect the effect's area of influence.
+     * Returns a reference to the shape of the effect.
      */
-    public Rect getInfluence ()
+    public Shape getShape ()
     {
-        return _influence;
+        return _shape;
     }
 
     /**
@@ -60,6 +62,6 @@ public class EffectLogic extends Logic
     /** The effect fired. */
     protected Effect _effect;
 
-    /** The effect's area of influence. */
-    protected Rect _influence = new Rect();
+    /** The shape of the effect. */
+    protected Shape _shape;
 }

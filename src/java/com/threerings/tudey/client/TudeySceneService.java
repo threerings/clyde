@@ -8,6 +8,8 @@ import com.threerings.presents.client.Client;
 import com.threerings.presents.client.InvocationService;
 import com.threerings.presents.net.Transport;
 
+import com.threerings.math.SphereCoords;
+
 import com.threerings.tudey.data.InputFrame;
 
 /**
@@ -30,4 +32,10 @@ public interface TudeySceneService extends InvocationService
      * a pawn of their own.
      */
     public void setTarget (Client client, int pawnId);
+
+    /**
+     * Requests to change the client's camera parameters (which affect its area of interest).
+     */
+    public void setCameraParams (
+        Client client, float fovy, float aspect, float near, float far, SphereCoords coords);
 }

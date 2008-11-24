@@ -28,6 +28,22 @@ public class Frustum
     }
 
     /**
+     * Returns a reference to the frustum's array of vertices.
+     */
+    public Vector3f[] getVertices ()
+    {
+        return _vertices;
+    }
+
+    /**
+     * Returns a reference to the bounds of this frustum.
+     */
+    public Box getBounds ()
+    {
+        return _bounds;
+    }
+
+    /**
      * Sets this frustum to one pointing in the Z- direction with the specified parameters
      * determining its size and shape (see the OpenGL documentation for
      * <code>gluPerspective</code>).
@@ -135,14 +151,6 @@ public class Frustum
         }
         result.updateDerivedState();
         return result;
-    }
-
-    /**
-     * Returns a reference to the bounds of this frustum.
-     */
-    public Box getBounds ()
-    {
-        return _bounds;
     }
 
     /**

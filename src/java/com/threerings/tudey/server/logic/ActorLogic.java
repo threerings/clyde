@@ -9,6 +9,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.ShapeElement;
 
 /**
  * Controls the state of an actor on the server.
@@ -25,14 +26,46 @@ public class ActorLogic extends Logic
         super.init(scenemgr);
         _config = config;
         _actor = createActor(ref, id, timestamp, translation, rotation);
+        _shape = new ShapeElement(config.shape);
+        _shape.setUserObject(this);
+        updateShape();
+        _scenemgr.getActorSpace().add(_shape);
     }
 
     /**
-     * Returns a reference to the current state of the actor.
+     * Returns a reference to the actor object.
      */
     public Actor getActor ()
     {
         return _actor;
+    }
+
+    /**
+     * Returns the current tick's snapshot of the actor.
+     */
+    public Actor getSnapshot ()
+    {
+        int timestamp = _scenemgr.getTimestamp();
+        if (_snaptime < timestamp) {
+            _snapshot = (Actor)_actor.clone();
+            _snaptime = timestamp;
+        }
+        return _snapshot;
+    }
+
+    /**
+     * Destroys the actor.
+     */
+    public void destroy (int timestamp)
+    {
+        // set the destroyed time and remove on the next tick
+        _actor.setDestroyed(timestamp);
+        _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
+            public boolean tick (int timestamp) {
+                remove();
+                return false;
+            }
+        });
     }
 
     /**
@@ -45,9 +78,37 @@ public class ActorLogic extends Logic
         return new Actor(ref, id, timestamp, translation, rotation);
     }
 
+    /**
+     * Updates the shape transform based on the actor's position.
+     */
+    protected void updateShape ()
+    {
+        _shape.getTransform().set(_actor.getTranslation(), _actor.getRotation(), 1f);
+        _shape.updateBounds();
+    }
+
+    /**
+     * Removes this actor after it has been destroyed.
+     */
+    protected void remove ()
+    {
+        // remove from space and logic mapping
+        _scenemgr.getActorSpace().remove(_shape);
+        _scenemgr.removeActorLogic(_actor.getId());
+    }
+
     /** The actor configuration. */
     protected ActorConfig.Original _config;
 
-    /** The current state of the actor. */
+    /** The actor object, which may be manipulated directly. */
     protected Actor _actor;
+
+    /** The actor snapshot, which must not be modified once created. */
+    protected Actor _snapshot;
+
+    /** The timestamp of the actor snapshot. */
+    protected int _snaptime;
+
+    /** The actor's shape element. */
+    protected ShapeElement _shape;
 }

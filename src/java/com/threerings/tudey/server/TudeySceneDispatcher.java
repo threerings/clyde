@@ -2,6 +2,7 @@
 // $Id$
 package com.threerings.tudey.server;
 
+import com.threerings.math.SphereCoords;
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.net.Transport;
 import com.threerings.presents.server.InvocationDispatcher;
@@ -38,6 +39,12 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
         case TudeySceneMarshaller.ENQUEUE_INPUT:
             ((TudeySceneProvider)provider).enqueueInput(
                 source, ((Integer)args[0]).intValue(), ((Integer)args[1]).intValue(), (InputFrame[])args[2]
+            );
+            return;
+
+        case TudeySceneMarshaller.SET_CAMERA_PARAMS:
+            ((TudeySceneProvider)provider).setCameraParams(
+                source, ((Float)args[0]).floatValue(), ((Float)args[1]).floatValue(), ((Float)args[2]).floatValue(), ((Float)args[3]).floatValue(), (SphereCoords)args[4]
             );
             return;
 

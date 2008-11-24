@@ -2,6 +2,7 @@
 // $Id$
 package com.threerings.tudey.data;
 
+import com.threerings.math.SphereCoords;
 import com.threerings.presents.client.Client;
 import com.threerings.presents.data.InvocationMarshaller;
 import com.threerings.presents.net.Transport;
@@ -28,8 +29,19 @@ public class TudeySceneMarshaller extends InvocationMarshaller
         }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
     }
 
+    /** The method id used to dispatch {@link #setCameraParams} requests. */
+    public static final int SET_CAMERA_PARAMS = 2;
+
+    // from interface TudeySceneService
+    public void setCameraParams (Client arg1, float arg2, float arg3, float arg4, float arg5, SphereCoords arg6)
+    {
+        sendRequest(arg1, SET_CAMERA_PARAMS, new Object[] {
+            Float.valueOf(arg2), Float.valueOf(arg3), Float.valueOf(arg4), Float.valueOf(arg5), arg6
+        });
+    }
+
     /** The method id used to dispatch {@link #setTarget} requests. */
-    public static final int SET_TARGET = 2;
+    public static final int SET_TARGET = 3;
 
     // from interface TudeySceneService
     public void setTarget (Client arg1, int arg2)

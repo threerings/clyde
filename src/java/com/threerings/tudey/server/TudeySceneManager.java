@@ -20,6 +20,7 @@ import com.threerings.whirled.server.SceneManager;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
+import com.threerings.math.SphereCoords;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
@@ -91,11 +92,11 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Returns a reference to the actor influence space.
+     * Returns a reference to the actor space.
      */
-    public HashSpace getInfluenceSpace ()
+    public HashSpace getActorSpace ()
     {
-        return _influenceSpace;
+        return _actorSpace;
     }
 
     /**
@@ -211,14 +212,15 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Returns a map containing all actors whose influence regions intersect the provided bounds.
+     * Returns a map containing the snapshots of all actors whose influence regions intersect the
+     * provided bounds.
      */
-    public HashIntMap<Actor> getActors (Rect bounds)
+    public HashIntMap<Actor> getActorSnapshots (Rect bounds)
     {
-        _influenceSpace.getElements(bounds, _elements);
+        _actorSpace.getElements(bounds, _elements);
         HashIntMap<Actor> map = new HashIntMap<Actor>();
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            Actor actor = ((ActorLogic)_elements.get(ii).getUserObject()).getActor();
+            Actor actor = ((ActorLogic)_elements.get(ii).getUserObject()).getSnapshot();
             map.put(actor.getId(), actor);
         }
         _elements.clear();
@@ -233,13 +235,23 @@ public class TudeySceneManager extends SceneManager
     {
         for (int ii = 0, nn = _effectsFired.size(); ii < nn; ii++) {
             EffectLogic logic = _effectsFired.get(ii);
-            if (logic.getInfluence().intersects(bounds)) {
+            if (logic.getShape().getBounds().intersects(bounds)) {
                 _effects.add(logic.getEffect());
             }
         }
         Effect[] array = _effects.toArray(new Effect[_effects.size()]);
         _effects.clear();
         return array;
+    }
+
+    /**
+     * Removes the logic mapping for the actor with the given id.
+     */
+    public void removeActorLogic (int id)
+    {
+        if (_actors.remove(id) == null) {
+            log.warning("Missing actor to remove.", "where", where(), "id", id);
+        }
     }
 
     // documentation inherited from interface TudeySceneProvider
@@ -284,6 +296,20 @@ public class TudeySceneManager extends SceneManager
         } else {
             log.warning("User tried to target non-pawn.", "who",
                 caller.who(), "actor", target.getActor());
+        }
+    }
+
+    // documentation inherited from interface TudeySceneProvider
+    public void setCameraParams (
+        ClientObject caller, float fovy, float aspect, float near, float far, SphereCoords coords)
+    {
+        // forward to client liaison
+        ClientLiaison client = _clients.get(caller.getOid());
+        if (client != null) {
+            client.setCameraParams(fovy, aspect, near, far, coords);
+        } else {
+            log.warning("Received camera params from unknown client.",
+                "who", caller.who(), "where", where());
         }
     }
 
@@ -431,8 +457,8 @@ public class TudeySceneManager extends SceneManager
     /** Actor logic objects mapped by id. */
     protected HashIntMap<ActorLogic> _actors = new HashIntMap<ActorLogic>();
 
-    /** The actor influence space.  Used to find the actors within a client's area of interest. */
-    protected HashSpace _influenceSpace = new HashSpace(64f, 6);
+    /** The actor space.  Used to find the actors within a client's area of interest. */
+    protected HashSpace _actorSpace = new HashSpace(64f, 6);
 
     /** The logic for effects fired on the current tick. */
     protected ArrayList<EffectLogic> _effectsFired = new ArrayList<EffectLogic>();

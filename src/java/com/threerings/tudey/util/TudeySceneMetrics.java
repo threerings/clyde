@@ -6,9 +6,13 @@ package com.threerings.tudey.util;
 import com.samskivert.util.Config;
 
 import com.threerings.math.FloatMath;
+import com.threerings.math.Frustum;
 import com.threerings.math.Quaternion;
+import com.threerings.math.Rect;
 import com.threerings.math.SphereCoords;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.util.Rectangle;
@@ -131,12 +135,52 @@ public class TudeySceneMetrics
     }
 
     /**
+     * Returns the default local interest region (as derived from the camera parameters).
+     */
+    public static Rect getDefaultLocalInterest ()
+    {
+        return _defaultLocalInterest;
+    }
+
+    /**
      * Initializes the supplied camera handler using the configured camera parameters.
      */
     public static void initCameraHandler (OrbitCameraHandler camhand)
     {
         camhand.setPerspective(_cameraFov, _cameraNear, _cameraFar);
         camhand.getCoords().set(_cameraCoords);
+    }
+
+    /**
+     * Returns the local area of interest corresponding to the given camera parameters.
+     */
+    public static Rect getLocalInterest (
+        float fovy, float aspect, float near, float far, SphereCoords coords)
+    {
+        // create and initialize a frustum
+        Frustum frustum = new Frustum().setToPerspective(fovy, aspect, near, far);
+
+        // transform based on sphere coordinates
+        Transform3D xform = new Transform3D(Transform3D.UNIFORM);
+        float ce = FloatMath.cos(coords.elevation);
+        xform.getTranslation().set(
+            FloatMath.sin(coords.azimuth) * ce,
+            -FloatMath.cos(coords.azimuth) * ce,
+            FloatMath.sin(coords.elevation)).multLocal(coords.distance);
+        xform.getRotation().fromAnglesXZ(
+            FloatMath.HALF_PI - coords.elevation, coords.azimuth);
+        frustum.transformLocal(xform);
+
+        // start with an empty rect
+        Rect interest = new Rect();
+
+        // add projected frustum coordinates
+        for (Vector3f vertex : frustum.getVertices()) {
+            interest.addLocal(new Vector2f(vertex.x, vertex.y));
+        }
+
+        // expand by fixed amount and return
+        return interest.expandLocal(_interestExpansion, _interestExpansion);
     }
 
     /** The number of world units per tile elevation unit. */
@@ -151,6 +195,12 @@ public class TudeySceneMetrics
     /** The camera's sphere coords relative to its target. */
     protected static SphereCoords _cameraCoords;
 
+    /** The fixed amount by which to expand the area of interest. */
+    protected static float _interestExpansion;
+
+    /** The local interest region corresponding the to the camera parameters. */
+    protected static Rect _defaultLocalInterest;
+
     static {
         // load the fields from the configuration
         Config config = new Config("/rsrc/config/tudey/scene");
@@ -162,5 +212,8 @@ public class TudeySceneMetrics
             FloatMath.toRadians(config.getValue("camera_azimuth", 0f)),
             FloatMath.toRadians(config.getValue("camera_elevation", 45f)),
             config.getValue("camera_distance", 10f));
+        _interestExpansion = config.getValue("interest_expansion", 5f);
+        _defaultLocalInterest = getLocalInterest(
+            _cameraFov, (4f / 3f), _cameraNear, _cameraFar, _cameraCoords);
     }
 }

@@ -14,6 +14,8 @@ import com.threerings.presents.net.Transport;
 import com.threerings.crowd.data.BodyObject;
 
 import com.threerings.math.Rect;
+import com.threerings.math.SphereCoords;
+import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
@@ -23,6 +25,7 @@ import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.server.logic.PawnLogic;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
  * Handles interaction with a single client.
@@ -57,6 +60,15 @@ public class ClientLiaison
     public void setTarget (PawnLogic target)
     {
         _target = target;
+    }
+
+    /**
+     * Sets the client's camera parameters.
+     */
+    public void setCameraParams (
+        float fovy, float aspect, float near, float far, SphereCoords coords)
+    {
+        _localInterest = TudeySceneMetrics.getLocalInterest(fovy, aspect, near, far, coords);
     }
 
     /**
@@ -100,12 +112,14 @@ public class ClientLiaison
      */
     public void postDelta ()
     {
-        // update the area of interest based on the target position
-
+        // translate the local interest bounds based on the actor translation
+        Vector2f translation = _target.getActor().getTranslation();
+        _localInterest.getMinimumExtent().add(translation, _worldInterest.getMinimumExtent());
+        _localInterest.getMaximumExtent().add(translation, _worldInterest.getMaximumExtent());
 
         // retrieve the states of the actors, effects fired in the client's area of interest
-        HashIntMap<Actor> actors = _scenemgr.getActors(_interest);
-        Effect[] effectsFired = _scenemgr.getEffectsFired(_interest);
+        HashIntMap<Actor> actors = _scenemgr.getActorSnapshots(_worldInterest);
+        Effect[] effectsFired = _scenemgr.getEffectsFired(_worldInterest);
 
         // record the tick
         int timestamp = _scenemgr.getTimestamp();
@@ -223,8 +237,11 @@ public class ClientLiaison
     /** Whether or not the client is controlling the target pawn. */
     protected boolean _targetControlled;
 
-    /** The client's area of interest. */
-    protected Rect _interest = new Rect();
+    /** The untranslated area of interest. */
+    protected Rect _localInterest = TudeySceneMetrics.getDefaultLocalInterest();
+
+    /** The translated area of interest. */
+    protected Rect _worldInterest = new Rect();
 
     /** Records of each update transmitted to the client. */
     protected ArrayList<TickRecord> _records = new ArrayList<TickRecord>();
