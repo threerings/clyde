@@ -51,11 +51,24 @@ public class Mobile extends Actor
     }
 
     /**
-     * Returns the actor's speed in units per second.
+     * Returns the (base) speed of the actor.
      */
     public float getSpeed ()
     {
-        return 6f;
+        return ((ActorConfig.Mobile)_original).speed;
+    }
+
+    /**
+     * Takes an Euler step of the specified duration.
+     */
+    public void step (float elapsed)
+    {
+        if (isSet(MOVING)) {
+            float length = getSpeed() * elapsed;
+            _translation.addLocal(
+                length * FloatMath.cos(_direction),
+                length * FloatMath.sin(_direction));
+        }
     }
 
     @Override // documentation inherited
@@ -63,14 +76,9 @@ public class Mobile extends Actor
     {
         super.extrapolate(elapsed, result);
 
-        // if moving, extrapolate based on direction and speed
-        if (isSet(MOVING)) {
-            Mobile mresult = (Mobile)result;
-            float speed = getSpeed();
-            mresult.getTranslation().addLocal(
-                speed * FloatMath.cos(_direction),
-                speed * FloatMath.sin(_direction));
-        }
+        // take a step of the indicated duration
+        ((Mobile)result).step(elapsed);
+
         return result;
     }
 

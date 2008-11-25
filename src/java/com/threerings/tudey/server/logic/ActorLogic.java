@@ -26,10 +26,14 @@ public class ActorLogic extends Logic
         super.init(scenemgr);
         _config = config;
         _actor = createActor(ref, id, timestamp, translation, rotation);
+        _actor.init(scenemgr.getConfigManager());
         _shape = new ShapeElement(config.shape);
         _shape.setUserObject(this);
         updateShape();
         _scenemgr.getActorSpace().add(_shape);
+
+        // give subclasses a chance to set up
+        didInit();
     }
 
     /**
@@ -51,6 +55,16 @@ public class ActorLogic extends Logic
             _snaptime = timestamp;
         }
         return _snapshot;
+    }
+
+    /**
+     * Moves the actor and updates its shape.
+     */
+    public void move (float x, float y, float rotation)
+    {
+        _actor.getTranslation().set(x, y);
+        _actor.setRotation(rotation);
+        updateShape();
     }
 
     /**
@@ -76,6 +90,14 @@ public class ActorLogic extends Logic
         Vector2f translation, float rotation)
     {
         return new Actor(ref, id, timestamp, translation, rotation);
+    }
+
+    /**
+     * Override to perform custom initialization.
+     */
+    protected void didInit ()
+    {
+        // nothing by default
     }
 
     /**

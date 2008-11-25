@@ -5,6 +5,7 @@ package com.threerings.tudey.data.actor;
 
 import com.threerings.io.Streamable;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.delta.Deltable;
 import com.threerings.math.FloatMath;
@@ -44,6 +45,17 @@ public class Actor extends DeepObject
         // these will be set later
         _id = 0;
         _created = 0;
+    }
+
+    /**
+     * Gives the actor a chance to resolve and cache configuration data after being created or
+     * deserialized.
+     */
+    public void init (ConfigManager cfgmgr)
+    {
+        ActorConfig config = cfgmgr.getConfig(ActorConfig.class, _config);
+        _original = (config == null) ? null : config.getOriginal(cfgmgr);
+        _original = (_original == null) ? NULL_ORIGINAL : _original;
     }
 
     /**
@@ -205,4 +217,10 @@ public class Actor extends DeepObject
 
     /** Various flags. */
     protected int _flags;
+
+    /** The cached config implementation. */
+    protected transient ActorConfig.Original _original;
+
+    /** Used when we can't resolve the actor config. */
+    protected static final ActorConfig.Original NULL_ORIGINAL = new ActorConfig.Original();
 }

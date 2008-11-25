@@ -17,4 +17,10 @@ public class ToolSceneConfig extends TudeySceneConfig
     {
         return new ToolSceneController();
     }
+
+    @Override // documentation inherited
+    public String getManagerClassName ()
+    {
+        return "com.threerings.tudey.tools.ToolSceneManager";
+    }
 }

@@ -8,6 +8,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.Vector2f;
 
@@ -294,7 +295,7 @@ public class ActorSprite extends Sprite
     protected int _removed = Integer.MAX_VALUE;
 
     /** The actor model. */
-    @Bound
+    @Scoped
     protected Model _model;
 
     /** The actor implementation (<code>null</code> until actually created). */

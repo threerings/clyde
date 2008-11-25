@@ -16,6 +16,7 @@ import com.threerings.crowd.data.PlaceObject;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
@@ -222,7 +223,7 @@ public class TudeySceneView extends SimpleScope
     {
         Vector3f translation = result.getTranslation();
         translation.set(x, y, getFloorZ(x, y, translation.z));
-        result.getRotation().fromAngleAxis(rotation, Vector3f.UNIT_Z);
+        result.getRotation().fromAngleAxis(FloatMath.HALF_PI + rotation, Vector3f.UNIT_Z);
         return result;
     }
 
@@ -269,6 +270,7 @@ public class TudeySceneView extends SimpleScope
         Actor[] added = event.getAddedActors();
         if (added != null) {
             for (Actor actor : added) {
+                actor.init(_ctx.getConfigManager());
                 Actor oactor = actors.put(actor.getId(), actor);
                 if (oactor != null) {
                     log.warning("Replacing existing actor.", "oactor", oactor, "nactor", actor);
@@ -283,7 +285,9 @@ public class TudeySceneView extends SimpleScope
                 int id = delta.getId();
                 Actor oactor = actors.get(id);
                 if (oactor != null) {
-                    actors.put(id, (Actor)delta.apply(oactor));
+                    Actor nactor = (Actor)delta.apply(oactor);
+                    nactor.init(_ctx.getConfigManager());
+                    actors.put(id, nactor);
                 } else {
                     log.warning("Missing actor for delta.", "delta", delta);
                 }
@@ -335,6 +339,7 @@ public class TudeySceneView extends SimpleScope
             int last = _records.get(_records.size() - 2).getTimestamp();
             for (Effect effect : fired) {
                 if (effect.getTimestamp() > last) {
+                    effect.init(_ctx.getConfigManager());
                     new EffectSprite(_ctx, this, effect);
                 }
             }

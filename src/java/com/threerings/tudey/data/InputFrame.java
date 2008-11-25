@@ -59,6 +59,14 @@ public class InputFrame extends DeepObject
         return _flags;
     }
 
+    /**
+     * Determines whether a flag is set.
+     */
+    public boolean isSet (int flag)
+    {
+        return (_flags & flag) != 0;
+    }
+
     @Override // documentation inherited
     public String toString ()
     {

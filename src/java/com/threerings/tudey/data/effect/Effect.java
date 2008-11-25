@@ -5,6 +5,7 @@ package com.threerings.tudey.data.effect;
 
 import com.threerings.io.SimpleStreamableObject;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
@@ -32,6 +33,17 @@ public class Effect extends SimpleStreamableObject
      */
     public Effect ()
     {
+    }
+
+    /**
+     * Gives the effect a chance to resolve and cache configuration data after being created or
+     * deserialized.
+     */
+    public void init (ConfigManager cfgmgr)
+    {
+        EffectConfig config = cfgmgr.getConfig(EffectConfig.class, _config);
+        _original = (config == null) ? null : config.getOriginal(cfgmgr);
+        _original = (_original == null) ? NULL_ORIGINAL : _original;
     }
 
     /**
@@ -71,7 +83,7 @@ public class Effect extends SimpleStreamableObject
      */
     public int getExpiry ()
     {
-        return _timestamp + 3000;
+        return _timestamp + _original.lifespan;
     }
 
     /** The effect configuration. */
@@ -85,4 +97,10 @@ public class Effect extends SimpleStreamableObject
 
     /** The effect's rotation angle. */
     protected float _rotation;
+
+    /** The cached config implementation. */
+    protected transient EffectConfig.Original _original;
+
+    /** Used when we can't resolve the effect config. */
+    protected static final EffectConfig.Original NULL_ORIGINAL = new EffectConfig.Original();
 }

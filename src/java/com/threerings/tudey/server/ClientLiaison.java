@@ -27,6 +27,8 @@ import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
+import static com.threerings.tudey.Log.*;
+
 /**
  * Handles interaction with a single client.
  */
@@ -91,6 +93,15 @@ public class ClientLiaison
         // remember ping
         _ping = ping;
 
+        // if we do not control the target, we do not process the input
+        if (!_targetControlled) {
+            if (frames.length > 0) {
+                log.warning("Got input frames for non-controlled pawn.",
+                    "who", _bodyobj.who(), "actor", _target.getActor());
+            }
+            return;
+        }
+
         // enqueue input frames
         int timestamp = _scenemgr.getTimestamp();
         for (InputFrame frame : frames) {
@@ -102,7 +113,7 @@ public class ClientLiaison
             if (input <= timestamp) {
                 continue; // out of date
             }
-            _pendingInput.add(frame);
+            _target.enqueueInput(frame);
         }
     }
 
@@ -251,9 +262,6 @@ public class ClientLiaison
 
     /** The timestamp of the last input frame received from the client. */
     protected int _lastInput;
-
-    /** The pending input frames. */
-    protected ArrayList<InputFrame> _pendingInput = new ArrayList<InputFrame>();
 
     /** Stores added actors. */
     protected ArrayList<Actor> _added = new ArrayList<Actor>();

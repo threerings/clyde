@@ -26,8 +26,8 @@ public class EffectLogic extends Logic
         EffectConfig.Original config, int timestamp, Vector2f translation, float rotation)
     {
         super.init(scenemgr);
-        _config = config;
         _effect = createEffect(ref, timestamp, translation, rotation);
+        _effect.init(scenemgr.getConfigManager());
         _shape = config.shape.getShape().transform(new Transform2D(translation, rotation));
     }
 
@@ -55,9 +55,6 @@ public class EffectLogic extends Logic
     {
         return new Effect(ref, timestamp, translation, rotation);
     }
-
-    /** The effect configuration. */
-    protected EffectConfig.Original _config;
 
     /** The effect fired. */
     protected Effect _effect;

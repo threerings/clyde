@@ -68,6 +68,10 @@ public class EffectConfig extends ParameterizedConfig
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
+        /** The lifespan of the effect. */
+        @Editable(min=0)
+        public int lifespan = 1000;
+
         /**
          * Returns the name of the server-side logic class to use for the effect.
          */

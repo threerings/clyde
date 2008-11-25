@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Interval;
+import com.samskivert.util.ObserverList;
 import com.samskivert.util.RunAnywhere;
 
 import com.threerings.presents.data.ClientObject;
@@ -405,12 +406,9 @@ public class TudeySceneManager extends SceneManager
         _timestamp += (int)(now - _lastTick);
         _lastTick = now;
 
-        // tick the participants in reverse order, to allow removal
-        for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
-            if (!_tickParticipants.get(ii).tick(_timestamp)) {
-                _tickParticipants.remove(ii);
-            }
-        }
+        // tick the participants
+        _tickOp.init(_timestamp);
+        _tickParticipants.apply(_tickOp);
 
         // post deltas for all clients
         for (ClientLiaison client : _clients.values()) {
@@ -428,6 +426,30 @@ public class TudeySceneManager extends SceneManager
     protected ConfigReference<ActorConfig> getPawnConfig (BodyObject body)
     {
         return null;
+    }
+
+    /**
+     * (Re)used to tick the participants.
+     */
+    protected static class TickOp
+        implements ObserverList.ObserverOp<TickParticipant>
+    {
+        /**
+         * (Re)initializes the op with the current timestamp.
+         */
+        public void init (int timestamp)
+        {
+            _timestamp = timestamp;
+        }
+
+        // documentation inherited from interface ObserverList.ObserverOp
+        public boolean apply (TickParticipant participant)
+        {
+            return participant.tick(_timestamp);
+        }
+
+        /** The timestamp of the current tick. */
+        protected int _timestamp;
     }
 
     /** A casted reference to the Tudey scene object. */
@@ -452,7 +474,7 @@ public class TudeySceneManager extends SceneManager
     protected HashIntMap<ClientLiaison> _clients = new HashIntMap<ClientLiaison>();
 
     /** The list of participants in the tick. */
-    protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
+    protected ObserverList<TickParticipant> _tickParticipants = ObserverList.newSafeInOrder();
 
     /** Actor logic objects mapped by id. */
     protected HashIntMap<ActorLogic> _actors = new HashIntMap<ActorLogic>();
@@ -468,4 +490,7 @@ public class TudeySceneManager extends SceneManager
 
     /** Holds collected effects during queries. */
     protected ArrayList<Effect> _effects = new ArrayList<Effect>();
+
+    /** Used to tick the participants. */
+    protected TickOp _tickOp = new TickOp();
 }
