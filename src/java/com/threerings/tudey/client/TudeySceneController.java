@@ -52,6 +52,14 @@ public class TudeySceneController extends SceneController
     implements SceneDeltaListener, KeyListener, MouseListener, Tickable
 {
     /**
+     * Returns the interval at which we transmit our input frames.
+     */
+    public int getTransmitInterval ()
+    {
+        return 110;
+    }
+
+    /**
      * Returns the id of the actor that the camera should track.
      */
     public int getTargetId ()
@@ -68,44 +76,41 @@ public class TudeySceneController extends SceneController
     }
 
     /**
-     * Returns the interval ahead of the smoothed server time (which estimates the server time plus
-     * one-way latency) at which we schedule input events.  This should be at least the transmit
-     * interval (which represents the maximum amount of time that events may be delayed) plus the
-     * two-way latency.
-     */
-    public int getInputAdvance ()
-    {
-        return getTransmitInterval();
-    }
-
-    /**
      * Called by the view when we receive an update for our controlled target.
      */
     public void controlledTargetUpdated (int timestamp, Actor actor)
     {
-        // no correction necessary if we have no states
-        if (_states.isEmpty()) {
-            return;
-        }
-
-        // remove any out-of-date states
-        while (_states.size() > 1 && timestamp >= _states.get(1).getFrame().getTimestamp()) {
+        // remove outdated states
+        while (!_states.isEmpty() && timestamp >= _states.get(0).getFrame().getTimestamp()) {
             _states.remove(0);
         }
 
-        // find out what we expect the actor to look like at the timestamp
-        PawnState first = _states.get(0);
-        PawnState last = _states.get(_states.size() - 1);
-        if (timestamp >= last.getFrame().getTimestamp()) {
+        // clone the actor and set it up in the target sprite's advancer
+        Pawn npawn = (Pawn)actor.clone();
+        ActorSprite targetSprite = _tsview.getTargetSprite();
+        PawnAdvancer advancer = (PawnAdvancer)targetSprite.getAdvancer();
+        advancer.init(npawn, timestamp);
 
-
-        } else if (timestamp <= first.getFrame().getTimestamp()) {
-
-
-        } else {
-
+        // verify the remaining states
+        Actor targetActor = targetSprite.getActor();
+        int advancedTime = _tsview.getAdvancedTime();
+        for (int ii = 0, nn = _states.size(); ii < nn; ii++) {
+            PawnState state = _states.get(ii);
+            Pawn opawn = state.getPawn();
+            advancer.advance(state.getFrame());
+            if (opawn.equals(npawn)) {
+                advancer.init(targetActor, advancedTime);
+                return; // cut out early; they'll all be the same from here on
+            }
+            npawn.copy(opawn);
         }
 
+        // advance to current time
+        advancer.advance(advancedTime);
+        npawn.copy(targetActor);
+
+        // restore the advancer
+        advancer.init(targetActor, advancedTime);
     }
 
     // documentation inherited from interface SceneDeltaListener
@@ -243,14 +248,6 @@ public class TudeySceneController extends SceneController
         // add the input flag mappings
         _keyFlags.put(Keyboard.KEY_S, InputFrame.STRAFE);
         _buttonFlags[MouseEvent.BUTTON1] = InputFrame.MOVE;
-    }
-
-    /**
-     * Returns the interval at which we transmit our input frames.
-     */
-    protected int getTransmitInterval ()
-    {
-        return 110;
     }
 
     /**

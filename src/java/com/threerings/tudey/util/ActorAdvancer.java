@@ -16,6 +16,14 @@ public class ActorAdvancer
      */
     public ActorAdvancer (Actor actor, int timestamp)
     {
+        init(actor, timestamp);
+    }
+
+    /**
+     * (Re)initializes the advancer.
+     */
+    public void init (Actor actor, int timestamp)
+    {
         _actor = actor;
         _timestamp = timestamp;
     }

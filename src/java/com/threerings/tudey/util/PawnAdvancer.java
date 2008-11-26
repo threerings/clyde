@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.util;
 
+import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.data.InputFrame;
@@ -19,7 +20,6 @@ public class PawnAdvancer extends ActorAdvancer
     public PawnAdvancer (Pawn pawn, int timestamp)
     {
         super(pawn, timestamp);
-        _pawn = pawn;
     }
 
     /**
@@ -41,6 +41,13 @@ public class PawnAdvancer extends ActorAdvancer
         } else {
             _pawn.clear(Mobile.MOVING);
         }
+    }
+
+    @Override // documentation inherited
+    public void init (Actor actor, int timestamp)
+    {
+        super.init(actor, timestamp);
+        _pawn = (Pawn)actor;
     }
 
     @Override // documentation inherited

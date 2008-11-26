@@ -153,7 +153,19 @@ public class TudeySceneView extends SimpleScope
      */
     public int getAdvancedTime ()
     {
-        return _smoothedTime + _ctrl.getInputAdvance();
+        return _smoothedTime + getInputAdvance();
+    }
+
+    /**
+     * Returns the interval ahead of the smoothed server time (which estimates the server time plus
+     * one-way latency) at which we schedule input events.  This should be at least the transmit
+     * interval (which represents the maximum amount of time that events may be delayed) plus the
+     * two-way latency.
+     */
+    public int getInputAdvance ()
+    {
+        // TODO: smooth the ping time and incorporate into advance
+        return _ctrl.getTransmitInterval() + 100;
     }
 
     /**
