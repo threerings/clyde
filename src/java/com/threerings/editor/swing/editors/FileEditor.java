@@ -95,7 +95,6 @@ public class FileEditor extends PropertyEditor
     {
         add(new JLabel(getPropertyLabel() + ":"));
         add(_file = new JButton(" "));
-        _file.setPreferredSize(new Dimension(75, _file.getPreferredSize().height));
         _file.addActionListener(this);
         String mode = getMode();
         if (_property.getAnnotation().nullable()) {

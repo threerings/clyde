@@ -44,6 +44,14 @@ public abstract class ActorSpriteConfig extends DeepObject
     @Editable(nullable=true)
     public ConfigReference<ModelConfig> model;
 
+    /** A transient to spawn when the actor is created. */
+    @Editable(nullable=true)
+    public ConfigReference<ModelConfig> creationTransient;
+
+    /** A transient to spawn when the actor is destroyed. */
+    @Editable(nullable=true)
+    public ConfigReference<ModelConfig> destructionTransient;
+
     /**
      * Creates or updates a sprite implementation for this configuration.
      */

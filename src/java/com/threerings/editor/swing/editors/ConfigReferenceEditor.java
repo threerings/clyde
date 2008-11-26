@@ -98,7 +98,6 @@ public class ConfigReferenceEditor extends PropertyEditor
         add(cpanel);
         cpanel.add(new JLabel(_msgs.get("m.config") + ":"));
         cpanel.add(_config = new JButton(" "));
-        _config.setPreferredSize(new Dimension(75, _config.getPreferredSize().height));
         _config.addActionListener(this);
         if (!getMode().equals("compact")) {
             cpanel.add(_edit = new JButton(_msgs.get("m.edit")));

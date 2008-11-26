@@ -107,6 +107,24 @@ public class ActorSprite extends Sprite
             _model.updateBounds();
         }
 
+        @Override // documentation inherited
+        public void wasCreated ()
+        {
+            if (_config.creationTransient != null) {
+                _view.getScene().spawnTransient(
+                    _config.creationTransient, _model.getLocalTransform());
+            }
+        }
+
+        @Override // documentation inherited
+        public void willBeDestroyed ()
+        {
+            if (_config.destructionTransient != null) {
+                _view.getScene().spawnTransient(
+                    _config.destructionTransient, _model.getLocalTransform());
+            }
+        }
+
         /** The renderer context. */
         protected TudeyContext _ctx;
 
