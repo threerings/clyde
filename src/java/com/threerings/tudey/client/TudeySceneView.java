@@ -13,6 +13,8 @@ import com.samskivert.util.IntMap.IntEntry;
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.PlaceObject;
 
+import com.threerings.media.util.TrailingAverage;
+
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
@@ -153,7 +155,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getAdvancedTime ()
     {
-        return _smoothedTime + getInputAdvance();
+        return _advancedTime;
     }
 
     /**
@@ -164,8 +166,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getInputAdvance ()
     {
-        // TODO: smooth the ping time and incorporate into advance
-        return _ctrl.getTransmitInterval() + 100;
+        return _ctrl.getTransmitInterval() + Math.round(_pingAverage.value() * 1.25f);
     }
 
     /**
@@ -280,17 +281,18 @@ public class TudeySceneView extends SimpleScope
      */
     public void processSceneDelta (SceneDeltaEvent event)
     {
-        // create/update the timer smoother
-        int timestamp = event.getTimestamp();
+        // update the ping estimate (used to compute the input advance)
+        _pingAverage.record(_ping = event.getPing());
+
+        // create/update the time smoothers
+        int timestamp = event.getTimestamp(), advanced = timestamp + getInputAdvance();
         if (_smoother == null) {
-            _smoother = new TimeSmoother(timestamp);
-            _smoothedTime = timestamp;
+            _smoother = new TimeSmoother(_smoothedTime = timestamp);
+            _advancedSmoother = new TimeSmoother(_advancedTime = advanced);
         } else {
             _smoother.update(timestamp);
+            _advancedSmoother.update(advanced);
         }
-
-        // store the ping estimate
-        _ping = event.getPing();
 
         // remove all records before the reference
         int reference = event.getReference();
@@ -429,6 +431,7 @@ public class TudeySceneView extends SimpleScope
         // update the smoothed time, if possible
         if (_smoother != null) {
             _smoothedTime = _smoother.getTime();
+            _advancedTime = _advancedSmoother.getTime();
         }
 
         // tick the controller, if present
@@ -573,8 +576,17 @@ public class TudeySceneView extends SimpleScope
     /** The smoothed time. */
     protected int _smoothedTime;
 
-    /** The estimated ping time. */
+    /** Smooths the advanced time. */
+    protected TimeSmoother _advancedSmoother;
+
+    /** The advanced time. */
+    protected int _advancedTime;
+
+    /** The last estimated ping time. */
     protected int _ping;
+
+    /** The trailing average of the ping times. */
+    protected TrailingAverage _pingAverage = new TrailingAverage();
 
     /** Records of each update received from the server. */
     protected ArrayList<UpdateRecord> _records = new ArrayList<UpdateRecord>();
