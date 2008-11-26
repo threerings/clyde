@@ -293,6 +293,48 @@ public class Polygon extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f getPenetration (Shape shape, Vector2f result)
+    {
+        return shape.getPenetration(this, result).negateLocal();
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Point point, Vector2f result)
+    {
+        return result.set(Vector2f.ZERO);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Segment segment, Vector2f result)
+    {
+        return result.set(Vector2f.ZERO);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Circle circle, Vector2f result)
+    {
+        return result.set(Vector2f.ZERO);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Capsule capsule, Vector2f result)
+    {
+        return result.set(Vector2f.ZERO);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Polygon polygon, Vector2f result)
+    {
+        return result.set(Vector2f.ZERO);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Compound compound, Vector2f result)
+    {
+        return compound.getPenetration(this, result).negateLocal();
+    }
+
+    @Override // documentation inherited
     public void draw (boolean outline)
     {
         GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);

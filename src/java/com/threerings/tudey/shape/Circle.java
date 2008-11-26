@@ -171,6 +171,54 @@ public class Circle extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f getPenetration (Shape shape, Vector2f result)
+    {
+        return shape.getPenetration(this, result).negateLocal();
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Point point, Vector2f result)
+    {
+        Vector2f location = point.getLocation();
+        float dist = location.distance(_center);
+        return (dist == 0f) ? result.set(Vector2f.ZERO) :
+            location.subtract(_center, result).multLocal(radius / dist - 1f);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Segment segment, Vector2f result)
+    {
+        return result.set(Vector2f.ZERO);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Circle circle, Vector2f result)
+    {
+        Vector2f ocenter = circle.getCenter();
+        float dist = ocenter.distance(_center);
+        return (dist == 0f) ? result.set(Vector2f.ZERO) :
+            ocenter.subtract(_center, result).multLocal((radius + circle.radius) / dist - 1f);
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Capsule capsule, Vector2f result)
+    {
+        return capsule.getPenetration(this, result).negateLocal();
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Polygon polygon, Vector2f result)
+    {
+        return polygon.getPenetration(this, result).negateLocal();
+    }
+
+    @Override // documentation inherited
+    public Vector2f getPenetration (Compound compound, Vector2f result)
+    {
+        return compound.getPenetration(this, result).negateLocal();
+    }
+
+    @Override // documentation inherited
     public void draw (boolean outline)
     {
         GL11.glBegin(outline ? GL11.GL_LINE_LOOP : GL11.GL_POLYGON);

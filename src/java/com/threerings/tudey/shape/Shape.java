@@ -135,6 +135,45 @@ public abstract class Shape
     public abstract boolean intersects (Compound compound);
 
     /**
+     * Finds the penetration of the specified shape into this one, assuming that they intersect.
+     * The penetration vector represents the minimum translation required to separate the two
+     * shapes.  Uses double-dispatch to invoke the appropriate method specialization.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public abstract Vector2f getPenetration (Shape shape, Vector2f result);
+
+    /**
+     * Finds the penetration of the specified point into this shape.
+     */
+    public abstract Vector2f getPenetration (Point point, Vector2f result);
+
+    /**
+     * Finds the penetration of the specified segment into this shape.
+     */
+    public abstract Vector2f getPenetration (Segment segment, Vector2f result);
+
+    /**
+     * Finds the penetration of the specified circle into this shape.
+     */
+    public abstract Vector2f getPenetration (Circle circle, Vector2f result);
+
+    /**
+     * Finds the penetration of the specified capsule into this shape.
+     */
+    public abstract Vector2f getPenetration (Capsule capsule, Vector2f result);
+
+    /**
+     * Finds the penetration of the specified polygon into this shape.
+     */
+    public abstract Vector2f getPenetration (Polygon polygon, Vector2f result);
+
+    /**
+     * Finds the penetration of the specified compound into this shape.
+     */
+    public abstract Vector2f getPenetration (Compound compound, Vector2f result);
+
+    /**
      * Draws this shape in immediate mode.
      *
      * @param outline if true, draw the outline of the shape; otherwise, the solid form.
