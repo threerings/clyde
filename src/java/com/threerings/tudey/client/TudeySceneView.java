@@ -106,6 +106,14 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Returns a reference to the scene controller.
+     */
+    public TudeySceneController getController ()
+    {
+        return _ctrl;
+    }
+
+    /**
      * Returns a reference to the window used to gather input events.
      */
     public Window getInputWindow ()
@@ -137,6 +145,15 @@ public class TudeySceneView extends SimpleScope
     public int getBufferDelay ()
     {
         return 100;
+    }
+
+    /**
+     * Returns the advanced time, which is the smoothed time plus an interval that compensates for
+     * buffering and latency.
+     */
+    public int getAdvancedTime ()
+    {
+        return _smoothedTime + _ctrl.getInputAdvance();
     }
 
     /**
@@ -175,6 +192,14 @@ public class TudeySceneView extends SimpleScope
     public EntrySprite getEntrySprite (Object key)
     {
         return _entrySprites.get(key);
+    }
+
+    /**
+     * Returns a reference to the target sprite.
+     */
+    public ActorSprite getTargetSprite ()
+    {
+        return _targetSprite;
     }
 
     /**
@@ -315,7 +340,11 @@ public class TudeySceneView extends SimpleScope
                     _targetSprite = sprite;
                 }
             } else {
-                sprite.update(timestamp, actor);
+                if (id == _ctrl.getTargetId() && _ctrl.isTargetControlled()) {
+                    _ctrl.controlledTargetUpdated(timestamp, actor);
+                } else {
+                    sprite.update(timestamp, actor);
+                }
             }
         }
 

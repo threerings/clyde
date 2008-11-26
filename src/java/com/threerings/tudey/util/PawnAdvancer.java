@@ -4,28 +4,33 @@
 package com.threerings.tudey.util;
 
 import com.threerings.tudey.data.actor.Mobile;
+import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.data.InputFrame;
 
 /**
  * Used on the client and the server to advance the state of a pawn based on its inputs and
  * surroundings.
  */
-public class PawnAdvancer
+public class PawnAdvancer extends ActorAdvancer
 {
     /**
      * Creates a new advancer for the supplied pawn.
      */
-    public PawnAdvancer (Mobile pawn, int timestamp)
+    public PawnAdvancer (Pawn pawn, int timestamp)
     {
+        super(pawn, timestamp);
         _pawn = pawn;
-        _timestamp = timestamp;
     }
 
     /**
-     * Sets the pawn's current input.
+     * Advances to the timestamp of the provided input frame and sets the pawn's current input.
      */
-    public void setInput (InputFrame frame)
+    public void advance (InputFrame frame)
     {
+        // advance to the input timestamp
+        advance(frame.getTimestamp());
+
+        // modify the pawn's state based on the input
         float direction = frame.getDirection();
         if (!frame.isSet(InputFrame.STRAFE)) {
             _pawn.setRotation(direction);
@@ -38,24 +43,12 @@ public class PawnAdvancer
         }
     }
 
-    /**
-     * Advances the pawn to the specified timestamp.
-     */
-    public void advance (int timestamp)
+    @Override // documentation inherited
+    protected void step (float elapsed)
     {
-        if (timestamp <= _timestamp) {
-            return;
-        }
-        float elapsed = (timestamp - _timestamp) / 1000f;
-        _timestamp = timestamp;
-
-        // take an Euler step
         _pawn.step(elapsed);
     }
 
-    /** The current pawn state. */
-    protected Mobile _pawn;
-
-    /** The timestamp at which the state is valid. */
-    protected int _timestamp;
+    /** A casted reference to the pawn. */
+    protected Pawn _pawn;
 }

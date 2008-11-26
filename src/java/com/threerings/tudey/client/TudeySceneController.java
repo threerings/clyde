@@ -32,11 +32,15 @@ import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.MouseListener;
 import com.threerings.opengl.util.Tickable;
 
+import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
+import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.dobj.SceneDeltaListener;
+import com.threerings.tudey.util.PawnAdvancer;
 import com.threerings.tudey.util.TudeyContext;
 
 import static com.threerings.tudey.Log.*;
@@ -53,6 +57,55 @@ public class TudeySceneController extends SceneController
     public int getTargetId ()
     {
         return _targetId;
+    }
+
+    /**
+     * Checks whether this client is in control of the target.
+     */
+    public boolean isTargetControlled ()
+    {
+        return _targetControlled;
+    }
+
+    /**
+     * Returns the interval ahead of the smoothed server time (which estimates the server time plus
+     * one-way latency) at which we schedule input events.  This should be at least the transmit
+     * interval (which represents the maximum amount of time that events may be delayed) plus the
+     * two-way latency.
+     */
+    public int getInputAdvance ()
+    {
+        return getTransmitInterval();
+    }
+
+    /**
+     * Called by the view when we receive an update for our controlled target.
+     */
+    public void controlledTargetUpdated (int timestamp, Actor actor)
+    {
+        // no correction necessary if we have no states
+        if (_states.isEmpty()) {
+            return;
+        }
+
+        // remove any out-of-date states
+        while (_states.size() > 1 && timestamp >= _states.get(1).getFrame().getTimestamp()) {
+            _states.remove(0);
+        }
+
+        // find out what we expect the actor to look like at the timestamp
+        PawnState first = _states.get(0);
+        PawnState last = _states.get(_states.size() - 1);
+        if (timestamp >= last.getFrame().getTimestamp()) {
+
+
+        } else if (timestamp <= first.getFrame().getTimestamp()) {
+
+
+        } else {
+
+        }
+
     }
 
     // documentation inherited from interface SceneDeltaListener
@@ -193,17 +246,6 @@ public class TudeySceneController extends SceneController
     }
 
     /**
-     * Returns the interval ahead of the smoothed server time (which estimates the server time plus
-     * one-way latency) at which we schedule input events.  This should be at least the transmit
-     * interval (which represents the maximum amount of time that events may be delayed) plus the
-     * two-way latency.
-     */
-    protected int getInputAdvance ()
-    {
-        return getTransmitInterval();
-    }
-
-    /**
      * Returns the interval at which we transmit our input frames.
      */
     protected int getTransmitInterval ()
@@ -237,6 +279,12 @@ public class TudeySceneController extends SceneController
      */
     protected void updateInput ()
     {
+        // make sure we have our target
+        ActorSprite targetSprite = _tsview.getTargetSprite();
+        if (targetSprite == null) {
+            return;
+        }
+
         // get the pick ray and the camera target plane
         Root root = _tctx.getRoot();
         _tctx.getCompositor().getCamera().getPickRay(root.getMouseX(), root.getMouseY(), _pick);
@@ -251,9 +299,16 @@ public class TudeySceneController extends SceneController
 
         // perhaps enqueue an input frame
         if (direction != _lastDirection || _frameFlags != _lastFlags) {
-            _input.add(new InputFrame(
-                _tsview.getSmoothedTime() + getInputAdvance(),
-                _lastDirection = direction, _lastFlags = _frameFlags));
+            // create and enqueue the frame
+            InputFrame frame = new InputFrame(
+                _tsview.getAdvancedTime(), _lastDirection = direction, _lastFlags = _frameFlags);
+            _input.add(frame);
+
+            // apply it immediately to the target
+            ((PawnAdvancer)targetSprite.getAdvancer()).advance(frame);
+
+            // record the state
+            _states.add(new PawnState(frame, (Pawn)targetSprite.getActor().clone()));
         }
 
         // reset the frame flags
@@ -312,6 +367,44 @@ public class TudeySceneController extends SceneController
         _tsview.updateTargetSprite();
     }
 
+    /**
+     * Records the state of the controlled pawn at the time of an input frame (along with the
+     * frame itself).
+     */
+    protected static class PawnState
+    {
+        /**
+         * Creates a new pawn state.
+         */
+        public PawnState (InputFrame frame, Pawn pawn)
+        {
+            _frame = frame;
+            _pawn = pawn;
+        }
+
+        /**
+         * Returns a reference to the input frame.
+         */
+        public InputFrame getFrame ()
+        {
+            return _frame;
+        }
+
+        /**
+         * Returns a reference to the pawn.
+         */
+        public Pawn getPawn ()
+        {
+            return _pawn;
+        }
+
+        /** The input frame. */
+        protected InputFrame _frame;
+
+        /** The pawn state. */
+        protected Pawn _pawn;
+    }
+
     /** A casted reference to the context. */
     protected TudeyContext _tctx;
 
@@ -341,6 +434,9 @@ public class TudeySceneController extends SceneController
 
     /** The list of outgoing input frames. */
     protected ArrayList<InputFrame> _input = new ArrayList<InputFrame>();
+
+    /** States recorded for input frames. */
+    protected ArrayList<PawnState> _states = new ArrayList<PawnState>();
 
     /** The last direction we transmitted. */
     protected float _lastDirection;

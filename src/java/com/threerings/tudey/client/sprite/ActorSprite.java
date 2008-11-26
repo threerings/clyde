@@ -18,6 +18,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.ActorSpriteConfig;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.ActorHistory;
 import com.threerings.tudey.util.TudeyContext;
 
@@ -128,22 +129,24 @@ public class ActorSprite extends Sprite
     {
         super(ctx, view);
 
-        // create the history and play head actor
-        _history = new ActorHistory(timestamp, actor, view.getBufferDelay() * 2);
-        int delayedTime = view.getDelayedTime();
-        _actor = _history.get(delayedTime, (Actor)actor.clone());
-
         // create the model
         _model = new Model(ctx);
 
+        // register as tick participant
+        _view.addTickParticipant(this);
+
+        // create the advancer if the actor is client-controlled; otherwise, the history
+        _actor = (Actor)actor.clone();
+        if ((_advancer = _actor.maybeCreateAdvancer(ctx, view, timestamp)) == null) {
+            _history = new ActorHistory(timestamp, actor, view.getBufferDelay() * 2);
+        }
+
         // if the actor is created, add it immediately
-        if (_history.isCreated(delayedTime)) {
+        updateActor();
+        if (isCreated()) {
             _view.getScene().add(_model);
             update();
         }
-
-        // register as tick participant
-        _view.addTickParticipant(this);
     }
 
     /**
@@ -152,6 +155,15 @@ public class ActorSprite extends Sprite
     public Actor getActor ()
     {
         return _actor;
+    }
+
+    /**
+     * Returns a reference to the advancer used to advance the state, if this is actor is
+     * controlled by the client.
+     */
+    public ActorAdvancer getAdvancer ()
+    {
+        return _advancer;
     }
 
     /**
@@ -181,12 +193,12 @@ public class ActorSprite extends Sprite
     // documentation inherited from interface TudeySceneView.TickParticipant
     public boolean tick (int delayedTime)
     {
-        // update the interpolated state
-        _history.get(delayedTime, _actor);
+        // update the actor for the current time
+        updateActor();
 
         // handle pre-creation state
         if (_impl == null) {
-            if (_history.isCreated(delayedTime)) {
+            if (isCreated()) {
                 _view.getScene().add(_model);
                 update();
                 _impl.wasCreated();
@@ -198,12 +210,12 @@ public class ActorSprite extends Sprite
         }
 
         // see if we're destroyed/removed
-        if (_history.isDestroyed(delayedTime)) {
+        if (isDestroyed()) {
             _impl.willBeDestroyed();
             dispose();
             return false;
 
-        } else if (delayedTime >= _removed) {
+        } else if (isRemoved()) {
             dispose();
             return false;
 
@@ -230,6 +242,44 @@ public class ActorSprite extends Sprite
             _config.removeListener(this);
         }
         _view.getScene().remove(_model);
+    }
+
+    /**
+     * Brings the state of the actor up-to-date with the curren time.
+     */
+    protected void updateActor ()
+    {
+        if (_advancer == null) {
+            _history.get(_view.getDelayedTime(), _actor);
+        } else {
+            _advancer.advance(_view.getAdvancedTime());
+        }
+    }
+
+    /**
+     * Determines whether the actor has been created.
+     */
+    protected boolean isCreated ()
+    {
+        return (_advancer == null) ? _history.isCreated(_view.getDelayedTime()) :
+            _view.getAdvancedTime() >= _actor.getCreated();
+    }
+
+    /**
+     * Determines whether the actor has been destroyed.
+     */
+    protected boolean isDestroyed ()
+    {
+        return (_advancer == null) ? _history.isDestroyed(_view.getDelayedTime()) :
+            _view.getAdvancedTime() >= _actor.getDestroyed();
+    }
+
+    /**
+     * Determines whether the actor has been removed.
+     */
+    protected boolean isRemoved ()
+    {
+        return (_advancer == null ? _view.getDelayedTime() : _view.getAdvancedTime()) >= _removed;
     }
 
     /**
@@ -284,6 +334,9 @@ public class ActorSprite extends Sprite
 
     /** The history that we use to find interpolated actor state. */
     protected ActorHistory _history;
+
+    /** The advancer, if this is a controlled actor. */
+    protected ActorAdvancer _advancer;
 
     /** The "play head" actor with interpolated state. */
     protected Actor _actor;

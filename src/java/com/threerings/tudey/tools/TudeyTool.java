@@ -152,11 +152,13 @@ public abstract class TudeyTool extends GlCanvasTool
     @Override // documentation inherited
     protected void updateView (float elapsed)
     {
-        super.updateView(elapsed);
         if (_view != null) {
             _view.tick(elapsed);
         }
         _root.tick(elapsed);
+
+        // call super.updateView afterwards so that the camera position will be up-to-date
+        super.updateView(elapsed);
     }
 
     @Override // documentation inherited

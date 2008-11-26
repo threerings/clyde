@@ -5,7 +5,12 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 
-import com.threerings.tudey.data.actor.Mobile;
+import com.threerings.config.ConfigReference;
+import com.threerings.math.Vector2f;
+
+import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.util.PawnAdvancer;
 
@@ -27,9 +32,7 @@ public class PawnLogic extends MobileLogic
     {
         // process the enqueued input
         while (!_input.isEmpty() && _input.get(0).getTimestamp() <= timestamp) {
-            InputFrame frame = _input.remove(0);
-            _advancer.advance(frame.getTimestamp());
-            _advancer.setInput(frame);
+            _advancer.advance(_input.remove(0));
         }
 
         // advance to the current timestamp
@@ -41,10 +44,18 @@ public class PawnLogic extends MobileLogic
     }
 
     @Override // documentation inherited
+    protected Actor createActor (
+        ConfigReference<ActorConfig> ref, int id, int timestamp,
+        Vector2f translation, float rotation)
+    {
+        return new Pawn(ref, id, timestamp, translation, rotation);
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();
-        _advancer = new PawnAdvancer(_mobile, _mobile.getCreated());
+        _advancer = new PawnAdvancer((Pawn)_actor, _actor.getCreated());
     }
 
     /** Used to advance the state of the pawn. */

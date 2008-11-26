@@ -12,7 +12,10 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 
+import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.util.ActorAdvancer;
+import com.threerings.tudey.util.TudeyContext;
 
 /**
  * Represents an active, stateful element of the scene.
@@ -195,6 +198,16 @@ public class Actor extends DeepObject
     public Actor extrapolate (float elapsed, Actor result)
     {
         return (Actor)copy(result);
+    }
+
+    /**
+     * Determines whether this actor is controlled by the client and, if so, creates and returns an
+     * {@link ActorAdvancer} instance to perform client-side prediction.  Returns <code>null</code>
+     * if not controlled by the client.
+     */
+    public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
+    {
+        return null;
     }
 
     /** The actor's configuration reference. */
