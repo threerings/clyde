@@ -223,7 +223,8 @@ public class Actor extends DeepObject
      */
     public boolean canCollide (Actor oactor)
     {
-        return _id != oactor.getId();
+        return _id != oactor.getId() &&
+            (_original.collisionMask & oactor.getOriginal().collisionFlags) != 0;
     }
 
     /** The actor's configuration reference. */

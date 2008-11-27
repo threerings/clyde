@@ -85,7 +85,8 @@ public class PawnAdvancer extends ActorAdvancer
             if (!_environment.getPenetration(_pawn, _shape, _penetration)) {
                 return;
             }
-            _pawn.getTranslation().addLocal(_penetration);
+            // add a little more than we need, to be safe
+            _pawn.getTranslation().addScaledLocal(_penetration, 1.001f);
         }
 
         // if the pawn is still penetrating, just revert to the original translation
