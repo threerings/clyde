@@ -22,6 +22,7 @@ import com.threerings.whirled.client.SceneController;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
 import com.threerings.math.Ray3D;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.camera.OrbitCameraHandler;
@@ -102,12 +103,12 @@ public class TudeySceneController extends SceneController
                 advancer.init(targetActor, advancedTime);
                 return; // cut out early; they'll all be the same from here on
             }
-            npawn.copy(opawn);
+            converge(opawn, npawn);
         }
 
         // advance to current time
         advancer.advance(advancedTime);
-        npawn.copy(targetActor);
+        converge(targetActor, npawn);
 
         // restore the advancer
         advancer.init(targetActor, advancedTime);
@@ -365,6 +366,18 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Updates the state of the old actor to be equal to the state of the new one, except for the
+     * translation, which we blend in (to avoid discontinuity).
+     */
+    protected void converge (Actor oactor, Actor nactor)
+    {
+        oactor.getTranslation().mult(0.75f, _translation).addScaledLocal(
+            nactor.getTranslation(), 0.25f);
+        nactor.copy(oactor);
+        oactor.getTranslation().set(_translation);
+    }
+
+    /**
      * Records the state of the controlled pawn at the time of an input frame (along with the
      * frame itself).
      */
@@ -455,4 +468,7 @@ public class TudeySceneController extends SceneController
 
     /** Contains the result of the intersection test. */
     protected Vector3f _isect = new Vector3f();
+
+    /** Holds averaged translation. */
+    protected Vector2f _translation = new Vector2f();
 }

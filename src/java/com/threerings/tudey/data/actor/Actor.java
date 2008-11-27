@@ -78,6 +78,14 @@ public class Actor extends DeepObject
     }
 
     /**
+     * Returns a reference to the cached config implementation.
+     */
+    public ActorConfig.Original getOriginal ()
+    {
+        return _original;
+    }
+
+    /**
      * Returns the actor's unique identifier.
      */
     public int getId ()
@@ -208,6 +216,14 @@ public class Actor extends DeepObject
     public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
     {
         return null;
+    }
+
+    /**
+     * Determines whether this actor should be checked for collisions with the specified other actor.
+     */
+    public boolean canCollide (Actor oactor)
+    {
+        return _id != oactor.getId();
     }
 
     /** The actor's configuration reference. */

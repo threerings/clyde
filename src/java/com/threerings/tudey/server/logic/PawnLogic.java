@@ -55,7 +55,7 @@ public class PawnLogic extends MobileLogic
     protected void didInit ()
     {
         super.didInit();
-        _advancer = new PawnAdvancer((Pawn)_actor, _actor.getCreated());
+        _advancer = new PawnAdvancer(_scenemgr, (Pawn)_actor, _actor.getCreated());
     }
 
     /** Used to advance the state of the pawn. */

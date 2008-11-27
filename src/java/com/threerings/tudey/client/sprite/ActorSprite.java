@@ -18,6 +18,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.ActorSpriteConfig;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.ActorHistory;
 import com.threerings.tudey.util.TudeyContext;
@@ -147,22 +148,26 @@ public class ActorSprite extends Sprite
     {
         super(ctx, view);
 
-        // create the model
-        _model = new Model(ctx);
-
-        // register as tick participant
-        _view.addTickParticipant(this);
-
         // create the advancer if the actor is client-controlled; otherwise, the history
         _actor = (Actor)actor.clone();
         if ((_advancer = _actor.maybeCreateAdvancer(ctx, view, timestamp)) == null) {
             _history = new ActorHistory(timestamp, actor, view.getBufferDelay() * 2);
         }
 
+        // create the model and the shape
+        _model = new Model(ctx);
+        _model.setUserObject(this);
+        _shape = new ShapeElement(_actor.getOriginal().shape);
+        _shape.setUserObject(this);
+
+        // register as tick participant
+        _view.addTickParticipant(this);
+
         // if the actor is created, add it immediately
         updateActor();
         if (isCreated()) {
             _view.getScene().add(_model);
+            _view.getActorSpace().add(_shape);
             update();
         }
     }
@@ -218,6 +223,7 @@ public class ActorSprite extends Sprite
         if (_impl == null) {
             if (isCreated()) {
                 _view.getScene().add(_model);
+                _view.getActorSpace().add(_shape);
                 update();
                 _impl.wasCreated();
             } else {
@@ -260,6 +266,7 @@ public class ActorSprite extends Sprite
             _config.removeListener(this);
         }
         _view.getScene().remove(_model);
+        _view.getActorSpace().remove(_shape);
     }
 
     /**
@@ -307,6 +314,7 @@ public class ActorSprite extends Sprite
     {
         setConfig(_actor.getConfig());
         _impl.update(_actor);
+        updateShape();
     }
 
     /**
@@ -350,13 +358,22 @@ public class ActorSprite extends Sprite
         }
     }
 
+    /**
+     * Updates the shape according to the state of the actor.
+     */
+    protected void updateShape ()
+    {
+        _shape.getTransform().set(_actor.getTranslation(), _actor.getRotation(), 1f);
+        _shape.setConfig(_actor.getOriginal().shape); // also updates the bounds
+    }
+
     /** The history that we use to find interpolated actor state. */
     protected ActorHistory _history;
 
     /** The advancer, if this is a controlled actor. */
     protected ActorAdvancer _advancer;
 
-    /** The "play head" actor with interpolated state. */
+    /** The "play head" actor with interpolated or advanced state. */
     protected Actor _actor;
 
     /** The actor configuration. */
@@ -368,6 +385,9 @@ public class ActorSprite extends Sprite
     /** The actor model. */
     @Scoped
     protected Model _model;
+
+    /** The actor's shape element. */
+    protected ShapeElement _shape;
 
     /** The actor implementation (<code>null</code> until actually created). */
     protected Implementation _impl;

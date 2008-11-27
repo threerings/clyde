@@ -21,6 +21,7 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
@@ -49,6 +50,11 @@ import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.shape.ShapeElement;
+import com.threerings.tudey.space.HashSpace;
+import com.threerings.tudey.space.SpaceElement;
+import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.TudeyContext;
 
 import static com.threerings.tudey.Log.*;
@@ -57,7 +63,7 @@ import static com.threerings.tudey.Log.*;
  * Displays a view of a Tudey scene.
  */
 public class TudeySceneView extends SimpleScope
-    implements GlView, PlaceView, TudeySceneModel.Observer
+    implements GlView, PlaceView, TudeySceneModel.Observer, ActorAdvancer.Environment
 {
     /**
      * An interface for objects (such as sprites and observers) that require per-tick updates.
@@ -129,6 +135,14 @@ public class TudeySceneView extends SimpleScope
     public HashScene getScene ()
     {
         return _scene;
+    }
+
+    /**
+     * Returns a reference to the actor space.
+     */
+    public HashSpace getActorSpace ()
+    {
+        return _actorSpace;
     }
 
     /**
@@ -503,6 +517,30 @@ public class TudeySceneView extends SimpleScope
         }
     }
 
+    // documentation inherited from interface ActorAdvancer.Environment
+    public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
+    {
+        // start with zero penetration
+        result.set(Vector2f.ZERO);
+
+        // get the intersecting elements and find the longest penetration vector
+        _actorSpace.getIntersecting(shape, _elements);
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            SpaceElement element = _elements.get(ii);
+            Actor oactor = ((ActorSprite)element.getUserObject()).getActor();
+            if (actor.canCollide(oactor)) {
+                ((ShapeElement)element).getWorldShape().getPenetration(shape, _penetration);
+                if (_penetration.lengthSquared() > result.lengthSquared()) {
+                    result.set(_penetration);
+                }
+            }
+        }
+        _elements.clear();
+
+        // if our vector is non-zero, we penetrated
+        return result.lengthSquared() > 0f;
+    }
+
     @Override // documentation inherited
     public String getScopeName ()
     {
@@ -597,6 +635,9 @@ public class TudeySceneView extends SimpleScope
     /** Sprites corresponding to the actors in the scene. */
     protected HashIntMap<ActorSprite> _actorSprites = new HashIntMap<ActorSprite>();
 
+    /** The actor space (used for client-side collision detection). */
+    protected HashSpace _actorSpace = new HashSpace(64f, 6);
+
     /** The list of participants in the tick. */
     protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
 
@@ -608,6 +649,12 @@ public class TudeySceneView extends SimpleScope
 
     /** Used to find the floor. */
     protected Vector3f _isect = new Vector3f();
+
+    /** Holds collected elements during queries. */
+    protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();
+
+    /** Stores penetration vector during queries. */
+    protected Vector2f _penetration = new Vector2f();
 
     /** A predicate that only accepts elements whose user objects are tile sprites. */
     protected static final Predicate<SceneElement> TILE_SPRITE_FILTER =

@@ -35,8 +35,11 @@ import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.EffectLogic;
 import com.threerings.tudey.server.logic.PawnLogic;
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
+import com.threerings.tudey.util.ActorAdvancer;
 
 import static com.threerings.tudey.Log.*;
 
@@ -44,7 +47,7 @@ import static com.threerings.tudey.Log.*;
  * Manager for Tudey scenes.
  */
 public class TudeySceneManager extends SceneManager
-    implements TudeySceneProvider
+    implements TudeySceneProvider, ActorAdvancer.Environment
 {
     /**
      * An interface for objects that take part in the server tick.
@@ -314,6 +317,30 @@ public class TudeySceneManager extends SceneManager
         }
     }
 
+    // documentation inherited from interface ActorAdvancer.Environment
+    public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
+    {
+        // start with zero penetration
+        result.set(Vector2f.ZERO);
+
+        // get the intersecting elements
+        _actorSpace.getIntersecting(shape, _elements);
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            SpaceElement element = _elements.get(ii);
+            Actor oactor = ((ActorLogic)element.getUserObject()).getActor();
+            if (actor.canCollide(oactor)) {
+                ((ShapeElement)element).getWorldShape().getPenetration(shape, _penetration);
+                if (_penetration.lengthSquared() > result.lengthSquared()) {
+                    result.set(_penetration);
+                }
+            }
+        }
+        _elements.clear();
+
+        // if our vector is non-zero, we penetrated
+        return result.lengthSquared() > 0f;
+    }
+
     @Override // documentation inherited
     protected PlaceObject createPlaceObject ()
     {
@@ -362,6 +389,7 @@ public class TudeySceneManager extends SceneManager
         // add the pawn and fill in its id
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
         if (ref != null) {
+            spawnActor(_timestamp + getTickInterval(), new Vector2f(1f, 1f), 0f, ref);
             ActorLogic logic = spawnActor(_timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
             if (logic != null) {
                 ((TudeyOccupantInfo)info).pawnId = logic.getActor().getId();
@@ -493,4 +521,7 @@ public class TudeySceneManager extends SceneManager
 
     /** Used to tick the participants. */
     protected TickOp _tickOp = new TickOp();
+
+    /** Stores penetration vector during queries. */
+    protected Vector2f _penetration = new Vector2f();
 }

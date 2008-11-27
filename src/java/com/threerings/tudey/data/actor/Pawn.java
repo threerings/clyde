@@ -40,6 +40,6 @@ public class Pawn extends Mobile
     {
         TudeySceneController ctrl = view.getController();
         return (ctrl.getTargetId() == _id && ctrl.isTargetControlled()) ?
-            new PawnAdvancer(this, timestamp) : null;
+            new PawnAdvancer(view, this, timestamp) : null;
     }
 }

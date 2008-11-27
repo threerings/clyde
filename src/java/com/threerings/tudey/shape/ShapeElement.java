@@ -49,6 +49,22 @@ public class ShapeElement extends SimpleSpaceElement
         updateBounds();
     }
 
+    /**
+     * Returns a reference to the element's local shape.
+     */
+    public Shape getLocalShape ()
+    {
+        return _localShape;
+    }
+
+    /**
+     * Returns a reference to the element's transformed shape.
+     */
+    public Shape getWorldShape ()
+    {
+        return _worldShape;
+    }
+
     @Override // documentation inherited
     public void updateBounds ()
     {
