@@ -130,6 +130,22 @@ public class TileConfig extends ParameterizedConfig
             return TudeySceneMetrics.getTileHeight(width, height, rotation);
         }
 
+        /**
+         * Checks whether the tile at the specified coordinate is passable at the given location.
+         */
+        public boolean isPassable (int x, int y, int rotation, int tx, int ty)
+        {
+            return true;
+        }
+
+        /**
+         * Checks whether the tile at the specified coordinates is penetrable at the given location.
+         */
+        public boolean isPenetrable (int x, int y, int rotation, int tx, int ty)
+        {
+            return true;
+        }
+
         @Override // documentation inherited
         public Original getOriginal (ConfigManager cfgmgr)
         {

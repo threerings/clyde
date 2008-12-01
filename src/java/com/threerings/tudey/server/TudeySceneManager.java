@@ -323,6 +323,9 @@ public class TudeySceneManager extends SceneManager
         // start with zero penetration
         result.set(Vector2f.ZERO);
 
+        // check the scene model
+        ((TudeySceneModel)_scene.getSceneModel()).getPenetration(actor, shape, result);
+
         // get the intersecting elements
         _actorSpace.getIntersecting(shape, _elements);
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
@@ -338,7 +341,7 @@ public class TudeySceneManager extends SceneManager
         _elements.clear();
 
         // if our vector is non-zero, we penetrated
-        return result.lengthSquared() > 0f;
+        return !result.equals(Vector2f.ZERO);
     }
 
     @Override // documentation inherited

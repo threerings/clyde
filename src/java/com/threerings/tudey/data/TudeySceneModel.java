@@ -54,6 +54,7 @@ import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.shape.Compound;
 import com.threerings.tudey.shape.Point;
 import com.threerings.tudey.shape.Polygon;
@@ -62,6 +63,7 @@ import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
+import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.CoordIntMap.CoordIntEntry;
@@ -74,7 +76,7 @@ import static com.threerings.tudey.Log.*;
  * Contains a representation of a Tudey scene.
  */
 public class TudeySceneModel extends SceneModel
-    implements Exportable
+    implements ActorAdvancer.Environment, Exportable
 {
     /**
      * An interface for objects interested in changes to the scene model.
@@ -132,6 +134,22 @@ public class TudeySceneModel extends SceneModel
         public void getBounds (ConfigManager cfgmgr, Rect result)
         {
             result.setToEmpty();
+        }
+
+        /**
+         * Checks whether the entry is passable.
+         */
+        public boolean isPassable ()
+        {
+            return true;
+        }
+
+        /**
+         * Checks whether the entry is penetrable.
+         */
+        public boolean isPenetrable ()
+        {
+            return true;
         }
 
         /**
@@ -241,6 +259,22 @@ public class TudeySceneModel extends SceneModel
         public int getHeight (TileConfig.Original config)
         {
             return config.getHeight(rotation);
+        }
+
+        /**
+         * Determines whether the tile is flagged as passable at the specified coordinates.
+         */
+        public boolean isPassable (TileConfig.Original config, int x, int y)
+        {
+            return config.isPassable(_location.x, _location.y, rotation, x, y);
+        }
+
+        /**
+         * Determines whether the tile is flagged as penetrable at the specified coordinates.
+         */
+        public boolean isPenetrable (TileConfig.Original config, int x, int y)
+        {
+            return config.isPenetrable(_location.x, _location.y, rotation, x, y);
         }
 
         @Override // documentation inherited
@@ -1018,6 +1052,61 @@ public class TudeySceneModel extends SceneModel
         }
     }
 
+    // documentation inherited from interface ActorAdvancer.Environment
+    public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
+    {
+        // start with zero penetration
+        result.set(Vector2f.ZERO);
+
+        // check against non-passable locations
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = (int)FloatMath.floor(min.x);
+        int maxx = (int)FloatMath.floor(max.x);
+        int miny = (int)FloatMath.floor(min.y);
+        int maxy = (int)FloatMath.floor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                int flags = _flags.get(xx, yy);
+                boolean impassable = (flags & IMPASSABLE_FLAG) != 0;
+                boolean impenetrable = (flags & IMPENETRABLE_FLAG) != 0;
+                if (!(impassable || impenetrable)) {
+                    continue;
+                }
+                float lx = xx, ly = yy, ux = lx + 1f, uy = ly + 1f;
+                _quad.getVertex(0).set(lx, ly);
+                _quad.getVertex(1).set(ux, ly);
+                _quad.getVertex(2).set(ux, uy);
+                _quad.getVertex(3).set(lx, uy);
+                _quad.getBounds().getMinimumExtent().set(lx, ly);
+                _quad.getBounds().getMaximumExtent().set(ux, uy);
+                if (_quad.intersects(shape)) {
+                    _quad.getPenetration(shape, _penetration);
+                    if (_penetration.lengthSquared() > result.lengthSquared()) {
+                        result.set(_penetration);
+                    }
+                }
+            }
+        }
+
+        // find intersecting elements
+        _space.getIntersecting(shape, _intersecting);
+        for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
+            SpaceElement element = _intersecting.get(ii);
+            Entry entry = (Entry)element.getUserObject();
+            if (true) {
+                ((ShapeElement)element).getWorldShape().getPenetration(shape, _penetration);
+                if (_penetration.lengthSquared() > result.lengthSquared()) {
+                    result.set(_penetration);
+                }
+            }
+        }
+        _intersecting.clear();
+
+        // if our vector is non-zero, we penetrated
+        return !result.equals(Vector2f.ZERO);
+    }
+
     @Override // documentation inherited
     public Object clone ()
     {
@@ -1146,10 +1235,24 @@ public class TudeySceneModel extends SceneModel
     protected void createShadow (TileEntry entry)
     {
         int pair = entry.getLocation().encode();
-        entry.getRegion(entry.getConfig(_cfgmgr), _region);
+        TileConfig.Original config = entry.getConfig(_cfgmgr);
+        entry.getRegion(config, _region);
         for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
             for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
+                // add to tile coordinate mapping
                 _tileCoords.put(xx, yy, pair);
+
+                // set the impassable/impenetrable flags if necessary
+                int flags = _flags.get(xx, yy);
+                if (!entry.isPassable(config, xx, yy)) {
+                    flags |= IMPASSABLE_FLAG;
+                }
+                if (!entry.isPenetrable(config, xx, yy)) {
+                    flags |= IMPENETRABLE_FLAG;
+                }
+                if (flags != 0) {
+                    _flags.put(xx, yy, flags);
+                }
             }
         }
     }
@@ -1162,7 +1265,16 @@ public class TudeySceneModel extends SceneModel
         entry.getRegion(entry.getConfig(_cfgmgr), _region);
         for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
             for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
+                // remove from tile coordinate mapping
                 _tileCoords.remove(xx, yy);
+
+                // clear the impassable/impenetrable flags
+                int flags = _flags.get(xx, yy) & ~(IMPASSABLE_FLAG | IMPENETRABLE_FLAG);
+                if (flags == 0) {
+                    _flags.remove(xx, yy);
+                } else {
+                    _flags.put(xx, yy, flags);
+                }
             }
         }
     }
@@ -1307,6 +1419,9 @@ public class TudeySceneModel extends SceneModel
     /** Maps locations to the encoded coordinates of any tiles intersecting them. */
     protected transient CoordIntMap _tileCoords = new CoordIntMap(3, EMPTY_COORD);
 
+    /** Flags for each location. */
+    protected transient CoordIntMap _flags = new CoordIntMap(3, 0);
+
     /** Scene entries mapped by key. */
     protected transient HashMap<Object, Entry> _entries = Maps.newHashMap();
 
@@ -1333,6 +1448,21 @@ public class TudeySceneModel extends SceneModel
     /** Bounds object to reuse. */
     protected transient Rect _rect = new Rect();
 
+    /** Used to store tile shapes for intersecting testing. */
+    protected transient Polygon _quad = new Polygon(4);
+
+    /** (Re)used to store intersecting elements. */
+    protected transient ArrayList<SpaceElement> _intersecting = new ArrayList<SpaceElement>();
+
+    /** Stores penetration vector during queries. */
+    protected transient Vector2f _penetration = new Vector2f();
+
     /** The value we use to signify an empty coordinate location. */
     protected static final int EMPTY_COORD = Coord.encode(Short.MIN_VALUE, Short.MIN_VALUE);
+
+    /** Flags a location as being occupied by an impassable tile. */
+    protected static final int IMPASSABLE_FLAG = (1 << 0);
+
+    /** Flags a location as being occupied by an impenetrable tile. */
+    protected static final int IMPENETRABLE_FLAG = (1 << 1);
 }

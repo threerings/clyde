@@ -529,7 +529,10 @@ public class TudeySceneView extends SimpleScope
         // start with zero penetration
         result.set(Vector2f.ZERO);
 
-        // get the intersecting elements and find the longest penetration vector
+        // check the scene model
+        _sceneModel.getPenetration(actor, shape, result);
+
+        // get the intersecting elements
         _actorSpace.getIntersecting(shape, _elements);
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
             SpaceElement element = _elements.get(ii);
@@ -544,7 +547,7 @@ public class TudeySceneView extends SimpleScope
         _elements.clear();
 
         // if our vector is non-zero, we penetrated
-        return result.lengthSquared() > 0f;
+        return !result.equals(Vector2f.ZERO);
     }
 
     @Override // documentation inherited
