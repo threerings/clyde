@@ -137,19 +137,11 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
-         * Checks whether the entry is passable.
+         * Returns the entry's collision flags.
          */
-        public boolean isPassable ()
+        public int getCollisionFlags (ConfigManager cfgmgr)
         {
-            return true;
-        }
-
-        /**
-         * Checks whether the entry is penetrable.
-         */
-        public boolean isPenetrable ()
-        {
-            return true;
+            return 0;
         }
 
         /**
@@ -262,19 +254,11 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
-         * Determines whether the tile is flagged as passable at the specified coordinates.
+         * Returns the tile's collision flags at the specified coordinates.
          */
-        public boolean isPassable (TileConfig.Original config, int x, int y)
+        public int getCollisionFlags (TileConfig.Original config, int x, int y)
         {
-            return config.isPassable(_location.x, _location.y, rotation, x, y);
-        }
-
-        /**
-         * Determines whether the tile is flagged as penetrable at the specified coordinates.
-         */
-        public boolean isPenetrable (TileConfig.Original config, int x, int y)
-        {
-            return config.isPenetrable(_location.x, _location.y, rotation, x, y);
+            return config.getCollisionFlags(_location.x, _location.y, rotation, x, y);
         }
 
         @Override // documentation inherited
@@ -461,6 +445,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public int getCollisionFlags (ConfigManager cfgmgr)
+        {
+            if (_collisionFlags == -1) {
+                _collisionFlags = getConfig(cfgmgr).getCollisionFlags();
+            }
+            return _collisionFlags;
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             xform.compose(transform, transform);
@@ -498,6 +491,9 @@ public class TudeySceneModel extends SceneModel
                 null : config.getOriginal(cfgmgr);
             return (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
         }
+
+        /** The cached collision flags. */
+        protected transient int _collisionFlags = -1;
     }
 
     /**
@@ -1067,10 +1063,7 @@ public class TudeySceneModel extends SceneModel
         int maxy = (int)FloatMath.floor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
-                int flags = _flags.get(xx, yy);
-                boolean impassable = (flags & IMPASSABLE_FLAG) != 0;
-                boolean impenetrable = (flags & IMPENETRABLE_FLAG) != 0;
-                if (!(impassable || impenetrable)) {
+                if (!actor.canCollide(_collisionFlags.get(xx, yy))) {
                     continue;
                 }
                 float lx = xx, ly = yy, ux = lx + 1f, uy = ly + 1f;
@@ -1094,7 +1087,7 @@ public class TudeySceneModel extends SceneModel
         for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
             SpaceElement element = _intersecting.get(ii);
             Entry entry = (Entry)element.getUserObject();
-            if (true) {
+            if (actor.canCollide(entry.getCollisionFlags(_cfgmgr))) {
                 ((ShapeElement)element).getWorldShape().getPenetration(shape, _penetration);
                 if (_penetration.lengthSquared() > result.lengthSquared()) {
                     result.set(_penetration);
@@ -1242,16 +1235,10 @@ public class TudeySceneModel extends SceneModel
                 // add to tile coordinate mapping
                 _tileCoords.put(xx, yy, pair);
 
-                // set the impassable/impenetrable flags if necessary
-                int flags = _flags.get(xx, yy);
-                if (!entry.isPassable(config, xx, yy)) {
-                    flags |= IMPASSABLE_FLAG;
-                }
-                if (!entry.isPenetrable(config, xx, yy)) {
-                    flags |= IMPENETRABLE_FLAG;
-                }
+                // add the collision flags, if any
+                int flags = entry.getCollisionFlags(config, xx, yy);
                 if (flags != 0) {
-                    _flags.put(xx, yy, flags);
+                    _collisionFlags.put(xx, yy, flags);
                 }
             }
         }
@@ -1268,13 +1255,8 @@ public class TudeySceneModel extends SceneModel
                 // remove from tile coordinate mapping
                 _tileCoords.remove(xx, yy);
 
-                // clear the impassable/impenetrable flags
-                int flags = _flags.get(xx, yy) & ~(IMPASSABLE_FLAG | IMPENETRABLE_FLAG);
-                if (flags == 0) {
-                    _flags.remove(xx, yy);
-                } else {
-                    _flags.put(xx, yy, flags);
-                }
+                // remove collision flags
+                _collisionFlags.remove(xx, yy);
             }
         }
     }
@@ -1419,8 +1401,8 @@ public class TudeySceneModel extends SceneModel
     /** Maps locations to the encoded coordinates of any tiles intersecting them. */
     protected transient CoordIntMap _tileCoords = new CoordIntMap(3, EMPTY_COORD);
 
-    /** Flags for each location. */
-    protected transient CoordIntMap _flags = new CoordIntMap(3, 0);
+    /** Collision flags for each location. */
+    protected transient CoordIntMap _collisionFlags = new CoordIntMap(3, 0);
 
     /** Scene entries mapped by key. */
     protected transient HashMap<Object, Entry> _entries = Maps.newHashMap();
@@ -1459,10 +1441,4 @@ public class TudeySceneModel extends SceneModel
 
     /** The value we use to signify an empty coordinate location. */
     protected static final int EMPTY_COORD = Coord.encode(Short.MIN_VALUE, Short.MIN_VALUE);
-
-    /** Flags a location as being occupied by an impassable tile. */
-    protected static final int IMPASSABLE_FLAG = (1 << 0);
-
-    /** Flags a location as being occupied by an impenetrable tile. */
-    protected static final int IMPENETRABLE_FLAG = (1 << 1);
 }

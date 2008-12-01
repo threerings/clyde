@@ -90,13 +90,9 @@ public class TileConfig extends ParameterizedConfig
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
 
-        /** Indicates where the tile is passable. */
-        @Editable(width=3)
-        public boolean[][] passable = new boolean[][] { { false } };
-
-        /** Indicates where the tile is penetrable. */
-        @Editable(width=3)
-        public boolean[][] penetrable = new boolean[][] { { false } };
+        /** The tile's collision flags. */
+        @Editable(width=4)
+        public int[][] collisionFlags = new int[][] { { 0x01 } };
 
         /**
          * Finds the transform of the tile at the specified coordinates.
@@ -131,19 +127,36 @@ public class TileConfig extends ParameterizedConfig
         }
 
         /**
-         * Checks whether the tile at the specified coordinate is passable at the given location.
+         * Returns the collision flags for the given location for a tile at the specified
+         * coordinates.
          */
-        public boolean isPassable (int x, int y, int rotation, int tx, int ty)
+        public int getCollisionFlags (int x, int y, int rotation, int tx, int ty)
         {
-            return true;
-        }
-
-        /**
-         * Checks whether the tile at the specified coordinates is penetrable at the given location.
-         */
-        public boolean isPenetrable (int x, int y, int rotation, int tx, int ty)
-        {
-            return true;
+            if (collisionFlags.length == 0) {
+                return 0;
+            }
+            int fx, fy;
+            switch (rotation) {
+                default:
+                case 0:
+                    fx = tx - x;
+                    fy = (height - 1) - (ty - y);
+                    break;
+                case 1:
+                    fx = ty - y;
+                    fy = tx - x;
+                    break;
+                case 2:
+                    fx = (width - 1) - (tx - x);
+                    fy = ty - y;
+                    break;
+                case 3:
+                    fx = (width - 1) - (ty - y);
+                    fy = (height - 1) - (tx - x);
+                    break;
+            }
+            int[] row = collisionFlags[fy % collisionFlags.length];
+            return (row.length == 0) ? 0 : row[fx % row.length];
         }
 
         @Override // documentation inherited

@@ -93,6 +93,14 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
+        /**
+         * Returns the placeable's collision flags.
+         */
+        public int getCollisionFlags ()
+        {
+            return 0;
+        }
+
         @Override // documentation inherited
         public Original getOriginal (ConfigManager cfgmgr)
         {
@@ -123,13 +131,15 @@ public class PlaceableConfig extends ParameterizedConfig
      */
     public static class Prop extends Original
     {
-        /** Whether or not actors can walk through the prop. */
-        @Editable(hgroup="p")
-        public boolean passable;
+        /** The prop's collision flags. */
+        @Editable
+        public int collisionFlags = 0x01;
 
-        /** Whether or not actors can shoot through the prop. */
-        @Editable(hgroup="p")
-        public boolean penetrable;
+        @Override // documentation inherited
+        public int getCollisionFlags ()
+        {
+            return collisionFlags;
+        }
 
         @Override // documentation inherited
         public PlaceableSprite.Implementation getSpriteImplementation (

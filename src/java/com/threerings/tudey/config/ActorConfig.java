@@ -70,12 +70,12 @@ public class ActorConfig extends ParameterizedConfig
         public ShapeConfig shape = new ShapeConfig.Point();
 
         /** Determines which collision categories the actor belongs to. */
-        @Editable
-        public int collisionFlags;
+        @Editable(hgroup="c")
+        public int collisionFlags = 0x01;
 
         /** Determines which collision categories the actor collides with. */
-        @Editable
-        public int collisionMask;
+        @Editable(hgroup="c")
+        public int collisionMask = 0x01;
 
         /**
          * Returns the name of the server-side logic class to use for the actor.
