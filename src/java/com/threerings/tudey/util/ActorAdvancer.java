@@ -42,6 +42,22 @@ public class ActorAdvancer
     }
 
     /**
+     * Returns a reference to the advancer actor.
+     */
+    public Actor getActor ()
+    {
+        return _actor;
+    }
+
+    /**
+     * Returns the advancer timestamp.
+     */
+    public int getTimestamp ()
+    {
+        return _timestamp;
+    }
+
+    /**
      * (Re)initializes the advancer.
      */
     public void init (Actor actor, int timestamp)

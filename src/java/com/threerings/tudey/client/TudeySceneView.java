@@ -366,6 +366,9 @@ public class TudeySceneView extends SimpleScope
                 _actorSprites.put(id, sprite = new ActorSprite(_ctx, this, timestamp, actor));
                 if (id == _ctrl.getTargetId()) {
                     _targetSprite = sprite;
+                    if (_ctrl.isTargetControlled()) {
+                        _ctrl.controlledTargetAdded(timestamp, actor);
+                    }
                 }
             } else {
                 if (id == _ctrl.getTargetId() && _ctrl.isTargetControlled()) {
@@ -385,6 +388,9 @@ public class TudeySceneView extends SimpleScope
                 sprite.remove(timestamp);
                 if (_targetSprite == sprite) {
                     _targetSprite = null;
+                    if (_ctrl.isTargetControlled()) {
+                        _ctrl.controlledTargetRemoved(timestamp);
+                    }
                 }
                 it.remove();
             }

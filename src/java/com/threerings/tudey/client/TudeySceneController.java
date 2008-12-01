@@ -77,6 +77,15 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Called by the view when we first add our controlled target.
+     */
+    public void controlledTargetAdded (int timestamp, Actor actor)
+    {
+        _advancer = (PawnAdvancer)actor.maybeCreateAdvancer(_tctx, _tsview, timestamp);
+        _advancer.advance(_tsview.getAdvancedTime());
+    }
+
+    /**
      * Called by the view when we receive an update for our controlled target.
      */
     public void controlledTargetUpdated (int timestamp, Actor actor)
@@ -86,32 +95,40 @@ public class TudeySceneController extends SceneController
             _states.remove(0);
         }
 
-        // clone the actor and set it up in the target sprite's advancer
-        Pawn npawn = (Pawn)actor.clone();
-        ActorSprite targetSprite = _tsview.getTargetSprite();
-        PawnAdvancer advancer = (PawnAdvancer)targetSprite.getAdvancer();
-        advancer.init(npawn, timestamp);
+        // clone the actor and set it up in the advancer
+        Actor oactor = _advancer.getActor();
+        Actor nactor = (Actor)actor.clone();
+        _advancer.init(nactor, timestamp);
 
         // verify the remaining states
-        Actor targetActor = targetSprite.getActor();
         int advancedTime = _tsview.getAdvancedTime();
         for (int ii = 0, nn = _states.size(); ii < nn; ii++) {
             PawnState state = _states.get(ii);
-            Pawn opawn = state.getPawn();
-            advancer.advance(state.getFrame());
-            if (opawn.equals(npawn)) {
-                advancer.init(targetActor, advancedTime);
+            Pawn spawn = state.getPawn();
+            _advancer.advance(state.getFrame());
+            if (spawn.equals(nactor)) {
+                _advancer.init(oactor, advancedTime);
                 return; // cut out early; they'll all be the same from here on
             }
-            converge(opawn, npawn);
+            nactor.copy(spawn);
         }
 
         // advance to current time
-        advancer.advance(advancedTime);
-        converge(targetActor, npawn);
+        _advancer.advance(advancedTime);
 
-        // restore the advancer
-        advancer.init(targetActor, advancedTime);
+        // copy everything *except* the translation (which will be smoothed) to the sprite
+        Actor sactor = _tsview.getTargetSprite().getActor();
+        _translation.set(sactor.getTranslation());
+        nactor.copy(sactor);
+        sactor.getTranslation().set(_translation);
+    }
+
+    /**
+     * Called by the view when we remove our controlled target.
+     */
+    public void controlledTargetRemoved (long timestamp)
+    {
+        _advancer = null;
     }
 
     // documentation inherited from interface SceneDeltaListener
@@ -190,7 +207,7 @@ public class TudeySceneController extends SceneController
     {
         // update the input if we control our target
         if (_targetControlled) {
-            updateInput();
+            updateInput(elapsed);
         }
 
         // perhaps transmit our acknowledgement and input frames
@@ -275,7 +292,7 @@ public class TudeySceneController extends SceneController
     /**
      * Updates the input for the current tick.
      */
-    protected void updateInput ()
+    protected void updateInput (float elapsed)
     {
         // make sure we have our target
         ActorSprite targetSprite = _tsview.getTargetSprite();
@@ -302,12 +319,23 @@ public class TudeySceneController extends SceneController
                 _tsview.getAdvancedTime(), _lastDirection = direction, _lastFlags = _frameFlags);
             _input.add(frame);
 
-            // apply it immediately to the target
+            // apply it immediately to the controller and sprite advancers
+            _advancer.advance(frame);
             ((PawnAdvancer)targetSprite.getAdvancer()).advance(frame);
 
             // record the state
-            _states.add(new PawnState(frame, (Pawn)targetSprite.getActor().clone()));
+            _states.add(new PawnState(frame, (Pawn)_advancer.getActor().clone()));
+
+        // otherwise, just ensure that the advancers are up-to-date
+        } else {
+            int advancedTime = _tsview.getAdvancedTime();
+            _advancer.advance(advancedTime);
+            targetSprite.getAdvancer().advance(advancedTime);
         }
+
+        // have the sprite actor's translation smoothly approach that of the advancer actor
+        targetSprite.getActor().getTranslation().lerpLocal(
+            _advancer.getActor().getTranslation(), 1f - FloatMath.exp(CONVERGENCE_RATE * elapsed));
 
         // reset the frame flags
         _frameFlags = _flags;
@@ -363,18 +391,6 @@ public class TudeySceneController extends SceneController
         }
         _tsobj.tudeySceneService.setTarget(_ctx.getClient(), _targetId = pawnId);
         _tsview.updateTargetSprite();
-    }
-
-    /**
-     * Updates the state of the old actor to be equal to the state of the new one, except for the
-     * translation, which we blend in (to avoid discontinuity).
-     */
-    protected void converge (Actor oactor, Actor nactor)
-    {
-        oactor.getTranslation().mult(0.75f, _translation).addScaledLocal(
-            nactor.getTranslation(), 0.25f);
-        nactor.copy(oactor);
-        oactor.getTranslation().set(_translation);
     }
 
     /**
@@ -448,6 +464,9 @@ public class TudeySceneController extends SceneController
     /** States recorded for input frames. */
     protected ArrayList<PawnState> _states = new ArrayList<PawnState>();
 
+    /** The advancer we use to update the controlled pawn state. */
+    protected PawnAdvancer _advancer;
+
     /** The last direction we transmitted. */
     protected float _lastDirection;
 
@@ -471,4 +490,7 @@ public class TudeySceneController extends SceneController
 
     /** Holds averaged translation. */
     protected Vector2f _translation = new Vector2f();
+
+    /** The exponential rate at which we converge upon the server-corrected translation. */
+    protected static final float CONVERGENCE_RATE = 20f * FloatMath.log(0.5f);
 }
