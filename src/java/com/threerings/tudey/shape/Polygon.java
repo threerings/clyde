@@ -208,7 +208,7 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public boolean intersects (Circle circle)
     {
-        // find the first edge that the circle's center is outside
+        // look for edges that the circle's center is outside
         Vector2f center = circle.getCenter();
         for (int ii = 0; ii < _vertices.length; ii++) {
             Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
@@ -219,23 +219,21 @@ public class Polygon extends Shape
             if (d >= 0f) {
                 continue;
             }
-            // now classify with respect to the adjacent edges
-            Vector2f previous = _vertices[(ii + _vertices.length - 1) % _vertices.length];
-            a = previous.y - start.y;
-            b = start.x - previous.x;
-            if (a*center.x + b*center.y <= a*previous.x + b*previous.y) {
-                // left: closest feature is start vertex
-                return start.distanceSquared(center) <= circle.radius*circle.radius;
-            }
+            // look at the next edge
             Vector2f next = _vertices[(ii + 2) % _vertices.length];
             a = end.y - next.y;
             b = next.x - end.x;
-            if (a*center.x + b*center.y > a*end.x + b*end.y) {
-                // middle: closest feature is edge
-                return d*d <= l2*circle.radius*circle.radius;
-            } else {
-                // right: closest feature is end vertex
+            if (a*center.x + b*center.y <= a*end.x + b*end.y) {
+                // outside next edge; closest feature is end vertex
                 return end.distanceSquared(center) <= circle.radius*circle.radius;
+            }
+            // check the previous edge
+            Vector2f previous = _vertices[(ii + _vertices.length - 1) % _vertices.length];
+            a = previous.y - start.y;
+            b = start.x - previous.x;
+            if (a*center.x + b*center.y >= a*previous.x + b*previous.y) {
+                // inside previous edge; closest feature is edge
+                return d*d <= l2*circle.radius*circle.radius;
             }
         }
         return true; // center is inside all edges
@@ -313,7 +311,51 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        // look for edges that the circle's center is outside
+        Vector2f center = circle.getCenter();
+        float mind = Float.MAX_VALUE;
+        int midx = 0;
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            float a = start.y - end.y;
+            float b = end.x - start.x;
+            float l2 = a*a + b*b;
+            float d = a*center.x + b*center.y - a*start.x - b*start.y;
+            if (d >= 0f) {
+                // keep track of the closest edge
+                float nd = d / FloatMath.sqrt(l2);
+                if (nd < mind) {
+                    mind = nd;
+                    midx = ii;
+                }
+                continue;
+            }
+            // look at the next edge
+            Vector2f next = _vertices[(ii + 2) % _vertices.length];
+            a = end.y - next.y;
+            b = next.x - end.x;
+            if (a*center.x + b*center.y <= a*end.x + b*end.y) {
+                // outside next edge; closest feature is end vertex
+                float dist = center.distance(end);
+                if (dist > 0f) {
+                    return center.subtract(end, result).multLocal(circle.radius / dist - 1f);
+                }
+            }
+            // check the previous edge
+            Vector2f previous = _vertices[(ii + _vertices.length - 1) % _vertices.length];
+            a = previous.y - start.y;
+            b = start.x - previous.x;
+            if (a*center.x + b*center.y >= a*previous.x + b*previous.y) {
+                // inside previous edge; closest feature is edge
+                return result.set(end.y - start.y, start.x - end.x).multLocal(
+                    circle.radius/FloatMath.sqrt(l2) + d/l2);
+            }
+        }
+
+        // center is inside all edges, so push it out of the closest
+        Vector2f start = _vertices[midx], end = _vertices[(midx + 1) % _vertices.length];
+        return result.set(end.y - start.y, start.x - end.x).normalizeLocal().multLocal(
+            circle.radius + mind);
     }
 
     @Override // documentation inherited
