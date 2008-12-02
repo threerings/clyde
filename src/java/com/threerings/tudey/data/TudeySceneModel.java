@@ -145,6 +145,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
+         * Returns the name of the server-side logic class to use for the entry, or
+         * <code>null</code> for none.
+         */
+        public String getLogicClassName (ConfigManager cfgmgr)
+        {
+            return null;
+        }
+
+        /**
          * Transforms the entry.
          */
         public void transform (ConfigManager cfgmgr, Transform3D xform)
@@ -294,6 +303,12 @@ public class TudeySceneModel extends SceneModel
             result.getMinimumExtent().set(_location.x, _location.y);
             result.getMaximumExtent().set(
                 _location.x + getWidth(config), _location.y + getHeight(config));
+        }
+
+        @Override // documentation inherited
+        public String getLogicClassName (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).getLogicClassName();
         }
 
         @Override // documentation inherited
@@ -454,6 +469,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public String getLogicClassName (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             xform.compose(transform, transform);
@@ -545,6 +566,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public String getLogicClassName (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
@@ -575,6 +602,16 @@ public class TudeySceneModel extends SceneModel
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new PathSprite(ctx, view, this);
+        }
+
+        /**
+         * Returns the path config implementation.
+         */
+        protected PathConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            PathConfig config = cfgmgr.getConfig(PathConfig.class, path);
+            PathConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+            return (original == null) ? PathConfig.NULL_ORIGINAL : original;
         }
 
         /**
@@ -647,6 +684,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public String getLogicClassName (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
@@ -677,6 +720,16 @@ public class TudeySceneModel extends SceneModel
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new AreaSprite(ctx, view, this);
+        }
+
+        /**
+         * Returns the area config implementation.
+         */
+        protected AreaConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            AreaConfig config = cfgmgr.getConfig(AreaConfig.class, area);
+            AreaConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+            return (original == null) ? AreaConfig.NULL_ORIGINAL : original;
         }
 
         /**

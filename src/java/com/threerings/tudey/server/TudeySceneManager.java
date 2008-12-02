@@ -4,6 +4,7 @@
 package com.threerings.tudey.server;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Interval;
@@ -29,11 +30,13 @@ import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.EffectLogic;
+import com.threerings.tudey.server.logic.EntryLogic;
 import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
@@ -47,7 +50,7 @@ import static com.threerings.tudey.Log.*;
  * Manager for Tudey scenes.
  */
 public class TudeySceneManager extends SceneManager
-    implements TudeySceneProvider, ActorAdvancer.Environment
+    implements TudeySceneProvider, TudeySceneModel.Observer, ActorAdvancer.Environment
 {
     /**
      * An interface for objects that take part in the server tick.
@@ -61,6 +64,19 @@ public class TudeySceneManager extends SceneManager
          * @return true to continue ticking the participant, false to remove it from the list.
          */
         public boolean tick (int timestamp);
+    }
+
+    /**
+     * An interface for objects that should be notified when actors intersect them.
+     */
+    public interface Sensor
+    {
+        /**
+         * Triggers the sensor.
+         *
+         * @param actor the logic object of the actor that triggered the sensor.
+         */
+        public void trigger (ActorLogic actor);
     }
 
     /**
@@ -101,6 +117,14 @@ public class TudeySceneManager extends SceneManager
     public HashSpace getActorSpace ()
     {
         return _actorSpace;
+    }
+
+    /**
+     * Returns a reference to the sensor space.
+     */
+    public HashSpace getSensorSpace ()
+    {
+        return _sensorSpace;
     }
 
     /**
@@ -258,6 +282,18 @@ public class TudeySceneManager extends SceneManager
         }
     }
 
+    /**
+     * Triggers any sensors intersecting the specified shape.
+     */
+    public void triggerSensors (Shape shape, ActorLogic actor)
+    {
+        _sensorSpace.getIntersecting(shape, _elements);
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            ((Sensor)_elements.get(ii).getUserObject()).trigger(actor);
+        }
+        _elements.clear();
+    }
+
     // documentation inherited from interface TudeySceneProvider
     public void enqueueInput (
         ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
@@ -317,6 +353,25 @@ public class TudeySceneManager extends SceneManager
         }
     }
 
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryAdded (Entry entry)
+    {
+        addLogic(entry);
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryUpdated (Entry oentry, Entry nentry)
+    {
+        removeLogic(oentry.getKey());
+        addLogic(nentry);
+    }
+
+    // documentation inherited from interface TudeySceneModel.Observer
+    public void entryRemoved (Entry oentry)
+    {
+        removeLogic(oentry.getKey());
+    }
+
     // documentation inherited from interface ActorAdvancer.Environment
     public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
     {
@@ -356,7 +411,14 @@ public class TudeySceneManager extends SceneManager
         super.didStartup();
 
         // get a reference to the scene's config manager
-        _cfgmgr = ((TudeySceneModel)_scene.getSceneModel()).getConfigManager();
+        TudeySceneModel sceneModel = (TudeySceneModel)_scene.getSceneModel();
+        _cfgmgr = sceneModel.getConfigManager();
+
+        // create logic objects for scene entries and listen for changes
+        for (Entry entry : sceneModel.getEntries()) {
+            addLogic(entry);
+        }
+        sceneModel.addObserver(this);
 
         // register and fill in our tudey scene service
         _tsobj.setTudeySceneService(_invmgr.registerDispatcher(new TudeySceneDispatcher(this)));
@@ -384,6 +446,9 @@ public class TudeySceneManager extends SceneManager
 
         // clear out the scene service
         _invmgr.clearDispatcher(_tsobj.tudeySceneService);
+
+        // stop listening to the scene model
+        ((TudeySceneModel)_scene.getSceneModel()).removeObserver(this);
     }
 
     @Override // documentation inherited
@@ -425,6 +490,37 @@ public class TudeySceneManager extends SceneManager
     protected int getTickInterval ()
     {
         return 50;
+    }
+
+    /**
+     * Adds the logic object for the specified scene entry, if any.
+     */
+    protected void addLogic (Entry entry)
+    {
+        String cname = entry.getLogicClassName(_cfgmgr);
+        if (cname == null) {
+            return;
+        }
+        EntryLogic logic;
+        try {
+            logic = (EntryLogic)Class.forName(cname).newInstance();
+        } catch (Exception e) {
+            log.warning("Failed to instantiate entry logic.", "class", cname, e);
+            return;
+        }
+        logic.init(this, entry);
+        _entries.put(entry.getKey(), logic);
+    }
+
+    /**
+     * Removes the logic object for the specified scene entry, if any.
+     */
+    protected void removeLogic (Object key)
+    {
+        EntryLogic logic = _entries.remove(key);
+        if (logic != null) {
+            logic.removed();
+        }
     }
 
     /**
@@ -507,11 +603,17 @@ public class TudeySceneManager extends SceneManager
     /** The list of participants in the tick. */
     protected ObserverList<TickParticipant> _tickParticipants = ObserverList.newSafeInOrder();
 
+    /** Scene entry logic objects mapped by key. */
+    protected HashMap<Object, EntryLogic> _entries = new HashMap<Object, EntryLogic>();
+
     /** Actor logic objects mapped by id. */
     protected HashIntMap<ActorLogic> _actors = new HashIntMap<ActorLogic>();
 
     /** The actor space.  Used to find the actors within a client's area of interest. */
     protected HashSpace _actorSpace = new HashSpace(64f, 6);
+
+    /** The sensor space.  Used to detect mobile objects. */
+    protected HashSpace _sensorSpace = new HashSpace(64f, 6);
 
     /** The logic for effects fired on the current tick. */
     protected ArrayList<EffectLogic> _effectsFired = new ArrayList<EffectLogic>();

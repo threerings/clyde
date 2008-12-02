@@ -101,6 +101,15 @@ public class PlaceableConfig extends ParameterizedConfig
             return 0;
         }
 
+        /**
+         * Returns the name of the server-side logic class to use for the placeable, or
+         * <code>null</code> for none.
+         */
+        public String getLogicClassName ()
+        {
+            return null;
+        }
+
         @Override // documentation inherited
         public Original getOriginal (ConfigManager cfgmgr)
         {

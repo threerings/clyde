@@ -38,7 +38,9 @@ public class PawnLogic extends MobileLogic
         // advance to the current timestamp
         _advancer.advance(timestamp);
 
+        // update the pawn's shape, notify any sensors
         updateShape();
+        _scenemgr.triggerSensors(_shape.getWorldShape(), this);
 
         return true;
     }

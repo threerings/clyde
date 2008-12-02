@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -24,6 +25,9 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class AreaConfig extends ParameterizedConfig
 {
+    /** Used when we can't resolve the area's underlying original implementation. */
+    public static final Original NULL_ORIGINAL = new Original();
+
     /**
      * Contains the actual implementation of the area.
      */
@@ -38,6 +42,11 @@ public class AreaConfig extends ParameterizedConfig
         {
             // nothing by default
         }
+
+        /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (ConfigManager cfgmgr);
 
         /**
          * Creates or updates a cursor implementation for this configuration.
@@ -70,6 +79,21 @@ public class AreaConfig extends ParameterizedConfig
         /** The color to use when showing this path in the scene editor. */
         @Editable(mode="alpha")
         public Color4f color = new Color4f();
+
+        /**
+         * Returns the name of the server-side logic class to use for the area, or
+         * <code>null</code> for none.
+         */
+        public String getLogicClassName ()
+        {
+            return null;
+        }
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
+        }
 
         @Override // documentation inherited
         public AreaCursor.Implementation getCursorImplementation (
@@ -115,6 +139,13 @@ public class AreaConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            AreaConfig config = cfgmgr.getConfig(AreaConfig.class, area);
+            return (config == null) ? null : config.getOriginal(cfgmgr);
+        }
+
+        @Override // documentation inherited
         public AreaCursor.Implementation getCursorImplementation (
             TudeyContext ctx, Scope scope, AreaCursor.Implementation impl)
         {
@@ -134,6 +165,14 @@ public class AreaConfig extends ParameterizedConfig
     /** The actual area implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Returns a reference to the config's underlying original implementation.
+     */
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+        return implementation.getOriginal(cfgmgr);
+    }
 
     /**
      * Creates or updates a cursor implementation for this configuration.

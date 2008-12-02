@@ -159,6 +159,15 @@ public class TileConfig extends ParameterizedConfig
             return (row.length == 0) ? 0 : row[fx % row.length];
         }
 
+        /**
+         * Returns the name of the server-side logic class to use for the tile, or
+         * <code>null</code> for none.
+         */
+        public String getLogicClassName ()
+        {
+            return null;
+        }
+
         @Override // documentation inherited
         public Original getOriginal (ConfigManager cfgmgr)
         {
