@@ -50,6 +50,7 @@ import com.threerings.tudey.client.sprite.PathSprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.config.AreaConfig;
+import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
@@ -148,10 +149,17 @@ public class TudeySceneModel extends SceneModel
          * Returns the name of the server-side logic class to use for the entry, or
          * <code>null</code> for none.
          */
-        public String getLogicClassName (ConfigManager cfgmgr)
-        {
-            return null;
-        }
+        public abstract String getLogicClassName (ConfigManager cfgmgr);
+
+        /**
+         * Returns the entry's tag (or the empty string for none).
+         */
+        public abstract String getTag (ConfigManager cfgmgr);
+
+        /**
+         * Returns the entry's handler configs, if any.
+         */
+        public abstract HandlerConfig[] getHandlers (ConfigManager cfgmgr);
 
         /**
          * Returns the entry's approximate translation.
@@ -328,6 +336,18 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public String getTag (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).tag;
+        }
+
+        @Override // documentation inherited
+        public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).handlers;
+        }
+
+        @Override // documentation inherited
         public Vector2f getTranslation (ConfigManager cfgmgr)
         {
             TileConfig.Original config = getConfig(cfgmgr);
@@ -448,6 +468,18 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public String getTag (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).tag;
+        }
+
+        @Override // documentation inherited
+        public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).handlers;
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new GlobalSprite(ctx, view, this);
@@ -519,6 +551,18 @@ public class TudeySceneModel extends SceneModel
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
+        public String getTag (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).tag;
+        }
+
+        @Override // documentation inherited
+        public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).handlers;
         }
 
         @Override // documentation inherited
@@ -631,6 +675,18 @@ public class TudeySceneModel extends SceneModel
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
+        public String getTag (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).tag;
+        }
+
+        @Override // documentation inherited
+        public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).handlers;
         }
 
         @Override // documentation inherited
@@ -762,6 +818,18 @@ public class TudeySceneModel extends SceneModel
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
+        public String getTag (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).tag;
+        }
+
+        @Override // documentation inherited
+        public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).handlers;
         }
 
         @Override // documentation inherited

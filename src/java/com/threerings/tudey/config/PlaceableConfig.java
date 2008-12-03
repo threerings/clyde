@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.config;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -93,6 +95,14 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
+        /** A tag to use to identify the placeable within the scene. */
+        @Editable
+        public String tag = "";
+
+        /** The area's event handlers. */
+        @Editable
+        public HandlerConfig[] handlers = new HandlerConfig[0];
+
         /**
          * Returns the placeable's collision flags.
          */
@@ -107,7 +117,8 @@ public class PlaceableConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return null;
+            return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
+                "com.threerings.tudey.server.logic.EntryLogic";
         }
 
         @Override // documentation inherited

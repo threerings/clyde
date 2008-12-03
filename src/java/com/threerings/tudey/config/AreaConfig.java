@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.config;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -77,8 +79,16 @@ public class AreaConfig extends ParameterizedConfig
     public static class Original extends Implementation
     {
         /** The color to use when showing this path in the scene editor. */
-        @Editable(mode="alpha")
+        @Editable(mode="alpha", hgroup="c")
         public Color4f color = new Color4f();
+
+        /** A tag to use to identify the area within the scene. */
+        @Editable(hgroup="c")
+        public String tag = "";
+
+        /** The area's event handlers. */
+        @Editable
+        public HandlerConfig[] handlers = new HandlerConfig[0];
 
         /**
          * Returns the name of the server-side logic class to use for the area, or
@@ -86,7 +96,8 @@ public class AreaConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return null;
+            return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
+                "com.threerings.tudey.server.logic.EntryLogic";
         }
 
         @Override // documentation inherited

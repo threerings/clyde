@@ -3,10 +3,13 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.ArrayList;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.ShapeElement;
@@ -31,6 +34,16 @@ public class ActorLogic extends Logic
         _shape.setUserObject(this);
         updateShape();
         _scenemgr.getActorSpace().add(_shape);
+
+        // create the handlers
+        ArrayList<HandlerLogic> handlers = new ArrayList<HandlerLogic>();
+        for (HandlerConfig hconfig : config.handlers) {
+            HandlerLogic handler = createHandler(hconfig, this);
+            if (handler != null) {
+                handlers.add(handler);
+            }
+        }
+        _handlers = handlers.toArray(new HandlerLogic[handlers.size()]);
 
         // give subclasses a chance to set up
         didInit();
@@ -83,6 +96,12 @@ public class ActorLogic extends Logic
     }
 
     @Override // documentation inherited
+    public String getTag ()
+    {
+        return _config.tag;
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _actor.getTranslation();
@@ -105,14 +124,6 @@ public class ActorLogic extends Logic
     }
 
     /**
-     * Override to perform custom initialization.
-     */
-    protected void didInit ()
-    {
-        // nothing by default
-    }
-
-    /**
      * Updates the shape transform based on the actor's position.
      */
     protected void updateShape ()
@@ -129,6 +140,30 @@ public class ActorLogic extends Logic
         // remove from space and logic mapping
         _scenemgr.getActorSpace().remove(_shape);
         _scenemgr.removeActorLogic(_actor.getId());
+
+        // notify the handlers
+        for (HandlerLogic handler : _handlers) {
+            handler.removed();
+        }
+
+        // give subclasses a chance to cleanup
+        wasRemoved();
+    }
+
+    /**
+     * Override to perform custom initialization.
+     */
+    protected void didInit ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Override to perform custom cleanup.
+     */
+    protected void wasRemoved ()
+    {
+        // nothing by default
     }
 
     /** The actor configuration. */
@@ -145,4 +180,7 @@ public class ActorLogic extends Logic
 
     /** The actor's shape element. */
     protected ShapeElement _shape;
+
+    /** The actor's event handlers. */
+    protected HandlerLogic[] _handlers;
 }

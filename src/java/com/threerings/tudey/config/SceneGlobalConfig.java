@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.config;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -64,13 +66,22 @@ public class SceneGlobalConfig extends ParameterizedConfig
      */
     public static abstract class Original extends Implementation
     {
+        /** A tag to use to identify the global within the scene. */
+        @Editable
+        public String tag = "";
+
+        /** The area's event handlers. */
+        @Editable
+        public HandlerConfig[] handlers = new HandlerConfig[0];
+
         /**
          * Returns the name of the server-side logic class to use for the global, or
          * <code>null</code> for none.
          */
         public String getLogicClassName ()
         {
-            return null;
+            return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
+                "com.threerings.tudey.server.logic.EntryLogic";
         }
 
         @Override // documentation inherited

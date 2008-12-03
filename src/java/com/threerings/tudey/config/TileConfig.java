@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.config;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -94,6 +96,14 @@ public class TileConfig extends ParameterizedConfig
         @Editable(width=4)
         public int[][] collisionFlags = new int[][] { { 0x01 } };
 
+        /** A tag to use to identify the tile within the scene. */
+        @Editable
+        public String tag = "";
+
+        /** The tile's event handlers. */
+        @Editable
+        public HandlerConfig[] handlers = new HandlerConfig[0];
+
         /**
          * Finds the transform of the tile at the specified coordinates.
          */
@@ -165,7 +175,8 @@ public class TileConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return null;
+            return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
+                "com.threerings.tudey.server.logic.EntryLogic";
         }
 
         @Override // documentation inherited

@@ -6,6 +6,7 @@ package com.threerings.tudey.server.logic;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActionConfig;
+import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 
 import static com.threerings.tudey.Log.*;
@@ -21,6 +22,14 @@ public abstract class Logic
     public void init (TudeySceneManager scenemgr)
     {
         _scenemgr = scenemgr;
+    }
+
+    /**
+     * Returns the tag for this logic, or the empty string for none.
+     */
+    public String getTag ()
+    {
+        return "";
     }
 
     /**
@@ -40,9 +49,29 @@ public abstract class Logic
     }
 
     /**
-     * Executes an action with this logic object as its source.
+     * Creates a handler with the supplied configuration and source.
      */
-    public ActionLogic execute (ActionConfig config, int timestamp)
+    protected HandlerLogic createHandler (HandlerConfig config, Logic source)
+    {
+        // create the logic class
+        HandlerLogic logic;
+        try {
+            logic = (HandlerLogic)Class.forName(config.getLogicClassName()).newInstance();
+        } catch (Exception e) {
+            log.warning("Failed to instantiate handler logic.",
+                "class", config.getLogicClassName(), e);
+            return null;
+        }
+
+        // initialize, return the logic
+        logic.init(_scenemgr, config, source);
+        return logic;
+    }
+
+    /**
+     * Creates an action with the supplied configuration and source.
+     */
+    protected ActionLogic createAction (ActionConfig config, Logic source)
     {
         // create the logic class
         ActionLogic logic;
@@ -55,7 +84,7 @@ public abstract class Logic
         }
 
         // initialize, return the logic
-        logic.init(_scenemgr, config, timestamp, this);
+        logic.init(_scenemgr, config, source);
         return logic;
     }
 

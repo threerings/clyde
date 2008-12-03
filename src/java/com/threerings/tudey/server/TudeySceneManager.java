@@ -6,10 +6,13 @@ package com.threerings.tudey.server;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.google.common.collect.Maps;
+
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.RunAnywhere;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.data.ClientObject;
 
@@ -37,6 +40,7 @@ import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.EffectLogic;
 import com.threerings.tudey.server.logic.EntryLogic;
+import com.threerings.tudey.server.logic.Logic;
 import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
@@ -112,6 +116,14 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns the list of logic objects with the supplied tag, or <code>null</code> for none.
+     */
+    public ArrayList<Logic> getTagged (String tag)
+    {
+        return _tagged.get(tag);
+    }
+
+    /**
      * Returns a reference to the actor space.
      */
     public HashSpace getActorSpace ()
@@ -175,6 +187,7 @@ public class TudeySceneManager extends SceneManager
         // initialize the logic and add it to the map
         logic.init(this, ref, original, ++_lastActorId, timestamp, translation, rotation);
         _actors.put(_lastActorId, logic);
+        addTagMapping(logic);
 
         return logic;
     }
@@ -277,7 +290,10 @@ public class TudeySceneManager extends SceneManager
      */
     public void removeActorLogic (int id)
     {
-        if (_actors.remove(id) == null) {
+        ActorLogic logic = _actors.remove(id);
+        if (logic != null) {
+            removeTagMapping(logic);
+        } else {
             log.warning("Missing actor to remove.", "where", where(), "id", id);
         }
     }
@@ -510,6 +526,7 @@ public class TudeySceneManager extends SceneManager
         }
         logic.init(this, entry);
         _entries.put(entry.getKey(), logic);
+        addTagMapping(logic);
     }
 
     /**
@@ -519,7 +536,43 @@ public class TudeySceneManager extends SceneManager
     {
         EntryLogic logic = _entries.remove(key);
         if (logic != null) {
+            removeTagMapping(logic);
             logic.removed();
+        }
+    }
+
+    /**
+     * Registers the specified logic object under its tag, if it has one.
+     */
+    public void addTagMapping (Logic logic)
+    {
+        String tag = logic.getTag();
+        if (StringUtil.isBlank(tag)) {
+            return;
+        }
+        ArrayList<Logic> list = _tagged.get(tag);
+        if (list == null) {
+            _tagged.put(tag, list = new ArrayList<Logic>());
+        }
+        list.add(logic);
+    }
+
+    /**
+     * Remove the specified logic object from the tag mapping.
+     */
+    public void removeTagMapping (Logic logic)
+    {
+        String tag = logic.getTag();
+        if (StringUtil.isBlank(tag)) {
+            return;
+        }
+        ArrayList<Logic> list = _tagged.get(tag);
+        if (list == null || !list.remove(logic)) {
+            log.warning("Missing tag mapping for logic.", "tag", tag, "logic", logic);
+            return;
+        }
+        if (list.isEmpty()) {
+            _tagged.remove(tag);
         }
     }
 
@@ -608,6 +661,9 @@ public class TudeySceneManager extends SceneManager
 
     /** Actor logic objects mapped by id. */
     protected HashIntMap<ActorLogic> _actors = new HashIntMap<ActorLogic>();
+
+    /** Maps tags to lists of logic objects with that tag. */
+    protected HashMap<String, ArrayList<Logic>> _tagged = Maps.newHashMap();
 
     /** The actor space.  Used to find the actors within a client's area of interest. */
     protected HashSpace _actorSpace = new HashSpace(64f, 6);
