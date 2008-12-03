@@ -82,6 +82,18 @@ public class ActorLogic extends Logic
         });
     }
 
+    @Override // documentation inherited
+    public Vector2f getTranslation ()
+    {
+        return _actor.getTranslation();
+    }
+
+    @Override // documentation inherited
+    public float getRotation ()
+    {
+        return _actor.getRotation();
+    }
+
     /**
      * Creates the actor object.
      */

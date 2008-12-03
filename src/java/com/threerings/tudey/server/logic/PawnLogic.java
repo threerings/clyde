@@ -12,6 +12,7 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.PawnAdvancer;
 
 /**
@@ -35,14 +36,8 @@ public class PawnLogic extends MobileLogic
             _advancer.advance(_input.remove(0));
         }
 
-        // advance to the current timestamp
-        _advancer.advance(timestamp);
-
-        // update the pawn's shape, notify any sensors
-        updateShape();
-        _scenemgr.triggerSensors(_shape.getWorldShape(), this);
-
-        return true;
+        // advance to the current timestamp, etc.
+        return super.tick(timestamp);
     }
 
     @Override // documentation inherited
@@ -54,13 +49,12 @@ public class PawnLogic extends MobileLogic
     }
 
     @Override // documentation inherited
-    protected void didInit ()
+    protected ActorAdvancer createAdvancer ()
     {
-        super.didInit();
-        _advancer = new PawnAdvancer(_scenemgr, (Pawn)_actor, _actor.getCreated());
+        return (_advancer = new PawnAdvancer(_scenemgr, (Pawn)_actor, _actor.getCreated()));
     }
 
-    /** Used to advance the state of the pawn. */
+    /** A casted reference to the advancer. */
     protected PawnAdvancer _advancer;
 
     /** The list of pending input frames for the pawn. */

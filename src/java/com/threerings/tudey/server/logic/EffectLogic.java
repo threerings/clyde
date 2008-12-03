@@ -47,6 +47,18 @@ public class EffectLogic extends Logic
         return _shape;
     }
 
+    @Override // documentation inherited
+    public Vector2f getTranslation ()
+    {
+        return _effect.getTranslation();
+    }
+
+    @Override // documentation inherited
+    public float getRotation ()
+    {
+        return _effect.getRotation();
+    }
+
     /**
      * Creates the effect for this logic.
      */

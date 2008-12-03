@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -23,6 +24,9 @@ import com.threerings.tudey.util.TudeyContext;
  */
 public class SceneGlobalConfig extends ParameterizedConfig
 {
+    /** Used when we can't resolve the global's underlying original implementation. */
+    public static final Original NULL_ORIGINAL = new EnvironmentModel();
+
     /**
      * Contains the actual implementation of the global.
      */
@@ -39,6 +43,11 @@ public class SceneGlobalConfig extends ParameterizedConfig
         }
 
         /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (ConfigManager cfgmgr);
+
+        /**
          * Creates or updates a sprite implementation for this configuration.
          *
          * @param scope the global's expression scope.
@@ -51,9 +60,30 @@ public class SceneGlobalConfig extends ParameterizedConfig
     }
 
     /**
+     * Superclass of the original implementations.
+     */
+    public static abstract class Original extends Implementation
+    {
+        /**
+         * Returns the name of the server-side logic class to use for the global, or
+         * <code>null</code> for none.
+         */
+        public String getLogicClassName ()
+        {
+            return null;
+        }
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
+        }
+    }
+
+    /**
      * A simple environment model.
      */
-    public static class EnvironmentModel extends Implementation
+    public static class EnvironmentModel extends Original
     {
         /** The model to load. */
         @Editable(nullable=true)
@@ -92,6 +122,13 @@ public class SceneGlobalConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
+            return (config == null) ? null : config.getOriginal(cfgmgr);
+        }
+
+        @Override // documentation inherited
         public GlobalSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
         {
@@ -104,6 +141,14 @@ public class SceneGlobalConfig extends ParameterizedConfig
     /** The actual global implementation. */
     @Editable
     public Implementation implementation = new EnvironmentModel();
+
+    /**
+     * Returns a reference to the config's underlying original implementation.
+     */
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+        return implementation.getOriginal(cfgmgr);
+    }
 
     /**
      * Creates or updates a sprite implementation for this configuration.

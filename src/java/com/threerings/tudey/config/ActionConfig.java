@@ -28,9 +28,9 @@ public abstract class ActionConfig extends DeepObject
         public ConfigReference<ActorConfig> actor;
 
         @Override // documentation inherited
-        public String getExecutorClassName ()
+        public String getLogicClassName ()
         {
-            return "";
+            return "com.threerings.tudey.server.logic.ActionLogic$SpawnActor";
         }
     }
 
@@ -44,9 +44,9 @@ public abstract class ActionConfig extends DeepObject
         public ConfigReference<EffectConfig> effect;
 
         @Override // documentation inherited
-        public String getExecutorClassName ()
+        public String getLogicClassName ()
         {
-            return "";
+            return "com.threerings.tudey.server.logic.ActionLogic$FireEffect";
         }
     }
 
@@ -60,14 +60,14 @@ public abstract class ActionConfig extends DeepObject
         public ActionConfig[] actions = new ActionConfig[0];
 
         @Override // documentation inherited
-        public String getExecutorClassName ()
+        public String getLogicClassName ()
         {
-            return "";
+            return "com.threerings.tudey.server.logic.ActionLogic$Compound";
         }
     }
 
     /**
-     * Returns the name of the server-side executor class for this action.
+     * Returns the name of the server-side logic class for this action.
      */
-    public abstract String getExecutorClassName ();
+    public abstract String getLogicClassName ();
 }

@@ -154,6 +154,22 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
+         * Returns the entry's approximate translation.
+         */
+        public Vector2f getTranslation (ConfigManager cfgmgr)
+        {
+            return Vector2f.ZERO;
+        }
+
+        /**
+         * Returns the entry's approximate rotation.
+         */
+        public float getRotation (ConfigManager cfgmgr)
+        {
+            return 0f;
+        }
+
+        /**
          * Transforms the entry.
          */
         public void transform (ConfigManager cfgmgr, Transform3D xform)
@@ -312,6 +328,20 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public Vector2f getTranslation (ConfigManager cfgmgr)
+        {
+            TileConfig.Original config = getConfig(cfgmgr);
+            return new Vector2f(
+                _location.x + getWidth(config) * 0.5f, _location.y + getHeight(config) * 0.5f);
+        }
+
+        @Override // documentation inherited
+        public float getRotation (ConfigManager cfgmgr)
+        {
+            return rotation * FloatMath.HALF_PI;
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             // update the elevation
@@ -412,9 +442,26 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public String getLogicClassName (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new GlobalSprite(ctx, view, this);
+        }
+
+        /**
+         * Returns the path config implementation.
+         */
+        protected SceneGlobalConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
+            SceneGlobalConfig.Original original = (config == null) ?
+                null : config.getOriginal(cfgmgr);
+            return (original == null) ? SceneGlobalConfig.NULL_ORIGINAL : original;
         }
     }
 
@@ -472,6 +519,21 @@ public class TudeySceneModel extends SceneModel
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
+        public Vector2f getTranslation (ConfigManager cfgmgr)
+        {
+            transform.update(Transform3D.RIGID);
+            Vector3f translation = transform.getTranslation();
+            return new Vector2f(translation.x, translation.y);
+        }
+
+        @Override // documentation inherited
+        public float getRotation (ConfigManager cfgmgr)
+        {
+            transform.update(Transform3D.RIGID);
+            return transform.getRotation().getRotationZ();
         }
 
         @Override // documentation inherited
@@ -569,6 +631,19 @@ public class TudeySceneModel extends SceneModel
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
+        public Vector2f getTranslation (ConfigManager cfgmgr)
+        {
+            return (vertices.length == 0) ? Vector2f.ZERO : vertices[0].createVector();
+        }
+
+        @Override // documentation inherited
+        public float getRotation (ConfigManager cfgmgr)
+        {
+            return (vertices.length < 2) ? 0f : FloatMath.atan2(
+                vertices[1].y - vertices[0].y, vertices[1].x - vertices[0].x);
         }
 
         @Override // documentation inherited
@@ -687,6 +762,19 @@ public class TudeySceneModel extends SceneModel
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
+        }
+
+        @Override // documentation inherited
+        public Vector2f getTranslation (ConfigManager cfgmgr)
+        {
+            if (vertices.length == 0) {
+                return Vector2f.ZERO;
+            }
+            Vector2f result = new Vector2f();
+            for (Vertex vertex : vertices) {
+                result.addLocal(vertex.x, vertex.y);
+            }
+            return result.multLocal(1f / vertices.length);
         }
 
         @Override // documentation inherited
