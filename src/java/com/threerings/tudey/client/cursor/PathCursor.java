@@ -126,9 +126,9 @@ public class PathCursor extends EntryCursor
                 PathSprite.EDGE_MODEL, _colorState);
             PathSprite.updateEdges(entry.vertices, _edges);
 
-            // update the footprint's elevation and shape
+            // update the footprint's elevation and shape (which also updates the bounds)
             _footprint.getTransform().getTranslation().z = minz;
-            _footprint.setShape(entry.createShape()); // this updates the bounds
+            _footprint.setShape(entry.createShape(_ctx.getConfigManager()));
         }
 
         @Override // documentation inherited

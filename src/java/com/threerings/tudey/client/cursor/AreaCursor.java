@@ -131,9 +131,9 @@ public class AreaCursor extends EntryCursor
             // and the area
             _area.setVertices(entry.vertices);
 
-            // update the footprint's elevation and shape
+            // update the footprint's elevation and shape (which also updates the bounds)
             _footprint.getTransform().getTranslation().z = minz;
-            _footprint.setShape(entry.createShape()); // this updates the bounds
+            _footprint.setShape(entry.createShape(_ctx.getConfigManager()));
         }
 
         @Override // documentation inherited

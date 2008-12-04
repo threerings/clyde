@@ -142,10 +142,10 @@ public class PathSprite extends EntrySprite
                 EDGE_MODEL, _colorState, _parentScope);
             updateEdges(entry.vertices, _edges);
 
-            // update the footprint's elevation and shape
+            // update the footprint's elevation and shape (which also updates the bounds)
             if (_footprint != null) {
                 _footprint.getTransform().getTranslation().z = minz;
-                _footprint.setShape(entry.createShape()); // this updates the bounds
+                _footprint.setShape(entry.createShape(_ctx.getConfigManager()));
             }
         }
 

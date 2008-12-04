@@ -79,6 +79,16 @@ public class Circle extends Shape
     }
 
     @Override // documentation inherited
+    public Shape expand (float amount, Shape result)
+    {
+        Circle cresult = (result instanceof Circle) ? ((Circle)result) : new Circle();
+        cresult.getCenter().set(_center);
+        cresult.radius = radius + amount;
+        cresult.updateBounds();
+        return cresult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_center, radius, result);

@@ -5,6 +5,8 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 
+import com.samskivert.util.ObserverList;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
@@ -12,6 +14,7 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 
 /**
@@ -113,6 +116,24 @@ public class ActorLogic extends Logic
         return _actor.getRotation();
     }
 
+    @Override // documentation inherited
+    public Shape getShape ()
+    {
+        return _shape.getWorldShape();
+    }
+
+    @Override // documentation inherited
+    public void addShapeObserver (ShapeObserver observer)
+    {
+        _shapeObservers.add(observer);
+    }
+
+    @Override // documentation inherited
+    public void removeShapeObserver (ShapeObserver observer)
+    {
+        _shapeObservers.remove(observer);
+    }
+
     /**
      * Creates the actor object.
      */
@@ -130,6 +151,9 @@ public class ActorLogic extends Logic
     {
         _shape.getTransform().set(_actor.getTranslation(), _actor.getRotation(), 1f);
         _shape.updateBounds();
+
+        // notify listeners
+        _shapeObservers.apply(_shapeUpdatedOp);
     }
 
     /**
@@ -183,4 +207,16 @@ public class ActorLogic extends Logic
 
     /** The actor's event handlers. */
     protected HandlerLogic[] _handlers;
+
+    /** The actor's shape observers. */
+    protected ObserverList<ShapeObserver> _shapeObservers = ObserverList.newFastUnsafe();
+
+    /** Used to notify observers of shape changes. */
+    protected ObserverList.ObserverOp<ShapeObserver> _shapeUpdatedOp =
+        new ObserverList.ObserverOp<ShapeObserver>() {
+        public boolean apply (ShapeObserver observer) {
+            observer.shapeUpdated(ActorLogic.this);
+            return true;
+        }
+    };
 }

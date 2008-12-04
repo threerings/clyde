@@ -178,6 +178,14 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
+         * Creates the shape for this entry, or returns <code>null</code> for none.
+         */
+        public Shape createShape (ConfigManager cfgmgr)
+        {
+            return null;
+        }
+
+        /**
          * Transforms the entry.
          */
         public void transform (ConfigManager cfgmgr, Transform3D xform)
@@ -359,6 +367,17 @@ public class TudeySceneModel extends SceneModel
         public float getRotation (ConfigManager cfgmgr)
         {
             return rotation * FloatMath.HALF_PI;
+        }
+
+        @Override // documentation inherited
+        public Shape createShape (ConfigManager cfgmgr)
+        {
+            TileConfig.Original config = getConfig(cfgmgr);
+            float lx = _location.x, ly = _location.y;
+            float ux = lx + getWidth(config), uy = ly + getHeight(config);
+            return new Polygon(
+                new Vector2f(lx, ly), new Vector2f(ux, ly),
+                new Vector2f(ux, uy), new Vector2f(lx, uy));
         }
 
         @Override // documentation inherited
@@ -581,6 +600,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public Shape createShape (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).shape.getShape().transform(new Transform2D(transform));
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             xform.compose(transform, transform);
@@ -635,18 +660,6 @@ public class TudeySceneModel extends SceneModel
         /** The path vertices. */
         @Editable
         public Vertex[] vertices = new Vertex[0];
-
-        /**
-         * Creates the shape for this path.
-         */
-        public Shape createShape ()
-        {
-            switch (vertices.length) {
-                case 0: return null;
-                case 1: return new Point(vertices[0].createVector());
-                default: return createShape(0, vertices.length - 1);
-            }
-        }
 
         @Override // documentation inherited
         public void setReference (ConfigReference reference)
@@ -703,6 +716,16 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public Shape createShape (ConfigManager cfgmgr)
+        {
+            switch (vertices.length) {
+                case 0: return null;
+                case 1: return new Point(vertices[0].createVector());
+                default: return createShape(0, vertices.length - 1);
+            }
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
@@ -714,7 +737,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
-            Shape shape = createShape();
+            Shape shape = createShape(cfgmgr);
             if (shape == null) {
                 return null;
             }
@@ -771,26 +794,6 @@ public class TudeySceneModel extends SceneModel
         @Editable
         public Vertex[] vertices = new Vertex[0];
 
-        /**
-         * Creates the shape for this area.
-         */
-        public Shape createShape ()
-        {
-            switch (vertices.length) {
-                case 0: return null;
-                case 1: return new Point(vertices[0].createVector());
-                case 2: return new Segment(vertices[0].createVector(), vertices[1].createVector());
-                default:
-                    Vector2f[] vectors = new Vector2f[vertices.length];
-                    boolean reversed = isReversed();
-                    for (int ii = 0; ii < vectors.length; ii++) {
-                        int idx = reversed ? (vectors.length - ii - 1) : ii;
-                        vectors[ii] = vertices[idx].createVector();
-                    }
-                    return new Polygon(vectors);
-            }
-        }
-
         @Override // documentation inherited
         public void setReference (ConfigReference reference)
         {
@@ -846,6 +849,24 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public Shape createShape (ConfigManager cfgmgr)
+        {
+            switch (vertices.length) {
+                case 0: return null;
+                case 1: return new Point(vertices[0].createVector());
+                case 2: return new Segment(vertices[0].createVector(), vertices[1].createVector());
+                default:
+                    Vector2f[] vectors = new Vector2f[vertices.length];
+                    boolean reversed = isReversed();
+                    for (int ii = 0; ii < vectors.length; ii++) {
+                        int idx = reversed ? (vectors.length - ii - 1) : ii;
+                        vectors[ii] = vertices[idx].createVector();
+                    }
+                    return new Polygon(vectors);
+            }
+        }
+
+        @Override // documentation inherited
         public void transform (ConfigManager cfgmgr, Transform3D xform)
         {
             Matrix4f matrix = xform.update(Transform3D.AFFINE).getMatrix();
@@ -857,7 +878,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
-            Shape shape = createShape();
+            Shape shape = createShape(cfgmgr);
             if (shape == null) {
                 return null;
             }

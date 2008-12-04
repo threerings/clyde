@@ -111,6 +111,47 @@ public class Polygon extends Shape
     }
 
     @Override // documentation inherited
+    public Shape expand (float amount, Shape result)
+    {
+        Polygon presult = (result instanceof Polygon) ?
+            ((Polygon)result) : new Polygon(_vertices.length);
+        if (presult.getVertexCount() != _vertices.length) {
+            presult.initVertices(_vertices.length);
+        }
+        // first compute the vertex normals and store them in the result
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f current = _vertices[ii];
+            Vector2f next = _vertices[(ii + 1) % _vertices.length];
+            Vector2f prev = _vertices[(ii + _vertices.length - 1) % _vertices.length];
+            float nx = next.y - current.y, ny = current.x - next.x;
+            float nl = FloatMath.hypot(nx, ny);
+            float px = current.y - prev.y, py = prev.x - current.x;
+            float pl = FloatMath.hypot(px, py);
+            if (nl < FloatMath.EPSILON) {
+                if (pl < FloatMath.EPSILON) {
+                    presult._vertices[ii].set(Vector2f.ZERO);
+                } else {
+                    presult._vertices[ii].set(px, py).multLocal(1f / pl);
+                }
+            } else {
+                if (pl < FloatMath.EPSILON) {
+                    presult._vertices[ii].set(nx, ny).multLocal(1f / nl);
+                } else {
+                    float rnl = 1f / nl, rpl = 1f / pl;
+                    presult._vertices[ii].set(nx*rnl + px*rpl, ny*rnl + py*rpl).normalizeLocal();
+                }
+            }
+        }
+        // then add the scaled normals to the vertices
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f rvert = presult._vertices[ii];
+            _vertices[ii].addScaled(rvert, amount, rvert);
+        }
+        presult.updateBounds();
+        return presult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         // see if we start inside the polygon

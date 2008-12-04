@@ -11,6 +11,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * A logic object associated with a scene entry.
@@ -28,6 +29,7 @@ public class EntryLogic extends Logic
         _translation = entry.getTranslation(cfgmgr);
         _rotation = entry.getRotation(cfgmgr);
         _tag = entry.getTag(cfgmgr);
+        _shape = entry.createShape(cfgmgr);
 
         // create the handler logic objects
         ArrayList<HandlerLogic> handlers = new ArrayList<HandlerLogic>();
@@ -75,6 +77,12 @@ public class EntryLogic extends Logic
         return _rotation;
     }
 
+    @Override // documentation inherited
+    public Shape getShape ()
+    {
+        return _shape;
+    }
+
     /**
      * Override to perform custom initialization.
      */
@@ -102,6 +110,9 @@ public class EntryLogic extends Logic
 
     /** The entry's approximate rotation. */
     protected float _rotation;
+
+    /** The entry's shape. */
+    protected Shape _shape;
 
     /** The entry's event handlers. */
     protected HandlerLogic[] _handlers;

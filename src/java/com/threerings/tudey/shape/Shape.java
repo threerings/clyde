@@ -79,6 +79,34 @@ public abstract class Shape
     public abstract Shape transform (Transform2D transform, Shape result);
 
     /**
+     * Expands this shape in-place by the specified amount.
+     *
+     * @return a reference to this shape, for chaining.
+     */
+    public Shape expandLocal (float amount)
+    {
+        return expand(amount, this);
+    }
+
+    /**
+     * Expands this shape by the specified amount.
+     *
+     * @return a new shape containing the result.
+     */
+    public Shape expand (float amount)
+    {
+        return expand(amount, null);
+    }
+
+    /**
+     * Expands this shape, placing the result in the provided object if possible.
+     *
+     * @return a reference to the result object, if it was reused; otherwise, a new object
+     * containing the result.
+     */
+    public abstract Shape expand (float amount, Shape result);
+
+    /**
      * Finds the intersection of a ray with this shape and places it in the supplied vector
      * (if it exists).
      *

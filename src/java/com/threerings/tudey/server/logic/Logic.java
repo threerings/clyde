@@ -8,6 +8,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
 
 import static com.threerings.tudey.Log.*;
 
@@ -16,6 +17,18 @@ import static com.threerings.tudey.Log.*;
  */
 public abstract class Logic
 {
+    /**
+     * An interface for objects interested in updates to the logic's shape (as returned by
+     * {@link #getShape}).
+     */
+    public interface ShapeObserver
+    {
+        /**
+         * Notes that the logic's shape has been updated.
+         */
+        public void shapeUpdated (Logic source);
+    }
+
     /**
      * Initializes the logic.
      */
@@ -46,6 +59,30 @@ public abstract class Logic
     public float getRotation ()
     {
         return 0f;
+    }
+
+    /**
+     * Returns a reference to this logic's shape, or returns <code>null</code> for none.
+     */
+    public Shape getShape ()
+    {
+        return null;
+    }
+
+    /**
+     * Adds an observer for changes to the logic's shape.
+     */
+    public void addShapeObserver (ShapeObserver observer)
+    {
+        // nothing by default; the shape never changes
+    }
+
+    /**
+     * Removes a shape observer.
+     */
+    public void removeShapeObserver (ShapeObserver observer)
+    {
+        // nothing by default
     }
 
     /**

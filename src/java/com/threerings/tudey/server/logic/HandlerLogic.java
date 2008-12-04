@@ -9,6 +9,8 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.shape.ShapeElement;
 
 /**
  * Handles the server-side processing for an event handler type.
@@ -82,22 +84,51 @@ public abstract class HandlerLogic extends Logic
      * Handles the intersection event.
      */
     public static class Intersection extends HandlerLogic
-        implements TudeySceneManager.Sensor
+        implements TudeySceneManager.Sensor, ShapeObserver
     {
         // documentation inherited from interface TudeySceneManager.Sensor
         public void trigger (ActorLogic actor)
         {
+            execute(_scenemgr.getTimestamp());
+        }
+
+        // documentation inherited from interface ShapeObserver
+        public void shapeUpdated (Logic source)
+        {
+            Shape shape = _source.getShape();
+            float expansion = ((HandlerConfig.Intersection)_config).expansion;
+            _shape.setLocalShape(expansion == 0f ?
+                shape : shape.expand(expansion, _shape.getLocalShape()));
         }
 
         @Override // documentation inherited
         protected void didInit ()
         {
+            Shape shape = _source.getShape();
+            if (shape == null) {
+                return;
+            }
+            float expansion = ((HandlerConfig.Intersection)_config).expansion;
+            if (expansion != 0f) {
+                shape = shape.expand(expansion);
+            }
+            _shape = new ShapeElement(shape);
+            _shape.setUserObject(this);
+            _scenemgr.getSensorSpace().add(_shape);
+            _source.addShapeObserver(this);
         }
 
         @Override // documentation inherited
         protected void wasRemoved ()
         {
+            if (_shape != null) {
+                _scenemgr.getSensorSpace().remove(_shape);
+                _source.removeShapeObserver(this);
+            }
         }
+
+        /** The shape element in the sensor space. */
+        protected ShapeElement _shape;
     }
 
     /**

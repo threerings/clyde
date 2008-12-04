@@ -110,6 +110,17 @@ public class Segment extends Shape
     }
 
     @Override // documentation inherited
+    public Shape expand (float amount, Shape result)
+    {
+        Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+        cresult.getStart().set(_start);
+        cresult.getEnd().set(_end);
+        cresult.radius = amount;
+        cresult.updateBounds();
+        return cresult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_start, _end, result);
