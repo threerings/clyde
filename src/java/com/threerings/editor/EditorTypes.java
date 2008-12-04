@@ -22,6 +22,9 @@ public @interface EditorTypes
     /** The subtypes from which to choose. */
     Class[] value ();
 
+    /** An optional configuration key whose value represents other available classes. */
+    String key () default "";
+
     /** The label to use for the type chooser. */
     String label () default DEFAULT_LABEL;
 }

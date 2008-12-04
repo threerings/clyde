@@ -15,10 +15,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import com.samskivert.util.ClassUtil;
+import com.samskivert.util.Config;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
@@ -476,20 +480,44 @@ public abstract class Property extends DeepObject
      */
     protected Class[] getSubtypes (Class<?> type)
     {
-        // if there's no editor types annotation, just use the type itself
+        ArrayList<Class> types = new ArrayList<Class>();
+
+        // start with the null class, if allowed
         boolean nullable = getAnnotation().nullable();
-        EditorTypes annotation = getEditorTypes(type);
-        if (annotation == null) {
-            return nullable ? new Class[] { null, type } : new Class[] { type };
+        if (nullable) {
+            types.add(null);
         }
-        // prepend the null class if the property is nullable
-        Class[] types = annotation.value();
-        if (!nullable) {
-            return types;
+
+        // look for a subtype annotation and add its types
+        EditorTypes ownAnnotation = getAnnotation(EditorTypes.class);
+        EditorTypes annotation = (ownAnnotation == null) ?
+            type.getAnnotation(EditorTypes.class) : ownAnnotation;
+        if (annotation != null) {
+            Collections.addAll(types, annotation.value());
         }
-        Class[] ntypes = new Class[types.length + 1];
-        System.arraycopy(types, 0, ntypes, 1, types.length);
-        return ntypes;
+
+        // get the config key and add the config types
+        String key = (annotation == null) ? type.getName() : annotation.key();
+        if (StringUtil.isBlank(key)) {
+            if (annotation == ownAnnotation) {
+                Member member = getMember();
+                key = member.getDeclaringClass().getName() + "." + member.getName();
+            } else {
+                key = type.getName();
+            }
+        }
+        Class[] ctypes = _configTypes.get(key);
+        if (ctypes != null) {
+            Collections.addAll(types, ctypes);
+        }
+
+        // if we don't have at least one non-null class, add the type itself
+        if (types.size() == (nullable ? 1 : 0)) {
+            types.add(type);
+        }
+
+        // convert to array, return
+        return types.toArray(new Class[types.size()]);
     }
 
     /**
@@ -607,4 +635,24 @@ public abstract class Property extends DeepObject
     /** Cached generic argument types. */
     @DeepOmit
     protected HashMap<Class, Type[]> _genericArgumentTypes;
+
+    /** Class lists read from the type configuration. */
+    protected static HashMap<String, Class[]> _configTypes = new HashMap<String, Class[]>();
+
+    static {
+        // load the types from the configuration
+        Config config = new Config("/rsrc/config/editor/type");
+        for (Iterator<String> it = config.keys(); it.hasNext(); ) {
+            String key = it.next();
+            ArrayList<Class> classes = new ArrayList<Class>();
+            for (String cname : config.getValue(key, new String[0])) {
+                try {
+                    classes.add(Class.forName(cname));
+                } catch (ClassNotFoundException e) {
+                    log.warning("Missing type config class.", "class", cname, e);
+                }
+            }
+            _configTypes.put(key, classes.toArray(new Class[classes.size()]));
+        }
+    }
 }
