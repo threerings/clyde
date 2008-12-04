@@ -11,7 +11,9 @@ import com.google.common.collect.Maps;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.Queue;
 import com.samskivert.util.RunAnywhere;
+import com.samskivert.util.RunQueue;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.data.ClientObject;
@@ -54,7 +56,7 @@ import static com.threerings.tudey.Log.*;
  * Manager for Tudey scenes.
  */
 public class TudeySceneManager extends SceneManager
-    implements TudeySceneProvider, TudeySceneModel.Observer, ActorAdvancer.Environment
+    implements TudeySceneProvider, TudeySceneModel.Observer, ActorAdvancer.Environment, RunQueue
 {
     /**
      * An interface for objects that take part in the server tick.
@@ -415,6 +417,24 @@ public class TudeySceneManager extends SceneManager
         return !result.equals(Vector2f.ZERO);
     }
 
+    // documentation inherited from interface RunQueue
+    public void postRunnable (Runnable runnable)
+    {
+        _runnables.append(runnable);
+    }
+
+    // documentation inherited from interface RunQueue
+    public boolean isDispatchThread ()
+    {
+        return _omgr.isDispatchThread();
+    }
+
+    // documentation inherited from interface RunQueue
+    public boolean isRunning ()
+    {
+        return _ticker != null;
+    }
+
     @Override // documentation inherited
     protected PlaceObject createPlaceObject ()
     {
@@ -473,7 +493,6 @@ public class TudeySceneManager extends SceneManager
         // add the pawn and fill in its id
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
         if (ref != null) {
-            spawnActor(_timestamp + getTickInterval(), new Vector2f(1f, 1f), 0f, ref);
             ActorLogic logic = spawnActor(_timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
             if (logic != null) {
                 ((TudeyOccupantInfo)info).pawnId = logic.getActor().getId();
@@ -590,6 +609,12 @@ public class TudeySceneManager extends SceneManager
         _tickOp.init(_timestamp);
         _tickParticipants.apply(_tickOp);
 
+        // process the runnables in the queue
+        Runnable runnable;
+        while ((runnable = _runnables.getNonBlocking()) != null) {
+            runnable.run();
+        }
+
         // post deltas for all clients
         for (ClientLiaison client : _clients.values()) {
             client.postDelta();
@@ -673,6 +698,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The logic for effects fired on the current tick. */
     protected ArrayList<EffectLogic> _effectsFired = new ArrayList<EffectLogic>();
+
+    /** Runnables enqueued for the next tick. */
+    protected Queue<Runnable> _runnables = Queue.newQueue();
 
     /** Holds collected elements during queries. */
     protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();

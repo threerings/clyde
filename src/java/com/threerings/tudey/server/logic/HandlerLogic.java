@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.server.logic;
 
+import com.samskivert.util.Interval;
+
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.HandlerConfig;
@@ -48,6 +50,53 @@ public abstract class HandlerLogic extends Logic
         protected void wasRemoved ()
         {
             _scenemgr.removeTickParticipant(this);
+        }
+    }
+
+    /**
+     * Handles the timer event.
+     */
+    public static class Timer extends HandlerLogic
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            (_interval = new Interval(_scenemgr) {
+                public void expired () {
+                    execute(_scenemgr.getTimestamp());
+                }
+            }).schedule((long)(((HandlerConfig.Timer)_config).interval * 1000f), true);
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            _interval.cancel();
+        }
+
+        /** The timer interval. */
+        protected Interval _interval;
+    }
+
+    /**
+     * Handles the intersection event.
+     */
+    public static class Intersection extends HandlerLogic
+        implements TudeySceneManager.Sensor
+    {
+        // documentation inherited from interface TudeySceneManager.Sensor
+        public void trigger (ActorLogic actor)
+        {
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
         }
     }
 

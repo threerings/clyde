@@ -11,7 +11,9 @@ import com.threerings.util.DeepObject;
 /**
  * Configurations for server-side event handlers.
  */
-@EditorTypes({ HandlerConfig.Startup.class, HandlerConfig.Tick.class })
+@EditorTypes({
+    HandlerConfig.Startup.class, HandlerConfig.Tick.class,
+    HandlerConfig.Timer.class, HandlerConfig.Intersection.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -39,9 +41,41 @@ public abstract class HandlerConfig extends DeepObject
         }
     }
 
+    /**
+     * The timer event handler.
+     */
+    public static class Timer extends HandlerConfig
+    {
+        /** The timer interval, in seconds. */
+        @Editable(min=0.0, step=0.1)
+        public float interval = 1f;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$Timer";
+        }
+    }
+
+    /**
+     * The intersection event handler.
+     */
+    public static class Intersection extends HandlerConfig
+    {
+        /** The amount to expand the intersection shape. */
+        @Editable(step=0.01)
+        public float expansion;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$Intersection";
+        }
+    }
+
     /** The action to take in response to the event. */
-    @Editable(nullable=true)
-    public ActionConfig action;
+    @Editable
+    public ActionConfig action = new ActionConfig.SpawnActor();
 
     /**
      * Returns the name of the server-side logic class for this handler.
