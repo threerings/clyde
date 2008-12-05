@@ -33,7 +33,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.InputFrame;
-import com.threerings.tudey.data.TudeyOccupantInfo;
+import com.threerings.tudey.data.TudeySceneLocal;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -312,6 +312,27 @@ public class TudeySceneManager extends SceneManager
         _elements.clear();
     }
 
+    @Override // from PlaceManager
+    public void bodyWillEnter (BodyObject body)
+    {
+        // add the pawn and configure a local to provide its id
+        ConfigReference<ActorConfig> ref = getPawnConfig(body);
+        if (ref != null) {
+            final ActorLogic logic = spawnActor(
+                _timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
+            if (logic != null) {
+                body.setLocal(TudeySceneLocal.class, new TudeySceneLocal() {
+                    public int getPawnId () {
+                        return logic.getActor().getId();
+                    }
+                });
+            }
+        }
+
+        // now let the body actually enter the scene
+        super.bodyWillEnter(body);
+    }
+
     // documentation inherited from interface TudeySceneProvider
     public void enqueueInput (
         ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
@@ -485,20 +506,6 @@ public class TudeySceneManager extends SceneManager
 
         // stop listening to the scene model
         ((TudeySceneModel)_scene.getSceneModel()).removeObserver(this);
-    }
-
-    @Override // documentation inherited
-    protected void insertOccupantInfo (OccupantInfo info, BodyObject body)
-    {
-        // add the pawn and fill in its id
-        ConfigReference<ActorConfig> ref = getPawnConfig(body);
-        if (ref != null) {
-            ActorLogic logic = spawnActor(_timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
-            if (logic != null) {
-                ((TudeyOccupantInfo)info).pawnId = logic.getActor().getId();
-            }
-        }
-        super.insertOccupantInfo(info, body);
     }
 
     @Override // documentation inherited
