@@ -3,127 +3,192 @@
 
 package com.threerings.opengl.material;
 
-import java.nio.Buffer;
-import java.nio.FloatBuffer;
-import java.util.IdentityHashMap;
+import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigUpdateListener;
+import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
+import com.threerings.expr.Scoped;
+import com.threerings.expr.SimpleScope;
+import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Matrix4f;
 
-import org.lwjgl.BufferUtils;
-
-import com.threerings.opengl.renderer.ClientArray;
-import com.threerings.opengl.renderer.Program.Uniform;
-import com.threerings.opengl.renderer.state.ArrayState;
-import com.threerings.opengl.renderer.state.ShaderState;
+import com.threerings.opengl.compositor.RenderQueue;
+import com.threerings.opengl.geometry.Geometry;
+import com.threerings.opengl.geometry.config.GeometryConfig;
+import com.threerings.opengl.geometry.config.PassDescriptor;
+import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.material.config.PassConfig;
+import com.threerings.opengl.material.config.TechniqueConfig;
+import com.threerings.opengl.material.config.TechniqueConfig.NormalEnqueuer;
+import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
+import static com.threerings.opengl.Log.*;
+
 /**
- * Represents an instance of a mesh using a material.
+ * A renderable surface.
  */
-public abstract class Surface
-    implements Renderable, Cloneable
+public class Surface extends SimpleScope
+    implements Renderable, ConfigUpdateListener<MaterialConfig>
 {
     /**
-     * Sets the host of the surface, which provides access to the parameters that determine how
-     * the surface will be rendered.
+     * Creates a new surface.
      */
-    public abstract void setHost (SurfaceHost host);
+    public Surface (
+        GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
+        MaterialConfig materialConfig)
+    {
+        this(ctx, parentScope, geometryConfig, materialConfig, ctx.getCompositor().getGroup());
+    }
 
     /**
-     * Updates the surface to reflect a change in the parameters of its host.
+     * Creates a new surface.
      */
-    public abstract void update ();
+    public Surface (
+        GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
+        MaterialConfig materialConfig, RenderQueue.Group group)
+    {
+        this(ctx, parentScope, geometryConfig, materialConfig, null, group);
+    }
 
     /**
-     * Enqueues this surface for rendering.
+     * Creates a new surface.
      */
-    public abstract void enqueue ();
+    public Surface (
+        GlContext ctx, Scope parentScope, Geometry geometry, MaterialConfig materialConfig)
+    {
+        this(ctx, parentScope, geometry, materialConfig, ctx.getCompositor().getGroup());
+    }
+
+    /**
+     * Creates a new surface.
+     */
+    public Surface (
+        GlContext ctx, Scope parentScope, Geometry geometry,
+        MaterialConfig materialConfig, RenderQueue.Group group)
+    {
+        this(ctx, parentScope, null, materialConfig, geometry, group);
+    }
+
+    /**
+     * Sets the material configuration of this surface.
+     */
+    public void setMaterialConfig (MaterialConfig config)
+    {
+        if (_materialConfig != null) {
+            _materialConfig.removeListener(this);
+        }
+        if ((_materialConfig = config) != null) {
+            _materialConfig.addListener(this);
+        }
+        updateFromConfigs();
+    }
+
+    /**
+     * Returns a reference to this surface's material configuration.
+     */
+    public MaterialConfig getMaterialConfig ()
+    {
+        return _materialConfig;
+    }
+
+    // documentation inherited from interface Renderable
+    public void enqueue ()
+    {
+        _renderable.enqueue();
+    }
+
+    // documentation inherited from interface ConfigUpdateListener
+    public void configUpdated (ConfigEvent<MaterialConfig> event)
+    {
+        updateFromConfigs();
+    }
 
     @Override // documentation inherited
-    public Object clone ()
+    public String getScopeName ()
     {
-        try {
-            return super.clone();
-        } catch (CloneNotSupportedException e) {
-            return null; // should never happen
+        return "surface";
+    }
+
+    @Override // documentation inherited
+    public void scopeUpdated (ScopeEvent event)
+    {
+        super.scopeUpdated(event);
+        updateFromConfigs();
+    }
+
+    @Override // documentation inherited
+    public void dispose ()
+    {
+        super.dispose();
+        if (_materialConfig != null) {
+            _materialConfig.removeListener(this);
         }
     }
 
     /**
-     * Creates a new shader state with cloned uniforms.
+     * Creates a new surface.
      */
-    protected static ShaderState copyShaderState (ShaderState sstate)
+    protected Surface (
+        GlContext ctx, Scope parentScope, GeometryConfig geometryConfig,
+        MaterialConfig materialConfig, Geometry geometry, RenderQueue.Group group)
     {
-        Uniform[] uniforms = sstate.getUniforms();
-        Uniform[] cuniforms = null;
-        if (uniforms != null) {
-            cuniforms = new Uniform[uniforms.length];
-            for (int ii = 0; ii < uniforms.length; ii++) {
-                cuniforms[ii] = uniforms[ii].clone(null);
-            }
-        }
-        return new ShaderState(sstate.getProgram(), cuniforms);
+        super(parentScope);
+        _ctx = ctx;
+        _geometryConfig = geometryConfig;
+        _geometry = geometry;
+        _group = group;
+
+        setMaterialConfig(materialConfig);
     }
 
     /**
-     * Creates a new array state with cloned vertex buffers.
+     * Updates the surface to match its new or modified configurations.
      */
-    protected static ArrayState copyArrayState (ArrayState astate)
+    protected void updateFromConfigs ()
     {
-        IdentityHashMap<Buffer, Buffer> copies = new IdentityHashMap<Buffer, Buffer>();
-        return new ArrayState(
-            astate.getFirstVertexAttribIndex(),
-            copyArrays(astate.getVertexAttribArrays(), copies),
-            copyArrays(astate.getTexCoordArrays(), copies),
-            copyArray(astate.getColorArray(), copies),
-            copyArray(astate.getNormalArray(), copies),
-            copyArray(astate.getVertexArray(), copies),
-            astate.getElementArrayBuffer());
+        String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
+        TechniqueConfig technique = (_materialConfig == null) ?
+            BLANK_TECHNIQUE : _materialConfig.getTechnique(_ctx, scheme);
+        if (technique == null) {
+            log.warning("No technique available to render material.",
+                "material", _materialConfig.getName(), "scheme", scheme);
+            technique = BLANK_TECHNIQUE;
+        }
+        if (_geometryConfig != null) {
+            PassDescriptor[] passes = technique.getDescriptors(_ctx);
+            _geometry = _geometryConfig.createGeometry(_ctx, this, technique.deformer, passes);
+        }
+        _boneMatrices = _geometry.getBoneMatrices();
+        _renderable = technique.createRenderable(_ctx, this, _geometry, _group);
     }
 
-    /**
-     * Copies the provided arrays, making sure that shared buffers are shared in the copy as well.
-     */
-    protected static ClientArray[] copyArrays (
-        ClientArray[] arrays, IdentityHashMap<Buffer, Buffer> copies)
-    {
-        if (arrays == null) {
-            return null;
-        }
-        ClientArray[] carrays = new ClientArray[arrays.length];
-        for (int ii = 0; ii < arrays.length; ii++) {
-            carrays[ii] = copyArray(arrays[ii], copies);
-        }
-        return carrays;
-    }
+    /** The application context. */
+    protected GlContext _ctx;
 
-    /**
-     * Copies the provided array, making sure that shared buffers are shared in the copy as well.
-     */
-    protected static ClientArray copyArray (
-        ClientArray array, IdentityHashMap<Buffer, Buffer> copies)
-    {
-        if (array == null) {
-            return null;
-        }
-        ClientArray carray = new ClientArray();
-        carray.set(array);
-        if (array.floatArray != null) {
-            carray.floatArray = copyBuffer(array.floatArray, copies);
-        }
-        return carray;
-    }
+    /** The configuration of the surface geometry (or null, if the geometry didn't come from a
+     * config). */
+    protected GeometryConfig _geometryConfig;
 
-    /**
-     * Copies the provided buffer.
-     */
-    protected static FloatBuffer copyBuffer (
-        FloatBuffer buffer, IdentityHashMap<Buffer, Buffer> copies)
-    {
-        FloatBuffer copy = (FloatBuffer)copies.get(buffer);
-        if (copy == null) {
-            copies.put(buffer, copy = BufferUtils.createFloatBuffer(buffer.remaining()));
-            copy.put(buffer).rewind();
-            buffer.rewind();
-        }
-        return copy;
+    /** The configuration of the surface material. */
+    protected MaterialConfig _materialConfig;
+
+    /** The bone matrices, if any. */
+    @Scoped
+    protected Matrix4f[] _boneMatrices;
+
+    /** The surface geometry. */
+    protected Geometry _geometry;
+
+    /** The group into which we enqueue our batches. */
+    protected RenderQueue.Group _group;
+
+    /** The renderable created from the configs. */
+    protected Renderable _renderable;
+
+    /** A technique that renders the material as blank. */
+    protected static final TechniqueConfig BLANK_TECHNIQUE = new TechniqueConfig();
+    static {
+        ((NormalEnqueuer)BLANK_TECHNIQUE.enqueuer).passes = new PassConfig[] { new PassConfig() };
     }
 }

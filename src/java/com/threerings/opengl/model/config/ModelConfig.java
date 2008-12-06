@@ -32,7 +32,7 @@ import com.threerings.opengl.effect.config.MetaParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.material.config.MaterialConfig;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.model.tools.xml.ModelParser;

@@ -16,7 +16,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.Scene;
 

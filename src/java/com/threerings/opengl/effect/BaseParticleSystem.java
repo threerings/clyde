@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.eff;
+package com.threerings.opengl.effect;
 
 import java.util.IdentityHashMap;
 
@@ -18,9 +18,8 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.camera.Camera;
-import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.config.BaseParticleSystemConfig;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;

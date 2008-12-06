@@ -6,7 +6,7 @@ package com.threerings.opengl.scene.config;
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.ViewerAffecter;
 import com.threerings.opengl.util.GlContext;

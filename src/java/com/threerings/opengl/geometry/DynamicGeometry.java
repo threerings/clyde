@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.geom;
+package com.threerings.opengl.geometry;
 
 import java.nio.FloatBuffer;
 

@@ -108,27 +108,9 @@ public abstract class GlContextWrapper
     }
 
     // documentation inherited from interface GlContext
-    public TextureCache getTextureCache ()
-    {
-        return _wrapped.getTextureCache();
-    }
-
-    // documentation inherited from interface GlContext
     public ShaderCache getShaderCache ()
     {
         return _wrapped.getShaderCache();
-    }
-
-    // documentation inherited from interface GlContext
-    public MaterialCache getMaterialCache ()
-    {
-        return _wrapped.getMaterialCache();
-    }
-
-    // documentation inherited from interface GlContext
-    public ModelCache getModelCache ()
-    {
-        return _wrapped.getModelCache();
     }
 
     /** The wrapped context. */

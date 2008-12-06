@@ -3,24 +3,24 @@
 
 package com.threerings.opengl.model;
 
-import com.threerings.opengl.model.ArticulatedModel.AnimationTrack;
-
 /**
  * Notifies observers when animations complete or are cancelled.
  */
 public interface AnimationObserver
 {
     /**
-     * Notifies the observer that the animation has been cancelled.
+     * Notes that an animation has started.
      *
      * @return true to keep the observer in the list, false to remove it.
      */
-    public boolean animationCancelled (AnimationTrack track);
+    public boolean animationStarted (Animation animation);
 
     /**
-     * Notifies the observer that the animation has completed.
+     * Notifies the observer that the animation has stopped.
      *
+     * @param completed whether or not the animation ran to completion (as opposed to being
+     * cancelled).
      * @return true to keep the observer in the list, false to remove it.
      */
-    public boolean animationCompleted (AnimationTrack track);
+    public boolean animationStopped (Animation animation, boolean completed);
 }

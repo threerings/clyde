@@ -33,7 +33,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.IdentityKey;
 import com.threerings.util.Shallow;
 
-import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.geometry.util.GeometryUtil;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
 import com.threerings.opengl.renderer.config.CoordSpace;

@@ -27,8 +27,6 @@ import com.threerings.util.KeyTranslatorImpl;
 
 import com.threerings.math.Ray3D;
 
-import com.threerings.opengl.camera.CameraHandler;
-import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;

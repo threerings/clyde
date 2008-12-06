@@ -10,7 +10,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.compositor.RenderScheme;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;

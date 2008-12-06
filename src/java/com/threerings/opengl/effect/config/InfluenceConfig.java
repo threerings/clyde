@@ -13,8 +13,8 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.NoiseUtil;
 
-import com.threerings.opengl.eff.Influence;
-import com.threerings.opengl.eff.BaseParticleSystem.Layer;
+import com.threerings.opengl.effect.BaseParticleSystem.Layer;
+import com.threerings.opengl.effect.Influence;
 import com.threerings.opengl.effect.Particle;
 
 /**

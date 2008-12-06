@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.eff;
+package com.threerings.opengl.effect;
 
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
@@ -12,12 +12,10 @@ import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.effect.AlphaMode;
-import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.config.BaseParticleSystemConfig;
 import com.threerings.opengl.effect.config.MetaParticleSystemConfig;
 import com.threerings.opengl.effect.config.MetaParticleSystemConfig.Alignment;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.TransformState;

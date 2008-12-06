@@ -10,8 +10,8 @@ import com.samskivert.util.ComparableTuple;
 import com.threerings.expr.Scope;
 import com.threerings.util.Shallow;
 
-import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.mod.Static;
+import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.Static;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.tools.ModelDef;

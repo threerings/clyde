@@ -31,22 +31,16 @@ import com.threerings.math.Matrix4f;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
+import com.threerings.util.ArrayKey;
 
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig.AttributeArrayConfig;
-import com.threerings.opengl.model.ArticulatedModel;
-import com.threerings.opengl.model.ArticulatedModel.Node;
 import com.threerings.opengl.model.CollisionMesh;
-import com.threerings.opengl.model.Model;
-import com.threerings.opengl.model.SkinMesh;
-import com.threerings.opengl.model.StaticModel;
-import com.threerings.opengl.model.VisibleMesh;
 import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.StaticConfig;
 import com.threerings.opengl.model.config.StaticSetConfig;
 import com.threerings.opengl.renderer.config.ClientArrayConfig;
-import com.threerings.opengl.util.GlUtil;
 
 import static com.threerings.opengl.Log.*;
 
@@ -184,89 +178,6 @@ public class ModelDef
         }
 
         /**
-         * Creates a model containing the meshes in this node.
-         */
-        public Model createModel (HashMap<String, SpatialDef> spatials, Properties props)
-        {
-            // read the global scale value
-            float gscale = Float.parseFloat(props.getProperty("scale", "0.01"));
-            clearTransform(gscale);
-
-            // if the "ignore root transforms" flag is set, clear child transforms
-            if (Boolean.parseBoolean(props.getProperty("ignore_root_transforms"))) {
-                for (SpatialDef child : childDefs) {
-                    child.clearTransform(1f);
-                }
-            }
-
-            // use the type property to determine what kind of model to create
-            return "articulated".equals(props.getProperty("type")) ?
-                createArticulatedModel(spatials, props) : createStaticModel(props);
-        }
-
-        /**
-         * Creates an articulated model (where the transformation hierarchy is preserved).
-         */
-        public ArticulatedModel createArticulatedModel (
-            HashMap<String, SpatialDef> spatials, Properties props)
-        {
-            // merge skin meshes
-            HashMap<Object, SkinMeshDef> meshes = new HashMap<Object, SkinMeshDef>();
-            HashSet<String> bones = new HashSet<String>();
-            mergeSkinMeshes(meshes, bones);
-
-            // flag bone nodes, remove influences from missing ones
-            for (String bone : bones) {
-                SpatialDef bdef = spatials.get(bone);
-                if (bdef == null) {
-                    log.warning("Missing referenced bone [name=" + bone + "].");
-                    removeBoneWeights(bone);
-                } else {
-                    bdef.bone = true;
-                }
-            }
-
-            // flag attachment points
-            String[] points = StringUtil.parseStringArray(
-                props.getProperty("attachment_points", ""));
-            for (String point : points) {
-                SpatialDef pdef = spatials.get(point);
-                if (pdef == null) {
-                    log.warning("Missing attachment point [name=" + point + "].");
-                } else {
-                    pdef.point = true;
-                }
-            }
-
-            // create the transformation hierarchy
-            ArticulatedModel model = new ArticulatedModel(props);
-            boolean haveCollisionMesh = containsCollisionMesh();
-            Node root = createNode(model, scale[0], haveCollisionMesh);
-
-            // create the skin meshes
-            ArrayList<SkinMesh> smeshes = new ArrayList<SkinMesh>();
-            CollisionMesh cmesh = null;
-            for (Map.Entry<Object, SkinMeshDef> entry : meshes.entrySet()) {
-                SkinMeshDef mesh = entry.getValue();
-                if ("collision".equals(entry.getKey())) {
-                    cmesh = mesh.createCollisionMesh();
-                } else {
-                    mesh.createSkinMeshes(smeshes);
-                }
-            }
-
-            // if there's no explicit collision mesh, create one from the skinned meshes
-            if (!haveCollisionMesh && !smeshes.isEmpty()) {
-                TriMeshDef mesh = new TriMeshDef();
-                mergeSkinMeshes(mesh);
-                cmesh = mesh.createCollisionMesh();
-            }
-
-            model.setData(root, smeshes.toArray(new SkinMesh[smeshes.size()]), cmesh);
-            return (root == null) ? null : model;
-        }
-
-        /**
          * Finds the names of all nodes referenced as bones, merges skin meshes with the same
          * properties.
          */
@@ -314,66 +225,6 @@ public class ModelDef
                 children[ii] = childDefs.get(ii).createNode(config, haveCollisionMesh);
             }
             return children;
-        }
-
-        /**
-         * Creates an articulation node.
-         */
-        public abstract Node createNode (
-            ArticulatedModel model, float gscale, boolean haveCollisionMesh);
-
-        /**
-         * Creates nodes for the children of this one.
-         */
-        public Node[] createChildNodes (
-            ArticulatedModel model, float gscale, boolean haveCollisionMesh)
-        {
-            ArrayList<Node> children = new ArrayList<Node>();
-            for (SpatialDef childDef : childDefs) {
-                Node child = childDef.createNode(model, gscale, haveCollisionMesh);
-                if (child != null) {
-                    children.add(child);
-                }
-            }
-            return children.toArray(new Node[children.size()]);
-        }
-
-        /**
-         * Creates a static model (where all meshes share the same transform).
-         */
-        public StaticModel createStaticModel (Properties props)
-        {
-            // flatten transforms and merge meshes with same properties
-            HashMap<Object, TriMeshDef> meshes = new HashMap<Object, TriMeshDef>();
-            mergeMeshes(meshes);
-
-            // if there are no meshes, there's no model
-            if (meshes.isEmpty()) {
-                return null;
-            }
-
-            // create visible mesh list
-            ArrayList<VisibleMesh> vmeshes = new ArrayList<VisibleMesh>();
-            CollisionMesh cmesh = null;
-            for (Map.Entry<Object, TriMeshDef> entry : meshes.entrySet()) {
-                TriMeshDef mesh = entry.getValue();
-                if ("collision".equals(entry.getKey())) {
-                    cmesh = mesh.createCollisionMesh();
-                } else {
-                    vmeshes.add(mesh.createVisibleMesh());
-                }
-            }
-
-            // if there's no explicit collision mesh, create one from the normal meshes
-            if (cmesh == null) {
-                TriMeshDef mesh = new TriMeshDef();
-                mergeMeshes(mesh);
-                cmesh = mesh.createCollisionMesh();
-            }
-
-            // create and return the model
-            return new StaticModel(
-                props, vmeshes.toArray(new VisibleMesh[vmeshes.size()]), cmesh);
         }
 
         /**
@@ -451,16 +302,6 @@ public class ModelDef
                 new Transform3D() : createTransform(translation, rotation, scale, config.scale);
             return new ArticulatedConfig.Node(name, transform, children);
         }
-
-        @Override // documentation inherited
-        public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
-        {
-            Node[] children = createChildNodes(model, gscale, haveCollisionMesh);
-            Transform3D transform = (parentDef == null) ?
-                new Transform3D() : createTransform(translation, rotation, scale, gscale);
-            return (children.length == 0 && !(bone || point)) ?
-                null : model.createNode(name, bone, transform, children);
-        }
     }
 
     /**
@@ -524,24 +365,6 @@ public class ModelDef
         }
 
         @Override // documentation inherited
-        public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
-        {
-            // transform by offset matrix
-            transformVertices(
-                createMatrix(offsetTranslation, offsetRotation, offsetScale, gscale));
-
-            // create the node with the appropriate meshes
-            boolean isCollisionMesh = name.contains("collision");
-            return model.createNode(
-                name,
-                bone,
-                createTransform(translation, rotation, scale, gscale),
-                createChildNodes(model, gscale, haveCollisionMesh),
-                isCollisionMesh ? null : createVisibleMesh(),
-                (haveCollisionMesh && !isCollisionMesh) ? null : createCollisionMesh());
-        }
-
-        @Override // documentation inherited
         public void mergeMeshes (HashMap<Object, TriMeshDef> meshes)
         {
             // multiply world times offset to form vertex transform
@@ -583,7 +406,7 @@ public class ModelDef
             if (name.contains("collision")) {
                 return "collision";
             } else {
-                return GlUtil.createKey(getClass(), texture, tag);
+                return new ArrayKey(getClass(), texture, tag);
             }
         }
 
@@ -596,27 +419,6 @@ public class ModelDef
             for (int idx : omesh.indices) {
                 addVertex(omesh.vertices.get(idx));
             }
-        }
-
-        /**
-         * Creates and returns a model mesh object for this mesh.
-         */
-        public VisibleMesh createVisibleMesh ()
-        {
-            // optimize the vertex order
-            optimizeVertexOrder(false);
-
-            // populate the vertex buffer
-            Box bounds = new Box(Vector3f.MAX_VALUE, Vector3f.MIN_VALUE);
-            FloatBuffer vbuf = BufferUtils.createFloatBuffer(vertices.size() * 8);
-            for (Vertex vertex : vertices) {
-                vertex.get(vbuf);
-                bounds.addLocal(new Vector3f(vertex.location));
-            }
-            vbuf.rewind();
-
-            // create and return the mesh
-            return new VisibleMesh(texture, solid, bounds, vbuf, createIndexBuffer());
         }
 
         /**
@@ -938,15 +740,6 @@ public class ModelDef
                 createChildNodes(config, haveCollisionMesh));
         }
 
-        @Override // documentation inherited
-        public Node createNode (ArticulatedModel model, float gscale, boolean haveCollisionMesh)
-        {
-            Node[] children = createChildNodes(model, gscale, haveCollisionMesh);
-            return (children.length == 0 && !bone) ? null :
-                model.createNode(
-                    name, bone, createTransform(translation, rotation, scale, gscale), children);
-        }
-
         /**
          * Creates a set of skin meshes based on this definition and adds them to the list
          * provided.
@@ -967,7 +760,7 @@ public class ModelDef
                 tbones.addAll(s3.getBones());
                 HashSet<String> nbones = new HashSet<String>(mesh.mbones);
                 nbones.addAll(tbones);
-                if (nbones.size() > SkinMesh.MAX_BONE_COUNT) {
+                if (nbones.size() > MAX_BONE_COUNT) {
                     meshes.add(mesh.createVisibleMesh(config));
                     mesh = new SkinMeshDef(this);
                 }
@@ -978,60 +771,6 @@ public class ModelDef
             if (!mesh.indices.isEmpty()) {
                 meshes.add(mesh.createVisibleMesh(config));
             }
-        }
-
-        /**
-         * Creates a set of skin meshes based on this definition and adds them to the list
-         * provided.
-         */
-        public void createSkinMeshes (ArrayList<SkinMesh> smeshes)
-        {
-            // copy the vertices into a dummy mesh, adding a mesh to the list when we
-            // reach the bone limit (or the end)
-            SkinMeshDef mesh = new SkinMeshDef(this);
-            for (int ii = 0, nn = indices.size(); ii < nn; ii += 3) {
-                SkinVertex s1 = (SkinVertex)vertices.get(indices.get(ii)),
-                    s2 = (SkinVertex)vertices.get(indices.get(ii+1)),
-                    s3 = (SkinVertex)vertices.get(indices.get(ii+2));
-                HashSet<String> tbones = new HashSet<String>();
-                tbones.addAll(s1.getBones());
-                tbones.addAll(s2.getBones());
-                tbones.addAll(s3.getBones());
-                HashSet<String> nbones = new HashSet<String>(mesh.mbones);
-                nbones.addAll(tbones);
-                if (nbones.size() > SkinMesh.MAX_BONE_COUNT) {
-                    smeshes.add((SkinMesh)mesh.createVisibleMesh());
-                    mesh = new SkinMeshDef(this);
-                }
-                mesh.addVertex(s1);
-                mesh.addVertex(s2);
-                mesh.addVertex(s3);
-            }
-            if (!mesh.indices.isEmpty()) {
-                smeshes.add((SkinMesh)mesh.createVisibleMesh());
-            }
-        }
-
-        @Override // documentation inherited
-        public VisibleMesh createVisibleMesh ()
-        {
-            // optimize the vertex order
-            optimizeVertexOrder(false);
-
-            // find the names of all bones influencing the mesh
-            String[] bones = mbones.toArray(new String[mbones.size()]);
-
-            // populate the vertex buffer
-            FloatBuffer vbuf = BufferUtils.createFloatBuffer(vertices.size() * 16);
-            Box bounds = new Box(Vector3f.MAX_VALUE, Vector3f.MIN_VALUE);
-            for (Vertex vertex : vertices) {
-                ((SkinVertex)vertex).get(vbuf, bones);
-                bounds.addLocal(new Vector3f(vertex.location));
-            }
-            vbuf.rewind();
-
-            // create and return the mesh
-            return new SkinMesh(texture, solid, bounds, vbuf, createIndexBuffer(), bones);
         }
 
         @Override // documentation inherited
@@ -1371,38 +1110,6 @@ public class ModelDef
     }
 
     /**
-     * Builds a {@link Model} from this definition and the supplied properties.
-     */
-    public Model createModel (Properties props)
-    {
-        // create and return the model
-        return createRootNode().createModel(spatials, props);
-    }
-
-    /**
-     * Builds a set of {@link Model}s (mapped by name) from this definition and the supplied
-     * properties.
-     */
-    public HashMap<String, Model> createModelSet (Properties props)
-    {
-        // resolve parent/child references and find top-level children
-        ArrayList<SpatialDef> tops = resolveReferences();
-
-        // create and map a model for each top-level child
-        HashMap<String, Model> models = new HashMap<String, Model>();
-        for (SpatialDef top : tops) {
-            Properties tprops = new Properties();
-            tprops.putAll(props);
-            tprops.putAll(PropertiesUtil.getSubProperties(props, top.name));
-            Model model = top.createModel(spatials, tprops);
-            if (model != null) {
-                models.put(top.name, model);
-            }
-        }
-        return models;
-    }
-
-    /**
      * Resolves the node references and returns a root node containing the hierarchy.
      */
     protected NodeDef createRootNode ()
@@ -1559,4 +1266,7 @@ public class ModelDef
         /** Maps elements to their indices in the list. */
         protected HashMap<Object, Integer> _indices = new HashMap<Object, Integer>();
     }
+
+    /** The maximum number of bones that may influence a single mesh. */
+    protected static final int MAX_BONE_COUNT = 31;
 }

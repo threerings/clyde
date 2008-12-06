@@ -33,11 +33,8 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.ImageCache;
-import com.threerings.opengl.util.MaterialCache;
-import com.threerings.opengl.util.ModelCache;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.ShaderCache;
-import com.threerings.opengl.util.TextureCache;
 
 /**
  * A base class for OpenGL-based applications.
@@ -57,10 +54,7 @@ public abstract class GlApp extends DynamicScope
         _soundmgr = SoundManager.createSoundManager(getRunQueue());
         _clipprov = new ResourceClipProvider(_rsrcmgr);
         _imgcache = new ImageCache(this, shouldCheckTimestamps());
-        _texcache = new TextureCache(this);
         _shadcache = new ShaderCache(this, shouldCheckTimestamps());
-        _matcache = new MaterialCache(this);
-        _modcache = new ModelCache(this);
 
         // initialize our scoped fields
         _viewTransform = _compositor.getCamera().getViewTransform();
@@ -178,27 +172,9 @@ public abstract class GlApp extends DynamicScope
     }
 
     // documentation inherited from interface GlContext
-    public TextureCache getTextureCache ()
-    {
-        return _texcache;
-    }
-
-    // documentation inherited from interface GlContext
     public ShaderCache getShaderCache ()
     {
         return _shadcache;
-    }
-
-    // documentation inherited from interface GlContext
-    public MaterialCache getMaterialCache ()
-    {
-        return _matcache;
-    }
-
-    // documentation inherited from interface GlContext
-    public ModelCache getModelCache ()
-    {
-        return _modcache;
     }
 
     /**
@@ -340,17 +316,8 @@ public abstract class GlApp extends DynamicScope
     /** The image cache. */
     protected ImageCache _imgcache;
 
-    /** The texture cache. */
-    protected TextureCache _texcache;
-
     /** The shader cache. */
     protected ShaderCache _shadcache;
-
-    /** The material cache. */
-    protected MaterialCache _matcache;
-
-    /** The model cache. */
-    protected ModelCache _modcache;
 
     /** The sound manager. */
     protected SoundManager _soundmgr;

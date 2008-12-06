@@ -13,9 +13,9 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.camera.Camera;
-import com.threerings.opengl.eff.BaseParticleSystem.Layer;
-import com.threerings.opengl.eff.Placer;
+import com.threerings.opengl.effect.BaseParticleSystem.Layer;
 import com.threerings.opengl.effect.Particle;
+import com.threerings.opengl.effect.Placer;
 
 /**
  * Determines the particles' initial positions.

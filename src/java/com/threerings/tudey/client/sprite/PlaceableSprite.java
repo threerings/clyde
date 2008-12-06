@@ -11,7 +11,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
 
 import com.threerings.tudey.client.TudeySceneView;

@@ -7,8 +7,8 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 
-import com.threerings.opengl.eff.MetaParticleSystem;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.effect.MetaParticleSystem;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
 

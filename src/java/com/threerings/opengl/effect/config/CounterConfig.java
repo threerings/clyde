@@ -9,7 +9,7 @@ import com.threerings.export.Exportable;
 import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.eff.Counter;
+import com.threerings.opengl.effect.Counter;
 
 /**
  * Determines how many particles to emit at each frame.

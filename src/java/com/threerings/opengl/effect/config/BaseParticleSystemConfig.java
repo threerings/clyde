@@ -17,11 +17,11 @@ import com.threerings.probs.VectorVariable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
-import com.threerings.opengl.eff.MetaParticleSystem;
 import com.threerings.opengl.effect.AlphaMode;
 import com.threerings.opengl.effect.ColorFunction;
 import com.threerings.opengl.effect.FloatFunction;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.effect.MetaParticleSystem;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
 

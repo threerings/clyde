@@ -7,8 +7,9 @@ import java.util.HashMap;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.util.ArrayKey;
+
 import com.threerings.opengl.renderer.Renderer;
-import com.threerings.opengl.util.GlUtil;
 
 /**
  * Contains the stencil state.
@@ -29,9 +30,9 @@ public class StencilState extends RenderState
         int stencilWriteMask)
     {
         if (_instances == null) {
-            _instances = new HashMap<Object, StencilState>();
+            _instances = new HashMap<ArrayKey, StencilState>();
         }
-        Object key = GlUtil.createKey(
+        ArrayKey key = new ArrayKey(
             stencilTestFunc, stencilTestRef, stencilTestMask,
             stencilFailOp, stencilDepthFailOp, stencilPassOp,
             stencilWriteMask);
@@ -159,5 +160,5 @@ public class StencilState extends RenderState
     protected int _stencilWriteMask;
 
     /** Shared instances. */
-    protected static HashMap<Object, StencilState> _instances;
+    protected static HashMap<ArrayKey, StencilState> _instances;
 }

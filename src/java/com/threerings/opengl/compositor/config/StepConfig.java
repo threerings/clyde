@@ -15,7 +15,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.geometry.config.GeometryConfig;
-import com.threerings.opengl.mat.Surface;
+import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;

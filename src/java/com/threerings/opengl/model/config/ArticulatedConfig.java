@@ -28,8 +28,8 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
-import com.threerings.opengl.mod.Articulated;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Articulated;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;

@@ -18,7 +18,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
-import com.threerings.opengl.mod.Animation;
+import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.tools.AnimationDef;
 import com.threerings.opengl.model.tools.xml.AnimationParser;
 import com.threerings.opengl.util.GlContext;

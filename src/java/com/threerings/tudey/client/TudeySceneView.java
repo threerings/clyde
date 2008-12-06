@@ -29,7 +29,7 @@ import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.StretchWindow;
 import com.threerings.opengl.gui.StyleSheet;
 import com.threerings.opengl.gui.Window;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.HashScene;
 import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.GlContext;

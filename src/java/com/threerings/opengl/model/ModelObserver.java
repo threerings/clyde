@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.mod;
+package com.threerings.opengl.model;
 
 /**
  * Notifies observers of model events (including animation events).

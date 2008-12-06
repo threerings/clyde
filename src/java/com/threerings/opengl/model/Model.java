@@ -3,335 +3,1005 @@
 
 package com.threerings.opengl.model;
 
-import java.util.Properties;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.lwjgl.opengl.GL11;
+import com.samskivert.util.ObjectUtil;
+import com.samskivert.util.ObserverList;
 
-import com.samskivert.util.PropertiesUtil;
-
+import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigUpdateListener;
+import com.threerings.expr.DynamicScope;
+import com.threerings.expr.MutableLong;
+import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeEvent;
+import com.threerings.expr.ScopeUpdateListener;
+import com.threerings.expr.Scoped;
+import com.threerings.expr.SimpleScope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
-import com.threerings.math.Frustum;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
-import com.threerings.export.Exportable;
-
-import com.threerings.opengl.material.Material;
 import com.threerings.opengl.material.Surface;
-import com.threerings.opengl.material.SurfaceHost;
+import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
+import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
-import com.threerings.opengl.renderer.state.MaterialState;
-import com.threerings.opengl.util.DebugBounds;
+import com.threerings.opengl.scene.AmbientLightInfluence;
+import com.threerings.opengl.scene.FogInfluence;
+import com.threerings.opengl.scene.LightInfluence;
+import com.threerings.opengl.scene.Scene;
+import com.threerings.opengl.scene.SceneElement;
+import com.threerings.opengl.scene.SceneInfluence;
+import com.threerings.opengl.scene.SceneInfluenceSet;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.GlUtil;
+import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * A 3D model.
  */
-public abstract class Model
-    implements SurfaceHost, Tickable, Intersectable, Renderable, Cloneable, Exportable
+public class Model extends DynamicScope
+    implements SceneElement, ConfigUpdateListener<ModelConfig>
 {
     /**
-     * Creates a new model.
+     * The actual model implementation.
      */
-    public Model (Properties props)
+    public static abstract class Implementation extends SimpleScope
+        implements Tickable, Intersectable, Renderable
     {
-        _props = props;
+        public Implementation (Scope parentScope)
+        {
+            super(parentScope);
+        }
+
+        /**
+         * Attaches the specified model at the given point.
+         *
+         * @param replace if true, replace any existing attachments at the point.
+         */
+        public void attach (String point, Model model, boolean replace)
+        {
+            log.warning("Attachment not supported.", "point", point, "model", model);
+        }
+
+        /**
+         * Detaches an attached model.
+         */
+        public void detach (Model model)
+        {
+            log.warning("Model not attached.", "model", model);
+        }
+
+        /**
+         * Detaches any models attached to the specified point.
+         */
+        public void detachAll (String point)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Returns a list of all animations currently playing.
+         */
+        public List<Animation> getPlayingAnimations ()
+        {
+            return Collections.emptyList();
+        }
+
+        /**
+         * Retrieves an animation by name.
+         */
+        public Animation getAnimation (String name)
+        {
+            return null;
+        }
+
+        /**
+         * Returns the model's list of animations.
+         */
+        public Animation[] getAnimations ()
+        {
+            return Animation.EMPTY_ARRAY;
+        }
+
+        /**
+         * Determines whether the model (such as a transient effect) has completed.
+         */
+        public boolean hasCompleted ()
+        {
+            return false;
+        }
+
+        /**
+         * Resets the state of this model.
+         */
+        public void reset ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Checks whether this model can be influenced.
+         */
+        public boolean isInfluenceable ()
+        {
+            return true;
+        }
+
+        /**
+         * Returns a reference to the bounds of the model.
+         */
+        public Box getBounds ()
+        {
+            return Box.EMPTY;
+        }
+
+        /**
+         * Updates the bounds of the model.
+         */
+        public void updateBounds ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Draws the bounds of the model in immediate mode.
+         */
+        public void drawBounds ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Sets the tick policy of the model.
+         */
+        public void setTickPolicy (TickPolicy policy)
+        {
+            log.warning("Setting tick policy not supported.", "policy", policy);
+        }
+
+        /**
+         * Returns the tick policy of the model.
+         */
+        public TickPolicy getTickPolicy ()
+        {
+            return TickPolicy.NEVER;
+        }
+
+        /**
+         * Notes that the model was added to a scene.
+         */
+        public void wasAdded ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the model will be removed from the scene.
+         */
+        public void willBeRemoved ()
+        {
+            // nothing by default
+        }
+
+        // documentation inherited from interface Tickable
+        public void tick (float elapsed)
+        {
+            // nothing by default
+        }
+
+        // documentation inherited from interface Intersectable
+        public boolean getIntersection (Ray3D ray, Vector3f result)
+        {
+            return false;
+        }
+
+        // documentation inherited from interface Renderable
+        public void enqueue ()
+        {
+            // nothing by default
+        }
+
+        @Override // documentation inherited
+        public String getScopeName ()
+        {
+            return "impl";
+        }
+
+        /**
+         * Creates a set of surfaces.
+         */
+        protected Surface[] createSurfaces (
+            GlContext ctx, Scope scope, VisibleMesh[] meshes, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
+        {
+            Surface[] surfaces = new Surface[meshes.length];
+            for (int ii = 0; ii < meshes.length; ii++) {
+                surfaces[ii] = createSurface(
+                    ctx, scope, meshes[ii], materialMappings, materialConfigs);
+            }
+            return surfaces;
+        }
+
+        /**
+         * Creates a single surface.
+         */
+        protected static Surface createSurface (
+            GlContext ctx, Scope scope, VisibleMesh mesh, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
+        {
+            return new Surface(ctx, scope, mesh.geometry,
+                getMaterialConfig(ctx, mesh.texture, mesh.tag, materialMappings, materialConfigs));
+        }
+
+        /**
+         * Resolves a material config through a cache.
+         */
+        protected static MaterialConfig getMaterialConfig (
+            GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings,
+            Map<String, MaterialConfig> materialConfigs)
+        {
+            String key = texture + "|" + tag;
+            MaterialConfig config = materialConfigs.get(key);
+            if (config == null) {
+                materialConfigs.put(
+                    key, config = getMaterialConfig(ctx, texture, tag, materialMappings));
+            }
+            return config;
+        }
+
+        /**
+         * Resolves a material config.
+         */
+        protected static MaterialConfig getMaterialConfig (
+            GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings)
+        {
+            for (MaterialMapping mapping : materialMappings) {
+                if (ObjectUtil.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
+                    if (mapping.material == null) {
+                        return null;
+                    }
+                    MaterialConfig config = ctx.getConfigManager().getConfig(
+                        MaterialConfig.class, mapping.material);
+                    if (config == null) {
+                        log.warning("Missing material for mapping.", "material", mapping.material);
+                    }
+                    return config;
+                }
+            }
+            log.warning("No material mapping found.", "texture", texture, "tag", tag);
+            return null;
+        }
     }
 
     /**
-     * No-arg constructor for deserialization.
+     * Creates a new model with a null configuration.
      */
-    public Model ()
+    public Model (GlContext ctx)
     {
+        this(ctx, (ModelConfig)null);
     }
 
     /**
-     * Prepares the model for rendering.
+     * Creates a new model with the named configuration.
+     */
+    public Model (GlContext ctx, String name)
+    {
+        this(ctx, ctx.getConfigManager().getConfig(ModelConfig.class, name));
+    }
+
+    /**
+     * Creates a new model with the named configuration and arguments.
+     */
+    public Model (
+        GlContext ctx, String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        this(ctx, ctx.getConfigManager().getConfig(
+            ModelConfig.class, name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Creates a new model with the referenced configuration.
+     */
+    public Model (GlContext ctx, ConfigReference<ModelConfig> ref)
+    {
+        this(ctx, ctx.getConfigManager().getConfig(ModelConfig.class, ref));
+    }
+
+    /**
+     * Creates a new model with the given configuration.
+     */
+    public Model (GlContext ctx, ModelConfig config)
+    {
+        super("model");
+        _ctx = new GlContextWrapper(ctx) {
+            public ConfigManager getConfigManager () {
+                return (_config == null) ?
+                    _wrapped.getConfigManager() : _config.getConfigManager();
+            }
+        };
+        setConfig(config);
+    }
+
+    /**
+     * Sets the local transform to the specified value and promotes it to
+     * {@link Transform3D#UNIFORM}, then updates the bounds of the model.
+     */
+    public void setLocalTransform (Transform3D transform)
+    {
+        _localTransform.set(transform);
+        _localTransform.promote(Transform3D.UNIFORM);
+        updateBounds();
+    }
+
+    /**
+     * Returns a reference to the model's local transform.
+     */
+    public Transform3D getLocalTransform ()
+    {
+        return _localTransform;
+    }
+
+    /**
+     * Sets the configuration of this model.
+     */
+    public void setConfig (String name)
+    {
+        setConfig(_ctx.getConfigManager().getConfig(ModelConfig.class, name));
+    }
+
+    /**
+     * Sets the configuration of this model.
+     */
+    public void setConfig (ConfigReference<ModelConfig> ref)
+    {
+        setConfig(_ctx.getConfigManager().getConfig(ModelConfig.class, ref));
+    }
+
+    /**
+     * Sets the configuration of this model.
+     */
+    public void setConfig (String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        setConfig(_ctx.getConfigManager().getConfig(
+            ModelConfig.class, name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Resets the configuration of this model to the null configuration.
+     */
+    public void clearConfig ()
+    {
+        setConfig((ModelConfig)null);
+    }
+
+    /**
+     * Sets the configuration of this model.
+     */
+    public void setConfig (ModelConfig config)
+    {
+        if (_config == config) {
+            return;
+        }
+        if (_config != null) {
+            _config.removeListener(this);
+        }
+        if ((_config = config) != null) {
+            _config.addListener(this);
+        }
+        updateFromConfig();
+    }
+
+    /**
+     * Returns a reference to this model's configuration.
+     */
+    public ModelConfig getConfig ()
+    {
+        return _config;
+    }
+
+    /**
+     * Sets the model's render scheme.
+     */
+    public void setRenderScheme (String scheme)
+    {
+        if (!ObjectUtil.equals(_renderScheme, scheme)) {
+            _renderScheme = scheme;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Returns the model's render scheme.
+     */
+    public String getRenderScheme ()
+    {
+        return _renderScheme;
+    }
+
+    /**
+     * Sets the model's color state.
+     */
+    public void setColorState (ColorState state)
+    {
+        if (_colorState != state) {
+            _colorState = state;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Returns a reference to the model's color state.
+     */
+    public ColorState getColorState ()
+    {
+        return _colorState;
+    }
+
+    /**
+     * Sets the model's fog state.
+     */
+    public void setFogState (FogState state)
+    {
+        if (_fogState != state) {
+            _fogState = state;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Returns a reference to the model's fog state.
+     */
+    public FogState getFogState ()
+    {
+        return _fogState;
+    }
+
+    /**
+     * Sets the model's light state.
+     */
+    public void setLightState (LightState state)
+    {
+        if (_lightState != state) {
+            _lightState = state;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Returns a reference to the model's light state.
+     */
+    public LightState getLightState ()
+    {
+        return _lightState;
+    }
+
+    /**
+     * Attaches the specified model at the given point.
+     */
+    public void attach (String point, Model model)
+    {
+        attach(point, model, true);
+    }
+
+    /**
+     * Attaches the specified model at the given point.
      *
-     * @param path the root path of the model (used to resolve relative resource paths).
+     * @param replace if true, replace any existing attachments at the point.
      */
-    public void init (GlContext ctx, String path)
+    public void attach (String point, Model model, boolean replace)
     {
-        _ctx = ctx;
-        _path = path;
-        _transform = new Transform3D(Transform3D.UNIFORM);
-        _localBounds = new Box();
-        _worldBounds = new Box();
-        _cstate = new ColorState();
-        _fstate = FogState.DISABLED;
-        _lstate = LightState.DISABLED;
-        _mstate = new MaterialState();
-
-        // let subclasses perform custom initialization
-        didInit();
+        _impl.attach(point, model, replace);
     }
 
     /**
-     * Sets this model's cache key.
+     * Detaches an attached model.
      */
-    public void setKey (Object key)
+    public void detach (Model model)
     {
-        _key = key;
+        _impl.detach(model);
     }
 
     /**
-     * Returns this model's cache key.
+     * Detaches any models attached to the specified point.
      */
-    public Object getKey ()
+    public void detachAll (String point)
     {
-        return _key;
+        _impl.detachAll(point);
     }
 
     /**
-     * Returns the path of this model.
+     * Starts an animation by name.
      */
-    public String getPath ()
+    public void startAnimation (String name)
     {
-        return _path;
+        Animation animation = getAnimation(name);
+        if (animation != null) {
+            animation.start();
+        } else {
+            log.warning("Animation not found.", "name", name);
+        }
     }
 
     /**
-     * Returns the properties that define this model's configuration.
+     * Stops an animation by name.
      */
-    public Properties getProperties ()
+    public void stopAnimation (String name)
     {
-        return _props;
+        Animation animation = getAnimation(name);
+        if (animation != null) {
+            animation.stop();
+        }
     }
 
     /**
-     * Returns the local bounds of the model.
+     * Stops all animations playing at the specified priority level, blending them out over the
+     * specified interval.
      */
-    public Box getLocalBounds ()
+    public void stopAnimations (int priority, float blendOut)
     {
-        return _localBounds;
+        List<Animation> playing = getPlayingAnimations();
+        for (int ii = 0, nn = playing.size(); ii < nn; ii++) {
+            Animation anim = playing.get(ii);
+            if (anim.getPriority() == priority) {
+                anim.stop(blendOut);
+            }
+        }
     }
 
     /**
-     * Returns a reference to the model's root transform.
+     * Stops all animations currently playing.
      */
-    public Transform3D getTransform ()
+    public void stopAllAnimations ()
     {
-        return _transform;
+        List<Animation> playing = getPlayingAnimations();
+        for (int ii = 0, nn = playing.size(); ii < nn; ii++) {
+            playing.get(ii).stop();
+        }
     }
 
     /**
-     * Returns a reference to the model's color.  If you change this value, be sure to call
-     * {@link #updateSurfaces} to propagate the change to the model surfaces.
+     * Returns a list containing all animations currently playing on this model.
      */
-    public Color4f getColor ()
+    public List<Animation> getPlayingAnimations ()
     {
-        return _cstate.getColor();
+        return _impl.getPlayingAnimations();
     }
 
     /**
-     * Returns the bounds of the model in world space.
+     * Checks whether the named animation is playing.
      */
-    public Box getWorldBounds ()
+    public boolean isAnimationPlaying (String name)
     {
-        return _worldBounds;
+        Animation animation = getAnimation(name);
+        return animation != null && animation.isPlaying();
     }
 
     /**
-     * Updates the model's bounding volume to reflect its current transform.
+     * Retrieves an animation by name.
      */
-    public void updateWorldBounds ()
+    public Animation getAnimation (String name)
     {
-        _localBounds.transform(_transform, _worldBounds);
+        return _impl.getAnimation(name);
     }
 
     /**
-     * Determines whether this model's bounding volume intersects the view frustum.
+     * Returns a reference to this model's list of animations.
      */
-    public boolean boundsIntersectFrustum ()
+    public Animation[] getAnimations ()
     {
-        Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
-        return frustum.getIntersectionType(_worldBounds) != Frustum.IntersectionType.NONE;
+        return _impl.getAnimations();
     }
 
     /**
-     * (Re)creates the model's surfaces using the specified variant configuration (or null
-     * for the default).
+     * Determines whether this model (such as a transient effect) has completed.
      */
-    public abstract void createSurfaces (String variant);
-
-    /**
-     * Updates the surfaces after a change to one of the model's parameters.  Generally speaking,
-     * this is used for non-trivial changes, as opposed to changes that happen every frame.
-     */
-    public void updateSurfaces ()
+    public boolean hasCompleted ()
     {
-        // copy color to material ambient/diffuse
-        _cstate.setDirty(true);
-        _mstate.getFrontAmbient().set(_cstate.getColor());
-        _mstate.getFrontDiffuse().set(_cstate.getColor());
-        _mstate.setDirty(true);
+        return _impl.hasCompleted();
     }
 
     /**
-     * Determines whether this model will ever require a per-frame call to {@link #tick}.
+     * Adds an observer to this model.
      */
-    public abstract boolean requiresTick ();
+    public void addObserver (ModelObserver observer)
+    {
+        if (_observers == null) {
+            _observers = ObserverList.newFastUnsafe();
+        }
+        _observers.add(observer);
+    }
 
     /**
-     * Resets the state of this model.  Used when models are reused from a pool.
+     * Removes an observer from this model.
+     */
+    public void removeObserver (ModelObserver observer)
+    {
+        if (_observers == null) {
+            return;
+        }
+        _observers.remove(observer);
+        if (_observers.isEmpty()) {
+            _observers = null;
+        }
+    }
+
+    /**
+     * Resets the state of this model.
      */
     public void reset ()
     {
-        // nothing by default
+        resetEpoch();
+        _impl.reset();
     }
 
     /**
-     * Draws the bounds of the model in immediate mode for debugging purposes.
+     * Updates the bounds of the model.
+     */
+    public void updateBounds ()
+    {
+        _impl.updateBounds();
+    }
+
+    /**
+     * Draws the bounds of the model in immediate mode.
      */
     public void drawBounds ()
     {
-        DebugBounds.draw(_worldBounds, Color4f.WHITE);
-    }
-
-    // documentation inherited from interface SurfaceHost
-    public ColorState getColorState ()
-    {
-        return _cstate;
+        _impl.drawBounds();
     }
 
     /**
-     * Sets the shared fog state.
+     * Sets the tick policy of the model.
      */
-    public void setFogState (FogState fstate)
+    public void setTickPolicy (TickPolicy policy)
     {
-        _fstate = fstate;
-    }
-
-    // documentation inherited from interface SurfaceHost
-    public FogState getFogState ()
-    {
-        return _fstate;
+        _impl.setTickPolicy(policy);
     }
 
     /**
-     * Sets the shared light state.
+     * Sets the model's user object reference.
      */
-    public void setLightState (LightState lstate)
+    public void setUserObject (Object object)
     {
-        _lstate = lstate;
+        _userObject = object;
     }
 
-    // documentation inherited from interface SurfaceHost
-    public LightState getLightState ()
+    // documentation inherited from interface SceneElement
+    public TickPolicy getTickPolicy ()
     {
-        return _lstate;
+        return _impl.getTickPolicy();
     }
 
-    // documentation inherited from interface SurfaceHost
-    public MaterialState getMaterialState ()
+    // documentation inherited from interface SceneElement
+    public Object getUserObject ()
     {
-        return _mstate;
+        return _userObject;
+    }
+
+    // documentation inherited from interface SceneElement
+    public Box getBounds ()
+    {
+        return _impl.getBounds();
+    }
+
+    // documentation inherited from interface SceneElement
+    public void wasAdded (Scene scene)
+    {
+        _scene = scene;
+        _impl.wasAdded();
+    }
+
+    // documentation inherited from interface SceneElement
+    public void willBeRemoved ()
+    {
+        _impl.willBeRemoved();
+        _scene = null;
+    }
+
+    // documentation inherited from interface SceneElement
+    public void setInfluences (SceneInfluenceSet influences)
+    {
+        boolean influenceable = _impl.isInfluenceable();
+        if (influenceable ? _influences.equals(influences) : _influences.isEmpty()) {
+            return;
+        }
+        _influences.clear();
+        if (influenceable) {
+            _influences.addAll(influences);
+        }
+
+        // process the influences
+        Box bounds = getBounds();
+        boolean updated = false;
+        FogState fogState = _influences.getFogState(bounds, _fogState);
+        if (_fogState != fogState) {
+            _fogState = fogState;
+            updated = true;
+        }
+        LightState lightState = _influences.getLightState(bounds, _lightState);
+        if (_lightState != lightState) {
+            _lightState = lightState;
+            updated = true;
+        }
+        if (updated) {
+            wasUpdated();
+        }
+    }
+
+    // documentation inherited from interface SceneElement
+    public boolean updateLastVisit (int visit)
+    {
+        if (_lastVisit == visit) {
+            return false;
+        }
+        _lastVisit = visit;
+        return true;
     }
 
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
-        // nothing by default
+        _impl.tick(elapsed);
+    }
+
+    // documentation inherited from interface Intersectable
+    public boolean getIntersection (Ray3D ray, Vector3f result)
+    {
+        return _impl.getIntersection(ray, result);
+    }
+
+    // documentation inherited from interface Renderable
+    public void enqueue ()
+    {
+        _impl.enqueue();
+    }
+
+    // documentation inherited from interface ConfigUpdateListener
+    public void configUpdated (ConfigEvent<ModelConfig> event)
+    {
+        updateFromConfig();
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public void scopeUpdated (ScopeEvent event)
     {
-        Model omodel = null;
-        try {
-            omodel = (Model)super.clone();
-        } catch (CloneNotSupportedException e) {
-            return null; // should never happen
+        super.scopeUpdated(event);
+        resetEpoch();
+    }
+
+    @Override // documentation inherited
+    public void dispose ()
+    {
+        super.dispose();
+        _impl.dispose();
+        if (_config != null) {
+            _config.removeListener(this);
         }
-        omodel._transform = new Transform3D(_transform);
-        omodel._localBounds = new Box(_localBounds);
-        omodel._worldBounds = new Box(_worldBounds);
-        omodel._cstate = new ColorState(_cstate.getColor());
-        omodel._mstate = new MaterialState(
-            _mstate.getFrontAmbient(), _mstate.getFrontDiffuse(), _mstate.getFrontSpecular(),
-            _mstate.getFrontEmission(), _mstate.getFrontShininess(),
-            _mstate.getBackAmbient(), _mstate.getBackDiffuse(), _mstate.getBackSpecular(),
-            _mstate.getBackEmission(), _mstate.getBackShininess(),
-            _mstate.getColorMaterialMode(), _mstate.getColorMaterialFace(),
-            _mstate.getTwoSide(), _mstate.getLocalViewer(), _mstate.getSeparateSpecular(),
-            _mstate.getFlatShading());
-        return omodel;
     }
 
     /**
-     * Override to perform custom initialization.
+     * Returns a reference to the scene containing the model, if any.  This should only be called
+     * by the {@link #_impl}.
      */
-    protected void didInit ()
+    public Scene getScene ()
     {
+        return _scene;
     }
 
     /**
-     * Fetches or creates the material for the specified variant corresponding to the given
-     * texture name.
+     * Notes that the model has completed.  This should only be called by the {@link #_impl}.
      */
-    protected Material getMaterial (String variant, String texture)
+    public void completed ()
     {
-        // extract the subproperties, treating the texture as a diffuse texture path
-        // by default
-        Properties tprops;
-        if (texture == null) {
-            tprops = new Properties();
-        } else {
-            Properties props = (variant == null) ?
-                _props : PropertiesUtil.getFilteredProperties(_props, variant);
-            tprops = PropertiesUtil.getSubProperties(props, texture);
-            if (!tprops.containsKey("diffuse")) {
-                tprops.setProperty("diffuse", props.getProperty(texture, texture));
+        if (_observers != null) {
+            _completedOp.init(this);
+            _observers.apply(_completedOp);
+            _completedOp.clear();
+        }
+    }
+
+    /**
+     * Notes that the tick policy will change.  Should only be called by the {@link #_impl}.
+     */
+    public void tickPolicyWillChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).tickPolicyWillChange(this);
+        }
+    }
+
+    /**
+     * Notes that the tick policy has changed.  Should only be called by the {@link #_impl}.
+     */
+    public void tickPolicyDidChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).tickPolicyDidChange(this);
+        }
+    }
+
+    /**
+     * Notes that the bounds will change.  Should only be called by the {@link #_impl}.
+     */
+    public void boundsWillChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).boundsWillChange(this);
+        }
+    }
+
+    /**
+     * Notes that the bounds have changed.  Should only be called by the {@link #_impl}.
+     */
+    public void boundsDidChange ()
+    {
+        if (_parentScope instanceof Scene) {
+            ((Scene)_parentScope).boundsDidChange(this);
+        }
+    }
+
+    /**
+     * Resets the model epoch to the current time.
+     */
+    protected void resetEpoch ()
+    {
+        MutableLong now = ScopeUtil.resolve(
+            this, Scope.NOW, new MutableLong(System.currentTimeMillis()));
+        _epoch.value = now.value;
+    }
+
+    /**
+     * Updates the model to match its new or modified configuration.
+     */
+    protected void updateFromConfig ()
+    {
+        Implementation nimpl = (_config == null) ?
+            null : _config.getModelImplementation(_ctx, this, _impl);
+        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        if (_impl == nimpl) {
+            return;
+        }
+        boolean tickPolicyChanging = (_impl.getTickPolicy() != nimpl.getTickPolicy());
+        boolean boundsChanging = !_impl.getBounds().equals(nimpl.getBounds());
+        if (tickPolicyChanging) {
+            tickPolicyWillChange();
+        }
+        if (boundsChanging) {
+            boundsWillChange();
+        }
+        if (_impl != null) {
+            if (_scene != null) {
+                _impl.willBeRemoved();
             }
+            _impl.dispose();
         }
-
-        // normalize the subproperties and retrieve from cache
-        GlUtil.normalizeProperties(_path, tprops);
-        return _ctx.getMaterialCache().getMaterial(tprops);
+        _impl = nimpl;
+        if (tickPolicyChanging) {
+            tickPolicyDidChange();
+        }
+        if (boundsChanging) {
+            boundsDidChange();
+        }
     }
 
     /**
-     * Enqueues this model with the given modelview transform.  Used to enqueue attached models.
+     * Notifies the listeners that an animation has started.
      */
-    protected abstract void enqueue (Transform3D modelview);
+    protected void animationStarted (Animation animation)
+    {
+        Animation.applyStartedOp(_observers, animation);
+    }
 
-    /** The model properties. */
-    protected Properties _props;
+    /**
+     * Notifies the listeners that an animation has stopped.
+     */
+    protected void animationStopped (Animation animation, boolean completed)
+    {
+        Animation.applyStoppedOp(_observers, animation, completed);
+    }
 
-    /** The renderer context. */
-    protected transient GlContext _ctx;
+    /**
+     * An {@link ObserverList.ObserverOp} that calls {@link ModelObserver#modelCompleted}.
+     */
+    protected static class CompletedOp
+        implements ObserverList.ObserverOp<ModelObserver>
+    {
+        /**
+         * (Re)initializes this op.
+         */
+        public void init (Model model)
+        {
+            _model = model;
+        }
 
-    /** The cache key. */
-    protected transient Object _key;
+        /**
+         * Clears out the model reference.
+         */
+        public void clear ()
+        {
+            _model = null;
+        }
 
-    /** The model path. */
-    protected transient String _path;
+        // documentation inherited from interface ObserverOp
+        public boolean apply (ModelObserver observer)
+        {
+            return observer.modelCompleted(_model);
+        }
 
-    /** The untransformed bounds of the model. */
-    protected transient Box _localBounds;
+        /** The completed model. */
+        protected Model _model;
+    }
 
-    /** The model's transform in world space. */
-    protected transient Transform3D _transform;
+    /** The application context. */
+    protected GlContext _ctx;
 
-    /** The bounds of the model in world space. */
-    protected transient Box _worldBounds;
+    /** The configuration of this model. */
+    protected ModelConfig _config;
 
-    /** The model's common color state. */
-    protected transient ColorState _cstate;
+    /** The model implementation. */
+    protected Implementation _impl = NULL_IMPLEMENTATION;
 
-    /** The model's common fog state. */
-    protected transient FogState _fstate;
+    /** The lazily-initialized list of model observers. */
+    protected ObserverList<ModelObserver> _observers;
 
-    /** The model's common light state. */
-    protected transient LightState _lstate;
+    /** A container for the model epoch. */
+    @Scoped
+    protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
 
-    /** The model's common material state. */
-    protected transient MaterialState _mstate;
+    /** The model's local transform. */
+    @Scoped
+    protected Transform3D _localTransform = new Transform3D(Transform3D.UNIFORM);
+
+    /** The scene containing the model, if any. */
+    protected Scene _scene;
+
+    /** The influences affecting this model. */
+    protected SceneInfluenceSet _influences = new SceneInfluenceSet();
+
+    /** The model's render scheme. */
+    @Scoped
+    protected String _renderScheme;
+
+    /** The model's color state. */
+    @Scoped
+    protected ColorState _colorState;
+
+    /** The model's fog state. */
+    @Scoped
+    protected FogState _fogState;
+
+    /** The model's light state. */
+    @Scoped
+    protected LightState _lightState;
+
+    /** The model's user object. */
+    protected Object _userObject;
+
+    /** The visitation id of the last visit. */
+    protected int _lastVisit;
+
+    /** Completed op to reuse. */
+    protected static CompletedOp _completedOp = new CompletedOp();
+
+    /** An implementation that does nothing. */
+    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+        public void enqueue () { }
+    };
 }

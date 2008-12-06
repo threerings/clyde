@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.mod;
+package com.threerings.opengl.model;
 
 /**
  * An adapter class for {@link ModelObserver}.

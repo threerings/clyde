@@ -17,7 +17,7 @@ import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.opengl.compositor.RenderEffect;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.BackgroundColorEffect;

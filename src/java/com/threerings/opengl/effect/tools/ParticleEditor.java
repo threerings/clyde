@@ -1,5 +1,5 @@
 //
-// $Id$
+// $Id: ParticleEditor.java 409 2008-10-21 20:43:22Z andrzej $
 
 package com.threerings.opengl.effect.tools;
 
@@ -7,11 +7,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
 import java.io.File;
@@ -19,48 +17,37 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Properties;
-import java.util.logging.Level;
 import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.TransferHandler;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.swing.GroupLayout;
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
-import com.samskivert.util.StringUtil;
 
-import com.threerings.math.Vector3f;
-
-import com.threerings.editor.Editable;
+import com.threerings.config.tools.ConfigEditor;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -68,9 +55,11 @@ import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 import com.threerings.util.ToolUtil;
 
-import com.threerings.opengl.GlCanvasTool;
-import com.threerings.opengl.effect.ParticleSystem;
-import com.threerings.opengl.effect.ParticleSystem.Layer;
+import com.threerings.opengl.effect.config.ParticleSystemConfig;
+import com.threerings.opengl.effect.config.ParticleSystemConfig.Layer;
+import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.tools.ModelTool;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.RenderState;
@@ -82,8 +71,8 @@ import static com.threerings.opengl.Log.*;
 /**
  * The particle editor application.
  */
-public class ParticleEditor extends GlCanvasTool
-    implements ListSelectionListener
+public class ParticleEditor extends ModelTool
+    implements ListSelectionListener, ChangeListener
 {
     /**
      * The program entry point.
@@ -127,17 +116,28 @@ public class ParticleEditor extends GlCanvasTool
 
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
+        edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
+        edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
         edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
-        view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_G));
+        view.add(_autoReset = createCheckBoxMenuItem("auto_reset", KeyEvent.VK_A, KeyEvent.VK_E));
+        view.addSeparator();
+        view.add(_showEnvironment =
+            createCheckBoxMenuItem("environment", KeyEvent.VK_E, KeyEvent.VK_V));
+        _showEnvironment.setSelected(true);
+        view.add(_showGround = createCheckBoxMenuItem("ground", KeyEvent.VK_G, KeyEvent.VK_D));
+        view.add(_showGrid = createCheckBoxMenuItem("grid", KeyEvent.VK_R, KeyEvent.VK_I));
+        _showGrid.setSelected(true);
         view.add(_showBounds = createCheckBoxMenuItem("bounds", KeyEvent.VK_B, KeyEvent.VK_B));
         view.add(_showCompass = createCheckBoxMenuItem("compass", KeyEvent.VK_O, KeyEvent.VK_M));
         view.add(_showStats = createCheckBoxMenuItem("stats", KeyEvent.VK_S, KeyEvent.VK_T));
         view.addSeparator();
-        view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
+        view.add(createMenuItem("refresh", KeyEvent.VK_F, KeyEvent.VK_F));
+        view.addSeparator();
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
+        view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("particle_dir", null));
@@ -161,18 +161,13 @@ public class ParticleEditor extends GlCanvasTool
             }
         });
 
-        // create the edit panel
-        JPanel epanel = GroupLayout.makeVStretchBox(5);
-        _frame.add(epanel, BorderLayout.EAST);
-        epanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createRaisedBevelBorder(),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-        epanel.setPreferredSize(new Dimension(250, 1));
-        epanel.setMaximumSize(new Dimension(250, Integer.MAX_VALUE));
+        // configure the edit panel
+        _epanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        _epanel.setPreferredSize(new Dimension(350, 1));
 
         // create the layer table
         JPanel lpanel = GroupLayout.makeVStretchBox(5);
-        epanel.add(lpanel, GroupLayout.FIXED);
+        _epanel.add(lpanel, GroupLayout.FIXED);
         lpanel.add(new JScrollPane(
             _ltable = new JTable() {
                 public void changeSelection (
@@ -197,7 +192,7 @@ public class ParticleEditor extends GlCanvasTool
             ((DefaultCellEditor)_ltable.getDefaultEditor(Boolean.class)).getComponent();
         comp.setBackground(Color.white);
         comp.setFocusable(false);
-        final DataFlavor lflavor = new DataFlavor(ParticleSystem.Layer.class, null);
+        final DataFlavor lflavor = new DataFlavor(Layer.class, null);
         _ltable.setTransferHandler(new TransferHandler() {
             public int getSourceActions (JComponent comp) {
                 return MOVE;
@@ -239,13 +234,14 @@ public class ParticleEditor extends GlCanvasTool
 
         // create the editor panel
         JPanel ipanel = GroupLayout.makeVStretchBox(5);
-        epanel.add(ipanel);
-        ipanel.add(_editor = new EditorPanel(this, EditorPanel.CategoryMode.CHOOSER, null));
+        _epanel.add(ipanel);
+        ipanel.add(_editor = new EditorPanel(this, EditorPanel.CategoryMode.CHOOSER, null, true));
+        _editor.addChangeListener(this);
         _editor.setVisible(false);
 
         // create the reset button
         bpanel = new JPanel();
-        epanel.add(bpanel, GroupLayout.FIXED);
+        _epanel.add(bpanel, GroupLayout.FIXED);
         bpanel.add(createButton("reset"));
     }
 
@@ -258,8 +254,14 @@ public class ParticleEditor extends GlCanvasTool
         _deleteLayer.setEnabled(enabled);
         _editor.setVisible(enabled);
         if (enabled) {
-            _editor.setObject(_particles.getLayers().get(idx));
+            _editor.setObject(getLayers()[idx]);
         }
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+        _model.getConfig().wasUpdated();
     }
 
     @Override // documentation inherited
@@ -286,8 +288,9 @@ public class ParticleEditor extends GlCanvasTool
             exportParticles();
         } else if (action.equals("import_layers")) {
             importLayers();
-        } else if (action.equals("reset")) {
-            _particles.reset();
+        } else if (action.equals("configs")) {
+            new ConfigEditor(
+                _msgmgr, _model.getConfig().getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("new_layer")) {
             ((LayerTableModel)_ltable.getModel()).newLayer();
         } else if (action.equals("clone_layer")) {
@@ -297,6 +300,23 @@ public class ParticleEditor extends GlCanvasTool
         } else {
             super.actionPerformed(event);
         }
+    }
+
+    @Override // documentation inherited
+    protected JComponent createCanvasContainer ()
+    {
+        JSplitPane pane = new JSplitPane(
+            JSplitPane.HORIZONTAL_SPLIT, true, _canvas, _epanel = GroupLayout.makeVStretchBox(5));
+        _canvas.setMinimumSize(new Dimension(1, 1));
+        pane.setResizeWeight(1.0);
+        pane.setOneTouchExpandable(true);
+        return pane;
+    }
+
+    @Override // documentation inherited
+    protected ToolUtil.EditablePrefs createEditablePrefs ()
+    {
+        return new ModelToolPrefs(_prefs);
     }
 
     @Override // documentation inherited
@@ -322,43 +342,29 @@ public class ParticleEditor extends GlCanvasTool
             }
         };
 
+        // create the model
+        ModelConfig config = new ModelConfig();
+        config.implementation = new ParticleSystemConfig();
+        config.init(_cfgmgr);
+        _scene.add(_model = new Model(this, config));
+
         // initialize the table
         _ltable.setModel(new LayerTableModel());
         _ltable.getColumnModel().getColumn(1).setMaxWidth(60);
 
         // attempt to load the particle file specified on the command line if any
-        // (otherwise, create an empty particle system)
         if (_initParticles != null) {
             open(_initParticles);
-        } else {
-            newParticles();
         }
     }
 
     @Override // documentation inherited
-    protected DebugBounds createBounds ()
+    protected void updateView (float elapsed)
     {
-        return new DebugBounds(this) {
-            protected void draw () {
-                _particles.drawBounds();
-            }
-        };
-    }
-
-    @Override // documentation inherited
-    protected ToolUtil.EditablePrefs createEditablePrefs ()
-    {
-        return new ParticleEditorPrefs(_prefs);
-    }
-
-    @Override // documentation inherited
-    protected void updateView ()
-    {
-        super.updateView();
-        long time = System.currentTimeMillis();
-        float elapsed = (_lastTick == 0L) ? 0f : (time - _lastTick) / 1000f;
-        _particles.tick(elapsed);
-        _lastTick = time;
+        super.updateView(elapsed);
+        if (_autoReset.isSelected() && _model.hasCompleted()) {
+            _model.reset();
+        }
     }
 
     @Override // documentation inherited
@@ -368,7 +374,6 @@ public class ParticleEditor extends GlCanvasTool
         if (_showGround.isSelected()) {
             _ground.enqueue();
         }
-        _particles.enqueue();
     }
 
     /**
@@ -376,9 +381,9 @@ public class ParticleEditor extends GlCanvasTool
      */
     protected void newParticles ()
     {
-        _particles = new ParticleSystem();
-        initParticles(_chooser.getCurrentDirectory().toString());
-        setFile(null);
+        ModelConfig config = new ModelConfig();
+        config.implementation = new ParticleSystemConfig();
+        setConfig(config, null);
     }
 
     /**
@@ -399,12 +404,10 @@ public class ParticleEditor extends GlCanvasTool
     {
         try {
             BinaryImporter in = new BinaryImporter(new FileInputStream(file));
-            _particles = (ParticleSystem)in.readObject();
-            initParticles(file.getParent());
+            setConfig((ModelConfig)in.readObject(), file);
             in.close();
-            setFile(file);
-        } catch (IOException e) {
-            log.warning("Failed to open particles [file=" + file + "].", e);
+        } catch (Exception e) { // IOException, ClassCastException
+            log.warning("Failed to open particles.", "file", file, e);
         }
     }
 
@@ -426,11 +429,11 @@ public class ParticleEditor extends GlCanvasTool
     {
         try {
             BinaryExporter out = new BinaryExporter(new FileOutputStream(file));
-            out.writeObject(_particles);
+            out.writeObject(_model.getConfig());
             out.close();
             setFile(file);
         } catch (IOException e) {
-            log.warning("Failed to save particles [file=" + file + "].", e);
+            log.warning("Failed to save particles.", "file", file, e);
         }
     }
 
@@ -443,24 +446,13 @@ public class ParticleEditor extends GlCanvasTool
             File file = _exportChooser.getSelectedFile();
             try {
                 XMLImporter in = new XMLImporter(new FileInputStream(file));
-                _particles = (ParticleSystem)in.readObject();
-                initParticles(file.getParent());
+                setConfig((ModelConfig)in.readObject(), null);
                 in.close();
-            } catch (IOException e) {
-                log.warning("Failed to import particles [file=" + file +"].", e);
+            } catch (Exception e) { // IOException, ClassCastException
+                log.warning("Failed to import particles.", "file", file, e);
             }
         }
         _prefs.put("particle_export_dir", _exportChooser.getCurrentDirectory().toString());
-    }
-
-    /**
-     * Initializes the particles with their context and path.
-     */
-    protected void initParticles (String path)
-    {
-        ParticleEditorPrefs eprefs = (ParticleEditorPrefs)_eprefs;
-        _particles.init(this, eprefs.getTexturePath().toString());
-        ((LayerTableModel)_ltable.getModel()).fireTableDataChanged();
     }
 
     /**
@@ -472,10 +464,10 @@ public class ParticleEditor extends GlCanvasTool
             File file = _exportChooser.getSelectedFile();
             try {
                 XMLExporter out = new XMLExporter(new FileOutputStream(file));
-                out.writeObject(_particles);
+                out.writeObject(_model.getConfig());
                 out.close();
             } catch (IOException e) {
-                log.warning("Failed to export particles [file=" + file + "].", e);
+                log.warning("Failed to export particles.", "file", file, e);
             }
         }
         _prefs.put("particle_export_dir", _exportChooser.getCurrentDirectory().toString());
@@ -490,14 +482,29 @@ public class ParticleEditor extends GlCanvasTool
             File file = _chooser.getSelectedFile();
             try {
                 BinaryImporter in = new BinaryImporter(new FileInputStream(file));
-                ParticleSystem particles = (ParticleSystem)in.readObject();
-                ((LayerTableModel)_ltable.getModel()).insertLayers(particles.getLayers());
+                ModelConfig config = (ModelConfig)in.readObject();
+                ((LayerTableModel)_ltable.getModel()).insertLayers(
+                    ((ParticleSystemConfig)config.implementation).layers);
                 in.close();
-            } catch (IOException e) {
-                log.warning("Failed to import layers [file=" + file + "].", e);
+            } catch (Exception e) { // IOException, ClassCastException, NullPointerException
+                log.warning("Failed to import layers.", "file", file, e);
             }
         }
         _prefs.put("particle_dir", _chooser.getCurrentDirectory().toString());
+    }
+
+    /**
+     * Sets the configuration of the particle system.
+     */
+    protected void setConfig (ModelConfig config, File file)
+    {
+        if (!(config.implementation instanceof ParticleSystemConfig)) {
+            throw new ClassCastException(config.getClass().getName());
+        }
+        config.init(_cfgmgr);
+        _model.setConfig(config);
+        ((LayerTableModel)_ltable.getModel()).fireTableDataChanged();
+        setFile(file);
     }
 
     /**
@@ -523,39 +530,28 @@ public class ParticleEditor extends GlCanvasTool
     }
 
     /**
-     * Particle editor preferences.
+     * Sets the array of layers and notes that the config was updated.
      */
-    protected class ParticleEditorPrefs extends CanvasToolPrefs
+    protected void setLayers (Layer[] layers)
     {
-        public ParticleEditorPrefs (Preferences prefs)
-        {
-            super(prefs);
-            _texturePath = new File(_prefs.get("texture_path", System.getProperty("user.dir")));
-        }
+        getParticleSystemConfig().layers = layers;
+        _model.getConfig().wasUpdated();
+    }
 
-        /**
-         * Sets the path to use when resolving textures.
-         */
-        @Editable(weight=1, mode="directory")
-        public void setTexturePath (File path)
-        {
-            _texturePath = path;
-            String pstr = path.toString();
-            _prefs.put("texture_path", pstr);
-            _particles.setPath(pstr);
-        }
+    /**
+     * Returns a reference to the array of layers.
+     */
+    protected Layer[] getLayers ()
+    {
+        return getParticleSystemConfig().layers;
+    }
 
-        /**
-         * Returns the texture path.
-         */
-        @Editable
-        public File getTexturePath ()
-        {
-            return _texturePath;
-        }
-
-        /** The path to use when resolving textures. */
-        protected File _texturePath;
+    /**
+     * Returns a reference to the particle system configuration.
+     */
+    public ParticleSystemConfig getParticleSystemConfig ()
+    {
+        return (ParticleSystemConfig)_model.getConfig().implementation;
     }
 
     /**
@@ -569,10 +565,10 @@ public class ParticleEditor extends GlCanvasTool
         public void newLayer ()
         {
             // find the highest named layer
-            ArrayList<Layer> layers = _particles.getLayers();
+            Layer[] olayers = getLayers();
             int max = 0;
             String prefix = _msgs.get("m.layer");
-            for (Layer layer : layers) {
+            for (Layer layer : olayers) {
                 String name = layer.name;
                 if (!name.startsWith(prefix)) {
                     continue;
@@ -581,33 +577,25 @@ public class ParticleEditor extends GlCanvasTool
                     max = Math.max(max, Integer.parseInt(name.substring(prefix.length()).trim()));
                 } catch (NumberFormatException e) { }
             }
-            int idx = layers.size();
-            Layer layer = _particles.createLayer(prefix + " " + (max + 1));
-            layer.init();
-            layers.add(layer);
-            fireTableRowsInserted(idx, idx);
-            _ltable.changeSelection(idx, 0, false, false);
+            Layer nlayer = new Layer();
+            nlayer.name = prefix + " " + (max + 1);
+            setLayers(ArrayUtil.append(olayers, nlayer));
+            fireTableRowsInserted(olayers.length, olayers.length);
+            _ltable.changeSelection(olayers.length, 0, false, false);
         }
 
         /**
          * Inserts copies of the specified layers.
          */
-        public void insertLayers (ArrayList<Layer> olayers)
+        public void insertLayers (Layer[] nlayers)
         {
-            int count = olayers.size();
-            if (count == 0) {
+            if (nlayers.length == 0) {
                 return;
             }
-            ArrayList<Layer> layers = _particles.getLayers();
-            int idx = layers.size();
-            for (int ii = 0; ii < count; ii++) {
-                Layer olayer = olayers.get(ii);
-                Layer nlayer = _particles.createLayer(olayer.name);
-                olayer.copy(nlayer);
-                layers.add(nlayer);
-            }
-            fireTableRowsInserted(idx, idx + count - 1);
-            _ltable.changeSelection(idx, 0, false, false);
+            Layer[] olayers = getLayers();
+            setLayers(ArrayUtil.concatenate(olayers, nlayers));
+            fireTableRowsInserted(olayers.length, olayers.length + nlayers.length - 1);
+            _ltable.changeSelection(olayers.length, 0, false, false);
         }
 
         /**
@@ -616,10 +604,10 @@ public class ParticleEditor extends GlCanvasTool
         public void cloneLayer ()
         {
             int idx = _ltable.getSelectedRow();
-            ArrayList<Layer> layers = _particles.getLayers();
-            Layer layer = (Layer)layers.get(idx).clone();
-            layer.name = layer.name + " " + _msgs.get("m.clone");
-            layers.add(++idx, layer);
+            Layer[] olayers = getLayers();
+            Layer nlayer = (Layer)olayers[idx].clone();
+            nlayer.name = nlayer.name + " " + _msgs.get("m.clone");
+            setLayers(ArrayUtil.insert(olayers, nlayer, ++idx));
             fireTableRowsInserted(idx, idx);
             _ltable.changeSelection(idx, 0, false, false);
         }
@@ -630,14 +618,13 @@ public class ParticleEditor extends GlCanvasTool
         public void deleteLayer ()
         {
             int idx = _ltable.getSelectedRow();
-            ArrayList<Layer> layers = _particles.getLayers();
-            Layer layer = layers.remove(idx);
+            Layer[] layers = ArrayUtil.splice(getLayers(), idx, 1);
+            setLayers(layers);
             fireTableRowsDeleted(idx, idx);
-            int size = layers.size();
-            if (idx < size) {
+            if (idx < layers.length) {
                 _ltable.changeSelection(idx, 0, false, false);
-            } else if (size > 0) {
-                _ltable.changeSelection(size - 1, 0, false, false);
+            } else if (layers.length > 0) {
+                _ltable.changeSelection(layers.length - 1, 0, false, false);
             }
         }
 
@@ -650,9 +637,15 @@ public class ParticleEditor extends GlCanvasTool
             if (fromIdx == toIdx) {
                 return;
             }
-            ArrayList<Layer> layers = _particles.getLayers();
-            Layer layer = layers.remove(fromIdx);
-            layers.add(toIdx, layer);
+            Layer[] layers = getLayers();
+            Layer layer = layers[fromIdx];
+            if (toIdx < fromIdx) {
+                System.arraycopy(layers, toIdx, layers, toIdx + 1, fromIdx - toIdx);
+            } else {
+                System.arraycopy(layers, fromIdx + 1, layers, fromIdx, toIdx - fromIdx);
+            }
+            layers[toIdx] = layer;
+            _model.getConfig().wasUpdated();
             fireTableRowsUpdated(Math.min(fromIdx, toIdx), Math.max(fromIdx, toIdx));
             _editor.setObject(layer);
         }
@@ -660,7 +653,7 @@ public class ParticleEditor extends GlCanvasTool
         // documentation inherited from interface TableModel
         public int getRowCount ()
         {
-            return (_particles == null) ? 0 : _particles.getLayers().size();
+            return getLayers().length;
         }
 
         // documentation inherited from interface TableModel
@@ -672,7 +665,7 @@ public class ParticleEditor extends GlCanvasTool
         // documentation inherited from interface TableModel
         public Object getValueAt (int row, int column)
         {
-            Layer layer = _particles.getLayers().get(row);
+            Layer layer = getLayers()[row];
             return (column == 0) ? layer.name : layer.visible;
         }
 
@@ -697,12 +690,13 @@ public class ParticleEditor extends GlCanvasTool
         @Override // documentation inherited
         public void setValueAt (Object value, int row, int column)
         {
-            Layer layer = _particles.getLayers().get(row);
+            Layer layer = getLayers()[row];
             if (column == 0) {
                 layer.name = (String)value;
             } else {
                 layer.visible = (Boolean)value;
             }
+            _model.getConfig().wasUpdated();
         }
     }
 
@@ -711,6 +705,9 @@ public class ParticleEditor extends GlCanvasTool
 
     /** The revert menu item. */
     protected JMenuItem _revert;
+
+    /** The toggle for automatic reset. */
+    protected JCheckBoxMenuItem _autoReset;
 
     /** The toggle for the ground view. */
     protected JCheckBoxMenuItem _showGround;
@@ -721,14 +718,14 @@ public class ParticleEditor extends GlCanvasTool
     /** The file chooser for importing and exporting particle files. */
     protected JFileChooser _exportChooser;
 
+    /** The panel that holds the editor bits. */
+    protected JPanel _epanel;
+
     /** The layer table. */
     protected JTable _ltable;
 
     /** The clone and delete layer buttons. */
     protected JButton _cloneLayer, _deleteLayer;
-
-    /** The option category combo box. */
-    protected JComboBox _categories;
 
     /** The layer editor panel. */
     protected EditorPanel _editor;
@@ -739,12 +736,7 @@ public class ParticleEditor extends GlCanvasTool
     /** The loaded particle file. */
     protected File _file;
 
-    /** The particle system being edited. */
-    protected ParticleSystem _particles;
-
-    /** The time of the last tick. */
-    protected long _lastTick;
-
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(ParticleEditor.class);
 }
+

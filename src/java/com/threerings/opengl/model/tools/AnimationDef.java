@@ -12,8 +12,6 @@ import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.model.Animation;
-import com.threerings.opengl.model.Animation.Frame;
 import com.threerings.opengl.model.config.AnimationConfig;
 
 /**
@@ -38,14 +36,6 @@ public class AnimationDef
         public void addTransform (TransformDef transform)
         {
             transforms.put(transform.name, transform);
-        }
-
-        /**
-         * Builds a {@link Frame} from this definition for the identified targets.
-         */
-        public Frame createFrame (String[] targets, float scale)
-        {
-            return new Frame(getTransforms(targets, scale));
         }
 
         /**
@@ -93,31 +83,6 @@ public class AnimationDef
     public void addFrame (FrameDef frame)
     {
         frames.add(frame);
-    }
-
-    /**
-     * Builds an {@link Animation} from this definition and the supplied properties.
-     */
-    public Animation createAnimation (Properties props)
-    {
-        // find the names of all animation targets
-        String[] targets = getTargets();
-
-        // see if we should leave out the last frame
-        boolean looping = Boolean.parseBoolean(props.getProperty("looping"));
-        boolean skipLastFrame = Boolean.parseBoolean(props.getProperty("skip_last_frame", "true"));
-
-        // read the global scale value
-        float gscale = Float.parseFloat(props.getProperty("scale", "0.01"));
-
-        // build the list of frames
-        Frame[] aframes = new Frame[frames.size() - (looping && skipLastFrame ? 1 : 0)];
-        for (int ii = 0; ii < aframes.length; ii++) {
-            aframes[ii] = frames.get(ii).createFrame(targets, gscale);
-        }
-
-        // create and return the animation
-        return new Animation(props, frameRate, targets, aframes);
     }
 
     /**

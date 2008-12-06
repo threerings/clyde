@@ -12,7 +12,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.Vector2f;
 
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;

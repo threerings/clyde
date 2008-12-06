@@ -21,8 +21,8 @@ import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.geom.DynamicGeometry;
-import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geometry.DynamicGeometry;
+import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.renderer.ClientArray;
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;

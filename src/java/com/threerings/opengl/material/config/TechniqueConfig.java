@@ -25,7 +25,7 @@ import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
-import com.threerings.opengl.geom.Geometry;
+import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.geometry.config.DeformerConfig;
 import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.renderer.Batch;

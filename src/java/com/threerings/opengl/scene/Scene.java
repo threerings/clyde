@@ -24,8 +24,8 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.openal.SoundGroup;
-import com.threerings.opengl.mod.Model;
-import com.threerings.opengl.mod.ModelAdapter;
+import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.ModelAdapter;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;

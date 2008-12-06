@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.geom;
+package com.threerings.opengl.geometry;
 
 import com.threerings.opengl.renderer.SimpleBatch.DrawCommand;
 import com.threerings.opengl.renderer.state.ArrayState;

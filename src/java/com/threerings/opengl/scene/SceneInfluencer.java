@@ -13,7 +13,7 @@ import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.config.SceneInfluencerConfig;
 import com.threerings.opengl.util.DebugBounds;

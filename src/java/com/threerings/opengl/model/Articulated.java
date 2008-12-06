@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.mod;
+package com.threerings.opengl.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,9 +24,8 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.mat.Surface;
+import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
-import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig.AnimationMapping;
 import com.threerings.opengl.model.config.ArticulatedConfig.Attachment;

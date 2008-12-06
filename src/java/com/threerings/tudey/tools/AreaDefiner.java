@@ -13,7 +13,7 @@ import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.SceneElement;
 
 import com.threerings.tudey.client.sprite.AreaSprite;

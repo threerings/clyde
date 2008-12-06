@@ -1,7 +1,7 @@
 //
 // $Id$
 
-package com.threerings.opengl.mod.tools;
+package com.threerings.opengl.model.tools;
 
 import java.awt.event.ActionEvent;
 
@@ -18,7 +18,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.camera.OrbitCameraHandler;
-import com.threerings.opengl.mod.Model;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.SimpleScene;
 import com.threerings.opengl.util.DebugBounds;

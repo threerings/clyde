@@ -13,8 +13,8 @@ import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.eff.Shooter;
 import com.threerings.opengl.effect.Particle;
+import com.threerings.opengl.effect.Shooter;
 
 /**
  * Determines the particles' initial velocities.

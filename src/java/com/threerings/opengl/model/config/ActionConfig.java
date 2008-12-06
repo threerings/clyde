@@ -16,7 +16,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
-import com.threerings.opengl.mod.Articulated;
+import com.threerings.opengl.model.Articulated;
 import com.threerings.opengl.util.GlContext;
 
 /**

@@ -1,38 +1,23 @@
 //
-// $Id$
+// $Id: AnimationAdapter.java 270 2008-08-22 20:52:23Z andrzej $
 
 package com.threerings.opengl.model;
 
-import com.threerings.opengl.model.ArticulatedModel.AnimationTrack;
-
 /**
- * Minimal implementation of {@link AnimationObserver}.
+ * An adapter class for {@link AnimationObserver}.
  */
 public class AnimationAdapter
     implements AnimationObserver
 {
-    /**
-     * Creates a new adapter.
-     *
-     * @param keep whether or not to keep the observer in the list by default.
-     */
-    public AnimationAdapter (boolean keep)
+    // documentation inherited from interface AnimationObserver
+    public boolean animationStarted (Animation animation)
     {
-        _keep = keep;
+        return true;
     }
 
     // documentation inherited from interface AnimationObserver
-    public boolean animationCancelled (AnimationTrack track)
+    public boolean animationStopped (Animation animation, boolean completed)
     {
-        return _keep;
+        return true;
     }
-
-    // documentation inherited from interface AnimationObserver
-    public boolean animationCompleted (AnimationTrack track)
-    {
-        return _keep;
-    }
-
-    /** Whether or not to keep the observer in the list. */
-    protected boolean _keep;
 }
