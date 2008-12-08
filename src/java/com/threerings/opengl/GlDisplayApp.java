@@ -3,6 +3,11 @@
 
 package com.threerings.opengl;
 
+import java.awt.image.BufferedImage;
+
+import java.nio.ByteBuffer;
+
+import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -54,6 +59,31 @@ public abstract class GlDisplayApp extends GlApp
         } catch (LWJGLException e) {
             log.warning("Failed to set display mode.", "mode", mode, e);
         }
+    }
+
+    /**
+     * Sets the display icon.
+     *
+     * @param paths the resource paths of the icons to set.
+     */
+    public void setIcon (String... paths)
+    {
+        ByteBuffer[] icons = new ByteBuffer[paths.length];
+        for (int ii = 0; ii < paths.length; ii++) {
+            BufferedImage image = _imgcache.getBufferedImage(paths[ii]);
+            int[] argb = image.getRGB(
+                0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+            ByteBuffer buf = BufferUtils.createByteBuffer(argb.length * 4);
+            for (int pixel : argb) {
+                buf.put((byte)((pixel >> 16) & 0xFF));
+                buf.put((byte)((pixel >> 8) & 0xFF));
+                buf.put((byte)(pixel & 0xFF));
+                buf.put((byte)((pixel >> 24) & 0xFF));
+            }
+            buf.rewind();
+            icons[ii] = buf;
+        }
+        Display.setIcon(icons);
     }
 
     /**
