@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui.config;
 
+import java.util.HashSet;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -11,6 +13,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 
@@ -19,6 +22,80 @@ import com.threerings.opengl.util.GlContext;
  */
 public class StyleConfig extends ParameterizedConfig
 {
+    /** Text alignment modes. */
+    public enum TextAlignment
+    {
+        LEFT(UIConstants.LEFT),
+        CENTER(UIConstants.CENTER),
+        RIGHT(UIConstants.RIGHT);
+
+        /**
+         * Returns the corresponding UI constant.
+         */
+        public int getConstant ()
+        {
+            return _constant;
+        }
+
+        TextAlignment (int constant)
+        {
+            _constant = constant;
+        }
+
+        /** The UI constant. */
+        protected int _constant;
+    }
+
+    /** Vertical alignment modes. */
+    public enum VerticalAlignment
+    {
+        TOP(UIConstants.TOP),
+        CENTER(UIConstants.CENTER),
+        BOTTOM(UIConstants.BOTTOM);
+
+        /**
+         * Returns the corresponding UI constant.
+         */
+        public int getConstant ()
+        {
+            return _constant;
+        }
+
+        VerticalAlignment (int constant)
+        {
+            _constant = constant;
+        }
+
+        /** The UI constant. */
+        protected int _constant;
+    }
+
+    /** Text effects. */
+    public enum TextEffect
+    {
+        NONE(UIConstants.NORMAL),
+        OUTLINE(UIConstants.OUTLINE),
+        SHADOW(UIConstants.SHADOW),
+        PLAIN(UIConstants.PLAIN),
+        GLOW(UIConstants.GLOW);
+
+        /**
+         * Returns the corresponding UI constant.
+         */
+        public int getConstant ()
+        {
+            return _constant;
+        }
+
+        TextEffect (int constant)
+        {
+            _constant = constant;
+        }
+
+        /** The UI constant. */
+        protected int _constant;
+    }
+
     /**
      * Contains the actual implementation of the style.
      */
@@ -30,6 +107,22 @@ public class StyleConfig extends ParameterizedConfig
          * Adds the implementation's update references to the provided set.
          */
         public abstract void getUpdateReferences (ConfigReferenceSet refs);
+
+        /**
+         * Adds the implementation's update resources to the provided set.
+         */
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -38,24 +131,76 @@ public class StyleConfig extends ParameterizedConfig
     public static class Original extends Implementation
     {
         /** The foreground color. */
-        @Editable(mode="alpha")
+        @Editable(mode="alpha", hgroup="c")
         public Color4f color = new Color4f();
+
+        /** The cursor. */
+        @Editable(editor="config", mode="cursor", nullable=true, hgroup="c")
+        public String cursor;
+
+        /** The font. */
+        @Editable(editor="config", mode="font", nullable=true, hgroup="f")
+        public String font;
+
+        /** The font style. */
+        @Editable(hgroup="f")
+        public FontConfig.Style fontStyle = FontConfig.Style.PLAIN;
+
+        /** The font size. */
+        @Editable(min=1, hgroup="f")
+        public int fontSize = 12;
+
+        /** The text effect. */
+        @Editable(hgroup="e")
+        public TextEffect textEffect = TextEffect.NONE;
+
+        /** The effect size. */
+        @Editable(hgroup="e")
+        public int effectSize = UIConstants.DEFAULT_SIZE;
+
+        /** The effect color. */
+        @Editable(mode="alpha", hgroup="e")
+        public Color4f effectColor = new Color4f();
+
+        /** The text alignment. */
+        @Editable(hgroup="a")
+        public TextAlignment textAlignment = TextAlignment.LEFT;
+
+        /** The vertical alignment .*/
+        @Editable(hgroup="a")
+        public VerticalAlignment verticalAlignment = VerticalAlignment.CENTER;
+
+        /** The line spacing. */
+        @Editable(hgroup="a")
+        public int lineSpacing = UIConstants.DEFAULT_SPACING;
+
+        /** The padding. */
+        @Editable
+        public InsetsConfig padding = new InsetsConfig();
 
         /** The background configuration. */
         @Editable(nullable=true)
         public BackgroundConfig background;
 
-        /** The cursor. */
-        @Editable(editor="config", mode="cursor", nullable=true)
-        public String cursor;
-
-        /** The font. */
-        @Editable(editor="config", mode="font", nullable=true)
-        public String font;
+        /** The icon configuration. */
+        @Editable(nullable=true)
+        public IconConfig icon;
 
         /** The border configuration. */
         @Editable(nullable=true)
         public BorderConfig border;
+
+        /** The preferred size. */
+        @Editable(nullable=true)
+        public DimensionConfig size;
+
+        /** The tooltip style. */
+        @Editable(nullable=true)
+        public ConfigReference<StyleConfig> tooltipStyle;
+
+        /** The selection background. */
+        @Editable(nullable=true)
+        public BackgroundConfig selectionBackground;
 
         @Override // documentation inherited
         public void getUpdateReferences (ConfigReferenceSet refs)
@@ -65,6 +210,37 @@ public class StyleConfig extends ParameterizedConfig
             }
             if (font != null) {
                 refs.add(FontConfig.class, font);
+            }
+        }
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            if (background != null) {
+                background.getUpdateResources(paths);
+            }
+            if (icon != null) {
+                icon.getUpdateResources(paths);
+            }
+            if (selectionBackground != null) {
+                selectionBackground.getUpdateResources(paths);
+            }
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            if (background != null) {
+                background.invalidate();
+            }
+            if (icon != null) {
+                icon.invalidate();
+            }
+            if (border != null) {
+                border.invalidate();
+            }
+            if (selectionBackground != null) {
+                selectionBackground.invalidate();
             }
         }
     }
@@ -90,8 +266,22 @@ public class StyleConfig extends ParameterizedConfig
     public Implementation implementation = new Original();
 
     @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
+    }
+
+    @Override // documentation inherited
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateResources (HashSet<String> paths)
+    {
+        implementation.getUpdateResources(paths);
     }
 }

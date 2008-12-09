@@ -5,6 +5,8 @@ package com.threerings.opengl.gui.config;
 
 import java.lang.ref.SoftReference;
 
+import java.util.HashSet;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
@@ -102,7 +104,7 @@ public abstract class BackgroundConfig extends DeepObject
         }
 
         /** The background image. */
-        @Editable(editor="resource", nullable=true)
+        @Editable(editor="resource", nullable=true, hgroup="f")
         @FileConstraints(
             description="m.image_files_desc",
             extensions={".png", ".jpg"},
@@ -110,12 +112,20 @@ public abstract class BackgroundConfig extends DeepObject
         public String file;
 
         /** The image mode. */
-        @Editable
+        @Editable(hgroup="f")
         public Mode mode = Mode.SCALE_XY;
 
         /** The image frame. */
         @Editable(nullable=true)
         public InsetsConfig frame;
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            if (file != null) {
+                paths.add(file);
+            }
+        }
 
         @Override // documentation inherited
         protected Background createBackground (GlContext ctx)
@@ -135,6 +145,14 @@ public abstract class BackgroundConfig extends DeepObject
         {
             return new BlankBackground();
         }
+    }
+
+    /**
+     * Adds the background's update resources to the provided set.
+     */
+    public void getUpdateResources (HashSet<String> paths)
+    {
+        // nothing by default
     }
 
     /**
