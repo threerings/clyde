@@ -14,6 +14,8 @@ import javax.imageio.ImageIO;
 import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 
+import com.threerings.opengl.gui.Image;
+
 import static com.threerings.opengl.Log.*;
 
 /**
@@ -31,6 +33,14 @@ public class ImageCache extends ResourceCache
     public ImageCache (GlContext ctx, boolean checkTimestamps)
     {
         super(ctx, checkTimestamps);
+    }
+
+    /**
+     * Retrieves a GUI image from the cache.
+     */
+    public Image getImage (String path, Colorization... zations)
+    {
+        return _images.getResource(new ImageKey(path, zations));
     }
 
     /**
@@ -72,6 +82,16 @@ public class ImageCache extends ResourceCache
         }
     }
 
+    /** The GUI image subcache. */
+    protected Subcache<ImageKey, Image> _images = new Subcache<ImageKey, Image>() {
+        protected Image loadResource (ImageKey key) {
+            return new Image(_buffered.getResource(key));
+        }
+        protected String getResourcePath (ImageKey key) {
+            return key.path;
+        }
+    };
+
     /** The buffered image subcache. */
     protected Subcache<ImageKey, BufferedImage> _buffered =
         new Subcache<ImageKey, BufferedImage>() {
@@ -80,8 +100,7 @@ public class ImageCache extends ResourceCache
                 return ImageUtil.recolorImage(getBufferedImage(key.path), key.zations);
             }
             try {
-                // TODO: simplify when we no longer need to support absolute paths
-                return ImageIO.read(getResourceFile(key));
+                return _ctx.getResourceManager().getImageResource(key.path);
             } catch (IOException e) {
                 log.warning("Failed to read image.", "path", key.path, e);
                 return ImageUtil.createErrorImage(64, 64);

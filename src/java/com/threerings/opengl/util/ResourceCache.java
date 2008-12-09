@@ -61,10 +61,7 @@ public abstract class ResourceCache
          */
         protected File getResourceFile (K key)
         {
-            // TODO: simplify when we no longer need to support absolute paths
-            String path = getResourcePath(key);
-            File file = new File(path);
-            return file.isAbsolute() ? file : _ctx.getResourceManager().getResourceFile(path);
+            return _ctx.getResourceManager().getResourceFile(getResourcePath(key));
         }
 
         /**
