@@ -60,6 +60,22 @@ public class TabbedPane extends Container
     }
 
     /**
+     * Sets the justification for the tab buttons.
+     */
+    public void setTabAlignment (GroupLayout.Justification tabAlign)
+    {
+        ((GroupLayout)_buttons.getLayoutManager()).setJustification(tabAlign);
+    }
+
+    /**
+     * Sets the gap between the tab buttons.
+     */
+    public void setGap (int gap)
+    {
+        ((GroupLayout)_buttons.getLayoutManager()).setGap(gap);
+    }
+
+    /**
      * Adds a tab to the pane using the specified title with no close button.
      */
     public void addTab (String title, Component tab)
@@ -237,6 +253,14 @@ public class TabbedPane extends Container
     public ToggleButton getTabButton (int idx)
     {
         return (ToggleButton)_buttons.getComponent(idx);
+    }
+
+    /**
+     * Returns the tab at the specified index.
+     */
+    public Component getTab (int idx)
+    {
+        return _tabs.get(idx).component;
     }
 
     /**

@@ -6,10 +6,22 @@ package com.threerings.opengl.gui.config;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
+import com.threerings.util.MessageBundle;
 
+import com.threerings.opengl.gui.Component;
+import com.threerings.opengl.gui.Container;
+import com.threerings.opengl.gui.layout.AbsoluteLayout;
+import com.threerings.opengl.gui.layout.AnchorLayout;
+import com.threerings.opengl.gui.layout.BorderLayout;
 import com.threerings.opengl.gui.layout.GroupLayout;
+import com.threerings.opengl.gui.layout.HGroupLayout;
 import com.threerings.opengl.gui.layout.TableLayout;
+import com.threerings.opengl.gui.layout.VGroupLayout;
+import com.threerings.opengl.gui.util.Point;
+import com.threerings.opengl.gui.util.Rectangle;
+import com.threerings.opengl.util.GlContext;
 
 @EditorTypes({
     LayoutConfig.Absolute.class, LayoutConfig.Anchor.class,
@@ -18,6 +30,35 @@ import com.threerings.opengl.gui.layout.TableLayout;
 public abstract class LayoutConfig extends DeepObject
     implements Exportable
 {
+    /**
+     * Locations for border layouts.
+     */
+    public enum Location
+    {
+        NORTH(BorderLayout.NORTH),
+        SOUTH(BorderLayout.SOUTH),
+        EAST(BorderLayout.EAST),
+        WEST(BorderLayout.WEST),
+        CENTER(BorderLayout.CENTER),
+        IGNORE(BorderLayout.IGNORE);
+
+        /**
+         * Returns the constant corresponding to this location.
+         */
+        public Integer getConstant ()
+        {
+            return _constant;
+        }
+
+        Location (Integer constant)
+        {
+            _constant = constant;
+        }
+
+        /** The constant corresponding to this location. */
+        protected Integer _constant;
+    }
+
     /**
      * The horizontal alignment for table layouts.
      */
@@ -171,6 +212,14 @@ public abstract class LayoutConfig extends DeepObject
             /** The child component. */
             @Editable(weight=1)
             public ComponentConfig component = new ComponentConfig.Spacer();
+
+            /**
+             * Creates the constraints object for this child.
+             */
+            public Object createConstraints ()
+            {
+                return new Point(x, y);
+            }
         }
 
         /**
@@ -181,6 +230,12 @@ public abstract class LayoutConfig extends DeepObject
             /** The dimensions of the child. */
             @Editable(hgroup="c")
             public int width, height;
+
+            @Override // documentation inherited
+            public Object createConstraints ()
+            {
+                return new Rectangle(x, y, width, height);
+            }
         }
 
         /** Whether or not the coordinates are flipped. */
@@ -190,6 +245,22 @@ public abstract class LayoutConfig extends DeepObject
         /** The children of this layout. */
         @Editable
         public Child[] children = new Child[0];
+
+        @Override // documentation inherited
+        protected void layout (
+            GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
+        {
+            // set the layout
+            cont.setLayoutManager(new AbsoluteLayout(flipped));
+
+            // add the children
+            for (int ii = 0; ii < children.length; ii++) {
+                Child child = children[ii];
+                Component ochild = (ii < ochildren.length) ? ochildren[ii] : null;
+                cont.add(child.component.getComponent(ctx, scope, msgs, ochild),
+                    child.createConstraints());
+            }
+        }
     }
 
     /**
@@ -214,11 +285,35 @@ public abstract class LayoutConfig extends DeepObject
             /** The child component. */
             @Editable
             public ComponentConfig component = new ComponentConfig.Spacer();
+
+            /**
+             * Creates the constraints for this child.
+             */
+            public Object createConstraints ()
+            {
+                return new AnchorLayout.Anchor(childX, childY, parentX, parentY);
+            }
         }
 
         /** The children of this layout. */
         @Editable
         public Child[] children = new Child[0];
+
+        @Override // documentation inherited
+        protected void layout (
+            GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
+        {
+            // set the layout
+            cont.setLayoutManager(new AnchorLayout());
+
+            // add the children
+            for (int ii = 0; ii < children.length; ii++) {
+                Child child = children[ii];
+                Component ochild = (ii < ochildren.length) ? ochildren[ii] : null;
+                cont.add(child.component.getComponent(ctx, scope, msgs, ochild),
+                    child.createConstraints());
+            }
+        }
     }
 
     /**
@@ -226,6 +321,29 @@ public abstract class LayoutConfig extends DeepObject
      */
     public static class Border extends LayoutConfig
     {
+        /**
+         * Represents a child of the layout.
+         */
+        public static class Child extends DeepObject
+            implements Exportable
+        {
+            /** The location of the child. */
+            @Editable
+            public Location location = Location.CENTER;
+
+            /** The child component. */
+            @Editable
+            public ComponentConfig component = new ComponentConfig.Spacer();
+
+            /**
+             * Returns the constraints for this child.
+             */
+            public Object getConstraints ()
+            {
+                return location.getConstant();
+            }
+        }
+
         /** The horizontal gap. */
         @Editable(hgroup="g")
         public int horizontalGap;
@@ -234,25 +352,25 @@ public abstract class LayoutConfig extends DeepObject
         @Editable(hgroup="g")
         public int verticalGap;
 
-        /** The north component. */
-        @Editable(nullable=true)
-        public ComponentConfig north;
+        /** The children of this layout. */
+        @Editable
+        public Child[] children = new Child[0];
 
-        /** The south component. */
-        @Editable(nullable=true)
-        public ComponentConfig south;
+        @Override // documentation inherited
+        protected void layout (
+            GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
+        {
+            // set the layout
+            cont.setLayoutManager(new BorderLayout(horizontalGap, verticalGap));
 
-        /** The east component. */
-        @Editable(nullable=true)
-        public ComponentConfig east;
-
-        /** The west component. */
-        @Editable(nullable=true)
-        public ComponentConfig west;
-
-        /** The center component. */
-        @Editable(nullable=true)
-        public ComponentConfig center;
+            // add the children
+            for (int ii = 0; ii < children.length; ii++) {
+                Child child = children[ii];
+                Component ochild = (ii < ochildren.length) ? ochildren[ii] : null;
+                cont.add(child.component.getComponent(ctx, scope, msgs, ochild),
+                    child.getConstraints());
+            }
+        }
     }
 
     /**
@@ -277,6 +395,14 @@ public abstract class LayoutConfig extends DeepObject
             /** The child component. */
             @Editable
             public ComponentConfig component = new ComponentConfig.Spacer();
+
+            /**
+             * Returns the constraints for this child.
+             */
+            public Object getConstraints ()
+            {
+                return fixed ? GroupLayout.FIXED : new GroupLayout.Constraints(weight);
+            }
         }
 
         /** The policy for the main axis. */
@@ -302,6 +428,33 @@ public abstract class LayoutConfig extends DeepObject
         /** The children of this layout. */
         @Editable
         public Child[] children = new Child[0];
+
+        @Override // documentation inherited
+        protected void layout (
+            GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
+        {
+            // set the layout
+            GroupLayout layout = createLayout();
+            layout.setPolicy(policy.getPolicy());
+            layout.setOffAxisPolicy(offAxisPolicy.getPolicy());
+            layout.setGap(gap);
+            layout.setJustification(justification.getJustification());
+            layout.setOffAxisJustification(offAxisJustification.getJustification());
+            cont.setLayoutManager(layout);
+
+            // add the children
+            for (int ii = 0; ii < children.length; ii++) {
+                Child child = children[ii];
+                Component ochild = (ii < ochildren.length) ? ochildren[ii] : null;
+                cont.add(child.component.getComponent(ctx, scope, msgs, ochild),
+                    child.getConstraints());
+            }
+        }
+
+        /**
+         * Creates the layout.
+         */
+        protected abstract GroupLayout createLayout ();
     }
 
     /**
@@ -309,6 +462,11 @@ public abstract class LayoutConfig extends DeepObject
      */
     public static class HorizontalGroup extends Group
     {
+        @Override // documentation inherited
+        protected GroupLayout createLayout ()
+        {
+            return new HGroupLayout();
+        }
     }
 
     /**
@@ -316,6 +474,11 @@ public abstract class LayoutConfig extends DeepObject
      */
     public static class VerticalGroup extends Group
     {
+        @Override // documentation inherited
+        protected GroupLayout createLayout ()
+        {
+            return new VGroupLayout();
+        }
     }
 
     /**
@@ -361,5 +524,45 @@ public abstract class LayoutConfig extends DeepObject
         /** The children of this layout. */
         @Editable
         public Child[] children = new Child[0];
+
+        @Override // documentation inherited
+        protected void layout (
+            GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
+        {
+            // set the layout
+            TableLayout layout = new TableLayout(columns, rowGap, columnGap);
+            layout.setHorizontalAlignment(horizontalAlignment.getAlignment());
+            layout.setVerticalAlignment(verticalAlignment.getAlignment());
+            layout.setEqualRows(equalRows);
+            cont.setLayoutManager(layout);
+
+            // add the children
+            for (int ii = 0; ii < children.length; ii++) {
+                Component ochild = (ii < ochildren.length) ? ochildren[ii] : null;
+                cont.add(children[ii].component.getComponent(ctx, scope, msgs, ochild));
+            }
+        }
     }
+
+    /**
+     * Configures the supplied container with this layout.
+     */
+    public void configure (GlContext ctx, Scope scope, MessageBundle msgs, Container cont)
+    {
+        // get, remove the existing children
+        Component[] ochildren = new Component[cont.getComponentCount()];
+        for (int ii = 0; ii < ochildren.length; ii++) {
+            ochildren[ii] = cont.getComponent(ii);
+        }
+        cont.removeAll();
+
+        // lay the container out again
+        layout(ctx, scope, msgs, cont, ochildren);
+    }
+
+    /**
+     * Lays out the container.
+     */
+    protected abstract void layout (
+        GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren);
 }

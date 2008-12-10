@@ -5,7 +5,10 @@ package com.threerings.opengl.gui;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.config.ConfigReference;
+
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.MouseWheelListener;
 import com.threerings.opengl.gui.layout.BorderLayout;
 import com.threerings.opengl.gui.util.Dimension;
@@ -87,6 +90,15 @@ public class ScrollPane extends Container
     public void setViewportStyleClass (String styleClass)
     {
         _vport.setStyleClass(styleClass);
+    }
+
+    /**
+     * Configures the style of the viewport (the non-scrolling container that will hold the
+     * scrolling contents).
+     */
+    public void setViewportStyleConfig (ConfigReference<StyleConfig> ref)
+    {
+        _vport.setStyleConfig(ref);
     }
 
     @Override // documentation inherited

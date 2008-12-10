@@ -34,9 +34,20 @@ public class List extends Container
     {
         super(GroupLayout.makeVert(GroupLayout.NONE, GroupLayout.TOP,
             GroupLayout.STRETCH));
+        setValues(values);
+    }
+
+    /**
+     * Sets the list's values.
+     */
+    public void setValues (Object[] values)
+    {
+        _selidx = -1;
+        removeAll();
+        _values.clear();
         if (values != null) {
-            for (int ii = 0; ii < values.length; ii++) {
-                addValue(values[ii]);
+            for (Object value : values) {
+                addValue(value);
             }
         }
     }
@@ -101,7 +112,9 @@ public class List extends Container
         if (idx == _selidx) {
             return;
         }
-        ((ToggleButton)_children.get(_selidx)).setSelected(false);
+        if (_selidx != -1) {
+            ((ToggleButton)_children.get(_selidx)).setSelected(false);
+        }
         if (idx != -1) {
             ((ToggleButton)_children.get(idx)).setSelected(true);
         }
