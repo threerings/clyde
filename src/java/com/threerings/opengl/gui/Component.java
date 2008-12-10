@@ -12,11 +12,15 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.config.ConfigReference;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.border.Border;
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.ComponentListener;
 import com.threerings.opengl.gui.event.KeyEvent;
@@ -66,6 +70,39 @@ public class Component
     public String getStyleClass ()
     {
         return (_styleClass == null) ? getDefaultStyleClass() : _styleClass;
+    }
+
+    /**
+     * Sets the style configuration.
+     */
+    public void setStyleConfig (String name)
+    {
+        setStyleConfig(_ctx.getConfigManager().getConfig(StyleConfig.class, name));
+    }
+
+    /**
+     * Sets the style configuration.
+     */
+    public void setStyleConfig (ConfigReference<StyleConfig> ref)
+    {
+        setStyleConfig(_ctx.getConfigManager().getConfig(StyleConfig.class, ref));
+    }
+
+    /**
+     * Sets the style configuration.
+     */
+    public void setStyleConfig (
+        String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        setStyleConfig(_ctx.getConfigManager().getConfig(
+            StyleConfig.class, name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Sets the style configuration.
+     */
+    public void setStyleConfig (StyleConfig config)
+    {
     }
 
     /**
@@ -969,6 +1006,9 @@ public class Component
         renderer.setScissor(_rect);
         return store;
     }
+
+    /** The application context. */
+    protected GlContext _ctx;
 
     protected Container _parent;
     protected String _styleClass;

@@ -3,16 +3,21 @@
 
 package com.threerings.opengl.gui.config;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Label.Fit;
 import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.config.LayoutConfig.Justification;
 import com.threerings.opengl.gui.layout.GroupLayout;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Contains a component configuration.
@@ -76,6 +81,22 @@ public abstract class ComponentConfig extends DeepObject
         /** Determines how to fit overlong text in the label. */
         @Editable(hgroup="o")
         public Fit fit = Fit.WRAP;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.Label.class) ?
+                comp : new com.threerings.opengl.gui.Label("");
+        }
+
+        @Override // documentation inherited
+        protected void configure (GlContext ctx, Scope scope, Component comp)
+        {
+            super.configure(ctx, scope, comp);
+            com.threerings.opengl.gui.Label label = (com.threerings.opengl.gui.Label)comp;
+            label.setIcon(icon == null ? null : icon.getIcon(ctx));
+
+        }
     }
 
     /**
@@ -86,6 +107,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The action to fire when the button is pressed. */
         @Editable(hgroup="a")
         public String action = "";
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.Button.class) ?
+                comp : new com.threerings.opengl.gui.Button("");
+        }
     }
 
     /**
@@ -96,6 +124,13 @@ public abstract class ComponentConfig extends DeepObject
         /** Whether or not the button is selected. */
         @Editable(hgroup="a")
         public boolean selected;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.ToggleButton.class) ?
+                comp : new com.threerings.opengl.gui.ToggleButton("");
+        }
     }
 
     /**
@@ -103,6 +138,12 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class CheckBox extends ToggleButton
     {
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.CheckBox.class) ?
+                comp : new com.threerings.opengl.gui.CheckBox("");
+        }
     }
 
     /**
@@ -146,6 +187,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The index of the selected item. */
         @Editable(min=0)
         public int selected;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.ComboBox.class) ?
+                comp : new com.threerings.opengl.gui.ComboBox();
+        }
     }
 
     /**
@@ -160,6 +208,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The index of the selected item. */
         @Editable(min=0)
         public int selected;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.List.class) ?
+                comp : new com.threerings.opengl.gui.List();
+        }
     }
 
     /**
@@ -180,6 +235,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The maximum length of the field (or zero for unlimited). */
         @Editable(min=0, hgroup="t")
         public int maxLength;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.TextField.class) ?
+                comp : new com.threerings.opengl.gui.TextField();
+        }
     }
 
     /**
@@ -187,6 +249,12 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class PasswordField extends TextField
     {
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.PasswordField.class) ?
+                comp : new com.threerings.opengl.gui.PasswordField();
+        }
     }
 
     /**
@@ -201,6 +269,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The area's preferred width, or zero for none. */
         @Editable(min=0, hgroup="t")
         public int preferredWidth;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.TextArea.class) ?
+                comp : new com.threerings.opengl.gui.TextArea();
+        }
     }
 
     /**
@@ -238,6 +313,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The tabs. */
         @Editable
         public Tab[] tabs = new Tab[0];
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.TabbedPane.class) ?
+                comp : new com.threerings.opengl.gui.TabbedPane();
+        }
     }
 
     /**
@@ -245,6 +327,12 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class Spacer extends ComponentConfig
     {
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.Spacer.class) ?
+                comp : new com.threerings.opengl.gui.Spacer();
+        }
     }
 
     /**
@@ -259,6 +347,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The slider's model. */
         @Editable
         public BoundedRangeModelConfig model = new BoundedRangeModelConfig();
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return new com.threerings.opengl.gui.Slider(
+                orientation.getConstant(), model.createBoundedRangeModel());
+        }
     }
 
     /**
@@ -289,6 +384,12 @@ public abstract class ComponentConfig extends DeepObject
         /** The child component. */
         @Editable
         public ComponentConfig child = new Spacer();
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return null;
+        }
     }
 
     /**
@@ -303,6 +404,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The scroll bar's model. */
         @Editable
         public BoundedRangeModelConfig model = new BoundedRangeModelConfig();
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return new com.threerings.opengl.gui.ScrollBar(
+                orientation.getConstant(), model.createBoundedRangeModel());
+        }
     }
 
     /**
@@ -313,6 +421,13 @@ public abstract class ComponentConfig extends DeepObject
         /** The layout of the container. */
         @Editable
         public LayoutConfig layout = new LayoutConfig.Absolute();
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.Container.class) ?
+                comp : new com.threerings.opengl.gui.Container();
+        }
     }
 
     /**
@@ -323,6 +438,12 @@ public abstract class ComponentConfig extends DeepObject
         /** The user interface reference. */
         @Editable(nullable=true)
         public ConfigReference<UserInterfaceConfig> userInterface;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (GlContext ctx, Scope scope, Component comp)
+        {
+            return null;
+        }
     }
 
     /** The component alpha value. */
@@ -352,4 +473,49 @@ public abstract class ComponentConfig extends DeepObject
     /** The preferred size, if non-default. */
     @Editable(weight=1, nullable=true)
     public DimensionConfig preferredSize;
+
+    /**
+     * Creates or updates a component for this configuration.
+     *
+     * @param scope the component's expression scope.
+     * @param comp an existing component to reuse, if possible.
+     * @return either a reference to the existing component (if reused) or a new component.
+     */
+    public Component getComponent (GlContext ctx, Scope scope, Component comp)
+    {
+        comp = maybeRecreate(ctx, scope, comp);
+        configure(ctx, scope, comp);
+        return comp;
+    }
+
+    /**
+     * Recreates the component if the supplied component doesn't match the configuration.
+     */
+    protected abstract Component maybeRecreate (GlContext ctx, Scope scope, Component comp);
+
+    /**
+     * Configures the specified component.
+     */
+    protected void configure (GlContext ctx, Scope scope, Component comp)
+    {
+        comp.setAlpha(alpha);
+        comp.setEnabled(enabled);
+        comp.setVisible(visible);
+        if (!StringUtil.isBlank(tooltipText)) {
+            comp.setTooltipText(tooltipText);
+        }
+        comp.setTooltipRelativeToMouse(tooltipRelativeToMouse);
+        comp.setStyleConfig(style);
+        if (preferredSize != null) {
+            comp.setPreferredSize(preferredSize.createDimension());
+        }
+    }
+
+    /**
+     * Returns the class of the specified object, or <code>null</code> if the reference is null.
+     */
+    protected static Class getClass (Object object)
+    {
+        return (object == null) ? null : object.getClass();
+    }
 }

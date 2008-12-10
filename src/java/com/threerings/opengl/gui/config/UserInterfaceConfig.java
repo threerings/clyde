@@ -10,7 +10,11 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
+
+import com.threerings.opengl.gui.Component;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Describes a user interface.
@@ -31,6 +35,16 @@ public class UserInterfaceConfig extends ParameterizedConfig
         {
             // nothing by default
         }
+
+        /**
+         * Creates or updates a component for this configuration.
+         *
+         * @param scope the component's expression scope.
+         * @param comp an existing component to reuse, if possible.
+         * @return either a reference to the existing component (if reused) a new component, or
+         * <code>null</code> if no component could be created.
+         */
+        public abstract Component getComponent (GlContext ctx, Scope scope, Component comp);
     }
 
     /**
@@ -41,6 +55,12 @@ public class UserInterfaceConfig extends ParameterizedConfig
         /** The root of the interface. */
         @Editable
         public ComponentConfig root = new ComponentConfig.Spacer();
+
+        @Override // documentation inherited
+        public Component getComponent (GlContext ctx, Scope scope, Component comp)
+        {
+            return root.getComponent(ctx, scope, comp);
+        }
     }
 
     /**
@@ -57,11 +77,32 @@ public class UserInterfaceConfig extends ParameterizedConfig
         {
             refs.add(UserInterfaceConfig.class, userInterface);
         }
+
+        @Override // documentation inherited
+        public Component getComponent (GlContext ctx, Scope scope, Component comp)
+        {
+            UserInterfaceConfig config = ctx.getConfigManager().getConfig(
+                UserInterfaceConfig.class, userInterface);
+            return (config == null) ? null : config.getComponent(ctx, scope, comp);
+        }
     }
 
     /** The actual interface implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Creates or updates a component for this configuration.
+     *
+     * @param scope the component's expression scope.
+     * @param comp an existing component to reuse, if possible.
+     * @return either a reference to the existing component (if reused) a new component, or
+     * <code>null</code> if no component could be created.
+     */
+    public Component getComponent (GlContext ctx, Scope scope, Component comp)
+    {
+        return implementation.getComponent(ctx, scope, comp);
+    }
 
     @Override // documentation inherited
     public void init (ConfigManager cfgmgr)

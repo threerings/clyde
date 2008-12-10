@@ -26,6 +26,12 @@ public class BoundedRangeModelConfig extends DeepObject
         /** The snap value. */
         @Editable
         public int snap;
+
+        @Override // documentation inherited
+        public BoundedRangeModel createBoundedRangeModel ()
+        {
+            return new BoundedSnappingRangeModel(min, value, extent, max, snap);
+        }
     }
 
     /** The minimum value. */
@@ -43,4 +49,12 @@ public class BoundedRangeModelConfig extends DeepObject
     /** The maximum value. */
     @Editable(hgroup="v")
     public int max = 100;
+
+    /**
+     * Creates a bounded range model from this config.
+     */
+    public BoundedRangeModel createBoundedRangeModel ()
+    {
+        return new BoundedRangeModel(min, value, extent, max);
+    }
 }
