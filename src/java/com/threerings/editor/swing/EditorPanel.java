@@ -238,9 +238,7 @@ public class EditorPanel extends BasePropertyEditor
                 JPanel inner = GroupLayout.makeVBox(
                     GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
                 inner.setBackground(null);
-                tabs.addTab(getLabel(cat, cmsgs), isEmbedded() ? inner : new JScrollPane(
-                    inner, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+                tabs.addTab(getLabel(cat, cmsgs), isEmbedded() ? inner : createScrollPane(inner));
                 addEditors(props, cat, inner);
             }
         } else { // _catmode == CategoryMode.CHOOSER
@@ -256,9 +254,7 @@ public class EditorPanel extends BasePropertyEditor
                 JPanel panel = GroupLayout.makeVBox(
                     GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
                 panel.setBackground(null);
-                inner.add(isEmbedded() ? panel : new JScrollPane(
-                    panel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), cat);
+                inner.add(isEmbedded() ? panel : createScrollPane(panel), cat);
                 addEditors(props, cat, panel);
             }
             cbox.addItemListener(new ItemListener() {
@@ -411,9 +407,7 @@ public class EditorPanel extends BasePropertyEditor
         JPanel inner = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH);
         inner.setBackground(null);
-        add(isEmbedded() ? inner : new JScrollPane(
-            inner, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+        add(isEmbedded() ? inner : createScrollPane(inner));
         return inner;
     }
 
@@ -517,6 +511,18 @@ public class EditorPanel extends BasePropertyEditor
         while (ocount > idx) {
             _dynamic.remove(--ocount);
         }
+    }
+
+    /**
+     * Creates a scroll pane with an increment that's more useful than the default.
+     */
+    protected static JScrollPane createScrollPane (Component view)
+    {
+        JScrollPane pane = new JScrollPane(
+            view, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        pane.getVerticalScrollBar().setUnitIncrement(32);
+        return pane;
     }
 
     /** Provides access to common services. */
