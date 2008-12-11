@@ -18,6 +18,7 @@ import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.util.DeepUtil;
 
 import static com.threerings.editor.Log.*;
 
@@ -137,6 +138,31 @@ public abstract class ArrayListEditor extends PropertyEditor
             }
             @SuppressWarnings("unchecked") List<Object> list = values;
             list.add(value);
+            _property.set(_object, values);
+        }
+        _add.setEnabled(getLength() < _max);
+        fireStateChanged();
+    }
+
+    /**
+     * Copies the element at the specified index.
+     */
+    protected void copyValue (int idx)
+    {
+        Class type = _property.getType();
+        if (type.isArray()) {
+            Object ovalues = _property.get(_object);
+            int olength = Array.getLength(ovalues);
+            Object nvalues = Array.newInstance(type.getComponentType(), olength + 1);
+            System.arraycopy(ovalues, 0, nvalues, 0, idx + 1);
+            Array.set(nvalues, idx + 1, DeepUtil.copy(Array.get(ovalues, idx)));
+            System.arraycopy(ovalues, idx + 1, nvalues, idx + 2, olength - idx - 1);
+            _property.set(_object, nvalues);
+
+        } else {
+            @SuppressWarnings("unchecked") List<Object> values =
+                (List<Object>)_property.get(_object);
+            values.add(idx + 1, DeepUtil.copy(values.get(idx)));
             _property.set(_object, values);
         }
         _add.setEnabled(getLength() < _max);

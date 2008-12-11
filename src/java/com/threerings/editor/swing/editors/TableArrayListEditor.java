@@ -35,6 +35,7 @@ import com.samskivert.util.ClassUtil;
 import com.samskivert.util.IntTuple;
 import com.samskivert.util.ListUtil;
 
+import com.threerings.util.DeepUtil;
 import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Introspector;
@@ -134,6 +135,13 @@ public class TableArrayListEditor extends ArrayListEditor
         } else if (source == _addColumn) {
             addColumn();
 
+        } else if (source == _copy) {
+            IntTuple selection = getSelection();
+            if (selection.right == -1) {
+                copyValue(selection.left);
+            } else {
+                copyColumn(selection.right);
+            }
         } else if (source == _delete) {
             IntTuple selection = getSelection();
             if (selection.right == -1) {
@@ -359,6 +367,8 @@ public class TableArrayListEditor extends ArrayListEditor
             bpanel.add(_addColumn = new JButton(getActionLabel("new", "column")));
             _addColumn.addActionListener(this);
         }
+        bpanel.add(_copy = new JButton(_msgs.get("m.copy")));
+        _copy.addActionListener(this);
         bpanel.add(_delete = new JButton(_msgs.get("m.delete")));
         _delete.addActionListener(this);
 
@@ -385,6 +395,17 @@ public class TableArrayListEditor extends ArrayListEditor
     {
         super.addValue(value);
         int row = getLength() - 1;
+        fireTableChanged(row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT);
+        if (_columns.length > 0) {
+            setSelection(row, -1);
+        }
+    }
+
+    @Override // documentation inherited
+    protected void copyValue (int idx)
+    {
+        super.copyValue(idx);
+        int row = idx + 1;
         fireTableChanged(row, row, TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT);
         if (_columns.length > 0) {
             setSelection(row, -1);
@@ -421,10 +442,41 @@ public class TableArrayListEditor extends ArrayListEditor
         fireStateChanged(true);
         fireTableChanged(
             TableModelEvent.HEADER_ROW, TableModelEvent.HEADER_ROW,
-            TableModelEvent.ALL_COLUMNS, TableModelEvent.UPDATE);
+            _columns.length - 1, TableModelEvent.INSERT);
         updateColumnWidths();
         if (getLength() > 0) {
             setSelection(-1, _columns.length - 1);
+        }
+    }
+
+    /**
+     * Copies the column at the specified index.
+     */
+    protected void copyColumn (int column)
+    {
+        // update the column model
+        _columns = ArrayUtil.append(_columns, createArrayColumn(_columns.length));
+
+        // expand all rows to include the new column
+        int idx = column + 1;
+        Class cctype = _property.getComponentType().getComponentType();
+        for (int ii = 0, nn = getLength(); ii < nn; ii++) {
+            Object ovalue = getValue(ii);
+            Object nvalue = Array.newInstance(cctype, _columns.length);
+            System.arraycopy(ovalue, 0, nvalue, 0, idx);
+            Array.set(nvalue, idx, DeepUtil.copy(Array.get(ovalue, column)));
+            System.arraycopy(ovalue, idx, nvalue, idx + 1, _columns.length - idx - 1);
+            setValue(ii, nvalue);
+        }
+
+        // fire notification events, update selection
+        fireStateChanged(true);
+        fireTableChanged(
+            TableModelEvent.HEADER_ROW, TableModelEvent.HEADER_ROW,
+            idx, TableModelEvent.INSERT);
+        updateColumnWidths();
+        if (getLength() > 0) {
+            setSelection(-1, idx);
         }
     }
 
@@ -608,8 +660,13 @@ public class TableArrayListEditor extends ArrayListEditor
     protected void updateSelected ()
     {
         IntTuple selection = getSelection();
-        _delete.setEnabled(selection != null && (selection.left == -1 ||
-            (selection.right == -1 && getLength() > _min)));
+        boolean row = false, column = false;
+        if (selection != null) {
+            row = (selection.right == -1);
+            column = (selection.left == -1);
+        }
+        _delete.setEnabled(column || row && getLength() > _min);
+        _copy.setEnabled(column || row && getLength() < _max);
         if (_opanel != null) {
             if (selection == null) {
                 _opanel.setVisible(false);
@@ -743,8 +800,8 @@ public class TableArrayListEditor extends ArrayListEditor
     /** The add column button. */
     protected JButton _addColumn;
 
-    /** The delete button. */
-    protected JButton _delete;
+    /** The copy and delete buttons. */
+    protected JButton _copy, _delete;
 
     /** The object panel used to edit the non-inline properties. */
     protected ObjectPanel _opanel;

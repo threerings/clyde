@@ -93,7 +93,7 @@ public class TileConfig extends ParameterizedConfig
         public ConfigReference<ModelConfig> model;
 
         /** The tile's collision flags. */
-        @Editable(width=4)
+        @Editable(width=3)
         public int[][] collisionFlags = new int[][] { { 0x01 } };
 
         /** A tag to use to identify the tile within the scene. */
