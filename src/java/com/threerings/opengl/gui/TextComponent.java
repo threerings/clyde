@@ -4,6 +4,7 @@
 package com.threerings.opengl.gui;
 
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.text.TextFactory;
 
@@ -13,6 +14,14 @@ import com.threerings.opengl.gui.text.TextFactory;
  */
 public abstract class TextComponent extends Component
 {
+    /**
+     * Creates a new text component.
+     */
+    public TextComponent (GlContext ctx)
+    {
+        super(ctx);
+    }
+
     /**
      * Updates the text displayed by this component.
      */

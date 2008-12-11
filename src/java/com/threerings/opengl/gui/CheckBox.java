@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.icon.Icon;
 
 /**
@@ -10,9 +12,9 @@ import com.threerings.opengl.gui.icon.Icon;
  */
 public class CheckBox extends ToggleButton
 {
-    public CheckBox (String label)
+    public CheckBox (GlContext ctx, String label)
     {
-        super(label);
+        super(ctx, label);
     }
 
     // documentation inherited

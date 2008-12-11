@@ -6,6 +6,7 @@ package com.threerings.opengl.gui;
 import java.util.ArrayList;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
@@ -23,15 +24,17 @@ public class Container extends Component
      * Creates a container with no layout manager. One should subsequently
      * be set via a call to {@link #setLayoutManager}.
      */
-    public Container ()
+    public Container (GlContext ctx)
     {
+        super(ctx);
     }
 
     /**
      * Creates a container with the supplied layout manager.
      */
-    public Container (LayoutManager layout)
+    public Container (GlContext ctx, LayoutManager layout)
     {
+        super(ctx);
         setLayoutManager(layout);
     }
 

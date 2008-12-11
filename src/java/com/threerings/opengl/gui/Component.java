@@ -49,6 +49,14 @@ public class Component
     public static final int DISABLED = 2;
 
     /**
+     * Creates a new component.
+     */
+    public Component (GlContext ctx)
+    {
+        _ctx = ctx;
+    }
+
+    /**
      * Configures this component with a custom stylesheet class. By default a component's class is
      * defined by its component type (label, button, checkbox, etc.) but one can provide custom
      * style information to a component by configuring it with a custom class and defining that
@@ -813,9 +821,9 @@ public class Component
     protected Component createTooltipComponent (String tiptext)
     {
         if (tiptext.startsWith("<html>")) {
-            return new HTMLView("", tiptext);
+            return new HTMLView(_ctx, "", tiptext);
         } else {
-            return new Label(tiptext, _tipStyle);
+            return new Label(_ctx, tiptext, _tipStyle);
         }
     }
 

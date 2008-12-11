@@ -5,6 +5,8 @@ package com.threerings.opengl.gui;
 
 import java.util.ArrayList;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.layout.GroupLayout;
@@ -22,17 +24,17 @@ public class List extends Container
     /**
      * Creates an empty list.
      */
-    public List ()
+    public List (GlContext ctx)
     {
-        this(null);
+        this(ctx, null);
     }
 
     /**
      * Creates a list and populates it with the supplied values.
      */
-    public List (Object[] values)
+    public List (GlContext ctx, Object[] values)
     {
-        super(GroupLayout.makeVert(GroupLayout.NONE, GroupLayout.TOP,
+        super(ctx, GroupLayout.makeVert(GroupLayout.NONE, GroupLayout.TOP,
             GroupLayout.STRETCH));
         setValues(values);
     }
@@ -59,7 +61,7 @@ public class List extends Container
     {
         // list entries can be selected by clicking on them, but unselected
         // only by clicking another entry
-        ToggleButton button = new ToggleButton(value.toString()) {
+        ToggleButton button = new ToggleButton(_ctx, value.toString()) {
             protected void fireAction (long when, int modifiers) {
                 if (!_selected) {
                     super.fireAction(when, modifiers);

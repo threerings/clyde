@@ -7,6 +7,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -24,16 +25,17 @@ public class GeomView extends Component
      * Creates a view with no configured geometry. Geometry can be set later with {@link
      * #setGeometry}.
      */
-    public GeomView ()
+    public GeomView (GlContext ctx)
     {
-        this(null);
+        this(ctx, null);
     }
 
     /**
      * Creates a view with the specified {@link Renderable} to be rendered.
      */
-    public GeomView (Renderable geom)
+    public GeomView (GlContext ctx, Renderable geom)
     {
+        super(ctx);
         _geom = geom;
     }
 

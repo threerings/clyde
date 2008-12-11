@@ -14,9 +14,9 @@ import com.threerings.opengl.gui.layout.LayoutManager;
 public class StretchWindow extends Window
     implements Renderer.Observer
 {
-    public StretchWindow (GlContext ctx, StyleSheet style, LayoutManager layout)
+    public StretchWindow (GlContext ctx, LayoutManager layout)
     {
-        super(style, layout);
+        super(ctx, layout);
         _ctx = ctx;
     }
 

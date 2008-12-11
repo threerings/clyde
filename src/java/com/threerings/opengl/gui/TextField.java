@@ -11,6 +11,7 @@ import com.samskivert.util.IntTuple;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.event.ActionEvent;
@@ -37,9 +38,9 @@ public class TextField extends TextComponent
     /**
      * Creates a blank text field.
      */
-    public TextField ()
+    public TextField (GlContext ctx)
     {
-        this("");
+        this(ctx, "");
     }
 
     /**
@@ -47,17 +48,17 @@ public class TextField extends TextComponent
      * length is controlled by a {@link LengthLimitedDocument}, changing the
      * document will remove the length control.
      */
-    public TextField (int maxLength)
+    public TextField (GlContext ctx, int maxLength)
     {
-        this("", maxLength);
+        this(ctx, "", maxLength);
     }
 
     /**
      * Creates a text field with the specified starting text.
      */
-    public TextField (String text)
+    public TextField (GlContext ctx, String text)
     {
-        this(text, 0);
+        this(ctx, text, 0);
     }
 
     /**
@@ -66,8 +67,9 @@ public class TextField extends TextComponent
      * LengthLimitedDocument}, changing the document will remove the length
      * control.
      */
-    public TextField (String text, int maxLength)
+    public TextField (GlContext ctx, String text, int maxLength)
     {
+        super(ctx);
         setMaxLength(maxLength);
         setText(text);
     }

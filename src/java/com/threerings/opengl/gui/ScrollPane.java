@@ -8,6 +8,8 @@ import org.lwjgl.opengl.GL11;
 import com.threerings.config.ConfigReference;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.MouseWheelListener;
 import com.threerings.opengl.gui.layout.BorderLayout;
@@ -20,30 +22,30 @@ import com.threerings.opengl.gui.util.Rectangle;
  */
 public class ScrollPane extends Container
 {
-    public ScrollPane (Component child)
+    public ScrollPane (GlContext ctx, Component child)
     {
-        this(child, true, false);
+        this(ctx, child, true, false);
     }
 
-    public ScrollPane (Component child, boolean vert, boolean horiz)
+    public ScrollPane (GlContext ctx, Component child, boolean vert, boolean horiz)
     {
-        this(child, vert, horiz, -1);
+        this(ctx, child, vert, horiz, -1);
     }
 
     public ScrollPane (
-        Component child, boolean vert, boolean horiz, int snap)
+        GlContext ctx, Component child, boolean vert, boolean horiz, int snap)
     {
-        super(new BorderLayout(0, 0));
+        super(ctx, new BorderLayout(0, 0));
 
-        add(_vport = new Viewport(child, vert, horiz, snap),
+        add(_vport = new Viewport(ctx, child, vert, horiz, snap),
             BorderLayout.CENTER);
         if (vert) {
-            add(_vbar = new ScrollBar(ScrollBar.VERTICAL,
-                    _vport.getVModel()), BorderLayout.EAST);
+            add(_vbar = new ScrollBar(ctx, ScrollBar.VERTICAL,
+                _vport.getVModel()), BorderLayout.EAST);
         }
         if (horiz) {
-            add(_hbar = new ScrollBar(ScrollBar.HORIZONTAL,
-                    _vport.getHModel()), BorderLayout.SOUTH);
+            add(_hbar = new ScrollBar(ctx, ScrollBar.HORIZONTAL,
+                _vport.getHModel()), BorderLayout.SOUTH);
         }
     }
 
@@ -163,8 +165,9 @@ public class ScrollPane extends Container
     protected static class Viewport extends Container
     {
         public Viewport (
-            Component target, boolean vert, boolean horiz, int snap)
+            GlContext ctx, Component target, boolean vert, boolean horiz, int snap)
         {
+            super(ctx);
             if (vert) {
                 if (snap > 0) {
                     _vmodel = new BoundedSnappingRangeModel(0, 0, 10, 10, snap);

@@ -99,7 +99,7 @@ public class TudeySceneView extends SimpleScope
         _scene.setParentScope(this);
 
         // create the input window
-        _inputWindow = new StretchWindow(ctx, null, null) {
+        _inputWindow = new StretchWindow(ctx, null) {
             public boolean shouldShadeBehind () {
                 return false;
             }

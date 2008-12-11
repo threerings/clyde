@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.icon.Icon;
 
@@ -21,9 +23,9 @@ public class ToggleButton extends Button
     /**
      * Creates a button with the specified textual label.
      */
-    public ToggleButton (String text)
+    public ToggleButton (GlContext ctx, String text)
     {
-        super(text);
+        super(ctx, text);
     }
 
     /**
@@ -31,9 +33,9 @@ public class ToggleButton extends Button
      * will be dispatched via an {@link ActionEvent} when the button
      * changes state.
      */
-    public ToggleButton (String text, String action)
+    public ToggleButton (GlContext ctx, String text, String action)
     {
-        super(text, action);
+        super(ctx, text, action);
     }
 
     /**
@@ -41,9 +43,9 @@ public class ToggleButton extends Button
      * will be dispatched via an {@link ActionEvent} when the button
      * changes state.
      */
-    public ToggleButton (Icon icon, String action)
+    public ToggleButton (GlContext ctx, Icon icon, String action)
     {
-        super(icon, action);
+        super(ctx, icon, action);
     }
 
     /**

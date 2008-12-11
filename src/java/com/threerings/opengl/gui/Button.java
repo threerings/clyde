@@ -4,6 +4,7 @@
 package com.threerings.opengl.gui;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.event.ActionEvent;
@@ -27,9 +28,9 @@ public class Button extends Label
     /**
      * Creates a button with the specified textual label.
      */
-    public Button (String text)
+    public Button (GlContext ctx, String text)
     {
-        this(text, "");
+        this(ctx, text, "");
     }
 
     /**
@@ -37,9 +38,9 @@ public class Button extends Label
      * will be dispatched via an {@link ActionEvent} when the button is
      * clicked.
      */
-    public Button (String text, String action)
+    public Button (GlContext ctx, String text, String action)
     {
-        this(text, null, action);
+        this(ctx, text, null, action);
     }
 
     /**
@@ -47,9 +48,9 @@ public class Button extends Label
      * dispatched via an {@link ActionEvent} to the specified {@link
      * ActionListener} when the button is clicked.
      */
-    public Button (String text, ActionListener listener, String action)
+    public Button (GlContext ctx, String text, ActionListener listener, String action)
     {
-        super(text);
+        super(ctx, text);
         _action = action;
         if (listener != null) {
             addListener(listener);
@@ -60,9 +61,9 @@ public class Button extends Label
      * Creates a button with the specified icon and action. The action will be
      * dispatched via an {@link ActionEvent} when the button is clicked.
      */
-    public Button (Icon icon, String action)
+    public Button (GlContext ctx, Icon icon, String action)
     {
-        this(icon, null, action);
+        this(ctx, icon, null, action);
     }
 
     /**
@@ -70,9 +71,9 @@ public class Button extends Label
      * dispatched via an {@link ActionEvent} to the specified {@link
      * ActionListener} when the button is clicked.
      */
-    public Button (Icon icon, ActionListener listener, String action)
+    public Button (GlContext ctx, Icon icon, ActionListener listener, String action)
     {
-        super(icon);
+        super(ctx, icon);
         _action = action;
         if (listener != null) {
             addListener(listener);

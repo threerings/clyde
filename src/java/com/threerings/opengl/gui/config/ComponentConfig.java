@@ -88,7 +88,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.Label.class) ?
-                comp : new com.threerings.opengl.gui.Label("");
+                comp : new com.threerings.opengl.gui.Label(ctx, "");
         }
 
         @Override // documentation inherited
@@ -118,7 +118,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.Button.class) ?
-                comp : new com.threerings.opengl.gui.Button("");
+                comp : new com.threerings.opengl.gui.Button(ctx, "");
         }
 
         @Override // documentation inherited
@@ -143,7 +143,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.ToggleButton.class) ?
-                comp : new com.threerings.opengl.gui.ToggleButton("");
+                comp : new com.threerings.opengl.gui.ToggleButton(ctx, "");
         }
 
         @Override // documentation inherited
@@ -164,7 +164,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.CheckBox.class) ?
-                comp : new com.threerings.opengl.gui.CheckBox("");
+                comp : new com.threerings.opengl.gui.CheckBox(ctx, "");
         }
     }
 
@@ -231,7 +231,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.ComboBox.class) ?
-                comp : new com.threerings.opengl.gui.ComboBox();
+                comp : new com.threerings.opengl.gui.ComboBox(ctx);
         }
 
         @Override // documentation inherited
@@ -266,7 +266,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.List.class) ?
-                comp : new com.threerings.opengl.gui.List();
+                comp : new com.threerings.opengl.gui.List(ctx);
         }
 
         @Override // documentation inherited
@@ -314,7 +314,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.TextField.class) ?
-                comp : new com.threerings.opengl.gui.TextField();
+                comp : new com.threerings.opengl.gui.TextField(ctx);
         }
 
         @Override // documentation inherited
@@ -336,7 +336,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.PasswordField.class) ?
-                comp : new com.threerings.opengl.gui.PasswordField();
+                comp : new com.threerings.opengl.gui.PasswordField(ctx);
         }
     }
 
@@ -358,7 +358,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.TextArea.class) ?
-                comp : new com.threerings.opengl.gui.TextArea();
+                comp : new com.threerings.opengl.gui.TextArea(ctx);
         }
 
         @Override // documentation inherited
@@ -416,7 +416,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.TabbedPane.class) ?
-                comp : new com.threerings.opengl.gui.TabbedPane();
+                comp : new com.threerings.opengl.gui.TabbedPane(ctx);
         }
 
         @Override // documentation inherited
@@ -453,7 +453,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.Spacer.class) ?
-                comp : new com.threerings.opengl.gui.Spacer();
+                comp : new com.threerings.opengl.gui.Spacer(ctx);
         }
     }
 
@@ -475,7 +475,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return new com.threerings.opengl.gui.Slider(
-                orientation.getConstant(), model.createBoundedRangeModel());
+                ctx, orientation.getConstant(), model.createBoundedRangeModel());
         }
     }
 
@@ -515,7 +515,7 @@ public abstract class ComponentConfig extends DeepObject
             Component ochild = (comp instanceof com.threerings.opengl.gui.ScrollPane) ?
                 ((com.threerings.opengl.gui.ScrollPane)comp).getChild() : null;
             return new com.threerings.opengl.gui.ScrollPane(
-                child.getComponent(ctx, scope, msgs, ochild), vertical, horizontal, snap);
+                ctx, child.getComponent(ctx, scope, msgs, ochild), vertical, horizontal, snap);
         }
 
         @Override // documentation inherited
@@ -546,7 +546,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return new com.threerings.opengl.gui.ScrollBar(
-                orientation.getConstant(), model.createBoundedRangeModel());
+                ctx, orientation.getConstant(), model.createBoundedRangeModel());
         }
     }
 
@@ -564,7 +564,7 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.Container.class) ?
-                comp : new com.threerings.opengl.gui.Container();
+                comp : new com.threerings.opengl.gui.Container(ctx);
         }
 
         @Override // documentation inherited
@@ -589,14 +589,17 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.UserInterface.class) ?
-                comp : new com.threerings.opengl.gui.UserInterface();
+                comp : new com.threerings.opengl.gui.UserInterface(ctx);
         }
 
         @Override // documentation inherited
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
-            ((com.threerings.opengl.gui.UserInterface)comp).setConfig(userInterface);
+            com.threerings.opengl.gui.UserInterface ui =
+                (com.threerings.opengl.gui.UserInterface)comp;
+            ui.getScope().setParentScope(scope);
+            ui.setConfig(userInterface);
         }
     }
 

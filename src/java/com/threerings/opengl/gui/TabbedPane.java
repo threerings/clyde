@@ -5,6 +5,8 @@ package com.threerings.opengl.gui;
 
 import java.util.ArrayList;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.ChangeEvent;
@@ -22,9 +24,9 @@ public class TabbedPane extends Container
     /**
      * Creates a tabbed pane with left justified buttons.
      */
-    public TabbedPane ()
+    public TabbedPane (GlContext ctx)
     {
-        this(GroupLayout.LEFT);
+        this(ctx, GroupLayout.LEFT);
     }
 
     /**
@@ -32,9 +34,9 @@ public class TabbedPane extends Container
      *
      * @param tabAlign the justification for the tab buttons.
      */
-    public TabbedPane (GroupLayout.Justification tabAlign)
+    public TabbedPane (GlContext ctx, GroupLayout.Justification tabAlign)
     {
-    	this(tabAlign, GroupLayout.DEFAULT_GAP);
+    	this(ctx, tabAlign, GroupLayout.DEFAULT_GAP);
     }
 
     /**
@@ -43,19 +45,19 @@ public class TabbedPane extends Container
      * @param tabAlign the justification for the tab buttons.
      * @param gap the number of pixels space between each tab button.
      */
-    public TabbedPane (GroupLayout.Justification tabAlign, int gap)
+    public TabbedPane (GlContext ctx, GroupLayout.Justification tabAlign, int gap)
     {
-        super(new BorderLayout());
+        super(ctx, new BorderLayout());
 
         GroupLayout gl = GroupLayout.makeHoriz(
             GroupLayout.STRETCH, GroupLayout.LEFT, GroupLayout.CONSTRAIN);
-        _top = new Container(gl);
+        _top = new Container(_ctx, gl);
         gl = GroupLayout.makeHoriz(GroupLayout.CONSTRAIN, tabAlign, GroupLayout.CONSTRAIN);
-        _top.add(_buttons = new Container(gl));
+        _top.add(_buttons = new Container(_ctx, gl));
         gl.setGap(gap);
         add(_top, BorderLayout.NORTH);
 
-        _close = new Button("", _closer, "close");
+        _close = new Button(_ctx, "", _closer, "close");
         _close.setStyleClass("tabbedpane_close");
     }
 
@@ -88,7 +90,7 @@ public class TabbedPane extends Container
      */
     public void addTab (String title, Component tab, boolean hasClose)
     {
-        ToggleButton tbutton = new ToggleButton(title, String.valueOf(_tabs.size())) {
+        ToggleButton tbutton = new ToggleButton(_ctx, title, String.valueOf(_tabs.size())) {
             protected void fireAction (long when, int modifiers) {
                 if (!_selected) {
                     super.fireAction(when, modifiers);

@@ -452,7 +452,7 @@ public abstract class Root extends SimpleOverlay
         }
 
         // create, set up and show the tooltip window
-        _tipwin = new Window(hwin.getStyleSheet(), new BorderLayout()) {
+        _tipwin = new Window(_ctx, new BorderLayout()) {
             public boolean isOverlay () {
                 return true; // don't steal input focus
             }

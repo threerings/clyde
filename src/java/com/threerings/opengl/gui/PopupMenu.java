@@ -5,6 +5,8 @@ package com.threerings.opengl.gui;
 
 import java.util.ArrayList;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
@@ -17,23 +19,23 @@ import com.threerings.opengl.gui.util.Dimension;
  */
 public class PopupMenu extends PopupWindow
 {
-    public PopupMenu (Window parent)
+    public PopupMenu (GlContext ctx, Window parent)
     {
-        this(parent, false);
+        this(ctx, parent, false);
     }
 
-    public PopupMenu (Window parent, boolean horizontal)
+    public PopupMenu (GlContext ctx, Window parent, boolean horizontal)
     {
-        super(parent, null);
+        super(ctx, parent, null);
         setLayoutManager(
                 (horizontal ? GroupLayout.makeHStretch() : GroupLayout.makeVStretch()).setGap(0));
         _columns = 1;
         _modal = true;
     }
 
-    public PopupMenu (Window parent, int columns)
+    public PopupMenu (GlContext ctx, Window parent, int columns)
     {
-        super(parent, null);
+        super(ctx, parent, null);
         setPreferredColumns(columns);
         _modal = true;
     }

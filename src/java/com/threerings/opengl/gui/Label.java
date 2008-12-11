@@ -4,6 +4,7 @@
 package com.threerings.opengl.gui;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.text.Text;
@@ -22,41 +23,42 @@ public class Label extends TextComponent
     /**
      * Creates a label that will display the supplied text.
      */
-    public Label (String text)
+    public Label (GlContext ctx, String text)
     {
-        this(text, null);
+        this(ctx, text, null);
     }
 
     /**
      * Creates a label that will display the supplied text using the specified style class.
      */
-    public Label (String text, String styleClass)
+    public Label (GlContext ctx, String text, String styleClass)
     {
-    	this(null, text, styleClass);
+    	this(ctx, null, text, styleClass);
     }
 
     /**
      * Creates a label that will display the supplied icon.
      */
-    public Label (Icon icon)
+    public Label (GlContext ctx, Icon icon)
     {
-        this(icon, null, null);
+        this(ctx, icon, null, null);
     }
 
     /**
      * Creates a label that will display the supplied icon using the specified style class.
      */
-    public Label (Icon icon, String styleClass)
+    public Label (GlContext ctx, Icon icon, String styleClass)
     {
-    	this(icon, null, styleClass);
+    	this(ctx, icon, null, styleClass);
     }
 
     /**
      * Creates a label that will display the supplied text and icon using the specified style
      * class. All arguments can be null.
      */
-    public Label (Icon icon, String text, String styleClass)
+    public Label (GlContext ctx, Icon icon, String text, String styleClass)
     {
+        super(ctx);
         _label = new LabelRenderer(this);
         if (icon != null) {
             setIcon(icon);

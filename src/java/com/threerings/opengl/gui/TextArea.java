@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ChangeEvent;
 import com.threerings.opengl.gui.event.ChangeListener;
@@ -34,13 +35,14 @@ public class TextArea extends Container
     /** A font style constant. */
     public static final int UNDERLINE = 3;
 
-    public TextArea ()
+    public TextArea (GlContext ctx)
     {
-        this(null);
+        this(ctx, null);
     }
 
-    public TextArea (String text)
+    public TextArea (GlContext ctx, String text)
     {
+        super(ctx);
         _model.addChangeListener(new ChangeListener() {
             public void stateChanged (ChangeEvent event) {
                 modelDidChange();

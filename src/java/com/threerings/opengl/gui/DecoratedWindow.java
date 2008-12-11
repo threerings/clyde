@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.layout.GroupLayout;
 
 /**
@@ -18,14 +20,14 @@ public class DecoratedWindow extends Window
      * @param title the title of the window or null if no title bar is
      * desired.
      */
-    public DecoratedWindow (StyleSheet style, String title)
+    public DecoratedWindow (GlContext ctx, StyleSheet style, String title)
     {
-        super(style, GroupLayout.makeVStretch());
+        super(ctx, GroupLayout.makeVStretch());
         ((GroupLayout)getLayoutManager()).setOffAxisPolicy(
             GroupLayout.CONSTRAIN);
 
         if (title != null) {
-            add(new Label(title, "window_title"), GroupLayout.FIXED);
+            add(new Label(ctx, title, "window_title"), GroupLayout.FIXED);
         }
     }
 

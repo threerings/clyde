@@ -6,6 +6,7 @@ package com.threerings.opengl.gui;
 import java.util.ArrayList;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.event.ActionEvent;
@@ -50,9 +51,9 @@ public class ComboBox extends Label
     /**
      * Creates an empty combo box.
      */
-    public ComboBox ()
+    public ComboBox (GlContext ctx)
     {
-        super("");
+        super(ctx, "");
         setFit(Fit.TRUNCATE);
     }
 
@@ -60,9 +61,9 @@ public class ComboBox extends Label
      * Creates a combo box with the supplied set of items. The result of {@link Object#toString}
      * for each item will be displayed in the list.
      */
-    public ComboBox (Object[] items)
+    public ComboBox (GlContext ctx, Object[] items)
     {
-        super("");
+        super(ctx, "");
         setItems(items);
     }
 
@@ -70,9 +71,9 @@ public class ComboBox extends Label
      * Creates a combo box with the supplied set of items. The result of {@link Object#toString}
      * for each item will be displayed in the list.
      */
-    public ComboBox (Iterable<?> items)
+    public ComboBox (GlContext ctx, Iterable<?> items)
     {
-        super("");
+        super(ctx, "");
         setItems(items);
     }
 
@@ -92,7 +93,7 @@ public class ComboBox extends Label
      */
     public void addItem (int index, Object item)
     {
-        _items.add(index, new ComboMenuItem(item));
+        _items.add(index, new ComboMenuItem(_ctx, item));
         clearCache();
     }
 
@@ -231,7 +232,7 @@ public class ComboBox extends Label
             switch (mev.getType()) {
             case MouseEvent.MOUSE_PRESSED:
                 if (_menu == null) {
-                    _menu = new ComboPopupMenu(_columns);
+                    _menu = new ComboPopupMenu(_ctx, _columns);
                 }
                 _menu.popup(getAbsoluteX(), getAbsoluteY(), false);
                 break;
@@ -304,8 +305,8 @@ public class ComboBox extends Label
 
     protected class ComboPopupMenu extends PopupMenu
     {
-        public ComboPopupMenu (int columns) {
-            super(ComboBox.this.getWindow(), columns);
+        public ComboPopupMenu (GlContext ctx, int columns) {
+            super(ctx, ComboBox.this.getWindow(), columns);
             for (int ii = 0; ii < _items.size(); ii++) {
                 addMenuItem(_items.get(ii));
             }
@@ -328,9 +329,9 @@ public class ComboBox extends Label
     {
         public Object item;
 
-        public ComboMenuItem (Object item)
+        public ComboMenuItem (GlContext ctx, Object item)
         {
-            super(null, null, "select");
+            super(ctx, null, null, "select");
             if (item instanceof Icon) {
                 setIcon((Icon)item);
             } else {

@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.layout.LayoutManager;
 
 /**
@@ -11,9 +13,9 @@ import com.threerings.opengl.gui.layout.LayoutManager;
  */
 public class PopupWindow extends Window
 {
-    public PopupWindow (Window parent, LayoutManager layout)
+    public PopupWindow (GlContext ctx, Window parent, LayoutManager layout)
     {
-        super(parent.getStyleSheet(), layout);
+        super(ctx, layout);
         _parentWindow = parent;
         setLayer(parent.getLayer());
 

@@ -3,29 +3,32 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.opengl.util.GlContext;
+
 /**
  * A derivation of {@link TextField} that does not display the actual
  * text, but asterisks instead.
  */
 public class PasswordField extends TextField
 {
-    public PasswordField ()
+    public PasswordField (GlContext ctx)
     {
+        super(ctx);
     }
 
-    public PasswordField (int maxLength)
+    public PasswordField (GlContext ctx, int maxLength)
     {
-        super(maxLength);
+        super(ctx, maxLength);
     }
 
-    public PasswordField (String text)
+    public PasswordField (GlContext ctx, String text)
     {
-        super(text);
+        super(ctx, text);
     }
 
-    public PasswordField (String text, int maxLength)
+    public PasswordField (GlContext ctx, String text, int maxLength)
     {
-        super(text, maxLength);
+        super(ctx, text, maxLength);
     }
 
     // documentation inherited

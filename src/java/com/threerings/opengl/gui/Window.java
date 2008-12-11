@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
@@ -15,9 +17,9 @@ import com.threerings.opengl.gui.util.Insets;
 public class Window extends Container
     implements Comparable<Window>
 {
-    public Window (StyleSheet style, LayoutManager layout)
+    public Window (GlContext ctx, LayoutManager layout)
     {
-        _style = style;
+        super(ctx);
         setLayoutManager(layout);
     }
 

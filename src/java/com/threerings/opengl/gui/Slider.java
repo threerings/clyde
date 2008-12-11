@@ -4,6 +4,7 @@
 package com.threerings.opengl.gui;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
@@ -23,9 +24,9 @@ public class Slider extends Component
      *
      * @param orient either {@link #HORIZONTAL} or {@link #VERTICAL}.
      */
-    public Slider (int orient, int min, int max, int value)
+    public Slider (GlContext ctx, int orient, int min, int max, int value)
     {
-        this(orient, new BoundedRangeModel(min, value, 0, max));
+        this(ctx, orient, new BoundedRangeModel(min, value, 0, max));
     }
 
     /**
@@ -34,8 +35,9 @@ public class Slider extends Component
      *
      * @param orient either {@link #HORIZONTAL} or {@link #VERTICAL}.
      */
-    public Slider (int orient, BoundedRangeModel model)
+    public Slider (GlContext ctx, int orient, BoundedRangeModel model)
     {
+        super(ctx);
         _orient = orient;
         _model = model;
     }

@@ -4,6 +4,7 @@
 package com.threerings.opengl.gui;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
@@ -30,35 +31,35 @@ public class ScrollBar extends Container
      * Creates a vertical scroll bar with the default range, value and
      * extent.
      */
-    public ScrollBar ()
+    public ScrollBar (GlContext ctx)
     {
-        this(VERTICAL);
+        this(ctx, VERTICAL);
     }
 
     /**
      * Creates a scroll bar with the default range, value and extent.
      */
-    public ScrollBar (int orientation)
+    public ScrollBar (GlContext ctx, int orientation)
     {
-        this(orientation, 0, 100, 0, 10);
+        this(ctx, orientation, 0, 100, 0, 10);
     }
 
     /**
      * Creates a scroll bar with the specified orientation, range, value
      * and extent.
      */
-    public ScrollBar (int orientation, int min, int value, int extent, int max)
+    public ScrollBar (GlContext ctx, int orientation, int min, int value, int extent, int max)
     {
-        this(orientation, new BoundedRangeModel(min, value, extent, max));
+        this(ctx, orientation, new BoundedRangeModel(min, value, extent, max));
     }
 
     /**
      * Creates a scroll bar with the specified orientation which will
      * interact with the supplied model.
      */
-    public ScrollBar (int orientation, BoundedRangeModel model)
+    public ScrollBar (GlContext ctx, int orientation, BoundedRangeModel model)
     {
-        super(new BorderLayout());
+        super(ctx, new BorderLayout());
         _orient = orientation;
         _model = model;
         _model.addChangeListener(_updater);
@@ -82,24 +83,24 @@ public class ScrollBar extends Container
 
         // create our buttons and backgrounds
         String oprefix = "scrollbar_" + ((_orient == HORIZONTAL) ? "h" : "v");
-        _well = new Component();
+        _well = new Component(_ctx);
         _well.setStyleClass(oprefix + "well");
         add(_well, BorderLayout.CENTER);
         _well.addListener(_wellListener);
 
-        _thumb = new Component();
+        _thumb = new Component(_ctx);
         _thumb.setStyleClass(oprefix + "thumb");
         add(_thumb, BorderLayout.IGNORE);
         _thumb.addListener(_thumbListener);
 
-        _less = new Button("");
+        _less = new Button(_ctx, "");
         _less.setStyleClass(oprefix + "less");
         add(_less, _orient == HORIZONTAL ?
             BorderLayout.WEST : BorderLayout.NORTH);
         _less.addListener(_buttoner);
         _less.setAction("less");
 
-        _more = new Button("");
+        _more = new Button(_ctx, "");
         _more.setStyleClass(oprefix + "more");
         add(_more, _orient == HORIZONTAL ?
             BorderLayout.EAST : BorderLayout.SOUTH);

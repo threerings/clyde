@@ -3,6 +3,8 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.CommandEvent;
 import com.threerings.opengl.gui.icon.Icon;
@@ -15,18 +17,18 @@ public class CommandButton extends Button
     /**
      * Creates a command button with the specified textual label.
      */
-    public CommandButton (String text)
+    public CommandButton (GlContext ctx, String text)
     {
-        this(text, "", null);
+        this(ctx, text, "", null);
     }
 
     /**
      * Creates a button with the specified label, action, and argument. The action will be
      * dispatched via a {@link CommandEvent} when the button is clicked.
      */
-    public CommandButton (String text, String action, Object argument)
+    public CommandButton (GlContext ctx, String text, String action, Object argument)
     {
-        this(text, null, action, null);
+        this(ctx, text, null, action, null);
     }
 
     /**
@@ -34,9 +36,10 @@ public class CommandButton extends Button
      * dispatched via a {@link CommandEvent} to the specified {@link ActionListener} when the
      * button is clicked.
      */
-    public CommandButton (String text, ActionListener listener, String action, Object argument)
+    public CommandButton (
+        GlContext ctx, String text, ActionListener listener, String action, Object argument)
     {
-        super(text, listener, action);
+        super(ctx, text, listener, action);
         _argument = argument;
     }
 
@@ -44,9 +47,10 @@ public class CommandButton extends Button
      * Creates a button with the specified icon, action, and argument. The action will be
      * dispatched via a {@link CommandEvent} when the button is clicked.
      */
-    public CommandButton (Icon icon, String action, Object argument)
+    public CommandButton (
+        GlContext ctx, Icon icon, String action, Object argument)
     {
-        this(icon, null, action, null);
+        this(ctx, icon, null, action, null);
     }
 
     /**
@@ -54,9 +58,10 @@ public class CommandButton extends Button
      * dispatched via a {@link CommandEvent} to the specified {@link ActionListener} when the
      * button is clicked.
      */
-    public CommandButton (Icon icon, ActionListener listener, String action, Object argument)
+    public CommandButton (
+        GlContext ctx, Icon icon, ActionListener listener, String action, Object argument)
     {
-        super(icon, listener, action);
+        super(ctx, icon, listener, action);
         _argument = argument;
     }
 

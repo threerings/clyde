@@ -26,6 +26,7 @@ import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Image;
@@ -53,15 +54,17 @@ public class HTMLView extends Component
      * Creates a blank HTML view. The HTML contents can be set later with a
      * call to {@link #setContents}.
      */
-    public HTMLView ()
+    public HTMLView (GlContext ctx)
     {
+        super(ctx);
     }
 
     /**
      * Creates an HTML view with the specified contents.
      */
-    public HTMLView (String stylesheet, String contents)
+    public HTMLView (GlContext ctx, String stylesheet, String contents)
     {
+        super(ctx);
         setStyleSheet(stylesheet);
         setContents(contents);
     }

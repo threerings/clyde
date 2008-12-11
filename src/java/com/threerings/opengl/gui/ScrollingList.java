@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.event.MouseWheelListener;
 import com.threerings.opengl.gui.event.ChangeListener;
 import com.threerings.opengl.gui.event.ChangeEvent;
@@ -28,17 +30,17 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     /**
      * Instantiates an empty {@link ScrollingList}.
      */
-    public ScrollingList ()
+    public ScrollingList (GlContext ctx)
     {
-        this(null);
+        this(ctx, null);
     }
 
     /**
      * Instantiates a {@link ScrollingList} with an initial value collection.
      */
-    public ScrollingList (Collection<V> values)
+    public ScrollingList (GlContext ctx, Collection<V> values)
     {
-        super(new BorderLayout(0, 0));
+        super(ctx, new BorderLayout(0, 0));
 
         _values = new ArrayList<Entry<V, C>>();
         if (values != null) {
@@ -52,10 +54,9 @@ public abstract class ScrollingList<V, C extends Component> extends Container
         _model = new BoundedRangeModel(0, 0, 1, 1);
 
         // create our viewport and scrollbar
-        add(_vport = new Viewport(), BorderLayout.CENTER);
+        add(_vport = new Viewport(ctx), BorderLayout.CENTER);
         _model.addChangeListener(_vport);
-        add(_vbar = new ScrollBar(ScrollBar.VERTICAL, _model),
-            BorderLayout.EAST);
+        add(_vbar = new ScrollBar(_ctx, ScrollBar.VERTICAL, _model), BorderLayout.EAST);
     }
 
     /**
@@ -117,11 +118,10 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     protected class Viewport extends Container
         implements ChangeListener
     {
-        public Viewport ()
+        public Viewport (GlContext ctx)
         {
-            super(GroupLayout.makeVert(
-                      GroupLayout.NONE, GroupLayout.TOP,
-                      GroupLayout.STRETCH));
+            super(ctx, GroupLayout.makeVert(
+                GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         }
 
         /**

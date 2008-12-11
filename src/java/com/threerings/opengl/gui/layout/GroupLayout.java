@@ -5,6 +5,8 @@ package com.threerings.opengl.gui.layout;
 
 import java.util.HashMap;
 
+import com.threerings.opengl.util.GlContext;
+
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Container;
 import com.threerings.opengl.gui.util.Dimension;
@@ -378,19 +380,20 @@ public abstract class GroupLayout extends LayoutManager
     /**
      * Makes a container configured with a horizontal group layout manager.
      */
-    public static Container makeHBox (Justification justification)
+    public static Container makeHBox (GlContext ctx, Justification justification)
     {
         HGroupLayout lay = new HGroupLayout();
         lay.setJustification(justification);
-        return new Container(lay);
+        return new Container(ctx, lay);
     }
 
     /**
      * Makes a horizontal box of components that uses the supplied (on-axis) justification.
      */
-    public static Container makeHBox (Justification justification, Component ... comps)
+    public static Container makeHBox (
+        GlContext ctx, Justification justification, Component ... comps)
     {
-        Container cont = makeHBox(justification);
+        Container cont = makeHBox(ctx, justification);
         for (Component comp : comps) {
             cont.add(comp);
         }
@@ -400,19 +403,20 @@ public abstract class GroupLayout extends LayoutManager
     /**
      * Creates a container configured with a vertical group layout manager.
      */
-    public static Container makeVBox (Justification justification)
+    public static Container makeVBox (GlContext ctx, Justification justification)
     {
         VGroupLayout lay = new VGroupLayout();
         lay.setJustification(justification);
-        return new Container(lay);
+        return new Container(ctx, lay);
     }
 
     /**
      * Makes a vertical box of components that uses the supplied (on-axis) justification.
      */
-    public static Container makeVBox (Justification justification, Component ... comps)
+    public static Container makeVBox (
+        GlContext ctx, Justification justification, Component ... comps)
     {
-        Container cont = makeVBox(justification);
+        Container cont = makeVBox(ctx, justification);
         for (Component comp : comps) {
             cont.add(comp);
         }
