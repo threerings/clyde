@@ -5,6 +5,7 @@ package com.threerings.opengl.gui.config;
 
 import java.util.HashSet;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -22,6 +23,9 @@ import com.threerings.opengl.util.GlContext;
  */
 public class StyleConfig extends ParameterizedConfig
 {
+    /** Used when we can't resolve the tile's underlying original implementation. */
+    public static final Original NULL_ORIGINAL = new Original();
+
     /** Text alignment modes. */
     public enum TextAlignment
     {
@@ -115,6 +119,11 @@ public class StyleConfig extends ParameterizedConfig
         {
             // nothing by default
         }
+
+        /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (GlContext ctx);
 
         /**
          * Invalidates any cached data.
@@ -228,6 +237,12 @@ public class StyleConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public Original getOriginal (GlContext ctx)
+        {
+            return this;
+        }
+
+        @Override // documentation inherited
         public void invalidate ()
         {
             if (background != null) {
@@ -259,11 +274,26 @@ public class StyleConfig extends ParameterizedConfig
         {
             refs.add(StyleConfig.class, style);
         }
+
+        @Override // documentation inherited
+        public Original getOriginal (GlContext ctx)
+        {
+            StyleConfig config = ctx.getConfigManager().getConfig(StyleConfig.class, style);
+            return (config == null) ? null : config.getOriginal(ctx);
+        }
     }
 
     /** The actual style implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Returns a reference to the config's underlying original implementation.
+     */
+    public Original getOriginal (GlContext ctx)
+    {
+        return implementation.getOriginal(ctx);
+    }
 
     @Override // documentation inherited
     protected void fireConfigUpdated ()

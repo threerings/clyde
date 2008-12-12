@@ -458,7 +458,7 @@ public abstract class Root extends SimpleOverlay
             }
         };
         _tipwin.setLayer(Integer.MAX_VALUE/2);
-        _tipwin.setStyleClass("tooltip_window");
+        _tipwin.setStyleConfig("Default/TooltipWindow");
         _tipwin.add(tcomp, BorderLayout.CENTER);
         addWindow(_tipwin);
 

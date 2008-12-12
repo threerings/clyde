@@ -6,6 +6,7 @@ package com.threerings.opengl.gui;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
@@ -50,21 +51,19 @@ public class Slider extends Component
         return _model;
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return ((_orient == HORIZONTAL) ? "h" : "v") + "slider";
+        return ((_orient == HORIZONTAL) ? "Default/H" : "Default/V") + "Slider";
     }
 
-    // documentation inherited
-    protected void configureStyle (StyleSheet style)
+    @Override // documentation inherited
+    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
-        super.configureStyle(style);
+        super.updateFromStyleConfig(state, config);
 
-        // load up our frobs
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            _frobs[ii] = style.getIcon(this, getStatePseudoClass(ii));
-        }
+        // load up our frob
+        _frobs[state] = (config.icon == null) ? null : config.icon.getIcon(_ctx);
     }
 
     // documentation inherited

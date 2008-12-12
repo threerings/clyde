@@ -12,7 +12,11 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.config.ArgumentMap;
+import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigUpdateListener;
+import com.threerings.config.ManagedConfig;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -20,6 +24,7 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.border.Border;
+import com.threerings.opengl.gui.config.CursorConfig;
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.ComponentListener;
@@ -30,11 +35,14 @@ import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 
+import static com.threerings.opengl.gui.Log.*;
+
 /**
  * The basic entity in the UI user interface system. A hierarchy of components and component
  * derivations make up a user interface.
  */
 public class Component
+    implements ConfigUpdateListener<ManagedConfig>
 {
     /** The default component state. This is used to select the component's style pseudoclass among
      * other things. */
@@ -57,43 +65,11 @@ public class Component
     }
 
     /**
-     * Configures this component with a custom stylesheet class. By default a component's class is
-     * defined by its component type (label, button, checkbox, etc.) but one can provide custom
-     * style information to a component by configuring it with a custom class and defining that
-     * class in the applicable stylesheet.
-     */
-    public void setStyleClass (String styleClass)
-    {
-        if (isAdded()) {
-            System.err.println("Warning: attempt to set style class after component was added to " +
-                               "the interface heirarchy [comp=" + this + "].");
-            Thread.dumpStack();
-        }
-        _styleClass = styleClass;
-    }
-
-    /**
-     * Returns the Style class to be used for this component.
-     */
-    public String getStyleClass ()
-    {
-        return (_styleClass == null) ? getDefaultStyleClass() : _styleClass;
-    }
-
-    /**
      * Sets the style configuration.
      */
     public void setStyleConfig (String name)
     {
-        setStyleConfig(_ctx.getConfigManager().getConfig(StyleConfig.class, name));
-    }
-
-    /**
-     * Sets the style configuration.
-     */
-    public void setStyleConfig (ConfigReference<StyleConfig> ref)
-    {
-        setStyleConfig(_ctx.getConfigManager().getConfig(StyleConfig.class, ref));
+        setStyleConfig(new ConfigReference<StyleConfig>(name));
     }
 
     /**
@@ -102,15 +78,50 @@ public class Component
     public void setStyleConfig (
         String name, String firstKey, Object firstValue, Object... otherArgs)
     {
-        setStyleConfig(_ctx.getConfigManager().getConfig(
-            StyleConfig.class, name, firstKey, firstValue, otherArgs));
+        setStyleConfig(new ConfigReference<StyleConfig>(name, firstKey, firstValue, otherArgs));
     }
 
     /**
      * Sets the style configuration.
      */
-    public void setStyleConfig (StyleConfig config)
+    public void setStyleConfig (ConfigReference<StyleConfig> ref)
     {
+        if (ref == null) {
+            setStyleConfigs(); // clear them all out
+            return;
+        }
+        StyleConfig[] styleConfigs = new StyleConfig[_styleConfigs.length];
+        styleConfigs[0] = _ctx.getConfigManager().getConfig(StyleConfig.class, ref);
+        String name = ref.getName();
+        ArgumentMap args = ref.getArguments();
+        for (int ii = 1; ii < styleConfigs.length; ii++) {
+            styleConfigs[ii] = _ctx.getConfigManager().getConfig(
+                StyleConfig.class, name + ":" + getStatePseudoClass(ii), args);
+        }
+        setStyleConfigs(styleConfigs);
+    }
+
+    /**
+     * Sets the style configurations.
+     */
+    public void setStyleConfigs (StyleConfig... styleConfigs)
+    {
+        for (int ii = 0; ii < _styleConfigs.length; ii++) {
+            StyleConfig oconfig = _styleConfigs[ii];
+            StyleConfig nconfig = (ii < styleConfigs.length) ? styleConfigs[ii] : null;
+            if (oconfig == nconfig) {
+                continue;
+            }
+            if (oconfig != null) {
+                oconfig.removeListener(this);
+            }
+            if ((_styleConfigs[ii] = nconfig) != null) {
+                // make sure we're not already listening
+                nconfig.removeListener(this);
+                nconfig.addListener(this);
+            }
+            updateFromStyleConfig(ii);
+        }
     }
 
     /**
@@ -747,6 +758,50 @@ public class Component
         return processed;
     }
 
+    // documentation inherited from interface ConfigUpdateListener
+    public void configUpdated (ConfigEvent<ManagedConfig> event)
+    {
+        StyleConfig config = (StyleConfig)event.getConfig();
+        for (int ii = 0; ii < _styleConfigs.length; ii++) {
+            if (_styleConfigs[ii] == config) {
+                updateFromStyleConfig(ii);
+            }
+        }
+    }
+
+    /**
+     * Updates the component's style from the style configs.
+     */
+    protected void updateFromStyleConfig (int state)
+    {
+        // resolve the underlying implementation
+        StyleConfig config = _styleConfigs[state];
+        StyleConfig.Original original = (config == null) ? null : config.getOriginal(_ctx);
+        updateFromStyleConfig(state, original == null ? StyleConfig.NULL_ORIGINAL : original);
+    }
+
+    /**
+     * Updates from the resolved style config.
+     */
+    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
+    {
+        if (state == DEFAULT) {
+            _preferredSize = (config.size == null) ? null : config.size.createDimension();
+            _tooltipStyle = config.tooltipStyle;
+            CursorConfig cconfig = _ctx.getConfigManager().getConfig(
+                CursorConfig.class, config.cursor);
+            _cursor = (cconfig == null) ? null : cconfig.getCursor(_ctx);
+        }
+        _colors[state] = config.color;
+        _insets[state] = config.padding.createInsets();
+        _borders[state] = (config.border == null) ? null : config.border.getBorder();
+        if (_borders[state] != null) {
+            _insets[state] = _borders[state].adjustInsets(_insets[state]);
+        }
+        _backgrounds[state] = (config.background == null) ?
+            null : config.background.getBackground(_ctx);
+    }
+
     /**
      * Instructs this component to lay itself out. This is called as a result of the component
      * changing size.
@@ -774,32 +829,7 @@ public class Component
      */
     protected void wasAdded ()
     {
-        configureStyle(getWindow().getStyleSheet());
-    }
-
-    /**
-     * Instructs this component to fetch its style configuration from the supplied style
-     * sheet. This method is called when a component is added to the interface hierarchy.
-     */
-    protected void configureStyle (StyleSheet style)
-    {
-        if (_preferredSize == null) {
-            _preferredSize = style.getSize(this, null);
-        }
-
-        _cursor = style.getCursor(this, null);
-        _tipStyle = style.getTooltipStyle(this, null);
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            _colors[ii] = style.getColor(this, getStatePseudoClass(ii));
-            _insets[ii] = style.getInsets(this, getStatePseudoClass(ii));
-            _borders[ii] = style.getBorder(this, getStatePseudoClass(ii));
-            if (_borders[ii] != null) {
-                _insets[ii] = _borders[ii].adjustInsets(_insets[ii]);
-            }
-            if (_backgrounds[ii] == null) {
-                _backgrounds[ii] = style.getBackground(this, getStatePseudoClass(ii));
-            }
-        }
+        // nothing by default
     }
 
     /**
@@ -823,7 +853,9 @@ public class Component
         if (tiptext.startsWith("<html>")) {
             return new HTMLView(_ctx, "", tiptext);
         } else {
-            return new Label(_ctx, tiptext, _tipStyle);
+            Label label = new Label(_ctx, tiptext);
+            label.setStyleConfig(_tooltipStyle);
+            return label;
         }
     }
 
@@ -858,13 +890,13 @@ public class Component
     }
 
     /**
-     * Returns the default stylesheet class to be used for all instances of this component. Derived
-     * classes will likely want to override this method and set up a default class for their type
-     * of component.
+     * Returns the name of the default config to be used for all instances of this component.
+     * Derived classes will likely want to override this method and set up a default config for
+     * their type of component.
      */
-    protected String getDefaultStyleClass ()
+    protected String getDefaultStyleConfig ()
     {
-        return "component";
+        return "Default/Component";
     }
 
     /**
@@ -1018,14 +1050,18 @@ public class Component
     /** The application context. */
     protected GlContext _ctx;
 
+    /** The component's style configurations for each state. */
+    protected StyleConfig[] _styleConfigs = new StyleConfig[getStateCount()];
+
+    /** The style to use for tooltips. */
+    protected ConfigReference<StyleConfig> _tooltipStyle;
+
     protected Container _parent;
-    protected String _styleClass;
     protected Dimension _preferredSize;
     protected int _x, _y, _width, _height;
     protected ArrayList<ComponentListener> _listeners;
     protected HashMap<String, Object> _properties;
     protected String _tiptext;
-    protected String _tipStyle;
     protected boolean _tipmouse;
 
     protected boolean _valid, _enabled = true, _visible = true, _hover;
@@ -1041,5 +1077,5 @@ public class Component
     protected static Rectangle _rect = new Rectangle();
 
     protected static final int STATE_COUNT = 3;
-    protected static final String[] STATE_PCLASSES = { null, "hover", "disabled" };
+    protected static final String[] STATE_PCLASSES = { null, "Hover", "Disabled" };
 }

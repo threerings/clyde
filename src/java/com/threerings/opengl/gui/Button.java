@@ -7,6 +7,7 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.Event;
@@ -164,10 +165,10 @@ public class Button extends Label
         return super.dispatchEvent(event);
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "button";
+        return "Default/Button";
     }
 
     // documentation inherited
@@ -186,17 +187,14 @@ public class Button extends Label
         }
     }
 
-    // documentation inherited
-    protected void configureStyle (StyleSheet style)
+    @Override // documentation inherited
+    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
-        super.configureStyle(style);
+        super.updateFromStyleConfig(state, config);
 
         // check to see if our stylesheet provides us with an icon
-        if (_label.getIcon() == null) {
-            Icon icon = style.getIcon(this, getStatePseudoClass(DEFAULT));
-            if (icon != null) {
-                _label.setIcon(icon);
-            }
+        if (state == DEFAULT && config.icon != null) {
+            _label.setIcon(config.icon.getIcon(_ctx));
         }
     }
 
@@ -214,5 +212,5 @@ public class Button extends Label
     protected String _action;
 
     protected static final int STATE_COUNT = Component.STATE_COUNT + 1;
-    protected static final String[] STATE_PCLASSES = { "down" };
+    protected static final String[] STATE_PCLASSES = { "Down" };
 }

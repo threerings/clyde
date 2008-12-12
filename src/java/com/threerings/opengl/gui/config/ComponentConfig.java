@@ -26,12 +26,13 @@ import com.threerings.opengl.util.GlContext;
 @EditorTypes({
     ComponentConfig.Button.class, ComponentConfig.CheckBox.class,
     ComponentConfig.ComboBox.class, ComponentConfig.Container.class,
-    ComponentConfig.Label.class, ComponentConfig.List.class,
-    ComponentConfig.PasswordField.class, ComponentConfig.ScrollBar.class,
-    ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
-    ComponentConfig.Spacer.class, ComponentConfig.TabbedPane.class,
-    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
-    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
+    ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
+    ComponentConfig.List.class, ComponentConfig.PasswordField.class,
+    ComponentConfig.ScrollBar.class, ComponentConfig.ScrollPane.class,
+    ComponentConfig.Slider.class, ComponentConfig.Spacer.class,
+    ComponentConfig.TabbedPane.class, ComponentConfig.TextArea.class,
+    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
+    ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -600,6 +601,42 @@ public abstract class ComponentConfig extends DeepObject
                 (com.threerings.opengl.gui.UserInterface)comp;
             ui.getScope().setParentScope(scope);
             ui.setConfig(userInterface);
+        }
+    }
+
+    /**
+     * An HTML view.
+     */
+    public static class HTMLView extends ComponentConfig
+    {
+        /** The view's stylesheet. */
+        public String stylesheet = "";
+
+        /** The contents of the view. */
+        @Editable
+        public String contents = "";
+
+        /** Whether or not the view should be antialiased. */
+        @Editable
+        public boolean antialias = true;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.text.HTMLView.class) ?
+                comp : new com.threerings.opengl.gui.text.HTMLView(ctx);
+        }
+
+        @Override // documentation inherited
+        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            super.configure(ctx, scope, msgs, comp);
+            com.threerings.opengl.gui.text.HTMLView view =
+                (com.threerings.opengl.gui.text.HTMLView)comp;
+            view.setAntialiased(antialias);
+            view.setStyleSheet(stylesheet);
+            view.setContents(contents);
         }
     }
 

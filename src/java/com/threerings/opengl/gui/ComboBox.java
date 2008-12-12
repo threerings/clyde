@@ -250,10 +250,10 @@ public class ComboBox extends Label
         return super.dispatchEvent(event);
     }
 
-    @Override // from Component
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "combobox";
+        return "Default/ComboBox";
     }
 
     @Override // from Component

@@ -3,9 +3,12 @@
 
 package com.threerings.opengl.gui;
 
+import com.threerings.config.ConfigReference;
+
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Dimension;
@@ -25,15 +28,7 @@ public class Label extends TextComponent
      */
     public Label (GlContext ctx, String text)
     {
-        this(ctx, text, null);
-    }
-
-    /**
-     * Creates a label that will display the supplied text using the specified style class.
-     */
-    public Label (GlContext ctx, String text, String styleClass)
-    {
-    	this(ctx, null, text, styleClass);
+        this(ctx, null, text);
     }
 
     /**
@@ -41,22 +36,14 @@ public class Label extends TextComponent
      */
     public Label (GlContext ctx, Icon icon)
     {
-        this(ctx, icon, null, null);
-    }
-
-    /**
-     * Creates a label that will display the supplied icon using the specified style class.
-     */
-    public Label (GlContext ctx, Icon icon, String styleClass)
-    {
-    	this(ctx, icon, null, styleClass);
+        this(ctx, icon, null);
     }
 
     /**
      * Creates a label that will display the supplied text and icon using the specified style
-     * class. All arguments can be null.
+     * config. All arguments can be null.
      */
-    public Label (GlContext ctx, Icon icon, String text, String styleClass)
+    public Label (GlContext ctx, Icon icon, String text)
     {
         super(ctx);
         _label = new LabelRenderer(this);
@@ -65,9 +52,6 @@ public class Label extends TextComponent
         }
         if (text != null) {
             setText(text);
-        }
-        if (styleClass != null) {
-            setStyleClass(styleClass);
         }
     }
 
@@ -142,10 +126,10 @@ public class Label extends TextComponent
         return _label.getText();
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "label";
+        return "Default/Label";
     }
 
     // documentation inherited

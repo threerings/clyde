@@ -24,14 +24,6 @@ public class Window extends Container
     }
 
     /**
-     * Returns the stylesheet in effect for this window.
-     */
-    public StyleSheet getStyleSheet ()
-    {
-        return _style;
-    }
-
-    /**
      * Sizes this window to its preferred size. This method does not change the window's
      * coordinates.
      */
@@ -206,10 +198,10 @@ public class Window extends Container
         return _parentWindow;
     }
 
-    @Override // from Component
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "window";
+        return "Default/Window";
     }
 
     /**
@@ -256,9 +248,6 @@ public class Window extends Container
             _savedFocus = null;
         }
     }
-
-    /** The stylesheet used to configure components in this window. */
-    protected StyleSheet _style;
 
     /** The root node that connects us into the JME system. */
     protected Root _root;

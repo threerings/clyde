@@ -104,5 +104,5 @@ public class ToggleButton extends Button
 
     protected static final int STATE_COUNT = Button.STATE_COUNT + 2;
     protected static final String[] STATE_PCLASSES = {
-        "selected", "disselected" };
+        "Selected", "Disselected" };
 }

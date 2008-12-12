@@ -93,10 +93,10 @@ public class MenuItem extends Label
         return super.dispatchEvent(event);
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "menuitem";
+        return "Default/MenuItem";
     }
 
     /**

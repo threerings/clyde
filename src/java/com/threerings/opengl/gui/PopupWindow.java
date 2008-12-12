@@ -64,9 +64,9 @@ public class PopupWindow extends Window
         setLocation(x, y);
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "popupwindow";
+        return "Default/PopupWindow";
     }
 }

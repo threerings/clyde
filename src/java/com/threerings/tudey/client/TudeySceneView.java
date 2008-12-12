@@ -27,7 +27,6 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.GlView;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.StretchWindow;
-import com.threerings.opengl.gui.StyleSheet;
 import com.threerings.opengl.gui.Window;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.HashScene;
@@ -102,9 +101,6 @@ public class TudeySceneView extends SimpleScope
         _inputWindow = new StretchWindow(ctx, null) {
             public boolean shouldShadeBehind () {
                 return false;
-            }
-            protected void configureStyle (StyleSheet style) {
-                // no need to configure style; we're just a transparent window
             }
         };
         _inputWindow.setModal(true);

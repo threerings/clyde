@@ -58,7 +58,7 @@ public class TabbedPane extends Container
         add(_top, BorderLayout.NORTH);
 
         _close = new Button(_ctx, "", _closer, "close");
-        _close.setStyleClass("tabbedpane_close");
+        _close.setStyleConfig("Default/TabbedPaneClose");
     }
 
     /**
@@ -97,7 +97,7 @@ public class TabbedPane extends Container
                 }
             }
         };
-        tbutton.setStyleClass("tab");
+        tbutton.setStyleConfig("Default/Tab");
         tbutton.addListener(_selector);
         tbutton.setFit(Label.Fit.TRUNCATE);
         _buttons.add(tbutton);
@@ -303,10 +303,10 @@ public class TabbedPane extends Container
         }
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "tabbedpane";
+        return "Default/TabbedPane";
     }
 
     protected ActionListener _selector = new ActionListener() {

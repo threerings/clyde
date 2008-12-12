@@ -89,10 +89,10 @@ public class PopupMenu extends PopupWindow
         return super.dispatchEvent(event);
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "popupmenu";
+        return "Default/PopupMenu";
     }
 
     // documentation inherited

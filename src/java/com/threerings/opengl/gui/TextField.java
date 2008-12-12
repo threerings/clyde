@@ -14,12 +14,14 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.FocusEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.TextEvent;
+import com.threerings.opengl.gui.text.DefaultKeyMap;
 import com.threerings.opengl.gui.text.KeyMap;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.text.Document;
@@ -348,25 +350,22 @@ public class TextField extends TextComponent
         return super.dispatchEvent(event);
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "textfield";
+        return "Default/TextField";
     }
 
-    // documentation inherited
-    protected void configureStyle (StyleSheet style)
+    @Override // documentation inherited
+    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
-        super.configureStyle(style);
+        super.updateFromStyleConfig(state, config);
 
-        // configure our selection backgrounds
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            _selectionBackgrounds[ii] = style.getSelectionBackground(
-                this, getStatePseudoClass(ii));
-        }
+        // configure our selection background
+        _selectionBackgrounds[state] = (config.selectionBackground == null) ?
+            null : config.selectionBackground.getBackground(_ctx);
 
-        // look up our keymap
-        _keymap = style.getKeyMap(this, null);
+        // TODO: look up our keymap
     }
 
     // documentation inherited
@@ -640,7 +639,7 @@ public class TextField extends TextComponent
 
     protected Document _text;
     protected Text _glyphs;
-    protected KeyMap _keymap;
+    protected KeyMap _keymap = new DefaultKeyMap();
 
     protected int _prefWidth = -1;
     protected boolean _showCursor;

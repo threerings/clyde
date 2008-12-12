@@ -9,6 +9,8 @@ import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.FontConfig;
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ChangeEvent;
 import com.threerings.opengl.gui.event.ChangeListener;
 import com.threerings.opengl.gui.text.Text;
@@ -227,65 +229,27 @@ public class TextArea extends Container
         }
     }
 
-    @Override // from TextArea
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "textarea";
+        return "Default/TextArea";
     }
 
-    // documentation inherited
-    protected void configureStyle (StyleSheet style)
+    @Override // documentation inherited
+    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
-        super.configureStyle(style);
+        super.updateFromStyleConfig(state, config);
 
-        int[] haligns = new int[getStateCount()];
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            haligns[ii] = style.getTextAlignment(this, getStatePseudoClass(ii));
-        }
-        _haligns = checkNonDefault(haligns, UIConstants.LEFT);
+        _haligns[state] = config.textAlignment.getConstant();
+        _valigns[state] = config.verticalAlignment.getConstant();
+        _teffects[state] = config.textEffect.getConstant();
+        _effsizes[state] = config.effectSize;
+        _effcols[state] = config.effectColor;
 
-        int[] valigns = new int[getStateCount()];
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            valigns[ii] = style.getVerticalAlignment(
-                this, getStatePseudoClass(ii));
-        }
-        _valigns = checkNonDefault(valigns, UIConstants.CENTER);
-
-        int[] teffects = new int[getStateCount()];
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            teffects[ii] = style.getTextEffect(this, getStatePseudoClass(ii));
-        }
-        _teffects = checkNonDefault(teffects, UIConstants.NORMAL);
-
-        int[] effsizes = new int[getStateCount()];
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            effsizes[ii] = style.getEffectSize(this, getStatePseudoClass(ii));
-        }
-        _effsizes = checkNonDefault(effsizes, UIConstants.DEFAULT_SIZE);
-
-        Color4f[] effcols = new Color4f[getStateCount()];
-        boolean nondef = false;
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            effcols[ii] = style.getEffectColor(this, getStatePseudoClass(ii));
-            nondef = nondef || (effcols[ii] != null);
-        }
-        if (nondef) {
-            _effcols = effcols;
-        }
-
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            _textfacts[ii] = style.getTextFactory(this, getStatePseudoClass(ii));
-        }
-    }
-
-    protected int[] checkNonDefault (int[] styles, int defval)
-    {
-        for (int ii = 0; ii < styles.length; ii++) {
-            if (styles[ii] != -1 && styles[ii] != defval) {
-                return styles;
-            }
-        }
-        return null;
+        FontConfig fconfig = _ctx.getConfigManager().getConfig(
+            FontConfig.class, config.font);
+        _textfacts[state] = (fconfig == null) ?
+            null : fconfig.getTextFactory(_ctx, config.fontStyle, config.fontSize);
     }
 
     // documentation inherited
@@ -506,9 +470,11 @@ public class TextArea extends Container
         }
     }
 
-    protected int[] _haligns, _valigns;
-    protected int[] _teffects, _effsizes;
-    protected Color4f[] _effcols;
+    protected int[] _haligns = new int[getStateCount()];
+    protected int[] _valigns = new int[getStateCount()];
+    protected int[] _teffects = new int[getStateCount()];
+    protected int[] _effsizes = new int[getStateCount()];
+    protected Color4f[] _effcols = new Color4f[getStateCount()];
     protected TextFactory[] _textfacts = new TextFactory[getStateCount()];
 
     protected BoundedRangeModel _model = new BoundedRangeModel(0, 0, 0, 0);

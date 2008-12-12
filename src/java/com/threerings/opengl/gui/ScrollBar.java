@@ -82,26 +82,26 @@ public class ScrollBar extends Container
         addListener(_wheelListener = _model.createWheelListener());
 
         // create our buttons and backgrounds
-        String oprefix = "scrollbar_" + ((_orient == HORIZONTAL) ? "h" : "v");
+        String oprefix = "Default/Scrollbar" + ((_orient == HORIZONTAL) ? "H" : "V");
         _well = new Component(_ctx);
-        _well.setStyleClass(oprefix + "well");
+        _well.setStyleConfig(oprefix + "Well");
         add(_well, BorderLayout.CENTER);
         _well.addListener(_wellListener);
 
         _thumb = new Component(_ctx);
-        _thumb.setStyleClass(oprefix + "thumb");
+        _thumb.setStyleConfig(oprefix + "Thumb");
         add(_thumb, BorderLayout.IGNORE);
         _thumb.addListener(_thumbListener);
 
         _less = new Button(_ctx, "");
-        _less.setStyleClass(oprefix + "less");
+        _less.setStyleConfig(oprefix + "Less");
         add(_less, _orient == HORIZONTAL ?
             BorderLayout.WEST : BorderLayout.NORTH);
         _less.addListener(_buttoner);
         _less.setAction("less");
 
         _more = new Button(_ctx, "");
-        _more.setStyleClass(oprefix + "more");
+        _more.setStyleConfig(oprefix + "More");
         add(_more, _orient == HORIZONTAL ?
             BorderLayout.EAST : BorderLayout.SOUTH);
         _more.addListener(_buttoner);
@@ -173,10 +173,10 @@ public class ScrollBar extends Container
                          _well.getY() + winsets.bottom + ty, twidth, theight);
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "scrollbar";
+        return "Default/ScrollBar";
     }
 
     // documentation inherited

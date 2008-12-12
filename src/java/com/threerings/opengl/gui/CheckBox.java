@@ -5,6 +5,7 @@ package com.threerings.opengl.gui;
 
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.icon.Icon;
 
 /**
@@ -17,21 +18,21 @@ public class CheckBox extends ToggleButton
         super(ctx, label);
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "checkbox";
+        return "Default/CheckBox";
     }
 
-    // documentation inherited
-    protected void configureStyle (StyleSheet style)
+    @Override // documentation inherited
+    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
-        super.configureStyle(style);
+        super.updateFromStyleConfig(state, config);
 
-        for (int ii = 0; ii < getStateCount(); ii++) {
-            _icons[ii] = style.getIcon(this, getStatePseudoClass(ii));
+        _icons[state] = (config.icon == null) ? null : config.icon.getIcon(_ctx);
+        if (getState() == state) {
+            _label.setIcon(_icons[state]);
         }
-        _label.setIcon(_icons[getState()]);
     }
 
     // documentation inherited

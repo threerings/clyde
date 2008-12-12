@@ -20,20 +20,22 @@ public class DecoratedWindow extends Window
      * @param title the title of the window or null if no title bar is
      * desired.
      */
-    public DecoratedWindow (GlContext ctx, StyleSheet style, String title)
+    public DecoratedWindow (GlContext ctx, String title)
     {
         super(ctx, GroupLayout.makeVStretch());
         ((GroupLayout)getLayoutManager()).setOffAxisPolicy(
             GroupLayout.CONSTRAIN);
 
         if (title != null) {
-            add(new Label(ctx, title, "window_title"), GroupLayout.FIXED);
+            Label label = new Label(ctx, title);
+            label.setStyleConfig("Default/WindowTitle");
+            add(label, GroupLayout.FIXED);
         }
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "decoratedwindow";
+        return "Default/DecoratedWindow";
     }
 }

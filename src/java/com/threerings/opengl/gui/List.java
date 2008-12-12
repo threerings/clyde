@@ -68,7 +68,7 @@ public class List extends Container
                 }
             }
         };
-        button.setStyleClass("list_entry");
+        button.setStyleConfig("Default/ListEntry");
         button.addListener(_slistener);
         add(button);
         _values.add(value);
@@ -123,10 +123,10 @@ public class List extends Container
         _selidx = idx;
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "list";
+        return "Default/List";
     }
 
     /** The values contained in the list. */

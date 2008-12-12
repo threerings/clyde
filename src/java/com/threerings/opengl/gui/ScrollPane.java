@@ -86,15 +86,6 @@ public class ScrollPane extends Container
     }
 
     /**
-     * Configures the style class of the viewport (the non-scrolling container
-     * that will hold the scrolling contents).
-     */
-    public void setViewportStyleClass (String styleClass)
-    {
-        _vport.setStyleClass(styleClass);
-    }
-
-    /**
      * Configures the style of the viewport (the non-scrolling container that will hold the
      * scrolling contents).
      */
@@ -320,9 +311,9 @@ public class ScrollPane extends Container
         }
 
         @Override // documentation inherited
-        protected String getDefaultStyleClass ()
+        protected String getDefaultStyleConfig ()
         {
-            return "viewport";
+            return "Default/Viewport";
         }
 
         // documentation inherited

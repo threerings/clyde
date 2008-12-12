@@ -261,10 +261,10 @@ public class Container extends Component
         }
     }
 
-    // documentation inherited
-    protected String getDefaultStyleClass ()
+    @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
     {
-        return "container";
+        return "Default/Container";
     }
 
     // documentation inherited

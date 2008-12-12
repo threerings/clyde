@@ -6,7 +6,7 @@ package com.threerings.opengl.gui;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigUpdateListener;
+import com.threerings.config.ManagedConfig;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
 
@@ -19,7 +19,6 @@ import com.threerings.opengl.util.GlContextWrapper;
  * A user interface component configured from a resource.
  */
 public class UserInterface extends Container
-    implements ConfigUpdateListener<UserInterfaceConfig>
 {
     /**
      * Creates a new user interface.
@@ -122,10 +121,14 @@ public class UserInterface extends Container
         updateFromConfig();
     }
 
-    // documentation inherited from interface ConfigUpdateListener
-    public void configUpdated (ConfigEvent<UserInterfaceConfig> event)
+    @Override // documentation inherited
+    public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
-        updateFromConfig();
+        if (event.getConfig() instanceof UserInterfaceConfig) {
+            updateFromConfig();
+        } else {
+            super.configUpdated(event);
+        }
     }
 
     /**
