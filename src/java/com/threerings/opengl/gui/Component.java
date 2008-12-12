@@ -115,6 +115,9 @@ public class Component
             if (oconfig != null) {
                 oconfig.removeListener(this);
             }
+            if (nconfig == null && ii != DEFAULT) {
+                nconfig = _styleConfigs[DEFAULT];
+            }
             if ((_styleConfigs[ii] = nconfig) != null) {
                 // make sure we're not already listening
                 nconfig.removeListener(this);
@@ -829,7 +832,10 @@ public class Component
      */
     protected void wasAdded ()
     {
-        // nothing by default
+        // if we don't have a style yet, use the default
+        if (_styleConfigs[DEFAULT] == null) {
+            setStyleConfig(getDefaultStyleConfig());
+        }
     }
 
     /**

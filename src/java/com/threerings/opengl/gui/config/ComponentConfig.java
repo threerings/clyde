@@ -610,6 +610,7 @@ public abstract class ComponentConfig extends DeepObject
     public static class HTMLView extends ComponentConfig
     {
         /** The view's stylesheet. */
+        @Editable
         public String stylesheet = "";
 
         /** The contents of the view. */
