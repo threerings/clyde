@@ -124,14 +124,13 @@ public abstract class GlCanvasTool extends GlCanvasApp
         super.enqueueView();
 
         // enqueue the various renderables
-        // (TEMP: check for null refs until the old tools are gone)
-        if (_showGrid == null || _showGrid.isSelected()) {
+        if (_showGrid != null && _showGrid.isSelected()) {
             _grid.enqueue();
         }
         if (_bounds != null && _showBounds.isSelected()) {
             _bounds.enqueue();
         }
-        if (_showCompass.isSelected()) {
+        if (_showCompass != null && _showCompass.isSelected()) {
             _compass.enqueue();
         }
         if (_showStats.isSelected()) {

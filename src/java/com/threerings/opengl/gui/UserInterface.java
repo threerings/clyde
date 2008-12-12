@@ -121,6 +121,14 @@ public class UserInterface extends Container
         updateFromConfig();
     }
 
+    /**
+     * Returns a reference to the configuration.
+     */
+    public UserInterfaceConfig getConfig ()
+    {
+        return _config;
+    }
+
     @Override // documentation inherited
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
