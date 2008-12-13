@@ -83,6 +83,16 @@ public class ModelConfig extends ParameterizedConfig
         }
 
         /**
+         * Returns a reference to the config manager to use when resolving references.
+         *
+         * @param cfgmgr the config manager of the config containing the implementation.
+         */
+        public ConfigManager getConfigManager (ConfigManager cfgmgr)
+        {
+            return cfgmgr;
+        }
+
+        /**
          * Creates or updates a model implementation for this configuration.
          *
          * @param scope the model's expression scope.
@@ -352,6 +362,13 @@ public class ModelConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public ConfigManager getConfigManager (ConfigManager cfgmgr)
+        {
+            ModelConfig config = cfgmgr.getConfig(ModelConfig.class, model);
+            return (config == null) ? cfgmgr : config.getConfigManager();
+        }
+
+        @Override // documentation inherited
         public Model.Implementation getModelImplementation (
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
@@ -493,6 +510,12 @@ public class ModelConfig extends ParameterizedConfig
     {
         _configs.init("model", cfgmgr);
         super.init(_configs);
+    }
+
+    @Override // documentation inherited
+    public ConfigManager getConfigManager ()
+    {
+        return implementation.getConfigManager(_configs);
     }
 
     @Override // documentation inherited

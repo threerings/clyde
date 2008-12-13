@@ -103,5 +103,5 @@ public abstract class IconConfig extends DeepObject
     protected abstract Icon createIcon (GlContext ctx);
 
     /** The cached icon. */
-    protected SoftReference<Icon> _icon;
+    protected transient SoftReference<Icon> _icon;
 }

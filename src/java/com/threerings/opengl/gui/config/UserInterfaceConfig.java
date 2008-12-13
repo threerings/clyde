@@ -42,6 +42,13 @@ public class UserInterfaceConfig extends ParameterizedConfig
         }
 
         /**
+         * Returns a reference to the config manager to use when resolving references.
+         *
+         * @param cfgmgr the config manager of the config containing the implementation.
+         */
+        public abstract ConfigManager getConfigManager (ConfigManager cfgmgr);
+
+        /**
          * Creates or updates a component for this configuration.
          *
          * @param scope the component's expression scope.
@@ -64,6 +71,12 @@ public class UserInterfaceConfig extends ParameterizedConfig
         /** The root of the interface. */
         @Editable
         public ComponentConfig root = new ComponentConfig.Spacer();
+
+        @Override // documentation inherited
+        public ConfigManager getConfigManager (ConfigManager cfgmgr)
+        {
+            return cfgmgr;
+        }
 
         @Override // documentation inherited
         public Component getComponent (GlContext ctx, Scope scope, Component comp)
@@ -90,6 +103,14 @@ public class UserInterfaceConfig extends ParameterizedConfig
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
             refs.add(UserInterfaceConfig.class, userInterface);
+        }
+
+        @Override // documentation inherited
+        public ConfigManager getConfigManager (ConfigManager cfgmgr)
+        {
+            UserInterfaceConfig config = cfgmgr.getConfig(
+                UserInterfaceConfig.class, userInterface);
+            return (config == null) ? cfgmgr : config.getConfigManager();
         }
 
         @Override // documentation inherited
@@ -123,6 +144,12 @@ public class UserInterfaceConfig extends ParameterizedConfig
     {
         _configs.init("user_interface", cfgmgr);
         super.init(_configs);
+    }
+
+    @Override // documentation inherited
+    public ConfigManager getConfigManager ()
+    {
+        return implementation.getConfigManager(_configs);
     }
 
     @Override // documentation inherited

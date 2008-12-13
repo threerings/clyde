@@ -17,7 +17,6 @@ public class StretchWindow extends Window
     public StretchWindow (GlContext ctx, LayoutManager layout)
     {
         super(ctx, layout);
-        _ctx = ctx;
     }
 
     // documentation inherited from interface Renderer.Observer
@@ -43,7 +42,4 @@ public class StretchWindow extends Window
         super.wasRemoved();
         _ctx.getRenderer().removeObserver(this);
     }
-
-    /** The renderer context. */
-    protected GlContext _ctx;
 }

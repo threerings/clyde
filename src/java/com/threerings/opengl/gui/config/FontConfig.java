@@ -14,6 +14,7 @@ import com.samskivert.util.SoftCache;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.text.CharacterTextFactory;
 import com.threerings.opengl.gui.text.TextFactory;
@@ -124,5 +125,6 @@ public class FontConfig extends ManagedConfig
     }
 
     /** Cached font instances. */
-    protected HashMap<IntTuple, Font> _fonts = new HashMap<IntTuple, Font>();
+    @DeepOmit
+    protected transient HashMap<IntTuple, Font> _fonts = new HashMap<IntTuple, Font>();
 }

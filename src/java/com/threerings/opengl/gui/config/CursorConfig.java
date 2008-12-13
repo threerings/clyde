@@ -10,6 +10,7 @@ import java.util.HashSet;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.Cursor;
 import com.threerings.opengl.util.GlContext;
@@ -65,5 +66,6 @@ public class CursorConfig extends ManagedConfig
     }
 
     /** The cached cursor. */
-    protected SoftReference<Cursor> _cursor;
+    @DeepOmit
+    protected transient SoftReference<Cursor> _cursor;
 }

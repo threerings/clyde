@@ -9,6 +9,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.border.Border;
 import com.threerings.opengl.gui.border.EmptyBorder;
@@ -80,5 +81,6 @@ public abstract class BorderConfig extends DeepObject
     protected abstract Border createBorder ();
 
     /** The cached border. */
-    protected SoftReference<Border> _border;
+    @DeepOmit
+    protected transient SoftReference<Border> _border;
 }

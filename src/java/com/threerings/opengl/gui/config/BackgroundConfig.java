@@ -12,6 +12,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.background.BlankBackground;
@@ -181,5 +182,6 @@ public abstract class BackgroundConfig extends DeepObject
     protected abstract Background createBackground (GlContext ctx);
 
     /** The cached background. */
-    protected SoftReference<Background> _background;
+    @DeepOmit
+    protected transient SoftReference<Background> _background;
 }
