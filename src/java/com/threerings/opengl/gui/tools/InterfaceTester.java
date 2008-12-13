@@ -186,6 +186,7 @@ public class InterfaceTester extends GlCanvasTool
         config.implementation = (UserInterfaceConfig.Derived)_epanel.getObject();
         config.addListener(this);
         window.add(_userInterface = new UserInterface(this, config));
+        _userInterface.getScope().setParentScope(this);
     }
 
     @Override // documentation inherited

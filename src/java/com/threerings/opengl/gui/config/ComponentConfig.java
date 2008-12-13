@@ -10,6 +10,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.MessageBundle;
 
@@ -601,6 +602,7 @@ public abstract class ComponentConfig extends DeepObject
                 (com.threerings.opengl.gui.UserInterface)comp;
             ui.getScope().setParentScope(scope);
             ui.setConfig(userInterface);
+            ScopeUtil.call(scope, "registerComponents", ui.getTagged());
         }
     }
 
@@ -661,6 +663,14 @@ public abstract class ComponentConfig extends DeepObject
     @Editable(weight=1, hgroup="t")
     public boolean tooltipRelativeToMouse;
 
+    /** The component's tag. */
+    @Editable(weight=1)
+    public String tag = "";
+
+    /** The component's event handlers. */
+    @Editable(weight=1)
+    public HandlerConfig[] handlers = new HandlerConfig[0];
+
     /** The component's style, if non-default. */
     @Editable(weight=1, nullable=true)
     public ConfigReference<StyleConfig> style;
@@ -680,6 +690,9 @@ public abstract class ComponentConfig extends DeepObject
     {
         comp = maybeRecreate(ctx, scope, msgs, comp);
         configure(ctx, scope, msgs, comp);
+        if (!StringUtil.isBlank(tag)) {
+            ScopeUtil.call(scope, "registerComponent", tag, comp);
+        }
         return comp;
     }
 
@@ -703,6 +716,10 @@ public abstract class ComponentConfig extends DeepObject
         comp.setStyleConfig(style);
         if (preferredSize != null) {
             comp.setPreferredSize(preferredSize.createDimension());
+        }
+        comp.removeAllListeners(HandlerConfig.Listener.class);
+        for (HandlerConfig handler : handlers) {
+            comp.addListener(handler.createListener(scope));
         }
     }
 

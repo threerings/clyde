@@ -87,8 +87,7 @@ public class Component
     public void setStyleConfig (ConfigReference<StyleConfig> ref)
     {
         if (ref == null) {
-            setStyleConfigs(); // clear them all out
-            return;
+            ref = new ConfigReference<StyleConfig>(getDefaultStyleConfig());
         }
         StyleConfig[] styleConfigs = new StyleConfig[_styleConfigs.length];
         styleConfigs[0] = _ctx.getConfigManager().getConfig(StyleConfig.class, ref);
@@ -115,8 +114,13 @@ public class Component
             if (oconfig != null) {
                 oconfig.removeListener(this);
             }
-            if (nconfig == null && ii != DEFAULT) {
-                nconfig = _styleConfigs[DEFAULT];
+            if (nconfig == null) {
+                if (ii == DEFAULT) {
+                    nconfig = _ctx.getConfigManager().getConfig(
+                        StyleConfig.class, getDefaultStyleConfig());
+                } else {
+                    nconfig = _styleConfigs[DEFAULT];
+                }
             }
             if ((_styleConfigs[ii] = nconfig) != null) {
                 // make sure we're not already listening
@@ -571,6 +575,21 @@ public class Component
     }
 
     /**
+     * Removes all listeners of the specified class.
+     */
+    public void removeAllListeners (Class<? extends ComponentListener> clazz)
+    {
+        if (_listeners == null) {
+            return;
+        }
+        for (int ii = _listeners.size() - 1; ii >= 0; ii--) {
+            if (clazz.isInstance(_listeners.get(ii))) {
+                _listeners.remove(ii);
+            }
+        }
+    }
+
+    /**
      * Configures the tooltip text for this component. If the text starts with &lt;html&gt; then
      * the tooltip will be displayed with an @{link HTMLView} otherwise it will be displayed with a
      * {@link Label}.
@@ -781,6 +800,7 @@ public class Component
         StyleConfig config = _styleConfigs[state];
         StyleConfig.Original original = (config == null) ? null : config.getOriginal(_ctx);
         updateFromStyleConfig(state, original == null ? StyleConfig.NULL_ORIGINAL : original);
+        invalidate();
     }
 
     /**

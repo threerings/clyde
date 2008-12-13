@@ -3,12 +3,19 @@
 
 package com.threerings.opengl.gui;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Scoped;
 
 import com.threerings.opengl.gui.config.UserInterfaceConfig;
 import com.threerings.opengl.gui.layout.BorderLayout;
@@ -129,6 +136,33 @@ public class UserInterface extends Container
         return _config;
     }
 
+    /**
+     * Returns a reference to the first component registered with the specified tag, or
+     * <code>null</code> if there are no such components.
+     */
+    public Component getComponent (String tag)
+    {
+        List<Component> comps = getComponents(tag);
+        return (comps == null) ? null : comps.get(0);
+    }
+
+    /**
+     * Returns a reference to the list of components registered with the specified tag,
+     * or <code>null</code> if there are no such components.
+     */
+    public List<Component> getComponents (String tag)
+    {
+        return _tagged.get(tag);
+    }
+
+    /**
+     * Returns a reference to the tagged component map.
+     */
+    public Map<String, List<Component>> getTagged ()
+    {
+        return _tagged;
+    }
+
     @Override // documentation inherited
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
@@ -144,6 +178,7 @@ public class UserInterface extends Container
      */
     protected void updateFromConfig ()
     {
+        _tagged.clear();
         Component ocomp = (getComponentCount() == 0) ? null : getComponent(0);
         Component ncomp = (_config == null) ? null : _config.getComponent(_ctx, _scope, ocomp);
         removeAll();
@@ -152,9 +187,41 @@ public class UserInterface extends Container
         }
     }
 
+    /**
+     * Registers a group of components mapped by tag.
+     */
+    @Scoped
+    protected void registerComponents (Map<String, List<Component>> tagged)
+    {
+        for (Map.Entry<String, List<Component>> entry : tagged.entrySet()) {
+            String tag = entry.getKey();
+            List<Component> comps = _tagged.get(tag);
+            if (comps == null) {
+                _tagged.put(tag, comps = new ArrayList<Component>());
+            }
+            comps.addAll(entry.getValue());
+        }
+    }
+
+    /**
+     * Registers a component with the specified tag.
+     */
+    @Scoped
+    protected void registerComponent (String tag, Component comp)
+    {
+        List<Component> comps = _tagged.get(tag);
+        if (comps == null) {
+            _tagged.put(tag, comps = new ArrayList<Component>());
+        }
+        comps.add(comp);
+    }
+
     /** The user interface scope. */
     protected DynamicScope _scope = new DynamicScope(this, "interface");
 
     /** The configuration of this interface. */
     protected UserInterfaceConfig _config;
+
+    /** The sets of components registered under each tag. */
+    protected Map<String, List<Component>> _tagged = Maps.newHashMap();
 }
