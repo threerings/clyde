@@ -522,6 +522,114 @@ public abstract class Root extends SimpleOverlay
     }
 
     /**
+     * Handles a mouse pressed event.
+     */
+    protected void mousePressed (long when, int button, int x, int y, boolean consume)
+    {
+        checkMouseMoved(x, y);
+
+        setFocus(_ccomponent = getTargetComponent());
+        MouseEvent event = new MouseEvent(
+            this, when, _modifiers, MouseEvent.MOUSE_PRESSED, button, x, y);
+        if (consume) {
+            event.consume();
+        }
+        dispatchMouseEvent(_ccomponent, event);
+    }
+
+    /**
+     * Handles a mouse released event.
+     */
+    protected void mouseReleased (long when, int button, int x, int y, boolean consume)
+    {
+        checkMouseMoved(x, y);
+
+        MouseEvent event = new MouseEvent(
+            this, when, _modifiers, MouseEvent.MOUSE_RELEASED, button, x, y);
+        if (consume) {
+            event.consume();
+        }
+        dispatchMouseEvent(getTargetComponent(), event);
+        _ccomponent = null;
+        updateHoverComponent(_mouseX, _mouseY);
+    }
+
+    /**
+     * Handles a mouse moved/dragged event.
+     */
+    protected void mouseMoved (long when, int x, int y, boolean consume)
+    {
+        // if the mouse has moved, generate a moved or dragged event
+        if (checkMouseMoved(x, y)) {
+            Component tcomponent = getTargetComponent();
+            int type = (tcomponent != null && tcomponent == _ccomponent) ?
+                MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED;
+            MouseEvent event = new MouseEvent(
+                this, when, _modifiers, type, _mouseX, _mouseY);
+            if (consume) {
+                event.consume();
+            }
+            dispatchMouseEvent(tcomponent, event);
+        }
+    }
+
+    /**
+     * Handles a mouse wheel event.
+     */
+    protected void mouseWheeled (long when, int x, int y, int delta, boolean consume)
+    {
+        checkMouseMoved(x, y);
+
+        MouseEvent event = new MouseEvent(
+            this, when, _modifiers, MouseEvent.MOUSE_WHEELED,
+            -1, x, y, 0, delta);
+        if (consume) {
+            event.consume();
+        }
+        dispatchMouseEvent(getTargetComponent(), event);
+    }
+
+    /**
+     * Checks for a change to the mouse location, calling {@link #mouseDidMove} and returning
+     * <code>true</code> if the mouse moved.
+     */
+    protected boolean checkMouseMoved (int x, int y)
+    {
+        // determine whether the mouse moved
+        if (_mouseX != x || _mouseY != y) {
+            mouseDidMove(x, y);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handles a key press event.
+     */
+    protected void keyPressed (long when, char keyChar, int keyCode, boolean consume)
+    {
+        KeyEvent event = new KeyEvent(
+            this, when, _modifiers, KeyEvent.KEY_PRESSED, keyChar, keyCode);
+        if (consume) {
+            event.consume();
+        }
+        dispatchKeyEvent(getFocus(), event);
+    }
+
+    /**
+     * Handles a key release event.
+     */
+    protected void keyReleased (long when, char keyChar, int keyCode, boolean consume)
+    {
+        KeyEvent event = new KeyEvent(
+            this, when, _modifiers, KeyEvent.KEY_RELEASED, keyChar, keyCode);
+        if (consume) {
+            event.consume();
+        }
+        dispatchKeyEvent(getFocus(), event);
+    }
+
+    /**
      * Dispatches a mouse event, performing extra processing for clicks.
      */
     protected boolean dispatchMouseEvent (Component target, MouseEvent event)
@@ -662,6 +770,11 @@ public abstract class Root extends SimpleOverlay
      */
     protected void updateHoverComponent (int mx, int my)
     {
+        // delay updating the hover component if we have a clicked component
+        if (_ccomponent != null) {
+            return;
+        }
+
         // check for a new hover component starting with each of our root components
         Component nhcomponent = null;
         for (int ii = _windows.size()-1; ii >= 0; ii--) {
@@ -696,6 +809,25 @@ public abstract class Root extends SimpleOverlay
                 clearTipWindow();
             }
         }
+    }
+
+    protected Component getTargetComponent ()
+    {
+        // mouse press and mouse motion events do not necessarily go to
+        // the component under the mouse. when the mouse is clicked down
+        // on a component (any button), it becomes the "clicked"
+        // component, the target for all subsequent click and motion
+        // events (which become drag events) until all buttons are
+        // released
+        if (_ccomponent != null) {
+            return _ccomponent;
+        }
+        // if there's no clicked component, use the hover component
+        if (_hcomponent != null) {
+            return _hcomponent;
+        }
+        // if there's no hover component, use the default event target
+        return null;
     }
 
     protected void clearTipWindow ()

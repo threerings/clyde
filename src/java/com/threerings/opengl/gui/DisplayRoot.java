@@ -87,21 +87,31 @@ public class DisplayRoot extends Root
         while (Mouse.next()) {
             int button = Mouse.getEventButton();
             if (button != -1) {
-                MouseEvent event = new MouseEvent(
-                    this, _tickStamp, _modifiers,
-                    Mouse.getEventButtonState() ?
-                        MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_RELEASED,
-                    button, Mouse.getEventX(), Mouse.getEventY());
+                if (Mouse.getEventButtonState()) {
+                    mousePressed(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
+                } else {
+                    mouseReleased(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
+                }
+            }
+            int delta = Mouse.getEventDWheel();
+            if (delta != 0) {
+                mouseWheeled(_tickStamp, Mouse.getEventX(), Mouse.getEventY(),
+                    (delta > 0) ? +1 : -1, false);
+            }
+            if (button == -1 && delta == 0) {
+                mouseMoved(_tickStamp, Mouse.getEventX(), Mouse.getEventY(), false);
             }
         }
 
         // process keyboard events
         while (Keyboard.next()) {
-            KeyEvent event = new KeyEvent(
-                this, _tickStamp, _modifiers,
-                Keyboard.getEventKeyState() ? KeyEvent.KEY_PRESSED : KeyEvent.KEY_RELEASED,
-                Keyboard.getEventCharacter(), Keyboard.getEventKey());
-            dispatchKeyEvent(getFocus(), event);
+            if (Keyboard.getEventKeyState()) {
+                keyPressed(_tickStamp, Keyboard.getEventCharacter(),
+                    Keyboard.getEventKey(), false);
+            } else {
+                keyReleased(_tickStamp, Keyboard.getEventCharacter(),
+                    Keyboard.getEventKey(), false);
+            }
         }
     }
 }

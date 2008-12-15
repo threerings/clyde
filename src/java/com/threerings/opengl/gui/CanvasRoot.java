@@ -71,28 +71,17 @@ public class CanvasRoot extends Root
     // documentation inherited from interface MouseListener
     public void mousePressed (java.awt.event.MouseEvent e)
     {
-        updateState(e);
-
-        setFocus(_ccomponent = getTargetComponent());
-        MouseEvent event = new MouseEvent(
-            this, e.getWhen(), _modifiers, MouseEvent.MOUSE_PRESSED,
-            convertButton(e), _mouseX, _mouseY);
-        maybeConsume(e, event);
-        dispatchMouseEvent(_ccomponent, event);
+        _modifiers = convertModifiers(e.getModifiers());
+        mousePressed(e.getWhen(), convertButton(e), e.getX(),
+            _canvas.getHeight() - e.getY() - 1, e.isConsumed());
     }
 
     // documentation inherited from interface MouseListener
     public void mouseReleased (java.awt.event.MouseEvent e)
     {
-        updateState(e);
-
-        MouseEvent event = new MouseEvent(
-            this, e.getWhen(), _modifiers, MouseEvent.MOUSE_RELEASED,
-            convertButton(e), _mouseX, _mouseY);
-        maybeConsume(e, event);
-        dispatchMouseEvent(getTargetComponent(), event);
-        _ccomponent = null;
-        updateHoverComponent(_mouseX, _mouseY);
+        _modifiers = convertModifiers(e.getModifiers());
+        mouseReleased(e.getWhen(), convertButton(e), e.getX(),
+            _canvas.getHeight() - e.getY() - 1, e.isConsumed());
     }
 
     // documentation inherited from interface MouseMotionListener
@@ -104,105 +93,36 @@ public class CanvasRoot extends Root
     // documentation inherited from interface MouseMotionListener
     public void mouseMoved (java.awt.event.MouseEvent e)
     {
-        boolean mouseMoved = updateState(e);
-
-        // if the mouse has moved, generate a moved or dragged event
-        if (mouseMoved) {
-            Component tcomponent = getTargetComponent();
-            int type = (tcomponent != null && tcomponent == _ccomponent) ?
-                MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED;
-            MouseEvent event = new MouseEvent(
-                this, e.getWhen(), _modifiers, type, _mouseX, _mouseY);
-            maybeConsume(e, event);
-            dispatchMouseEvent(tcomponent, event);
-        }
+        _modifiers = convertModifiers(e.getModifiers());
+        mouseMoved(e.getWhen(), e.getX(), _canvas.getHeight() - e.getY() - 1, e.isConsumed());
     }
 
     // documentation inherited from interface MouseWheelListener
     public void mouseWheelMoved (java.awt.event.MouseWheelEvent e)
     {
-        updateState(e);
-
-        MouseEvent event = new MouseEvent(
-            this, e.getWhen(), _modifiers, MouseEvent.MOUSE_WHEELED,
-            convertButton(e), _mouseX, _mouseY, 0, -e.getWheelRotation());
-        maybeConsume(e, event);
-        dispatchMouseEvent(getTargetComponent(), event);
+        _modifiers = convertModifiers(e.getModifiers());
+        mouseWheeled(e.getWhen(), e.getX(), _canvas.getHeight() - e.getY() - 1,
+            -e.getWheelRotation(), e.isConsumed());
     }
 
     // documentation inherited from interface KeyListener
     public void keyPressed (java.awt.event.KeyEvent e)
     {
-        // update our modifiers
         _modifiers = convertModifiers(e.getModifiers());
-
-        KeyEvent event = new KeyEvent(
-            this, e.getWhen(), _modifiers, KeyEvent.KEY_PRESSED,
-            e.getKeyChar(), convertKeyCode(e));
-        maybeConsume(e, event);
-        dispatchKeyEvent(getFocus(), event);
+        keyPressed(e.getWhen(), e.getKeyChar(), convertKeyCode(e), e.isConsumed());
     }
 
     // documentation inherited from interface KeyListener
     public void keyReleased (java.awt.event.KeyEvent e)
     {
-        // update our modifiers
         _modifiers = convertModifiers(e.getModifiers());
-
-        KeyEvent event = new KeyEvent(
-            this, e.getWhen(), _modifiers, KeyEvent.KEY_RELEASED,
-            e.getKeyChar(), convertKeyCode(e));
-        maybeConsume(e, event);
-        dispatchKeyEvent(getFocus(), event);
+        keyReleased(e.getWhen(), e.getKeyChar(), convertKeyCode(e), e.isConsumed());
     }
 
     // documentation inherited from interface KeyListener
     public void keyTyped (java.awt.event.KeyEvent e)
     {
         // N/A
-    }
-
-    @Override // documentation inherited
-    protected void updateHoverComponent (int mx, int my)
-    {
-        // delay updating the hover component if we have a clicked component
-        if (_ccomponent == null) {
-            super.updateHoverComponent(mx, my);
-        }
-    }
-
-    protected boolean updateState (java.awt.event.MouseEvent e)
-    {
-        // update our modifiers
-        _modifiers = convertModifiers(e.getModifiers());
-
-        // determine whether the mouse moved
-        int mx = e.getX(), my = _canvas.getHeight() - e.getY();
-        if (_mouseX != mx || _mouseY != my) {
-            mouseDidMove(mx, my);
-            return true;
-        }
-
-        return false;
-    }
-
-    protected Component getTargetComponent ()
-    {
-        // mouse press and mouse motion events do not necessarily go to
-        // the component under the mouse. when the mouse is clicked down
-        // on a component (any button), it becomes the "clicked"
-        // component, the target for all subsequent click and motion
-        // events (which become drag events) until all buttons are
-        // released
-        if (_ccomponent != null) {
-            return _ccomponent;
-        }
-        // if there's no clicked component, use the hover component
-        if (_hcomponent != null) {
-            return _hcomponent;
-        }
-        // if there's no hover component, use the default event target
-        return null;
     }
 
     protected int convertModifiers (int modifiers)
@@ -390,16 +310,6 @@ public class CanvasRoot extends Root
 //        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_POWER;
 //        case java.awt.event.KeyEvent.VK_0: return Keyboard.KEY_SLEEP;
         default: return Keyboard.KEY_UNLABELED;
-        }
-    }
-
-    /**
-     * Consumes the destination event if the source event is consumed.
-     */
-    protected static void maybeConsume (java.awt.event.InputEvent src, InputEvent dest)
-    {
-        if (src.isConsumed()) {
-            dest.consume();
         }
     }
 
