@@ -18,9 +18,12 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 
 import com.threerings.opengl.gui.config.UserInterfaceConfig;
+import com.threerings.opengl.gui.event.ComponentListener;
 import com.threerings.opengl.gui.layout.BorderLayout;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
+
+import static com.threerings.opengl.gui.Log.*;
 
 /**
  * A user interface component configured from a resource.
@@ -134,6 +137,60 @@ public class UserInterface extends Container
     public UserInterfaceConfig getConfig ()
     {
         return _config;
+    }
+
+    /**
+     * Shortcut method for retrieving the text of a tagged {@link TextComponent}.
+     */
+    public String getText (String tag)
+    {
+        Component comp = getComponent(tag);
+        if (comp instanceof TextComponent) {
+            return ((TextComponent)comp).getText();
+        } else {
+            log.warning("Not a text component.", "tag", tag, "component", comp);
+            return "";
+        }
+    }
+
+    /**
+     * Shortcut method for retrieving the selected state of a tagged {@link ToggleButton}.
+     */
+    public boolean isSelected (String tag)
+    {
+        Component comp = getComponent(tag);
+        if (comp instanceof ToggleButton) {
+            return ((ToggleButton)comp).isSelected();
+        } else {
+            log.warning("Not a toggle button.", "tag", tag, "component", comp);
+            return false;
+        }
+    }
+
+    /**
+     * Shortcut method to add a listener to a tagged component.
+     */
+    public void addListener (String tag, ComponentListener listener)
+    {
+        Component comp = getComponent(tag);
+        if (comp != null) {
+            comp.addListener(listener);
+        } else {
+            log.warning("Can't find component to add listener.", "tag", tag);
+        }
+    }
+
+    /**
+     * Shortcut method to remove a listener from a tagged component.
+     */
+    public void removeListener (String tag, ComponentListener listener)
+    {
+        Component comp = getComponent(tag);
+        if (comp != null) {
+            comp.removeListener(listener);
+        } else {
+            log.warning("Can't find component to remove listener.", "tag", tag);
+        }
     }
 
     /**

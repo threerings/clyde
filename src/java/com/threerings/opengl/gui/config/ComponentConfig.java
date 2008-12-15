@@ -667,10 +667,6 @@ public abstract class ComponentConfig extends DeepObject
     @Editable(weight=1)
     public String tag = "";
 
-    /** The component's event handlers. */
-    @Editable(weight=1)
-    public HandlerConfig[] handlers = new HandlerConfig[0];
-
     /** The component's style, if non-default. */
     @Editable(weight=1, nullable=true)
     public ConfigReference<StyleConfig> style;
@@ -716,10 +712,6 @@ public abstract class ComponentConfig extends DeepObject
         comp.setStyleConfig(style);
         if (preferredSize != null) {
             comp.setPreferredSize(preferredSize.createDimension());
-        }
-        comp.removeAllListeners(HandlerConfig.Listener.class);
-        for (HandlerConfig handler : handlers) {
-            comp.addListener(handler.createListener(scope));
         }
     }
 

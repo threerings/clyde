@@ -10,6 +10,7 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.config.UserInterfaceConfig;
+import com.threerings.opengl.gui.event.ComponentListener;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
 /**
@@ -81,6 +82,14 @@ public class UserInterfaceWindow extends Window
     public UserInterface getInterface ()
     {
         return (UserInterface)getComponent(0);
+    }
+
+    /**
+     * A shortcut method for retrieving a component registered by name from the interface.
+     */
+    public Component getComponent (String name)
+    {
+        return _interface.getComponent(name);
     }
 
     // documentation inherited from interface Renderer.Observer
