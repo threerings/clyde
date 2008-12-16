@@ -10,6 +10,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
 
 import com.threerings.openal.util.AlContext;
+import com.threerings.opengl.GlApp;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.renderer.Renderer;
@@ -20,6 +21,11 @@ import com.threerings.opengl.renderer.Renderer;
  */
 public interface GlContext extends AlContext
 {
+    /**
+     * Returns a reference to the application object.
+     */
+    public GlApp getApp ();
+
     /**
      * Returns a reference to the scope.
      */

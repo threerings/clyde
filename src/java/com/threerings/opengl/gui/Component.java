@@ -108,7 +108,7 @@ public class Component
         for (int ii = 0; ii < _styleConfigs.length; ii++) {
             StyleConfig oconfig = _styleConfigs[ii];
             StyleConfig nconfig = (ii < styleConfigs.length) ? styleConfigs[ii] : null;
-            if (oconfig == nconfig) {
+            if (oconfig == nconfig && oconfig != null) {
                 continue;
             }
             if (oconfig != null) {

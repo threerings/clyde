@@ -129,8 +129,8 @@ public abstract class TextComponent extends Component
 
         FontConfig fconfig = _ctx.getConfigManager().getConfig(
             FontConfig.class, config.font);
-        _textfacts[state] = (fconfig == null) ?
-            null : fconfig.getTextFactory(_ctx, config.fontStyle, config.fontSize);
+        _textfacts[state] = (fconfig == null ? FontConfig.NULL : fconfig).getTextFactory(
+            _ctx, config.fontStyle, config.fontSize);
     }
 
     /**

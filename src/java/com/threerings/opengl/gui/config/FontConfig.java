@@ -27,6 +27,9 @@ import static com.threerings.opengl.gui.Log.*;
  */
 public class FontConfig extends ManagedConfig
 {
+    /** An object to use when the config cannot be resolved. */
+    public static final FontConfig NULL = new FontConfig();
+
     /** The available font styles. */
     public enum Style
     {
@@ -116,12 +119,15 @@ public class FontConfig extends ManagedConfig
         if (style != Font.PLAIN || size != 1) {
             return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size);
         }
-        try {
-            return Font.createFont(Font.TRUETYPE_FONT, ctx.getResourceManager().getResource(file));
-        } catch (Exception e) { // FontFormatException, IOException
-            log.warning("Failed to load font file.", "file", file, e);
-            return new Font("Dialog", Font.PLAIN, 1);
+        if (file != null) {
+            try {
+                return Font.createFont(
+                    Font.TRUETYPE_FONT, ctx.getResourceManager().getResource(file));
+            } catch (Exception e) { // FontFormatException, IOException
+                log.warning("Failed to load font file.", "file", file, e);
+            }
         }
+        return new Font("Dialog", Font.PLAIN, 1);
     }
 
     /** Cached font instances. */

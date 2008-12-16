@@ -131,8 +131,9 @@ public abstract class BackgroundConfig extends DeepObject
         @Override // documentation inherited
         protected Background createBackground (GlContext ctx)
         {
-            return new ImageBackground(mode.getConstant(), ctx.getImageCache().getImage(file),
-                (frame != null && mode.isFrame()) ? frame.createInsets() : null);
+            return (file == null) ? new BlankBackground() :
+                new ImageBackground(mode.getConstant(), ctx.getImageCache().getImage(file),
+                    (frame != null && mode.isFrame()) ? frame.createInsets() : null);
         }
     }
 

@@ -31,9 +31,9 @@ import com.threerings.opengl.util.GlContext;
     ComponentConfig.List.class, ComponentConfig.PasswordField.class,
     ComponentConfig.ScrollBar.class, ComponentConfig.ScrollPane.class,
     ComponentConfig.Slider.class, ComponentConfig.Spacer.class,
-    ComponentConfig.TabbedPane.class, ComponentConfig.TextArea.class,
-    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
-    ComponentConfig.UserInterface.class })
+    ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
+    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
+    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -103,6 +103,20 @@ public abstract class ComponentConfig extends DeepObject
             label.setIconTextGap(iconTextGap);
             label.setOrientation(orientation.getConstant());
             label.setFit(fit);
+        }
+    }
+
+    /**
+     * A status label.
+     */
+    public static class StatusLabel extends Label
+    {
+        @Override // documentation inherited
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.StatusLabel.class) ?
+                comp : new com.threerings.opengl.gui.StatusLabel(ctx);
         }
     }
 

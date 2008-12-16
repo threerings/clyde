@@ -99,6 +99,20 @@ public abstract class GlApp extends DynamicScope
      */
     public abstract void shutdown ();
 
+    /**
+     * Convenience method for translation.
+     */
+    public String xlate (String bundle, String msg)
+    {
+        return _msgmgr.getBundle(bundle).xlate(msg);
+    }
+
+    // documentation inherited from interface GlContext
+    public GlApp getApp ()
+    {
+        return this;
+    }
+
     // documentation inherited from interface AlContext, GlContext
     public DynamicScope getScope ()
     {

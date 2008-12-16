@@ -11,6 +11,7 @@ import com.threerings.util.MessageManager;
 
 import com.threerings.openal.ClipProvider;
 import com.threerings.openal.SoundManager;
+import com.threerings.opengl.GlApp;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.renderer.Renderer;
@@ -27,6 +28,12 @@ public abstract class GlContextWrapper
     public GlContextWrapper (GlContext wrapped)
     {
         _wrapped = wrapped;
+    }
+
+    // documentation inherited from interface GlContext
+    public GlApp getApp ()
+    {
+        return _wrapped.getApp();
     }
 
     // documentation inherited from interface AlContext, GlContext
