@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 
 import com.threerings.whirled.server.SceneRegistry;
@@ -28,6 +29,7 @@ public abstract class TudeyServer extends WhirledServer
             ResourceManager rsrcmgr = new ResourceManager("rsrc/");
             bind(ResourceManager.class).toInstance(rsrcmgr);
             bind(ConfigManager.class).toInstance(new ConfigManager(rsrcmgr, "config/"));
+            bind(ColorPository.class).toInstance(ColorPository.loadColorPository(rsrcmgr));
             bind(SceneFactory.class).to(TudeySceneFactory.class);
         }
     }
