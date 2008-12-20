@@ -972,6 +972,15 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Creates a new, empty scene model.
+     */
+    public TudeySceneModel ()
+    {
+        name = "";
+        version = 1;
+    }
+
+    /**
      * Initializes the model.
      */
     public void init (ConfigManager cfgmgr)
@@ -1242,6 +1251,8 @@ public class TudeySceneModel extends SceneModel
         throws IOException
     {
         out.defaultWriteFields();
+        out.write("name", name, "");
+        out.write("version", version, 0);
         out.write("entries", _entries.values().toArray(new Entry[_entries.size()]),
             new Entry[0], Entry[].class);
     }
@@ -1253,6 +1264,8 @@ public class TudeySceneModel extends SceneModel
         throws IOException
     {
         in.defaultReadFields();
+        name = in.read("name", "");
+        version = in.read("version", 0);
 
         // initialize the tile config counts
         for (CoordIntEntry entry : _tiles.coordIntEntrySet()) {
