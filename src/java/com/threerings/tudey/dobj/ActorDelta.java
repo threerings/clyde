@@ -8,7 +8,7 @@ import com.threerings.delta.ReflectiveDelta;
 import com.threerings.tudey.data.actor.Actor;
 
 /**
- * Extends {@link FieldDelta} to include the id of the affected actor.  Declared final for
+ * Extends {@link ReflectiveDelta} to include the id of the affected actor.  Declared final for
  * streaming efficiency.
  */
 public final class ActorDelta extends ReflectiveDelta

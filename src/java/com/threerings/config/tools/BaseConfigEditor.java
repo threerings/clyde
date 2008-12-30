@@ -28,7 +28,7 @@ import com.threerings.editor.util.EditorContext;
 import com.threerings.config.ConfigManager;
 
 /**
- * The superclass of {@link ConfigEditor} and {@link ConfigResourceEditor}.
+ * The superclass of {@link ConfigEditor} and {@link ResourceEditor}.
  */
 public abstract class BaseConfigEditor extends JFrame
     implements EditorContext, ActionListener

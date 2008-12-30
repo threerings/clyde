@@ -860,7 +860,8 @@ public class Animation extends SimpleScope
     }
 
     /**
-     * An {@link ObserverList.ObserverOp} that calls {@link AnimationObserver#animationStarted}.
+     * An {@link com.samskivert.util.ObserverList.ObserverOp} that calls
+     * {@link AnimationObserver#animationStarted}.
      */
     protected static class StartedOp extends AnimationOp
     {
@@ -880,7 +881,8 @@ public class Animation extends SimpleScope
     }
 
     /**
-     * An {@link ObserverList.ObserverOp} that calls {@link AnimationObserver#animationStopped}.
+     * An {@link com.samskivert.util.ObserverList.ObserverOp} that calls
+     * {@link AnimationObserver#animationStopped}.
      */
     protected static class StoppedOp extends AnimationOp
     {

@@ -110,7 +110,7 @@ public class Actor extends DeepObject
     }
 
     /**
-     * Returns the timestamp at which the actor was destroyed, or {@link Integer.MAX_VALUE} if
+     * Returns the timestamp at which the actor was destroyed, or {@link Integer#MAX_VALUE} if
      * not yet destroyed.
      */
     public int getDestroyed ()

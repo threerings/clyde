@@ -29,7 +29,7 @@ public class ReflectionUtil
     /**
      * Creates a new instance of the named inner class.
      *
-     * @param clazz the name of the class to instantiate.
+     * @param classname the name of the class to instantiate.
      * @param outer an instance of the enclosing class.
      */
     public static Object newInstance (String classname, Object outer)

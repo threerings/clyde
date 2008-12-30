@@ -214,7 +214,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         /**
          * Transforms a point in-place from world space or emitter space into the space of
          * the layer (either world space or emitter space, depending on the value of
-         * {@link BaseParticleSystemConfig.Layer#moveParticlesWithEmitter}).
+         * {@link com.threerings.opengl.effect.config.BaseParticleSystemConfig.Layer#moveParticlesWithEmitter}).
          *
          * @param emitter if true, transform from emitter space (else from world space).
          * @return a reference to the transformed point, for chaining.
@@ -229,7 +229,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         /**
          * Transforms a vector in-place from world space or emitter space into the space of
          * the layer (either world space or emitter space, depending on the value of
-         * {@link BaseParticleSystemConfig.Layer#moveParticlesWithEmitter}).
+         * {@link com.threerings.opengl.effect.config.BaseParticleSystemConfig.Layer#moveParticlesWithEmitter}).
          *
          * @param emitter if true, transform from emitter space (else from world space).
          * @return a reference to the transformed vector, for chaining.

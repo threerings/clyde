@@ -918,7 +918,8 @@ public class Model extends DynamicScope
     }
 
     /**
-     * An {@link ObserverList.ObserverOp} that calls {@link ModelObserver#modelCompleted}.
+     * An {@link com.samskivert.util.ObserverList.ObserverOp} that calls
+     * {@link ModelObserver#modelCompleted}.
      */
     protected static class CompletedOp
         implements ObserverList.ObserverOp<ModelObserver>

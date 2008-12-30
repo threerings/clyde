@@ -108,12 +108,14 @@
              destdir="${javadoc.dir}" stylesheetfile="docs/stylesheet.css"
              additionalparam="-breakiterator">
       <classpath refid="classpath"/>
-      <link href="http://java.sun.com/j2se/1.5/docs/api/"/>
+      <link href="http://java.sun.com/j2se/1.5/docs/api"/>
+      <link href="http://www.lwjgl.org/javadoc"/>
       <!-- ant documentation is not available online, sorry kids -->
       <link href="file:///usr/share/doc/ant-doc/javadocs"/>
       <link href="http://samskivert.com/code/samskivert/samskivert/docs/api"/>
       <link href="http://www.threerings.net/code/narya/docs/api"/>
       <link href="http://www.threerings.net/code/nenya/docs/api"/>
+      <link href="http://www.threerings.net/code/vilya/docs/api"/>
     </javadoc>
   </target>
 

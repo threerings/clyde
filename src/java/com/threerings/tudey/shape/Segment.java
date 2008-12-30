@@ -273,7 +273,7 @@ public class Segment extends Shape
 
     /**
      * Returns the parameter of the segment when it intersects the supplied point, or
-     * {@link Float.MAX_VALUE} if there is no such intersection.
+     * {@link Float#MAX_VALUE} if there is no such intersection.
      */
     protected float getIntersection (Vector2f pt)
     {

@@ -114,8 +114,8 @@ public class EntryEdit extends AbstractUndoableEdit
     /**
      * Performs the actual undo or redo operation.
      *
-     * @param add the map containing the entries to add.
-     * @param remove the map containing the entries to remove.
+     * @param removed the map containing the entries to add.
+     * @param added the map containing the entries to remove.
      */
     protected void swap (HashMap<Object, Entry> removed, HashMap<Object, Entry> added)
     {

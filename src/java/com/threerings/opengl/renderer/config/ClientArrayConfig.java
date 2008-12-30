@@ -133,8 +133,8 @@ public class ClientArrayConfig extends DeepObject
     /**
      * Extracts the contents of this array into the specified float array.
      *
-     * @param offset the offset within the array at which to place the first element.
-     * @param stride the stride between adjacent elements within the array.
+     * @param doffset the offset within the array at which to place the first element.
+     * @param dstride the stride between adjacent elements within the array.
      */
     public void populateFloatArray (float[] array, int doffset, int dstride)
     {
@@ -154,8 +154,8 @@ public class ClientArrayConfig extends DeepObject
     /**
      * Extracts the contents of this array into the specified int array.
      *
-     * @param offset the offset within the array at which to place the first element.
-     * @param stride the stride between adjacent elements within the array.
+     * @param doffset the offset within the array at which to place the first element.
+     * @param dstride the stride between adjacent elements within the array.
      */
     public void populateIntArray (int[] array, int doffset, int dstride)
     {

@@ -231,7 +231,7 @@ public class RenderQueue
 
     /**
      * Renders the contents of the lists.  This is called by the
-     * {@link RenderQueueConfig.RenderMode}.
+     * {@link com.threerings.opengl.compositor.config.RenderQueueConfig.RenderMode}.
      */
     public void renderLists (Renderer renderer)
     {

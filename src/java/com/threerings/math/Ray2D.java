@@ -248,7 +248,7 @@ public final class Ray2D
 
     /**
      * Returns the parameter of the ray when it intersects the supplied point, or
-     * {@link Float.MAX_VALUE} if there is no such intersection.
+     * {@link Float#MAX_VALUE} if there is no such intersection.
      */
     protected float getIntersection (Vector2f pt)
     {
