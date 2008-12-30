@@ -3,6 +3,7 @@
 
 package com.threerings.editor;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,6 +13,7 @@ import java.lang.annotation.Target;
  * Specifies the message bundle to use when translating type names, field names, enum constants,
  * and other editor bits.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.PACKAGE })
 public @interface EditorMessageBundle

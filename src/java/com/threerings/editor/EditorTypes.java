@@ -3,6 +3,7 @@
 
 package com.threerings.editor;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,6 +13,7 @@ import java.lang.annotation.Target;
  * Specifies the classes available for selection in the editor.  Can be used both on superclasses
  * and on editable properties.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.TYPE })
 public @interface EditorTypes

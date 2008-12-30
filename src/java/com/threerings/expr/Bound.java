@@ -3,6 +3,7 @@
 
 package com.threerings.expr;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -11,6 +12,7 @@ import java.lang.annotation.Target;
 /**
  * Flags a field as being bound to a {@link Scoped} symbol.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD })
 public @interface Bound
