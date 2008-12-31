@@ -17,11 +17,19 @@ import com.threerings.opengl.util.GlContext;
 public class OrbitCameraHandler extends CameraHandler
 {
     /**
-     * Creates a new orbit camera handler.
+     * Creates a new orbit camera handler for the compositor camera.
      */
     public OrbitCameraHandler (GlContext ctx)
     {
         super(ctx);
+    }
+
+    /**
+     * Creates a new orbit camera handler for the specified camera.
+     */
+    public OrbitCameraHandler (GlContext ctx, Camera camera, boolean matchRenderSurface)
+    {
+        super(ctx, camera, matchRenderSurface);
     }
 
     /**
@@ -64,7 +72,7 @@ public class OrbitCameraHandler extends CameraHandler
      */
     public void pan (float x, float y)
     {
-        Quaternion rot = _ctx.getCompositor().getCamera().getWorldTransform().getRotation();
+        Quaternion rot = _camera.getWorldTransform().getRotation();
         _target.addLocal(rot.transformLocal(_pan.set(x, y, 0f)));
     }
 
@@ -95,8 +103,7 @@ public class OrbitCameraHandler extends CameraHandler
     public void updatePosition ()
     {
         // update the camera translation and rotation
-        Camera camera = _ctx.getCompositor().getCamera();
-        Transform3D xform = camera.getWorldTransform();
+        Transform3D xform = _camera.getWorldTransform();
         float ce = FloatMath.cos(_coords.elevation);
         xform.getTranslation().set(
             FloatMath.sin(_coords.azimuth) * ce,
@@ -106,7 +113,7 @@ public class OrbitCameraHandler extends CameraHandler
             FloatMath.HALF_PI - _coords.elevation, _coords.azimuth);
 
         // update the camera transform
-        camera.updateTransform();
+        _camera.updateTransform();
     }
 
     /** The location that the camera is looking at. */

@@ -17,16 +17,30 @@ public abstract class CameraHandler
     implements Renderer.Observer
 {
     /**
-     * Creates a new camera handler.
+     * Creates a new camera handler for the compositor camera.
      */
     public CameraHandler (GlContext ctx)
     {
-        _ctx = ctx;
+        this(ctx, ctx.getCompositor().getCamera(), true);
+    }
 
-        // update the camera viewport and listen for changes
-        Renderer renderer = ctx.getRenderer();
-        sizeChanged(renderer.getWidth(), renderer.getHeight());
-        renderer.addObserver(this);
+    /**
+     * Creates a new camera handler for the specified camera.
+     *
+     * @param matchRenderSurface if true, automatically adjust the camera viewport to match the
+     * dimensions of the renderer surface.
+     */
+    public CameraHandler (GlContext ctx, Camera camera, boolean matchRenderSurface)
+    {
+        _ctx = ctx;
+        _camera = camera;
+
+        // if specified, update the camera viewport and listen for changes
+        if (matchRenderSurface) {
+            Renderer renderer = ctx.getRenderer();
+            sizeChanged(renderer.getWidth(), renderer.getHeight());
+            renderer.addObserver(this);
+        }
     }
 
     /**
@@ -65,6 +79,15 @@ public abstract class CameraHandler
     }
 
     /**
+     * Updates the camera perspective parameters.
+     */
+    public void updatePerspective ()
+    {
+        Rectangle viewport = _camera.getViewport();
+        _camera.setPerspective(_fovy, (float)viewport.width / viewport.height, _near, _far);
+    }
+
+    /**
      * Updates the camera position.
      */
     public abstract void updatePosition ();
@@ -72,22 +95,15 @@ public abstract class CameraHandler
     // documentation inherited from interface Renderer.Observer
     public void sizeChanged (int width, int height)
     {
-        _ctx.getCompositor().getCamera().getViewport().set(0, 0, width, height);
+        _camera.getViewport().set(0, 0, width, height);
         updatePerspective();
-    }
-
-    /**
-     * Updates the camera perspective parameters.
-     */
-    protected void updatePerspective ()
-    {
-        Camera camera = _ctx.getCompositor().getCamera();
-        Rectangle viewport = camera.getViewport();
-        camera.setPerspective(_fovy, (float)viewport.width / viewport.height, _near, _far);
     }
 
     /** The renderer context. */
     protected GlContext _ctx;
+
+    /** The camera that we're handling. */
+    protected Camera _camera;
 
     /** The vertical field of view (in radians). */
     protected float _fovy = FloatMath.PI / 3f;

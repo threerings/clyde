@@ -8,12 +8,16 @@ import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.opengl.camera.Camera;
+import com.threerings.opengl.camera.CameraHandler;
+import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.util.Insets;
+import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.DepthState;
+import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
@@ -31,6 +35,7 @@ public class RenderableView extends Component
     {
         super(ctx);
         _group = new RenderQueue.Group(ctx);
+        _camhand = createCameraHandler();
     }
 
     /**
@@ -39,6 +44,14 @@ public class RenderableView extends Component
     public Camera getCamera ()
     {
         return _camera;
+    }
+
+    /**
+     * Returns a reference to the camera handler.
+     */
+    public CameraHandler getCameraHandler ()
+    {
+        return _camhand;
     }
 
     /**
@@ -131,12 +144,16 @@ public class RenderableView extends Component
         _camera.getViewport().set(
             getAbsoluteX() + insets.left, getAbsoluteY() + insets.bottom,
             _width - insets.getHorizontal(), _height - insets.getVertical());
-        _camera.updateTransform();
+
+        // update the camera handler
+        _camhand.updatePerspective();
+        _camhand.updatePosition();
 
         try {
             // push the modelview matrix
             renderer.setMatrixMode(GL11.GL_MODELVIEW);
             GL11.glPushMatrix();
+            renderer.setState(TransformState.IDENTITY);
 
             // enqueue the config models
             for (Model model : _configModels) {
@@ -155,9 +172,15 @@ public class RenderableView extends Component
             _camera.apply(renderer);
 
             // clear the depth buffer
+            Rectangle oscissor = renderer.getScissor();
+            if (oscissor != null) {
+                _oscissor.set(oscissor);
+            }
+            renderer.setScissor(_camera.getViewport());
             renderer.setClearDepth(1f);
             renderer.setState(DepthState.TEST_WRITE);
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
+            renderer.setScissor(oscissor == null ? null : _oscissor);
 
             // render the contents of the queues
             _group.renderQueues(RenderQueue.NORMAL_TYPE);
@@ -182,11 +205,22 @@ public class RenderableView extends Component
         }
     }
 
+    /**
+     * Creates the camera handler for the view.
+     */
+    protected CameraHandler createCameraHandler ()
+    {
+        return new OrbitCameraHandler(_ctx, _camera, false);
+    }
+
     /** The UI root with which we've registered as a tick participant. */
     protected Root _root;
 
     /** The renderer camera. */
     protected Camera _camera = new Camera();
+
+    /** The handler that controls the camera's parameters. */
+    protected CameraHandler _camhand;
 
     /** The base render queue group. */
     protected RenderQueue.Group _group;
@@ -196,4 +230,7 @@ public class RenderableView extends Component
 
     /** The list of other renderables to include. */
     protected ArrayList<Renderable> _renderables = new ArrayList<Renderable>();
+
+    /** Used to save the scissor region. */
+    protected Rectangle _oscissor = new Rectangle();
 }
