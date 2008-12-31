@@ -42,6 +42,14 @@ public class Compositor
     }
 
     /**
+     * Sets the camera reference.
+     */
+    public void setCamera (Camera camera)
+    {
+        _camera = camera;
+    }
+
+    /**
      * Returns a reference to the camera.
      */
     public Camera getCamera ()
@@ -196,6 +204,14 @@ public class Compositor
     public void resetQueues ()
     {
         _group = new RenderQueue.Group(_ctx);
+    }
+
+    /**
+     * Sets the base render queue group reference.
+     */
+    public void setGroup (RenderQueue.Group group)
+    {
+        _group = group;
     }
 
     /**

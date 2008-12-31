@@ -11,6 +11,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.MessageBundle;
 
@@ -19,6 +20,8 @@ import com.threerings.opengl.gui.Label.Fit;
 import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.config.LayoutConfig.Justification;
 import com.threerings.opengl.gui.layout.GroupLayout;
+import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -29,11 +32,12 @@ import com.threerings.opengl.util.GlContext;
     ComponentConfig.ComboBox.class, ComponentConfig.Container.class,
     ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
     ComponentConfig.List.class, ComponentConfig.PasswordField.class,
-    ComponentConfig.ScrollBar.class, ComponentConfig.ScrollPane.class,
-    ComponentConfig.Slider.class, ComponentConfig.Spacer.class,
-    ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
-    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
-    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
+    ComponentConfig.RenderableView.class, ComponentConfig.ScrollBar.class,
+    ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
+    ComponentConfig.Spacer.class, ComponentConfig.StatusLabel.class,
+    ComponentConfig.TabbedPane.class, ComponentConfig.TextArea.class,
+    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
+    ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -655,6 +659,63 @@ public abstract class ComponentConfig extends DeepObject
             view.setStyleSheet(stylesheet);
             view.setContents(contents);
         }
+    }
+
+    /**
+     * An embedded 3D view.
+     */
+    public static class RenderableView extends ComponentConfig
+    {
+        /** A set of models to include in the view. */
+        @Editable
+        public ViewModel[] models = new ViewModel[0];
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.RenderableView.class) ?
+                comp : new com.threerings.opengl.gui.RenderableView(ctx);
+        }
+
+        @Override // documentation inherited
+        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            super.configure(ctx, scope, msgs, comp);
+            com.threerings.opengl.gui.RenderableView view =
+                (com.threerings.opengl.gui.RenderableView)comp;
+
+            // create/reconfigure the models as necessary
+            Model[] omodels = view.getConfigModels();
+            Model[] nmodels = new Model[models.length];
+            view.setConfigModels(nmodels);
+            for (int ii = 0; ii < nmodels.length; ii++) {
+                Model model = (ii < omodels.length) ? omodels[ii] : new Model(ctx);
+                nmodels[ii] = model;
+                ViewModel vmodel = models[ii];
+                model.setParentScope(scope);
+                model.setConfig(vmodel.model);
+                model.getLocalTransform().set(vmodel.transform);
+            }
+            for (int ii = nmodels.length; ii < omodels.length; ii++) {
+                omodels[ii].dispose();
+            }
+        }
+    }
+
+    /**
+     * Represents a model to include in a {@link RenderableView}.
+     */
+    public static class ViewModel extends DeepObject
+        implements Exportable
+    {
+        /** The model reference. */
+        @Editable(nullable=true)
+        public ConfigReference<ModelConfig> model;
+
+        /** The transform of the model. */
+        @Editable(step=0.01)
+        public Transform3D transform = new Transform3D();
     }
 
     /** The component alpha value. */
