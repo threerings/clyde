@@ -6,10 +6,12 @@ package com.threerings.opengl.compositor;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.ComparableArrayList;
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntMaps;
 
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Renderer;
@@ -40,6 +42,30 @@ public class RenderQueue
      */
     public static class Group
     {
+        /**
+         * Represents the saved state of a group.
+         */
+        public static class State
+        {
+            /**
+             * Swaps this state with the of the specified group.
+             */
+            public void swap (Group group)
+            {
+                ComparableArrayList<RenderQueue> queues = group._queues;
+                int nqueues = queues.size();
+                for (int ii = nqueues - _qstates.size(); ii > 0; ii--) {
+                    _qstates.add(new RenderQueue.State());
+                }
+                for (int ii = 0; ii < nqueues; ii++) {
+                    _qstates.get(ii).swap(queues.get(ii));
+                }
+            }
+
+            /** Saved states for each queue. */
+            protected ArrayList<RenderQueue.State> _qstates = Lists.newArrayList();
+        }
+
         /**
          * Creates a new group.
          */
@@ -275,6 +301,40 @@ public class RenderQueue
      */
     protected static class GroupBatch extends Batch
     {
+        /**
+         * Represents the saved state of a batch.
+         */
+        public static class State
+        {
+            /**
+             * Swaps this state with the of the specified batch.
+             */
+            public void swap (GroupBatch batch)
+            {
+                // swap depths
+                float odepth = _depth;
+                _depth = batch.depth;
+                batch.depth = odepth;
+
+                // swap keys
+                int[] okey = _key;
+                _key = batch.key;
+                batch.key = okey;
+
+                // swap the group state
+                _gstate.swap(batch.group);
+            }
+
+            /** The saved depth. */
+            protected float _depth;
+
+            /** The saved key. */
+            protected int[] _key;
+
+            /** The saved group state. */
+            protected Group.State _gstate = new Group.State();
+        }
+
         /** The queue group for this batch. */
         public Group group;
 
@@ -327,6 +387,48 @@ public class RenderQueue
         }
     }
 
+    /**
+     * Represents the saved state of a queue.
+     */
+    protected static class State
+    {
+        /**
+         * Swaps this state with the of the specified queue.
+         */
+        public void swap (RenderQueue queue)
+        {
+            // swap priority maps
+            HashIntMap<PriorityList> opriorities = _priorities;
+            _priorities = queue._priorities;
+            queue._priorities = opriorities;
+
+            // swap lists
+            ComparableArrayList<PriorityList> olists = _lists;
+            _lists = queue._lists;
+            queue._lists = olists;
+
+            // swap the batch states
+            ArrayList<GroupBatch> batches = queue._batches;
+            int nbatches = batches.size();
+            for (int ii = nbatches - _bstates.size(); ii > 0; ii--) {
+                _bstates.add(new GroupBatch.State());
+            }
+            for (int ii = 0; ii < nbatches; ii++) {
+                _bstates.get(ii).swap(batches.get(ii));
+            }
+        }
+
+        /** The saved priority map. */
+        protected HashIntMap<PriorityList> _priorities = IntMaps.newHashIntMap();
+
+        /** The saved set of batch lists. */
+        protected ComparableArrayList<PriorityList> _lists =
+            new ComparableArrayList<PriorityList>();
+
+        /** Saved states for each batch. */
+        protected ArrayList<GroupBatch.State> _bstates = Lists.newArrayList();
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -334,14 +436,14 @@ public class RenderQueue
     protected RenderQueueConfig _config;
 
     /** Maps priorities to batch lists. */
-    protected HashIntMap<PriorityList> _priorities = new HashIntMap<PriorityList>();
+    protected HashIntMap<PriorityList> _priorities = IntMaps.newHashIntMap();
 
     /** The set of batch lists, sorted by priority. */
     protected ComparableArrayList<PriorityList> _lists = new ComparableArrayList<PriorityList>();
 
     /** Maps group ids to their batches. */
-    protected HashIntMap<GroupBatch> _groups = new HashIntMap<GroupBatch>();
+    protected HashIntMap<GroupBatch> _groups = IntMaps.newHashIntMap();
 
     /** The set of group batches. */
-    protected ArrayList<GroupBatch> _batches = new ArrayList<GroupBatch>();
+    protected ArrayList<GroupBatch> _batches = Lists.newArrayList();
 }

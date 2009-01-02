@@ -7,6 +7,10 @@ import java.util.ArrayList;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.expr.DynamicScope;
+import com.threerings.expr.Scoped;
+import com.threerings.math.Transform3D;
+
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
@@ -34,8 +38,15 @@ public class RenderableView extends Component
     public RenderableView (GlContext ctx)
     {
         super(ctx);
-        _group = new RenderQueue.Group(ctx);
         _camhand = createCameraHandler();
+    }
+
+    /**
+     * Returns a reference to the view's scope.
+     */
+    public DynamicScope getScope ()
+    {
+        return _scope;
     }
 
     /**
@@ -130,14 +141,14 @@ public class RenderableView extends Component
     @Override // documentation inherited
     protected void renderComponent (Renderer renderer)
     {
-        // save the compositor's original camera and queue group
+        // save the compositor's original camera and swap in our group state
         Compositor compositor = _ctx.getCompositor();
         Camera ocamera = compositor.getCamera();
-        RenderQueue.Group ogroup = compositor.getGroup();
+        RenderQueue.Group group = compositor.getGroup();
+        _gstate.swap(group);
 
-        // install our camera and group
+        // install our camera
         compositor.setCamera(_camera);
-        compositor.setGroup(_group);
 
         // update the camera viewport
         Insets insets = getInsets();
@@ -148,6 +159,10 @@ public class RenderableView extends Component
         // update the camera handler
         _camhand.updatePerspective();
         _camhand.updatePosition();
+
+        // update the view transform state
+        _viewTransformState.getModelview().set(_viewTransform);
+        _viewTransformState.setDirty(true);
 
         try {
             // push the modelview matrix
@@ -166,7 +181,7 @@ public class RenderableView extends Component
             }
 
             // sort the queues in preparation for rendering
-            _group.sortQueues();
+            group.sortQueues();
 
             // apply the camera state
             _camera.apply(renderer);
@@ -183,18 +198,20 @@ public class RenderableView extends Component
             renderer.setScissor(oscissor == null ? null : _oscissor);
 
             // render the contents of the queues
-            _group.renderQueues(RenderQueue.NORMAL_TYPE);
+            group.renderQueues(RenderQueue.NORMAL_TYPE);
 
         } finally {
-            // restore the original camera and queue group
-            compositor.setCamera(ocamera);
-            compositor.setGroup(ogroup);
-
-            // restore the original camera state
-            ocamera.apply(renderer);
-
             // clear out the render queues
-            _group.clearQueues();
+            group.clearQueues();
+
+            // restore the original camera and group state
+            compositor.setCamera(ocamera);
+            _gstate.swap(group);
+
+            // restore the original viewport and projection
+            Rectangle viewport = ocamera.getViewport();
+            renderer.setViewport(viewport);
+            renderer.setProjection(0f, viewport.width, 0f, viewport.height, -1f, +1f, true);
 
             // reapply the overlay states
             renderer.setStates(_root.getStates());
@@ -213,6 +230,9 @@ public class RenderableView extends Component
         return new OrbitCameraHandler(_ctx, _camera, false);
     }
 
+    /** The view scope. */
+    protected DynamicScope _scope = new DynamicScope(this, "view");
+
     /** The UI root with which we've registered as a tick participant. */
     protected Root _root;
 
@@ -222,14 +242,22 @@ public class RenderableView extends Component
     /** The handler that controls the camera's parameters. */
     protected CameraHandler _camhand;
 
-    /** The base render queue group. */
-    protected RenderQueue.Group _group;
+    /** Stores the state of the render queue. */
+    protected RenderQueue.Group.State _gstate = new RenderQueue.Group.State();
 
     /** The models loaded from the configuration. */
     protected Model[] _configModels = new Model[0];
 
     /** The list of other renderables to include. */
     protected ArrayList<Renderable> _renderables = new ArrayList<Renderable>();
+
+    /** A scoped reference to the camera's view transform. */
+    @Scoped
+    protected Transform3D _viewTransform = _camera.getViewTransform();
+
+    /** A transform state containing the camera's view transform. */
+    @Scoped
+    protected TransformState _viewTransformState = new TransformState();
 
     /** Used to save the scissor region. */
     protected Rectangle _oscissor = new Rectangle();

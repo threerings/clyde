@@ -9,6 +9,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
@@ -685,6 +686,10 @@ public abstract class ComponentConfig extends DeepObject
             com.threerings.opengl.gui.RenderableView view =
                 (com.threerings.opengl.gui.RenderableView)comp;
 
+            // set the view scope's parent
+            DynamicScope vscope = view.getScope();
+            vscope.setParentScope(scope);
+
             // create/reconfigure the models as necessary
             Model[] omodels = view.getConfigModels();
             Model[] nmodels = new Model[models.length];
@@ -693,7 +698,7 @@ public abstract class ComponentConfig extends DeepObject
                 Model model = (ii < omodels.length) ? omodels[ii] : new Model(ctx);
                 nmodels[ii] = model;
                 ViewModel vmodel = models[ii];
-                model.setParentScope(scope);
+                model.setParentScope(vscope);
                 model.setConfig(vmodel.model);
                 model.getLocalTransform().set(vmodel.transform);
             }

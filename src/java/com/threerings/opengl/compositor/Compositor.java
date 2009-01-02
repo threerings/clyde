@@ -207,14 +207,6 @@ public class Compositor
     }
 
     /**
-     * Sets the base render queue group reference.
-     */
-    public void setGroup (RenderQueue.Group group)
-    {
-        _group = group;
-    }
-
-    /**
      * Returns a reference to the base render queue group.
      */
     public RenderQueue.Group getGroup ()
