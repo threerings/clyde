@@ -12,10 +12,12 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.MessageBundle;
 
+import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Label.Fit;
 import com.threerings.opengl.gui.UIConstants;
@@ -667,6 +669,18 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class RenderableView extends ComponentConfig
     {
+        /** The camera azimuth. */
+        @Editable(min=-180.0, max=+180.0, scale=Math.PI/180.0, hgroup="c")
+        public float azimuth;
+
+        /** The camera elevation. */
+        @Editable(min=-90.0, max=+90.0, scale=Math.PI/180.0, hgroup="c")
+        public float elevation = FloatMath.PI / 4f;
+
+        /** The camera distance. */
+        @Editable(min=0.0, step=0.01, hgroup="c")
+        public float distance = 10f;
+
         /** A set of models to include in the view. */
         @Editable
         public ViewModel[] models = new ViewModel[0];
@@ -689,6 +703,10 @@ public abstract class ComponentConfig extends DeepObject
             // set the view scope's parent
             DynamicScope vscope = view.getScope();
             vscope.setParentScope(scope);
+
+            // set the camera position
+            ((OrbitCameraHandler)view.getCameraHandler()).getCoords().set(
+                azimuth, elevation, distance);
 
             // create/reconfigure the models as necessary
             Model[] omodels = view.getConfigModels();
