@@ -61,7 +61,7 @@ public class GlobalEditor extends EditorTool
 
         // compare the current state to the stored state
         EditableGlobals editable = (EditableGlobals)_epanel.getObject();
-        _scene.name = editable.name;
+        _scene.setName(editable.name);
         for (Iterator<IntEntry<GlobalEntry>> it = _globals.intEntrySet().iterator();
                 it.hasNext(); ) {
             IntEntry<GlobalEntry> entry = it.next();

@@ -5,6 +5,8 @@ package com.threerings.tudey.data;
 
 import java.io.IOException;
 
+import java.lang.ref.SoftReference;
+
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,6 +19,9 @@ import com.google.common.collect.Maps;
 import com.samskivert.util.ArrayIntSet;
 import com.samskivert.util.ObserverList;
 
+import com.threerings.io.ObjectInputStream;
+import com.threerings.io.ObjectOutputStream;
+
 import com.threerings.whirled.data.SceneModel;
 
 import com.threerings.config.ConfigManager;
@@ -25,6 +30,7 @@ import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
+import com.threerings.export.util.ExportUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Rect;
@@ -1024,6 +1030,32 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Sets the scene's name and invalidates.
+     */
+    public void setName (String name)
+    {
+        this.name = name;
+        invalidate();
+    }
+
+    /**
+     * Sets the place config for the model.
+     */
+    public void setPlaceConfig (TudeySceneConfig config)
+    {
+        _placeConfig = config;
+        invalidate();
+    }
+
+    /**
+     * Returns a reference to the model's place config.
+     */
+    public TudeySceneConfig getPlaceConfig ()
+    {
+        return _placeConfig;
+    }
+
+    /**
      * Adds an entry to the scene, assigning it a unique id in the process if it is an
      * {@link IdEntry}.
      *
@@ -1252,7 +1284,7 @@ public class TudeySceneModel extends SceneModel
     {
         out.defaultWriteFields();
         out.write("name", name, "");
-        out.write("version", version, 0);
+        out.write("version", version, 1);
         out.write("entries", _entries.values().toArray(new Entry[_entries.size()]),
             new Entry[0], Entry[].class);
     }
@@ -1265,7 +1297,7 @@ public class TudeySceneModel extends SceneModel
     {
         in.defaultReadFields();
         name = in.read("name", "");
-        version = in.read("version", 0);
+        version = in.read("version", 1);
 
         // initialize the tile config counts
         for (CoordIntEntry entry : _tiles.coordIntEntrySet()) {
@@ -1289,6 +1321,54 @@ public class TudeySceneModel extends SceneModel
                 _lastEntryId = Math.max(_lastEntryId, ((IdEntry)entry).getId());
             }
         }
+    }
+
+    /**
+     * Custom write method for streaming.
+     */
+    public void writeObject (ObjectOutputStream out)
+        throws IOException
+    {
+        // write the cached exported binary representation
+        byte[] data = getData();
+        out.writeInt(data.length);
+        out.write(data);
+    }
+
+    /**
+     * Custom read method for streaming.
+     */
+    public void readObject (ObjectInputStream in)
+        throws IOException
+    {
+        // read the binary representation
+        byte[] data = new byte[in.readInt()];
+        in.read(data);
+
+        // decode and copy its fields into this one
+        TudeySceneModel nmodel = (TudeySceneModel)ExportUtil.fromBytes(data);
+        DeepUtil.copy(nmodel, this);
+        _data = new SoftReference<byte[]>(data);
+    }
+
+    /**
+     * Returns the cached exported binary representation of the model.
+     */
+    public byte[] getData ()
+    {
+        byte[] data = (_data == null) ? null : _data.get();
+        if (data == null) {
+            _data = new SoftReference<byte[]>(data = ExportUtil.toBytes(this));
+        }
+        return data;
+    }
+
+    /**
+     * Invalidates any cached data in the model, forcing it to be recreated.
+     */
+    public void invalidate ()
+    {
+        _data = null;
     }
 
     // documentation inherited from interface ActorAdvancer.Environment
@@ -1361,6 +1441,7 @@ public class TudeySceneModel extends SceneModel
             if (oentry == null) {
                 canonicalizeReference(entry);
                 addElement(entry);
+                invalidate();
             } else {
                 // replace the old entry (a warning will be logged)
                 _entries.put(entry.getKey(), oentry);
@@ -1378,6 +1459,7 @@ public class TudeySceneModel extends SceneModel
             return decodeTileEntry(coord, ovalue);
         }
         createShadow(tentry);
+        invalidate();
         return null;
     }
 
@@ -1397,6 +1479,7 @@ public class TudeySceneModel extends SceneModel
                 canonicalizeReference(nentry);
                 removeElement(oentry);
                 addElement(nentry);
+                invalidate();
             }
             return oentry;
         }
@@ -1414,6 +1497,7 @@ public class TudeySceneModel extends SceneModel
         removeTileConfig(getTileConfigIndex(ovalue));
         deleteShadow(oentry);
         createShadow(tentry);
+        invalidate();
         return oentry;
     }
 
@@ -1428,6 +1512,7 @@ public class TudeySceneModel extends SceneModel
             Entry oentry = _entries.remove(key);
             if (oentry != null) {
                 removeElement(oentry);
+                invalidate();
             }
             return oentry;
         }
@@ -1439,6 +1524,7 @@ public class TudeySceneModel extends SceneModel
         TileEntry oentry = decodeTileEntry(coord, ovalue);
         removeTileConfig(getTileConfigIndex(ovalue));
         deleteShadow(oentry);
+        invalidate();
         return oentry;
     }
 
@@ -1628,6 +1714,9 @@ public class TudeySceneModel extends SceneModel
         }
     }
 
+    /** The place configuration. */
+    protected TudeySceneConfig _placeConfig = new TudeySceneConfig();
+
     /** The scene configuration manager. */
     protected ConfigManager _cfgmgr = new ConfigManager();
 
@@ -1666,6 +1755,9 @@ public class TudeySceneModel extends SceneModel
 
     /** The scene model observers. */
     protected transient ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
+
+    /** The cached exported representation of the scene model. */
+    protected transient SoftReference<byte[]> _data;
 
     /** Region object to reuse. */
     protected transient Rectangle _region = new Rectangle();

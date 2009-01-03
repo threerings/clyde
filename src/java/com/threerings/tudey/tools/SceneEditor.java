@@ -1226,7 +1226,6 @@ public class SceneEditor extends TudeyTool
     {
         // configure the scene repository with a reference to our scene
         _scene.sceneId = ++_sceneId;
-        _scene.version = 1;
         _server.getSceneRepository().setSceneModel(_scene);
 
         // request to enter
