@@ -15,6 +15,7 @@ import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.media.util.TrailingAverage;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
@@ -32,6 +33,8 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.HashScene;
 import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -355,6 +358,19 @@ public class TudeySceneView extends SimpleScope
         // record the update
         _records.add(new UpdateRecord(timestamp, actors));
 
+        // at this point, if we are to preload, we have enough information to begin
+        if (_loadingWindow != null) {
+            if (_preloads == null) {
+                ((TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel()).getPreloads(
+                    _preloads = new PreloadableSet());
+                ConfigManager cfgmgr = _ctx.getConfigManager();
+                for (Actor actor : actors.values()) {
+                    actor.getOriginal().getPreloads(cfgmgr, _preloads);
+                }
+            }
+            return;
+        }
+
         // create/update the sprites for actors in the set
         for (Actor actor : actors.values()) {
             int id = actor.getId();
@@ -440,11 +456,26 @@ public class TudeySceneView extends SimpleScope
     public void wasRemoved ()
     {
         _ctx.getRoot().removeWindow(_inputWindow);
+
+        if (_loadingWindow != null) {
+            _ctx.getRoot().removeWindow(_loadingWindow);
+            _loadingWindow = null;
+        }
     }
 
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
+        // if we are preloading, load up the next batch of resources
+        if (_preloads != null) {
+            float pct = _preloads.preloadBatch(_ctx);
+            updateLoadingWindow(pct);
+            if (pct == 1f) {
+                _loadingWindow = null;
+                _preloads = null;
+            }
+        }
+
         // update the smoothed time, if possible
         if (_smoother != null) {
             _smoothedTime = _smoother.getTime();
@@ -483,7 +514,16 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface PlaceView
     public void willEnterPlace (PlaceObject plobj)
     {
-        setSceneModel((TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel());
+        // if we don't need to preload, set the scene model immediately; otherwise, create the
+        // loading screen and wait for the first scene delta to start preloading
+        TudeySceneModel model =
+            (TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel();
+        _loadingWindow = maybeCreateLoadingWindow(model);
+        if (_loadingWindow == null) {
+            setSceneModel(model);
+            return;
+        }
+        _ctx.getRoot().addWindow(_loadingWindow);
     }
 
     // documentation inherited from interface PlaceView
@@ -554,6 +594,26 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Creates the loading window, or returns <code>null</code> to skip preloading.
+     */
+    protected Window maybeCreateLoadingWindow (TudeySceneModel model)
+    {
+        return null;
+    }
+
+    /**
+     * Updates the loading window with the current percentage of resources loaded.  If
+     * <code>pct</code> is equal to 1.0, this method should remove the loading window (or start
+     * fading it out).
+     */
+    protected void updateLoadingWindow (float pct)
+    {
+        if (pct == 1f) {
+            _ctx.getRoot().removeWindow(_loadingWindow);
+        }
+    }
+
+    /**
      * Adds a sprite for the specified entry.
      */
     protected void addEntrySprite (Entry entry)
@@ -606,6 +666,12 @@ public class TudeySceneView extends SimpleScope
 
     /** A window used to gather input events. */
     protected Window _inputWindow;
+
+    /** The loading window, if any. */
+    protected Window _loadingWindow;
+
+    /** The set of resources to preload. */
+    protected PreloadableSet _preloads;
 
     /** The OpenGL scene. */
     @Scoped

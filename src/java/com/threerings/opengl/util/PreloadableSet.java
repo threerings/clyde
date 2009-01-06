@@ -13,18 +13,21 @@ public class PreloadableSet extends HashSet<Preloadable>
 {
     /**
      * Preloads a batch of the default size.
+     *
+     * @return the percentage of the total resources loaded, from zero to one.
      */
-    public void preloadBatch (GlContext ctx)
+    public float preloadBatch (GlContext ctx)
     {
-        preloadBatch(ctx, 10);
+        return preloadBatch(ctx, 10);
     }
 
     /**
      * Preloads a batch of resources in the set.
      *
      * @param count the (maximum) number of resources to preload.
+     * @return the percentage of the total resources loaded, from zero to one.
      */
-    public void preloadBatch (GlContext ctx, int count)
+    public float preloadBatch (GlContext ctx, int count)
     {
         if (_remaining == null) {
             _remaining = iterator();
@@ -33,14 +36,8 @@ public class PreloadableSet extends HashSet<Preloadable>
             _remaining.next().preload(ctx);
             _preloaded++;
         }
-    }
-
-    /**
-     * Returns the number of resources preloaded so far.
-     */
-    public int getPreloaded ()
-    {
-        return _preloaded;
+        float size = (float)size();
+        return (size == 0f) ? 1f : (_preloaded / size);
     }
 
     /** The iterator over the resources remaining to be preloaded. */
