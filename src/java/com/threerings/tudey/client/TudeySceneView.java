@@ -41,6 +41,7 @@ import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EffectSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
 import com.threerings.tudey.data.TudeySceneModel;
@@ -282,7 +283,7 @@ public class TudeySceneView extends SimpleScope
     public float getFloorZ (float x, float y, float defvalue)
     {
         _ray.getOrigin().set(x, y, 10000f);
-        return (_scene.getIntersection(_ray, _isect, TILE_SPRITE_FILTER) == null) ?
+        return (_scene.getIntersection(_ray, _isect, TILE_PLACEABLE_SPRITE_FILTER) == null) ?
             defvalue : _isect.z;
     }
 
@@ -661,11 +662,12 @@ public class TudeySceneView extends SimpleScope
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();
 
-    /** A predicate that only accepts elements whose user objects are tile sprites. */
-    protected static final Predicate<SceneElement> TILE_SPRITE_FILTER =
+    /** A predicate that only accepts elements whose user objects are tile or placeable sprites. */
+    protected static final Predicate<SceneElement> TILE_PLACEABLE_SPRITE_FILTER =
         new Predicate<SceneElement>() {
         public boolean isMatch (SceneElement element) {
-            return element.getUserObject() instanceof TileSprite;
+            Object obj = element.getUserObject();
+            return obj instanceof TileSprite || obj instanceof PlaceableSprite;
         }
     };
 }
