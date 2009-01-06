@@ -18,6 +18,8 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.cursor.TileCursor;
 import com.threerings.tudey.client.sprite.TileSprite;
@@ -177,6 +179,17 @@ public class TileConfig extends ParameterizedConfig
         {
             return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
                 "com.threerings.tudey.server.logic.EntryLogic";
+        }
+
+        /**
+         * Adds the resources to preload for this tile into the provided set.
+         */
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Model(model));
+            for (HandlerConfig handler : handlers) {
+                handler.action.getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited

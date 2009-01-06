@@ -17,6 +17,8 @@ import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.sprite.GlobalSprite;
 import com.threerings.tudey.util.TudeyContext;
@@ -84,6 +86,16 @@ public class SceneGlobalConfig extends ParameterizedConfig
                 "com.threerings.tudey.server.logic.EntryLogic";
         }
 
+        /**
+         * Adds the resources to preload for this global into the provided set.
+         */
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            for (HandlerConfig handler : handlers) {
+                handler.action.getPreloads(cfgmgr, preloads);
+            }
+        }
+
         @Override // documentation inherited
         public Original getOriginal (ConfigManager cfgmgr)
         {
@@ -103,6 +115,13 @@ public class SceneGlobalConfig extends ParameterizedConfig
         /** The transform to apply to the model. */
         @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            super.getPreloads(cfgmgr, preloads);
+            preloads.add(new Preloadable.Model(model));
+        }
 
         @Override // documentation inherited
         public GlobalSprite.Implementation getSpriteImplementation (

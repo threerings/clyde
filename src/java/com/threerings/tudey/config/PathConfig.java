@@ -17,6 +17,8 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.cursor.PathCursor;
 import com.threerings.tudey.client.sprite.PathSprite;
@@ -98,6 +100,16 @@ public class PathConfig extends ParameterizedConfig
         {
             return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
                 "com.threerings.tudey.server.logic.EntryLogic";
+        }
+
+        /**
+         * Adds the resources to preload for this path into the provided set.
+         */
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            for (HandlerConfig handler : handlers) {
+                handler.action.getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited

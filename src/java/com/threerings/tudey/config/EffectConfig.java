@@ -13,6 +13,9 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
+
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EffectSprite;
 import com.threerings.tudey.data.effect.Effect;
@@ -78,6 +81,14 @@ public class EffectConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.EffectLogic";
+        }
+
+        /**
+         * Adds the resources to preload for this effect into the provided set.
+         */
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            sprite.getPreloads(cfgmgr, preloads);
         }
 
         @Override // documentation inherited

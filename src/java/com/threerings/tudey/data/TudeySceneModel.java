@@ -11,6 +11,7 @@ import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.WeakHashMap;
 
@@ -42,6 +43,8 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepUtil;
 
 import com.threerings.opengl.gui.util.Rectangle;
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.cursor.AreaCursor;
@@ -198,6 +201,11 @@ public class TudeySceneModel extends SceneModel
         {
             // nothing by default
         }
+
+        /**
+         * Adds the resources to preload for this entry to the supplied set.
+         */
+        public abstract void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads);
 
         /**
          * Creates the space element for this entry (or returns <code>null</code> for none).
@@ -410,6 +418,13 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Config(TileConfig.class, tile));
+            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+        }
+
+        @Override // documentation inherited
         public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new TileCursor(ctx, view, this);
@@ -502,6 +517,13 @@ public class TudeySceneModel extends SceneModel
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Config(SceneGlobalConfig.class, sceneGlobal));
+            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
         }
 
         @Override // documentation inherited
@@ -628,6 +650,13 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Config(PlaceableConfig.class, placeable));
+            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+        }
+
+        @Override // documentation inherited
         public EntryCursor createCursor (TudeyContext ctx, TudeySceneView view)
         {
             return new PlaceableCursor(ctx, view, this);
@@ -750,6 +779,13 @@ public class TudeySceneModel extends SceneModel
             ShapeElement element = new ShapeElement(shape);
             element.setUserObject(this);
             return element;
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Config(PathConfig.class, path));
+            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
         }
 
         @Override // documentation inherited
@@ -891,6 +927,13 @@ public class TudeySceneModel extends SceneModel
             ShapeElement element = new ShapeElement(shape);
             element.setUserObject(this);
             return element;
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Config(AreaConfig.class, area));
+            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
         }
 
         @Override // documentation inherited
@@ -1274,6 +1317,16 @@ public class TudeySceneModel extends SceneModel
     {
         int pair = _tileCoords.get(x, y);
         return (pair == EMPTY_COORD) ? null : getTileEntry(pair);
+    }
+
+    /**
+     * Adds the resources to preload for this scene model to the supplied set.
+     */
+    public void getPreloads (PreloadableSet preloads)
+    {
+        for (Entry entry : getEntries()) {
+            entry.getPreloads(_cfgmgr, preloads);
+        }
     }
 
     /**

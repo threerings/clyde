@@ -14,6 +14,8 @@ import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.shape.config.ShapeConfig;
@@ -91,6 +93,17 @@ public class ActorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActorLogic";
+        }
+
+        /**
+         * Adds the resources to preload for this actor into the provided set.
+         */
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            sprite.getPreloads(cfgmgr, preloads);
+            for (HandlerConfig handler : handlers) {
+                handler.action.getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited
