@@ -12,13 +12,6 @@ import java.util.Iterator;
 public class PreloadableSet extends HashSet<Preloadable>
 {
     /**
-     * Creates a new preloadable set.
-     */
-    public PreloadableSet ()
-    {
-    }
-
-    /**
      * Preloads a batch of the default size.
      */
     public void preloadBatch (GlContext ctx)
