@@ -43,12 +43,12 @@ public class ConfigEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        ConfigGroup group = _ctx.getConfigManager().getGroup(getMode());
-        if (group == null) {
-            log.warning("Missing group for config editor.", "group", getMode());
+        ConfigGroup[] groups = _ctx.getConfigManager().getGroups(getMode());
+        if (groups.length == 0) {
+            log.warning("Missing groups for config editor.", "name", getMode());
             return;
         }
-        add(_box = new ConfigBox(_msgs, group, _property.getAnnotation().nullable()));
+        add(_box = new ConfigBox(_msgs, groups, _property.getAnnotation().nullable()));
         _box.addActionListener(this);
     }
 

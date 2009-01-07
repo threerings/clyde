@@ -3,6 +3,7 @@
 
 package com.threerings.config.swing;
 
+import java.util.HashSet;
 import java.util.Collection;
 
 import javax.swing.DefaultComboBoxModel;
@@ -27,20 +28,20 @@ public class ConfigBox extends JComboBox
     /**
      * Creates a new config box.
      */
-    public ConfigBox (MessageBundle msgs, ConfigGroup group, boolean nullable)
+    public ConfigBox (MessageBundle msgs, ConfigGroup[] groups, boolean nullable)
     {
-        this(msgs, group, nullable, null);
+        this(msgs, groups, nullable, null);
     }
 
     /**
      * Creates a new config box.
      */
-    public ConfigBox (MessageBundle msgs, ConfigGroup group, boolean nullable, String config)
+    public ConfigBox (MessageBundle msgs, ConfigGroup[] groups, boolean nullable, String config)
     {
         _msgs = msgs;
-        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
-            (ConfigGroup<ManagedConfig>)group;
-        _group = mgroup;
+        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups =
+            (ConfigGroup<ManagedConfig>[])groups;
+        _groups = mgroups;
         _nullable = nullable;
 
         updateModel();
@@ -81,14 +82,18 @@ public class ConfigBox extends JComboBox
     {
         super.addNotify();
         updateModel();
-        _group.addListener(this);
+        for (ConfigGroup<ManagedConfig> group : _groups) {
+            group.addListener(this);
+        }
     }
 
     @Override // documentation inherited
     public void removeNotify ()
     {
         super.removeNotify();
-        _group.removeListener(this);
+        for (ConfigGroup<ManagedConfig> group : _groups) {
+            group.removeListener(this);
+        }
     }
 
     /**
@@ -96,18 +101,29 @@ public class ConfigBox extends JComboBox
      */
     protected void updateModel ()
     {
-        Collection<ManagedConfig> configs = _group.getConfigs();
+        // gather all config names into a set
+        HashSet<String> names = new HashSet<String>();
+        for (ConfigGroup<ManagedConfig> group : _groups) {
+            for (ManagedConfig config : group.getConfigs()) {
+                names.add(config.getName());
+            }
+        }
+
+        // create an array containing the items
         int offset = _nullable ? 1 : 0;
-        String[] names = new String[configs.size() + offset];
-        int idx = offset;
-        for (ManagedConfig config : configs) {
-            names[idx++] = config.getName();
+        ConfigItem[] items = new ConfigItem[offset + names.size()];
+        int idx = 0;
+        if (_nullable) {
+            items[idx++] = new ConfigItem(null);
         }
-        QuickSort.sort(names, offset, names.length - 1);
-        ConfigItem[] items = new ConfigItem[names.length];
-        for (int ii = 0; ii < names.length; ii++) {
-            items[ii] = new ConfigItem(names[ii]);
+        for (String name : names) {
+            items[idx++] = new ConfigItem(name);
         }
+
+        // sort the non-null items
+        QuickSort.sort(items, offset, items.length - 1);
+
+        // update the model, preserving the selected config
         String config = getSelectedConfig();
         setModel(new DefaultComboBoxModel(items));
         setSelectedConfig(config);
@@ -117,6 +133,7 @@ public class ConfigBox extends JComboBox
      * An item in the configuration list.
      */
     protected class ConfigItem
+        implements Comparable<ConfigItem>
     {
         /** The name of the config. */
         public String name;
@@ -124,6 +141,12 @@ public class ConfigBox extends JComboBox
         public ConfigItem (String name)
         {
             this.name = name;
+        }
+
+        // documentation inherited from interface Comparable
+        public int compareTo (ConfigItem other)
+        {
+            return name.compareTo(other.name);
         }
 
         @Override // documentation inherited
@@ -142,8 +165,8 @@ public class ConfigBox extends JComboBox
     /** The message bundle to use for translation. */
     protected MessageBundle _msgs;
 
-    /** The configuration manager. */
-    protected ConfigGroup<ManagedConfig> _group;
+    /** The configuration groups. */
+    protected ConfigGroup<ManagedConfig>[] _groups;
 
     /** Whether or not the null value is selectable. */
     protected boolean _nullable;

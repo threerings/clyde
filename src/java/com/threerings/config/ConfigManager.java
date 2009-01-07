@@ -379,6 +379,21 @@ public class ConfigManager
     }
 
     /**
+     * Retrieves the groups with the specified name in this manager and all of its ancestors.
+     */
+    public ConfigGroup[] getGroups (String name)
+    {
+        ArrayList<ConfigGroup> groups = new ArrayList<ConfigGroup>();
+        for (ConfigManager cfgmgr = this; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
+            ConfigGroup group = cfgmgr.getGroup(name);
+            if (group != null) {
+                groups.add(group);
+            }
+        }
+        return groups.toArray(new ConfigGroup[groups.size()]);
+    }
+
+    /**
      * Returns the configuration group with the specified name.  If the group is not found in
      * this manager, the request will be forwarded to the parent, and so on.
      */
