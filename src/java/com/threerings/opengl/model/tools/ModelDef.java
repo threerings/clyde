@@ -681,6 +681,7 @@ public class ModelDef
         {
             texture = other.texture;
             tag = other.tag;
+            colored = other.colored;
         }
 
         @Override // documentation inherited
