@@ -314,23 +314,20 @@ public class ModelDef
         public float[] offsetRotation;
         public float[] offsetScale;
 
-        /** Whether or not the mesh allows back face culling. */
-        public boolean solid;
-
         /** The texture of the mesh, if any. */
         public String texture;
 
         /** The mesh's tag, if any. */
         public String tag;
 
-        /** Whether or not the mesh is (partially) transparent. */
-        public boolean transparent;
-
         /** The vertices of the mesh. */
         public HashArrayList<Vertex> vertices = new HashArrayList<Vertex>();
 
         /** The triangle indices. */
         public ArrayList<Integer> indices = new ArrayList<Integer>();
+
+        /** Whether or not any of the vertices are non-white. */
+        public boolean colored;
 
         /**
          * Called by the parser to add a vertex to this mesh.
@@ -343,6 +340,9 @@ public class ModelDef
             } else {
                 indices.add(vertices.size());
                 vertices.add(vertex);
+                float[] color = vertex.color;
+                colored |= (color != null &&
+                    !(color[0] == 1f && color[1] == 1f && color[2] == 1f && color[3] == 1f));
             }
         }
 
@@ -426,6 +426,13 @@ public class ModelDef
          */
         public ModelConfig.VisibleMesh createVisibleMesh (ModelConfig.Imported config)
         {
+            // if non-colored, clear out the color information
+            if (!colored) {
+                for (Vertex vertex : vertices) {
+                    vertex.color = null;
+                }
+            }
+
             // optimize the vertex order
             optimizeVertexOrder(config.generateTangents);
 
@@ -433,7 +440,7 @@ public class ModelDef
             AttributeArrayConfig[] vertexAttribArrays = createVertexAttribArrays(config);
             ClientArrayConfig[] texCoordArrays =
                 new ClientArrayConfig[] { new ClientArrayConfig(2) };
-            ClientArrayConfig colorArray = null;
+            ClientArrayConfig colorArray = colored ? new ClientArrayConfig(4) : null;
             ClientArrayConfig normalArray = new ClientArrayConfig(3);
             ClientArrayConfig vertexArray = new ClientArrayConfig(3);
 
@@ -672,10 +679,8 @@ public class ModelDef
 
         public SkinMeshDef (SkinMeshDef other)
         {
-            solid = other.solid;
             texture = other.texture;
             tag = other.tag;
-            transparent = other.transparent;
         }
 
         @Override // documentation inherited
@@ -822,6 +827,7 @@ public class ModelDef
         public float[] location;
         public float[] normal;
         public float[] tcoords;
+        public float[] color;
 
         /** When reordering vertices, the triangles containing the vertex. */
         public ArrayList<Triangle> triangles;
@@ -882,6 +888,9 @@ public class ModelDef
                 tangent.get(vbuf);
             }
             vbuf.put(tcoords);
+            if (color != null) {
+                vbuf.put(color);
+            }
             vbuf.put(normal);
             vbuf.put(location);
         }
@@ -906,7 +915,8 @@ public class ModelDef
         @Override // documentation inherited
         public int hashCode ()
         {
-            return Arrays.hashCode(location) ^ Arrays.hashCode(normal) ^ Arrays.hashCode(tcoords);
+            return Arrays.hashCode(location) ^ Arrays.hashCode(normal) ^
+                Arrays.hashCode(tcoords) ^ Arrays.hashCode(color);
         }
 
         @Override // documentation inherited
@@ -915,7 +925,8 @@ public class ModelDef
             Vertex overt = (Vertex)obj;
             return Arrays.equals(location, overt.location) &&
                 Arrays.equals(normal, overt.normal) &&
-                Arrays.equals(tcoords, overt.tcoords);
+                Arrays.equals(tcoords, overt.tcoords) &&
+                Arrays.equals(color, overt.color);
         }
 
         @Override // documentation inherited
