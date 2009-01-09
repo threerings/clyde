@@ -56,6 +56,14 @@ public class ActorConfig extends ParameterizedConfig
          */
         public abstract ActorSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -117,6 +125,12 @@ public class ActorConfig extends ParameterizedConfig
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
             return sprite.getImplementation(ctx, scope, impl);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            sprite.invalidate();
         }
     }
 
@@ -203,6 +217,14 @@ public class ActorConfig extends ParameterizedConfig
         TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

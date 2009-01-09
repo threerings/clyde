@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.config;
 
+import java.lang.ref.SoftReference;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -21,7 +23,7 @@ import com.threerings.tudey.util.TudeyContext;
 /**
  * The configuration of an actor sprite.
  */
-@EditorTypes({ ActorSpriteConfig.Default.class })
+@EditorTypes({ ActorSpriteConfig.Default.class, ActorSpriteConfig.Mobile.class })
 public abstract class ActorSpriteConfig extends DeepObject
     implements Exportable
 {
@@ -41,6 +43,67 @@ public abstract class ActorSpriteConfig extends DeepObject
             }
             return impl;
         }
+    }
+
+    /**
+     * A mobile sprite.
+     */
+    public static class Mobile extends Default
+    {
+        /** The idle animations for the sprite. */
+        @Editable
+        public WeightedAnimation[] idles = new WeightedAnimation[0];
+
+        /**
+         * Returns the cached idle weight array.
+         */
+        public float[] getIdleWeights ()
+        {
+            float[] weights = (_idleWeights == null) ? null : _idleWeights.get();
+            if (weights == null) {
+                _idleWeights = new SoftReference<float[]>(weights = new float[idles.length]);
+                for (int ii = 0; ii < idles.length; ii++) {
+                    weights[ii] = idles[ii].weight;
+                }
+            }
+            return weights;
+        }
+
+        @Override // documentation inherited
+        public ActorSprite.Implementation getImplementation (
+            TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
+        {
+            if (impl instanceof ActorSprite.Mobile) {
+                ((ActorSprite.Mobile)impl).setConfig(this);
+            } else {
+                impl = new ActorSprite.Mobile(ctx, scope, this);
+            }
+            return impl;
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            _idleWeights = null;
+        }
+
+        /** The cached idle weights. */
+        protected SoftReference<float[]> _idleWeights;
+    }
+
+    /**
+     * Contains the name of an animation and an associated weight.
+     */
+    public static class WeightedAnimation extends DeepObject
+        implements Exportable
+    {
+        /** The name of the animation. */
+        @Editable(hgroup="n")
+        public String name = "";
+
+        /** The weight of the animation (affects how often it occurs). */
+        @Editable(min=0, step=0.01, hgroup="n")
+        public float weight = 1f;
     }
 
     /** The actor model. */
@@ -70,4 +133,12 @@ public abstract class ActorSpriteConfig extends DeepObject
      */
     public abstract ActorSprite.Implementation getImplementation (
         TudeyContext ctx, Scope scope, ActorSprite.Implementation impl);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

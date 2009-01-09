@@ -12,6 +12,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.Vector2f;
 
+import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -139,6 +140,41 @@ public class ActorSprite extends Sprite
         /** The owning view. */
         @Bound
         protected TudeySceneView _view;
+    }
+
+    /**
+     * Depicts a mobile actor with optional movement animations.
+     */
+    public static class Mobile extends Original
+    {
+        /**
+         * Creates a new implementation.
+         */
+        public Mobile (TudeyContext ctx, Scope parentScope, ActorSpriteConfig.Mobile config)
+        {
+            super(ctx, parentScope, config);
+        }
+
+        @Override // documentation inherited
+        public void setConfig (ActorSpriteConfig config)
+        {
+            super.setConfig(config);
+            ActorSpriteConfig.Mobile mconfig = (ActorSpriteConfig.Mobile)config;
+            _idles = new Animation[mconfig.idles.length];
+            for (int ii = 0; ii < _idles.length; ii++) {
+                _idles[ii] = _model.getAnimation(mconfig.idles[ii].name);
+            }
+        }
+
+        @Override // documentation inherited
+        public void update (Actor actor)
+        {
+            super.update(actor);
+
+        }
+
+        /** The resolved idle animations. */
+        protected Animation[] _idles;
     }
 
     /**
@@ -270,7 +306,7 @@ public class ActorSprite extends Sprite
     }
 
     /**
-     * Brings the state of the actor up-to-date with the curren time.
+     * Brings the state of the actor up-to-date with the current time.
      */
     protected void updateActor ()
     {
