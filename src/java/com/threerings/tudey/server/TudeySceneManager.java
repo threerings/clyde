@@ -333,6 +333,13 @@ public class TudeySceneManager extends SceneManager
         super.bodyWillEnter(body);
     }
 
+    @Override // from PlaceManager
+    public void bodyWillLeave (BodyObject body)
+    {
+        super.bodyWillLeave(body);
+        body.setLocal(TudeySceneLocal.class, null);
+    }
+
     // documentation inherited from interface TudeySceneProvider
     public void enqueueInput (
         ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
