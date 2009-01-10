@@ -201,7 +201,7 @@ public class FloatMath
     {
         return (float)Math.IEEEremainder(f1, f2);
     }
-    
+
     /**
      * Clamps a value to the range [lower, upper].
      */
@@ -310,12 +310,27 @@ public class FloatMath
     }
 
     /**
+     * Returns the (shortest) difference between two angles, assuming that both angles are in
+     * [-pi, +pi].
+     */
+    public static float getAngularDifference (float a1, float a2)
+    {
+        float ma1 = mirrorAngle(a1), ma2 = mirrorAngle(a2);
+        float diff = a1 - a2, mdiff = ma2 - ma1;
+        return (Math.abs(diff) < Math.abs(mdiff)) ? diff : mdiff;
+    }
+
+    /**
      * Returns an angle in the range [-pi, pi].
      */
     public static float normalizeAngle (float a)
     {
-        while (a < -FloatMath.PI) a += FloatMath.TWO_PI;
-        while (a > FloatMath.PI) a -= FloatMath.TWO_PI;
+        while (a < -PI) {
+            a += TWO_PI;
+        }
+        while (a > PI) {
+            a -= TWO_PI;
+        }
         return a;
     }
 
@@ -324,8 +339,12 @@ public class FloatMath
      */
     public static float normalizeAnglePositive (float a)
     {
-        while (a < 0f) a += FloatMath.TWO_PI;
-        while (a > FloatMath.TWO_PI) a -= FloatMath.TWO_PI;
+        while (a < 0f) {
+            a += TWO_PI;
+        }
+        while (a > TWO_PI) {
+            a -= TWO_PI;
+        }
         return a;
     }
 

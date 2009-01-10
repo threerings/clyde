@@ -11,6 +11,7 @@ import com.threerings.delta.Deltable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
+import com.threerings.util.Shallow;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
@@ -257,6 +258,7 @@ public class Actor extends DeepObject
     protected int _flags;
 
     /** The cached config implementation. */
+    @Shallow
     protected transient ActorConfig.Original _original;
 
     /** Used when we can't resolve the actor config. */

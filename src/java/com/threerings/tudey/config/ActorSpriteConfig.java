@@ -23,7 +23,7 @@ import com.threerings.tudey.util.TudeyContext;
 /**
  * The configuration of an actor sprite.
  */
-@EditorTypes({ ActorSpriteConfig.Default.class, ActorSpriteConfig.Mobile.class })
+@EditorTypes({ ActorSpriteConfig.Default.class, ActorSpriteConfig.Moving.class })
 public abstract class ActorSpriteConfig extends DeepObject
     implements Exportable
 {
@@ -46,13 +46,17 @@ public abstract class ActorSpriteConfig extends DeepObject
     }
 
     /**
-     * A mobile sprite.
+     * A sprite with idle and movement animations.
      */
-    public static class Mobile extends Default
+    public static class Moving extends Default
     {
         /** The idle animations for the sprite. */
         @Editable
         public WeightedAnimation[] idles = new WeightedAnimation[0];
+
+        /** The sets of movement animations for the sprite. */
+        @Editable
+        public MovementSet[] movements = new MovementSet[0];
 
         /**
          * Returns the cached idle weight array.
@@ -73,10 +77,10 @@ public abstract class ActorSpriteConfig extends DeepObject
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
-            if (impl instanceof ActorSprite.Mobile) {
-                ((ActorSprite.Mobile)impl).setConfig(this);
+            if (impl instanceof ActorSprite.Moving) {
+                ((ActorSprite.Moving)impl).setConfig(this);
             } else {
-                impl = new ActorSprite.Mobile(ctx, scope, this);
+                impl = new ActorSprite.Moving(ctx, scope, this);
             }
             return impl;
         }
@@ -104,6 +108,33 @@ public abstract class ActorSpriteConfig extends DeepObject
         /** The weight of the animation (affects how often it occurs). */
         @Editable(min=0, step=0.01, hgroup="n")
         public float weight = 1f;
+    }
+
+    /**
+     * Represents a set of movement animations.
+     */
+    public static class MovementSet extends DeepObject
+        implements Exportable
+    {
+        /** The speed threshold at and beyond which this set is used. */
+        @Editable(min=0, step=0.01)
+        public float speedThreshold;
+
+        /** The forward movement animation. */
+        @Editable(hgroup="fl")
+        public String forward = "";
+
+        /** The left movement animation. */
+        @Editable(hgroup="fl")
+        public String left = "";
+
+        /** The backward movement animation. */
+        @Editable(hgroup="br")
+        public String backward = "";
+
+        /** The right movement animation. */
+        @Editable(hgroup="br")
+        public String right = "";
     }
 
     /** The actor model. */

@@ -3,6 +3,8 @@
 
 package com.threerings.tudey.client.sprite;
 
+import com.samskivert.util.RandomUtil;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
@@ -10,6 +12,7 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.model.Animation;
@@ -19,6 +22,7 @@ import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.ActorSpriteConfig;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.ActorHistory;
@@ -145,12 +149,12 @@ public class ActorSprite extends Sprite
     /**
      * Depicts a mobile actor with optional movement animations.
      */
-    public static class Mobile extends Original
+    public static class Moving extends Original
     {
         /**
          * Creates a new implementation.
          */
-        public Mobile (TudeyContext ctx, Scope parentScope, ActorSpriteConfig.Mobile config)
+        public Moving (TudeyContext ctx, Scope parentScope, ActorSpriteConfig.Moving config)
         {
             super(ctx, parentScope, config);
         }
@@ -159,10 +163,22 @@ public class ActorSprite extends Sprite
         public void setConfig (ActorSpriteConfig config)
         {
             super.setConfig(config);
-            ActorSpriteConfig.Mobile mconfig = (ActorSpriteConfig.Mobile)config;
+            ActorSpriteConfig.Moving mconfig = (ActorSpriteConfig.Moving)config;
             _idles = new Animation[mconfig.idles.length];
             for (int ii = 0; ii < _idles.length; ii++) {
                 _idles[ii] = _model.getAnimation(mconfig.idles[ii].name);
+            }
+            _idleWeights = mconfig.getIdleWeights();
+
+            _movements = new Animation[mconfig.movements.length][];
+            for (int ii = 0; ii < _movements.length; ii++) {
+                ActorSpriteConfig.MovementSet set = mconfig.movements[ii];
+                _movements[ii] = new Animation[] {
+                    _model.getAnimation(set.backward),
+                    _model.getAnimation(set.right),
+                    _model.getAnimation(set.forward),
+                    _model.getAnimation(set.left)
+                };
             }
         }
 
@@ -171,10 +187,69 @@ public class ActorSprite extends Sprite
         {
             super.update(actor);
 
+            // if we're moving, update our moving animation
+            if (actor.isSet(Mobile.MOVING)) {
+                Animation movement = getMovement((Mobile)actor);
+                if (movement != null && !movement.isPlaying()) {
+                    movement.start();
+                    _currentIdle = null;
+                }
+            } else {
+                if (_currentIdle == null || !_currentIdle.isPlaying()) {
+                    (_currentIdle = getIdle()).start();
+                }
+            }
+        }
+
+        /**
+         * Returns a random idle animation according to their weights, or returns <code>null</code>
+         * for none.
+         */
+        protected Animation getIdle ()
+        {
+            return (_idles.length == 0) ? null : _idles[RandomUtil.getWeightedIndex(_idleWeights)];
+        }
+
+        /**
+         * Returns the movement animation appropriate to the actor's speed and direction, or
+         * <code>null</code> for none.
+         */
+        protected Animation getMovement (Mobile actor)
+        {
+            // make sure we have movement animations
+            int mlen = _movements.length;
+            if (mlen == 0) {
+                return null;
+            }
+            Animation[] movement = _movements[0];
+            if (mlen > 1) {
+                float speed = actor.getSpeed();
+                ActorSpriteConfig.MovementSet[] sets =
+                    ((ActorSpriteConfig.Moving)_config).movements;
+                for (int ii = 1; ii < _movements.length && speed >= sets[ii].speedThreshold;
+                        ii++) {
+                    movement = _movements[ii];
+                }
+            }
+            float angle = FloatMath.getAngularDifference(
+                actor.getDirection(), actor.getRotation()) + FloatMath.PI;
+            return movement[Math.round(angle / FloatMath.HALF_PI) % 4];
         }
 
         /** The resolved idle animations. */
         protected Animation[] _idles;
+
+        /** The weights of the idle animations. */
+        protected float[] _idleWeights;
+
+        /** The movement animations. */
+        protected Animation[][] _movements;
+
+        /** The speed thresholds of the movement animations. */
+        protected float[] _movementSpeeds;
+
+        /** The current idle animation. */
+        protected Animation _currentIdle;
     }
 
     /**
