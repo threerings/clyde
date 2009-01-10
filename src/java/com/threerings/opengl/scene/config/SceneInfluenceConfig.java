@@ -5,6 +5,7 @@ package com.threerings.opengl.scene.config;
 
 import java.util.ArrayList;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -14,12 +15,14 @@ import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.config.FogStateConfig;
 import com.threerings.opengl.renderer.config.LightConfig;
 import com.threerings.opengl.scene.AmbientLightInfluence;
 import com.threerings.opengl.scene.FogInfluence;
 import com.threerings.opengl.scene.LightInfluence;
+import com.threerings.opengl.scene.ProjectorInfluence;
 import com.threerings.opengl.scene.SceneInfluence;
 import com.threerings.opengl.util.GlContext;
 
@@ -28,7 +31,7 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({
     SceneInfluenceConfig.AmbientLight.class, SceneInfluenceConfig.Fog.class,
-    SceneInfluenceConfig.Light.class })
+    SceneInfluenceConfig.Light.class, SceneInfluenceConfig.Projector.class })
 public abstract class SceneInfluenceConfig extends DeepObject
     implements Exportable
 {
@@ -84,6 +87,35 @@ public abstract class SceneInfluenceConfig extends DeepObject
             return ScopeUtil.resolve(scope, "lightingEnabled", true) ?
                 new LightInfluence(light.createLight(ctx, scope, updaters)) :
                     createNoopInfluence();
+        }
+    }
+
+    /**
+     * Represents a projection influence.
+     */
+    public static class Projector extends SceneInfluenceConfig
+    {
+        /** The projected material. */
+        @Editable(nullable=true)
+        public ConfigReference<MaterialConfig> material;
+
+        /** The width of the projection. */
+        @Editable(min=0, step=0.01, hgroup="d")
+        public float width = 1f;
+
+        /** The height of the projection. */
+        @Editable(min=0, step=0.01, hgroup="d")
+        public float height = 1f;
+
+        /** Whether or not to use an orthographic projection. */
+        @Editable(hgroup="d")
+        public boolean ortho = true;
+
+        @Override // documentation inherited
+        protected SceneInfluence createInfluence (
+            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        {
+            return new ProjectorInfluence();
         }
     }
 
