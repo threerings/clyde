@@ -6,9 +6,11 @@ package com.threerings.tudey.server;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntMaps;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Queue;
@@ -310,6 +312,22 @@ public class TudeySceneManager extends SceneManager
             ((Sensor)_elements.get(ii).getUserObject()).trigger(actor);
         }
         _elements.clear();
+    }
+
+    /**
+     * Notes that a body will be entering via the identified portal.
+     */
+    public void mapEnteringBody (BodyObject body, Object portalKey)
+    {
+        _entering.put(body.getOid(), portalKey);
+    }
+
+    /**
+     * Clears out the mapping for an entering body.
+     */
+    public void clearEnteringBody (BodyObject body)
+    {
+        _entering.remove(body.getOid());
     }
 
     @Override // from PlaceManager
@@ -689,17 +707,20 @@ public class TudeySceneManager extends SceneManager
     /** The last actor id assigned. */
     protected int _lastActorId;
 
+    /** Maps oids of entering bodies to the keys of the portals through which they're entering. */
+    protected HashIntMap<Object> _entering = IntMaps.newHashIntMap();
+
     /** Maps body oids to client liaisons. */
-    protected HashIntMap<ClientLiaison> _clients = new HashIntMap<ClientLiaison>();
+    protected HashIntMap<ClientLiaison> _clients = IntMaps.newHashIntMap();
 
     /** The list of participants in the tick. */
     protected ObserverList<TickParticipant> _tickParticipants = ObserverList.newSafeInOrder();
 
     /** Scene entry logic objects mapped by key. */
-    protected HashMap<Object, EntryLogic> _entries = new HashMap<Object, EntryLogic>();
+    protected HashMap<Object, EntryLogic> _entries = Maps.newHashMap();
 
     /** Actor logic objects mapped by id. */
-    protected HashIntMap<ActorLogic> _actors = new HashIntMap<ActorLogic>();
+    protected HashIntMap<ActorLogic> _actors = IntMaps.newHashIntMap();
 
     /** Maps tags to lists of logic objects with that tag. */
     protected HashMap<String, ArrayList<Logic>> _tagged = Maps.newHashMap();
@@ -711,16 +732,16 @@ public class TudeySceneManager extends SceneManager
     protected HashSpace _sensorSpace = new HashSpace(64f, 6);
 
     /** The logic for effects fired on the current tick. */
-    protected ArrayList<EffectLogic> _effectsFired = new ArrayList<EffectLogic>();
+    protected ArrayList<EffectLogic> _effectsFired = Lists.newArrayList();
 
     /** Runnables enqueued for the next tick. */
     protected Queue<Runnable> _runnables = Queue.newQueue();
 
     /** Holds collected elements during queries. */
-    protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();
+    protected ArrayList<SpaceElement> _elements = Lists.newArrayList();
 
     /** Holds collected effects during queries. */
-    protected ArrayList<Effect> _effects = new ArrayList<Effect>();
+    protected ArrayList<Effect> _effects = Lists.newArrayList();
 
     /** Used to tick the participants. */
     protected TickOp _tickOp = new TickOp();
