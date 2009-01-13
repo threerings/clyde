@@ -282,13 +282,16 @@ public class ConfigTree extends JTree
         setDragEnabled(true);
         setTransferHandler(new TransferHandler() {
             public int getSourceActions (JComponent comp) {
-                return MOVE;
+                return isEditable() ? MOVE : COPY;
             }
             public boolean canImport (JComponent comp, DataFlavor[] flavors) {
                 return isEditable() &&
                     ListUtil.contains(flavors, ToolUtil.SERIALIZED_WRAPPED_FLAVOR);
             }
             public boolean importData (JComponent comp, Transferable t) {
+                if (!canImport(comp, t.getTransferDataFlavors())) {
+                    return false; // this isn't checked automatically for paste
+                }
                 boolean local = t.isDataFlavorSupported(LOCAL_NODE_TRANSFER_FLAVOR);
                 Object data;
                 try {
