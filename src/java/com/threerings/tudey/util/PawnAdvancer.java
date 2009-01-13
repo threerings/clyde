@@ -41,6 +41,14 @@ public class PawnAdvancer extends MobileAdvancer
         } else {
             _pawn.clear(Mobile.MOVING);
         }
+        if (frame.isSet(InputFrame.INTERACT)) {
+            if (!_pawn.isSet(Mobile.INTERACTING)) {
+                _pawn.set(Mobile.INTERACTING);
+                _pawn.setActed(_timestamp);
+            }
+        } else {
+            _pawn.clear(Mobile.INTERACTING);
+        }
     }
 
     @Override // documentation inherited

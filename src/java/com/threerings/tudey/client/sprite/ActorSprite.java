@@ -180,6 +180,8 @@ public class ActorSprite extends Sprite
                     _model.getAnimation(set.left)
                 };
             }
+
+            _interact = _model.getAnimation(mconfig.interact);
         }
 
         @Override // documentation inherited
@@ -197,6 +199,15 @@ public class ActorSprite extends Sprite
             } else {
                 if (_currentIdle == null || !_currentIdle.isPlaying()) {
                     (_currentIdle = getIdle()).start();
+                }
+            }
+
+            // update the action
+            int acted = ((Mobile)actor).getActed();
+            if (acted > _lastActed) {
+                if (actor.isSet(Mobile.INTERACTING) && _interact != null) {
+                    _interact.start();
+                    _lastActed = acted;
                 }
             }
         }
@@ -248,8 +259,14 @@ public class ActorSprite extends Sprite
         /** The speed thresholds of the movement animations. */
         protected float[] _movementSpeeds;
 
+        /** The interact animation, if any. */
+        protected Animation _interact;
+
         /** The current idle animation. */
         protected Animation _currentIdle;
+
+        /** The timestamp of the last action. */
+        protected int _lastActed;
     }
 
     /**

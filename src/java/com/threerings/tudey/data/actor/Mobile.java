@@ -17,6 +17,9 @@ public class Mobile extends Actor
     /** A flag indicating that the actor is in motion. */
     public static final int MOVING = (1 << 1);
 
+    /** A flag indicating that the actor is interacting. */
+    public static final int INTERACTING = (1 << 2);
+
     /**
      * Creates a new mobile actor.
      */
@@ -59,6 +62,22 @@ public class Mobile extends Actor
     }
 
     /**
+     * Sets the action timestamp.
+     */
+    public void setActed (int acted)
+    {
+        _acted = acted;
+    }
+
+    /**
+     * Returns the action timestamp.
+     */
+    public int getActed ()
+    {
+        return _acted;
+    }
+
+    /**
      * Takes an Euler step of the specified duration.
      */
     public void step (float elapsed)
@@ -84,4 +103,7 @@ public class Mobile extends Actor
 
     /** The direction of motion. */
     protected float _direction;
+
+    /** The action timestamp. */
+    protected int _acted;
 }

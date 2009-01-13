@@ -29,7 +29,7 @@ public class ActorConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the actor.
      */
-    @EditorTypes({ Original.class, Pawn.class, Derived.class })
+    @EditorTypes({ Original.class, Pawn.class, Agent.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -167,6 +167,18 @@ public class ActorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.PawnLogic";
+        }
+    }
+
+    /**
+     * Implementation for computer-controlled actors.
+     */
+    public static class Agent extends Mobile
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.AgentLogic";
         }
     }
 
