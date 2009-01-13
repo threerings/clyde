@@ -18,6 +18,7 @@ import com.threerings.opengl.util.PreloadableSet;
  */
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.FireEffect.class,
+    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
     ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
@@ -75,6 +76,46 @@ public abstract class ActionConfig extends DeepObject
     }
 
     /**
+     * Superclass of the portal actions.
+     */
+    public static abstract class AbstractMove extends ActionConfig
+    {
+        /** The id of the destination scene. */
+        public int sceneId;
+
+        /** The key of the portal in the destination scene. */
+        public Object portalKey;
+
+        /** Whether or not this portal should act as the default entrance. */
+        @Editable
+        public boolean defaultEntrance;
+    }
+
+    /**
+     * Moves the activating player to a new scene.
+     */
+    public static class MoveBody extends AbstractMove
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$MoveBody";
+        }
+    }
+
+    /**
+     * Moves all players to a new scene.
+     */
+    public static class MoveAll extends AbstractMove
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$MoveAll";
+        }
+    }
+
+    /**
      * Executes multiple actions simultaneously.
      */
     public static class Compound extends ActionConfig
@@ -106,5 +147,8 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Adds the resources to preload for this action into the provided set.
      */
-    public abstract void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads);
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+        // nothing by default
+    }
 }

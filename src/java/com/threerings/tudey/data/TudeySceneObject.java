@@ -43,6 +43,21 @@ public class TudeySceneObject extends SceneObject
         return 0;
     }
 
+    /**
+     * Returns the occupant info corresponding to the specified pawn, or <code>null</code> if
+     * no such occupant info is registered.
+     */
+    public TudeyOccupantInfo getOccupantInfo (int pawnId)
+    {
+        for (OccupantInfo info : occupantInfo) {
+            TudeyOccupantInfo tinfo = (TudeyOccupantInfo)info;
+            if (tinfo.pawnId == pawnId) {
+                return tinfo;
+            }
+        }
+        return null;
+    }
+
     // AUTO-GENERATED: METHODS START
     /**
      * Requests that the <code>tudeySceneService</code> field be set to the

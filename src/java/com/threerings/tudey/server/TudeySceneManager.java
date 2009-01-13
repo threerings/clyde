@@ -9,6 +9,9 @@ import java.util.HashMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.Interval;
@@ -181,7 +184,7 @@ public class TudeySceneManager extends SceneManager
         // create the logic object
         ActorLogic logic;
         try {
-            logic = (ActorLogic)Class.forName(original.getLogicClassName()).newInstance();
+            logic = (ActorLogic)_injector.getInstance(Class.forName(original.getLogicClassName()));
         } catch (Exception e) {
             log.warning("Failed to instantiate actor logic.",
                 "class", original.getLogicClassName(), e);
@@ -234,7 +237,8 @@ public class TudeySceneManager extends SceneManager
         // create the logic class
         EffectLogic logic;
         try {
-            logic = (EffectLogic)Class.forName(original.getLogicClassName()).newInstance();
+            logic = (EffectLogic)_injector.getInstance(
+                Class.forName(original.getLogicClassName()));
         } catch (Exception e) {
             log.warning("Failed to instantiate effect logic.",
                 "class", original.getLogicClassName(), e);
@@ -336,6 +340,10 @@ public class TudeySceneManager extends SceneManager
         // add the pawn and configure a local to provide its id
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
         if (ref != null) {
+            Object portalKey = _entering.remove(body.getOid());
+            if (portalKey != null) {
+
+            }
             final ActorLogic logic = spawnActor(
                 _timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
             if (logic != null) {
@@ -570,7 +578,7 @@ public class TudeySceneManager extends SceneManager
         }
         EntryLogic logic;
         try {
-            logic = (EntryLogic)Class.forName(cname).newInstance();
+            logic = (EntryLogic)_injector.getInstance(Class.forName(cname));
         } catch (Exception e) {
             log.warning("Failed to instantiate entry logic.", "class", cname, e);
             return;
@@ -688,6 +696,9 @@ public class TudeySceneManager extends SceneManager
         /** The timestamp of the current tick. */
         protected int _timestamp;
     }
+
+    /** The injector that we use to create and initialize our logic objects. */
+    @Inject protected Injector _injector;
 
     /** A casted reference to the Tudey scene object. */
     protected TudeySceneObject _tsobj;

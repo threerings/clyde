@@ -89,7 +89,7 @@ public abstract class HandlerLogic extends Logic
         // documentation inherited from interface TudeySceneManager.Sensor
         public void trigger (ActorLogic actor)
         {
-            execute(_scenemgr.getTimestamp());
+            execute(_scenemgr.getTimestamp(), actor);
         }
 
         // documentation inherited from interface ShapeObserver
@@ -182,12 +182,22 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
-     * Executes the handler's action.
+     * Executes the handler's action with no target.
      */
     protected void execute (int timestamp)
     {
+        execute(timestamp, null);
+    }
+
+    /**
+     * Executes the handler's action.
+     *
+     * @param target the target of the action, if any.
+     */
+    protected void execute (int timestamp, ActorLogic target)
+    {
         if (_action != null) {
-            _action.execute(timestamp);
+            _action.execute(timestamp, target);
         }
     }
 

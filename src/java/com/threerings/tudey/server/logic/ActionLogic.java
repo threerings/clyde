@@ -5,10 +5,21 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 
+import com.google.inject.Inject;
+
+import com.threerings.crowd.data.BodyObject;
+import com.threerings.presents.dobj.OidList;
+import com.threerings.presents.server.PresentsDObjectMgr;
+
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActionConfig;
+import com.threerings.tudey.data.TudeyOccupantInfo;
+import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.server.TudeySceneRegistry;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Handles the server-side processing for an action.
@@ -21,7 +32,7 @@ public abstract class ActionLogic extends Logic
     public static class SpawnActor extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp)
+        public void execute (int timestamp, ActorLogic target)
         {
             _scenemgr.spawnActor(
                 timestamp, _source.getTranslation(), _source.getRotation(),
@@ -35,11 +46,68 @@ public abstract class ActionLogic extends Logic
     public static class FireEffect extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp)
+        public void execute (int timestamp, ActorLogic target)
         {
             _scenemgr.fireEffect(
                 timestamp, _source.getTranslation(), _source.getRotation(),
                 ((ActionConfig.FireEffect)_config).effect);
+        }
+    }
+
+    /**
+     * Superclass of the move logic classes.
+     */
+    public static abstract class AbstractMove extends ActionLogic
+    {
+        /**
+         * Moves a single body to the destination.
+         */
+        protected void moveBody (int bodyOid)
+        {
+            BodyObject body = (BodyObject)_omgr.getObject(bodyOid);
+            ActionConfig.MoveBody mconfig = (ActionConfig.MoveBody)_config;
+            _screg.moveBody(body, mconfig.sceneId, mconfig.portalKey);
+        }
+
+        /** The distributed object manager. */
+        @Inject protected PresentsDObjectMgr _omgr;
+
+        /** The scene registry. */
+        @Inject protected TudeySceneRegistry _screg;
+    }
+
+    /**
+     * Handles a move body action.
+     */
+    public static class MoveBody extends AbstractMove
+    {
+        @Override // documentation inherited
+        public void execute (int timestamp, ActorLogic target)
+        {
+            if (target == null) {
+                return;
+            }
+            int pawnId = target.getActor().getId();
+            TudeyOccupantInfo info =
+                ((TudeySceneObject)_scenemgr.getPlaceObject()).getOccupantInfo(pawnId);
+            if (info != null) {
+                moveBody(info.getBodyOid());
+            }
+        }
+    }
+
+    /**
+     * Handles a move all action.
+     */
+    public static class MoveAll extends AbstractMove
+    {
+        @Override // documentation inherited
+        public void execute (int timestamp, ActorLogic target)
+        {
+            OidList occupants = _scenemgr.getPlaceObject().occupants;
+            for (int ii = 0, nn = occupants.size(); ii < nn; ii++) {
+                moveBody(occupants.get(ii));
+            }
         }
     }
 
@@ -49,10 +117,10 @@ public abstract class ActionLogic extends Logic
     public static class Compound extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp)
+        public void execute (int timestamp, ActorLogic target)
         {
             for (ActionLogic action : _actions) {
-                action.execute(timestamp);
+                action.execute(timestamp, target);
             }
         }
 
@@ -88,8 +156,10 @@ public abstract class ActionLogic extends Logic
 
     /**
      * Executes the action.
+     *
+     * @param target the target of the action, if any.
      */
-    public abstract void execute (int timestamp);
+    public abstract void execute (int timestamp, ActorLogic target);
 
     @Override // documentation inherited
     public Vector2f getTranslation ()
