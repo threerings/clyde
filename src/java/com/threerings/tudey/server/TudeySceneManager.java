@@ -341,9 +341,11 @@ public class TudeySceneManager extends SceneManager
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
         if (ref != null) {
             Object portalKey = _entering.remove(body.getOid());
+            Logic portal;
             if (portalKey != null) {
-
+                portal = _entries.get(portalKey);
             }
+
             final ActorLogic logic = spawnActor(
                 _timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
             if (logic != null) {

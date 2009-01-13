@@ -266,6 +266,7 @@ public class TudeySceneController extends SceneController
         // add the input flag mappings
         _keyFlags.put(Keyboard.KEY_S, InputFrame.STRAFE);
         _buttonFlags[MouseEvent.BUTTON1] = InputFrame.MOVE;
+        _buttonFlags[MouseEvent.BUTTON2] = InputFrame.INTERACT;
     }
 
     /**

@@ -13,7 +13,8 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     HandlerConfig.Startup.class, HandlerConfig.Tick.class,
-    HandlerConfig.Timer.class, HandlerConfig.Intersection.class })
+    HandlerConfig.Timer.class, HandlerConfig.Intersection.class,
+    HandlerConfig.Interaction.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -70,6 +71,22 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Intersection";
+        }
+    }
+
+    /**
+     * The interaction event handler.
+     */
+    public static class Interaction extends HandlerConfig
+    {
+        /** The amount to expand the interaction shape. */
+        @Editable(step=0.01)
+        public float expansion;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$Interaction";
         }
     }
 
