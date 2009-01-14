@@ -175,6 +175,10 @@ public class ActorConfig extends ParameterizedConfig
      */
     public static class Agent extends Mobile
     {
+        /** The agent's behavior. */
+        @Editable
+        public BehaviorConfig behavior = new BehaviorConfig.Idle();
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {

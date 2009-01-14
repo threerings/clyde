@@ -112,6 +112,20 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a destroy source action.
+     */
+    public static class DestroySource extends ActionLogic
+    {
+        @Override // documentation inherited
+        public void execute (int timestamp, ActorLogic target)
+        {
+            if (_source instanceof ActorLogic) {
+                ((ActorLogic)_source).destroy(timestamp);
+            }
+        }
+    }
+
+    /**
      * Handles a compound action.
      */
     public static class Compound extends ActionLogic

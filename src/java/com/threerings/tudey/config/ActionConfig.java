@@ -19,7 +19,7 @@ import com.threerings.opengl.util.PreloadableSet;
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.FireEffect.class,
     ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
-    ActionConfig.Compound.class })
+    ActionConfig.DestroySource.class, ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -112,6 +112,18 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$MoveAll";
+        }
+    }
+
+    /**
+     * Destroys the source of the action.
+     */
+    public static class DestroySource extends ActionConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$DestroySource";
         }
     }
 

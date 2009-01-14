@@ -182,12 +182,8 @@ public class TudeySceneManager extends SceneManager
         }
 
         // create the logic object
-        ActorLogic logic;
-        try {
-            logic = (ActorLogic)_injector.getInstance(Class.forName(original.getLogicClassName()));
-        } catch (Exception e) {
-            log.warning("Failed to instantiate actor logic.",
-                "class", original.getLogicClassName(), e);
+        ActorLogic logic = (ActorLogic)createLogic(original.getLogicClassName());
+        if (logic == null) {
             return null;
         }
 
@@ -235,13 +231,8 @@ public class TudeySceneManager extends SceneManager
         }
 
         // create the logic class
-        EffectLogic logic;
-        try {
-            logic = (EffectLogic)_injector.getInstance(
-                Class.forName(original.getLogicClassName()));
-        } catch (Exception e) {
-            log.warning("Failed to instantiate effect logic.",
-                "class", original.getLogicClassName(), e);
+        EffectLogic logic = (EffectLogic)createLogic(original.getLogicClassName());
+        if (logic == null) {
             return null;
         }
 
@@ -250,6 +241,20 @@ public class TudeySceneManager extends SceneManager
         _effectsFired.add(logic);
 
         return logic;
+    }
+
+    /**
+     * Creates an instance of the logic object with the specified class name using the injector,
+     * logging a warning and returning <code>null</code> on error.
+     */
+    public Logic createLogic (String cname)
+    {
+        try {
+            return (Logic)_injector.getInstance(Class.forName(cname));
+        } catch (Exception e) {
+            log.warning("Failed to instantiate logic.", "class", cname, e);
+            return null;
+        }
     }
 
     /**
@@ -578,11 +583,8 @@ public class TudeySceneManager extends SceneManager
         if (cname == null) {
             return;
         }
-        EntryLogic logic;
-        try {
-            logic = (EntryLogic)_injector.getInstance(Class.forName(cname));
-        } catch (Exception e) {
-            log.warning("Failed to instantiate entry logic.", "class", cname, e);
+        EntryLogic logic = (EntryLogic)createLogic(cname);
+        if (logic == null) {
             return;
         }
         logic.init(this, entry);

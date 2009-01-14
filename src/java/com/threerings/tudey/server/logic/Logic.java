@@ -10,8 +10,6 @@ import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 
-import static com.threerings.tudey.Log.*;
-
 /**
  * Handles the server-side processing for some entity.
  */
@@ -90,13 +88,9 @@ public abstract class Logic
      */
     protected HandlerLogic createHandler (HandlerConfig config, Logic source)
     {
-        // create the logic class
-        HandlerLogic logic;
-        try {
-            logic = (HandlerLogic)Class.forName(config.getLogicClassName()).newInstance();
-        } catch (Exception e) {
-            log.warning("Failed to instantiate handler logic.",
-                "class", config.getLogicClassName(), e);
+        // create the logic instance
+        HandlerLogic logic = (HandlerLogic)_scenemgr.createLogic(config.getLogicClassName());
+        if (logic == null) {
             return null;
         }
 
@@ -110,13 +104,9 @@ public abstract class Logic
      */
     protected ActionLogic createAction (ActionConfig config, Logic source)
     {
-        // create the logic class
-        ActionLogic logic;
-        try {
-            logic = (ActionLogic)Class.forName(config.getLogicClassName()).newInstance();
-        } catch (Exception e) {
-            log.warning("Failed to instantiate action logic.",
-                "class", config.getLogicClassName(), e);
+        // create the logic instance
+        ActionLogic logic = (ActionLogic)_scenemgr.createLogic(config.getLogicClassName());
+        if (logic == null) {
             return null;
         }
 
