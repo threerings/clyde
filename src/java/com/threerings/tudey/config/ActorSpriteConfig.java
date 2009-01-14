@@ -36,7 +36,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
-            if (impl instanceof ActorSprite.Original) {
+            if (impl != null && impl.getClass() == ActorSprite.Original.class) {
                 ((ActorSprite.Original)impl).setConfig(this);
             } else {
                 impl = new ActorSprite.Original(ctx, scope, this);
@@ -81,7 +81,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
-            if (impl instanceof ActorSprite.Moving) {
+            if (impl != null && impl.getClass() == ActorSprite.Moving.class) {
                 ((ActorSprite.Moving)impl).setConfig(this);
             } else {
                 impl = new ActorSprite.Moving(ctx, scope, this);
