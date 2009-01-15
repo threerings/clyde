@@ -99,9 +99,15 @@ public class ActorLogic extends Logic
     }
 
     @Override // documentation inherited
-    public String getTag ()
+    public String[] getTags ()
     {
-        return _config.tag;
+        return _config.tags;
+    }
+
+    @Override // documentation inherited
+    public boolean isDefaultEntrance ()
+    {
+        return _config.defaultEntrance;
     }
 
     @Override // documentation inherited

@@ -79,13 +79,17 @@ public class ActorConfig extends ParameterizedConfig
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
-        /** A tag to use to identify the actor within the scene. */
+        /** Tags used to identify the actor within the scene. */
         @Editable
-        public String tag = "";
+        public String[] tags = new String[0];
 
         /** The actor's event handlers. */
         @Editable
         public HandlerConfig[] handlers = new HandlerConfig[0];
+
+        /** Whether or not the actor should be used as a default entrance. */
+        @Editable
+        public boolean defaultEntrance;
 
         /** Determines which collision categories the actor belongs to. */
         @Editable(hgroup="c")

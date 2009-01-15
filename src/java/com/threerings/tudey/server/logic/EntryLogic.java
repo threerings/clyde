@@ -28,7 +28,7 @@ public class EntryLogic extends Logic
         ConfigManager cfgmgr = scenemgr.getConfigManager();
         _translation = entry.getTranslation(cfgmgr);
         _rotation = entry.getRotation(cfgmgr);
-        _tag = entry.getTag(cfgmgr);
+        _tags = entry.getTags(cfgmgr);
         _shape = entry.createShape(cfgmgr);
 
         // create the handler logic objects
@@ -60,9 +60,15 @@ public class EntryLogic extends Logic
     }
 
     @Override // documentation inherited
-    public String getTag ()
+    public String[] getTags ()
     {
-        return _tag;
+        return _tags;
+    }
+
+    @Override // documentation inherited
+    public boolean isDefaultEntrance ()
+    {
+        return _defaultEntrance;
     }
 
     @Override // documentation inherited
@@ -102,8 +108,11 @@ public class EntryLogic extends Logic
     /** The scene entry. */
     protected Entry _entry;
 
-    /** The entry's tag. */
-    protected String _tag;
+    /** The entry's tags. */
+    protected String[] _tags;
+
+    /** Whether or not the entry represents a default entrance. */
+    protected boolean _defaultEntrance;
 
     /** The entry's approximate translation. */
     protected Vector2f _translation;

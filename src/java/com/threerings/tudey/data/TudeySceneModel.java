@@ -161,14 +161,22 @@ public class TudeySceneModel extends SceneModel
         public abstract String getLogicClassName (ConfigManager cfgmgr);
 
         /**
-         * Returns the entry's tag (or the empty string for none).
+         * Returns the entry's tags, if any.
          */
-        public abstract String getTag (ConfigManager cfgmgr);
+        public abstract String[] getTags (ConfigManager cfgmgr);
 
         /**
          * Returns the entry's handler configs, if any.
          */
         public abstract HandlerConfig[] getHandlers (ConfigManager cfgmgr);
+
+        /**
+         * Determines whether the entry represents a default entrance.
+         */
+        public boolean isDefaultEntrance (ConfigManager cfgmgr)
+        {
+            return false;
+        }
 
         /**
          * Returns the entry's approximate translation.
@@ -358,15 +366,21 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public String getTag (ConfigManager cfgmgr)
+        public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tag;
+            return getConfig(cfgmgr).tags;
         }
 
         @Override // documentation inherited
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
+        }
+
+        @Override // documentation inherited
+        public boolean isDefaultEntrance (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).defaultEntrance;
         }
 
         @Override // documentation inherited
@@ -508,9 +522,9 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public String getTag (ConfigManager cfgmgr)
+        public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tag;
+            return getConfig(cfgmgr).tags;
         }
 
         @Override // documentation inherited
@@ -601,15 +615,21 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public String getTag (ConfigManager cfgmgr)
+        public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tag;
+            return getConfig(cfgmgr).tags;
         }
 
         @Override // documentation inherited
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
+        }
+
+        @Override // documentation inherited
+        public boolean isDefaultEntrance (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).defaultEntrance;
         }
 
         @Override // documentation inherited
@@ -726,15 +746,21 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public String getTag (ConfigManager cfgmgr)
+        public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tag;
+            return getConfig(cfgmgr).tags;
         }
 
         @Override // documentation inherited
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
+        }
+
+        @Override // documentation inherited
+        public boolean isDefaultEntrance (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).defaultEntrance;
         }
 
         @Override // documentation inherited
@@ -866,15 +892,21 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
-        public String getTag (ConfigManager cfgmgr)
+        public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tag;
+            return getConfig(cfgmgr).tags;
         }
 
         @Override // documentation inherited
         public HandlerConfig[] getHandlers (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).handlers;
+        }
+
+        @Override // documentation inherited
+        public boolean isDefaultEntrance (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).defaultEntrance;
         }
 
         @Override // documentation inherited

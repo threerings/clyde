@@ -85,10 +85,6 @@ public abstract class ActionConfig extends DeepObject
 
         /** The key of the portal in the destination scene. */
         public Object portalKey;
-
-        /** Whether or not this portal should act as the default entrance. */
-        @Editable
-        public boolean defaultEntrance;
     }
 
     /**

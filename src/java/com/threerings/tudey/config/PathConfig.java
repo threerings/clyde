@@ -84,9 +84,13 @@ public class PathConfig extends ParameterizedConfig
         @Editable(mode="alpha", hgroup="c")
         public Color4f color = new Color4f();
 
-        /** A tag to use to identify the path within the scene. */
+        /** Whether or not the path should be used as a default entrance. */
         @Editable(hgroup="c")
-        public String tag = "";
+        public boolean defaultEntrance;
+
+        /** Tags used to identify the path within the scene. */
+        @Editable
+        public String[] tags = new String[0];
 
         /** The path's event handlers. */
         @Editable
@@ -98,7 +102,7 @@ public class PathConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
+            return (tags.length == 0 && handlers.length == 0 && !defaultEntrance) ? null :
                 "com.threerings.tudey.server.logic.EntryLogic";
         }
 

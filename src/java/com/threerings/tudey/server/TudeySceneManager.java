@@ -17,6 +17,7 @@ import com.samskivert.util.IntMaps;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Queue;
+import com.samskivert.util.RandomUtil;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
 import com.samskivert.util.StringUtil;
@@ -190,7 +191,7 @@ public class TudeySceneManager extends SceneManager
         // initialize the logic and add it to the map
         logic.init(this, ref, original, ++_lastActorId, timestamp, translation, rotation);
         _actors.put(_lastActorId, logic);
-        addTagMapping(logic);
+        addMappings(logic);
 
         return logic;
     }
@@ -305,7 +306,7 @@ public class TudeySceneManager extends SceneManager
     {
         ActorLogic logic = _actors.remove(id);
         if (logic != null) {
-            removeTagMapping(logic);
+            removeMappings(logic);
         } else {
             log.warning("Missing actor to remove.", "where", where(), "id", id);
         }
@@ -345,14 +346,25 @@ public class TudeySceneManager extends SceneManager
         // add the pawn and configure a local to provide its id
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
         if (ref != null) {
+            Vector2f translation = Vector2f.ZERO;
+            float rotation = 0f;
             Object portalKey = _entering.remove(body.getOid());
-            Logic portal;
             if (portalKey != null) {
-                portal = _entries.get(portalKey);
+                // get the translation/rotation from the entering portal
+                Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(portalKey);
+                if (entry != null) {
+                    translation = entry.getTranslation(_cfgmgr);
+                    rotation = entry.getRotation(_cfgmgr);
+                }
             }
-
+            if (translation == Vector2f.ZERO && !_defaultEntrances.isEmpty()) {
+                // select a default entrance at random
+                Logic entrance = RandomUtil.pickRandom(_defaultEntrances);
+                translation = entrance.getTranslation();
+                rotation = entrance.getRotation();
+            }
             final ActorLogic logic = spawnActor(
-                _timestamp + getTickInterval(), Vector2f.ZERO, 0f, ref);
+                _timestamp + getTickInterval(), translation, rotation, ref);
             if (logic != null) {
                 body.setLocal(TudeySceneLocal.class, new TudeySceneLocal() {
                     public int getPawnId () {
@@ -589,7 +601,7 @@ public class TudeySceneManager extends SceneManager
         }
         logic.init(this, entry);
         _entries.put(entry.getKey(), logic);
-        addTagMapping(logic);
+        addMappings(logic);
     }
 
     /**
@@ -599,43 +611,45 @@ public class TudeySceneManager extends SceneManager
     {
         EntryLogic logic = _entries.remove(key);
         if (logic != null) {
-            removeTagMapping(logic);
+            removeMappings(logic);
             logic.removed();
         }
     }
 
     /**
-     * Registers the specified logic object under its tag, if it has one.
+     * Registers the specified logic object unders its mappings.
      */
-    public void addTagMapping (Logic logic)
+    public void addMappings (Logic logic)
     {
-        String tag = logic.getTag();
-        if (StringUtil.isBlank(tag)) {
-            return;
+        for (String tag : logic.getTags()) {
+            ArrayList<Logic> list = _tagged.get(tag);
+            if (list == null) {
+                _tagged.put(tag, list = new ArrayList<Logic>());
+            }
+            list.add(logic);
         }
-        ArrayList<Logic> list = _tagged.get(tag);
-        if (list == null) {
-            _tagged.put(tag, list = new ArrayList<Logic>());
+        if (logic.isDefaultEntrance()) {
+            _defaultEntrances.add(logic);
         }
-        list.add(logic);
     }
 
     /**
-     * Remove the specified logic object from the tag mapping.
+     * Remove the specified logic object from the mappings.
      */
-    public void removeTagMapping (Logic logic)
+    public void removeMappings (Logic logic)
     {
-        String tag = logic.getTag();
-        if (StringUtil.isBlank(tag)) {
-            return;
+        for (String tag : logic.getTags()) {
+            ArrayList<Logic> list = _tagged.get(tag);
+            if (list == null || !list.remove(logic)) {
+                log.warning("Missing tag mapping for logic.", "tag", tag, "logic", logic);
+                continue;
+            }
+            if (list.isEmpty()) {
+                _tagged.remove(tag);
+            }
         }
-        ArrayList<Logic> list = _tagged.get(tag);
-        if (list == null || !list.remove(logic)) {
-            log.warning("Missing tag mapping for logic.", "tag", tag, "logic", logic);
-            return;
-        }
-        if (list.isEmpty()) {
-            _tagged.remove(tag);
+        if (logic.isDefaultEntrance()) {
+            _defaultEntrances.remove(logic);
         }
     }
 
@@ -739,6 +753,9 @@ public class TudeySceneManager extends SceneManager
 
     /** Maps tags to lists of logic objects with that tag. */
     protected HashMap<String, ArrayList<Logic>> _tagged = Maps.newHashMap();
+
+    /** The logic objects corresponding to default entrances. */
+    protected ArrayList<Logic> _defaultEntrances = Lists.newArrayList();
 
     /** The actor space.  Used to find the actors within a client's area of interest. */
     protected HashSpace _actorSpace = new HashSpace(64f, 6);

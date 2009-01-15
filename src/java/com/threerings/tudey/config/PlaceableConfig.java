@@ -89,6 +89,10 @@ public class PlaceableConfig extends ParameterizedConfig
      */
     public static abstract class Original extends Implementation
     {
+        /** Whether or not the placeable should be used as a default entrance. */
+        @Editable
+        public boolean defaultEntrance;
+
         /** The model to use to represent the placeable on the client. */
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
@@ -97,9 +101,9 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
-        /** A tag to use to identify the placeable within the scene. */
+        /** Tags used to identify the placeable within the scene. */
         @Editable
-        public String tag = "";
+        public String[] tags = new String[0];
 
         /** The area's event handlers. */
         @Editable
@@ -119,7 +123,7 @@ public class PlaceableConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return (StringUtil.isBlank(tag) && handlers.length == 0) ? null :
+            return (tags.length == 0 && handlers.length == 0 && !defaultEntrance) ? null :
                 "com.threerings.tudey.server.logic.EntryLogic";
         }
 

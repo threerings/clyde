@@ -36,11 +36,19 @@ public abstract class Logic
     }
 
     /**
-     * Returns the tag for this logic, or the empty string for none.
+     * Returns the tags for this logic, if any.
      */
-    public String getTag ()
+    public String[] getTags ()
     {
-        return "";
+        return NO_TAGS;
+    }
+
+    /**
+     * Checks whether this logic object corresponds to a default entrance.
+     */
+    public boolean isDefaultEntrance ()
+    {
+        return false;
     }
 
     /**
@@ -117,4 +125,7 @@ public abstract class Logic
 
     /** The scene manager. */
     protected TudeySceneManager _scenemgr;
+
+    /** An empty tag array. */
+    protected static final String[] NO_TAGS = new String[0];
 }
