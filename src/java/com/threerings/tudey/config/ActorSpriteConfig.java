@@ -60,7 +60,7 @@ public abstract class ActorSpriteConfig extends DeepObject
 
         /** The name of the interaction animation, if any. */
         @Editable
-        public String interact = "";
+        public String interact = "use_interact";
 
         /**
          * Returns the cached idle weight array.
@@ -69,10 +69,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         {
             float[] weights = (_idleWeights == null) ? null : _idleWeights.get();
             if (weights == null) {
-                _idleWeights = new SoftReference<float[]>(weights = new float[idles.length]);
-                for (int ii = 0; ii < idles.length; ii++) {
-                    weights[ii] = idles[ii].weight;
-                }
+                _idleWeights = new SoftReference<float[]>(weights = createWeights(idles));
             }
             return weights;
         }
@@ -175,5 +172,17 @@ public abstract class ActorSpriteConfig extends DeepObject
     public void invalidate ()
     {
         // nothing by default
+    }
+
+    /**
+     * Creates the array of weights from the supplied weighted animation array.
+     */
+    protected static float[] createWeights (WeightedAnimation[] weighted)
+    {
+        float[] weights = new float[weighted.length];
+        for (int ii = 0; ii < weighted.length; ii++) {
+            weights[ii] = weighted[ii].weight;
+        }
+        return weights;
     }
 }

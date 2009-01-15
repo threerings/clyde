@@ -27,6 +27,9 @@ public class Actor extends DeepObject
     /** A flag indicating that the actor has changed its position in a discontinuous fashion. */
     public static final int WARP = (1 << 0);
 
+    /** The value of the last flag defined in this class. */
+    public static final int LAST_FLAG = WARP;
+
     /**
      * Creates a new actor.
      */

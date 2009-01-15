@@ -163,24 +163,12 @@ public class ActorSprite extends Sprite
         public void setConfig (ActorSpriteConfig config)
         {
             super.setConfig(config);
+
             ActorSpriteConfig.Moving mconfig = (ActorSpriteConfig.Moving)config;
-            _idles = new Animation[mconfig.idles.length];
-            for (int ii = 0; ii < _idles.length; ii++) {
-                _idles[ii] = _model.getAnimation(mconfig.idles[ii].name);
-            }
+            _idles = resolve(mconfig.idles);
             _idleWeights = mconfig.getIdleWeights();
-
+            _movements = resolve(mconfig.movements);
             _movements = new Animation[mconfig.movements.length][];
-            for (int ii = 0; ii < _movements.length; ii++) {
-                ActorSpriteConfig.MovementSet set = mconfig.movements[ii];
-                _movements[ii] = new Animation[] {
-                    _model.getAnimation(set.backward),
-                    _model.getAnimation(set.right),
-                    _model.getAnimation(set.forward),
-                    _model.getAnimation(set.left)
-                };
-            }
-
             _interact = _model.getAnimation(mconfig.interact);
         }
 
@@ -210,6 +198,35 @@ public class ActorSprite extends Sprite
                     _lastActed = acted;
                 }
             }
+        }
+
+        /**
+         * Resolves an array of weighted animations.
+         */
+        protected Animation[] resolve (ActorSpriteConfig.WeightedAnimation[] weighted)
+        {
+            Animation[] anims = new Animation[weighted.length];
+            for (int ii = 0; ii < anims.length; ii++) {
+                anims[ii] = _model.getAnimation(weighted[ii].name);
+            }
+            return anims;
+        }
+
+        /**
+         * Resolves the animations from an array of movement sets.
+         */
+        protected Animation[][] resolve (ActorSpriteConfig.MovementSet[] sets)
+        {
+            Animation[][] anims = new Animation[sets.length][];
+            for (int ii = 0; ii < anims.length; ii++) {
+                ActorSpriteConfig.MovementSet set = sets[ii];
+                anims[ii] = new Animation[] {
+                    _model.getAnimation(set.backward),
+                    _model.getAnimation(set.right),
+                    _model.getAnimation(set.forward),
+                    _model.getAnimation(set.left) };
+            }
+            return anims;
         }
 
         /**
@@ -255,9 +272,6 @@ public class ActorSprite extends Sprite
 
         /** The movement animations. */
         protected Animation[][] _movements;
-
-        /** The speed thresholds of the movement animations. */
-        protected float[] _movementSpeeds;
 
         /** The interact animation, if any. */
         protected Animation _interact;

@@ -576,9 +576,27 @@ public class Animation extends SimpleScope
     /**
      * Sets the configuration of this animation.
      */
+    public void setConfig (String name, String config)
+    {
+        setConfig(name, _ctx.getConfigManager().getConfig(AnimationConfig.class, config));
+    }
+
+    /**
+     * Sets the configuration of this animation.
+     */
     public void setConfig (String name, ConfigReference<AnimationConfig> ref)
     {
         setConfig(name, _ctx.getConfigManager().getConfig(AnimationConfig.class, ref));
+    }
+
+    /**
+     * Sets the configuration of this animation.
+     */
+    public void setConfig (
+        String name, String config, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        setConfig(name, _ctx.getConfigManager().getConfig(
+            AnimationConfig.class, config, firstKey, firstValue, otherArgs));
     }
 
     /**
