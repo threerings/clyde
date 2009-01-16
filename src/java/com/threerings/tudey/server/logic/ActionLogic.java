@@ -9,6 +9,8 @@ import com.google.common.collect.Lists;
 
 import com.google.inject.Inject;
 
+import com.samskivert.util.RandomUtil;
+
 import com.threerings.crowd.data.BodyObject;
 import com.threerings.presents.dobj.OidList;
 import com.threerings.presents.server.PresentsDObjectMgr;
@@ -85,6 +87,50 @@ public abstract class ActionLogic extends Logic
 
         /** The target actor. */
         protected TargetLogic _target;
+    }
+
+    /**
+     * Handles a warp actor action.
+     */
+    public static class WarpActor extends ActionLogic
+    {
+        @Override // documentation inherited
+        public void execute (int timestamp, Logic activator)
+        {
+            _target.resolve(activator, _targets);
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                if (!(target instanceof ActorLogic)) {
+                    continue;
+                }
+                _location.resolve(activator, _locations);
+                if (_locations.isEmpty()) {
+                    continue;
+                }
+                Logic location = RandomUtil.pickRandom(_locations);
+                _locations.clear();
+                Vector2f translation = location.getTranslation();
+                ((ActorLogic)target).warp(translation.x, translation.y, location.getRotation());
+            }
+            _targets.clear();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ActionConfig.WarpActor config = (ActionConfig.WarpActor)_config;
+            _target = createTarget(config.target, _source);
+            _location = createTarget(config.location, _source);
+        }
+
+        /** The target actor. */
+        protected TargetLogic _target;
+
+        /** The location to which the actor will be warped. */
+        protected TargetLogic _location;
+
+        /** Temporary container for locations. */
+        protected ArrayList<Logic> _locations = Lists.newArrayList();
     }
 
     /**

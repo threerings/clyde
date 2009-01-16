@@ -74,6 +74,22 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Warps the actor.
+     */
+    public void warp (float x, float y, float rotation)
+    {
+        // set the warp flag and clear it on the next tick
+        _actor.set(Actor.WARP);
+        move(x, y, rotation);
+        _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
+            public boolean tick (int timestamp) {
+                _actor.clear(Actor.WARP);
+                return false;
+            }
+        });
+    }
+
+    /**
      * Moves the actor and updates its shape.
      */
     public void move (float x, float y, float rotation)

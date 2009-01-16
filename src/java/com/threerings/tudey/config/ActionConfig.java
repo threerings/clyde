@@ -18,9 +18,10 @@ import com.threerings.opengl.util.PreloadableSet;
  */
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.DestroyActor.class,
-    ActionConfig.FireEffect.class, ActionConfig.Signal.class,
-    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
-    ActionConfig.Conditional.class, ActionConfig.Compound.class })
+    ActionConfig.WarpActor.class, ActionConfig.FireEffect.class,
+    ActionConfig.Signal.class, ActionConfig.MoveBody.class,
+    ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
+    ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -67,6 +68,26 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$DestroyActor";
+        }
+    }
+
+    /**
+     * Warps an actor from one place to another.
+     */
+    public static class WarpActor extends ActionConfig
+    {
+        /** The actor to warp. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        /** The location to which the actor will be warped. */
+        @Editable
+        public TargetConfig location = new TargetConfig.Tagged();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$WarpActor";
         }
     }
 
