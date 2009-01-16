@@ -50,9 +50,9 @@ public abstract class TargetConfig extends DeepObject
         @Editable(hgroup="t")
         public String tag = "";
 
-        /** The maximum number of tagged entities to affect. */
-        @Editable(min=1, hgroup="t")
-        public int limit = 1;
+        /** The maximum number of tagged entities to affect (or zero for unlimited). */
+        @Editable(min=0, hgroup="t")
+        public int limit;
 
         @Override // documentation inherited
         public String getLogicClassName ()

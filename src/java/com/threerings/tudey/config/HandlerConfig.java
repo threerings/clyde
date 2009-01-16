@@ -48,8 +48,12 @@ public abstract class HandlerConfig extends DeepObject
     public static class Timer extends HandlerConfig
     {
         /** The timer interval, in seconds. */
-        @Editable(min=0.0, step=0.1)
+        @Editable(min=0.0, step=0.1, hgroup="i")
         public float interval = 1f;
+
+        /** The number of times to fire the timer (or zero for unlimited). */
+        @Editable(min=0, hgroup="i")
+        public int limit;
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -64,8 +68,12 @@ public abstract class HandlerConfig extends DeepObject
     public static class Signal extends HandlerConfig
     {
         /** The name of the signal of interest. */
-        @Editable
+        @Editable(hgroup="n")
         public String name = "";
+
+        /** The amount of time that must elapse between firings. */
+        @Editable(min=0.0, step=0.1, hgroup="n")
+        public float refractoryPeriod;
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -80,8 +88,12 @@ public abstract class HandlerConfig extends DeepObject
     public static class Intersection extends HandlerConfig
     {
         /** The amount to expand the intersection shape. */
-        @Editable(step=0.01)
+        @Editable(step=0.01, hgroup="e")
         public float expansion;
+
+        /** The amount of time that must elapse between firings. */
+        @Editable(min=0.0, step=0.1, hgroup="e")
+        public float refractoryPeriod;
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -107,7 +119,7 @@ public abstract class HandlerConfig extends DeepObject
     }
 
     /** The action to take in response to the event. */
-    @Editable
+    @Editable(weight=1)
     public ActionConfig action = new ActionConfig.SpawnActor();
 
     /**

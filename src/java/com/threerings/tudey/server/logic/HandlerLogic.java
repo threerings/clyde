@@ -63,11 +63,16 @@ public abstract class HandlerLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            HandlerConfig.Timer config = (HandlerConfig.Timer)_config;
+            _limit = (config.limit == 0) ? Integer.MAX_VALUE : config.limit;
             (_interval = new Interval(_scenemgr) {
                 public void expired () {
                     execute(_scenemgr.getTimestamp());
+                    if (--_limit == 0) {
+                        _interval.cancel();
+                    }
                 }
-            }).schedule((long)(((HandlerConfig.Timer)_config).interval * 1000f), true);
+            }).schedule((long)(config.interval * 1000f), true);
         }
 
         @Override // documentation inherited
@@ -75,6 +80,9 @@ public abstract class HandlerLogic extends Logic
         {
             _interval.cancel();
         }
+
+        /** The number of times remaining to fire. */
+        protected int _limit;
 
         /** The timer interval. */
         protected Interval _interval;
@@ -88,10 +96,15 @@ public abstract class HandlerLogic extends Logic
         @Override // documentation inherited
         public void signal (int timestamp, Logic source, String name)
         {
-            if (((HandlerConfig.Signal)_config).name.equals(name)) {
+            HandlerConfig.Signal config = (HandlerConfig.Signal)_config;
+            if (config.name.equals(name) && timestamp >= _minTimestamp) {
                 execute(timestamp, source);
+                _minTimestamp = Math.round(timestamp + config.refractoryPeriod * 1000f);
             }
         }
+
+        /** The earliest time at which we may execute. */
+        protected int _minTimestamp;
     }
 
     /**
@@ -103,7 +116,12 @@ public abstract class HandlerLogic extends Logic
         // documentation inherited from interface TudeySceneManager.Sensor
         public void trigger (ActorLogic actor)
         {
-            execute(_scenemgr.getTimestamp(), actor);
+            int timestamp = _scenemgr.getTimestamp();
+            if (timestamp >= _minTimestamp) {
+                execute(timestamp, actor);
+                _minTimestamp = Math.round(timestamp +
+                    ((HandlerConfig.Intersection)_config).refractoryPeriod * 1000f);
+            }
         }
 
         // documentation inherited from interface ShapeObserver
@@ -143,6 +161,16 @@ public abstract class HandlerLogic extends Logic
 
         /** The shape element in the sensor space. */
         protected ShapeElement _shape;
+
+        /** The earliest time at which we may execute. */
+        protected int _minTimestamp;
+    }
+
+    /**
+     * Handles the interaction event.
+     */
+    public static class Interaction extends HandlerLogic
+    {
     }
 
     /**

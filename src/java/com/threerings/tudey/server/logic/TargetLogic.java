@@ -59,7 +59,7 @@ public abstract class TargetLogic extends Logic
                 return;
             }
             int size = tagged.size();
-            if (size <= config.limit) {
+            if (config.limit == 0 || size <= config.limit) {
                 results.addAll(tagged);
             } else if (config.limit == 1) {
                 results.add(RandomUtil.pickRandom(tagged));
