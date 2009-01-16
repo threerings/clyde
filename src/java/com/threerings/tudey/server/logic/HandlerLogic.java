@@ -139,7 +139,7 @@ public abstract class HandlerLogic extends Logic
         super.init(scenemgr);
         _config = config;
         _source = source;
-        _action = (config.action == null) ? null : createAction(config.action, source);
+        _action = createAction(config.action, source);
 
         // give subclasses a chance to initialize
         didInit();
@@ -182,23 +182,21 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
-     * Executes the handler's action with no target.
+     * Executes the handler's action with the source as the activator.
      */
     protected void execute (int timestamp)
     {
-        execute(timestamp, null);
+        execute(timestamp, _source);
     }
 
     /**
      * Executes the handler's action.
      *
-     * @param target the target of the action, if any.
+     * @param activator the entity that triggered the action.
      */
-    protected void execute (int timestamp, ActorLogic target)
+    protected void execute (int timestamp, Logic activator)
     {
-        if (_action != null) {
-            _action.execute(timestamp, target);
-        }
+        _action.execute(timestamp, activator);
     }
 
     /** The handler configuration. */

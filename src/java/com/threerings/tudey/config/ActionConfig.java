@@ -17,9 +17,9 @@ import com.threerings.opengl.util.PreloadableSet;
  * Configurations for server-side actions.
  */
 @EditorTypes({
-    ActionConfig.SpawnActor.class, ActionConfig.FireEffect.class,
-    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
-    ActionConfig.DestroySource.class, ActionConfig.Compound.class })
+    ActionConfig.SpawnActor.class, ActionConfig.DestroyActor.class,
+    ActionConfig.FireEffect.class, ActionConfig.MoveBody.class,
+    ActionConfig.MoveAll.class, ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -31,6 +31,10 @@ public abstract class ActionConfig extends DeepObject
         /** The configuration of the actor to spawn. */
         @Editable(nullable=true)
         public ConfigReference<ActorConfig> actor;
+
+        /** The location at which to spawn the actor. */
+        @Editable
+        public TargetConfig location = new TargetConfig.Source();
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -50,6 +54,22 @@ public abstract class ActionConfig extends DeepObject
     }
 
     /**
+     * Destroys an actor.
+     */
+    public static class DestroyActor extends ActionConfig
+    {
+        /** The actor to destroy. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$DestroyActor";
+        }
+    }
+
+    /**
      * Fires an effect.
      */
     public static class FireEffect extends ActionConfig
@@ -57,6 +77,10 @@ public abstract class ActionConfig extends DeepObject
         /** The configuration of the effect to fire. */
         @Editable(nullable=true)
         public ConfigReference<EffectConfig> effect;
+
+        /** The location at which to fire the effect. */
+        @Editable
+        public TargetConfig location = new TargetConfig.Source();
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -88,10 +112,14 @@ public abstract class ActionConfig extends DeepObject
     }
 
     /**
-     * Moves the activating player to a new scene.
+     * Moves a player pawn to a new scene.
      */
     public static class MoveBody extends AbstractMove
     {
+        /** The pawn to move. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
@@ -108,18 +136,6 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$MoveAll";
-        }
-    }
-
-    /**
-     * Destroys the source of the action.
-     */
-    public static class DestroySource extends ActionConfig
-    {
-        @Override // documentation inherited
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.ActionLogic$DestroySource";
         }
     }
 

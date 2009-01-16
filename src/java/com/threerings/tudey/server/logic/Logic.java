@@ -7,6 +7,7 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.HandlerConfig;
+import com.threerings.tudey.config.TargetConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 
@@ -114,6 +115,22 @@ public abstract class Logic
     {
         // create the logic instance
         ActionLogic logic = (ActionLogic)_scenemgr.createLogic(config.getLogicClassName());
+        if (logic == null) {
+            return null;
+        }
+
+        // initialize, return the logic
+        logic.init(_scenemgr, config, source);
+        return logic;
+    }
+
+    /**
+     * Creates and returns a target logic object.
+     */
+    protected TargetLogic createTarget (TargetConfig config, Logic source)
+    {
+        // create the logic instance
+        TargetLogic logic = (TargetLogic)_scenemgr.createLogic(config.getLogicClassName());
         if (logic == null) {
             return null;
         }
