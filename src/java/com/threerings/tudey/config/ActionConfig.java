@@ -20,7 +20,7 @@ import com.threerings.opengl.util.PreloadableSet;
     ActionConfig.SpawnActor.class, ActionConfig.DestroyActor.class,
     ActionConfig.FireEffect.class, ActionConfig.Signal.class,
     ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
-    ActionConfig.Compound.class })
+    ActionConfig.Conditional.class, ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -157,6 +157,32 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$MoveAll";
+        }
+    }
+
+    /**
+     * Executes a sub-action if a condition is satisfied.
+     */
+    public static class Conditional extends ActionConfig
+    {
+        /** The condition that must be satisfied. */
+        @Editable
+        public ConditionConfig condition = new ConditionConfig.Tagged();
+
+        /** The action to take if the condition is satisfied. */
+        @Editable
+        public ActionConfig action = new ActionConfig.SpawnActor();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$Conditional";
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            action.getPreloads(cfgmgr, preloads);
         }
     }
 

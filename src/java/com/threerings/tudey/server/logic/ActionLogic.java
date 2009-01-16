@@ -213,6 +213,34 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a conditional action.
+     */
+    public static class Conditional extends ActionLogic
+    {
+        @Override // documentation inherited
+        public void execute (int timestamp, Logic activator)
+        {
+            if (_condition.isSatisfied(activator)) {
+                _action.execute(timestamp, activator);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ActionConfig.Conditional config = (ActionConfig.Conditional)_config;
+            _condition = createCondition(config.condition, _source);
+            _action = createAction(config.action, _source);
+        }
+
+        /** The condition to evaluate. */
+        protected ConditionLogic _condition;
+
+        /** The action to take if the condition is satisfied. */
+        protected ActionLogic _action;
+    }
+
+    /**
      * Handles a compound action.
      */
     public static class Compound extends ActionLogic

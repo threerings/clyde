@@ -78,7 +78,7 @@ public abstract class TargetConfig extends DeepObject
     }
 
     /**
-     * Returns the name of the server-side logic class for this action.
+     * Returns the name of the server-side logic class for this target.
      */
     public abstract String getLogicClassName ();
 }
