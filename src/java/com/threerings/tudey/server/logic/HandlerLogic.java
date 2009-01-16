@@ -81,6 +81,20 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
+     * Handles a signal event.
+     */
+    public static class Signal extends HandlerLogic
+    {
+        @Override // documentation inherited
+        public void signal (int timestamp, Logic source, String name)
+        {
+            if (((HandlerConfig.Signal)_config).name.equals(name)) {
+                execute(timestamp, source);
+            }
+        }
+    }
+
+    /**
      * Handles the intersection event.
      */
     public static class Intersection extends HandlerLogic

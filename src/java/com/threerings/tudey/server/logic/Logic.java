@@ -93,6 +93,17 @@ public abstract class Logic
     }
 
     /**
+     * Sends a generic "signal" to the logic.
+     *
+     * @param timestamp the signal timestamp.
+     * @param source the source of the signal.
+     */
+    public void signal (int timestamp, Logic source, String name)
+    {
+        // nothing by default
+    }
+
+    /**
      * Creates a handler with the supplied configuration and source.
      */
     protected HandlerLogic createHandler (HandlerConfig config, Logic source)

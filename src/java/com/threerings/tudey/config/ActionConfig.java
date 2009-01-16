@@ -18,8 +18,9 @@ import com.threerings.opengl.util.PreloadableSet;
  */
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.DestroyActor.class,
-    ActionConfig.FireEffect.class, ActionConfig.MoveBody.class,
-    ActionConfig.MoveAll.class, ActionConfig.Compound.class })
+    ActionConfig.FireEffect.class, ActionConfig.Signal.class,
+    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
+    ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -96,6 +97,26 @@ public abstract class ActionConfig extends DeepObject
             if (original != null) {
                 original.getPreloads(cfgmgr, preloads);
             }
+        }
+    }
+
+    /**
+     * Transmits a signal.
+     */
+    public static class Signal extends ActionConfig
+    {
+        /** The signal name. */
+        @Editable
+        public String name = "";
+
+        /** The signal target. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$Signal";
         }
     }
 

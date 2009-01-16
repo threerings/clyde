@@ -140,6 +140,14 @@ public class ActorLogic extends Logic
         _shapeObservers.remove(observer);
     }
 
+    @Override // documentation inherited
+    public void signal (int timestamp, Logic source, String name)
+    {
+        for (HandlerLogic handler : _handlers) {
+            handler.signal(timestamp, source, name);
+        }
+    }
+
     /**
      * Creates the actor object.
      */

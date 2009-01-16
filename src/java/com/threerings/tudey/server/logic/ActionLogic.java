@@ -116,6 +116,32 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a signal action.
+     */
+    public static class Signal extends ActionLogic
+    {
+        @Override // documentation inherited
+        public void execute (int timestamp, Logic activator)
+        {
+            String name = ((ActionConfig.Signal)_config).name;
+            _target.resolve(activator, _targets);
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                _targets.get(ii).signal(timestamp, _source, name);
+            }
+            _targets.clear();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ActionConfig.Signal)_config).target, _source);
+        }
+
+        /** The target entity. */
+        protected TargetLogic _target;
+    }
+
+    /**
      * Superclass of the move logic classes.
      */
     public static abstract class AbstractMove extends ActionLogic

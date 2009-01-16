@@ -13,8 +13,8 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     HandlerConfig.Startup.class, HandlerConfig.Tick.class,
-    HandlerConfig.Timer.class, HandlerConfig.Intersection.class,
-    HandlerConfig.Interaction.class })
+    HandlerConfig.Timer.class, HandlerConfig.Signal.class,
+    HandlerConfig.Intersection.class, HandlerConfig.Interaction.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -55,6 +55,22 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Timer";
+        }
+    }
+
+    /**
+     * The signal event handler.
+     */
+    public static class Signal extends HandlerConfig
+    {
+        /** The name of the signal of interest. */
+        @Editable
+        public String name = "";
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$Signal";
         }
     }
 

@@ -89,6 +89,14 @@ public class EntryLogic extends Logic
         return _shape;
     }
 
+    @Override // documentation inherited
+    public void signal (int timestamp, Logic source, String name)
+    {
+        for (HandlerLogic handler : _handlers) {
+            handler.signal(timestamp, source, name);
+        }
+    }
+
     /**
      * Override to perform custom initialization.
      */
