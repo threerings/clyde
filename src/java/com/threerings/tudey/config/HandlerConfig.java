@@ -14,6 +14,7 @@ import com.threerings.util.DeepObject;
 @EditorTypes({
     HandlerConfig.Startup.class, HandlerConfig.Tick.class,
     HandlerConfig.Timer.class, HandlerConfig.Signal.class,
+    HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
     HandlerConfig.Intersection.class, HandlerConfig.Interaction.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
@@ -79,6 +80,38 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Signal";
+        }
+    }
+
+    /**
+     * The signal start event handler (fired on the first tick that a signal is received).
+     */
+    public static class SignalStart extends HandlerConfig
+    {
+        /** The name of the signal of interest. */
+        @Editable
+        public String name = "";
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$SignalStart";
+        }
+    }
+
+    /**
+     * The signal stop event handler (fired on the first tick that a signal stops being received).
+     */
+    public static class SignalStop extends HandlerConfig
+    {
+        /** The name of the signal of interest. */
+        @Editable
+        public String name = "";
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$SignalStop";
         }
     }
 

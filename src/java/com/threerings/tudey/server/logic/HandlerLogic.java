@@ -108,6 +108,98 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
+     * Handles a signal start event.
+     */
+    public static class SignalStart extends HandlerLogic
+        implements TudeySceneManager.TickParticipant
+    {
+        // documentation inherited from interface TudeySceneManager.TickParticipant
+        public boolean tick (int timestamp)
+        {
+            if (!(_receivedOnFrame || _receivedOnLastFrame)) {
+                _receiving = false;
+                return false;
+            }
+            _receivedOnLastFrame = _receivedOnFrame;
+            _receivedOnFrame = false;
+            return true;
+        }
+
+        @Override // documentation inherited
+        public void signal (int timestamp, Logic source, String name)
+        {
+            _receivedOnFrame = true;
+            if (_receiving) {
+                return;
+            }
+            _receiving = true;
+            execute(timestamp, source);
+            _scenemgr.addTickParticipant(this);
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            _scenemgr.removeTickParticipant(this);
+        }
+
+        /** Whether or not we're currently receiving the signal. */
+        protected boolean _receiving;
+
+        /** Whether or not we're received the signal on the current frame. */
+        protected boolean _receivedOnFrame;
+
+        /** Whether or not we received the signal on the last frame. */
+        protected boolean _receivedOnLastFrame;
+    }
+
+    /**
+     * Handles a signal stop event.
+     */
+    public static class SignalStop extends HandlerLogic
+        implements TudeySceneManager.TickParticipant
+    {
+        // documentation inherited from interface TudeySceneManager.TickParticipant
+        public boolean tick (int timestamp)
+        {
+            if (!(_receivedOnFrame || _receivedOnLastFrame)) {
+                _receiving = false;
+                execute(timestamp);
+                return false;
+            }
+            _receivedOnLastFrame = _receivedOnFrame;
+            _receivedOnFrame = false;
+            return true;
+        }
+
+        @Override // documentation inherited
+        public void signal (int timestamp, Logic source, String name)
+        {
+            _receivedOnFrame = true;
+            if (_receiving) {
+                return;
+            }
+            _receiving = true;
+            _scenemgr.addTickParticipant(this);
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            _scenemgr.removeTickParticipant(this);
+        }
+
+        /** Whether or not we're currently receiving the signal. */
+        protected boolean _receiving;
+
+        /** Whether or not we're received the signal on the current frame. */
+        protected boolean _receivedOnFrame;
+
+        /** Whether or not we received the signal on the last frame. */
+        protected boolean _receivedOnLastFrame;
+    }
+
+    /**
      * Handles the intersection event.
      */
     public static class Intersection extends HandlerLogic
