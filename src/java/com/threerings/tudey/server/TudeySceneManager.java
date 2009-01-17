@@ -79,16 +79,31 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * An interface for objects that should be notified when actors intersect them.
+     * Base interface for sensors.
      */
     public interface Sensor
     {
         /**
          * Triggers the sensor.
          *
+         * @param timestamp the timestamp of the intersection.
          * @param actor the logic object of the actor that triggered the sensor.
          */
-        public void trigger (ActorLogic actor);
+        public void trigger (int timestamp, ActorLogic actor);
+    }
+
+    /**
+     * An interface for objects that should be notified when actors intersect them.
+     */
+    public interface IntersectionSensor extends Sensor
+    {
+    }
+
+    /**
+     * An interface for objects that should be notified when actors interact with them.
+     */
+    public interface InteractionSensor extends Sensor
+    {
     }
 
     /**
@@ -313,13 +328,33 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Triggers any sensors intersecting the specified shape.
+     * Triggers any intersection sensors intersecting the specified shape.
      */
-    public void triggerSensors (Shape shape, ActorLogic actor)
+    public void triggerIntersectionSensors (int timestamp, Shape shape, ActorLogic actor)
+    {
+        triggerSensors(IntersectionSensor.class, timestamp, shape, actor);
+    }
+
+    /**
+     * Triggers any interaction sensors intersecting the specified shape.
+     */
+    public void triggerInteractionSensors (int timestamp, Shape shape, ActorLogic actor)
+    {
+        triggerSensors(InteractionSensor.class, timestamp, shape, actor);
+    }
+
+    /**
+     * Triggers any sensors of the specified type intersecting the specified shape.
+     */
+    public void triggerSensors (
+        Class<? extends Sensor> type, int timestamp, Shape shape, ActorLogic actor)
     {
         _sensorSpace.getIntersecting(shape, _elements);
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            ((Sensor)_elements.get(ii).getUserObject()).trigger(actor);
+            Sensor sensor = (Sensor)_elements.get(ii).getUserObject();
+            if (type.isInstance(sensor)) {
+                sensor.trigger(timestamp, actor);
+            }
         }
         _elements.clear();
     }

@@ -11,6 +11,7 @@ import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
+import com.threerings.tudey.space.HashSpace;
 
 /**
  * Handles the server-side processing for an event handler type.
@@ -200,27 +201,16 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
-     * Handles the intersection event.
+     * Base class for the various intersection-related handler logic classes.
      */
-    public static class Intersection extends HandlerLogic
-        implements TudeySceneManager.Sensor, ShapeObserver
+    public static abstract class BaseIntersection extends HandlerLogic
+        implements ShapeObserver
     {
-        // documentation inherited from interface TudeySceneManager.Sensor
-        public void trigger (ActorLogic actor)
-        {
-            int timestamp = _scenemgr.getTimestamp();
-            if (timestamp >= _minTimestamp) {
-                execute(timestamp, actor);
-                _minTimestamp = Math.round(timestamp +
-                    ((HandlerConfig.Intersection)_config).refractoryPeriod * 1000f);
-            }
-        }
-
         // documentation inherited from interface ShapeObserver
         public void shapeUpdated (Logic source)
         {
             Shape shape = _source.getShape();
-            float expansion = ((HandlerConfig.Intersection)_config).expansion;
+            float expansion = ((HandlerConfig.BaseIntersection)_config).expansion;
             _shape.setLocalShape(expansion == 0f ?
                 shape : shape.expand(expansion, _shape.getLocalShape()));
         }
@@ -232,7 +222,7 @@ public abstract class HandlerLogic extends Logic
             if (shape == null) {
                 return;
             }
-            float expansion = ((HandlerConfig.Intersection)_config).expansion;
+            float expansion = ((HandlerConfig.BaseIntersection)_config).expansion;
             if (expansion != 0f) {
                 shape = shape.expand(expansion);
             }
@@ -253,16 +243,63 @@ public abstract class HandlerLogic extends Logic
 
         /** The shape element in the sensor space. */
         protected ShapeElement _shape;
+    }
+
+    /**
+     * Handles the intersection event.
+     */
+    public static class Intersection extends BaseIntersection
+        implements TudeySceneManager.IntersectionSensor
+    {
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public void trigger (int timestamp, ActorLogic actor)
+        {
+            if (timestamp >= _minTimestamp) {
+                execute(timestamp, actor);
+                _minTimestamp = Math.round(timestamp +
+                    ((HandlerConfig.Intersection)_config).refractoryPeriod * 1000f);
+            }
+        }
 
         /** The earliest time at which we may execute. */
         protected int _minTimestamp;
     }
 
     /**
+     * Handles the intersection start event.
+     */
+    public static class IntersectionStart extends BaseIntersection
+        implements TudeySceneManager.IntersectionSensor
+    {
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public void trigger (int timestamp, ActorLogic actor)
+        {
+        }
+    }
+
+    /**
+     * Handles the intersection stop event.
+     */
+    public static class IntersectionStop extends BaseIntersection
+        implements TudeySceneManager.IntersectionSensor
+    {
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public void trigger (int timestamp, ActorLogic actor)
+        {
+        }
+    }
+
+    /**
      * Handles the interaction event.
      */
-    public static class Interaction extends HandlerLogic
+    public static class Interaction extends BaseIntersection
+        implements TudeySceneManager.InteractionSensor
     {
+        // documentation inherited from interface TudeySceneManager.InteractionSensor
+        public void trigger (int timestamp, ActorLogic actor)
+        {
+            execute(timestamp, actor);
+        }
     }
 
     /**

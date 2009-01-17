@@ -15,7 +15,8 @@ import com.threerings.util.DeepObject;
     HandlerConfig.Startup.class, HandlerConfig.Tick.class,
     HandlerConfig.Timer.class, HandlerConfig.Signal.class,
     HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
-    HandlerConfig.Intersection.class, HandlerConfig.Interaction.class })
+    HandlerConfig.Intersection.class, HandlerConfig.IntersectionStart.class,
+    HandlerConfig.IntersectionStop.class, HandlerConfig.Interaction.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -116,14 +117,20 @@ public abstract class HandlerConfig extends DeepObject
     }
 
     /**
-     * The intersection event handler.
+     * Base class for the various intersection-related handlers.
      */
-    public static class Intersection extends HandlerConfig
+    public static abstract class BaseIntersection extends HandlerConfig
     {
         /** The amount to expand the intersection shape. */
         @Editable(step=0.01, hgroup="e")
         public float expansion;
+    }
 
+    /**
+     * The intersection event handler.
+     */
+    public static class Intersection extends BaseIntersection
+    {
         /** The amount of time that must elapse between firings. */
         @Editable(min=0.0, step=0.1, hgroup="e")
         public float refractoryPeriod;
@@ -136,14 +143,34 @@ public abstract class HandlerConfig extends DeepObject
     }
 
     /**
+     * The intersection start event handler.
+     */
+    public static class IntersectionStart extends BaseIntersection
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$IntersectionStart";
+        }
+    }
+
+    /**
+     * The intersection stop event handler.
+     */
+    public static class IntersectionStop extends BaseIntersection
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$IntersectionStop";
+        }
+    }
+
+    /**
      * The interaction event handler.
      */
-    public static class Interaction extends HandlerConfig
+    public static class Interaction extends BaseIntersection
     {
-        /** The amount to expand the interaction shape. */
-        @Editable(step=0.01)
-        public float expansion;
-
         @Override // documentation inherited
         public String getLogicClassName ()
         {
