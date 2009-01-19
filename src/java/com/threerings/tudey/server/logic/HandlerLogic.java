@@ -3,6 +3,11 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Iterator;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
+
 import com.samskivert.util.Interval;
 
 import com.threerings.math.Vector2f;
@@ -109,33 +114,39 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
-     * Handles a signal start event.
+     * Base class for transition handlers.
      */
-    public static class SignalStart extends HandlerLogic
+    public static abstract class Transition extends HandlerLogic
         implements TudeySceneManager.TickParticipant
     {
+        /**
+         * Creates a new transition handler.
+         *
+         * @param start if true, execute the action on activation start.
+         * @param stop if true, execute the action on activation stop.
+         */
+        public Transition (boolean start, boolean stop)
+        {
+            _start = start;
+            _stop = stop;
+        }
+
         // documentation inherited from interface TudeySceneManager.TickParticipant
         public boolean tick (int timestamp)
         {
-            if (!(_receivedOnFrame || _receivedOnLastFrame)) {
-                _receiving = false;
-                return false;
+            for (Iterator<Map.Entry<Logic, Boolean>> it = _activated.entrySet().iterator();
+                    it.hasNext(); ) {
+                Map.Entry<Logic, Boolean> entry = it.next();
+                if (entry.getValue()) {
+                    entry.setValue(false);
+                } else {
+                    if (_stop) {
+                        execute(timestamp, entry.getKey());
+                    }
+                    it.remove();
+                }
             }
-            _receivedOnLastFrame = _receivedOnFrame;
-            _receivedOnFrame = false;
-            return true;
-        }
-
-        @Override // documentation inherited
-        public void signal (int timestamp, Logic source, String name)
-        {
-            _receivedOnFrame = true;
-            if (_receiving) {
-                return;
-            }
-            _receiving = true;
-            execute(timestamp, source);
-            _scenemgr.addTickParticipant(this);
+            return !_activated.isEmpty();
         }
 
         @Override // documentation inherited
@@ -144,68 +155,88 @@ public abstract class HandlerLogic extends Logic
             _scenemgr.removeTickParticipant(this);
         }
 
-        /** Whether or not we're currently receiving the signal. */
-        protected boolean _receiving;
+        /**
+         * Notes that the source has been activated.
+         */
+        protected void activate (int timestamp, Logic source)
+        {
+            Boolean value = _activated.get(source);
+            if (value == null) {
+                if (_activated.isEmpty()) {
+                    _scenemgr.addTickParticipant(this);
+                }
+                if (_start) {
+                    execute(timestamp, source);
+                }
+            }
+            _activated.put(source, true);
+        }
 
-        /** Whether or not we're received the signal on the current frame. */
-        protected boolean _receivedOnFrame;
+        /** Whether or not to execute the action on start/stop. */
+        protected boolean _start, _stop;
 
-        /** Whether or not we received the signal on the last frame. */
-        protected boolean _receivedOnLastFrame;
+        /** Whether or not each activator has activated on the current tick. */
+        protected Map<Logic, Boolean> _activated = Maps.newIdentityHashMap();
+    }
+
+    /**
+     * Handles a signal start event.
+     */
+    public static class SignalStart extends Transition
+    {
+        /**
+         * Creates a signal start handler.
+         */
+        public SignalStart ()
+        {
+            super(true, false);
+        }
+
+        @Override // documentation inherited
+        public void signal (int timestamp, Logic source, String name)
+        {
+            if (((HandlerConfig.SignalStart)_config).name.equals(name)) {
+                activate(timestamp, source);
+            }
+        }
     }
 
     /**
      * Handles a signal stop event.
      */
-    public static class SignalStop extends HandlerLogic
-        implements TudeySceneManager.TickParticipant
+    public static class SignalStop extends Transition
     {
-        // documentation inherited from interface TudeySceneManager.TickParticipant
-        public boolean tick (int timestamp)
+        /**
+         * Creates a signal stop handler.
+         */
+        public SignalStop ()
         {
-            if (!(_receivedOnFrame || _receivedOnLastFrame)) {
-                _receiving = false;
-                execute(timestamp);
-                return false;
-            }
-            _receivedOnLastFrame = _receivedOnFrame;
-            _receivedOnFrame = false;
-            return true;
+            super(false, true);
         }
 
         @Override // documentation inherited
         public void signal (int timestamp, Logic source, String name)
         {
-            _receivedOnFrame = true;
-            if (_receiving) {
-                return;
+            if (((HandlerConfig.SignalStop)_config).name.equals(name)) {
+                activate(timestamp, source);
             }
-            _receiving = true;
-            _scenemgr.addTickParticipant(this);
         }
-
-        @Override // documentation inherited
-        protected void wasRemoved ()
-        {
-            _scenemgr.removeTickParticipant(this);
-        }
-
-        /** Whether or not we're currently receiving the signal. */
-        protected boolean _receiving;
-
-        /** Whether or not we're received the signal on the current frame. */
-        protected boolean _receivedOnFrame;
-
-        /** Whether or not we received the signal on the last frame. */
-        protected boolean _receivedOnLastFrame;
     }
 
     /**
      * Base class for the various intersection-related handler logic classes.
      */
-    public static abstract class BaseIntersection extends HandlerLogic
+    public static abstract class BaseIntersection extends Transition
         implements ShapeObserver
     {
+        /**
+         * Base intersection constructor.
+         */
+        public BaseIntersection (boolean start, boolean stop)
+        {
+            super(start, stop);
+        }
+
         // documentation inherited from interface ShapeObserver
         public void shapeUpdated (Logic source)
         {
@@ -251,6 +282,14 @@ public abstract class HandlerLogic extends Logic
     public static class Intersection extends BaseIntersection
         implements TudeySceneManager.IntersectionSensor
     {
+        /**
+         * Creates a new intersection handler.
+         */
+        public Intersection ()
+        {
+            super(false, false);
+        }
+
         // documentation inherited from interface TudeySceneManager.IntersectionSensor
         public void trigger (int timestamp, ActorLogic actor)
         {
@@ -271,9 +310,18 @@ public abstract class HandlerLogic extends Logic
     public static class IntersectionStart extends BaseIntersection
         implements TudeySceneManager.IntersectionSensor
     {
+        /**
+         * Creates a new intersection start handler.
+         */
+        public IntersectionStart ()
+        {
+            super(true, false);
+        }
+
         // documentation inherited from interface TudeySceneManager.IntersectionSensor
         public void trigger (int timestamp, ActorLogic actor)
         {
+            activate(timestamp, actor);
         }
     }
 
@@ -283,9 +331,18 @@ public abstract class HandlerLogic extends Logic
     public static class IntersectionStop extends BaseIntersection
         implements TudeySceneManager.IntersectionSensor
     {
+        /**
+         * Creates a new intersection stop handler.
+         */
+        public IntersectionStop ()
+        {
+            super(false, true);
+        }
+
         // documentation inherited from interface TudeySceneManager.IntersectionSensor
         public void trigger (int timestamp, ActorLogic actor)
         {
+            activate(timestamp, actor);
         }
     }
 
@@ -295,6 +352,14 @@ public abstract class HandlerLogic extends Logic
     public static class Interaction extends BaseIntersection
         implements TudeySceneManager.InteractionSensor
     {
+        /**
+         * Creates a new interaction handler.
+         */
+        public Interaction ()
+        {
+            super(false, false);
+        }
+
         // documentation inherited from interface TudeySceneManager.InteractionSensor
         public void trigger (int timestamp, ActorLogic actor)
         {
