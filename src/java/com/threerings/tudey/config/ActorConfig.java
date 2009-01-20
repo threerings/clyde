@@ -88,8 +88,13 @@ public class ActorConfig extends ParameterizedConfig
         public HandlerConfig[] handlers = new HandlerConfig[0];
 
         /** Whether or not the actor should be used as a default entrance. */
-        @Editable
+        @Editable(hgroup="d")
         public boolean defaultEntrance;
+
+        /** Whether or not to adjust the actor's spawn point to avoid spawning on top of a
+         * colliding actor. */
+        @Editable(hgroup="d")
+        public boolean adjustSpawnPoint;
 
         /** Determines which collision categories the actor belongs to. */
         @Editable(hgroup="c")

@@ -27,7 +27,7 @@ public class MobileLogic extends ActorLogic
 
         // update the actor's shape, notify any sensors
         updateShape();
-        _scenemgr.triggerIntersectionSensors(timestamp, _shape.getWorldShape(), this);
+        _scenemgr.triggerIntersectionSensors(timestamp, this);
 
         return true;
     }

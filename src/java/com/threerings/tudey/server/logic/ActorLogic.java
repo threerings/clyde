@@ -36,6 +36,12 @@ public class ActorLogic extends Logic
         _shape = new ShapeElement(config.shape);
         _shape.setUserObject(this);
         updateShape();
+
+        // if specified, attempt to find a non-colliding spawn point
+        if (config.adjustSpawnPoint && scenemgr.collides(this)) {
+
+        }
+
         _scenemgr.getActorSpace().add(_shape);
 
         // create the handlers

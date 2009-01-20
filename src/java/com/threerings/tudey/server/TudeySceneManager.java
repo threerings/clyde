@@ -50,6 +50,7 @@ import com.threerings.tudey.server.logic.EffectLogic;
 import com.threerings.tudey.server.logic.EntryLogic;
 import com.threerings.tudey.server.logic.Logic;
 import com.threerings.tudey.server.logic.PawnLogic;
+import com.threerings.tudey.server.util.Pathfinder;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
@@ -330,9 +331,9 @@ public class TudeySceneManager extends SceneManager
     /**
      * Triggers any intersection sensors intersecting the specified shape.
      */
-    public void triggerIntersectionSensors (int timestamp, Shape shape, ActorLogic actor)
+    public void triggerIntersectionSensors (int timestamp, ActorLogic actor)
     {
-        triggerSensors(IntersectionSensor.class, timestamp, shape, actor);
+        triggerSensors(IntersectionSensor.class, timestamp, actor.getShape(), actor);
     }
 
     /**
@@ -357,6 +358,34 @@ public class TudeySceneManager extends SceneManager
             }
         }
         _elements.clear();
+    }
+
+    /**
+     * Determines whether the specified actor collides with anything in the environment.
+     */
+    public boolean collides (ActorLogic logic)
+    {
+        // check the scene model
+        Actor actor = logic.getActor();
+        Shape shape = logic.getShape();
+        if (((TudeySceneModel)_scene.getSceneModel()).collides(actor, shape)) {
+            return true;
+        }
+
+        // look for intersecting elements
+        _actorSpace.getIntersecting(shape, _elements);
+        try {
+            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+                SpaceElement element = _elements.get(ii);
+                Actor oactor = ((ActorLogic)element.getUserObject()).getActor();
+                if (actor.canCollide(oactor)) {
+                    return true;
+                }
+            }
+        } finally {
+            _elements.clear();
+        }
+        return false;
     }
 
     /**
@@ -564,6 +593,9 @@ public class TudeySceneManager extends SceneManager
         }
         sceneModel.addObserver(this);
 
+        // create the pathfinder
+        _pathfinder = new Pathfinder(this);
+
         // register and fill in our tudey scene service
         _tsobj.setTudeySceneService(_invmgr.registerDispatcher(new TudeySceneDispatcher(this)));
 
@@ -590,6 +622,10 @@ public class TudeySceneManager extends SceneManager
 
         // clear out the scene service
         _invmgr.clearDispatcher(_tsobj.tudeySceneService);
+
+        // shut down the pathfinder
+        _pathfinder.shutdown();
+        _pathfinder = null;
 
         // stop listening to the scene model
         ((TudeySceneModel)_scene.getSceneModel()).removeObserver(this);
@@ -791,6 +827,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The logic objects corresponding to default entrances. */
     protected ArrayList<Logic> _defaultEntrances = Lists.newArrayList();
+
+    /** The pathfinder used for path computation. */
+    protected Pathfinder _pathfinder;
 
     /** The actor space.  Used to find the actors within a client's area of interest. */
     protected HashSpace _actorSpace = new HashSpace(64f, 6);
