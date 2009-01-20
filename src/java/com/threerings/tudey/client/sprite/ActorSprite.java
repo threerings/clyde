@@ -168,7 +168,6 @@ public class ActorSprite extends Sprite
             _idles = resolve(mconfig.idles);
             _idleWeights = mconfig.getIdleWeights();
             _movements = resolve(mconfig.movements);
-            _movements = new Animation[mconfig.movements.length][];
             _interact = _model.getAnimation(mconfig.interact);
         }
 
