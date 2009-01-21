@@ -87,6 +87,22 @@ public final class Rect
     }
 
     /**
+     * Returns the width of the rectangle.
+     */
+    public float getWidth ()
+    {
+        return _maxExtent.x - _minExtent.x;
+    }
+
+    /**
+     * Returns the height of the rectangle.
+     */
+    public float getHeight ()
+    {
+        return _maxExtent.y - _minExtent.y;
+    }
+
+    /**
      * Determines whether the rect is empty (whether any of its minima are greater than their
      * corresponding maxima).
      */

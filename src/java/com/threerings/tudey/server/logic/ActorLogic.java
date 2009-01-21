@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import com.samskivert.util.ObserverList;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
@@ -39,9 +40,8 @@ public class ActorLogic extends Logic
 
         // if specified, attempt to find a non-colliding spawn point
         if (config.adjustSpawnPoint && scenemgr.collides(this)) {
-
+            adjustSpawnPoint();
         }
-
         _scenemgr.getActorSpace().add(_shape);
 
         // create the handlers
@@ -181,6 +181,73 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Adjusts the initial location of the actor so as to avoid collisions.
+     */
+    protected void adjustSpawnPoint ()
+    {
+        // get the bounds with respect to the position
+        Rect bounds = _shape.getBounds();
+        float width = bounds.getWidth() + 0.01f, height = bounds.getHeight() + 0.01f;
+        Vector2f translation = _actor.getTranslation();
+        float ox = translation.x, oy = translation.y;
+
+        // test locations at increasing distances from the original
+        for (int dist = 1; dist <= MAX_ADJUSTMENT_DISTANCE; dist++) {
+            // loop counterclockwise around the center
+            float bottom = oy - dist*height;
+            for (int xx = -dist; xx <= +dist; xx++) {
+                if (testSpawnPoint(ox, oy, ox + xx*width, bottom)) {
+                    return;
+                }
+            }
+            float right = ox + dist*width;
+            for (int yy = 1 - dist, yymax = -yy; yy <= yymax; yy++) {
+                if (testSpawnPoint(ox, oy, right, oy + yy*height)) {
+                    return;
+                }
+            }
+            float top = oy + dist*height;
+            for (int xx = +dist; xx >= -dist; xx--) {
+                if (testSpawnPoint(ox, oy, ox + xx*width, top)) {
+                    return;
+                }
+            }
+            float left = ox - dist*width;
+            for (int yy = dist - 1, yymin = -yy; yy >= yymin; yy--) {
+                if (testSpawnPoint(ox, oy, left, oy + yy*height)) {
+                    return;
+                }
+            }
+        }
+
+        // if we exhaust our search, return to the original location
+        _actor.getTranslation().set(ox, oy);
+        updateShape();
+    }
+
+    /**
+     * Tests the specified location as an adjusted spawn point.
+     *
+     * @return true if the spawn point is viable (in which case the actor's translation
+     * will have been adjusted), false if not.
+     */
+    protected boolean testSpawnPoint (float ox, float oy, float nx, float ny)
+    {
+        // update the shape
+        _actor.getTranslation().set(nx, ny);
+        updateShape();
+
+        // check for collision
+        if (_scenemgr.collides(this)) {
+            return false;
+        }
+
+        // make sure we can reach the original translation, ignoring actors
+        return _scenemgr.getPathfinder().getEntryPath(
+            this, MAX_ADJUSTMENT_PATH_LENGTH, ox, oy, false) != null;
+    }
+
+    /**
      * Updates the shape transform based on the actor's position.
      */
     protected void updateShape ()
@@ -255,4 +322,10 @@ public class ActorLogic extends Logic
             return true;
         }
     };
+
+    /** The maximum number of steps away from the spawn point for adjustment. */
+    protected static final int MAX_ADJUSTMENT_DISTANCE = 4;
+
+    /** The maximum path length from the origin for adjustment. */
+    protected static final float MAX_ADJUSTMENT_PATH_LENGTH = 8f;
 }

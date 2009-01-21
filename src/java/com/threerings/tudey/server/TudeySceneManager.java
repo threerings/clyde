@@ -164,6 +164,14 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns a reference to the pathfinder object.
+     */
+    public Pathfinder getPathfinder ()
+    {
+        return _pathfinder;
+    }
+
+    /**
      * Spawns an actor with the named configuration.
      */
     public ActorLogic spawnActor (
@@ -828,14 +836,14 @@ public class TudeySceneManager extends SceneManager
     /** The logic objects corresponding to default entrances. */
     protected ArrayList<Logic> _defaultEntrances = Lists.newArrayList();
 
-    /** The pathfinder used for path computation. */
-    protected Pathfinder _pathfinder;
-
     /** The actor space.  Used to find the actors within a client's area of interest. */
     protected HashSpace _actorSpace = new HashSpace(64f, 6);
 
     /** The sensor space.  Used to detect mobile objects. */
     protected HashSpace _sensorSpace = new HashSpace(64f, 6);
+
+    /** The pathfinder used for path computation. */
+    protected Pathfinder _pathfinder;
 
     /** The logic for effects fired on the current tick. */
     protected ArrayList<EffectLogic> _effectsFired = Lists.newArrayList();
