@@ -89,6 +89,17 @@ public class Circle extends Shape
     }
 
     @Override // documentation inherited
+    public Shape sweep (Vector2f translation, Shape result)
+    {
+        Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+        cresult.getStart().set(_center);
+        _center.add(translation, cresult.getEnd());
+        cresult.radius = radius;
+        cresult.updateBounds();
+        return cresult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_center, radius, result);

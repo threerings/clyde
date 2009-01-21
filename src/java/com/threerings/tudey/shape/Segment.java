@@ -121,6 +121,29 @@ public class Segment extends Shape
     }
 
     @Override // documentation inherited
+    public Shape sweep (Vector2f translation, Shape result)
+    {
+        Polygon presult = (result instanceof Polygon) ? ((Polygon)result) : new Polygon(4);
+        if (presult.getVertexCount() != 4) {
+            presult.initVertices(4);
+        }
+        float cp = (_end.x - _start.x)*translation.y - (_end.y - _start.y)*translation.x;
+        if (cp >= 0f) {
+            presult.getVertex(0).set(_start);
+            presult.getVertex(1).set(_end);
+            _end.add(translation, presult.getVertex(2));
+            _start.add(translation, presult.getVertex(3));
+        } else {
+            _start.add(translation, presult.getVertex(0));
+            _end.add(translation, presult.getVertex(1));
+            presult.getVertex(2).set(_end);
+            presult.getVertex(3).set(_start);
+        }
+        presult.updateBounds();
+        return presult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_start, _end, result);

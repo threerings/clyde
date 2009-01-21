@@ -107,6 +107,25 @@ public abstract class Shape
     public abstract Shape expand (float amount, Shape result);
 
     /**
+     * Computes the shape created by sweeping this shape along the specified translation vector.
+     *
+     * @return a new shape containing the result.
+     */
+    public Shape sweep (Vector2f translation)
+    {
+        return sweep(translation, null);
+    }
+
+    /**
+     * Computes the shape created by sweeping this shape along the specified translation vector,
+     * placing the result in the provided object if possible.
+     *
+     * @return a reference to the result object, if it was reused; otherwise, a new object
+     * containing the result.
+     */
+    public abstract Shape sweep (Vector2f translation, Shape result);
+
+    /**
      * Finds the intersection of a ray with this shape and places it in the supplied vector
      * (if it exists).
      *

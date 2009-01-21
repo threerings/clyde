@@ -110,6 +110,21 @@ public class Compound extends Shape
     }
 
     @Override // documentation inherited
+    public Shape sweep (Vector2f translation, Shape result)
+    {
+        Compound cresult = (result instanceof Compound) ?
+            ((Compound)result) : new Compound(_shapes.length);
+        if (cresult.getShapeCount() != _shapes.length) {
+            cresult._shapes = new Shape[_shapes.length];
+        }
+        for (int ii = 0; ii < _shapes.length; ii++) {
+            cresult._shapes[ii] = _shapes[ii].sweep(translation, cresult._shapes[ii]);
+        }
+        cresult.updateBounds();
+        return cresult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         if (!_bounds.intersects(ray)) {

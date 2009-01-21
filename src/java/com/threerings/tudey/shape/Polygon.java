@@ -152,6 +152,13 @@ public class Polygon extends Shape
     }
 
     @Override // documentation inherited
+    public Shape sweep (Vector2f translation, Shape result)
+    {
+        // TODO: may require computing the convex hull
+        return new Polygon(_vertices);
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         // see if we start inside the polygon

@@ -126,6 +126,18 @@ public class Capsule extends Shape
     }
 
     @Override // documentation inherited
+    public Shape sweep (Vector2f translation, Shape result)
+    {
+        // TODO: not supported at present; would need rounded polygons
+        Capsule cresult = (result instanceof Capsule) ? ((Capsule)result) : new Capsule();
+        cresult.getStart().set(_start);
+        cresult.getEnd().set(_end);
+        cresult.radius = radius;
+        cresult.updateBounds();
+        return cresult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_start, _end, radius, result);

@@ -74,6 +74,16 @@ public class Point extends Shape
     }
 
     @Override // documentation inherited
+    public Shape sweep (Vector2f translation, Shape result)
+    {
+        Segment sresult = (result instanceof Segment) ? ((Segment)result) : new Segment();
+        sresult.getStart().set(_location);
+        _location.add(translation, sresult.getEnd());
+        sresult.updateBounds();
+        return sresult;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         boolean isect = ray.intersects(_location);
