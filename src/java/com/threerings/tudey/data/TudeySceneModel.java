@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.WeakHashMap;
 
 import com.google.common.collect.Maps;
@@ -1136,6 +1137,14 @@ public class TudeySceneModel extends SceneModel
     public CoordIntMap getCollisionFlags ()
     {
         return _collisionFlags;
+    }
+
+    /**
+     * Returns a reference to the map from entry key to space elements.
+     */
+    public Map<Object, SpaceElement> getElements ()
+    {
+        return _elements;
     }
 
     /**

@@ -158,6 +158,26 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
     }
 
     /**
+     * Stores the bitwise OR of the previous value and the specified bits at the specified
+     * coordinates.
+     *
+     * @return the previously stored value.
+     */
+    public int setBits (int x, int y, int bits)
+    {
+        _coord.set(x >> _granularity, y >> _granularity);
+        Cell cell = _cells.get(_coord);
+        if (cell == null) {
+            _cells.put((Coord)_coord.clone(), cell = new Cell());
+        }
+        int ovalue = cell.setBits(x & _mask, y & _mask, bits);
+        if (ovalue == _empty) {
+            _size++;
+        }
+        return ovalue;
+    }
+
+    /**
      * Removes the value at the specified coordinates.
      *
      * @return the previously stored value.
@@ -425,6 +445,24 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
             int idx = (y << _granularity) | x;
             int ovalue = _values[idx];
             _values[idx] = nvalue;
+            if (ovalue == _empty) {
+                _size++;
+            }
+            _modcount++;
+            return ovalue;
+        }
+
+        /**
+         * Sets the value at the specified coordinates to the bitwise OR of the previous
+         * value and the new value.
+         *
+         * @return the previously stored value.
+         */
+        public int setBits (int x, int y, int bits)
+        {
+            int idx = (y << _granularity) | x;
+            int ovalue = _values[idx];
+            _values[idx] |= bits;
             if (ovalue == _empty) {
                 _size++;
             }
