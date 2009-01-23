@@ -150,8 +150,8 @@ public class HashSpace extends Space
     @Override // documentation inherited
     public void boundsDidChange (SpaceElement element)
     {
-        super.boundsDidChange(element);
         addToSpatial(element);
+        super.boundsDidChange(element);
     }
 
     @Override // documentation inherited

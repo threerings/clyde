@@ -6,6 +6,7 @@ package com.threerings.tudey.space;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.samskivert.util.ObserverList;
 import com.samskivert.util.Predicate;
 
 import com.threerings.math.Ray2D;
@@ -20,6 +21,48 @@ import com.threerings.tudey.shape.Shape;
 public abstract class Space
 {
     /**
+     * Provides notification when elements are added, removed, or updated.
+     */
+    public interface Observer
+    {
+        /**
+         * Notes that an element has been added to the space.
+         */
+        public void elementAdded (SpaceElement element);
+
+        /**
+         * Notes that an element has been removed from the space.
+         */
+        public void elementRemoved (SpaceElement element);
+
+        /**
+         * Notes that an element's bounds are about to change.
+         */
+        public void elementBoundsWillChange (SpaceElement element);
+
+        /**
+         * Notes that an element's bounds have changed.
+         */
+        public void elementBoundsDidChange (SpaceElement element);
+    }
+
+    /**
+     * Adds an observer for element updates.
+     */
+    public void addObserver (Observer observer)
+    {
+        _observers.add(observer);
+    }
+
+    /**
+     * Removes an observer.
+     */
+    public void removeObserver (Observer observer)
+    {
+        _observers.remove(observer);
+    }
+
+    /**
      * Adds an element to this space.
      */
     public void add (SpaceElement element)
@@ -29,6 +72,10 @@ public abstract class Space
 
         // notify the element
         element.wasAdded(this);
+
+        // notify the observers
+        _elementAddedOp.init(element);
+        _observers.apply(_elementAddedOp);
     }
 
     /**
@@ -41,6 +88,10 @@ public abstract class Space
 
         // remove from spatial data structure
         removeFromSpatial(element);
+
+        // notify the observers
+        _elementRemovedOp.init(element);
+        _observers.apply(_elementRemovedOp);
     }
 
     /**
@@ -87,7 +138,9 @@ public abstract class Space
      */
     public void boundsWillChange (SpaceElement element)
     {
-        // nothing by default
+        // notify the observers
+        _elementBoundsWillChangeOp.init(element);
+        _observers.apply(_elementBoundsWillChangeOp);
     }
 
     /**
@@ -95,7 +148,9 @@ public abstract class Space
      */
     public void boundsDidChange (SpaceElement element)
     {
-        // nothing by default
+        // notify the observers
+        _elementBoundsDidChangeOp.init(element);
+        _observers.apply(_elementBoundsDidChangeOp);
     }
 
     /**
@@ -158,6 +213,59 @@ public abstract class Space
             }
         }
     }
+
+    /**
+     * Base class for element operations.
+     */
+    protected static abstract class ElementOp
+        implements ObserverList.ObserverOp<Observer>
+    {
+        /**
+         * (Re)initializes the operation.
+         */
+        public void init (SpaceElement element)
+        {
+            _element = element;
+        }
+
+        /** The affected element. */
+        protected SpaceElement _element;
+    }
+
+    /** Observers interested in element changes. */
+    protected ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
+
+    /** Notifies observers that an element has been added. */
+    protected ElementOp _elementAddedOp = new ElementOp() {
+        public boolean apply (Observer observer) {
+            observer.elementAdded(_element);
+            return true;
+        }
+    };
+
+    /** Notifies observers that an element has been removed. */
+    protected ElementOp _elementRemovedOp = new ElementOp() {
+        public boolean apply (Observer observer) {
+            observer.elementRemoved(_element);
+            return true;
+        }
+    };
+
+    /** Notifies observers that an element's bounds are about to change. */
+    protected ElementOp _elementBoundsWillChangeOp = new ElementOp() {
+        public boolean apply (Observer observer) {
+            observer.elementBoundsWillChange(_element);
+            return true;
+        }
+    };
+
+    /** Notifies observers that an element's bounds have changed. */
+    protected ElementOp _elementBoundsDidChangeOp = new ElementOp() {
+        public boolean apply (Observer observer) {
+            observer.elementBoundsDidChange(_element);
+            return true;
+        }
+    };
 
     /** Result vector for intersection testing. */
     protected Vector2f _result = new Vector2f();

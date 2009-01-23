@@ -73,6 +73,7 @@ import com.threerings.tudey.shape.Segment;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
+import com.threerings.tudey.space.Space;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.Coord;
@@ -1137,6 +1138,14 @@ public class TudeySceneModel extends SceneModel
     public CoordIntMap getCollisionFlags ()
     {
         return _collisionFlags;
+    }
+
+    /**
+     * Returns a reference to the space containing the (non-tile) entry elements.
+     */
+    public Space getSpace ()
+    {
+        return _space;
     }
 
     /**
