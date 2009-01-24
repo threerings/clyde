@@ -54,7 +54,9 @@ public abstract class BehaviorLogic extends Logic
         protected void changeDirection ()
         {
             _agent.stopMoving();
-            _agent.setTargetRotation(FloatMath.random(-FloatMath.PI, +FloatMath.PI));
+            float delta = ((BehaviorConfig.Wander)_config).directionChange.getValue();
+            _agent.setTargetRotation(FloatMath.normalizeAngle(
+                _agent.getActor().getRotation() + delta));
             _nextChange = Integer.MAX_VALUE;
         }
 
