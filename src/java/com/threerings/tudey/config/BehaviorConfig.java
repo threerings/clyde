@@ -6,6 +6,7 @@ package com.threerings.tudey.config;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
 
 /**
@@ -32,6 +33,10 @@ public abstract class BehaviorConfig extends DeepObject
      */
     public static class Wander extends BehaviorConfig
     {
+        /** The variable that determines how long we will travel between direction changes. */
+        @Editable
+        public FloatVariable directionChangeInterval = new FloatVariable.Uniform(1f, 2f);
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {

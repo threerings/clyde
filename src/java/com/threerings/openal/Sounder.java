@@ -157,7 +157,9 @@ public class Sounder extends SimpleScope
         @Override // documentation inherited
         public void update ()
         {
-            updateSoundTransform();
+            if (_sound != null) {
+                updateSoundTransform();
+            }
         }
 
         /**
@@ -165,12 +167,11 @@ public class Sounder extends SimpleScope
          */
         protected void updateSoundTransform ()
         {
-            _transform.update(Transform3D.RIGID);
-            Vector3f translation = _transform.getTranslation();
-            _sound.setPosition(translation.x, translation.y, translation.z);
+            _transform.extractTranslation(_vector);
+            _sound.setPosition(_vector.x, _vector.y, _vector.z);
             if (_config.directional) {
-                _transform.getRotation().transformUnitX(_direction);
-                _sound.setDirection(_direction.x, _direction.y, _direction.z);
+                _transform.transformVector(Vector3f.UNIT_X, _vector).normalizeLocal();
+                _sound.setDirection(_vector.x, _vector.y, _vector.z);
             }
         }
 
@@ -180,8 +181,8 @@ public class Sounder extends SimpleScope
         /** The sound. */
         protected Sound _sound;
 
-        /** Holds the direction vector. */
-        protected Vector3f _direction = new Vector3f();
+        /** A result vector for computation. */
+        protected Vector3f _vector = new Vector3f();
     }
 
     /**

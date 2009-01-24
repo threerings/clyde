@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.server.logic;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.BehaviorConfig;
@@ -25,6 +26,40 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Wander extends BehaviorLogic
     {
+        @Override // documentation inherited
+        public void tick (int timestamp)
+        {
+            if (timestamp >= _nextChange) {
+                changeDirection();
+            }
+        }
+
+        @Override // documentation inherited
+        public void reachedTargetRotation ()
+        {
+            _agent.startMoving();
+            _nextChange = _scenemgr.getTimestamp() +
+                (int)(((BehaviorConfig.Wander)_config).directionChangeInterval.getValue() * 1000f);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            changeDirection();
+        }
+
+        /**
+         * Changes the direction of the agent.
+         */
+        protected void changeDirection ()
+        {
+            _agent.stopMoving();
+            _agent.setTargetRotation(FloatMath.random(-FloatMath.PI, +FloatMath.PI));
+            _nextChange = Integer.MAX_VALUE;
+        }
+
+        /** The time at which we should next change directions. */
+        protected int _nextChange;
     }
 
     /**
@@ -44,6 +79,14 @@ public abstract class BehaviorLogic extends Logic
      * Ticks the behavior.
      */
     public void tick (int timestamp)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Notifies the behavior that the agent has reached its target rotation.
+     */
+    public void reachedTargetRotation ()
     {
         // nothing by default
     }

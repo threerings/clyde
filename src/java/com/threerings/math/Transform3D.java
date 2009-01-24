@@ -641,6 +641,37 @@ public final class Transform3D
     }
 
     /**
+     * Extracts the translation component of the transform.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector3f extractTranslation ()
+    {
+        return extractTranslation(new Vector3f());
+    }
+
+    /**
+     * Extracts the translation component of the transform and places it in the provided result
+     * vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector3f extractTranslation (Vector3f result)
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+                return result.set(Vector3f.ZERO);
+            case RIGID:
+            case UNIFORM:
+                return result.set(_translation);
+            case AFFINE:
+            case GENERAL:
+                return result.set(_matrix.m30, _matrix.m31, _matrix.m32);
+        }
+    }
+
+    /**
      * Extracts an approximation of the uniform scale from this transform.
      */
     public float approximateUniformScale ()

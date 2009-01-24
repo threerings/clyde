@@ -207,7 +207,7 @@ public class TudeySceneManager extends SceneManager
         }
 
         // create the logic object
-        final ActorLogic logic = (ActorLogic)createLogic(original.getLogicClassName());
+        ActorLogic logic = (ActorLogic)createLogic(original.getLogicClassName());
         if (logic == null) {
             return null;
         }
@@ -328,7 +328,7 @@ public class TudeySceneManager extends SceneManager
      */
     public void removeActorLogic (int id)
     {
-        final ActorLogic logic = _actors.remove(id);
+        ActorLogic logic = _actors.remove(id);
         if (logic == null) {
             log.warning("Missing actor to remove.", "where", where(), "id", id);
             return;

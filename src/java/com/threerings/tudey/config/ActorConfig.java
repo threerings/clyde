@@ -11,6 +11,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
@@ -184,6 +185,14 @@ public class ActorConfig extends ParameterizedConfig
      */
     public static class Agent extends Mobile
     {
+        /** The agent's turn rate. */
+        @Editable(min=0.0, scale=Math.PI/180.0)
+        public float turnRate = FloatMath.PI;
+
+        /** The shape that represents what the agent can see. */
+        @Editable
+        public ShapeConfig viewShape = new ShapeConfig.Point();
+
         /** The agent's behavior. */
         @Editable
         public BehaviorConfig behavior = new BehaviorConfig.Idle();
