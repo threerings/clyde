@@ -396,7 +396,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public float getRotation (ConfigManager cfgmgr)
         {
-            return rotation * FloatMath.HALF_PI;
+            return FloatMath.normalizeAngle((rotation - 1) * FloatMath.HALF_PI);
         }
 
         @Override // documentation inherited
@@ -646,7 +646,8 @@ public class TudeySceneModel extends SceneModel
         public float getRotation (ConfigManager cfgmgr)
         {
             transform.update(Transform3D.RIGID);
-            return transform.getRotation().getRotationZ();
+            return FloatMath.normalizeAngle(
+                transform.getRotation().getRotationZ() - FloatMath.HALF_PI);
         }
 
         @Override // documentation inherited

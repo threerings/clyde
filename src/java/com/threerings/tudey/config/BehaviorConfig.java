@@ -13,7 +13,9 @@ import com.threerings.util.DeepObject;
 /**
  * Configurations for agent behavior.
  */
-@EditorTypes({ BehaviorConfig.Idle.class, BehaviorConfig.Wander.class })
+@EditorTypes({
+    BehaviorConfig.Idle.class, BehaviorConfig.Wander.class,
+    BehaviorConfig.Patrol.class })
 public abstract class BehaviorConfig extends DeepObject
     implements Exportable
 {
@@ -47,6 +49,18 @@ public abstract class BehaviorConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Wander";
+        }
+    }
+
+    /**
+     * Patrols a path, area, etc.
+     */
+    public static class Patrol extends BehaviorConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$Patrol";
         }
     }
 

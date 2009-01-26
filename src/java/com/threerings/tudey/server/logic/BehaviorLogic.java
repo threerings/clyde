@@ -43,6 +43,20 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void penetrated (Vector2f penetration)
+        {
+            // change the direction, using the reflected direction as a base
+            float rotation = FloatMath.normalizeAngle(
+                _agent.getActor().getRotation() + FloatMath.PI);
+            if (penetration.length() > FloatMath.EPSILON) {
+                float angle = FloatMath.atan2(penetration.y, penetration.x);
+                rotation = FloatMath.normalizeAngle(
+                    angle - FloatMath.getAngularDifference(rotation, angle));
+            }
+            changeDirection(rotation);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             changeDirection();
@@ -53,15 +67,31 @@ public abstract class BehaviorLogic extends Logic
          */
         protected void changeDirection ()
         {
+            changeDirection(_agent.getActor().getRotation());
+        }
+
+        /**
+         * Changes the direction of the agent.
+         *
+         * @param rotation the rotation to use as a base.
+         */
+        protected void changeDirection (float rotation)
+        {
             _agent.stopMoving();
             float delta = ((BehaviorConfig.Wander)_config).directionChange.getValue();
-            _agent.setTargetRotation(FloatMath.normalizeAngle(
-                _agent.getActor().getRotation() + delta));
+            _agent.setTargetRotation(FloatMath.normalizeAngle(rotation + delta));
             _nextChange = Integer.MAX_VALUE;
         }
 
         /** The time at which we should next change directions. */
         protected int _nextChange;
+    }
+
+    /**
+     * Handles the patrol behavior.
+     */
+    public static class Patrol extends BehaviorLogic
+    {
     }
 
     /**
@@ -89,6 +119,16 @@ public abstract class BehaviorLogic extends Logic
      * Notifies the behavior that the agent has reached its target rotation.
      */
     public void reachedTargetRotation ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Notifies the behavior that the agent has penetrated its environment during advancement.
+     *
+     * @param penetration the sum penetration vector.
+     */
+    public void penetrated (Vector2f penetration)
     {
         // nothing by default
     }

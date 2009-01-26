@@ -4,6 +4,7 @@
 package com.threerings.tudey.server.logic;
 
 import com.threerings.math.FloatMath;
+import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Mobile;
@@ -88,6 +89,13 @@ public class AgentLogic extends MobileLogic
             _behavior = new BehaviorLogic.Idle();
         }
         _behavior.init(_scenemgr, aconfig.behavior, this);
+    }
+
+    @Override // documentation inherited
+    protected void penetrated (Vector2f penetration)
+    {
+        // notify the behavior
+        _behavior.penetrated(penetration);
     }
 
     /**
