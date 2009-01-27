@@ -45,6 +45,10 @@ public abstract class BehaviorConfig extends DeepObject
         public FloatVariable directionChange =
             new FloatVariable.Uniform(-FloatMath.PI, +FloatMath.PI);
 
+        /** The radius from the origin within which we may wander. */
+        @Editable(min=0.0, step=0.1)
+        public float radius = 100f;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {

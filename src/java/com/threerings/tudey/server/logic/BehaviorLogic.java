@@ -29,6 +29,15 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         public void tick (int timestamp)
         {
+            // if we have exceeded the radius and are moving away from the origin, change direction
+            Vector2f trans = _agent.getTranslation();
+            if (trans.distance(_origin) > ((BehaviorConfig.Wander)_config).radius) {
+                float angle = FloatMath.atan2(_origin.y - trans.y, _origin.x - trans.x);
+                float rotation = _agent.getActor().getRotation();
+                if (FloatMath.getAngularDistance(angle, rotation) > FloatMath.HALF_PI) {
+                    changeDirection(angle);
+                }
+            }
             if (timestamp >= _nextChange) {
                 changeDirection();
             }
@@ -59,6 +68,7 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            _origin.set(_agent.getTranslation());
             changeDirection();
         }
 
@@ -79,9 +89,12 @@ public abstract class BehaviorLogic extends Logic
         {
             _agent.stopMoving();
             float delta = ((BehaviorConfig.Wander)_config).directionChange.getValue();
-            _agent.setTargetRotation(FloatMath.normalizeAngle(rotation + delta));
             _nextChange = Integer.MAX_VALUE;
+            _agent.setTargetRotation(FloatMath.normalizeAngle(rotation + delta));
         }
+
+        /** The translation of the actor when initialized. */
+        protected Vector2f _origin = new Vector2f();
 
         /** The time at which we should next change directions. */
         protected int _nextChange;
