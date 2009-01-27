@@ -28,7 +28,7 @@ public class MobileLogic extends ActorLogic
 
         // note and clear penetration
         if (_penetrationCount > 0) {
-            penetrated(_penetrationSum.multLocal(1f / _penetrationCount));
+            penetratedEnvironment(_penetrationSum.multLocal(1f / _penetrationCount));
             _penetrationCount = 0;
             _penetrationSum.set(Vector2f.ZERO);
         }
@@ -92,7 +92,7 @@ public class MobileLogic extends ActorLogic
      *
      * @param penetration the sum of the penetration vectors.
      */
-    protected void penetrated (Vector2f penetration)
+    protected void penetratedEnvironment (Vector2f penetration)
     {
         // nothing by default
     }

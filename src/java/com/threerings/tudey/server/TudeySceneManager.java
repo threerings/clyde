@@ -108,6 +108,22 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns the number of ticks per second.
+     */
+    public int getTicksPerSecond ()
+    {
+        return 1000 / getTickInterval();
+    }
+
+    /**
+     * Returns the interval at which we call the {@link #tick} method.
+     */
+    public int getTickInterval ()
+    {
+        return 50;
+    }
+
+    /**
      * Returns a reference to the configuration manager for the scene.
      */
     public ConfigManager getConfigManager ()
@@ -656,14 +672,6 @@ public class TudeySceneManager extends SceneManager
 
         // remove the client liaison
         _clients.remove(bodyOid);
-    }
-
-    /**
-     * Returns the interval at which we call the {@link #tick} method.
-     */
-    protected int getTickInterval ()
-    {
-        return 50;
     }
 
     /**

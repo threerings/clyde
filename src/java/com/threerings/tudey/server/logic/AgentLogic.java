@@ -96,10 +96,10 @@ public class AgentLogic extends MobileLogic
     }
 
     @Override // documentation inherited
-    protected void penetrated (Vector2f penetration)
+    protected void penetratedEnvironment (Vector2f penetration)
     {
         // notify the behavior
-        _behavior.penetrated(penetration);
+        _behavior.penetratedEnvironment(penetration);
     }
 
     /**

@@ -61,6 +61,10 @@ public abstract class BehaviorConfig extends DeepObject
      */
     public static class Patrol extends BehaviorConfig
     {
+        /** The tag identifying the path (etc.) to patrol. */
+        @Editable
+        public String tag = "";
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {

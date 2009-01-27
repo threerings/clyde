@@ -3,10 +3,14 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.ArrayList;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.BehaviorConfig;
+import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.server.TudeySceneManager;
 
 /**
@@ -30,8 +34,10 @@ public abstract class BehaviorLogic extends Logic
         public void tick (int timestamp)
         {
             // if we have exceeded the radius and are moving away from the origin, change direction
+            Actor actor = _agent.getActor();
             Vector2f trans = _agent.getTranslation();
-            if (trans.distance(_origin) > ((BehaviorConfig.Wander)_config).radius) {
+            if (actor.isSet(Mobile.MOVING) &&
+                    trans.distance(_origin) > ((BehaviorConfig.Wander)_config).radius) {
                 float angle = FloatMath.atan2(_origin.y - trans.y, _origin.x - trans.x);
                 float rotation = _agent.getActor().getRotation();
                 if (FloatMath.getAngularDistance(angle, rotation) > FloatMath.HALF_PI) {
@@ -52,7 +58,7 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void penetrated (Vector2f penetration)
+        public void penetratedEnvironment (Vector2f penetration)
         {
             // change the direction, using the reflected direction as a base
             float rotation = FloatMath.normalizeAngle(
@@ -101,10 +107,114 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Base class for behaviors that involve following paths.
+     */
+    public static abstract class Pathing extends BehaviorLogic
+    {
+        @Override // documentation inherited
+        public void tick (int timestamp)
+        {
+            if (_path == null) {
+                return; // nothing to do
+            }
+            // see if we've reached the current node
+            Vector2f trans = _agent.getTranslation();
+            Vector2f node = _path[_pidx];
+            if (trans.distance(node) < getReachRadius()) {
+                if (++_pidx == _path.length) {
+                    _agent.stopMoving();
+                    _path = null;
+                    completedPath();
+                    return;
+                }
+                node = _path[_pidx];
+            }
+        }
+
+        /**
+         * Sets the path to follow.
+         */
+        protected void setPath (Vector2f[] path)
+        {
+            _path = path;
+            _pidx = 0;
+        }
+
+        /**
+         * Returns the radius within which we can be consider ourselves to have reached a node
+         * (which depends on the actor's speed, since it's possible to overshoot).
+         */
+        protected float getReachRadius ()
+        {
+            // 1.25x the distance we can travel in a single tick
+            float speed = ((Mobile)_agent.getActor()).getSpeed();
+            return 1.25f * speed / _scenemgr.getTicksPerSecond();
+        }
+
+        /**
+         * Called when we reach each waypoint.
+         */
+        protected void reachedWaypoint (int idx)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Called when we complete the set path.
+         */
+        protected void completedPath ()
+        {
+            // nothing by default
+        }
+
+        /** The waypoints of the path being followed. */
+        protected Vector2f[] _path;
+
+        /** The index of the next point on the path. */
+        protected int _pidx;
+    }
+
+    /**
      * Handles the patrol behavior.
      */
     public static class Patrol extends BehaviorLogic
     {
+        @Override // documentation inherited
+        public void tick (int timestamp)
+        {
+
+        }
+
+        @Override // documentation inherited
+        public void reachedTargetRotation ()
+        {
+            _agent.startMoving();
+        }
+
+        @Override // documentation inherited
+        public void penetratedEnvironment (Vector2f penetration)
+        {
+            _agent.stopMoving();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            evaluate();
+        }
+
+        /**
+         * (Re)evaluates.
+         */
+        protected void evaluate ()
+        {
+            String tag = ((BehaviorConfig.Patrol)_config).tag;
+            ArrayList<Logic> tagged = _scenemgr.getTagged(tag);
+            for (int ii = 0, nn = tagged.size(); ii < nn; ii++) {
+                Logic logic = tagged.get(ii);
+
+            }
+        }
     }
 
     /**
@@ -141,7 +251,7 @@ public abstract class BehaviorLogic extends Logic
      *
      * @param penetration the sum penetration vector.
      */
-    public void penetrated (Vector2f penetration)
+    public void penetratedEnvironment (Vector2f penetration)
     {
         // nothing by default
     }
