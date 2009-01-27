@@ -117,17 +117,29 @@ public abstract class BehaviorLogic extends Logic
             if (_path == null) {
                 return; // nothing to do
             }
-            // see if we've reached the current node
+            // see if we've reached the current node (looping around in case the notification
+            // sets us on a new path)
             Vector2f trans = _agent.getTranslation();
-            Vector2f node = _path[_pidx];
-            if (trans.distance(node) < getReachRadius()) {
+            while (_path[_pidx].distance(trans) <= getReachRadius()) {
                 if (++_pidx == _path.length) {
                     _agent.stopMoving();
                     _path = null;
                     completedPath();
+                } else {
+                    reachedPathIndex(_pidx - 1);
+                }
+                if (_path == null) {
                     return;
                 }
-                node = _path[_pidx];
+            }
+            // make sure we're facing the right direction
+            Vector2f node = _path[_pidx];
+            float rot = FloatMath.atan2(node.y - trans.y, node.x - trans.x);
+            if (_agent.getRotation() != rot) {
+                _agent.stopMoving();
+                _agent.setTargetRotation(rot);
+            } else {
+                _agent.startMoving();
             }
         }
 
@@ -146,15 +158,16 @@ public abstract class BehaviorLogic extends Logic
          */
         protected float getReachRadius ()
         {
-            // 1.25x the distance we can travel in a single tick
+            // radius is the distance we can travel in a single tick
             float speed = ((Mobile)_agent.getActor()).getSpeed();
-            return 1.25f * speed / _scenemgr.getTicksPerSecond();
+            return speed / _scenemgr.getTicksPerSecond();
         }
 
         /**
-         * Called when we reach each waypoint.
+         * Called when we reach each node in the path (except for the last one, for which we call
+         * {@link #completedPath}.
          */
-        protected void reachedWaypoint (int idx)
+        protected void reachedPathIndex (int idx)
         {
             // nothing by default
         }
@@ -175,14 +188,22 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Handles the follow behavior.
+     */
+    public static class Follow extends Pathing
+    {
+
+    }
+
+    /**
      * Handles the patrol behavior.
      */
-    public static class Patrol extends BehaviorLogic
+    public static class Patrol extends Pathing
     {
         @Override // documentation inherited
         public void tick (int timestamp)
         {
-
+            super.tick(timestamp);
         }
 
         @Override // documentation inherited

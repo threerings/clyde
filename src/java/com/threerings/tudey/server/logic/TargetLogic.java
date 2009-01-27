@@ -55,18 +55,163 @@ public abstract class TargetLogic extends Logic
         {
             TargetConfig.Tagged config = (TargetConfig.Tagged)_config;
             ArrayList<Logic> tagged = _scenemgr.getTagged(config.tag);
-            if (tagged == null) {
-                return;
-            }
-            int size = tagged.size();
-            if (config.limit == 0 || size <= config.limit) {
+            if (tagged != null) {
                 results.addAll(tagged);
-            } else if (config.limit == 1) {
-                results.add(RandomUtil.pickRandom(tagged));
-            } else {
-                results.addAll(CollectionUtil.selectRandomSubset(tagged, config.limit));
             }
         }
+    }
+
+    /**
+     * Refers to the entities intersecting a reference entity.
+     */
+    public static class Intersecting extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            TargetConfig.Intersecting config = (TargetConfig.Intersecting)_config;
+            if (config.actors) {
+            }
+            if (config.entries) {
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _region = createTarget(((TargetConfig.Intersecting)_config).region, _source);
+        }
+
+        /** The target defining the region of interest. */
+        protected TargetLogic _region;
+    }
+
+    /**
+     * Base class for targets limited to a sized subset.
+     */
+    public static abstract class Subset extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            _target.resolve(activator, _targets);
+            selectSubset(((TargetConfig.Subset)_config).size, results);
+            _targets.clear();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((TargetConfig.Subset)_config).target, _source);
+        }
+
+        /**
+         * Selects a subset of the specified size and places the objects in the results.
+         */
+        protected abstract void selectSubset (int size, Collection<Logic> results);
+
+        /** The contained target. */
+        protected TargetLogic _target;
+
+        /** Holds the targets during processing. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
+    }
+
+    /**
+     * Limits targets to a random subset.
+     */
+    public static class RandomSubset extends Subset
+    {
+        @Override // documentation inherited
+        protected void selectSubset (int size, Collection<Logic> results)
+        {
+            int ntargets = _targets.size();
+            if (ntargets <= size) {
+                results.addAll(_targets);
+            } else if (size == 1) {
+                results.add(RandomUtil.pickRandom(_targets));
+            } else {
+                results.addAll(CollectionUtil.selectRandomSubset(_targets, size));
+            }
+        }
+    }
+
+    /**
+     * Limits targets to the nearest subset.
+     */
+    public static class NearestSubset extends Subset
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+            _location = createTarget(((TargetConfig.NearestSubset)_config).location, _source);
+        }
+
+        @Override // documentation inherited
+        protected void selectSubset (int size, Collection<Logic> results)
+        {
+        }
+
+        /** The reference location. */
+        protected TargetLogic _location;
+    }
+
+    /**
+     * Limits targets to the farthest subset.
+     */
+    public static class FarthestSubset extends Subset
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+            _location = createTarget(((TargetConfig.FarthestSubset)_config).location, _source);
+        }
+
+        @Override // documentation inherited
+        protected void selectSubset (int size, Collection<Logic> results)
+        {
+        }
+
+        /** The reference location. */
+        protected TargetLogic _location;
+    }
+
+    /**
+     * Limits targets to those satisfying a condition.
+     */
+    public static class Conditional extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            _target.resolve(activator, _targets);
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                if (_condition.isSatisfied(target)) {
+                    results.add(target);
+                }
+            }
+            _targets.clear();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            TargetConfig.Conditional config = (TargetConfig.Conditional)_config;
+            _condition = createCondition(config.condition, _source);
+            _target = createTarget(config.target, _source);
+        }
+
+        /** The condition to evaluate for each potential target. */
+        protected ConditionLogic _condition;
+
+        /** The contained target. */
+        protected TargetLogic _target;
+
+        /** Holds the targets during processing. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
     }
 
     /**

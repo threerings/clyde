@@ -13,7 +13,10 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     TargetConfig.Source.class, TargetConfig.Activator.class,
-    TargetConfig.Tagged.class, TargetConfig.Compound.class })
+    TargetConfig.Tagged.class, TargetConfig.Intersecting.class,
+    TargetConfig.RandomSubset.class, TargetConfig.NearestSubset.class,
+    TargetConfig.FarthestSubset.class, TargetConfig.Conditional.class,
+    TargetConfig.Compound.class })
 public abstract class TargetConfig extends DeepObject
     implements Exportable
 {
@@ -50,14 +53,112 @@ public abstract class TargetConfig extends DeepObject
         @Editable(hgroup="t")
         public String tag = "";
 
-        /** The maximum number of tagged entities to affect (or zero for unlimited). */
-        @Editable(min=0, hgroup="t")
-        public int limit;
-
         @Override // documentation inherited
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Tagged";
+        }
+    }
+
+    /**
+     * Refers to all actors intersecting the given region.
+     */
+    public static class Intersecting extends TargetConfig
+    {
+        /** Whether or not to include intersecting actors. */
+        @Editable(hgroup="a")
+        public boolean actors = true;
+
+        /** Whether or not to include intersecting scene entries. */
+        @Editable(hgroup="a")
+        public boolean entries;
+
+        /** The region of interest. */
+        @Editable
+        public TargetConfig region = new Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$Intersecting";
+        }
+    }
+
+    /**
+     * Base class for the limiting filters for targets.
+     */
+    public static abstract class Subset extends TargetConfig
+    {
+        /** The (maximum) size of the subset. */
+        @Editable(min=0)
+        public int size = 1;
+
+        /** The contained target. */
+        @Editable
+        public TargetConfig target = new Source();
+    }
+
+    /**
+     * Picks a random subset of the targets.
+     */
+    public static class RandomSubset extends Subset
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$RandomSubset";
+        }
+    }
+
+    /**
+     * Picks the N targets nearest to a reference target.
+     */
+    public static class NearestSubset extends Subset
+    {
+        /** The reference location. */
+        @Editable
+        public TargetConfig location = new Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$NearestSubset";
+        }
+    }
+
+    /**
+     * Picks the N targets farthest from a reference target.
+     */
+    public static class FarthestSubset extends Subset
+    {
+        /** The reference location. */
+        @Editable
+        public TargetConfig location = new Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$FarthestSubset";
+        }
+    }
+
+    /**
+     * Includes only targets that satisfy a condition.
+     */
+    public static class Conditional extends TargetConfig
+    {
+        /** The condition that the targets must satisfy. */
+        @Editable
+        public ConditionConfig condition = new ConditionConfig.Tagged();
+
+        /** The contained target. */
+        @Editable
+        public TargetConfig target = new Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$Conditional";
         }
     }
 

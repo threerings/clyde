@@ -15,7 +15,7 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     BehaviorConfig.Idle.class, BehaviorConfig.Wander.class,
-    BehaviorConfig.Patrol.class })
+    BehaviorConfig.Follow.class, BehaviorConfig.Patrol.class })
 public abstract class BehaviorConfig extends DeepObject
     implements Exportable
 {
@@ -53,6 +53,26 @@ public abstract class BehaviorConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Wander";
+        }
+    }
+
+    /**
+     * Follows another actor.
+     */
+    public static class Follow extends BehaviorConfig
+    {
+        /** The minimum distance to maintain from the target. */
+        @Editable(min=0.0, step=0.1, hgroup="d")
+        public float minimumDistance = 1f;
+
+        /** The maximum distance to maintain. */
+        @Editable(min=0.0, step=0.1, hgroup="d")
+        public float maximumDistance = 5f;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$Follow";
         }
     }
 
