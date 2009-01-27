@@ -8,6 +8,7 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Mobile;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * Controls an autonomous agent.
@@ -49,6 +50,10 @@ public class AgentLogic extends MobileLogic
         // advance to current time
         super.tick(timestamp);
 
+        // update the view shape
+        ActorConfig.Agent config = (ActorConfig.Agent)_config;
+        _viewShape = config.viewShape.getShape().transform(_shape.getTransform(), _viewShape);
+
         // update the behavior
         _behavior.tick(timestamp);
 
@@ -59,7 +64,6 @@ public class AgentLogic extends MobileLogic
         // turn towards target rotation
         float rotation = _actor.getRotation();
         if (rotation != _targetRotation) {
-            ActorConfig.Agent config = (ActorConfig.Agent)_config;
             float diff = FloatMath.getAngularDifference(_targetRotation, rotation);
             float angle = elapsed * config.turnRate;
             if (Math.abs(diff) <= angle) {
@@ -106,6 +110,9 @@ public class AgentLogic extends MobileLogic
         // notify the behavior
         _behavior.reachedTargetRotation();
     }
+
+    /** The agent's view shape. */
+    protected Shape _viewShape;
 
     /** The agent's behavior logic. */
     protected BehaviorLogic _behavior;
