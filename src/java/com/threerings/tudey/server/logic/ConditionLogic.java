@@ -14,6 +14,7 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ConditionConfig;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
 
 import static com.threerings.tudey.Log.*;
 
@@ -88,7 +89,7 @@ public abstract class ConditionLogic extends Logic
                 _logicClass = Class.forName(config.logicClass);
             } catch (ClassNotFoundException e) {
                 log.warning("Missing logic class for InstanceOf condition.", e);
-                _logicClass = Object.class;
+                _logicClass = Logic.class;
             }
             _target = createTarget(config.target, _source);
         }
@@ -104,6 +105,49 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the intersect condition logic.
+     */
+    public static class Intersecting extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            _first.resolve(activator, _firsts);
+            _second.resolve(activator, _seconds);
+            try {
+                for (int ii = 0, nn = _firsts.size(); ii < nn; ii++) {
+                    Shape s1 = _firsts.get(ii);
+                    for (int jj = 0, mm = _seconds.size(); jj < mm; jj++) {
+                        Shape s2 = _seconds.get(jj);
+                        if (s1.intersects(s2)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+
+            } finally {
+                _firsts.clear();
+                _seconds.clear();
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ConditionConfig.Intersecting config = (ConditionConfig.Intersecting)_config;
+            _first = createRegion(config.first, _source);
+            _second = createRegion(config.second, _source);
+        }
+
+        /** The regions to check. */
+        protected RegionLogic _first, _second;
+
+        /** Holds shapes during evaluation. */
+        protected ArrayList<Shape> _firsts = Lists.newArrayList(), _seconds = Lists.newArrayList();
+    }
+
+    /**
      * Evaluates the distance within condition logic.
      */
     public static class DistanceWithin extends ConditionLogic
@@ -111,12 +155,25 @@ public abstract class ConditionLogic extends Logic
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
         {
-            Logic first = resolve(_first, activator);
-            Logic second = resolve(_second, activator);
-            ConditionConfig.DistanceWithin config = (ConditionConfig.DistanceWithin)_config;
-            return first != null && second != null && FloatMath.isWithin(
-                first.getTranslation().distance(second.getTranslation()),
-                config.minimum, config.maximum);
+            _first.resolve(activator, _firsts);
+            _second.resolve(activator, _seconds);
+            try {
+                ConditionConfig.DistanceWithin config = (ConditionConfig.DistanceWithin)_config;
+                for (int ii = 0, nn = _firsts.size(); ii < nn; ii++) {
+                    Vector2f t1 = _firsts.get(ii).getTranslation();
+                    for (int jj = 0, mm = _seconds.size(); jj < mm; jj++) {
+                        Vector2f t2 = _seconds.get(jj).getTranslation();
+                        if (FloatMath.isWithin(t1.distance(t2), config.minimum, config.maximum)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+
+            } finally {
+                _firsts.clear();
+                _seconds.clear();
+            }
         }
 
         @Override // documentation inherited
@@ -127,24 +184,11 @@ public abstract class ConditionLogic extends Logic
             _second = createTarget(config.second, _source);
         }
 
-        /**
-         * Resolves the first target, or returns <code>null</code> for none.
-         */
-        protected Logic resolve (TargetLogic target, Logic activator)
-        {
-            target.resolve(activator, _targets);
-            try {
-                return _targets.isEmpty() ? null : _targets.get(0);
-            } finally {
-                _targets.clear();
-            }
-        }
-
         /** The targets to check. */
         protected TargetLogic _first, _second;
 
         /** Holds targets during evaluation. */
-        protected ArrayList<Logic> _targets = Lists.newArrayList();
+        protected ArrayList<Logic> _firsts = Lists.newArrayList(), _seconds = Lists.newArrayList();
     }
 
     /**

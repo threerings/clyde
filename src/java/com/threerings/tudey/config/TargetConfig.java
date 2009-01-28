@@ -13,10 +13,10 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     TargetConfig.Source.class, TargetConfig.Activator.class,
-    TargetConfig.Tagged.class, TargetConfig.Intersecting.class,
-    TargetConfig.RandomSubset.class, TargetConfig.NearestSubset.class,
-    TargetConfig.FarthestSubset.class, TargetConfig.Conditional.class,
-    TargetConfig.Compound.class })
+    TargetConfig.Tagged.class, TargetConfig.InstanceOf.class,
+    TargetConfig.Intersecting.class, TargetConfig.RandomSubset.class,
+    TargetConfig.NearestSubset.class, TargetConfig.FarthestSubset.class,
+    TargetConfig.Conditional.class, TargetConfig.Compound.class })
 public abstract class TargetConfig extends DeepObject
     implements Exportable
 {
@@ -50,13 +50,29 @@ public abstract class TargetConfig extends DeepObject
     public static class Tagged extends TargetConfig
     {
         /** The tag of interest. */
-        @Editable(hgroup="t")
+        @Editable
         public String tag = "";
 
         @Override // documentation inherited
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Tagged";
+        }
+    }
+
+    /**
+     * Refers to the entity or entities whose logic is an instance of the specified class.
+     */
+    public static class InstanceOf extends TargetConfig
+    {
+        /** The class of interest. */
+        @Editable
+        public String logicClass = "com.threerings.tudey.server.logic.PawnLogic";
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$InstanceOf";
         }
     }
 
@@ -75,7 +91,7 @@ public abstract class TargetConfig extends DeepObject
 
         /** The region of interest. */
         @Editable
-        public TargetConfig region = new Source();
+        public RegionConfig region = new RegionConfig.Default();
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -111,14 +127,20 @@ public abstract class TargetConfig extends DeepObject
     }
 
     /**
-     * Picks the N targets nearest to a reference target.
+     * Superclass of the distance-based subsets.
      */
-    public static class NearestSubset extends Subset
+    public static abstract class DistanceSubset extends Subset
     {
         /** The reference location. */
         @Editable
         public TargetConfig location = new Source();
+    }
 
+    /**
+     * Picks the N targets nearest to a reference target.
+     */
+    public static class NearestSubset extends DistanceSubset
+    {
         @Override // documentation inherited
         public String getLogicClassName ()
         {
@@ -129,12 +151,8 @@ public abstract class TargetConfig extends DeepObject
     /**
      * Picks the N targets farthest from a reference target.
      */
-    public static class FarthestSubset extends Subset
+    public static class FarthestSubset extends DistanceSubset
     {
-        /** The reference location. */
-        @Editable
-        public TargetConfig location = new Source();
-
         @Override // documentation inherited
         public String getLogicClassName ()
         {

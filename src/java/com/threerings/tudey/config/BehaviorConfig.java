@@ -61,6 +61,10 @@ public abstract class BehaviorConfig extends DeepObject
      */
     public static class Follow extends BehaviorConfig
     {
+        /** The target to follow. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Tagged();
+
         /** The minimum distance to maintain from the target. */
         @Editable(min=0.0, step=0.1, hgroup="d")
         public float minimumDistance = 1f;
@@ -81,9 +85,9 @@ public abstract class BehaviorConfig extends DeepObject
      */
     public static class Patrol extends BehaviorConfig
     {
-        /** The tag identifying the path (etc.) to patrol. */
+        /** The target to patrol. */
         @Editable
-        public String tag = "";
+        public TargetConfig target = new TargetConfig.Tagged();
 
         @Override // documentation inherited
         public String getLogicClassName ()

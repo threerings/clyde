@@ -5,16 +5,24 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.CollectionUtil;
+import com.samskivert.util.QuickSort;
 import com.samskivert.util.RandomUtil;
 
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.TargetConfig;
+import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.space.SpaceElement;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Handles the resolution of targets.
@@ -62,6 +70,39 @@ public abstract class TargetLogic extends Logic
     }
 
     /**
+     * Refers to entities of a certain logic class.
+     */
+    public static class InstanceOf extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            ArrayList<Logic> instances = _scenemgr.getInstances(_logicClass);
+            if (instances != null) {
+                results.addAll(instances);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            try {
+                String cname = ((TargetConfig.InstanceOf)_config).logicClass;
+                @SuppressWarnings("unchecked") Class<? extends Logic> clazz =
+                    (Class<? extends Logic>)Class.forName(cname);
+                _logicClass = clazz;
+
+            } catch (ClassNotFoundException e) {
+                log.warning("Missing logic class for InstanceOf target.", e);
+                _logicClass = Logic.class;
+            }
+        }
+
+        /** The logic class. */
+        protected Class<? extends Logic> _logicClass;
+    }
+
+    /**
      * Refers to the entities intersecting a reference entity.
      */
     public static class Intersecting extends TargetLogic
@@ -69,21 +110,50 @@ public abstract class TargetLogic extends Logic
         @Override // documentation inherited
         public void resolve (Logic activator, Collection<Logic> results)
         {
+            _region.resolve(activator, _shapes);
             TargetConfig.Intersecting config = (TargetConfig.Intersecting)_config;
-            if (config.actors) {
+            for (int ii = 0, nn = _shapes.size(); ii < nn; ii++) {
+                Shape shape = _shapes.get(ii);
+                if (config.actors) {
+                    @SuppressWarnings("unchecked") ArrayList<SpaceElement> elements =
+                        (ArrayList<SpaceElement>)_results;
+                    _scenemgr.getActorSpace().getIntersecting(shape, elements);
+                    for (int jj = 0, mm = elements.size(); jj < mm; jj++) {
+                        results.add((ActorLogic)elements.get(jj).getUserObject());
+                    }
+                    elements.clear();
+                }
+                if (config.entries) {
+                    @SuppressWarnings("unchecked") ArrayList<Entry> entries =
+                        (ArrayList<Entry>)_results;
+                    TudeySceneModel model = (TudeySceneModel)_scenemgr.getScene().getSceneModel();
+                    model.getEntries(shape, entries);
+                    for (int jj = 0, mm = entries.size(); jj < mm; jj++) {
+                        EntryLogic logic = _scenemgr.getEntryLogic(entries.get(jj).getKey());
+                        if (logic != null) {
+                            results.add(logic);
+                        }
+                    }
+                    entries.clear();
+                }
             }
-            if (config.entries) {
-            }
+            _shapes.clear();
         }
 
         @Override // documentation inherited
         protected void didInit ()
         {
-            _region = createTarget(((TargetConfig.Intersecting)_config).region, _source);
+            _region = createRegion(((TargetConfig.Intersecting)_config).region, _source);
         }
 
-        /** The target defining the region of interest. */
-        protected TargetLogic _region;
+        /** The region of interest. */
+        protected RegionLogic _region;
+
+        /** Holds the shapes during processing. */
+        protected ArrayList<Shape> _shapes = Lists.newArrayList();
+
+        /** Holds elements/entries during processing. */
+        protected ArrayList<?> _results = Lists.newArrayList();
     }
 
     /**
@@ -95,7 +165,12 @@ public abstract class TargetLogic extends Logic
         public void resolve (Logic activator, Collection<Logic> results)
         {
             _target.resolve(activator, _targets);
-            selectSubset(((TargetConfig.Subset)_config).size, results);
+            int size = ((TargetConfig.Subset)_config).size;
+            if (_targets.size() <= size) {
+                results.addAll(_targets);
+            } else {
+                selectSubset(size, activator, results);
+            }
             _targets.clear();
         }
 
@@ -108,7 +183,8 @@ public abstract class TargetLogic extends Logic
         /**
          * Selects a subset of the specified size and places the objects in the results.
          */
-        protected abstract void selectSubset (int size, Collection<Logic> results);
+        protected abstract void selectSubset (
+            int size, Logic activator, Collection<Logic> results);
 
         /** The contained target. */
         protected TargetLogic _target;
@@ -123,12 +199,9 @@ public abstract class TargetLogic extends Logic
     public static class RandomSubset extends Subset
     {
         @Override // documentation inherited
-        protected void selectSubset (int size, Collection<Logic> results)
+        protected void selectSubset (int size, Logic activator, Collection<Logic> results)
         {
-            int ntargets = _targets.size();
-            if (ntargets <= size) {
-                results.addAll(_targets);
-            } else if (size == 1) {
+            if (size == 1) {
                 results.add(RandomUtil.pickRandom(_targets));
             } else {
                 results.addAll(CollectionUtil.selectRandomSubset(_targets, size));
@@ -137,45 +210,74 @@ public abstract class TargetLogic extends Logic
     }
 
     /**
-     * Limits targets to the nearest subset.
+     * Superclass of the distance-based subsets.
      */
-    public static class NearestSubset extends Subset
+    public static abstract class DistanceSubset extends Subset
+        implements Comparator<Logic>
     {
         @Override // documentation inherited
         protected void didInit ()
         {
             super.didInit();
-            _location = createTarget(((TargetConfig.NearestSubset)_config).location, _source);
+            _location = createTarget(((TargetConfig.DistanceSubset)_config).location, _source);
         }
 
         @Override // documentation inherited
-        protected void selectSubset (int size, Collection<Logic> results)
+        protected void selectSubset (int size, Logic activator, Collection<Logic> results)
         {
+            // average the locations
+            _location.resolve(activator, _locations);
+            int nlocs = _locations.size();
+            _reference.set(Vector2f.ZERO);
+            for (int ii = 0; ii < nlocs; ii++) {
+                _reference.addLocal(_locations.get(ii).getTranslation());
+            }
+            _reference.multLocal(1f / nlocs);
+            _locations.clear();
+
+            // sort
+            QuickSort.sort(_targets, this);
+
+            // add first size elements
+            results.addAll(_targets.subList(0, size));
         }
 
         /** The reference location. */
         protected TargetLogic _location;
+
+        /** Holds the locations during processing. */
+        protected ArrayList<Logic> _locations = Lists.newArrayList();
+
+        /** Holds the reference point. */
+        protected Vector2f _reference = new Vector2f();
+    }
+
+    /**
+     * Limits targets to the nearest subset.
+     */
+    public static class NearestSubset extends DistanceSubset
+    {
+        // documentation inherited from interface Comparator
+        public int compare (Logic l1, Logic l2)
+        {
+            return Float.compare(
+                l1.getTranslation().distance(_reference),
+                l2.getTranslation().distance(_reference));
+        }
     }
 
     /**
      * Limits targets to the farthest subset.
      */
-    public static class FarthestSubset extends Subset
+    public static class FarthestSubset extends DistanceSubset
     {
-        @Override // documentation inherited
-        protected void didInit ()
+        // documentation inherited from interface Comparator
+        public int compare (Logic l1, Logic l2)
         {
-            super.didInit();
-            _location = createTarget(((TargetConfig.FarthestSubset)_config).location, _source);
+            return Float.compare(
+                l2.getTranslation().distance(_reference),
+                l1.getTranslation().distance(_reference));
         }
-
-        @Override // documentation inherited
-        protected void selectSubset (int size, Collection<Logic> results)
-        {
-        }
-
-        /** The reference location. */
-        protected TargetLogic _location;
     }
 
     /**

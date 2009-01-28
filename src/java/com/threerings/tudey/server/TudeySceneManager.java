@@ -164,6 +164,15 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns the list of logic objects that are instances of the supplied class, or
+     * <code>null</code> for none.
+     */
+    public ArrayList<Logic> getInstances (Class<? extends Logic> clazz)
+    {
+        return _instances.get(clazz);
+    }
+
+    /**
      * Returns a reference to the actor space.
      */
     public HashSpace getActorSpace ()
@@ -296,6 +305,14 @@ public class TudeySceneManager extends SceneManager
             log.warning("Failed to instantiate logic.", "class", cname, e);
             return null;
         }
+    }
+
+    /**
+     * Returns the logic object for the entry with the provided key, if any.
+     */
+    public EntryLogic getEntryLogic (Object key)
+    {
+        return _entries.get(key);
     }
 
     /**
@@ -716,6 +733,14 @@ public class TudeySceneManager extends SceneManager
             }
             list.add(logic);
         }
+        for (Class<?> clazz = logic.getClass(); Logic.class.isAssignableFrom(clazz);
+                clazz = clazz.getSuperclass()) {
+            ArrayList<Logic> list = _instances.get(clazz);
+            if (list == null) {
+                _instances.put(clazz, list = new ArrayList<Logic>());
+            }
+            list.add(logic);
+        }
         if (logic.isDefaultEntrance()) {
             _defaultEntrances.add(logic);
         }
@@ -734,6 +759,17 @@ public class TudeySceneManager extends SceneManager
             }
             if (list.isEmpty()) {
                 _tagged.remove(tag);
+            }
+        }
+        for (Class<?> clazz = logic.getClass(); Logic.class.isAssignableFrom(clazz);
+                clazz = clazz.getSuperclass()) {
+            ArrayList<Logic> list = _instances.get(clazz);
+            if (list == null || !list.remove(logic)) {
+                log.warning("Missing class mapping for logic.", "class", clazz, "logic", logic);
+                continue;
+            }
+            if (list.isEmpty()) {
+                _instances.remove(clazz);
             }
         }
         if (logic.isDefaultEntrance()) {
@@ -841,6 +877,9 @@ public class TudeySceneManager extends SceneManager
 
     /** Maps tags to lists of logic objects with that tag. */
     protected HashMap<String, ArrayList<Logic>> _tagged = Maps.newHashMap();
+
+    /** Maps logic classes to lists of logic instances. */
+    protected HashMap<Class<?>, ArrayList<Logic>> _instances = Maps.newHashMap();
 
     /** The logic objects corresponding to default entrances. */
     protected ArrayList<Logic> _defaultEntrances = Lists.newArrayList();

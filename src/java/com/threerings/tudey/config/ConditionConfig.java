@@ -13,8 +13,8 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     ConditionConfig.Tagged.class, ConditionConfig.InstanceOf.class,
-    ConditionConfig.DistanceWithin.class, ConditionConfig.All.class,
-    ConditionConfig.Any.class })
+    ConditionConfig.Intersecting.class, ConditionConfig.DistanceWithin.class,
+    ConditionConfig.All.class, ConditionConfig.Any.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -45,7 +45,7 @@ public abstract class ConditionConfig extends DeepObject
     {
         /** The name of the class to check. */
         @Editable
-        public String logicClass = "";
+        public String logicClass = "com.threerings.tudey.server.logic.PawnLogic";
 
         /** The target to check. */
         @Editable
@@ -55,6 +55,26 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$InstanceOf";
+        }
+    }
+
+    /**
+     * Determines whether two regions intersect.
+     */
+    public static class Intersecting extends ConditionConfig
+    {
+        /** The first region to check. */
+        @Editable
+        public RegionConfig first = new RegionConfig.Default();
+
+        /** The second region to check. */
+        @Editable
+        public RegionConfig second = new RegionConfig.Default();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Intersecting";
         }
     }
 

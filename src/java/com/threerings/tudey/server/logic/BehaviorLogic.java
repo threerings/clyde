@@ -229,12 +229,7 @@ public abstract class BehaviorLogic extends Logic
          */
         protected void evaluate ()
         {
-            String tag = ((BehaviorConfig.Patrol)_config).tag;
-            ArrayList<Logic> tagged = _scenemgr.getTagged(tag);
-            for (int ii = 0, nn = tagged.size(); ii < nn; ii++) {
-                Logic logic = tagged.get(ii);
 
-            }
         }
     }
 
