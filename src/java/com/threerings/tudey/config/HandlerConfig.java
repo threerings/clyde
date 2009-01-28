@@ -6,7 +6,11 @@ package com.threerings.tudey.config;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
+
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.shape.config.ShapeConfig;
 
 /**
  * Configurations for server-side event handlers.
@@ -121,9 +125,9 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static abstract class BaseIntersection extends HandlerConfig
     {
-        /** The amount to expand the intersection shape. */
-        @Editable(step=0.01, hgroup="e")
-        public float expansion;
+        /** The shape to use for the intersection test. */
+        @Editable
+        public IntersectionShape shape = new DefaultShape();
     }
 
     /**
@@ -132,7 +136,7 @@ public abstract class HandlerConfig extends DeepObject
     public static class Intersection extends BaseIntersection
     {
         /** The amount of time that must elapse between firings. */
-        @Editable(min=0.0, step=0.1, hgroup="e")
+        @Editable(min=0.0, step=0.1)
         public float refractoryPeriod;
 
         @Override // documentation inherited
@@ -175,6 +179,53 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Interaction";
+        }
+    }
+
+    /**
+     * Base class for the intersection shapes.
+     */
+    @EditorTypes({ DefaultShape.class, TransformedShape.class })
+    public static abstract class IntersectionShape extends DeepObject
+        implements Exportable
+    {
+        /**
+         * Returns the intersection shape based on the source shape and transform.
+         *
+         * @param result a result object to reuse if possible.
+         */
+        public abstract Shape getShape (Shape source, Transform2D transform, Shape result);
+    }
+
+    /**
+     * Uses the source's shape with an optional expansion.
+     */
+    public static class DefaultShape extends IntersectionShape
+    {
+        /** The amount to expand the shape. */
+        @Editable(step=0.01)
+        public float expansion;
+
+        @Override // documentation inherited
+        public Shape getShape (Shape source, Transform2D transform, Shape result)
+        {
+            return (source == null || expansion == 0f) ? source : source.expand(expansion, result);
+        }
+    }
+
+    /**
+     * Uses a different shape, transformed by the source's transform.
+     */
+    public static class TransformedShape extends IntersectionShape
+    {
+        /** The shape to use. */
+        @Editable
+        public ShapeConfig shape = new ShapeConfig.Point();
+
+        @Override // documentation inherited
+        public Shape getShape (Shape source, Transform2D transform, Shape result)
+        {
+            return shape.getShape().transform(transform, result);
         }
     }
 

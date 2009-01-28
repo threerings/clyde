@@ -10,6 +10,7 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.Interval;
 
+import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.HandlerConfig;
@@ -240,22 +241,18 @@ public abstract class HandlerLogic extends Logic
         // documentation inherited from interface ShapeObserver
         public void shapeUpdated (Logic source)
         {
-            Shape shape = _source.getShape();
-            float expansion = ((HandlerConfig.BaseIntersection)_config).expansion;
-            _shape.setLocalShape(expansion == 0f ?
-                shape : shape.expand(expansion, _shape.getLocalShape()));
+            Shape shape = ((HandlerConfig.BaseIntersection)_config).shape.getShape(
+                _source.getShape(), _source.getTransform(_transform), _shape.getLocalShape());
+            _shape.setLocalShape(shape);
         }
 
         @Override // documentation inherited
         protected void didInit ()
         {
-            Shape shape = _source.getShape();
+            Shape shape = ((HandlerConfig.BaseIntersection)_config).shape.getShape(
+                _source.getShape(), _source.getTransform(_transform), null);
             if (shape == null) {
                 return;
-            }
-            float expansion = ((HandlerConfig.BaseIntersection)_config).expansion;
-            if (expansion != 0f) {
-                shape = shape.expand(expansion);
             }
             _shape = new ShapeElement(shape);
             _shape.setUserObject(this);
@@ -274,6 +271,9 @@ public abstract class HandlerLogic extends Logic
 
         /** The shape element in the sensor space. */
         protected ShapeElement _shape;
+
+        /** Holds the source transform. */
+        protected Transform2D _transform = new Transform2D();
     }
 
     /**

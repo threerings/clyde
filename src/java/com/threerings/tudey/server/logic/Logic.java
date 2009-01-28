@@ -3,6 +3,7 @@
 
 package com.threerings.tudey.server.logic;
 
+import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActionConfig;
@@ -52,6 +53,16 @@ public abstract class Logic
     public boolean isDefaultEntrance ()
     {
         return false;
+    }
+
+    /**
+     * Convenience method to retrieve the translation and rotation in a transform.
+     *
+     * @return a reference to the result transform, for chaining.
+     */
+    public Transform2D getTransform (Transform2D result)
+    {
+        return result.set(getTranslation(), getRotation());
     }
 
     /**

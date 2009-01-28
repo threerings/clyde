@@ -80,8 +80,7 @@ public abstract class RegionLogic extends Logic
             Shape shape = ((RegionConfig.Transformed)_config).shape.getShape();
             for (int ii = 0, nn = _locations.size(); ii < nn; ii++) {
                 Logic location = _locations.get(ii);
-                results.add(shape.transform(
-                    _transform.set(location.getTranslation(), location.getRotation())));
+                results.add(shape.transform(location.getTransform(_transform)));
             }
         }
 
