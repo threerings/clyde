@@ -355,6 +355,29 @@ public final class Rect
     }
 
     /**
+     * Returns a path that goes counter-clockwise around the rectangle, starting and ending at the
+     * minimum extent.
+     */
+    public Vector2f[] getPerimeterPath ()
+    {
+        return new Vector2f[] {
+            getVertex(0), getVertex(2), getVertex(3), getVertex(1), getVertex(0) };
+    }
+
+    /**
+     * Retrieves one of the four vertices of the rectangle.  The code parameter identifies the
+     * vertex with flags indicating which values should be selected from the minimum extent, and
+     * which from the maximum extent.  For example, the code 01b selects the vertex with the
+     * minimum x and maximum y.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector2f getVertex (int code)
+    {
+        return getVertex(code, new Vector2f());
+    }
+
+    /**
      * Retrieves one of the four vertices of the rectangle.  The code parameter identifies the
      * vertex with flags indicating which values should be selected from the minimum extent, and
      * which from the maximum extent.  For example, the code 01b selects the vertex with the

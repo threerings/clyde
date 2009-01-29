@@ -84,6 +84,12 @@ public class Point extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f[] getPerimeterPath ()
+    {
+        return new Vector2f[] { new Vector2f(_location) };
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         boolean isect = ray.intersects(_location);

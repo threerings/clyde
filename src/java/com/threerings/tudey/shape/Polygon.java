@@ -159,6 +159,17 @@ public class Polygon extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f[] getPerimeterPath ()
+    {
+        Vector2f[] path = new Vector2f[_vertices.length + 1];
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            path[ii] = new Vector2f(_vertices[ii]);
+        }
+        path[_vertices.length] = new Vector2f(_vertices[0]);
+        return path;
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         // see if we start inside the polygon

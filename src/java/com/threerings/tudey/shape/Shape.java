@@ -126,6 +126,14 @@ public abstract class Shape
     public abstract Shape sweep (Vector2f translation, Shape result);
 
     /**
+     * Returns a perimeter path for this shape.
+     */
+    public Vector2f[] getPerimeterPath ()
+    {
+        return _bounds.getPerimeterPath();
+    }
+
+    /**
      * Finds the intersection of a ray with this shape and places it in the supplied vector
      * (if it exists).
      *

@@ -205,6 +205,14 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
+         * Creates the patrol path for this entry, or returns <code>null</code> for none.
+         */
+        public Vector2f[] createPatrolPath (Shape shape)
+        {
+            return (shape == null) ? null : shape.getPerimeterPath();
+        }
+
+        /**
          * Transforms the entry.
          */
         public void transform (ConfigManager cfgmgr, Transform3D xform)
@@ -787,6 +795,19 @@ public class TudeySceneModel extends SceneModel
                 case 1: return new Point(vertices[0].createVector());
                 default: return createShape(0, vertices.length - 1);
             }
+        }
+
+        @Override // documentation inherited
+        public Vector2f[] createPatrolPath (Shape shape)
+        {
+            if (vertices.length == 0) {
+                return null;
+            }
+            Vector2f[] path = new Vector2f[vertices.length];
+            for (int ii = 0; ii < vertices.length; ii++) {
+                path[ii] = vertices[ii].createVector();
+            }
+            return path;
         }
 
         @Override // documentation inherited

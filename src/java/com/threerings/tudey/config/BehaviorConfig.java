@@ -32,14 +32,20 @@ public abstract class BehaviorConfig extends DeepObject
     }
 
     /**
+     * Base class for behaviors that require periodic (re)evaluation.
+     */
+    public static abstract class Evaluating extends BehaviorConfig
+    {
+        /** The variable that determines how long we wait between evaluations. */
+        @Editable(min=0.0, step=0.1)
+        public FloatVariable evaluationInterval = new FloatVariable.Constant(2f);
+    }
+
+    /**
      * Wanders around randomly.
      */
-    public static class Wander extends BehaviorConfig
+    public static class Wander extends Evaluating
     {
-        /** The variable that determines how long we will travel between direction changes. */
-        @Editable(min=0.0, step=0.1)
-        public FloatVariable directionChangeInterval = new FloatVariable.Uniform(1f, 2f);
-
         /** The variable that determines how we change directions. */
         @Editable(min=-180, max=+180, scale=Math.PI/180.0)
         public FloatVariable directionChange =
@@ -83,11 +89,15 @@ public abstract class BehaviorConfig extends DeepObject
     /**
      * Patrols a path, area, etc.
      */
-    public static class Patrol extends BehaviorConfig
+    public static class Patrol extends Evaluating
     {
         /** The target to patrol. */
         @Editable
         public TargetConfig target = new TargetConfig.Tagged();
+
+        /** The radius within which we consider branching nodes (or negative for no branching). */
+        @Editable(min=-1.0, step=0.1)
+        public float branchRadius = -1f;
 
         @Override // documentation inherited
         public String getLogicClassName ()

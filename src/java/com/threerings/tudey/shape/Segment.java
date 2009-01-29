@@ -144,6 +144,12 @@ public class Segment extends Shape
     }
 
     @Override // documentation inherited
+    public Vector2f[] getPerimeterPath ()
+    {
+        return new Vector2f[] { new Vector2f(_start), new Vector2f(_end) };
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray2D ray, Vector2f result)
     {
         return ray.getIntersection(_start, _end, result);

@@ -90,6 +90,15 @@ public abstract class Logic
     }
 
     /**
+     * Returns a patrol path for this logic.
+     */
+    public Vector2f[] getPatrolPath ()
+    {
+        Shape shape = getShape();
+        return (shape == null) ? null : shape.getPerimeterPath();
+    }
+
+    /**
      * Adds an observer for changes to the logic's shape.
      */
     public void addShapeObserver (ShapeObserver observer)

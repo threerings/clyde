@@ -90,6 +90,12 @@ public class EntryLogic extends Logic
     }
 
     @Override // documentation inherited
+    public Vector2f[] getPatrolPath ()
+    {
+        return _entry.createPatrolPath(_shape);
+    }
+
+    @Override // documentation inherited
     public void signal (int timestamp, Logic source, String name)
     {
         for (HandlerLogic handler : _handlers) {
@@ -130,6 +136,9 @@ public class EntryLogic extends Logic
 
     /** The entry's shape. */
     protected Shape _shape;
+
+    /** The entry's patrol path. */
+    protected Vector2f[] _patrolPath;
 
     /** The entry's event handlers. */
     protected HandlerLogic[] _handlers;
