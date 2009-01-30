@@ -252,6 +252,12 @@ public class Circle extends Shape
         GL11.glEnd();
     }
 
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "[center=" + _center + ", radius=" + radius + ", bounds=" + _bounds + "]";
+    }
+
     /**
      * Checks whether the circle contains the specified point.
      */

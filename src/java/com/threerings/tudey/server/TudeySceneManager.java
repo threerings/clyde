@@ -80,6 +80,22 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * An interface for objects to notify when actors are added or removed.
+     */
+    public interface ActorObserver
+    {
+        /**
+         * Notes that an actor has been added.
+         */
+        public void actorAdded (ActorLogic logic);
+
+        /**
+         * Notes that an actor has been removed.
+         */
+        public void actorRemoved (ActorLogic logic);
+    }
+
+    /**
      * Base interface for sensors.
      */
     public interface Sensor
@@ -145,6 +161,22 @@ public class TudeySceneManager extends SceneManager
     public void removeTickParticipant (TickParticipant participant)
     {
         _tickParticipants.remove(participant);
+    }
+
+    /**
+     * Adds an observer for actor events.
+     */
+    public void addActorObserver (ActorObserver observer)
+    {
+        _actorObservers.add(observer);
+    }
+
+    /**
+     * Removes an actor observer.
+     */
+    public void removeActorObserver (ActorObserver observer)
+    {
+        _actorObservers.remove(observer);
     }
 
     /**
@@ -241,6 +273,9 @@ public class TudeySceneManager extends SceneManager
         logic.init(this, ref, original, ++_lastActorId, timestamp, translation, rotation);
         _actors.put(_lastActorId, logic);
         addMappings(logic);
+
+        // notify observers
+        _actorObservers.apply(_actorAddedOp.init(logic));
 
         return logic;
     }
@@ -368,6 +403,9 @@ public class TudeySceneManager extends SceneManager
         }
         // remove mappings
         removeMappings(logic);
+
+        // notify observers
+        _actorObservers.apply(_actorRemovedOp.init(logic));
     }
 
     /**
@@ -636,14 +674,14 @@ public class TudeySceneManager extends SceneManager
         TudeySceneModel sceneModel = (TudeySceneModel)_scene.getSceneModel();
         _cfgmgr = sceneModel.getConfigManager();
 
+        // create the pathfinder
+        _pathfinder = new Pathfinder(this);
+
         // create logic objects for scene entries and listen for changes
         for (Entry entry : sceneModel.getEntries()) {
             addLogic(entry);
         }
         sceneModel.addObserver(this);
-
-        // create the pathfinder
-        _pathfinder = new Pathfinder(this);
 
         // register and fill in our tudey scene service
         _tsobj.setTudeySceneService(_invmgr.registerDispatcher(new TudeySceneDispatcher(this)));
@@ -846,6 +884,27 @@ public class TudeySceneManager extends SceneManager
         protected int _timestamp;
     }
 
+    /**
+     * Base class for actor observer operations.
+     */
+    protected static abstract class ActorObserverOp
+        implements ObserverList.ObserverOp<ActorObserver>
+    {
+        /**
+         * Re(initializes) the op with the provided logic reference.
+         *
+         * @return a reference to the op, for chaining.
+         */
+        public ActorObserverOp init (ActorLogic logic)
+        {
+            _logic = logic;
+            return this;
+        }
+
+        /** The logic of the actor of interest. */
+        protected ActorLogic _logic;
+    }
+
     /** The injector that we use to create and initialize our logic objects. */
     @Inject protected Injector _injector;
 
@@ -875,6 +934,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The list of participants in the tick. */
     protected ObserverList<TickParticipant> _tickParticipants = ObserverList.newSafeInOrder();
+
+    /** The list of actor observers. */
+    protected ObserverList<ActorObserver> _actorObservers = ObserverList.newFastUnsafe();
 
     /** Scene entry logic objects mapped by key. */
     protected HashMap<Object, EntryLogic> _entries = Maps.newHashMap();
@@ -914,6 +976,22 @@ public class TudeySceneManager extends SceneManager
 
     /** Used to tick the participants. */
     protected TickOp _tickOp = new TickOp();
+
+    /** Used to notify observers of the addition of an actor. */
+    protected ActorObserverOp _actorAddedOp = new ActorObserverOp() {
+        public boolean apply (ActorObserver observer) {
+            observer.actorAdded(_logic);
+            return true;
+        }
+    };
+
+    /** Used to notify observers of the addition of an actor. */
+    protected ActorObserverOp _actorRemovedOp = new ActorObserverOp() {
+        public boolean apply (ActorObserver observer) {
+            observer.actorRemoved(_logic);
+            return true;
+        }
+    };
 
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();

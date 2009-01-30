@@ -45,7 +45,7 @@ import com.threerings.tudey.util.CoordIntMap;
  * expensive than maintaining the collision map for all actors, but it's not entirely clear).
  */
 public class Pathfinder
-    implements TudeySceneModel.Observer, Space.Observer
+    implements TudeySceneModel.Observer, TudeySceneManager.ActorObserver, Logic.ShapeObserver
 {
     /**
      * Creates a new pathfinder.
@@ -59,13 +59,12 @@ public class Pathfinder
         _entryFlags.putAll(model.getCollisionFlags());
         _combinedFlags.putAll(_entryFlags);
         for (SpaceElement element : model.getElements().values()) {
-            addFlags(element);
+            addFlags((Entry)element.getUserObject());
         }
         model.addObserver(this);
-        model.getSpace().addObserver(this);
 
-        // listen for actor element updates
-        _scenemgr.getActorSpace().addObserver(this);
+        // listen for actor updates
+        _scenemgr.addActorObserver(this);
     }
 
     /**
@@ -73,10 +72,8 @@ public class Pathfinder
      */
     public void shutdown ()
     {
-        TudeySceneModel model = (TudeySceneModel)_scenemgr.getScene().getSceneModel();
-        model.removeObserver(this);
-        model.getSpace().removeObserver(this);
-        _scenemgr.getActorSpace().removeObserver(this);
+        ((TudeySceneModel)_scenemgr.getScene().getSceneModel()).removeObserver(this);
+        _scenemgr.removeActorObserver(this);
     }
 
     /**
@@ -161,28 +158,30 @@ public class Pathfinder
         removeFlags(oentry);
     }
 
-    // documentation inherited from interface Space.Observer
-    public void elementAdded (SpaceElement element)
+    // documentation inherited from interface TudeySceneManager.ActorObserver
+    public void actorAdded (ActorLogic logic)
     {
-        addFlags(element);
+        addFlags(logic);
+        logic.addShapeObserver(this);
     }
 
-    // documentation inherited from interface Space.Observer
-    public void elementRemoved (SpaceElement element)
+    // documentation inherited from interface TudeySceneManager.ActorObserver
+    public void actorRemoved (ActorLogic logic)
     {
-        removeFlags(element);
+        removeFlags(logic);
+        logic.removeShapeObserver(this);
     }
 
-    // documentation inherited from interface Space.Observer
-    public void elementBoundsWillChange (SpaceElement element)
+    // documentation inherited from Logic.ShapeObserver
+    public void shapeWillChange (Logic logic)
     {
-        removeFlags(element);
+        removeFlags((ActorLogic)logic);
     }
 
-    // documentation inherited from interface Space.Observer
-    public void elementBoundsDidChange (SpaceElement element)
+    // documentation inherited from Logic.ShapeObserver
+    public void shapeDidChange (Logic logic)
     {
-        addFlags(element);
+        addFlags((ActorLogic)logic);
     }
 
     /**
@@ -247,11 +246,10 @@ public class Pathfinder
 
         // if the actor is in the space and can collide with its own flags,
         // remove them before we compute the path
-        ShapeElement element = logic.getShapeElement();
-        boolean remove = (element.getSpace() != null && flags == _combinedFlags &&
+        boolean remove = (!logic.isRemoved() && flags == _combinedFlags &&
             actor.canCollide(actor.getCollisionFlags()));
         if (remove) {
-            removeFlags(element);
+            removeFlags(logic);
         }
 
         // compute the path
@@ -261,7 +259,7 @@ public class Pathfinder
 
         // add the flags back if we removed them
         if (remove) {
-            addFlags(element);
+            addFlags(logic);
         }
 
         // convert to fractional coordinates
@@ -317,7 +315,12 @@ public class Pathfinder
     protected void addFlags (Entry entry)
     {
         if (!(entry instanceof TileEntry)) {
-            return; // taken care of when the space changes
+            ConfigManager cfgmgr = _scenemgr.getConfigManager();
+            Shape shape = entry.createShape(cfgmgr);
+            if (shape != null) {
+                addFlags(shape, entry.getCollisionFlags(cfgmgr), true);
+            }
+            return;
         }
         TileEntry tentry = (TileEntry)entry;
         TileConfig.Original config = tentry.getConfig(_scenemgr.getConfigManager());
@@ -339,7 +342,12 @@ public class Pathfinder
     protected void removeFlags (Entry entry)
     {
         if (!(entry instanceof TileEntry)) {
-            return; // taken care of when the space changes
+            ConfigManager cfgmgr = _scenemgr.getConfigManager();
+            Shape shape = entry.createShape(cfgmgr);
+            if (shape != null) {
+                removeFlags(shape, entry.getCollisionFlags(cfgmgr), true, null);
+            }
+            return;
         }
         TileEntry tentry = (TileEntry)entry;
         TileConfig.Original config = tentry.getConfig(_scenemgr.getConfigManager());
@@ -356,25 +364,32 @@ public class Pathfinder
     }
 
     /**
-     * Adds the specified element's flags to the flag map(s).
+     * Adds the flags for the specified actor.
      */
-    protected void addFlags (SpaceElement element)
+    protected void addFlags (ActorLogic logic)
     {
-        Object object = element.getUserObject();
-        boolean entry;
-        int flags;
-        if (object instanceof Entry) {
-            entry = true;
-            flags = ((Entry)object).getCollisionFlags(_scenemgr.getConfigManager());
+        addFlags(logic.getShape(), logic.getActor().getCollisionFlags(), false);
+    }
 
-        } else { // object instanceof ActorLogic
-            entry = false;
-            flags = ((ActorLogic)object).getActor().getCollisionFlags();
-        }
+    /**
+     * Removes the flags for the specified actor.
+     */
+    protected void removeFlags (ActorLogic logic)
+    {
+        removeFlags(
+            logic.getShape(), logic.getActor().getCollisionFlags(),
+            false, logic.getShapeElement());
+    }
+
+    /**
+     * Adds the specified flags to the flag map(s).
+     */
+    protected void addFlags (Shape shape, int flags, boolean entry)
+    {
         if (flags == 0) {
             return; // nothing to do
         }
-        Rect bounds = element.getBounds();
+        Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         int minx = (int)FloatMath.floor(min.x);
         int maxx = (int)FloatMath.floor(max.x);
@@ -383,7 +398,7 @@ public class Pathfinder
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 updateQuad(xx, yy);
-                if (element.intersects(_quad)) {
+                if (shape.intersects(_quad)) {
                     if (entry) {
                         _entryFlags.setBits(xx, yy, flags);
                     }
@@ -394,25 +409,14 @@ public class Pathfinder
     }
 
     /**
-     * Removes the flags for the specified element.
+     * Removes the flags for the specified shape.
      */
-    protected void removeFlags (SpaceElement element)
+    protected void removeFlags (Shape shape, int flags, boolean entry, SpaceElement skip)
     {
-        Object object = element.getUserObject();
-        boolean entry;
-        int flags;
-        if (object instanceof Entry) {
-            entry = true;
-            flags = ((Entry)object).getCollisionFlags(_scenemgr.getConfigManager());
-
-        } else { // object instanceof ActorLogic
-            entry = false;
-            flags = ((ActorLogic)object).getActor().getCollisionFlags();
-        }
         if (flags == 0) {
             return; // nothing to do
         }
-        Rect bounds = element.getBounds();
+        Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         int minx = (int)FloatMath.floor(min.x);
         int maxx = (int)FloatMath.floor(max.x);
@@ -421,8 +425,8 @@ public class Pathfinder
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 updateQuad(xx, yy);
-                if (element.intersects(_quad)) {
-                    updateFlags(xx, yy, entry, element);
+                if (shape.intersects(_quad)) {
+                    updateFlags(xx, yy, entry, skip);
                 }
             }
         }
@@ -464,11 +468,7 @@ public class Pathfinder
                 }
             }
             _elements.clear();
-            if (flags == 0) {
-                _entryFlags.remove(x, y);
-            } else {
-                _entryFlags.put(x, y, flags);
-            }
+            _entryFlags.put(x, y, flags);
         } else {
             flags = _entryFlags.get(x, y);
         }
@@ -484,11 +484,7 @@ public class Pathfinder
         _elements.clear();
 
         // store the combined flags
-        if (flags == 0) {
-            _combinedFlags.remove(x, y);
-        } else {
-            _combinedFlags.put(x, y, flags);
-        }
+        _combinedFlags.put(x, y, flags);
     }
 
     /** The owning scene manager. */

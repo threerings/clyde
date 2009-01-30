@@ -276,11 +276,15 @@ public class ActorLogic extends Logic
      */
     protected void updateShape ()
     {
+        // notify observers that the shape will change
+        _shapeObservers.apply(_shapeWillChangeOp);
+
+        // update the shape
         _shape.getTransform().set(_actor.getTranslation(), _actor.getRotation(), 1f);
         _shape.updateBounds();
 
-        // notify listeners
-        _shapeObservers.apply(_shapeUpdatedOp);
+        // notify observers that the shape has changed
+        _shapeObservers.apply(_shapeDidChangeOp);
     }
 
     /**
@@ -338,11 +342,20 @@ public class ActorLogic extends Logic
     /** The actor's shape observers. */
     protected ObserverList<ShapeObserver> _shapeObservers = ObserverList.newFastUnsafe();
 
-    /** Used to notify observers of shape changes. */
-    protected ObserverList.ObserverOp<ShapeObserver> _shapeUpdatedOp =
+    /** Used to notify observers when the shape is about to change. */
+    protected ObserverList.ObserverOp<ShapeObserver> _shapeWillChangeOp =
         new ObserverList.ObserverOp<ShapeObserver>() {
         public boolean apply (ShapeObserver observer) {
-            observer.shapeUpdated(ActorLogic.this);
+            observer.shapeWillChange(ActorLogic.this);
+            return true;
+        }
+    };
+
+    /** Used to notify observers when the shape has just changed. */
+    protected ObserverList.ObserverOp<ShapeObserver> _shapeDidChangeOp =
+        new ObserverList.ObserverOp<ShapeObserver>() {
+        public boolean apply (ShapeObserver observer) {
+            observer.shapeDidChange(ActorLogic.this);
             return true;
         }
     };

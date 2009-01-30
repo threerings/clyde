@@ -26,9 +26,14 @@ public abstract class Logic
     public interface ShapeObserver
     {
         /**
-         * Notes that the logic's shape has been updated.
+         * Notes that the logic's shape is about to change.
          */
-        public void shapeUpdated (Logic source);
+        public void shapeWillChange (Logic source);
+
+        /**
+         * Notes that the logic's shape has changed.
+         */
+        public void shapeDidChange (Logic source);
     }
 
     /**

@@ -239,7 +239,13 @@ public abstract class HandlerLogic extends Logic
         }
 
         // documentation inherited from interface ShapeObserver
-        public void shapeUpdated (Logic source)
+        public void shapeWillChange (Logic source)
+        {
+            // no-op
+        }
+
+        // documentation inherited from interface ShapeObserver
+        public void shapeDidChange (Logic source)
         {
             Shape shape = ((HandlerConfig.BaseIntersection)_config).shape.getShape(
                 _source.getShape(), _source.getTransform(_transform), _shape.getLocalShape());
