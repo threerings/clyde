@@ -49,6 +49,14 @@ public abstract class SimpleSpaceElement
     }
 
     /**
+     * Returns a reference to the space to which this element has been added, if any.
+     */
+    public Space getSpace ()
+    {
+        return _space;
+    }
+
+    /**
      * Updates the bounds of the element.
      */
     public abstract void updateBounds ();

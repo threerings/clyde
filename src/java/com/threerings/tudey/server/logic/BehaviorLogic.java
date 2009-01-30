@@ -204,6 +204,15 @@ public abstract class BehaviorLogic extends Logic
         }
 
         /**
+         * Clears the path.
+         */
+        protected void clearPath ()
+        {
+            _agent.stopMoving();
+            _path = null;
+        }
+
+        /**
          * Returns the radius within which we can be consider ourselves to have reached a node
          * (which depends on the actor's speed, since it's possible to overshoot).
          */
@@ -236,14 +245,6 @@ public abstract class BehaviorLogic extends Logic
 
         /** The index of the next point on the path. */
         protected int _pidx;
-    }
-
-    /**
-     * Handles the follow behavior.
-     */
-    public static class Follow extends Pathing
-    {
-
     }
 
     /**
@@ -351,6 +352,71 @@ public abstract class BehaviorLogic extends Logic
 
         /** The logic corresponding to the current path, if any. */
         protected Logic _currentTarget;
+    }
+
+    /**
+     * Handles the follow behavior.
+     */
+    public static class Follow extends Pathing
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((BehaviorConfig.Follow)_config).target, _agent);
+        }
+
+        @Override // documentation inherited
+        protected void evaluate ()
+        {
+            super.evaluate();
+
+            // find the closest target
+            _target.resolve(_agent, _targets);
+            Vector2f trans = _agent.getTranslation();
+            Logic ctarget = null;
+            float cdist = Float.MAX_VALUE;
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                float dist = target.getTranslation().distanceSquared(trans);
+                if (dist < cdist) {
+                    ctarget = target;
+                    cdist = dist;
+                }
+            }
+            _targets.clear();
+
+            // if we're within our distance bounds, stop and face the target
+            if (ctarget == null) {
+                return;
+            }
+            BehaviorConfig.Follow config = (BehaviorConfig.Follow)_config;
+            float min2 = config.minimumDistance*config.minimumDistance;
+            float max2 = config.maximumDistance*config.maximumDistance;
+            if (FloatMath.isWithin(cdist, min2, max2)) {
+                clearPath();
+                _agent.face(ctarget);
+                return;
+            }
+
+            // compute a path to the target
+            Vector2f loc = ctarget.getTranslation();
+            Vector2f[] path = _scenemgr.getPathfinder().getPath(
+                _agent, MAX_FOLLOW_PATH_LENGTH, loc.x, loc.y, true, true);
+            if (path == null) {
+                clearPath();
+                _agent.face(ctarget);
+                return;
+            }
+
+            // start out on the path
+            setPath(path);
+        }
+
+        /** The target to follow. */
+        protected TargetLogic _target;
+
+        /** Holds targets during processing. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
     }
 
     /**
@@ -473,4 +539,7 @@ public abstract class BehaviorLogic extends Logic
 
     /** The controlled agent. */
     protected AgentLogic _agent;
+
+    /** The maximum path length for following. */
+    protected static final float MAX_FOLLOW_PATH_LENGTH = 8f;
 }

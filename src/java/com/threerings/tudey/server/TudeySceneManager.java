@@ -407,9 +407,16 @@ public class TudeySceneManager extends SceneManager
      */
     public boolean collides (ActorLogic logic)
     {
+        return collides(logic, logic.getShape());
+    }
+
+    /**
+     * Determines whether the specified actor collides with anything in the environment.
+     */
+    public boolean collides (ActorLogic logic, Shape shape)
+    {
         // check the scene model
         Actor actor = logic.getActor();
-        Shape shape = logic.getShape();
         if (((TudeySceneModel)_scene.getSceneModel()).collides(actor, shape)) {
             return true;
         }

@@ -93,7 +93,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         }
 
         /** The cached idle weights. */
-        protected SoftReference<float[]> _idleWeights;
+        protected transient SoftReference<float[]> _idleWeights;
     }
 
     /**

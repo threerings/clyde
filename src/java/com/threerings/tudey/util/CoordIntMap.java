@@ -145,6 +145,10 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
      */
     public int put (int x, int y, int value)
     {
+        if (value == _empty) {
+            // putting the empty value is equivalent to removing
+            return remove(x, y);
+        }
         _coord.set(x >> _granularity, y >> _granularity);
         Cell cell = _cells.get(_coord);
         if (cell == null) {
@@ -165,6 +169,9 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
      */
     public int setBits (int x, int y, int bits)
     {
+        if (bits == 0) {
+            return get(x, y);
+        }
         _coord.set(x >> _granularity, y >> _granularity);
         Cell cell = _cells.get(_coord);
         if (cell == null) {

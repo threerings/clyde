@@ -10,11 +10,14 @@ import java.util.Map;
 
 import com.google.common.collect.Lists;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.media.util.AStarPathUtil;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Rect;
+import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.gui.util.Rectangle;
@@ -28,6 +31,8 @@ import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.Logic;
 import com.threerings.tudey.shape.Polygon;
+import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.Space;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.CoordIntMap;
@@ -80,13 +85,15 @@ public class Pathfinder
      *
      * @param longest the maximum path length.
      * @param partial if true, return a partial path even if the destination is unreachable.
+     * @param shortcut if true, use swept shapes to find path shortcuts.
      * @return the computed path, or null if unreachable.
      */
     public Vector2f[] getEntryPath (
-        ActorLogic actor, float longest, float bx, float by, boolean partial)
+        ActorLogic actor, float longest, float bx, float by, boolean partial, boolean shortcut)
     {
         Vector2f translation = actor.getTranslation();
-        return getEntryPath(actor, longest, translation.x, translation.y, bx, by, partial);
+        return getEntryPath(
+            actor, longest, translation.x, translation.y, bx, by, partial, shortcut);
     }
 
     /**
@@ -95,12 +102,14 @@ public class Pathfinder
      *
      * @param longest the maximum path length.
      * @param partial if true, return a partial path even if the destination is unreachable.
+     * @param shortcut if true, use swept shapes to find path shortcuts.
      * @return the computed path, or null if unreachable.
      */
     public Vector2f[] getEntryPath (
-        ActorLogic actor, float longest, float ax, float ay, float bx, float by, boolean partial)
+        ActorLogic actor, float longest, float ax, float ay,
+        float bx, float by, boolean partial, boolean shortcut)
     {
-        return getPath(_entryFlags, actor, longest, ax, ay, bx, by, partial);
+        return getPath(_entryFlags, actor, longest, ax, ay, bx, by, partial, shortcut);
     }
 
     /**
@@ -108,13 +117,14 @@ public class Pathfinder
      *
      * @param longest the maximum path length.
      * @param partial if true, return a partial path even if the destination is unreachable.
+     * @param shortcut if true, use swept shapes to find path shortcuts.
      * @return the computed path, or null if unreachable.
      */
     public Vector2f[] getPath (
-        ActorLogic actor, float longest, float bx, float by, boolean partial)
+        ActorLogic actor, float longest, float bx, float by, boolean partial, boolean shortcut)
     {
         Vector2f translation = actor.getTranslation();
-        return getPath(actor, longest, translation.x, translation.y, bx, by, partial);
+        return getPath(actor, longest, translation.x, translation.y, bx, by, partial, shortcut);
     }
 
     /**
@@ -122,12 +132,14 @@ public class Pathfinder
      *
      * @param longest the maximum path length.
      * @param partial if true, return a partial path even if the destination is unreachable.
+     * @param shortcut if true, use swept shapes to find path shortcuts.
      * @return the computed path, or null if unreachable.
      */
     public Vector2f[] getPath (
-        ActorLogic actor, float longest, float ax, float ay, float bx, float by, boolean partial)
+        ActorLogic actor, float longest, float ax, float ay,
+        float bx, float by, boolean partial, boolean shortcut)
     {
-        return getPath(_combinedFlags, actor, longest, ax, ay, bx, by, partial);
+        return getPath(_combinedFlags, actor, longest, ax, ay, bx, by, partial, shortcut);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -139,14 +151,14 @@ public class Pathfinder
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryUpdated (Entry oentry, Entry nentry)
     {
-        updateFlags(oentry);
+        removeFlags(oentry);
         addFlags(nentry);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryRemoved (Entry oentry)
     {
-        updateFlags(oentry);
+        removeFlags(oentry);
     }
 
     // documentation inherited from interface Space.Observer
@@ -158,13 +170,13 @@ public class Pathfinder
     // documentation inherited from interface Space.Observer
     public void elementRemoved (SpaceElement element)
     {
-        updateFlags(element);
+        removeFlags(element);
     }
 
     // documentation inherited from interface Space.Observer
     public void elementBoundsWillChange (SpaceElement element)
     {
-        updateFlags(element);
+        removeFlags(element);
     }
 
     // documentation inherited from interface Space.Observer
@@ -178,12 +190,25 @@ public class Pathfinder
      *
      * @param longest the maximum path length.
      * @param partial if true, return a partial path even if the destination is unreachable.
+     * @param shortcut if true, use swept shapes to compute shortcuts in the path.
      * @return the computed path, or null if unreachable.
      */
     protected Vector2f[] getPath (
         final CoordIntMap flags, ActorLogic logic, float longest, float ax, float ay,
-        float bx, float by, boolean partial)
+        float bx, float by, boolean partial, boolean shortcut)
     {
+        // first things first: are we there already?
+        Vector2f start = new Vector2f(ax, ay);
+        if (ax == bx && ay == by) {
+            return new Vector2f[] { start };
+        }
+
+        // can we simply slide on over?
+        Vector2f end = new Vector2f(bx, by);
+        if (!sweptShapeCollides(flags, logic, start, end)) {
+            return new Vector2f[] { start, end };
+        }
+
         // determine the actor's extents
         Rect bounds = logic.getShape().getBounds();
         int width = Math.max(1, (int)Math.ceil(bounds.getWidth()));
@@ -220,21 +245,70 @@ public class Pathfinder
         float xoff = (width % 2) * 0.5f;
         float yoff = (height % 2) * 0.5f;
 
+        // if the actor is in the space and can collide with its own flags,
+        // remove them before we compute the path
+        ShapeElement element = logic.getShapeElement();
+        boolean remove = (element.getSpace() != null && flags == _combinedFlags &&
+            actor.canCollide(actor.getCollisionFlags()));
+        if (remove) {
+            removeFlags(element);
+        }
+
         // compute the path
         List<Point> path = AStarPathUtil.getPath(
             pred, actor, (int)longest, Math.round(ax - xoff), Math.round(ay - yoff),
             Math.round(bx - xoff), Math.round(by - yoff), partial);
-        if (path == null) {
-            return null;
+
+        // add the flags back if we removed them
+        if (remove) {
+            addFlags(element);
         }
 
         // convert to fractional coordinates
+        if (path == null) {
+            return null;
+        }
         Vector2f[] waypoints = new Vector2f[path.size()];
         for (int ii = 0; ii < waypoints.length; ii++) {
             Point pt = path.get(ii);
             waypoints[ii] = new Vector2f(pt.x + xoff, pt.y + yoff);
         }
+
+        // process for shortcuts if requested
+        if (!shortcut) {
+            return waypoints;
+        }
+        Vector2f current = start;
+        for (int ii = 0; ii < waypoints.length; ) {
+            for (int jj = waypoints.length - 1; jj >= ii; jj--) {
+                Vector2f waypoint = waypoints[jj];
+                if (jj == ii || !sweptShapeCollides(flags, logic, current, waypoint)) {
+                    _waypoints.add(current = waypoint);
+                    ii = jj + 1;
+                    break;
+                }
+            }
+        }
+        waypoints = _waypoints.toArray(new Vector2f[_waypoints.size()]);
+        _waypoints.clear();
         return waypoints;
+    }
+
+    /**
+     * Determines whether the swept shape of the specified actor collides with anything.
+     */
+    protected boolean sweptShapeCollides (
+        CoordIntMap flags, ActorLogic logic, Vector2f start, Vector2f end)
+    {
+        _worldShape = logic.getShapeElement().getLocalShape().transform(
+            _transform.set(start, logic.getRotation()), _worldShape);
+        _sweptShape = _worldShape.sweep(end.subtract(start, _translation), _sweptShape);
+        if (flags == _entryFlags) {
+            return ((TudeySceneModel)_scenemgr.getScene().getSceneModel()).collides(
+                logic.getActor(), _sweptShape);
+        } else {
+            return _scenemgr.collides(logic, _sweptShape);
+        }
     }
 
     /**
@@ -260,9 +334,9 @@ public class Pathfinder
     }
 
     /**
-     * Updates the flags underneath the area of the specified entry.
+     * Removes the flags for the specified entry.
      */
-    protected void updateFlags (Entry entry)
+    protected void removeFlags (Entry entry)
     {
         if (!(entry instanceof TileEntry)) {
             return; // taken care of when the space changes
@@ -320,9 +394,9 @@ public class Pathfinder
     }
 
     /**
-     * Updates the flags underneath the specified element.
+     * Removes the flags for the specified element.
      */
-    protected void updateFlags (SpaceElement element)
+    protected void removeFlags (SpaceElement element)
     {
         Object object = element.getUserObject();
         boolean entry;
@@ -390,8 +464,11 @@ public class Pathfinder
                 }
             }
             _elements.clear();
-            _entryFlags.put(x, y, flags);
-
+            if (flags == 0) {
+                _entryFlags.remove(x, y);
+            } else {
+                _entryFlags.put(x, y, flags);
+            }
         } else {
             flags = _entryFlags.get(x, y);
         }
@@ -407,7 +484,11 @@ public class Pathfinder
         _elements.clear();
 
         // store the combined flags
-        _combinedFlags.put(x, y, flags);
+        if (flags == 0) {
+            _combinedFlags.remove(x, y);
+        } else {
+            _combinedFlags.put(x, y, flags);
+        }
     }
 
     /** The owning scene manager. */
@@ -425,6 +506,21 @@ public class Pathfinder
     /** Holds elements during intersection testing. */
     protected List<SpaceElement> _elements = Lists.newArrayList();
 
+    /** Holds waypoints during shortcut processing. */
+    protected List<Vector2f> _waypoints = Lists.newArrayList();
+
     /** Region object to reuse. */
-    protected transient Rectangle _region = new Rectangle();
+    protected Rectangle _region = new Rectangle();
+
+    /** Transform to reuse. */
+    protected Transform2D _transform = new Transform2D();
+
+    /** World shape to reuse. */
+    protected Shape _worldShape;
+
+    /** Translation vector to reuse. */
+    protected Vector2f _translation = new Vector2f();
+
+    /** Swept shape to reuse. */
+    protected Shape _sweptShape;
 }

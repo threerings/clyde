@@ -80,6 +80,30 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Returns a reference to the actor's shape element.
+     */
+    public ShapeElement getShapeElement ()
+    {
+        return _shape;
+    }
+
+    /**
+     * Determines whether the actor is destroyed as of the current server tick.
+     */
+    public boolean isDestroyed ()
+    {
+        return _scenemgr.getTimestamp() >= _actor.getDestroyed();
+    }
+
+    /**
+     * Determines whether the actor has been removed from the manager.
+     */
+    public boolean isRemoved ()
+    {
+        return _shape.getSpace() == null;
+    }
+
+    /**
      * Warps the actor.
      */
     public void warp (float x, float y, float rotation)
@@ -244,7 +268,7 @@ public class ActorLogic extends Logic
 
         // make sure we can reach the original translation, ignoring actors
         return _scenemgr.getPathfinder().getEntryPath(
-            this, MAX_ADJUSTMENT_PATH_LENGTH, ox, oy, false) != null;
+            this, MAX_ADJUSTMENT_PATH_LENGTH, ox, oy, false, false) != null;
     }
 
     /**

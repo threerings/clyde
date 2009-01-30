@@ -16,6 +16,14 @@ import com.threerings.tudey.shape.Shape;
 public class AgentLogic extends MobileLogic
 {
     /**
+     * Sets the target rotation to face another entity.
+     */
+    public void face (Logic logic)
+    {
+        setTargetRotation(_actor.getTranslation().direction(logic.getTranslation()));
+    }
+
+    /**
      * Sets the target rotation for the agent to turn towards.
      */
     public void setTargetRotation (float rotation)

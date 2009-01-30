@@ -15,7 +15,7 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     BehaviorConfig.Idle.class, BehaviorConfig.Wander.class,
-    BehaviorConfig.Follow.class, BehaviorConfig.Patrol.class })
+    BehaviorConfig.Patrol.class, BehaviorConfig.Follow.class })
 public abstract class BehaviorConfig extends DeepObject
     implements Exportable
 {
@@ -63,9 +63,29 @@ public abstract class BehaviorConfig extends DeepObject
     }
 
     /**
+     * Patrols a path, area, etc.
+     */
+    public static class Patrol extends Evaluating
+    {
+        /** The target to patrol. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Tagged();
+
+        /** The radius within which we consider branching nodes (or negative for no branching). */
+        @Editable(min=-1.0, step=0.1)
+        public float branchRadius = -1f;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$Patrol";
+        }
+    }
+
+    /**
      * Follows another actor.
      */
-    public static class Follow extends BehaviorConfig
+    public static class Follow extends Evaluating
     {
         /** The target to follow. */
         @Editable
@@ -83,26 +103,6 @@ public abstract class BehaviorConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Follow";
-        }
-    }
-
-    /**
-     * Patrols a path, area, etc.
-     */
-    public static class Patrol extends Evaluating
-    {
-        /** The target to patrol. */
-        @Editable
-        public TargetConfig target = new TargetConfig.Tagged();
-
-        /** The radius within which we consider branching nodes (or negative for no branching). */
-        @Editable(min=-1.0, step=0.1)
-        public float branchRadius = -1f;
-
-        @Override // documentation inherited
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.BehaviorLogic$Patrol";
         }
     }
 

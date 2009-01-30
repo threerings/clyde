@@ -149,6 +149,15 @@ public final class Vector2f
     }
 
     /**
+     * Returns the direction of a vector pointing from this point to the specified other
+     * point.
+     */
+    public float direction (Vector2f other)
+    {
+        return FloatMath.atan2(other.y - y, other.x - x);
+    }
+
+    /**
      * Returns the length of this vector.
      */
     public float length ()
