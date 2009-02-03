@@ -29,6 +29,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ModelConfig;
@@ -740,6 +741,11 @@ public class Model extends DynamicScope
             _lightState = lightState;
             updated = true;
         }
+        Projection[] projections = _influences.getProjections(_projections);
+        if (_projections != projections) {
+            _projections = projections;
+            updated = true;
+        }
         if (updated) {
             wasUpdated();
         }
@@ -991,6 +997,10 @@ public class Model extends DynamicScope
     /** The model's light state. */
     @Scoped
     protected LightState _lightState;
+
+    /** The projections affecting the model. */
+    @Scoped
+    protected Projection[] _projections;
 
     /** The model's user object. */
     protected Object _userObject;

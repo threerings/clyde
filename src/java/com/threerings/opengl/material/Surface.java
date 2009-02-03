@@ -155,6 +155,13 @@ public class Surface extends SimpleScope
                 "material", _materialConfig.getName(), "scheme", scheme);
             technique = BLANK_TECHNIQUE;
         }
+        if (technique.receivesProjections) {
+            Projection[] projections = ScopeUtil.resolve(
+                _parentScope, "projections", null, Projection[].class);
+            if (projections != null && projections.length > 0) {
+                technique = Projection.rewrite(technique, projections);
+            }
+        }
         if (_geometryConfig != null) {
             PassDescriptor[] passes = technique.getDescriptors(_ctx);
             _geometry = _geometryConfig.createGeometry(_ctx, this, technique.deformer, passes);

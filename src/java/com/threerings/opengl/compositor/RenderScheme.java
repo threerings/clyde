@@ -11,4 +11,10 @@ public class RenderScheme
 {
     /** The name of the translucent scheme. */
     public static final String TRANSLUCENT = "Translucent";
+
+    /** The name of the perspective projection scheme. */
+    public static final String PERSPECTIVE_PROJECTION = "Projection (Persp)";
+
+    /** The name of the orthographic projection scheme. */
+    public static final String ORTHOGRAPHIC_PROJECTION = "Projection (Ortho)";
 }

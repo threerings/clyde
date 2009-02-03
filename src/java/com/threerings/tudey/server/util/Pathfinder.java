@@ -56,10 +56,8 @@ public class Pathfinder
 
         // initialize the entry flags and register as an observer
         TudeySceneModel model = (TudeySceneModel)_scenemgr.getScene().getSceneModel();
-        _entryFlags.putAll(model.getCollisionFlags());
-        _combinedFlags.putAll(_entryFlags);
-        for (SpaceElement element : model.getElements().values()) {
-            addFlags((Entry)element.getUserObject());
+        for (Entry entry : model.getEntries()) {
+            addFlags(entry);
         }
         model.addObserver(this);
 

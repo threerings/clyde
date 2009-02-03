@@ -8,6 +8,7 @@ import java.util.HashSet;
 
 import com.threerings.math.Box;
 
+import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.state.FogState;
@@ -81,6 +82,30 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
     }
 
     /**
+     * Returns the set of projections for this influence set.
+     *
+     * @param projections an existing array to reuse, if possible.
+     */
+    public Projection[] getProjections (Projection[] projections)
+    {
+        ArrayList<Projection> projs = new ArrayList<Projection>();
+        for (SceneInfluence influence : this) {
+            Projection projection = influence.getProjection();
+            if (projection != null) {
+                projs.add(projection);
+            }
+        }
+        int size = projs.size();
+        if (size == 0) {
+            return NO_PROJECTIONS;
+        }
+        if (canReuse(projections, projs)) {
+            return projections;
+        }
+        return projs.toArray(new Projection[size]);
+    }
+
+    /**
      * Determines whether we can reuse the specified state, given the provided new list of
      * lights.
      */
@@ -101,6 +126,25 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
         return true;
     }
 
+    /**
+     * Determines whether we can reuse the specified projections.
+     */
+    protected boolean canReuse (Projection[] projections, ArrayList<Projection> nprojs)
+    {
+        if (projections == null || projections.length != nprojs.size()) {
+            return false;
+        }
+        for (Projection proj : projections) {
+            if (!nprojs.contains(proj)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** The maximum number of lights we allow in a set. */
     protected static final int MAX_LIGHTS = 3;
+
+    /** Reusable empty projections array. */
+    protected static final Projection[] NO_PROJECTIONS = new Projection[0];
 }

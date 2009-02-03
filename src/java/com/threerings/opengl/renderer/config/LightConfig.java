@@ -226,14 +226,6 @@ public abstract class LightConfig extends DeepObject
         public float cutoff;
     }
 
-    /**
-     * Returns the subclasses available for selection in the editor.
-     */
-    public static Class[] getEditorTypes ()
-    {
-        return new Class[] { Directional.class, Point.class, Spot.class };
-    }
-
     /** The color of the light. */
     @Editable(hgroup="p")
     public Colors colors = new Colors();

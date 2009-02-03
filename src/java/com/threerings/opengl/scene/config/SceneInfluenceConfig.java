@@ -15,7 +15,7 @@ import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.material.config.ProjectionConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.config.FogStateConfig;
 import com.threerings.opengl.renderer.config.LightConfig;
@@ -95,27 +95,15 @@ public abstract class SceneInfluenceConfig extends DeepObject
      */
     public static class Projector extends SceneInfluenceConfig
     {
-        /** The projected material. */
-        @Editable(nullable=true)
-        public ConfigReference<MaterialConfig> material;
-
-        /** The width of the projection. */
-        @Editable(min=0, step=0.01, hgroup="d")
-        public float width = 1f;
-
-        /** The height of the projection. */
-        @Editable(min=0, step=0.01, hgroup="d")
-        public float height = 1f;
-
-        /** Whether or not to use an orthographic projection. */
-        @Editable(hgroup="d")
-        public boolean ortho = true;
+        /** The projection config. */
+        @Editable
+        public ProjectionConfig projection = new ProjectionConfig.Perspective();
 
         @Override // documentation inherited
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
-            return new ProjectorInfluence();
+            return new ProjectorInfluence(projection.createProjection(ctx, scope, updaters));
         }
     }
 

@@ -498,8 +498,12 @@ public class TechniqueConfig extends DeepObject
     }
 
     /** The render scheme with which this technique is associated. */
-    @Editable(editor="config", mode="render_scheme", nullable=true)
+    @Editable(editor="config", mode="render_scheme", nullable=true, hgroup="s")
     public String scheme;
+
+    /** Whether or not this technique receives projections. */
+    @Editable(hgroup="s")
+    public boolean receivesProjections;
 
     /** Basic material dependencies. */
     @Editable

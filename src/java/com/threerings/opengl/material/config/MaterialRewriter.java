@@ -16,7 +16,9 @@ import com.threerings.opengl.renderer.config.DepthStateConfig;
 /**
  * Used to transform material techniques.
  */
-@EditorTypes({ MaterialRewriter.DepthOnly.class, MaterialRewriter.Translucent.class })
+@EditorTypes({
+    MaterialRewriter.DepthOnly.class, MaterialRewriter.Translucent.class,
+    MaterialRewriter.Projection.class })
 public abstract class MaterialRewriter extends DeepObject
     implements Exportable
 {
@@ -72,6 +74,13 @@ public abstract class MaterialRewriter extends DeepObject
         {
             return RenderQueue.OPAQUE.equals(queue) ? RenderQueue.TRANSPARENT : queue;
         }
+    }
+
+    /**
+     * Creates projected versions of input techniques.
+     */
+    public static class Projection extends MaterialRewriter
+    {
     }
 
     /**

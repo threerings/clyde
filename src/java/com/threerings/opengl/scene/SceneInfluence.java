@@ -6,6 +6,7 @@ package com.threerings.opengl.scene;
 import com.threerings.math.Box;
 import com.threerings.util.ShallowObject;
 
+import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.state.FogState;
@@ -37,6 +38,14 @@ public abstract class SceneInfluence extends ShallowObject
      * Returns the light associated with this influence, or <code>null</code> for none.
      */
     public Light getLight ()
+    {
+        return null;
+    }
+
+    /**
+     * Returns the projection associated with this influence, or <code>null</code> for none.
+     */
+    public Projection getProjection ()
     {
         return null;
     }
