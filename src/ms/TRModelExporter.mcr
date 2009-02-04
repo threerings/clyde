@@ -71,8 +71,8 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                 )
                 if cpvface != undefined do (
                     vcolor = getVertColor mesh cpvface[jj]
-                    format " color=\"%, %, %, %\"" vcolor.r/255.0 vcolor.g/255.0 vcolor.b/255.0 \
-                        vcolor.a/255.0
+                    format " color=\"%, %, %, %\"" (vcolor.r/255.0) (vcolor.g/255.0) (vcolor.b/255.0) \
+                        (vcolor.a/255.0) to:outFile
                 )
                 if isProperty mesh #skin or isProperty mesh #physique then (
                     format ">\n" to:outFile
