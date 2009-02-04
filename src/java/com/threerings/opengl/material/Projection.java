@@ -24,9 +24,22 @@
 
 package com.threerings.opengl.material;
 
+import com.samskivert.util.ArrayUtil;
+
+import com.threerings.expr.MutableInteger;
+import com.threerings.expr.Scope;
+import com.threerings.expr.SimpleScope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Vector4f;
 
+import com.threerings.opengl.compositor.RenderQueue;
+import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.material.config.TechniqueConfig;
+import com.threerings.opengl.material.config.TechniqueConfig.CompoundEnqueuer;
+import com.threerings.opengl.material.config.TechniqueConfig.Enqueuer;
+import com.threerings.opengl.material.config.TechniqueConfig.EnqueuerWrapper;
+import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.Renderable;
 
 /**
  * Represents a projection onto a surface.
@@ -38,6 +51,20 @@ public class Projection
      */
     public static TechniqueConfig rewrite (TechniqueConfig technique, Projection[] projections)
     {
+        technique = (TechniqueConfig)technique.clone();
+        CompoundEnqueuer nenqueuer = new CompoundEnqueuer();
+        nenqueuer.enqueuers = new Enqueuer[1 + projections.length];
+        nenqueuer.enqueuers[0] = technique.enqueuer;
+        technique.enqueuer = nenqueuer;
+        for (int ii = 0; ii < projections.length; ii++) {
+            Projection projection = projections[ii];
+            TechniqueConfig ptech = projection.getTechnique();
+            if (ptech.dependencies.length > 0) {
+                technique.dependencies = ArrayUtil.concatenate(
+                    technique.dependencies, ptech.dependencies);
+            }
+            nenqueuer.enqueuers[ii + 1] = ptech.enqueuer;
+        }
         return technique;
     }
 
@@ -48,7 +75,21 @@ public class Projection
      */
     public Projection (TechniqueConfig technique)
     {
-        _technique = technique;
+        // wrap the enqueuer up to insert our scope
+        _technique = new TechniqueConfig();
+        _technique.dependencies = technique.dependencies;
+        _technique.enqueuer = new EnqueuerWrapper(technique.enqueuer) {
+            public Renderable createRenderable (
+                GlContext ctx, Scope scope, Geometry geometry,
+                boolean update, RenderQueue.Group group, MutableInteger pidx) {
+                SimpleScope wscope = new SimpleScope(scope) {
+                    public <T> T get (String name, Class<T> clazz) {
+                        return ScopeUtil.get(Projection.this, name, clazz);
+                    }
+                };
+                return super.createRenderable(ctx, wscope, geometry, update, group, pidx);
+            }
+        };
     }
 
     /**

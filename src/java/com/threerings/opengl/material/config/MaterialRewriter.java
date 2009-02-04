@@ -24,15 +24,29 @@
 
 package com.threerings.opengl.material.config;
 
+import com.samskivert.util.ArrayUtil;
+
+import com.threerings.config.ConfigManager;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.ExpressionBinding;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
+import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Vector4f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.config.AlphaStateConfig;
 import com.threerings.opengl.renderer.config.AlphaStateConfig.DestBlendFactor;
 import com.threerings.opengl.renderer.config.DepthStateConfig;
+import com.threerings.opengl.renderer.config.TextureCoordGenConfig;
+import com.threerings.opengl.renderer.config.TextureStateConfig;
+import com.threerings.opengl.renderer.config.TextureUnitConfig;
+import com.threerings.opengl.renderer.TextureUnit;
+import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.renderer.state.TextureState;
 
 /**
  * Used to transform material techniques.
@@ -102,6 +116,79 @@ public abstract class MaterialRewriter extends DeepObject
      */
     public static class Projection extends MaterialRewriter
     {
+        /** Whether or not to enable generation for each texture coordinate. */
+        @Editable(hgroup="t")
+        public boolean s, t, r, q;
+
+        @Override // documentation inherited
+        protected PassConfig rewrite (PassConfig pass)
+        {
+            pass = super.rewrite(pass);
+            int nunits = pass.textureState.units.length;
+            if (nunits == 0 || !(s || t || r || q)) {
+                return pass;
+            }
+            // static binding sets coordinate vector references
+            ExpressionBinding sbinding = new ExpressionBinding() {
+                public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object) {
+                    final TextureState tstate =
+                        (TextureState)((TechniqueConfig.StateContainer)object).states[
+                            RenderState.TEXTURE_STATE];
+                    final Vector4f genPlaneS =
+                        s ? ScopeUtil.resolve(scope, "genPlaneS", null, Vector4f.class) : null;
+                    final Vector4f genPlaneT =
+                        t ? ScopeUtil.resolve(scope, "genPlaneT", null, Vector4f.class) : null;
+                    final Vector4f genPlaneR =
+                        r ? ScopeUtil.resolve(scope, "genPlaneR", null, Vector4f.class) : null;
+                    final Vector4f genPlaneQ =
+                        q ? ScopeUtil.resolve(scope, "genPlaneQ", null, Vector4f.class) : null;
+                    return new Updater() {
+                        public void update () {
+                            for (TextureUnit unit : tstate.getUnits()) {
+                                unit.genPlaneS = (genPlaneS == null) ? unit.genPlaneS : genPlaneS;
+                                unit.genPlaneT = (genPlaneT == null) ? unit.genPlaneT : genPlaneT;
+                                unit.genPlaneR = (genPlaneR == null) ? unit.genPlaneR : genPlaneR;
+                                unit.genPlaneQ = (genPlaneQ == null) ? unit.genPlaneQ : genPlaneQ;
+                            }
+                        }
+                    };
+                }
+            };
+            pass.staticBindings = ArrayUtil.append(pass.staticBindings, sbinding);
+
+            // dynamic binding sets dirty flags
+            ExpressionBinding dbinding = new ExpressionBinding() {
+                public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object) {
+                    final TextureState tstate =
+                        (TextureState)((TechniqueConfig.StateContainer)object).states[
+                            RenderState.TEXTURE_STATE];
+                    return new Updater() {
+                        public void update () {
+                            for (TextureUnit unit : tstate.getUnits()) {
+                                unit.dirty = true;
+                            }
+                            tstate.setDirty(true);
+                        }
+                    };
+                }
+            };
+            pass.dynamicBindings = ArrayUtil.append(pass.dynamicBindings, dbinding);
+            return pass;
+        }
+
+        @Override // documentation inherited
+        protected TextureUnitConfig rewrite (TextureUnitConfig textureUnit)
+        {
+            textureUnit.coordGenS =
+                s ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenS;
+            textureUnit.coordGenT =
+                t ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenT;
+            textureUnit.coordGenS =
+                r ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenR;
+            textureUnit.coordGenT =
+                q ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenQ;
+            return textureUnit;
+        }
     }
 
     /**
@@ -153,6 +240,7 @@ public abstract class MaterialRewriter extends DeepObject
     {
         pass.alphaState = rewrite(pass.alphaState);
         pass.depthState = rewrite(pass.depthState);
+        pass.textureState = rewrite(pass.textureState);
         return pass;
     }
 
@@ -170,5 +258,25 @@ public abstract class MaterialRewriter extends DeepObject
     protected DepthStateConfig rewrite (DepthStateConfig depthState)
     {
         return depthState;
+    }
+
+    /**
+     * Rewrites the specified state.
+     */
+    protected TextureStateConfig rewrite (TextureStateConfig textureState)
+    {
+        TextureUnitConfig[] units = textureState.units;
+        for (int ii = 0; ii < units.length; ii++) {
+            units[ii] = rewrite(units[ii]);
+        }
+        return textureState;
+    }
+
+    /**
+     * Rewrites the specified texture unit.
+     */
+    protected TextureUnitConfig rewrite (TextureUnitConfig textureUnit)
+    {
+        return textureUnit;
     }
 }

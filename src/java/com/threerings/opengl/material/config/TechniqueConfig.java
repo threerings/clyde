@@ -518,6 +518,72 @@ public class TechniqueConfig extends DeepObject
         }
     }
 
+    /**
+     * Wraps another enqueuer.
+     */
+    public static class EnqueuerWrapper extends Enqueuer
+    {
+        /**
+         * Creates a wrapped enqueuer.
+         */
+        public EnqueuerWrapper (Enqueuer wrapped)
+        {
+            _wrapped = wrapped;
+        }
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            _wrapped.getUpdateReferences(refs);
+        }
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx)
+        {
+            return _wrapped.isSupported(ctx);
+        }
+
+        @Override // documentation inherited
+        public Enqueuer rewrite (MaterialRewriter rewriter)
+        {
+            return _wrapped.rewrite(rewriter);
+        }
+
+        @Override // documentation inherited
+        public void getDescriptors (GlContext ctx, ArrayList<PassDescriptor> list)
+        {
+            _wrapped.getDescriptors(ctx, list);
+        }
+
+        @Override // documentation inherited
+        public Renderable createRenderable (
+            GlContext ctx, Scope scope, Geometry geometry,
+            boolean update, RenderQueue.Group group, MutableInteger pidx)
+        {
+            return _wrapped.createRenderable(ctx, scope, geometry, update, group, pidx);
+        }
+
+        /** The wrapped enqueuer. */
+        protected Enqueuer _wrapped;
+    }
+
+    /**
+     * A simple container for a set of states.
+     */
+    public static class StateContainer
+    {
+        /** The contained states. */
+        public RenderState[] states;
+
+        /**
+         * Creates a new container.
+         */
+        public StateContainer (RenderState[] states)
+        {
+            this.states = states;
+        }
+    }
+
     /** The render scheme with which this technique is associated. */
     @Editable(editor="config", mode="render_scheme", nullable=true, hgroup="s")
     public String scheme;
@@ -635,20 +701,6 @@ public class TechniqueConfig extends DeepObject
     {
         _schemeConfig = RenderSchemeConfig.INVALID;
         _descriptors = null;
-    }
-
-    /**
-     * A simple container for a set of states.
-     */
-    protected static class StateContainer
-    {
-        /** The contained states. */
-        public RenderState[] states;
-
-        public StateContainer (RenderState[] states)
-        {
-            this.states = states;
-        }
     }
 
     /** The cached scheme config. */
