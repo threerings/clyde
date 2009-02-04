@@ -35,6 +35,7 @@ import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector4f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderScheme;
@@ -72,15 +73,18 @@ public abstract class ProjectionConfig extends DeepObject
                 public void update () {
                     viewTransform.invert(_viewTransformInv).update(Transform3D.AFFINE);
                     Matrix4f mat = _viewTransformInv.getMatrix();
+                    float ns = (near == 0f) ? 0f : (-1f / near);
+                    Vector4f gpq = projection.getGenPlaneQ();
+                    gpq.set(ns*mat.m02, ns*mat.m12, ns*mat.m22, ns*mat.m32);
                     float ss = (width == 0f) ? 0f : (1f / width);
                     projection.getGenPlaneS().set(
-                        ss*mat.m00, ss*mat.m10, ss*mat.m20, ss*mat.m30 - 0.5f);
+                        ss*mat.m00 + 0.5f*gpq.x, ss*mat.m10 + 0.5f*gpq.y,
+                        ss*mat.m20 + 0.5f*gpq.z, ss*mat.m30 + 0.5f*gpq.w);
                     float ts = (height == 0f) ? 0f : (1f / height);
                     projection.getGenPlaneT().set(
-                        ts*mat.m01, ts*mat.m11, ts*mat.m21, ts*mat.m31 - 0.5f);
-                    float ns = (near == 0f) ? 0f : (-1f / near);
-                    projection.getGenPlaneQ().set(
-                        ns*mat.m02, ns*mat.m12, ns*mat.m22, ns*mat.m32);
+                        ts*mat.m01 + 0.5f*gpq.x, ts*mat.m11 + 0.5f*gpq.y,
+                        ts*mat.m21 + 0.5f*gpq.z, ts*mat.m31 + 0.5f*gpq.w);
+
                 }
                 protected Transform3D _viewTransformInv = new Transform3D();
             };
@@ -109,10 +113,10 @@ public abstract class ProjectionConfig extends DeepObject
                     Matrix4f mat = _viewTransformInv.getMatrix();
                     float ss = (width == 0f) ? 0f : (1f / width);
                     projection.getGenPlaneS().set(
-                        ss*mat.m00, ss*mat.m10, ss*mat.m20, ss*mat.m30 - 0.5f);
+                        ss*mat.m00, ss*mat.m10, ss*mat.m20, ss*mat.m30 + 0.5f);
                     float ts = (height == 0f) ? 0f : (1f / height);
                     projection.getGenPlaneT().set(
-                        ts*mat.m01, ts*mat.m11, ts*mat.m21, ts*mat.m31 - 0.5f);
+                        ts*mat.m01, ts*mat.m11, ts*mat.m21, ts*mat.m31 + 0.5f);
                 }
                 protected Transform3D _viewTransformInv = new Transform3D();
             };
