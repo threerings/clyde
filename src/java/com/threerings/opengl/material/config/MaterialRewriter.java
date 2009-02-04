@@ -183,9 +183,9 @@ public abstract class MaterialRewriter extends DeepObject
                 s ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenS;
             textureUnit.coordGenT =
                 t ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenT;
-            textureUnit.coordGenS =
+            textureUnit.coordGenR =
                 r ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenR;
-            textureUnit.coordGenT =
+            textureUnit.coordGenQ =
                 q ? new TextureCoordGenConfig.EyeLinear() : textureUnit.coordGenQ;
             return textureUnit;
         }

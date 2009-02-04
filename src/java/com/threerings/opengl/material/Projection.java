@@ -28,6 +28,7 @@ import com.samskivert.util.ArrayUtil;
 
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Vector4f;
@@ -136,14 +137,18 @@ public class Projection
     protected TechniqueConfig _technique;
 
     /** The s texture coordinate generation plane. */
+    @Scoped
     protected Vector4f _genPlaneS = new Vector4f(1f, 0f, 0f, 0f);
 
     /** The t texture coordinate generation plane. */
+    @Scoped
     protected Vector4f _genPlaneT = new Vector4f(0f, 1f, 0f, 0f);
 
     /** The r texture coordinate generation plane. */
+    @Scoped
     protected Vector4f _genPlaneR = new Vector4f(0f, 0f, 0f, 0f);
 
     /** The q texture coordinate generation plane. */
+    @Scoped
     protected Vector4f _genPlaneQ = new Vector4f(0f, 0f, 0f, 0f);
 }
