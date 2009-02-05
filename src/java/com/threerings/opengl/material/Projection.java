@@ -39,6 +39,7 @@ import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.material.config.TechniqueConfig.CompoundEnqueuer;
 import com.threerings.opengl.material.config.TechniqueConfig.Enqueuer;
 import com.threerings.opengl.material.config.TechniqueConfig.EnqueuerWrapper;
+import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Renderable;
 
@@ -74,7 +75,7 @@ public class Projection
      *
      * @param technique the material technique to use to render the projection.
      */
-    public Projection (TechniqueConfig technique)
+    public Projection (TechniqueConfig technique, ColorState colorState)
     {
         // wrap the enqueuer up to insert our scope
         _technique = new TechniqueConfig();
@@ -91,6 +92,7 @@ public class Projection
                 return super.createRenderable(ctx, wscope, geometry, update, group, pidx);
             }
         };
+        _colorState = colorState;
     }
 
     /**
@@ -135,6 +137,10 @@ public class Projection
 
     /** The technique to use to render the projection. */
     protected TechniqueConfig _technique;
+
+    /** The projection's color state. */
+    @Scoped
+    protected ColorState _colorState;
 
     /** The s texture coordinate generation plane. */
     @Scoped

@@ -40,6 +40,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.material.Projection;
+import com.threerings.opengl.renderer.config.ColorStateConfig;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -127,6 +128,10 @@ public abstract class ProjectionConfig extends DeepObject
     @Editable(nullable=true)
     public ConfigReference<MaterialConfig> material;
 
+    /** The color state for the projection. */
+    @Editable(nullable=true)
+    public ColorStateConfig colorState = new ColorStateConfig();
+
     /** The width of the projected image. */
     @Editable(min=0.0, step=0.01, hgroup="d")
     public float width = 1f;
@@ -146,7 +151,8 @@ public abstract class ProjectionConfig extends DeepObject
         if (technique == null) {
             return null;
         }
-        Projection projection = new Projection(technique);
+        Projection projection = new Projection(
+            technique, (colorState == null) ? null : colorState.getState());
         updaters.add(createUpdater(ctx, scope, projection));
         return projection;
     }
