@@ -22,63 +22,56 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.opengl.scene.config;
+package com.threerings.opengl.model.config;
 
 import com.threerings.editor.Editable;
-import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.math.Box;
-import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.model.Model;
+
 /**
- * Represents the extent of an influence or effect.
+ * Contains a set of flags for different kinds of influences.
  */
-@EditorTypes({ Extent.Limited.class, Extent.Unlimited.class })
-public abstract class Extent extends DeepObject
+public class InfluenceFlagConfig extends DeepObject
     implements Exportable
 {
+    /** Whether or not to enable fog influences. */
+    @Editable(hgroup="i")
+    public boolean fog = true;
+
+    /** Whether or not to enable light influences. */
+    @Editable(hgroup="i")
+    public boolean lights = true;
+
+    /** Whether or not to enable projection influences. */
+    @Editable(hgroup="i")
+    public boolean projections = true;
+
     /**
-     * Limited extent.
+     * Creates a new config.
      */
-    public static class Limited extends Extent
+    public InfluenceFlagConfig (boolean fog, boolean lights, boolean projections)
     {
-        /** The size in the x direction. */
-        @Editable(min=0, step=0.01, hgroup="s")
-        public float sizeX = 1f;
-
-        /** The size in the y direction. */
-        @Editable(min=0, step=0.01, hgroup="s")
-        public float sizeY = 1f;
-
-        /** The size in the z direction. */
-        @Editable(min=0, step=0.01, hgroup="s")
-        public float sizeZ = 1f;
-
-        @Override // documentation inherited
-        public void transformBounds (Transform3D transform, Box result)
-        {
-            float hx = sizeX * 0.5f, hy = sizeY * 0.5f, hz = sizeZ * 0.5f;
-            result.getMinimumExtent().set(-hx, -hy, -hz);
-            result.getMaximumExtent().set(+hx, +hy, +hz);
-            result.transformLocal(transform);
-        }
+        this.fog = fog;
+        this.lights = lights;
+        this.projections = projections;
     }
 
     /**
-     * Unlimited extent.
+     * No-arg constructor for deserialization.
      */
-    public static class Unlimited extends Extent
+    public InfluenceFlagConfig ()
     {
-        @Override // documentation inherited
-        public void transformBounds (Transform3D transform, Box result)
-        {
-            result.set(Box.MAX_VALUE);
-        }
     }
 
     /**
-     * Retrieves the bounds of the extent under the specified transform.
+     * Returns the set of influence flags corresponding to this config.
      */
-    public abstract void transformBounds (Transform3D transform, Box result);
+    public int getFlags ()
+    {
+        return (fog ? Model.FOG_INFLUENCE : 0) |
+            (lights ? Model.LIGHT_INFLUENCE : 0) |
+            (projections ? Model.PROJECTION_INFLUENCE : 0);
+    }
 }

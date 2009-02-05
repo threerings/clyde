@@ -413,6 +413,12 @@ public abstract class BaseParticleSystem extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public int getInfluenceFlags ()
+    {
+        return _influenceFlags;
+    }
+
+    @Override // documentation inherited
     public Box getBounds ()
     {
         return _bounds;
@@ -508,6 +514,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
             }
         }
 
+        // update the influence flags
+        _influenceFlags = _config.influences.getFlags();
+
         // (re)create the layers
         BaseParticleSystemConfig.Layer[] configs = _config.getLayers();
         _layers = new Layer[configs.length];
@@ -567,6 +576,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
     /** The view transform. */
     @Scoped
     protected Transform3D _viewTransform = new Transform3D();
+
+    /** Flags indicating which influences can affect the system. */
+    protected int _influenceFlags;
 
     /** The bounds of the system. */
     protected Box _bounds = new Box();

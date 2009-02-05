@@ -449,6 +449,12 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public int getInfluenceFlags ()
+    {
+        return _influenceFlags;
+    }
+
+    @Override // documentation inherited
     public Box getBounds ()
     {
         return _bounds;
@@ -657,6 +663,9 @@ public class Articulated extends Model.Implementation
             }
         }
 
+        // update the influence flags
+        _influenceFlags = _config.influences.getFlags();
+
         // create the node list
         ArrayList<Node> nnodes = new ArrayList<Node>();
         _config.root.getArticulatedNodes(this, onodes, nnodes, _worldTransform, _viewTransform);
@@ -703,7 +712,7 @@ public class Articulated extends Model.Implementation
             _animations[ii] = anim;
             AnimationMapping mapping = _config.animationMappings[ii];
             anim.setConfig(mapping.name, mapping.animation);
-            if (mapping.startAutomatically) {
+            if (mapping.startAutomatically && !anim.isPlaying()) {
                 anim.start();
             }
         }
@@ -938,6 +947,9 @@ public class Articulated extends Model.Implementation
     /** The shared transform state. */
     @Scoped
     protected TransformState _transformState = new TransformState();
+
+    /** Flags indicating which influences can affect the model. */
+    protected int _influenceFlags;
 
     /** The bounds of the model. */
     protected Box _bounds = new Box();

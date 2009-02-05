@@ -43,6 +43,7 @@ import com.threerings.opengl.effect.ColorFunction;
 import com.threerings.opengl.effect.FloatFunction;
 import com.threerings.opengl.effect.MetaParticleSystem;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.GlContext;
 
@@ -143,6 +144,10 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
         @Shallow
         public transient Layer identity = this;
     }
+
+    /** The influences allowed to affect this model. */
+    @Editable
+    public InfluenceFlagConfig influences = new InfluenceFlagConfig(true, false, false);
 
     /**
      * Returns a reference to the system's array of layers.

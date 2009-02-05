@@ -26,6 +26,7 @@ package com.threerings.opengl.model;
 
 import java.util.ArrayList;
 
+import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.ObserverList;
 
 import com.threerings.config.ConfigEvent;
@@ -625,6 +626,9 @@ public class Animation extends SimpleScope
      */
     public void setConfig (String name, AnimationConfig config)
     {
+        if (ObjectUtil.equals(_name, name) && _config == config) {
+            return;
+        }
         _name = name;
         if (_config != null) {
             _config.removeListener(this);

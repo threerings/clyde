@@ -159,11 +159,11 @@ public class Model extends DynamicScope
         }
 
         /**
-         * Checks whether this model can be influenced.
+         * Returns a set of flags indicating the types of influences that affect the model.
          */
-        public boolean isInfluenceable ()
+        public int getInfluenceFlags ()
         {
-            return true;
+            return 0;
         }
 
         /**
@@ -311,6 +311,15 @@ public class Model extends DynamicScope
             return null;
         }
     }
+
+    /** A flag indicating that the model implementation relies on the fog state. */
+    public static final int FOG_INFLUENCE = (1 << 0);
+
+    /** A flag indicating that the model implementation relies on the light state. */
+    public static final int LIGHT_INFLUENCE = (1 << 1);
+
+    /** A flag indicating that the model implementation relies on the projections. */
+    public static final int PROJECTION_INFLUENCE = (1 << 2);
 
     /**
      * Creates a new model with a null configuration.
@@ -740,7 +749,8 @@ public class Model extends DynamicScope
     // documentation inherited from interface SceneElement
     public void setInfluences (SceneInfluenceSet influences)
     {
-        boolean influenceable = _impl.isInfluenceable();
+        int flags = _impl.getInfluenceFlags();
+        boolean influenceable = (flags != 0);
         if (influenceable ? _influences.equals(influences) : _influences.isEmpty()) {
             return;
         }
@@ -752,17 +762,20 @@ public class Model extends DynamicScope
         // process the influences
         Box bounds = getBounds();
         boolean updated = false;
-        FogState fogState = _influences.getFogState(bounds, _fogState);
+        FogState fogState = ((flags & FOG_INFLUENCE) == 0) ?
+            null : _influences.getFogState(bounds, _fogState);
         if (_fogState != fogState) {
             _fogState = fogState;
             updated = true;
         }
-        LightState lightState = _influences.getLightState(bounds, _lightState);
+        LightState lightState = ((flags & LIGHT_INFLUENCE) == 0) ?
+            null : _influences.getLightState(bounds, _lightState);
         if (_lightState != lightState) {
             _lightState = lightState;
             updated = true;
         }
-        Projection[] projections = _influences.getProjections(_projections);
+        Projection[] projections = ((flags & PROJECTION_INFLUENCE) == 0) ?
+            null : _influences.getProjections(_projections);
         if (_projections != projections) {
             _projections = projections;
             updated = true;

@@ -54,21 +54,29 @@ public class Static extends Model.Implementation
      * Creates a new static implementation.
      */
     public Static (
-        GlContext ctx, Scope parentScope, MeshSet meshes, MaterialMapping[] materialMappings)
+        GlContext ctx, Scope parentScope, MeshSet meshes,
+        MaterialMapping[] materialMappings, int influenceFlags)
     {
         super(parentScope);
         _ctx = ctx;
-        setConfig(meshes, materialMappings);
+        setConfig(meshes, materialMappings, influenceFlags);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (MeshSet meshes, MaterialMapping[] materialMappings)
+    public void setConfig (MeshSet meshes, MaterialMapping[] materialMappings, int influenceFlags)
     {
         _meshes = meshes;
         _materialMappings = materialMappings;
+        _influenceFlags = influenceFlags;
         updateFromConfig();
+    }
+
+    @Override // documentation inherited
+    public int getInfluenceFlags ()
+    {
+        return _influenceFlags;
     }
 
     @Override // documentation inherited
@@ -183,6 +191,9 @@ public class Static extends Model.Implementation
     /** The shared transform state. */
     @Scoped
     protected TransformState _transformState = new TransformState();
+
+    /** Flags indicating which influences can affect the model. */
+    protected int _influenceFlags;
 
     /** The bounds of the model. */
     protected Box _bounds = new Box();

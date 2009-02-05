@@ -55,9 +55,9 @@ public class StaticConfig extends ModelConfig.Imported
             return null;
         }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(meshes, materialMappings);
+            ((Static)impl).setConfig(meshes, materialMappings, influences.getFlags());
         } else {
-            impl = new Static(ctx, scope, meshes, materialMappings);
+            impl = new Static(ctx, scope, meshes, materialMappings, influences.getFlags());
         }
         return impl;
     }

@@ -218,6 +218,10 @@ public class ModelConfig extends ParameterizedConfig
         @Editable(hgroup="i")
         public boolean generateTangents;
 
+        /** The influences allowed to affect this model. */
+        @Editable
+        public InfluenceFlagConfig influences = new InfluenceFlagConfig();
+
         /** The mappings from texture name to material. */
         @Editable(depends={"source"})
         public MaterialMapping[] materialMappings = new MaterialMapping[0];
