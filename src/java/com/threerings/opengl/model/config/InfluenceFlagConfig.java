@@ -38,19 +38,35 @@ public class InfluenceFlagConfig extends DeepObject
 {
     /** Whether or not to enable fog influences. */
     @Editable(hgroup="i")
-    public boolean fog = true;
+    public boolean fog;
 
     /** Whether or not to enable light influences. */
     @Editable(hgroup="i")
-    public boolean lights = true;
+    public boolean lights;
 
     /** Whether or not to enable projection influences. */
     @Editable(hgroup="i")
-    public boolean projections = true;
+    public boolean projections;
 
     /** Whether or not to enable definition influences. */
     @Editable(hgroup="i")
-    public boolean definitions = true;
+    public boolean definitions;
+
+    /**
+     * Default constructor.
+     */
+    public InfluenceFlagConfig ()
+    {
+        this(true);
+    }
+
+    /**
+     * Creates a new config.
+     */
+    public InfluenceFlagConfig (boolean value)
+    {
+        this(value, value, value, value);
+    }
 
     /**
      * Creates a new config.
@@ -62,13 +78,6 @@ public class InfluenceFlagConfig extends DeepObject
         this.lights = lights;
         this.projections = projections;
         this.definitions = definitions;
-    }
-
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public InfluenceFlagConfig ()
-    {
     }
 
     /**

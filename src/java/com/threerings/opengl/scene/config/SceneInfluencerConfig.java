@@ -28,6 +28,7 @@ import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.SceneInfluencer;
 import com.threerings.opengl.util.GlContext;
@@ -40,6 +41,10 @@ public class SceneInfluencerConfig extends ModelConfig.Implementation
     /** The influence that this influencer exerts. */
     @Editable
     public SceneInfluenceConfig influence = new SceneInfluenceConfig.AmbientLight();
+
+    /** The influences allowed to affect this model. */
+    @Editable
+    public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
 
     /** The extent of the influence. */
     @Editable

@@ -62,6 +62,12 @@ public class ViewerAffecter extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public int getInfluenceFlags ()
+    {
+        return _influenceFlags;
+    }
+
+    @Override // documentation inherited
     public Box getBounds ()
     {
         return _bounds;
@@ -131,6 +137,9 @@ public class ViewerAffecter extends Model.Implementation
             scene.remove(_effect);
         }
 
+        // update the influence flags
+        _influenceFlags = _config.influences.getFlags();
+
         // create the effect
         _effect = _config.effect.createViewerEffect(_ctx, this);
         _effect.getBounds().set(_bounds);
@@ -164,6 +173,9 @@ public class ViewerAffecter extends Model.Implementation
     /** The world transform. */
     @Scoped
     protected Transform3D _worldTransform = new Transform3D();
+
+    /** Flags indicating which influences can affect the model. */
+    protected int _influenceFlags;
 
     /** The bounds of the system. */
     protected Box _bounds = new Box();

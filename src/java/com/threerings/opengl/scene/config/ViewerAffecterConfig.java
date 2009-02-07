@@ -28,6 +28,7 @@ import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.ViewerAffecter;
 import com.threerings.opengl.util.GlContext;
@@ -40,6 +41,10 @@ public class ViewerAffecterConfig extends ModelConfig.Implementation
     /** The effect that this affecter exerts. */
     @Editable
     public ViewerEffectConfig effect = new ViewerEffectConfig.Sound();
+
+    /** The influences allowed to affect this model. */
+    @Editable
+    public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
 
     /** The extent of the effect. */
     @Editable

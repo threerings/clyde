@@ -65,6 +65,12 @@ public class SceneInfluencer extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public int getInfluenceFlags ()
+    {
+        return _influenceFlags;
+    }
+
+    @Override // documentation inherited
     public Box getBounds ()
     {
         return _bounds;
@@ -146,6 +152,9 @@ public class SceneInfluencer extends Model.Implementation
             scene.remove(_influence);
         }
 
+        // update the influence flags
+        _influenceFlags = _config.influences.getFlags();
+
         // create the influence and the updaters
         ArrayList<Updater> updaters = new ArrayList<Updater>();
         _influence = _config.influence.createSceneInfluence(_ctx, this, updaters);
@@ -192,6 +201,9 @@ public class SceneInfluencer extends Model.Implementation
     /** The view transform. */
     @Scoped
     protected Transform3D _viewTransform = new Transform3D();
+
+    /** Flags indicating which influences can affect the model. */
+    protected int _influenceFlags;
 
     /** The bounds of the system. */
     protected Box _bounds = new Box();
