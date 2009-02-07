@@ -37,9 +37,9 @@ import com.threerings.crowd.data.PlaceObject;
 import com.threerings.media.util.TrailingAverage;
 
 import com.threerings.config.ConfigManager;
-import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
+import com.threerings.expr.SimpleScope;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
@@ -86,7 +86,7 @@ import static com.threerings.tudey.Log.*;
 /**
  * Displays a view of a Tudey scene.
  */
-public class TudeySceneView extends DynamicScope
+public class TudeySceneView extends SimpleScope
     implements GlView, PlaceView, TudeySceneModel.Observer, ActorAdvancer.Environment
 {
     /**
@@ -116,7 +116,7 @@ public class TudeySceneView extends DynamicScope
      */
     public TudeySceneView (TudeyContext ctx, TudeySceneController ctrl)
     {
-        super("view", ctx.getScope());
+        super(ctx.getScope());
         _ctx = ctx;
         _ctrl = ctrl;
         _scene = new HashScene(ctx, 64f, 6);

@@ -33,7 +33,6 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.expr.ExpressionDefinition;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
@@ -56,7 +55,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the global.
      */
-    @EditorTypes({ EnvironmentModel.class, Definer.class, Derived.class })
+    @EditorTypes({ EnvironmentModel.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -153,28 +152,6 @@ public class SceneGlobalConfig extends ParameterizedConfig
                 ((GlobalSprite.EnvironmentModel)impl).setConfig(this);
             } else {
                 impl = new GlobalSprite.EnvironmentModel(ctx, scope, this);
-            }
-            return impl;
-        }
-    }
-
-    /**
-     * Defines a global variable.
-     */
-    public static class Definer extends Original
-    {
-        /** The variable definitions. */
-        @Editable
-        public ExpressionDefinition[] definitions = new ExpressionDefinition[0];
-
-        @Override // documentation inherited
-        public GlobalSprite.Implementation getSpriteImplementation (
-            TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
-        {
-            if (impl instanceof GlobalSprite.Definer) {
-                ((GlobalSprite.Definer)impl).setConfig(this);
-            } else {
-                impl = new GlobalSprite.Definer(ctx, scope, this);
             }
             return impl;
         }
