@@ -147,7 +147,7 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
 
     /** The influences allowed to affect this model. */
     @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig(true, false, false);
+    public InfluenceFlagConfig influences = new InfluenceFlagConfig(true, false, false, false);
 
     /**
      * Returns a reference to the system's array of layers.

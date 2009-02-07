@@ -48,14 +48,20 @@ public class InfluenceFlagConfig extends DeepObject
     @Editable(hgroup="i")
     public boolean projections = true;
 
+    /** Whether or not to enable definition influences. */
+    @Editable(hgroup="i")
+    public boolean definitions = true;
+
     /**
      * Creates a new config.
      */
-    public InfluenceFlagConfig (boolean fog, boolean lights, boolean projections)
+    public InfluenceFlagConfig (
+        boolean fog, boolean lights, boolean projections, boolean definitions)
     {
         this.fog = fog;
         this.lights = lights;
         this.projections = projections;
+        this.definitions = definitions;
     }
 
     /**
@@ -72,6 +78,7 @@ public class InfluenceFlagConfig extends DeepObject
     {
         return (fog ? Model.FOG_INFLUENCE : 0) |
             (lights ? Model.LIGHT_INFLUENCE : 0) |
-            (projections ? Model.PROJECTION_INFLUENCE : 0);
+            (projections ? Model.PROJECTION_INFLUENCE : 0) |
+            (definitions ? Model.DEFINITION_INFLUENCE : 0);
     }
 }

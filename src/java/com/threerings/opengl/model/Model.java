@@ -321,6 +321,9 @@ public class Model extends DynamicScope
     /** A flag indicating that the model implementation relies on the projections. */
     public static final int PROJECTION_INFLUENCE = (1 << 2);
 
+    /** A flag indicating that the model implementation relies on the definitions. */
+    public static final int DEFINITION_INFLUENCE = (1 << 3);
+
     /**
      * Creates a new model with a null configuration.
      */
@@ -780,6 +783,13 @@ public class Model extends DynamicScope
             _projections = projections;
             updated = true;
         }
+        Map<String, Object> definitions = ((flags & DEFINITION_INFLUENCE) == 0) ?
+            null : _influences.getDefinitions(_definitions);
+        if (_definitions != definitions) {
+            _definitions = definitions;
+            updated = true;
+        }
+
         if (updated) {
             wasUpdated();
         }
@@ -817,6 +827,18 @@ public class Model extends DynamicScope
     public void configUpdated (ConfigEvent<ModelConfig> event)
     {
         updateFromConfig();
+    }
+
+    @Override // documentation inherited
+    public <T> T get (String name, Class<T> clazz)
+    {
+        // first dynamic, then reflective, then scene-defined
+        T result = super.get(name, clazz);
+        if (result != null || _definitions == null) {
+            return result;
+        }
+        Object value = _definitions.get(name);
+        return clazz.isInstance(value) ? clazz.cast(value) : null;
     }
 
     @Override // documentation inherited
@@ -1035,6 +1057,9 @@ public class Model extends DynamicScope
     /** The projections affecting the model. */
     @Scoped
     protected Projection[] _projections;
+
+    /** The definitions affecting the model. */
+    protected Map<String, Object> _definitions;
 
     /** The model's user object. */
     protected Object _userObject;

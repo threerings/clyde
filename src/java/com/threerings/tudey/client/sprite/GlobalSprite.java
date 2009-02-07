@@ -24,12 +24,20 @@
 
 package com.threerings.tudey.client.sprite;
 
+import java.util.ArrayList;
+
+import com.google.common.collect.Lists;
+
+import com.samskivert.util.Tuple;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
+import com.threerings.expr.ExpressionDefinition;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
+import com.threerings.expr.Updater;
 
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
@@ -109,6 +117,66 @@ public class GlobalSprite extends EntrySprite
         /** The scene to which we add our model. */
         @Bound
         protected Scene _scene;
+    }
+
+    /**
+     * A variable definer implementation.
+     */
+    public static class Definer extends Implementation
+        implements TudeySceneView.TickParticipant
+    {
+        /**
+         * Creates a new definer implementation.
+         */
+        public Definer (TudeyContext ctx, Scope parentScope, SceneGlobalConfig.Definer config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+            _view.addTickParticipant(this);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SceneGlobalConfig.Definer config)
+        {
+            ArrayList<Tuple<String, Object>> definitions = Lists.newArrayList();
+            ArrayList<Updater> updaters = Lists.newArrayList();
+            for (ExpressionDefinition definition : config.definitions) {
+                definitions.add(Tuple.newTuple(
+                    definition.name, definition.getValue(this, updaters)));
+            }
+            @SuppressWarnings("unchecked") Tuple<String, Object>[] array =
+                (Tuple<String, Object>[])new Tuple[definitions.size()];
+            _definitions = definitions.toArray(array);
+            _updaters = updaters.toArray(new Updater[updaters.size()]);
+        }
+
+        // documentation inherited from interface TickParticipant
+        public boolean tick (int delayedTime)
+        {
+            for (Updater updater : _updaters) {
+                updater.update();
+            }
+            return true;
+        }
+
+        @Override // documentation inherited
+        public void dispose ()
+        {
+            super.dispose();
+            _view.removeTickParticipant(this);
+        }
+
+        /** The definitions. */
+        protected Tuple<String, Object>[] _definitions;
+
+        /** Updaters for the definitions. */
+        protected Updater[] _updaters;
+
+        /** The view to which we add our definitions. */
+        @Bound
+        protected TudeySceneView _view;
     }
 
     /**

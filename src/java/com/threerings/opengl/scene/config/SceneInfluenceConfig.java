@@ -25,12 +25,18 @@
 package com.threerings.opengl.scene.config;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.Lists;
+
+import com.samskivert.util.Tuple;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
+import com.threerings.expr.ExpressionDefinition;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
@@ -41,6 +47,7 @@ import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.config.FogStateConfig;
 import com.threerings.opengl.renderer.config.LightConfig;
 import com.threerings.opengl.scene.AmbientLightInfluence;
+import com.threerings.opengl.scene.DefinerInfluence;
 import com.threerings.opengl.scene.FogInfluence;
 import com.threerings.opengl.scene.LightInfluence;
 import com.threerings.opengl.scene.ProjectorInfluence;
@@ -52,7 +59,8 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({
     SceneInfluenceConfig.AmbientLight.class, SceneInfluenceConfig.Fog.class,
-    SceneInfluenceConfig.Light.class, SceneInfluenceConfig.Projector.class })
+    SceneInfluenceConfig.Light.class, SceneInfluenceConfig.Projector.class,
+    SceneInfluenceConfig.Definer.class })
 public abstract class SceneInfluenceConfig extends DeepObject
     implements Exportable
 {
@@ -125,6 +133,29 @@ public abstract class SceneInfluenceConfig extends DeepObject
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
             return new ProjectorInfluence(projection.createProjection(ctx, scope, updaters));
+        }
+    }
+
+    /**
+     * Represents a variable definition influence.
+     */
+    public static class Definer extends SceneInfluenceConfig
+    {
+        /** The definition configs. */
+        @Editable
+        public ExpressionDefinition[] definitions = new ExpressionDefinition[0];
+
+        @Override // documentation inherited
+        protected SceneInfluence createInfluence (
+            GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        {
+            List<Tuple<String, Object>> list = Lists.newArrayList();
+            for (ExpressionDefinition definition : definitions) {
+                list.add(Tuple.newTuple(definition.name, definition.getValue(scope, updaters)));
+            }
+            @SuppressWarnings("unchecked") Tuple<String, Object>[] array =
+                (Tuple<String, Object>[])new Tuple[list.size()];
+            return new DefinerInfluence(list.toArray(array));
         }
     }
 

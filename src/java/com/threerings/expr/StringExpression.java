@@ -73,6 +73,16 @@ public abstract class StringExpression extends ObjectExpression<String>
         @Override // documentation inherited
         public Evaluator<String> createEvaluator (Scope scope)
         {
+            // first look for a builder reference, then for a variable
+            final StringBuilder reference = ScopeUtil.resolve(
+                scope, name, null, StringBuilder.class);
+            if (reference != null) {
+                return new Evaluator<String>() {
+                    public String evaluate () {
+                        return reference.toString();
+                    }
+                };
+            }
             final Variable variable = ScopeUtil.resolve(
                 scope, name, Variable.newInstance(defvalue));
             return new Evaluator<String>() {

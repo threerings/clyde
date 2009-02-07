@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.scene;
 
+import com.samskivert.util.Tuple;
+
 import com.threerings.math.Box;
 import com.threerings.util.ShallowObject;
 
@@ -67,6 +69,14 @@ public abstract class SceneInfluence extends ShallowObject
      * Returns the projection associated with this influence, or <code>null</code> for none.
      */
     public Projection getProjection ()
+    {
+        return null;
+    }
+
+    /**
+     * Returns the definitions associated with this influence, or <code>null</code> for none.
+     */
+    public Tuple<String, Object>[] getDefinitions ()
     {
         return null;
     }

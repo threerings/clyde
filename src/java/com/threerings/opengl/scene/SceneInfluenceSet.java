@@ -25,7 +25,11 @@
 package com.threerings.opengl.scene;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+
+import com.samskivert.util.Tuple;
 
 import com.threerings.math.Box;
 
@@ -127,6 +131,28 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
     }
 
     /**
+     * Returns the set of definitions for this influence set.
+     *
+     * @param definitions an existing map to reuse, if possible.
+     */
+    public Map<String, Object> getDefinitions (Map<String, Object> definitions)
+    {
+        Map<String, Object> defs = new HashMap<String, Object>();
+        for (SceneInfluence influence : this) {
+            Tuple<String, Object>[] idefs = influence.getDefinitions();
+            if (idefs != null) {
+                for (Tuple<String, Object> def : idefs) {
+                    defs.put(def.left, def.right);
+                }
+            }
+        }
+        if (defs.isEmpty()) {
+            return null;
+        }
+        return canReuse(definitions, defs) ? definitions : defs;
+    }
+
+    /**
      * Determines whether we can reuse the specified state, given the provided new list of
      * lights.
      */
@@ -157,6 +183,22 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
         }
         for (Projection proj : projections) {
             if (!nprojs.contains(proj)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Determines whether we can reuse the specified definitions.
+     */
+    protected boolean canReuse (Map<String, Object> definitions, Map<String, Object> ndefs)
+    {
+        if (definitions == null || definitions.size() != ndefs.size()) {
+            return false;
+        }
+        for (Map.Entry<String, Object> entry : definitions.entrySet()) {
+            if (ndefs.get(entry.getKey()) != entry.getValue()) {
                 return false;
             }
         }
