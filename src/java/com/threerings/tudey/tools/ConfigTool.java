@@ -66,6 +66,17 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
         _epanel.addChangeListener(this);
     }
 
+    /**
+     * Sets the reference.
+     */
+    public void setReference (ConfigReference<T> ref)
+    {
+        _tree.setSelectedNode(ref == null ? null : ref.getName());
+        _eref.setReference(ref);
+        _epanel.update();
+        referenceChanged(ref);
+    }
+
     // documentation inherited from interface TreeSelectionListener
     public void valueChanged (TreeSelectionEvent event)
     {

@@ -110,8 +110,10 @@ import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+import com.threerings.tudey.data.TudeySceneModel.PathEntry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.shape.Shape;
@@ -308,14 +310,15 @@ public class SceneEditor extends TudeyTool
         addTool(tpanel, tgroup, "arrow", _arrow = new Arrow(this));
         addTool(tpanel, tgroup, "selector", _selector = new Selector(this));
         addTool(tpanel, tgroup, "mover", _mover = new Mover(this));
-        addTool(tpanel, tgroup, "placer", new Placer(this));
-        addTool(tpanel, tgroup, "path_definer", new PathDefiner(this));
-        addTool(tpanel, tgroup, "area_definer", new AreaDefiner(this));
+        addTool(tpanel, tgroup, "placer", _placer = new Placer(this));
+        addTool(tpanel, tgroup, "path_definer", _pathDefiner = new PathDefiner(this));
+        addTool(tpanel, tgroup, "area_definer", _areaDefiner = new AreaDefiner(this));
         addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this));
-        addTool(tpanel, tgroup, "tile_brush", new TileBrush(this));
-        addTool(tpanel, tgroup, "ground_brush", new GroundBrush(this));
-        addTool(tpanel, tgroup, "wall_brush", new WallBrush(this));
+        addTool(tpanel, tgroup, "tile_brush", _tileBrush = new TileBrush(this));
+        addTool(tpanel, tgroup, "ground_brush", _groundBrush = new GroundBrush(this));
+        addTool(tpanel, tgroup, "wall_brush", _wallBrush = new WallBrush(this));
         addTool(tpanel, tgroup, "palette", _palette = new Palette(this));
+        addTool(tpanel, tgroup, "eyedropper", new Eyedropper(this));
         addTool(tpanel, tgroup, "eraser", new Eraser(this));
 
         // create the option panel
@@ -506,6 +509,30 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
+     * Attempts to "use" the entry under the mouse cursor.
+     */
+    public void useMouseEntry ()
+    {
+        Entry entry = getMouseEntry();
+        if (entry instanceof PlaceableEntry) {
+            setActiveTool(_placer);
+            _placer.setReference(((PlaceableEntry)entry).placeable);
+
+        } else if (entry instanceof AreaEntry) {
+            setActiveTool(_areaDefiner);
+            _areaDefiner.setReference(((AreaEntry)entry).area);
+
+        } else if (entry instanceof PathEntry) {
+            setActiveTool(_pathDefiner);
+            _pathDefiner.setReference(((PathEntry)entry).path);
+
+        } else if (entry instanceof TileEntry) {
+            setActiveTool(_tileBrush);
+            _tileBrush.setReference(((TileEntry)entry).tile);
+        }
+    }
+
+    /**
      * Returns a reference to the entry under the mouse cursor.
      */
     public Entry getMouseEntry ()
@@ -657,6 +684,8 @@ public class SceneEditor extends TudeyTool
     {
         if (mouseCameraEnabled() && event.getClickCount() == 2) {
             editMouseEntry();
+        } else if (event.isAltDown()) {
+            useMouseEntry();
         }
     }
 
@@ -1443,8 +1472,26 @@ public class SceneEditor extends TudeyTool
     /** The mover tool. */
     protected Mover _mover;
 
+    /** The placer tool. */
+    protected Placer _placer;
+
+    /** The path definer tool. */
+    protected PathDefiner _pathDefiner;
+
+    /** The area definer tool. */
+    protected AreaDefiner _areaDefiner;
+
     /** The global editor tool. */
     protected GlobalEditor _globalEditor;
+
+    /** The tile brush tool. */
+    protected TileBrush _tileBrush;
+
+    /** The ground brush tool. */
+    protected GroundBrush _groundBrush;
+
+    /** The wall brush tool. */
+    protected WallBrush _wallBrush;
 
     /** The palette tool. */
     protected Palette _palette;
