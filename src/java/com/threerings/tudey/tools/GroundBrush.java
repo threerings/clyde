@@ -35,6 +35,7 @@ import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.util.RectangleElement;
 import com.threerings.tudey.config.GroundConfig;
+import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordSet;
 import com.threerings.tudey.util.TilePainter;
 import com.threerings.tudey.util.TudeySceneMetrics;
@@ -108,6 +109,22 @@ public class GroundBrush extends ConfigTool<GroundConfig>
         int owidth = iwidth + 2, oheight = iheight + 2;
 
         int x = Math.round(_isect.x - iwidth*0.5f), y = Math.round(_isect.y - iheight*0.5f);
+        if (_editor.isShiftDown()) {
+            if (_constraint == DirectionalConstraint.HORIZONTAL) {
+                y = _location.y;
+            } else if (_constraint == DirectionalConstraint.VERTICAL) {
+                x = _location.x;
+            } else { // _constraint == null
+                if (x != _location.x && y == _location.y) {
+                    _constraint = DirectionalConstraint.HORIZONTAL;
+                } else if (x == _location.x && y != _location.y) {
+                    _constraint = DirectionalConstraint.VERTICAL;
+                }
+            }
+        } else {
+            _constraint = null;
+        }
+        _location.set(x, y);
         _inner.getRegion().set(x, y, iwidth, iheight);
         _outer.getRegion().set(x - 1, y - 1, owidth, oheight);
 
@@ -173,6 +190,12 @@ public class GroundBrush extends ConfigTool<GroundConfig>
 
     /** Whether or not the cursor is in the window. */
     protected boolean _cursorVisible;
+
+    /** The directional constraint, if any. */
+    protected DirectionalConstraint _constraint;
+
+    /** The location of the cursor. */
+    protected Coord _location = new Coord();
 
     /** The rotation of the cursor. */
     protected int _rotation;

@@ -113,7 +113,24 @@ public class TileBrush extends ConfigTool<TileConfig>
         TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());
         int width = _entry.getWidth(config), height = _entry.getHeight(config);
         Coord location = _entry.getLocation();
-        location.set(Math.round(_isect.x - width*0.5f), Math.round(_isect.y - height*0.5f));
+        int x = Math.round(_isect.x - width*0.5f);
+        int y = Math.round(_isect.y - height*0.5f);
+        if (_editor.isShiftDown()) {
+            if (_constraint == DirectionalConstraint.HORIZONTAL) {
+                y = location.y;
+            } else if (_constraint == DirectionalConstraint.VERTICAL) {
+                x = location.x;
+            } else { // _constraint == null
+                if (x != location.x && y == location.y) {
+                    _constraint = DirectionalConstraint.HORIZONTAL;
+                } else if (x == location.x && y != location.y) {
+                    _constraint = DirectionalConstraint.VERTICAL;
+                }
+            }
+        } else {
+            _constraint = null;
+        }
+        location.set(x, y);
         _entry.elevation = _editor.getGrid().getElevation();
         _cursor.update(_entry);
 
@@ -190,6 +207,9 @@ public class TileBrush extends ConfigTool<TileConfig>
 
     /** Whether or not the cursor is in the window. */
     protected boolean _cursorVisible;
+
+    /** The directional constraint, if any. */
+    protected DirectionalConstraint _constraint;
 
     /** The location at which we last placed. */
     protected Coord _lastPlacement = new Coord();

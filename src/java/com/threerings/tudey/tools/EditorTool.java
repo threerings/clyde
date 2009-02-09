@@ -224,6 +224,9 @@ public abstract class EditorTool extends JPanel
             _editor.getGrid().getPlane().getIntersection(_pick, result);
     }
 
+    /** The directional constraints. */
+    protected enum DirectionalConstraint { HORIZONTAL, VERTICAL };
+
     /**
      * Determines which kinds of entries we want to affect.
      */
