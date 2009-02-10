@@ -77,7 +77,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        if (_editor.isControlDown()) {
+        if (_editor.isSpecialDown()) {
             return;
         }
         int button = event.getButton();
@@ -141,7 +141,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
     @Override // documentation inherited
     public void tick (float elapsed)
     {
-        if (_entry == null || !getMousePlaneIntersection(_isect) || _editor.isControlDown()) {
+        if (_entry == null || !getMousePlaneIntersection(_isect) || _editor.isSpecialDown()) {
             return;
         }
         _entry = (AreaEntry)_entry.clone();

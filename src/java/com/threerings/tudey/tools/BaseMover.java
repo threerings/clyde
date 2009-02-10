@@ -123,7 +123,7 @@ public abstract class BaseMover extends EditorTool
     public void mousePressed (MouseEvent event)
     {
         if (_cursorVisible && event.getButton() == MouseEvent.BUTTON1 &&
-                !_editor.isControlDown()) {
+                !_editor.isSpecialDown()) {
             placeEntries();
         }
     }
@@ -145,7 +145,7 @@ public abstract class BaseMover extends EditorTool
     protected void updateCursor ()
     {
         if (!(_cursorVisible = (_entries.length > 0) && getMousePlaneIntersection(_isect) &&
-                !_editor.isControlDown())) {
+                !_editor.isSpecialDown())) {
             return;
         }
         Vector2f rcenter = _center.rotate(_angle);

@@ -58,6 +58,14 @@ public class TileBrush extends ConfigTool<TileConfig>
         super(editor, TileConfig.class, new TileReference());
     }
 
+    /**
+     * Sets the placement rotation.
+     */
+    public void setRotation (int rotation)
+    {
+        _entry.rotation = rotation;
+    }
+
     @Override // documentation inherited
     public void init ()
     {
@@ -70,7 +78,7 @@ public class TileBrush extends ConfigTool<TileConfig>
         updateCursor();
         if (_cursorVisible) {
             _cursor.tick(elapsed);
-        } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
+        } else if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
             _editor.deleteMouseEntry(SceneEditor.TILE_ENTRY_FILTER);
         }
     }
@@ -107,7 +115,7 @@ public class TileBrush extends ConfigTool<TileConfig>
     protected void updateCursor ()
     {
         if (!(_cursorVisible = (_entry.tile != null) &&
-                getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
+                getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
             return;
         }
         TileConfig.Original config = _entry.getConfig(_editor.getConfigManager());

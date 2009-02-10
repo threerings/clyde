@@ -57,6 +57,14 @@ public class Placer extends ConfigTool<PlaceableConfig>
         _entry.transform.setType(Transform3D.UNIFORM);
     }
 
+    /**
+     * Sets the placement angle.
+     */
+    public void setAngle (float angle)
+    {
+        _angle = angle;
+    }
+
     @Override // documentation inherited
     public void init ()
     {
@@ -69,7 +77,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         updateCursor();
         if (_cursorVisible) {
             _cursor.tick(elapsed);
-        } else if (_editor.isThirdButtonDown() && !_editor.isControlDown()) {
+        } else if (_editor.isThirdButtonDown() && !_editor.isSpecialDown()) {
             _editor.deleteMouseEntry(SceneEditor.PLACEABLE_ENTRY_FILTER);
         }
     }
@@ -106,7 +114,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
     protected void updateCursor ()
     {
         if (!(_cursorVisible = (_entry.placeable != null) &&
-                getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
+                getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
             return;
         }
         // snap to tile grid if shift not held down

@@ -52,7 +52,7 @@ public class Mover extends BaseMover
     @Override // documentation inherited
     public void mousePressed (MouseEvent event)
     {
-        if (event.getButton() != MouseEvent.BUTTON1 || _editor.isControlDown()) {
+        if (event.getButton() != MouseEvent.BUTTON1 || _editor.isSpecialDown()) {
             return;
         }
         if (_cursorVisible) {

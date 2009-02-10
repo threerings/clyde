@@ -360,6 +360,14 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
+     * Checks whether either of the special modifiers (control or alt) is down.
+     */
+    public boolean isSpecialDown ()
+    {
+        return isControlDown() || isAltDown();
+    }
+
+    /**
      * Checks whether the control key is being held down.
      */
     public boolean isControlDown ()
@@ -516,7 +524,10 @@ public class SceneEditor extends TudeyTool
         Entry entry = getMouseEntry();
         if (entry instanceof PlaceableEntry) {
             setActiveTool(_placer);
-            _placer.setReference(((PlaceableEntry)entry).placeable);
+            PlaceableEntry pentry = (PlaceableEntry)entry;
+            _placer.setReference(pentry.placeable);
+            pentry.transform.update(Transform3D.RIGID);
+            _placer.setAngle(pentry.transform.getRotation().getRotationZ());
 
         } else if (entry instanceof AreaEntry) {
             setActiveTool(_areaDefiner);
@@ -528,7 +539,9 @@ public class SceneEditor extends TudeyTool
 
         } else if (entry instanceof TileEntry) {
             setActiveTool(_tileBrush);
-            _tileBrush.setReference(((TileEntry)entry).tile);
+            TileEntry tentry = (TileEntry)entry;
+            _tileBrush.setReference(tentry.tile);
+            _tileBrush.setRotation(tentry.rotation);
         }
     }
 

@@ -100,7 +100,7 @@ public class WallBrush extends ConfigTool<WallConfig>
      */
     protected void updateCursor ()
     {
-        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
+        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
             return;
         }
         WallReference wref = (WallReference)_eref;

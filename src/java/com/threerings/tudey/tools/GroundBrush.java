@@ -100,7 +100,7 @@ public class GroundBrush extends ConfigTool<GroundConfig>
      */
     protected void updateCursor ()
     {
-        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isControlDown())) {
+        if (!(_cursorVisible = getMousePlaneIntersection(_isect) && !_editor.isSpecialDown())) {
             return;
         }
         GroundReference gref = (GroundReference)_eref;
