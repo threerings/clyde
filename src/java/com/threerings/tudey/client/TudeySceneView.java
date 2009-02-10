@@ -80,6 +80,7 @@ import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.TudeyContext;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
 
@@ -121,6 +122,10 @@ public class TudeySceneView extends SimpleScope
         _ctrl = ctrl;
         _scene = new HashScene(ctx, 64f, 6);
         _scene.setParentScope(this);
+
+        // create and initialize the camera handler
+        _camhand = createCameraHandler();
+        TudeySceneMetrics.initCameraHandler(_camhand);
 
         // create the input window
         _inputWindow = new StretchWindow(ctx, null) {
@@ -470,6 +475,7 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface GlView
     public void wasAdded ()
     {
+        _ctx.setCameraHandler(_camhand);
         _ctx.getRoot().addWindow(_inputWindow);
     }
 
@@ -615,6 +621,14 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Creates the camera handler for the view.
+     */
+    protected OrbitCameraHandler createCameraHandler ()
+    {
+        return new OrbitCameraHandler(_ctx);
+    }
+
+    /**
      * Creates the loading window, or returns <code>null</code> to skip preloading.
      */
     protected Window maybeCreateLoadingWindow (TudeySceneModel model)
@@ -684,6 +698,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The controller that created this view. */
     protected TudeySceneController _ctrl;
+
+    /** The view's camera handler. */
+    protected OrbitCameraHandler _camhand;
 
     /** A window used to gather input events. */
     protected Window _inputWindow;

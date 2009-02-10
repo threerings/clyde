@@ -55,13 +55,7 @@ public abstract class CameraHandler
     {
         _ctx = ctx;
         _camera = camera;
-
-        // if specified, update the camera viewport and listen for changes
-        if (matchRenderSurface) {
-            Renderer renderer = ctx.getRenderer();
-            sizeChanged(renderer.getWidth(), renderer.getHeight());
-            renderer.addObserver(this);
-        }
+        _matchRenderSurface = matchRenderSurface;
     }
 
     /**
@@ -100,6 +94,28 @@ public abstract class CameraHandler
     }
 
     /**
+     * Notifies the handler that it has been added.
+     */
+    public void wasAdded ()
+    {
+        if (_matchRenderSurface) {
+            Renderer renderer = _ctx.getRenderer();
+            sizeChanged(renderer.getWidth(), renderer.getHeight());
+            renderer.addObserver(this);
+        }
+    }
+
+    /**
+     * Notifies the handler that it has been removed.
+     */
+    public void wasRemoved ()
+    {
+        if (_matchRenderSurface) {
+            _ctx.getRenderer().removeObserver(this);
+        }
+    }
+
+    /**
      * Updates the camera perspective parameters.
      */
     public void updatePerspective ()
@@ -125,6 +141,9 @@ public abstract class CameraHandler
 
     /** The camera that we're handling. */
     protected Camera _camera;
+
+    /** Whether or not we're to match the size of the render surface. */
+    protected boolean _matchRenderSurface;
 
     /** The vertical field of view (in radians). */
     protected float _fovy = FloatMath.PI / 3f;

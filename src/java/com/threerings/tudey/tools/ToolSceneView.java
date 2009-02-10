@@ -24,35 +24,37 @@
 
 package com.threerings.tudey.tools;
 
-import org.lwjgl.input.Keyboard;
+import com.threerings.expr.Scoped;
 
-import com.threerings.crowd.client.PlaceView;
-import com.threerings.crowd.util.CrowdContext;
-
-import com.threerings.opengl.gui.event.KeyEvent;
-
-import com.threerings.tudey.client.TudeySceneController;
+import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.util.TudeyContext;
 
 /**
- * Scene controller for tools.
+ * Scene view for tools.
  */
-public class ToolSceneController extends TudeySceneController
+public class ToolSceneView extends TudeySceneView
 {
-    @Override // documentation inherited
-    protected PlaceView createPlaceView (CrowdContext ctx)
+    /**
+     * Creates a new scene view.
+     */
+    public ToolSceneView (TudeyContext ctx, ToolSceneController ctrl)
     {
-        return (_tsview = new ToolSceneView((TudeyContext)ctx, this));
+        super(ctx, ctrl);
     }
 
-    @Override // documentation inherited
-    public void keyPressed (KeyEvent event)
-    {
-        super.keyPressed(event);
+    /** Whether or not markers are visible. */
+    @Scoped
+    protected boolean _markersVisible;
 
-        // go back to editor mode if escape is pressed
-        if (event.getKeyCode() == Keyboard.KEY_ESCAPE) {
-            _ctx.getLocationDirector().leavePlace();
-        }
-    }
+    /** Whether or not lighting is enabled. */
+    @Scoped
+    protected boolean _lightingEnabled = true;
+
+    /** Whether or not fog is enabled. */
+    @Scoped
+    protected boolean _fogEnabled = true;
+
+    /** Whether or not sound is enabled. */
+    @Scoped
+    protected boolean _soundEnabled = true;
 }

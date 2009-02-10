@@ -41,4 +41,10 @@ public class ToolSceneManager extends TudeySceneManager
     {
         return new ConfigReference<ActorConfig>("Character/PC/Editor");
     }
+
+    @Override // documentation inherited
+    protected void placeBecameEmpty ()
+    {
+        shutdown();
+    }
 }

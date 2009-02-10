@@ -73,6 +73,11 @@ public interface GlContext extends AlContext
     public Compositor getCompositor ();
 
     /**
+     * Sets the camera handler reference.
+     */
+    public void setCameraHandler (CameraHandler camhand);
+
+    /**
      * Returns a reference to the camera handler.
      */
     public CameraHandler getCameraHandler ();

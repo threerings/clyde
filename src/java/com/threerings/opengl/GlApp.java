@@ -183,6 +183,17 @@ public abstract class GlApp extends DynamicScope
     }
 
     // documentation inherited from interface GlContext
+    public void setCameraHandler (CameraHandler camhand)
+    {
+        if (_camhand != null) {
+            _camhand.wasRemoved();
+        }
+        if ((_camhand = camhand) != null) {
+            _camhand.wasAdded();
+        }
+    }
+
+    // documentation inherited from interface GlContext
     public CameraHandler getCameraHandler ()
     {
         return _camhand;
@@ -227,7 +238,7 @@ public abstract class GlApp extends DynamicScope
     protected void init ()
     {
         initRenderer();
-        _camhand = createCameraHandler();
+        setCameraHandler(createCameraHandler());
 
         // add a root to call the enqueue method
         _compositor.addRoot(new Renderable() {

@@ -106,6 +106,12 @@ public abstract class GlContextWrapper
     }
 
     // documentation inherited from interface GlContext
+    public void setCameraHandler (CameraHandler camhand)
+    {
+        _wrapped.setCameraHandler(camhand);
+    }
+
+    // documentation inherited from interface GlContext
     public CameraHandler getCameraHandler ()
     {
         return _wrapped.getCameraHandler();

@@ -921,44 +921,38 @@ public class SceneEditor extends TudeyTool
     }
 
     @Override // documentation inherited
-    protected CameraHandler createCameraHandler ()
-    {
-        // camera target elevation matches grid elevation
-        OrbitCameraHandler camhand = new OrbitCameraHandler(this) {
-            public void updatePosition () {
-                _target.z = _grid.getZ();
-                super.updatePosition();
-            }
-        };
-
-        // initialize using configured parameters
-        TudeySceneMetrics.initCameraHandler(camhand);
-
-        // mouse movement is enabled when the tool allows it or control is held down
-        new MouseOrbiter(camhand, true) {
-            public void mouseDragged (MouseEvent event) {
-                if (mouseCameraEnabled()) {
-                    super.mouseDragged(event);
-                } else {
-                    super.mouseMoved(event);
-                }
-            }
-            public void mouseWheelMoved (MouseWheelEvent event) {
-                if (mouseCameraEnabled()) {
-                    super.mouseWheelMoved(event);
-                }
-            }
-        }.addTo(_canvas);
-        return camhand;
-    }
-
-    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();
 
         // create the scene view
-        setView(_view = new TudeySceneView(this));
+        setView(_view = new TudeySceneView(this) {
+            protected OrbitCameraHandler createCameraHandler () {
+                // camera target elevation matches grid elevation
+                OrbitCameraHandler camhand = new OrbitCameraHandler(_ctx) {
+                    public void updatePosition () {
+                        _target.z = _grid.getZ();
+                        super.updatePosition();
+                    }
+                };
+                // mouse movement is enabled when the tool allows it or control is held down
+                new MouseOrbiter(camhand, true) {
+                    public void mouseDragged (MouseEvent event) {
+                        if (mouseCameraEnabled()) {
+                            super.mouseDragged(event);
+                        } else {
+                            super.mouseMoved(event);
+                        }
+                    }
+                    public void mouseWheelMoved (MouseWheelEvent event) {
+                        if (mouseCameraEnabled()) {
+                            super.mouseWheelMoved(event);
+                        }
+                    }
+                }.addTo(_canvas);
+                return camhand;
+            }
+        });
 
         // initialize the tools
         for (EditorTool tool : _tools.values()) {
