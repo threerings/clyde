@@ -127,10 +127,7 @@ public abstract class Root extends SimpleOverlay
     public void addWindow (Window window, boolean topLayer)
     {
         // make a note of the current top window
-        Window curtop = null;
-        if (_windows.size() > 0) {
-            curtop = _windows.get(_windows.size()-1);
-        }
+        Window curtop = getTopWindow();
 
         if (topLayer && curtop != null) {
             window.setLayer(Math.max(window.getLayer(), curtop.getLayer()));
@@ -172,8 +169,30 @@ public abstract class Root extends SimpleOverlay
      */
     public boolean isOnTop (Window window)
     {
-        return (_windows.size() > 0 &&
-                _windows.get(_windows.size()-1) == window);
+        return window == getTopWindow();
+    }
+
+    /**
+     * Ensures that the specified window is on top.
+     */
+    public void moveToTop (Window window)
+    {
+        Window curtop = getTopWindow();
+        if (curtop != null) {
+            window.setLayer(Math.max(window.getLayer(), curtop.getLayer()));
+            if (_windows.remove(window)) {
+                _windows.add(window);
+            }
+        }
+    }
+
+    /**
+     * Returns a reference to the topmost window, or <code>null</code> if there are no windows.
+     */
+    public Window getTopWindow ()
+    {
+        int size = _windows.size();
+        return (size == 0) ? null : _windows.get(size - 1);
     }
 
     /**
