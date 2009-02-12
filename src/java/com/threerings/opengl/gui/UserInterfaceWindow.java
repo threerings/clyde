@@ -82,6 +82,7 @@ public class UserInterfaceWindow extends Window
         GlContext ctx, boolean stretch, ConfigReference<UserInterfaceConfig> ref)
     {
         super(ctx, new BorderLayout());
+        _scope.setParentScope(ctx.getScope());
         _interface = new UserInterface(ctx);
         _interface.getScope().setParentScope(_scope);
         _interface.setConfig(ref);
