@@ -507,7 +507,9 @@ public abstract class ComponentConfig extends DeepObject
                     tab.component.getComponent(ctx, scope, msgs, tcomp),
                     tab.hasClose);
             }
-            pane.selectTab(selected);
+            if (selected < tabs.length) {
+                pane.selectTab(selected);
+            }
         }
     }
 
