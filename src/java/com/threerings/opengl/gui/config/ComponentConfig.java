@@ -582,6 +582,9 @@ public abstract class ComponentConfig extends DeepObject
         {
             Component ochild = (comp instanceof com.threerings.opengl.gui.ScrollPane) ?
                 ((com.threerings.opengl.gui.ScrollPane)comp).getChild() : null;
+            if (ochild != null) {
+                ochild.getParent().remove(ochild);
+            }
             return new com.threerings.opengl.gui.ScrollPane(
                 ctx, child.getComponent(ctx, scope, msgs, ochild), vertical, horizontal, snap);
         }
