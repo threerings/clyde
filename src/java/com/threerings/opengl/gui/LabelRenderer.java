@@ -130,9 +130,6 @@ public class LabelRenderer
     public void setOrientation (int orient)
     {
         _orient = orient;
-        if (_container.isAdded()) {
-            _container.layout();
-        }
     }
 
     /**

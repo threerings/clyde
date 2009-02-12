@@ -126,11 +126,21 @@ public abstract class ComponentConfig extends DeepObject
         {
             super.configure(ctx, scope, msgs, comp);
             com.threerings.opengl.gui.Label label = (com.threerings.opengl.gui.Label)comp;
-            label.setIcon(icon == null ? null : icon.getIcon(ctx));
+            if (shouldSetIcon(ctx, comp)) {
+                label.setIcon(icon == null ? null : icon.getIcon(ctx));
+            }
             label.setText(getMessage(msgs, text));
             label.setIconTextGap(iconTextGap);
             label.setOrientation(orientation.getConstant());
             label.setFit(fit);
+        }
+
+        /**
+         * Determines whether we should configure the label's icon.
+         */
+        protected boolean shouldSetIcon (GlContext ctx, Component comp)
+        {
+            return true;
         }
     }
 
@@ -171,6 +181,14 @@ public abstract class ComponentConfig extends DeepObject
             super.configure(ctx, scope, msgs, comp);
             ((com.threerings.opengl.gui.Button)comp).setAction(action);
         }
+
+        @Override // documentation inherited
+        protected boolean shouldSetIcon (GlContext ctx, Component comp)
+        {
+            StyleConfig config = comp.getStyleConfigs()[Component.DEFAULT];
+            StyleConfig.Original original = (config == null) ? null : config.getOriginal(ctx);
+            return (original == null || original.icon == null);
+        }
     }
 
     /**
@@ -209,6 +227,12 @@ public abstract class ComponentConfig extends DeepObject
         {
             return (getClass(comp) == com.threerings.opengl.gui.CheckBox.class) ?
                 comp : new com.threerings.opengl.gui.CheckBox(ctx, "");
+        }
+
+        @Override // documentation inherited
+        protected boolean shouldSetIcon (GlContext ctx, Component comp)
+        {
+            return false; // icon is determined by the style
         }
     }
 

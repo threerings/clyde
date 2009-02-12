@@ -153,6 +153,14 @@ public class Component
     }
 
     /**
+     * Returns a reference to the component's array of style configs.
+     */
+    public StyleConfig[] getStyleConfigs ()
+    {
+        return _styleConfigs;
+    }
+
+    /**
      * Informs this component of its parent in the interface heirarchy.
      */
     public void setParent (Container parent)
