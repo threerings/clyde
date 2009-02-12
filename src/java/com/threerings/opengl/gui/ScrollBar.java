@@ -103,7 +103,7 @@ public class ScrollBar extends Container
         addListener(_wheelListener = _model.createWheelListener());
 
         // create our buttons and backgrounds
-        String oprefix = "Default/Scrollbar" + ((_orient == HORIZONTAL) ? "H" : "V");
+        String oprefix = "Default/ScrollBar" + ((_orient == HORIZONTAL) ? "H" : "V");
         _well = new Component(_ctx);
         _well.setStyleConfig(oprefix + "Well");
         add(_well, BorderLayout.CENTER);
