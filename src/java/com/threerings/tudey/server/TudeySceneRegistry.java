@@ -52,9 +52,10 @@ public class TudeySceneRegistry extends SceneRegistry
     /**
      * Constructs a Tudey scene registry.
      */
-    @Inject public TudeySceneRegistry (InvocationManager invmgr)
+    @Inject public TudeySceneRegistry (PresentsDObjectMgr omgr, InvocationManager invmgr)
     {
         super(invmgr);
+        _omgr = omgr;
 
         // create the interval to prune the portal mappings
         new Interval(_omgr) {
@@ -158,7 +159,7 @@ public class TudeySceneRegistry extends SceneRegistry
     }
 
     /** The server object manager. */
-    @Inject protected PresentsDObjectMgr _omgr;
+    protected PresentsDObjectMgr _omgr;
 
     /** Maps body oids to the keys of their destination portals. */
     protected HashIntMap<PortalMapping> _portals = IntMaps.newHashIntMap();
