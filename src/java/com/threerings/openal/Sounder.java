@@ -35,6 +35,7 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
+import com.threerings.expr.MutableFloat;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
@@ -249,7 +250,7 @@ public class Sounder extends SimpleScope
                     _stream.queueFile(rsrcmgr.getResourceFile(queued.file), queued.loop);
                 }
             }
-            _stream.setGain(_config.gain);
+            _stream.setGain(_config.gain * _streamGain.value);
 
             // configure the stream source
             Source source = _stream.getSource();
@@ -295,6 +296,7 @@ public class Sounder extends SimpleScope
                 _ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(queued.file),
                     queued.loop) {
                 protected void update (float time) {
+                    setGain(_config.gain * _streamGain.value);
                     super.update(time);
                     if (_state == AL10.AL_PLAYING) {
                         updateSoundTransform();
@@ -318,6 +320,10 @@ public class Sounder extends SimpleScope
 
         /** The stream. */
         protected FileStream _stream;
+
+        /** The stream gain. */
+        @Bound
+        protected MutableFloat _streamGain = new MutableFloat(1f);
     }
 
     /**

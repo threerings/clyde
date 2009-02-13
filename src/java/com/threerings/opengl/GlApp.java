@@ -32,6 +32,7 @@ import com.samskivert.util.RunQueue;
 import com.threerings.config.ConfigManager;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.expr.DynamicScope;
+import com.threerings.expr.MutableFloat;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
 import com.threerings.math.FloatMath;
@@ -103,6 +104,14 @@ public abstract class GlApp extends DynamicScope
     public String getRenderScheme ()
     {
         return _renderScheme;
+    }
+
+    /**
+     * Returns a reference to the stream gain.
+     */
+    public MutableFloat getStreamGain ()
+    {
+        return _streamGain;
     }
 
     /**
@@ -398,6 +407,10 @@ public abstract class GlApp extends DynamicScope
     /** The view rotation shared by all billboards aligned with the z axis and the view vector. */
     @Scoped
     protected Quaternion _billboardRotation = new Quaternion();
+
+    /** A container for the global stream gain. */
+    @Scoped
+    protected MutableFloat _streamGain = new MutableFloat(1f);
 
     /** Used to compute listener orientation. */
     protected Vector3f _at = new Vector3f(), _up = new Vector3f();
