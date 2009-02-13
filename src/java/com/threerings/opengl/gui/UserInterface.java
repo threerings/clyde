@@ -91,6 +91,7 @@ public class UserInterface extends Container
     public UserInterface (GlContext ctx, UserInterfaceConfig config)
     {
         super(ctx, new BorderLayout());
+        _scope.setParentScope(ctx.getScope());
 
         _ctx = new GlContextWrapper(ctx) {
             public ConfigManager getConfigManager () {
