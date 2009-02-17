@@ -15,6 +15,7 @@ import com.samskivert.util.QuickSort;
 import com.threerings.media.image.ColorPository.ClassRecord;
 import com.threerings.media.image.ColorPository.ColorRecord;
 
+import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.util.Dimension;
@@ -28,6 +29,9 @@ import com.threerings.opengl.util.GlContext;
  */
 public class ColorPicker extends Component
 {
+    /** The action fired when the color selection changes. */
+    public static final String SELECT = "select";
+
     /**
      * Creates a new color picker.
      *
@@ -132,24 +136,26 @@ public class ColorPicker extends Component
     public boolean dispatchEvent (Event event)
     {
         if (isEnabled() && event instanceof MouseEvent) {
-            int ostate = getState();
             MouseEvent mev = (MouseEvent)event;
-            int idx = (mev.getX() - getAbsoluteX()) / _swatchWidth;
+            int oidx = _sidx;
+            int midx = (mev.getX() - getAbsoluteX()) / _swatchWidth;
             switch (mev.getType()) {
             case MouseEvent.MOUSE_PRESSED:
                 if (mev.getButton() == 0) {
-                    setSelectedIndex(idx);
+                    setSelectedIndex(midx);
                 }
                 break;
 
             case MouseEvent.MOUSE_DRAGGED:
-                setSelectedIndex(idx);
+                setSelectedIndex(midx);
                 break;
 
             default:
                 return super.dispatchEvent(event);
             }
-
+            if (_sidx != oidx) {
+                emitEvent(new ActionEvent(this, mev.getWhen(), mev.getModifiers(), SELECT));
+            }
             return true;
         }
 
