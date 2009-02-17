@@ -49,7 +49,9 @@ public abstract class TudeyServer extends WhirledServer
             super.configure();
             ResourceManager rsrcmgr = new ResourceManager("rsrc/");
             bind(ResourceManager.class).toInstance(rsrcmgr);
-            bind(ConfigManager.class).toInstance(new ConfigManager(rsrcmgr, "config/"));
+            ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
+            cfgmgr.init();
+            bind(ConfigManager.class).toInstance(cfgmgr);
             bind(ColorPository.class).toInstance(ColorPository.loadColorPository(rsrcmgr));
             bind(SceneFactory.class).to(TudeySceneFactory.class);
             bind(SceneRegistry.class).to(TudeySceneRegistry.class);
