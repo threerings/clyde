@@ -163,6 +163,12 @@ public class ColorPicker extends Component
     }
 
     @Override // documentation inherited
+    protected String getDefaultStyleConfig ()
+    {
+        return "Default/ColorPicker";
+    }
+
+    @Override // documentation inherited
     protected Dimension computePreferredSize (int whint, int hhint)
     {
         return new Dimension(_swatchWidth * _colors.length, _swatchHeight);
