@@ -24,7 +24,14 @@
 
 package com.threerings.opengl.gui.config;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
+
 import com.samskivert.util.StringUtil;
+
+import com.threerings.media.image.ColorPository.ClassRecord;
+import com.threerings.media.image.ColorPository.ColorRecord;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -53,15 +60,15 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({
     ComponentConfig.Button.class, ComponentConfig.CheckBox.class,
-    ComponentConfig.ComboBox.class, ComponentConfig.Container.class,
-    ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
-    ComponentConfig.List.class, ComponentConfig.PasswordField.class,
-    ComponentConfig.RenderableView.class, ComponentConfig.ScrollBar.class,
-    ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
-    ComponentConfig.Spacer.class, ComponentConfig.StatusLabel.class,
-    ComponentConfig.TabbedPane.class, ComponentConfig.TextArea.class,
-    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
-    ComponentConfig.UserInterface.class })
+    ComponentConfig.ColorPicker.class, ComponentConfig.ComboBox.class,
+    ComponentConfig.Container.class, ComponentConfig.HTMLView.class,
+    ComponentConfig.Label.class, ComponentConfig.List.class,
+    ComponentConfig.PasswordField.class, ComponentConfig.RenderableView.class,
+    ComponentConfig.ScrollBar.class, ComponentConfig.ScrollPane.class,
+    ComponentConfig.Slider.class, ComponentConfig.Spacer.class,
+    ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
+    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
+    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -773,6 +780,49 @@ public abstract class ComponentConfig extends DeepObject
             for (int ii = nmodels.length; ii < omodels.length; ii++) {
                 omodels[ii].dispose();
             }
+        }
+    }
+
+    /**
+     * Allows the selection of a color from a colorization class.
+     */
+    public static class ColorPicker extends ComponentConfig
+    {
+        /** The name of the colorization class. */
+        @Editable(hgroup="c")
+        public String colorClass = "player";
+
+        /** Whether or not to limit the options to starter colors. */
+        @Editable(hgroup="c")
+        public boolean starters;
+
+        /** The dimensions of the color swatches. */
+        @Editable(min=1, hgroup="s")
+        public int swatchWidth = 9, swatchHeight = 9;
+
+        /** The index of the initially selected color. */
+        @Editable(min=0)
+        public int selected;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.ColorPicker.class) ?
+                comp : new com.threerings.opengl.gui.ColorPicker(ctx);
+        }
+
+        @Override // documentation inherited
+        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            super.configure(ctx, scope, msgs, comp);
+            com.threerings.opengl.gui.ColorPicker picker =
+                (com.threerings.opengl.gui.ColorPicker)comp;
+
+            // configure the component
+            picker.setColorClass(colorClass, starters);
+            picker.setSwatchSize(swatchWidth, swatchHeight);
+            picker.setSelectedIndex(selected);
         }
     }
 
