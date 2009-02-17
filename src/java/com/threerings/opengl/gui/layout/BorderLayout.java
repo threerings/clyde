@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.gui.layout;
 
+import com.samskivert.util.ListUtil;
+
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Container;
 import com.threerings.opengl.gui.util.Dimension;
@@ -114,6 +116,13 @@ public class BorderLayout extends LayoutManager
                 break;
             }
         }
+    }
+
+    @Override // documentation inherited
+    public Object getConstraints (Component comp)
+    {
+        int idx = ListUtil.indexOfRef(_components, comp);
+        return (idx == -1) ? null : idx;
     }
 
     // documentation inherited

@@ -155,8 +155,9 @@ public class Container extends Component
     {
         int idx = _children.indexOf(oldc);
         if (idx >= 0) {
+            Object constraints = (_layout == null) ? null : _layout.getConstraints(oldc);
             remove(idx);
-            add(idx, newc);
+            add(idx, newc, constraints);
             return true;
         }
         return false;

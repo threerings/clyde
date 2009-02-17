@@ -54,6 +54,15 @@ public abstract class LayoutManager
     }
 
     /**
+     * Returns a reference to the constraints associated with the specified component, or
+     * <code>null</code> for none.  The default implementation always returns null.
+     */
+    public Object getConstraints (Component comp)
+    {
+        return null;
+    }
+
+    /**
      * Computes the preferred size for the supplied container, based on the
      * preferred sizes of its children and the layout policy implemented by
      * this manager. <em>Note:</em> it is not necessary to add the container's

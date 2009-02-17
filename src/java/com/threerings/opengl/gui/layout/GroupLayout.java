@@ -210,6 +210,12 @@ public abstract class GroupLayout extends LayoutManager
         }
     }
 
+    @Override // documentation inherited
+    public Object getConstraints (Component comp)
+    {
+        return (_constraints == null) ? null : _constraints.get(comp);
+    }
+
     protected boolean isFixed (Component child)
     {
         if (_constraints == null) {

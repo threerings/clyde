@@ -114,6 +114,12 @@ public class AnchorLayout extends LayoutManager
     }
 
     @Override // documentation inherited
+    public Object getConstraints (Component comp)
+    {
+        return _anchors.get(comp);
+    }
+
+    @Override // documentation inherited
     public Dimension computePreferredSize (Container target, int whint, int hhint)
     {
         return new Dimension(whint, hhint);

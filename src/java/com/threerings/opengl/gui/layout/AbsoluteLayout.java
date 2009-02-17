@@ -92,6 +92,12 @@ public class AbsoluteLayout extends LayoutManager
         _spots.remove(comp);
     }
 
+    @Override // documentation inherited
+    public Object getConstraints (Component comp)
+    {
+        return _spots.get(comp);
+    }
+
     // documentation inherited
     public Dimension computePreferredSize (
         Container target, int whint, int hhint)
