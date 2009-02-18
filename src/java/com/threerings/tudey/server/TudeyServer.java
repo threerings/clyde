@@ -50,13 +50,35 @@ public abstract class TudeyServer extends WhirledServer
             ResourceManager rsrcmgr = new ResourceManager("rsrc/");
             bind(ResourceManager.class).toInstance(rsrcmgr);
             ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
-            cfgmgr.init();
+            if (shouldInitConfigManager()) {
+                cfgmgr.init();
+            }
             bind(ConfigManager.class).toInstance(cfgmgr);
             bind(ColorPository.class).toInstance(ColorPository.loadColorPository(rsrcmgr));
             bind(SceneFactory.class).to(TudeySceneFactory.class);
             bind(SceneRegistry.class).to(TudeySceneRegistry.class);
         }
+
+        /**
+         * Checks whether we should initialize the config manager duration configuration (or
+         * whether it will be initialized later, when we have some extra piece of information).
+         */
+        protected boolean shouldInitConfigManager ()
+        {
+            return true;
+        }
     }
+
+    /**
+     * Returns a reference to the server's config manager.
+     */
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
+    }
+
+    /** The server's config manager. */
+    @Inject protected ConfigManager _cfgmgr;
 
     /** The scene registry. */
     @Inject protected SceneRegistry _scenereg;

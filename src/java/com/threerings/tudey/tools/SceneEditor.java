@@ -1281,9 +1281,10 @@ public class SceneEditor extends TudeyTool
      */
     protected void testScene ()
     {
-        // configure the scene repository with a reference to our scene
-        _scene.sceneId = ++_sceneId;
-        _server.getSceneRepository().setSceneModel(_scene);
+        // configure the scene repository with a copy of our scene
+        TudeySceneModel scene = (TudeySceneModel)_scene.clone();
+        scene.sceneId = ++_sceneId;
+        _server.getSceneRepository().setSceneModel(scene);
 
         // request to enter
         _scenedir.moveTo(_sceneId);

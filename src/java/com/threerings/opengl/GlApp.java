@@ -71,7 +71,7 @@ public abstract class GlApp extends DynamicScope
         _compositor = new Compositor(this);
         _rsrcmgr = new ResourceManager("rsrc/");
         _msgmgr = new MessageManager("rsrc.i18n");
-        _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
+        _cfgmgr = createConfigManager();
         _colorpos = ColorPository.loadColorPository(_rsrcmgr);
         _soundmgr = SoundManager.createSoundManager(getRunQueue());
         _clipprov = new ResourceClipProvider(_rsrcmgr);
@@ -230,6 +230,14 @@ public abstract class GlApp extends DynamicScope
     public ShaderCache getShaderCache ()
     {
         return _shadcache;
+    }
+
+    /**
+     * Creates the config manager (or returns an existing one).
+     */
+    protected ConfigManager createConfigManager ()
+    {
+        return new ConfigManager(_rsrcmgr, "config/");
     }
 
     /**

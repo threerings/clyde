@@ -74,6 +74,12 @@ public class ToolServer extends TudeyServer
                 }
             });
         }
+
+        @Override // documentation inherited
+        protected boolean shouldInitConfigManager ()
+        {
+            return false; // will be configured on application init
+        }
     }
 
     /**

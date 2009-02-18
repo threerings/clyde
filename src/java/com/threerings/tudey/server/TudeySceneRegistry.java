@@ -41,7 +41,13 @@ import com.threerings.presents.server.PresentsDObjectMgr;
 import com.threerings.crowd.data.BodyObject;
 
 import com.threerings.whirled.client.SceneService;
+import com.threerings.whirled.data.SceneModel;
 import com.threerings.whirled.server.SceneRegistry;
+import com.threerings.whirled.util.UpdateList;
+
+import com.threerings.config.ConfigManager;
+
+import com.threerings.tudey.data.TudeySceneModel;
 
 /**
  * Provides special handling for moving between Tudey scenes.
@@ -90,6 +96,16 @@ public class TudeySceneRegistry extends SceneRegistry
         } else {
             super.moveTo(caller, sceneId, sceneVer, listener);
         }
+    }
+
+    @Override // documentation inherited
+    protected void processSuccessfulResolution (
+        SceneModel model, UpdateList updates, Object extras)
+    {
+        // initialize the scene model
+        ((TudeySceneModel)model).init(_cfgmgr);
+
+        super.processSuccessfulResolution(model, updates, extras);
     }
 
     /**
@@ -160,6 +176,9 @@ public class TudeySceneRegistry extends SceneRegistry
 
     /** The server object manager. */
     protected PresentsDObjectMgr _omgr;
+
+    /** The config manager. */
+    @Inject protected ConfigManager _cfgmgr;
 
     /** Maps body oids to the keys of their destination portals. */
     protected HashIntMap<PortalMapping> _portals = IntMaps.newHashIntMap();

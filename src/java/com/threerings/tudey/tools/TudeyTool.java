@@ -44,6 +44,8 @@ import com.threerings.whirled.data.SceneModel;
 import com.threerings.whirled.util.NoSuchSceneException;
 import com.threerings.whirled.util.SceneFactory;
 
+import com.threerings.config.ConfigManager;
+
 import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.GlView;
 import com.threerings.opengl.gui.Root;
@@ -150,6 +152,12 @@ public abstract class TudeyTool extends GlCanvasTool
     public Root getRoot ()
     {
         return _root;
+    }
+
+    @Override // documentation inherited
+    protected ConfigManager createConfigManager ()
+    {
+        return _server.getConfigManager();
     }
 
     @Override // documentation inherited

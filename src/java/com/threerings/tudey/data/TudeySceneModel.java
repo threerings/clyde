@@ -62,6 +62,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 import com.threerings.util.DeepUtil;
 
 import com.threerings.opengl.gui.util.Rectangle;
@@ -1502,6 +1503,13 @@ public class TudeySceneModel extends SceneModel
         // decode and copy its fields into this one
         TudeySceneModel nmodel = (TudeySceneModel)ExportUtil.fromBytes(data);
         DeepUtil.copy(nmodel, this);
+        _tiles = nmodel._tiles;
+        _tileConfigs = nmodel._tileConfigs;
+        _tileConfigIds = nmodel._tileConfigIds;
+        _entries = nmodel._entries;
+        _references = nmodel._references;
+
+        // store the cached data
         _data = new SoftReference<byte[]>(data);
     }
 
@@ -1626,7 +1634,29 @@ public class TudeySceneModel extends SceneModel
     @Override // documentation inherited
     public Object clone ()
     {
-        return DeepUtil.copy(this, null);
+        // start with a deep copy
+        TudeySceneModel model = DeepUtil.copy(this, null);
+
+        // copy the tiles
+        model._tiles.putAll(_tiles);
+
+        // and the tile configs
+        for (int ii = 0, nn = _tileConfigs.size(); ii < nn; ii++) {
+            TileConfigMapping mapping = DeepUtil.copy(_tileConfigs.get(ii), null);
+            model._tileConfigs.add(mapping);
+            if (mapping != null) {
+                model._tileConfigIds.put(mapping.tile, ii);
+            }
+        }
+
+        // and the entries
+        for (Entry entry : _entries.values()) {
+            entry = DeepUtil.copy(entry, null);
+            model.canonicalizeReference(entry);
+            model._entries.put(entry.getKey(), entry);
+        }
+
+        return model;
     }
 
     /**
@@ -1921,22 +1951,20 @@ public class TudeySceneModel extends SceneModel
     protected ConfigManager _cfgmgr = new ConfigManager();
 
     /** The encoded tiles. */
+    @DeepOmit
     protected CoordIntMap _tiles = new CoordIntMap();
 
     /** Tile config references by id. */
+    @DeepOmit
     protected ArrayList<TileConfigMapping> _tileConfigs = new ArrayList<TileConfigMapping>();
 
     /** Tile config ids mapped by reference. */
+    @DeepOmit
     protected transient HashMap<ConfigReference<TileConfig>, Integer> _tileConfigIds =
         Maps.newHashMap();
 
-    /** Maps locations to the encoded coordinates of any tiles intersecting them. */
-    protected transient CoordIntMap _tileCoords = new CoordIntMap(3, EMPTY_COORD);
-
-    /** Collision flags for each location. */
-    protected transient CoordIntMap _collisionFlags = new CoordIntMap(3, 0);
-
     /** Scene entries mapped by key. */
+    @DeepOmit
     protected transient HashMap<Object, Entry> _entries = Maps.newHashMap();
 
     /** The last entry id assigned. */
@@ -1944,34 +1972,52 @@ public class TudeySceneModel extends SceneModel
 
     /** The set of entry references (used to ensure that entries with equal references use the same
      * instance. */
+    @DeepOmit
     protected transient WeakHashMap<ConfigReference, ConfigReference> _references =
         new WeakHashMap<ConfigReference, ConfigReference>();
 
+    /** Maps locations to the encoded coordinates of any tiles intersecting them. */
+    @DeepOmit
+    protected transient CoordIntMap _tileCoords = new CoordIntMap(3, EMPTY_COORD);
+
+    /** Collision flags for each location. */
+    @DeepOmit
+    protected transient CoordIntMap _collisionFlags = new CoordIntMap(3, 0);
+
     /** The space containing the (non-tile) entry shapes. */
+    @DeepOmit
     protected transient HashSpace _space = new HashSpace(64f, 6);
 
     /** Maps entry keys to space elements. */
+    @DeepOmit
     protected transient HashMap<Object, SpaceElement> _elements = Maps.newHashMap();
 
     /** The scene model observers. */
+    @DeepOmit
     protected transient ObserverList<Observer> _observers = ObserverList.newFastUnsafe();
 
     /** The cached exported representation of the scene model. */
+    @DeepOmit
     protected transient SoftReference<byte[]> _data;
 
     /** Region object to reuse. */
+    @DeepOmit
     protected transient Rectangle _region = new Rectangle();
 
     /** Bounds object to reuse. */
+    @DeepOmit
     protected transient Rect _rect = new Rect();
 
     /** Used to store tile shapes for intersecting testing. */
+    @DeepOmit
     protected transient Polygon _quad = new Polygon(4);
 
     /** (Re)used to store intersecting elements. */
+    @DeepOmit
     protected transient ArrayList<SpaceElement> _intersecting = new ArrayList<SpaceElement>();
 
     /** Stores penetration vector during queries. */
+    @DeepOmit
     protected transient Vector2f _penetration = new Vector2f();
 
     /** The value we use to signify an empty coordinate location. */
