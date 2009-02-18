@@ -28,8 +28,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 
-import com.threerings.util.Name;
-
 import com.threerings.presents.client.Client;
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.net.AuthRequest;
@@ -49,6 +47,11 @@ import com.threerings.whirled.server.SceneRegistry;
 import com.threerings.whirled.server.WhirledSession;
 import com.threerings.whirled.server.persist.DummySceneRepository;
 import com.threerings.whirled.server.persist.SceneRepository;
+
+import com.threerings.config.ConfigManager;
+import com.threerings.media.image.ColorPository;
+import com.threerings.resource.ResourceManager;
+import com.threerings.util.Name;
 
 import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.server.TudeyServer;
@@ -80,6 +83,30 @@ public class ToolServer extends TudeyServer
         {
             return false; // will be configured on application init
         }
+    }
+
+    /**
+     * Returns a reference to the server resource manager.
+     */
+    public ResourceManager getResourceManager ()
+    {
+        return _rsrcmgr;
+    }
+
+    /**
+     * Returns a reference to the server config manager.
+     */
+    public ConfigManager getConfigManager ()
+    {
+        return _cfgmgr;
+    }
+
+    /**
+     * Returns a reference to the server color pository.
+     */
+    public ColorPository getColorPository ()
+    {
+        return _colorpos;
     }
 
     /**
@@ -154,6 +181,15 @@ public class ToolServer extends TudeyServer
             return new TudeyBodyObject();
         }
     }
+
+    /** The server's resource manager. */
+    @Inject protected ResourceManager _rsrcmgr;
+
+    /** The server's config manager. */
+    @Inject protected ConfigManager _cfgmgr;
+
+    /** The server's color pository. */
+    @Inject protected ColorPository _colorpos;
 
     /** The scene repository. */
     @Inject protected ToolSceneRepository _scenerepo;

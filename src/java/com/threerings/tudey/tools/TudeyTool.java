@@ -155,9 +155,12 @@ public abstract class TudeyTool extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected ConfigManager createConfigManager ()
+    protected void initSharedManagers ()
     {
-        return _server.getConfigManager();
+        // get references to the server managers
+        _rsrcmgr = _server.getResourceManager();
+        _cfgmgr = _server.getConfigManager();
+        _colorpos = _server.getColorPository();
     }
 
     @Override // documentation inherited

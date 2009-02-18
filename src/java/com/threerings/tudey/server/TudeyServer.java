@@ -69,17 +69,6 @@ public abstract class TudeyServer extends WhirledServer
         }
     }
 
-    /**
-     * Returns a reference to the server's config manager.
-     */
-    public ConfigManager getConfigManager ()
-    {
-        return _cfgmgr;
-    }
-
-    /** The server's config manager. */
-    @Inject protected ConfigManager _cfgmgr;
-
     /** The scene registry. */
     @Inject protected SceneRegistry _scenereg;
 }

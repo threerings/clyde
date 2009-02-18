@@ -69,10 +69,8 @@ public abstract class GlApp extends DynamicScope
         super("app");
         _renderer = new Renderer();
         _compositor = new Compositor(this);
-        _rsrcmgr = new ResourceManager("rsrc/");
+        initSharedManagers();
         _msgmgr = new MessageManager("rsrc.i18n");
-        _cfgmgr = createConfigManager();
-        _colorpos = ColorPository.loadColorPository(_rsrcmgr);
         _soundmgr = SoundManager.createSoundManager(getRunQueue());
         _clipprov = new ResourceClipProvider(_rsrcmgr);
         _imgcache = new ImageCache(this, shouldCheckTimestamps());
@@ -233,11 +231,15 @@ public abstract class GlApp extends DynamicScope
     }
 
     /**
-     * Creates the config manager (or returns an existing one).
+     * Initializes the references to the resource manager, config manager, and color pository.  By
+     * default this creates new managers, but it may be overridden to copy references to existing
+     * ones.
      */
-    protected ConfigManager createConfigManager ()
+    protected void initSharedManagers ()
     {
-        return new ConfigManager(_rsrcmgr, "config/");
+        _rsrcmgr = new ResourceManager("rsrc/");
+        _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
+        _colorpos = ColorPository.loadColorPository(_rsrcmgr);
     }
 
     /**
