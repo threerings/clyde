@@ -43,6 +43,7 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.SimpleOverlay;
 import com.threerings.opengl.util.Tickable;
 
+import com.threerings.opengl.gui.config.CursorConfig;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.EventListener;
 import com.threerings.opengl.gui.event.FocusEvent;
@@ -58,6 +59,9 @@ import static com.threerings.opengl.gui.Log.*;
 public abstract class Root extends SimpleOverlay
     implements Tickable
 {
+    /** The name of the default cursor config. */
+    public static final String DEFAULT_CURSOR = "Default";
+
     public Root (GlContext ctx)
     {
         super(ctx);
@@ -559,6 +563,17 @@ public abstract class Root extends SimpleOverlay
                 log.warning(win + " failed in render()", t);
             }
         }
+    }
+
+    /**
+     * Returns a reference to the default cursor, or <code>null</code> to use the operating system
+     * default.
+     */
+    protected Cursor getDefaultCursor ()
+    {
+        CursorConfig config = _ctx.getConfigManager().getConfig(
+            CursorConfig.class, DEFAULT_CURSOR);
+        return (config == null) ? null : config.getCursor(_ctx);
     }
 
     /**

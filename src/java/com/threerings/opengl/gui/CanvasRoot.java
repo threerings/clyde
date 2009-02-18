@@ -71,6 +71,9 @@ public class CanvasRoot extends Root
     @Override // documentation inherited
     public void setCursor (Cursor cursor)
     {
+        if (cursor == null) {
+            cursor = getDefaultCursor();
+        }
         _canvas.setCursor(cursor == null ? null : cursor.getAWTCursor(_canvas.getToolkit()));
     }
 
