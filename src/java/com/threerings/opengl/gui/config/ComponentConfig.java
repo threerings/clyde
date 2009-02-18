@@ -297,8 +297,12 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public Item[] items = new Item[0];
 
+        /** The dimensions of the popup menu. */
+        @Editable(min=0, hgroup="s")
+        public int rows = 8, columns = 1;
+
         /** The index of the selected item. */
-        @Editable(min=0)
+        @Editable(min=0, hgroup="s")
         public int selected;
 
         @Override // documentation inherited
@@ -319,6 +323,7 @@ public abstract class ComponentConfig extends DeepObject
                 objects[ii] = items[ii].getObject(ctx, msgs);
             }
             box.setItems(objects);
+            box.setPreferredDimensions(rows, columns);
             box.selectItem(selected);
         }
     }

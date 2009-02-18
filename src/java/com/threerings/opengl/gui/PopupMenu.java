@@ -54,10 +54,10 @@ public class PopupMenu extends PopupWindow
         _modal = true;
     }
 
-    public PopupMenu (GlContext ctx, Window parent, int columns)
+    public PopupMenu (GlContext ctx, Window parent, int rows, int columns)
     {
         super(ctx, parent, null);
-        setPreferredColumns(columns);
+        setPreferredDimensions(rows, columns);
         _modal = true;
     }
 
@@ -66,31 +66,43 @@ public class PopupMenu extends PopupWindow
      */
     public void addMenuItem (MenuItem item)
     {
-        // nothing more complicated needs to be done, yay!
-        add(item, GroupLayout.FIXED);
+        getItemContainer().add(item, GroupLayout.FIXED);
     }
 
     /**
-     * Sets the preferred number of columns.  Will relayout the existing menu items into the
-     * preferred number of columns, but may add more columns if the menu will not fit in
+     * Sets the preferred number of rows and columns.  Will relayout the existing menu items into
+     * the preferred number of columns, but may add more columns if the menu will not fit in
      * the vertical space.
+     *
+     * @param rows the number of rows to display at one time, or zero if unlimited.
+     * @param columns the number of columns to display.
      */
-    public void setPreferredColumns (int columns)
+    public void setPreferredDimensions (int rows, int columns)
     {
         columns = Math.max(1, columns);
-        if (columns == _columns) {
+        if (rows == _rows && columns == _columns) {
             return;
         }
+        _rows = rows;
         _columns = columns;
         ArrayList<Component> children = new ArrayList<Component>(_children);
         removeAll();
-        if (_columns == 1) {
-            setLayoutManager(GroupLayout.makeVStretch().setGap(0));
+        Container cont;
+        if (_rows == 0) {
+            cont = this;
         } else {
-            setLayoutManager(new TableLayout(_columns, 0, 5));
+            setLayoutManager(GroupLayout.makeVStretch());
+            ScrollPane pane = new ScrollPane(_ctx, cont = new Container(_ctx));
+            add(pane);
+            pane.setShowScrollbarAlways(false);
+        }
+        if (_columns == 1) {
+            cont.setLayoutManager(GroupLayout.makeVStretch().setGap(0));
+        } else {
+            cont.setLayoutManager(new TableLayout(_columns, 0, 5));
         }
         for (Component child : children) {
-            add(child);
+            cont.add(child);
         }
     }
 
@@ -122,12 +134,25 @@ public class PopupMenu extends PopupWindow
         int width = _root.getDisplayWidth();
         int height = _root.getDisplayHeight();
 
+        // adjust the preferred size of the scroll pane if necessary
+        if (_rows != 0) {
+            ScrollPane pane = (ScrollPane)getComponent(0);
+            Container cont = (Container)pane.getChild();
+            if (cont.getComponentCount() > _rows) {
+                int theight = 0;
+                for (int ii = 0; ii < _rows; ii++) {
+                    theight += cont.getComponent(ii).getPreferredSize(-1, -1).height;
+                }
+                pane.setPreferredSize(-1, theight);
+            }
+        }
+
         // determine whether we can fit in the window
         ArrayList<Component> children = null;
         int columns = _columns;
         do {
             Dimension d = getPreferredSize(-1, -1);
-            if (d.height > height) {
+            if (d.height > height && _rows == 0) {
                 // remove our children, switch to a table layout and readd
                 if (children == null) {
                     children = new ArrayList<Component>(_children);
@@ -153,6 +178,14 @@ public class PopupMenu extends PopupWindow
     }
 
     /**
+     * Returns a reference to the container holding the menu items.
+     */
+    protected Container getItemContainer ()
+    {
+        return (_rows == 0) ? this : (Container)((ScrollPane)getComponent(0)).getChild();
+    }
+
+    /**
      * Called by any child {@link MenuItem}s when they are selected.
      */
     protected void itemSelected (MenuItem item, long when, int modifiers)
@@ -161,5 +194,5 @@ public class PopupMenu extends PopupWindow
         dismiss();
     }
 
-    protected int _columns;
+    protected int _rows, _columns;
 }

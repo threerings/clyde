@@ -237,11 +237,12 @@ public class ComboBox extends Label
     /**
      * Sets the preferred number of columns in the popup menu.
      */
-    public void setPreferredColumns (int columns)
+    public void setPreferredDimensions (int rows, int columns)
     {
+        _rows = rows;
         _columns = columns;
         if (_menu != null) {
-            _menu.setPreferredColumns(columns);
+            _menu.setPreferredDimensions(rows, columns);
         }
     }
 
@@ -253,7 +254,7 @@ public class ComboBox extends Label
             switch (mev.getType()) {
             case MouseEvent.MOUSE_PRESSED:
                 if (_menu == null) {
-                    _menu = new ComboPopupMenu(_ctx, _columns);
+                    _menu = new ComboPopupMenu(_ctx, _rows, _columns);
                 }
                 _menu.popup(getAbsoluteX(), getAbsoluteY(), false);
                 break;
@@ -326,8 +327,8 @@ public class ComboBox extends Label
 
     protected class ComboPopupMenu extends PopupMenu
     {
-        public ComboPopupMenu (GlContext ctx, int columns) {
-            super(ctx, ComboBox.this.getWindow(), columns);
+        public ComboPopupMenu (GlContext ctx, int rows, int columns) {
+            super(ctx, ComboBox.this.getWindow(), rows, columns);
             for (int ii = 0; ii < _items.size(); ii++) {
                 addMenuItem(_items.get(ii));
             }
@@ -336,6 +337,22 @@ public class ComboBox extends Label
         protected void itemSelected (MenuItem item, long when, int modifiers) {
             selectItem(_items.indexOf(item), when, modifiers);
             dismiss();
+        }
+
+        protected void packAndFit (int x, int y, boolean above) {
+            super.packAndFit(x, y, above);
+
+            // ensure selected item is visible
+            if (_rows == 0) {
+                return;
+            }
+            ScrollPane pane = (ScrollPane)getComponent(0);
+            Container cont = (Container)pane.getChild();
+            int height = 0;
+            for (int ii = 0; ii < _selidx; ii++) {
+                height += cont.getComponent(ii).getHeight();
+            }
+            pane.getVerticalScrollBar().getModel().setValue(height);
         }
 
         protected Dimension computePreferredSize (int whint, int hhint) {
@@ -374,6 +391,6 @@ public class ComboBox extends Label
     /** Our cached preferred size. */
     protected Dimension _psize;
 
-    /** Our preferred number of columns for the popup menu. */
-    protected int _columns;
+    /** Our preferred number of rows and columns for the popup menu. */
+    protected int _rows, _columns;
 }

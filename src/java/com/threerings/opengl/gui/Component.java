@@ -1098,6 +1098,8 @@ public class Component
         } else {
             store = null;
         }
+        _rect.width = Math.max(_rect.width, 0);
+        _rect.height = Math.max(_rect.height, 0);
         renderer.setScissor(_rect);
         return store;
     }
