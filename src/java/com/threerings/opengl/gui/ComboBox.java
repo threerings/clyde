@@ -350,7 +350,7 @@ public class ComboBox extends Label
             Container cont = (Container)pane.getChild();
             int height = 0;
             for (int ii = 0; ii < _selidx; ii++) {
-                height += cont.getComponent(ii).getHeight();
+                height += cont.getComponent(ii).getPreferredSize(-1, -1).height;
             }
             pane.getVerticalScrollBar().getModel().setValue(height);
         }
