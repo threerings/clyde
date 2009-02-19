@@ -33,6 +33,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.icon.BlankIcon;
 import com.threerings.opengl.gui.icon.Icon;
@@ -70,7 +71,8 @@ public abstract class IconConfig extends DeepObject
         @Override // documentation inherited
         protected Icon createIcon (GlContext ctx)
         {
-            return new ImageIcon(ctx.getImageCache().getImage(file));
+            return (file == null) ? new BlankIcon(1, 1) :
+                new ImageIcon(ctx.getImageCache().getImage(file));
         }
     }
 
@@ -124,5 +126,6 @@ public abstract class IconConfig extends DeepObject
     protected abstract Icon createIcon (GlContext ctx);
 
     /** The cached icon. */
+    @DeepOmit
     protected transient SoftReference<Icon> _icon;
 }
