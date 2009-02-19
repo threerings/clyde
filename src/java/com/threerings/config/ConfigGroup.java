@@ -339,22 +339,49 @@ public class ConfigGroup<T extends ManagedConfig>
      */
     protected boolean readConfigs (boolean xml)
     {
-        File file = getConfigFile(xml);
-        if (!file.exists()) {
+        InputStream stream = getConfigStream(xml);
+        if (stream == null) {
             return false;
         }
         try {
-            FileInputStream fin = new FileInputStream(file);
-            Importer in = xml ? new XMLImporter(fin) : new BinaryImporter(fin);
+            Importer in = xml ? new XMLImporter(stream) : new BinaryImporter(stream);
             @SuppressWarnings("unchecked") T[] configs = (T[])in.readObject();
             initConfigs(configs);
             in.close();
             return true;
 
         } catch (Exception e) { // IOException, ClassCastException
-            log.warning("Error reading configurations [file=" + file + "].", e);
+            log.warning("Error reading configurations.", "group", _name, e);
             return false;
         }
+    }
+
+    /**
+     * Returns the configuration stream, or <code>null</code> if it doesn't exist.
+     */
+    protected InputStream getConfigStream (boolean xml)
+    {
+        try {
+            return _cfgmgr.getResourceManager().getResource(getConfigPath(xml));
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the configuration file.
+     */
+    protected File getConfigFile (boolean xml)
+    {
+        return _cfgmgr.getResourceManager().getResourceFile(getConfigPath(xml));
+    }
+
+    /**
+     * Returns the path of the config resource associated with this group.
+     */
+    protected String getConfigPath (boolean xml)
+    {
+        return _cfgmgr.getConfigPath() + _name + (xml ? ".xml" : ".dat");
     }
 
     /**
@@ -375,15 +402,6 @@ public class ConfigGroup<T extends ManagedConfig>
                 _freeIds.add(id);
             }
         }
-    }
-
-    /**
-     * Returns the configuration file.
-     */
-    protected File getConfigFile (boolean xml)
-    {
-        String name = _cfgmgr.getConfigPath() + _name + (xml ? ".xml" : ".dat");
-        return _cfgmgr.getResourceManager().getResourceFile(name);
     }
 
     /**
