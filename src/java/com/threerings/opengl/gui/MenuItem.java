@@ -127,8 +127,11 @@ public class MenuItem extends Label
      */
     protected void fireAction (long when, int modifiers)
     {
-        if (_parent instanceof PopupMenu) {
-            ((PopupMenu)_parent).itemSelected(this, when, modifiers);
+        for (Component ancestor = _parent; ancestor != null; ancestor = ancestor.getParent()) {
+            if (ancestor instanceof PopupMenu) {
+                ((PopupMenu)ancestor).itemSelected(this, when, modifiers);
+                return;
+            }
         }
     }
 
