@@ -554,7 +554,12 @@ public class TudeySceneManager extends SceneManager
     public void bodyWillLeave (BodyObject body)
     {
         super.bodyWillLeave(body);
+        TudeySceneLocal local = body.getLocal(TudeySceneLocal.class);
         body.setLocal(TudeySceneLocal.class, null);
+        if (local != null) {
+            ActorLogic logic = _actors.get(local.getPawnId());
+            logic.destroy(_timestamp + getTickInterval());
+        }
     }
 
     // documentation inherited from interface TudeySceneProvider
