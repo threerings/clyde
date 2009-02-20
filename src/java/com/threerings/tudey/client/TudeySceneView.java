@@ -369,7 +369,6 @@ public class TudeySceneView extends SimpleScope
                     actors.put(id, nactor);
                 } else {
                     log.warning("Missing actor for delta.", "delta", delta);
-                    System.out.println(id + " " + actors);
                 }
             }
         }
