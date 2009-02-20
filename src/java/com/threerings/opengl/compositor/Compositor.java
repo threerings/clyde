@@ -79,7 +79,25 @@ public class Compositor
     }
 
     /**
-     * Returns a reference to the background color.
+     * Returns a reference to the default background color.
+     */
+    public Color4f getDefaultBackgroundColor ()
+    {
+        return _defaultBackgroundColor;
+    }
+
+    /**
+     * Sets the background color reference.
+     *
+     * @param color the background color, or null to use the default.
+     */
+    public void setBackgroundColor (Color4f color)
+    {
+        _backgroundColor = color;
+    }
+
+    /**
+     * Returns the background color reference.
      */
     public Color4f getBackgroundColor ()
     {
@@ -246,7 +264,8 @@ public class Compositor
             int bits = GL11.GL_DEPTH_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT;
             if (!_skipColorClear) {
                 bits |= GL11.GL_COLOR_BUFFER_BIT;
-                renderer.setClearColor(_backgroundColor);
+                renderer.setClearColor(
+                    _backgroundColor == null ? _defaultBackgroundColor : _backgroundColor);
                 renderer.setState(ColorMaskState.ALL);
             }
             renderer.setClearDepth(1f);
@@ -264,8 +283,11 @@ public class Compositor
     /** The camera. */
     protected Camera _camera = new Camera();
 
-    /** The background color. */
-    protected Color4f _backgroundColor = new Color4f(0f, 0f, 0f, 0f);
+    /** The default background color. */
+    protected Color4f _defaultBackgroundColor = new Color4f(0f, 0f, 0f, 0f);
+
+    /** The current background color, or <code>null</code> to use the default. */
+    protected Color4f _backgroundColor;
 
     /** The roots of the view. */
     protected ArrayList<Renderable> _roots = new ArrayList<Renderable>();

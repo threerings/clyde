@@ -370,6 +370,14 @@ public abstract class Scene extends DynamicScope
         }
     }
 
+    @Override // documentation inherited
+    public void dispose ()
+    {
+        super.dispose();
+        setEffects(_neffects);
+        _soundGroup.dispose();
+    }
+
     /**
      * Sets the effects acting on the viewer.
      */
@@ -394,10 +402,7 @@ public abstract class Scene extends DynamicScope
         _effects.addAll(effects);
 
         // update the background color
-        Color4f backgroundColor = _effects.getBackgroundColor(_viewer);
-        if (backgroundColor != null) {
-            _ctx.getCompositor().getBackgroundColor().set(backgroundColor);
-        }
+        _ctx.getCompositor().setBackgroundColor(_effects.getBackgroundColor(_viewer));
     }
 
     /**
