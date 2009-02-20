@@ -45,6 +45,7 @@ import com.samskivert.util.ObserverList;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 
+import com.threerings.whirled.data.AuxModel;
 import com.threerings.whirled.data.SceneModel;
 
 import com.threerings.config.ConfigManager;
@@ -1438,8 +1439,10 @@ public class TudeySceneModel extends SceneModel
         throws IOException
     {
         out.defaultWriteFields();
+        out.write("sceneId", sceneId, 0);
         out.write("name", name, "");
         out.write("version", version, 1);
+        out.write("auxModels", auxModels, new AuxModel[0], AuxModel[].class);
         out.write("entries", _entries.values().toArray(new Entry[_entries.size()]),
             new Entry[0], Entry[].class);
     }
@@ -1451,8 +1454,10 @@ public class TudeySceneModel extends SceneModel
         throws IOException
     {
         in.defaultReadFields();
+        sceneId = in.read("sceneId", 0);
         name = in.read("name", "");
         version = in.read("version", 1);
+        auxModels = in.read("auxModels", new AuxModel[0], AuxModel[].class);
 
         // initialize the tile config counts
         for (CoordIntEntry entry : _tiles.coordIntEntrySet()) {

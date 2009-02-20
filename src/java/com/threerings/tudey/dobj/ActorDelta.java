@@ -24,6 +24,11 @@
 
 package com.threerings.tudey.dobj;
 
+import java.io.IOException;
+
+import com.threerings.io.ObjectInputStream;
+import com.threerings.io.ObjectOutputStream;
+
 import com.threerings.delta.ReflectiveDelta;
 
 import com.threerings.tudey.data.actor.Actor;
@@ -56,6 +61,22 @@ public final class ActorDelta extends ReflectiveDelta
     public int getId ()
     {
         return _id;
+    }
+
+    @Override // documentation inherited
+    public void writeObject (ObjectOutputStream out)
+        throws IOException
+    {
+        out.writeInt(_id);
+        super.writeObject(out);
+    }
+
+    @Override // documentation inherited
+    public void readObject (ObjectInputStream in)
+        throws IOException, ClassNotFoundException
+    {
+        _id = in.readInt();
+        super.readObject(in);
     }
 
     /** The id of the affected actor. */
