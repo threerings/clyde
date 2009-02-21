@@ -287,7 +287,9 @@ public class SceneEditor extends TudeyTool
         _toolbar.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         _toolbar.setFloatable(false);
         _toolbar.setRollover(true);
-        _toolbar.add(createIconButton("save"), GroupLayout.FIXED);
+        JButton save = createIconButton("save");
+        _toolbar.add(save, GroupLayout.FIXED);
+        save.setPressedIcon(createIcon("save_click"));
         _toolbar.add(new Spacer(80, 1), GroupLayout.FIXED);
         _toolbar.add(_markers = createToggleButton("markers"), GroupLayout.FIXED);
         _toolbar.add(_light = createToggleButton("light"), GroupLayout.FIXED);
