@@ -552,6 +552,7 @@ public class TudeySceneView extends SimpleScope
             return;
         }
         _ctx.getRoot().addWindow(_loadingWindow);
+        updateLoadingWindow(0f);
     }
 
     // documentation inherited from interface PlaceView
