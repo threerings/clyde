@@ -1113,6 +1113,10 @@ public class TudeySceneModel extends SceneModel
      */
     public void init (ConfigManager cfgmgr)
     {
+        // make sure we're not already initialized
+        if (_cfgmgr.isInitialized()) {
+            return;
+        }
         _cfgmgr.init("scene", cfgmgr);
 
         // create the tile shadows now that we have the config manager
