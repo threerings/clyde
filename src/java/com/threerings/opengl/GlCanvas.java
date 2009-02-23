@@ -110,7 +110,7 @@ public class GlCanvas extends AWTGLCanvas
      */
     protected void init ()
     {
-        // make the context current once and for all
+        // make the context current
         makeCurrent();
 
         // now that we're initialized, make sure we don't call LWJGL's paint method
@@ -138,6 +138,7 @@ public class GlCanvas extends AWTGLCanvas
     {
         (_updater = new Interval(RunQueue.AWT) {
             public void expired () {
+                makeCurrent();
                 updateFrame();
                 schedule(1L);
             }
