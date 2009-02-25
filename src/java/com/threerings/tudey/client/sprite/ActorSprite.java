@@ -38,6 +38,7 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.ModelConfig;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
@@ -121,7 +122,8 @@ public class ActorSprite extends Sprite
          */
         public void setConfig (ActorSpriteConfig config)
         {
-            _model.setConfig((_config = config).model);
+            _config = config;
+            _model.setConfig(getModelConfig());
         }
 
         @Override // documentation inherited
@@ -150,6 +152,15 @@ public class ActorSprite extends Sprite
                 _view.getScene().spawnTransient(
                     _config.destructionTransient, _model.getLocalTransform());
             }
+        }
+
+        /**
+         * Returns the configuration to use for the actor model (gives subclasses a chance to
+         * adjust the result).
+         */
+        protected ConfigReference<ModelConfig> getModelConfig ()
+        {
+            return _config.model;
         }
 
         /** The renderer context. */
@@ -536,6 +547,7 @@ public class ActorSprite extends Sprite
     protected ActorAdvancer _advancer;
 
     /** The "play head" actor with interpolated or advanced state. */
+    @Scoped
     protected Actor _actor;
 
     /** The actor configuration. */
