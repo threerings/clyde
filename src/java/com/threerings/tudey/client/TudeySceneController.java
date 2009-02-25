@@ -233,7 +233,7 @@ public class TudeySceneController extends SceneController
 
         // perhaps transmit our acknowledgement and input frames
         long now = RunAnywhere.currentTimeMillis();
-        if (now - _lastTransmit >= getTransmitInterval()) {
+        if (now - _lastTransmit >= getTransmitInterval() && _lastDelta > 0) {
             transmitInput();
             _lastTransmit = now;
         }
