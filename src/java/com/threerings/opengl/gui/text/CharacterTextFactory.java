@@ -399,7 +399,7 @@ public class CharacterTextFactory extends TextFactory
         {
             _texture = new Texture2D(renderer);
             _texture.setImage(GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false, false);
-            _texture.setMinFilter(GL11.GL_LINEAR);
+            _texture.setFilters(GL11.GL_LINEAR, GL11.GL_NEAREST);
             _units = new TextureUnit[] { new TextureUnit(_texture) };
         }
 
