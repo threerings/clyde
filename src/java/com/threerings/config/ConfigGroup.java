@@ -93,8 +93,8 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         _cfgmgr = cfgmgr;
 
-        // load the existing configurations (first checking for a binary file, then an xml file)
-        if (_cfgmgr.getConfigPath() != null && (readConfigs(false) || readConfigs(true))) {
+        // load the existing configurations (first checking for an xml file, then a binary file)
+        if (_cfgmgr.getConfigPath() != null && (readConfigs(true) || readConfigs(false))) {
             log.debug("Read configurations for group " + _name + ".");
         }
 

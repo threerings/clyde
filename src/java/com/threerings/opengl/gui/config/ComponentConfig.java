@@ -44,6 +44,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 import com.threerings.util.MessageBundle;
+import com.threerings.util.MessageManager;
 
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.Component;
@@ -59,16 +60,17 @@ import com.threerings.opengl.util.GlContext;
  * Contains a component configuration.
  */
 @EditorTypes({
-    ComponentConfig.Button.class, ComponentConfig.CheckBox.class,
-    ComponentConfig.ColorPicker.class, ComponentConfig.ComboBox.class,
-    ComponentConfig.Container.class, ComponentConfig.HTMLView.class,
-    ComponentConfig.Label.class, ComponentConfig.List.class,
-    ComponentConfig.PasswordField.class, ComponentConfig.RenderableView.class,
-    ComponentConfig.ScrollBar.class, ComponentConfig.ScrollPane.class,
-    ComponentConfig.Slider.class, ComponentConfig.Spacer.class,
-    ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
-    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
-    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
+    ComponentConfig.Button.class, ComponentConfig.ChatOverlay.class,
+    ComponentConfig.CheckBox.class, ComponentConfig.ColorPicker.class,
+    ComponentConfig.ComboBox.class, ComponentConfig.Container.class,
+    ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
+    ComponentConfig.List.class, ComponentConfig.PasswordField.class,
+    ComponentConfig.RenderableView.class, ComponentConfig.ScrollBar.class,
+    ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
+    ComponentConfig.Spacer.class, ComponentConfig.StatusLabel.class,
+    ComponentConfig.TabbedPane.class, ComponentConfig.TextArea.class,
+    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
+    ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -828,6 +830,40 @@ public abstract class ComponentConfig extends DeepObject
             picker.setColorClass(colorClass, starters);
             picker.setSwatchSize(swatchWidth, swatchHeight);
             picker.setSelectedIndex(selected);
+        }
+    }
+
+    /**
+     * Displays chat as an overlay.
+     */
+    public static class ChatOverlay extends ComponentConfig
+    {
+        /** The message bundle to use. */
+        @Editable(hgroup="b")
+        public String bundle = "chat";
+
+        /** The area's preferred width, or zero for none. */
+        @Editable(min=0, hgroup="t")
+        public int preferredWidth;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.ChatOverlay.class) ?
+                comp : new com.threerings.opengl.gui.ChatOverlay(ctx);
+        }
+
+        @Override // documentation inherited
+        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            super.configure(ctx, scope, msgs, comp);
+            com.threerings.opengl.gui.ChatOverlay overlay =
+                (com.threerings.opengl.gui.ChatOverlay)comp;
+
+            // configure the component
+            overlay.setBundle(StringUtil.isBlank(bundle) ? MessageManager.GLOBAL_BUNDLE : bundle);
+            overlay.setPreferredWidth(preferredWidth);
         }
     }
 

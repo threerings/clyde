@@ -392,7 +392,7 @@ public class TextArea extends Container
         }
 
         // update our model (which will cause the text to be repositioned)
-        int sline = Math.max(0, _lines.size() - lines);
+        int sline = Math.min(_model.getValue(), _lines.size() - lines);
         if (!_model.setRange(0, sline, lines, _lines.size())) {
             // we need to force adjustment of the text even if we didn't change anything because we
             // wiped out and recreated all of our lines
