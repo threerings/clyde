@@ -30,6 +30,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.lwjgl.opengl.GL11;
@@ -469,10 +470,13 @@ public abstract class Root extends SimpleOverlay
             }
         }
 
-        // notify our tick participants (in reverse order, so that they can remove themselves)
-        for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
-            _tickParticipants.get(ii).tick(elapsed);
+        // notify our tick participants
+        _tickables = _tickParticipants.toArray(_tickables);
+        for (int ii = 0, nn = _tickParticipants.size(); ii < nn; ii++) {
+            _tickables[ii].tick(elapsed);
         }
+        // clear the array so that we don't retain any references
+        Arrays.fill(_tickables, null);
 
         // check to see if we need to pop up a tooltip
         _lastMoveTime += elapsed;
@@ -993,6 +997,9 @@ public abstract class Root extends SimpleOverlay
     protected ArrayList<Component> _defaults = new ArrayList<Component>();
     protected ArrayList<Tickable> _tickParticipants = new ArrayList<Tickable>();
     protected ArrayList<EventListener> _globals = new ArrayList<EventListener>();
+
+    /** Holds the tickables when ticking. */
+    protected Tickable[] _tickables = new Tickable[0];
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
 
