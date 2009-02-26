@@ -29,6 +29,8 @@ import com.threerings.util.MessageManager;
 
 import com.threerings.crowd.chat.client.ChatDisplay;
 import com.threerings.crowd.chat.data.ChatMessage;
+import com.threerings.crowd.chat.data.SystemMessage;
+import com.threerings.crowd.chat.data.TellFeedbackMessage;
 import com.threerings.crowd.chat.data.UserMessage;
 
 import com.threerings.opengl.gui.event.ActionEvent;
@@ -36,6 +38,7 @@ import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.ChangeEvent;
 import com.threerings.opengl.gui.event.ChangeListener;
 import com.threerings.opengl.gui.layout.GroupLayout;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -112,6 +115,16 @@ public class ChatOverlay extends Container
         _area.setPreferredWidth(width);
     }
 
+    /**
+     * Sets the colors to use for system chat messages.
+     */
+    public void setSystemColors (Color4f info, Color4f feedback, Color4f attention)
+    {
+        _systemColors[SystemMessage.INFO] = info;
+        _systemColors[SystemMessage.FEEDBACK] = feedback;
+        _systemColors[SystemMessage.ATTENTION] = attention;
+    }
+
     // documentation inherited from interface ChatDisplay
     public void clear ()
     {
@@ -123,13 +136,19 @@ public class ChatOverlay extends Container
     {
         String format = msg.getFormat();
         String text = msg.message;
+        Color4f color = null;
         if (format != null && msg instanceof UserMessage) {
             UserMessage umsg = (UserMessage)msg;
             text = _msgs.get(format, umsg.getSpeakerDisplayName(), text);
         }
+        if (msg instanceof SystemMessage) {
+            color = _systemColors[((SystemMessage)msg).attentionLevel];
+        } else if (msg instanceof TellFeedbackMessage) {
+            color = _systemColors[SystemMessage.FEEDBACK];
+        }
         BoundedRangeModel model = _area.getScrollModel();
         boolean end = (model.getValue() == model.getMaximum() - model.getExtent());
-        _area.appendText(text + "\n");
+        _area.appendText(text + "\n", color);
         if (end) {
             _area.validate();
             model.setValue(model.getMaximum() - model.getExtent());
@@ -172,6 +191,9 @@ public class ChatOverlay extends Container
 
     /** The bundle we use to translate messages. */
     protected MessageBundle _msgs;
+
+    /** The colors to use for each system message level. */
+    protected Color4f[] _systemColors = new Color4f[3];
 
     /** The less, more, and end buttons. */
     protected Button _less, _more, _end;

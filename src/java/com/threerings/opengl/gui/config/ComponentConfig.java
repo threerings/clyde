@@ -54,6 +54,7 @@ import com.threerings.opengl.gui.config.LayoutConfig.Justification;
 import com.threerings.opengl.gui.layout.GroupLayout;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -839,12 +840,24 @@ public abstract class ComponentConfig extends DeepObject
     public static class ChatOverlay extends ComponentConfig
     {
         /** The message bundle to use. */
-        @Editable(hgroup="b")
+        @Editable
         public String bundle = "chat";
 
         /** The area's preferred width, or zero for none. */
-        @Editable(min=0, hgroup="t")
+        @Editable(min=0, hgroup="p")
         public int preferredWidth;
+
+        /** The color to use for system info messages. */
+        @Editable(hgroup="p")
+        public Color4f infoColor = new Color4f(Color4f.YELLOW);
+
+        /** The color to use for system feedback messages. */
+        @Editable(hgroup="i")
+        public Color4f feedbackColor = new Color4f(Color4f.GREEN);
+
+        /** The color to use for system attention messages. */
+        @Editable(hgroup="i")
+        public Color4f attentionColor = new Color4f(Color4f.RED);
 
         @Override // documentation inherited
         protected Component maybeRecreate (
@@ -864,6 +877,7 @@ public abstract class ComponentConfig extends DeepObject
             // configure the component
             overlay.setBundle(StringUtil.isBlank(bundle) ? MessageManager.GLOBAL_BUNDLE : bundle);
             overlay.setPreferredWidth(preferredWidth);
+            overlay.setSystemColors(infoColor, feedbackColor, attentionColor);
         }
     }
 
