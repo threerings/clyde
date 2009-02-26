@@ -42,6 +42,8 @@ public class DefaultKeyMap extends KeyMap
 
         addMapping(ANY_MODIFIER, Keyboard.KEY_LEFT, EditCommands.CURSOR_LEFT);
         addMapping(ANY_MODIFIER, Keyboard.KEY_RIGHT, EditCommands.CURSOR_RIGHT);
+        addMapping(ANY_MODIFIER, Keyboard.KEY_UP, EditCommands.CURSOR_UP);
+        addMapping(ANY_MODIFIER, Keyboard.KEY_DOWN, EditCommands.CURSOR_DOWN);
 
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_LEFT, EditCommands.WORD_LEFT);
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_RIGHT, EditCommands.WORD_RIGHT);
