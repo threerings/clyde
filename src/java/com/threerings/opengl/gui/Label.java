@@ -109,6 +109,14 @@ public class Label extends TextComponent
     }
 
     /**
+     * Sets the rotation for the text (in ninety degree increments).
+     */
+    public void setTextRotation (int rotation)
+    {
+        _label.setTextRotation(rotation);
+    }
+
+    /**
      * Sets the orientation of this label with respect to its icon. If the
      * horizontal (the default) the text is displayed to the right of the icon,
      * if vertical the text is displayed below it.

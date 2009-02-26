@@ -124,6 +124,14 @@ public class LabelRenderer
     }
 
     /**
+     * Sets the rotation for the text (in ninety degree increments).
+     */
+    public void setTextRotation (int rotation)
+    {
+        _textRotation = rotation;
+    }
+
+    /**
      * Sets the orientation of this label with respect to its icon. If the horizontal (the default)
      * the text is displayed to the right of the icon, if vertical the text is displayed below it.
      */
@@ -147,7 +155,8 @@ public class LabelRenderer
     public Dimension computePreferredSize (int whint, int hhint)
     {
         // if our cached preferred size is not valid, recompute it
-        Config prefconfig = layoutConfig(_prefconfig, whint > 0 ? whint : Short.MAX_VALUE-1);
+        int hint = getWidth(whint, hhint, _textRotation);
+        Config prefconfig = layoutConfig(_prefconfig, hint > 0 ? hint : Short.MAX_VALUE-1);
         _prefsize = computeSize(_prefconfig = prefconfig);
         prefconfig.glyphs = null; // we don't need to retain these
         return new Dimension(_prefsize);
@@ -159,7 +168,9 @@ public class LabelRenderer
     public void layout (Insets insets, int contWidth, int contHeight)
     {
         // compute any offsets needed to center or align things
-        Config config = layoutConfig(_config, contWidth - insets.getHorizontal());
+        Config config = layoutConfig(_config, getWidth(
+            contWidth - insets.getHorizontal(),
+            contHeight - insets.getVertical(), _textRotation));
         Dimension size = computeSize(config);
         int xoff = 0, yoff = 0;
         switch (_orient) {
@@ -171,15 +182,15 @@ public class LabelRenderer
             }
             if (config.glyphs != null) {
                 _tx = getXOffset(insets, contWidth, size.width) + xoff;
-                _ty = getYOffset(insets, contHeight, config.glyphs.size.height);
+                _ty = getYOffset(insets, contHeight, config.glyphs.getHeight(_textRotation));
             }
             break;
 
         case VERTICAL:
             if (config.glyphs != null) {
-                _tx = getXOffset(insets, contWidth, config.glyphs.size.width);
+                _tx = getXOffset(insets, contWidth, config.glyphs.getWidth(_textRotation));
                 _ty = getYOffset(insets, contHeight, size.height);
-                yoff = (config.glyphs.size.height + _gap);
+                yoff = (config.glyphs.getHeight(_textRotation) + _gap);
             }
             if (_icon != null) {
                 _ix = getXOffset(insets, contWidth, _icon.getWidth());
@@ -193,8 +204,8 @@ public class LabelRenderer
                 _iy = getYOffset(insets, contHeight, _icon.getHeight());
             }
             if (config.glyphs != null) {
-                _tx = getXOffset(insets, contWidth, config.glyphs.size.width);
-                _ty = getYOffset(insets, contHeight, config.glyphs.size.height);
+                _tx = getXOffset(insets, contWidth, config.glyphs.getWidth(_textRotation));
+                _ty = getYOffset(insets, contHeight, config.glyphs.getHeight(_textRotation));
             }
             break;
         }
@@ -213,7 +224,17 @@ public class LabelRenderer
                 _icon.render(renderer, _ix, _iy, alpha);
             }
             if (_config != null && _config.glyphs != null) {
-                renderText(renderer, contWidth, contHeight, alpha);
+                Dimension size = _config.glyphs.size;
+                int ox = getOffsetX(size.width, size.height, _textRotation) + _tx;
+                int oy = getOffsetY(size.width, size.height, _textRotation) + _ty;
+                GL11.glTranslatef(ox, oy, 0);
+                GL11.glRotatef(_textRotation * 90, 0, 0, 1);
+                try {
+                    renderText(renderer, contWidth, contHeight, alpha);
+                } finally {
+                    GL11.glRotatef(_textRotation * -90, 0, 0, 1);
+                    GL11.glTranslatef(-ox, -oy, 0);
+                }
             }
         } finally {
             GL11.glTranslatef(-x, -y, 0);
@@ -224,7 +245,7 @@ public class LabelRenderer
     {
         if (_fit == Label.Fit.WRAP) {
             _config.glyphs.render(
-                renderer, _tx, _ty, _container.getHorizontalAlignment(), alpha, _config.spacing);
+                renderer, 0, 0, _container.getHorizontalAlignment(), alpha, _config.spacing);
             return;
         }
 
@@ -236,8 +257,10 @@ public class LabelRenderer
         }
 
         if (_fit == Label.Fit.SCALE) {
-            _config.glyphs.render(
-                renderer, _tx, _ty, width, height, _container.getHorizontalAlignment(), alpha);
+            _config.glyphs.render(renderer, 0, 0,
+                getWidth(width, height, _textRotation),
+                getHeight(width, height, _textRotation),
+                _container.getHorizontalAlignment(), alpha);
             return;
         }
 
@@ -248,7 +271,7 @@ public class LabelRenderer
             width, height);
         try {
             _config.glyphs.render(
-                renderer, _tx, _ty, _container.getHorizontalAlignment(), alpha, _config.spacing);
+                renderer, 0, 0, _container.getHorizontalAlignment(), alpha, _config.spacing);
         } finally {
             renderer.setScissor(oscissor);
         }
@@ -265,8 +288,8 @@ public class LabelRenderer
             if (_icon != null) {
                 gap = _gap;
             }
-            twidth = config.glyphs.size.width;
-            theight = config.glyphs.size.height;
+            twidth = config.glyphs.getWidth(_textRotation);
+            theight = config.glyphs.getHeight(_textRotation);
         }
 
         int width, height;
@@ -319,11 +342,18 @@ public class LabelRenderer
             twidth = Short.MAX_VALUE-1;
         }
 
-        if (_value != null) {
+        if (_value != null && _icon != null) {
             // account for the space taken up by the icon
-            if (_icon != null && _orient == HORIZONTAL) {
-                twidth -= _gap;
-                twidth -= _icon.getWidth();
+            if ((_textRotation & 0x01) == 0) {
+                if (_orient == HORIZONTAL) {
+                    twidth -= _gap;
+                    twidth -= _icon.getWidth();
+                }
+            } else {
+                if (_orient == VERTICAL) {
+                    twidth -= _gap;
+                    twidth -= _icon.getHeight();
+                }
             }
         }
 
@@ -377,6 +407,48 @@ public class LabelRenderer
 
         // note our new config
         _config = config;
+    }
+
+    /**
+     * Returns the width under the supplied rotation.
+     */
+    protected static int getWidth (int width, int height, int rotation)
+    {
+        return ((rotation & 0x01) == 0) ? width : height;
+    }
+
+    /**
+     * Returns the height under the supplied rotation.
+     */
+    protected static int getHeight (int width, int height, int rotation)
+    {
+        return ((rotation & 0x01) == 0) ? height : width;
+    }
+
+    /**
+     * Returns the x offset for rotating the supplied dimensions by the specified amount.
+     */
+    protected static int getOffsetX (int width, int height, int rotation)
+    {
+        switch (rotation & 0x03) {
+            default: case 0: return 0;
+            case 1: return height;
+            case 2: return width;
+            case 3: return 0;
+        }
+    }
+
+    /**
+     * Returns the y offset for rotation the supplied dimensions by the specified amount.
+     */
+    protected static int getOffsetY (int width, int height, int rotation)
+    {
+        switch (rotation & 0x03) {
+            default: case 0: return 0;
+            case 1: return 0;
+            case 2: return height;
+            case 3: return width;
+        }
     }
 
     protected static class Config
@@ -438,6 +510,16 @@ public class LabelRenderer
         public Text[] lines;
         public Dimension size = new Dimension();
 
+        public int getWidth (int rotation)
+        {
+            return LabelRenderer.getWidth(size.width, size.height, rotation);
+        }
+
+        public int getHeight (int rotation)
+        {
+            return LabelRenderer.getHeight(size.width, size.height, rotation);
+        }
+
         public void render (Renderer renderer, int tx, int ty, int halign,
                             float alpha, int spacing) {
             // render the lines from the bottom up
@@ -480,7 +562,7 @@ public class LabelRenderer
     protected TextComponent _container;
     protected String _value;
 
-    protected int _orient = HORIZONTAL;
+    protected int _textRotation, _orient = HORIZONTAL;
     protected int _gap = 3;
     protected Label.Fit _fit = Label.Fit.WRAP;
 

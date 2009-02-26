@@ -115,6 +115,10 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="t")
         public int iconTextGap = 3;
 
+        /** The rotation for the text. */
+        @Editable(hgroup="t")
+        public int textRotation;
+
         /** The label orientation. */
         @Editable(hgroup="o")
         public Orientation orientation = Orientation.HORIZONTAL;
@@ -141,6 +145,7 @@ public abstract class ComponentConfig extends DeepObject
             }
             label.setText(getMessage(msgs, text));
             label.setIconTextGap(iconTextGap);
+            label.setTextRotation(textRotation);
             label.setOrientation(orientation.getConstant());
             label.setFit(fit);
         }
