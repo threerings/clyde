@@ -36,6 +36,7 @@ import java.util.Collections;
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.ObserverList;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -471,12 +472,7 @@ public abstract class Root extends SimpleOverlay
         }
 
         // notify our tick participants
-        _tickables = _tickParticipants.toArray(_tickables);
-        for (int ii = 0, nn = _tickParticipants.size(); ii < nn; ii++) {
-            _tickables[ii].tick(elapsed);
-        }
-        // clear the array so that we don't retain any references
-        Arrays.fill(_tickables, null);
+        _tickParticipants.apply(_tickOp.init(elapsed));
 
         // check to see if we need to pop up a tooltip
         _lastMoveTime += elapsed;
@@ -981,6 +977,34 @@ public abstract class Root extends SimpleOverlay
         protected long _nextRepeat;
     }
 
+    /**
+     * Used to notify the tick participants.
+     */
+    protected static class TickOp
+        implements ObserverList.ObserverOp<Tickable>
+    {
+        /**
+         * Initializes this op with the elapsed time.
+         *
+         * @return a reference to the op, for chaining.
+         */
+        public TickOp init (float elapsed)
+        {
+            _elapsed = elapsed;
+            return this;
+        }
+
+        // documentation inherited from interface ObserverList.ObserverOp
+        public boolean apply (Tickable tickable)
+        {
+            tickable.tick(_elapsed);
+            return true;
+        }
+
+        /** The elapsed time since the last tick. */
+        protected float _elapsed;
+    }
+
     protected long _tickStamp;
     protected int _modifiers;
     protected int _mouseX, _mouseY;
@@ -995,11 +1019,9 @@ public abstract class Root extends SimpleOverlay
     protected Component _hcomponent, _ccomponent;
     protected Component _focus;
     protected ArrayList<Component> _defaults = new ArrayList<Component>();
-    protected ArrayList<Tickable> _tickParticipants = new ArrayList<Tickable>();
+    protected ObserverList<Tickable> _tickParticipants = ObserverList.newSafeInOrder();
+    protected TickOp _tickOp = new TickOp();
     protected ArrayList<EventListener> _globals = new ArrayList<EventListener>();
-
-    /** Holds the tickables when ticking. */
-    protected Tickable[] _tickables = new Tickable[0];
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
 
