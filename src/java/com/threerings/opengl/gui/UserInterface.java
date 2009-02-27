@@ -231,7 +231,14 @@ public class UserInterface extends Container
      */
     public List<Component> getComponents (String tag)
     {
-        return _tagged.get(tag);
+        // parse simple paths
+        int idx = tag.indexOf('/');
+        if (idx == -1) {
+            return _tagged.get(tag);
+        }
+        Component first = getComponent(tag.substring(0, idx));
+        return (first instanceof UserInterface) ?
+            ((UserInterface)first).getComponents(tag.substring(idx + 1)) : null;
     }
 
     /**
