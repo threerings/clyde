@@ -162,6 +162,50 @@ public class UserInterface extends Container
     }
 
     /**
+     * Shortcut method for setting the enabled status of all components bearing the specified tag.
+     */
+    public void setEnabled (String tag, boolean enabled)
+    {
+        List<Component> comps = getComponents(tag);
+        if (comps != null) {
+            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
+                comps.get(ii).setEnabled(enabled);
+            }
+        }
+    }
+
+    /**
+     * Shortcut method for setting the visibility status of all components bearing the specified
+     * tag.
+     */
+    public void setVisible (String tag, boolean visible)
+    {
+        List<Component> comps = getComponents(tag);
+        if (comps != null) {
+            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
+                comps.get(ii).setVisible(visible);
+            }
+        }
+    }
+
+    /**
+     * Shortcut method for setting the text of all {@link TextComponent}s bearing the specified
+     * tag.
+     */
+    public void setText (String tag, String text)
+    {
+        List<Component> comps = getComponents(tag);
+        if (comps != null) {
+            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
+                Component comp = comps.get(ii);
+                if (comp instanceof TextComponent) {
+                    ((TextComponent)comp).setText(text);
+                }
+            }
+        }
+    }
+
+    /**
      * Shortcut method for retrieving the text of a tagged {@link TextComponent}.
      */
     public String getText (String tag)
@@ -190,28 +234,28 @@ public class UserInterface extends Container
     }
 
     /**
-     * Shortcut method to add a listener to a tagged component.
+     * Shortcut method to add a listener to all components with the specified tag.
      */
     public void addListener (String tag, ComponentListener listener)
     {
-        Component comp = getComponent(tag);
-        if (comp != null) {
-            comp.addListener(listener);
-        } else {
-            log.warning("Can't find component to add listener.", "tag", tag);
+        List<Component> comps = getComponents(tag);
+        if (comps != null) {
+            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
+                comps.get(ii).addListener(listener);
+            }
         }
     }
 
     /**
-     * Shortcut method to remove a listener from a tagged component.
+     * Shortcut method to remove a listener from all components with the specified tag.
      */
     public void removeListener (String tag, ComponentListener listener)
     {
-        Component comp = getComponent(tag);
-        if (comp != null) {
-            comp.removeListener(listener);
-        } else {
-            log.warning("Can't find component to remove listener.", "tag", tag);
+        List<Component> comps = getComponents(tag);
+        if (comps != null) {
+            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
+                comps.get(ii).removeListener(listener);
+            }
         }
     }
 
