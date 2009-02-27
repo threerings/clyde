@@ -854,7 +854,8 @@ public class Component
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
         if (state == DEFAULT) {
-            _preferredSize = (config.size == null) ? null : config.size.createDimension();
+            _preferredSize = (config.size == null) ?
+                _preferredSize : config.size.createDimension();
             _tooltipStyle = config.tooltipStyle;
             CursorConfig cconfig = _ctx.getConfigManager().getConfig(
                 CursorConfig.class, config.cursor);
