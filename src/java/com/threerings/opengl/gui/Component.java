@@ -447,6 +447,22 @@ public class Component
     }
 
     /**
+     * Sets this component's hoverability state.
+     */
+    public void setHoverable (boolean hoverable)
+    {
+        _hoverable = hoverable;
+    }
+
+    /**
+     * Returns this component's hoverability state.
+     */
+    public boolean isHoverable ()
+    {
+        return _hoverable;
+    }
+
+    /**
      * Returns true if this component is both added to the interface hierarchy and visible, false
      * if not.
      */
@@ -733,7 +749,7 @@ public class Component
      */
     public Component getHitComponent (int mx, int my)
     {
-        if (isVisible() && (mx >= _x) && (my >= _y) &&
+        if (isVisible() && _hoverable && (mx >= _x) && (my >= _y) &&
             (mx < _x + _width) && (my < _y + _height)) {
             return this;
         }
@@ -1121,7 +1137,7 @@ public class Component
     protected String _tiptext;
     protected boolean _tipmouse;
 
-    protected boolean _valid, _enabled = true, _visible = true, _hover;
+    protected boolean _valid, _enabled = true, _visible = true, _hoverable = true, _hover;
     protected float _alpha = 1f;
 
     protected Color4f[] _colors = new Color4f[getStateCount()];

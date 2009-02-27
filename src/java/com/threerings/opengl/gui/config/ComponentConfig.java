@@ -901,17 +901,17 @@ public abstract class ComponentConfig extends DeepObject
         public Transform3D transform = new Transform3D();
     }
 
-    /** The component alpha value. */
-    @Editable(min=0, max=1, step=0.01, weight=1, hgroup="c")
-    public float alpha = 1f;
-
     /** Whether or not the component is enabled. */
-    @Editable(weight=1, hgroup="c")
+    @Editable(weight=1, hgroup="f")
     public boolean enabled = true;
 
     /** Whether or not the component is visible. */
-    @Editable(weight=1, hgroup="c")
+    @Editable(weight=1, hgroup="f")
     public boolean visible = true;
+
+    /** Whether or not the component is hoverable. */
+    @Editable(weight=1, hgroup="f")
+    public boolean hoverable = true;
 
     /** The text for the component's tooltip. */
     @Editable(weight=1, hgroup="t")
@@ -921,8 +921,12 @@ public abstract class ComponentConfig extends DeepObject
     @Editable(weight=1, hgroup="t")
     public boolean tooltipRelativeToMouse;
 
+    /** The component alpha value. */
+    @Editable(min=0, max=1, step=0.01, weight=1, hgroup="a")
+    public float alpha = 1f;
+
     /** The component's tag. */
-    @Editable(weight=1)
+    @Editable(weight=1, hgroup="a")
     public String tag = "";
 
     /** The component's style, if non-default. */
@@ -964,6 +968,7 @@ public abstract class ComponentConfig extends DeepObject
         comp.setAlpha(alpha);
         comp.setEnabled(enabled);
         comp.setVisible(visible);
+        comp.setHoverable(hoverable);
         comp.setTooltipText(
             StringUtil.isBlank(tooltipText) ? null : getMessage(msgs, tooltipText));
         comp.setTooltipRelativeToMouse(tooltipRelativeToMouse);
