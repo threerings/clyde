@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.ARBMultitexture;
 import org.lwjgl.opengl.GL11;
 
 import com.google.common.collect.Maps;
@@ -40,6 +41,7 @@ import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.config.ConfigManager;
 
+import com.threerings.opengl.gui.Image;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -86,18 +88,27 @@ public class SceneMap
      */
     public void render (
         int sx, int sy, int swidth, int sheight, int tx, int ty,
-        int twidth, int theight, float alpha)
+        int twidth, int theight, float alpha, Image mask)
     {
         Renderer renderer = _ctx.getRenderer();
         renderer.setColorState(alpha, alpha, alpha, alpha);
+
+        // prepare the mask image if any
+        float mwidth = 1f, mheight = 1f;
+        if (mask != null) {
+            Texture2D mtex = mask.getTexture(renderer);
+            _masked[1].setTexture(mtex);
+            mwidth = mask.getWidth() / (float)mtex.getWidth();
+            mheight = mask.getHeight() / (float)mtex.getHeight();
+        }
 
         // iterate over all intersecting blocks
         int xmin = sx >> TEXTURE_POT, ymin = sy >> TEXTURE_POT;
         int xmax = (sx + swidth - 1) >> TEXTURE_POT, ymax = (sy + sheight - 1) >> TEXTURE_POT;
         for (int yy = ymin; yy <= ymax; yy++) {
             for (int xx = xmin; xx <= xmax; xx++) {
-                TextureUnit[] units = _units.get(_coord.set(xx, yy));
-                if (units == null) {
+                Texture2D texture = _textures.get(_coord.set(xx, yy));
+                if (texture == null) {
                     continue;
                 }
                 // find the intersection of the block with the rendered section
@@ -105,24 +116,65 @@ public class SceneMap
                 int by1 = yy << TEXTURE_POT, by2 = (yy + 1) << TEXTURE_POT;
                 int ix1 = Math.max(sx, bx1), ix2 = Math.min(sx + swidth, bx2);
                 int iy1 = Math.max(sy, by1), iy2 = Math.min(sy + sheight, by2);
+
+                // compute the texture coordinates within the block
                 float ls = (ix1 - bx1) / (float)TEXTURE_SIZE;
                 float us = (ix2 - bx1) / (float)TEXTURE_SIZE;
                 float lt = (iy1 - by1) / (float)TEXTURE_SIZE;
                 float ut = (iy2 - by1) / (float)TEXTURE_SIZE;
-                float lx = (ix1 - sx) * twidth / swidth + tx;
-                float ux = (ix2 - sx) * twidth / swidth + tx;
-                float ly = (iy1 - sy) * theight / sheight + ty;
-                float uy = (iy2 - sy) * theight / sheight + ty;
+
+                // compute the proportional coordinates
+                float lx = (ix1 - sx) / (float)swidth;
+                float ux = (ix2 - sx) / (float)swidth;
+                float ly = (iy1 - sy) / (float)sheight;
+                float uy = (iy2 - sy) / (float)sheight;
+
+                // now the mask coordinates
+                float mls = lx * mwidth;
+                float mus = ux * mwidth;
+                float mlt = ly * mheight;
+                float mut = uy * mheight;
+
+                // now the onscreen location
+                lx = lx * twidth + tx;
+                ux = ux * twidth + tx;
+                ly = ly * theight + ty;
+                uy = uy * theight + ty;
+
+                // prepare the texture units
+                TextureUnit[] units = (mask == null) ? _unmasked : _masked;
+                units[0].setTexture(texture);
+
+                // render the block
                 renderer.setTextureState(units);
                 GL11.glBegin(GL11.GL_QUADS);
-                GL11.glTexCoord2f(ls, lt);
-                GL11.glVertex2f(lx, ly);
-                GL11.glTexCoord2f(us, lt);
-                GL11.glVertex2f(ux, ly);
-                GL11.glTexCoord2f(us, ut);
-                GL11.glVertex2f(ux, uy);
-                GL11.glTexCoord2f(ls, ut);
-                GL11.glVertex2f(lx, uy);
+                if (mask == null) {
+                    GL11.glTexCoord2f(ls, lt);
+                    GL11.glVertex2f(lx, ly);
+                    GL11.glTexCoord2f(us, lt);
+                    GL11.glVertex2f(ux, ly);
+                    GL11.glTexCoord2f(us, ut);
+                    GL11.glVertex2f(ux, uy);
+                    GL11.glTexCoord2f(ls, ut);
+                    GL11.glVertex2f(lx, uy);
+                } else {
+                    GL11.glTexCoord2f(ls, lt);
+                    ARBMultitexture.glMultiTexCoord2fARB(
+                        ARBMultitexture.GL_TEXTURE1_ARB, mls, mlt);
+                    GL11.glVertex2f(lx, ly);
+                    GL11.glTexCoord2f(us, lt);
+                    ARBMultitexture.glMultiTexCoord2fARB(
+                        ARBMultitexture.GL_TEXTURE1_ARB, mus, mlt);
+                    GL11.glVertex2f(ux, ly);
+                    GL11.glTexCoord2f(us, ut);
+                    ARBMultitexture.glMultiTexCoord2fARB(
+                        ARBMultitexture.GL_TEXTURE1_ARB, mus, mut);
+                    GL11.glVertex2f(ux, uy);
+                    GL11.glTexCoord2f(ls, ut);
+                    ARBMultitexture.glMultiTexCoord2fARB(
+                        ARBMultitexture.GL_TEXTURE1_ARB, mls, mut);
+                    GL11.glVertex2f(lx, uy);
+                }
                 GL11.glEnd();
             }
         }
@@ -162,14 +214,13 @@ public class SceneMap
      */
     protected void build ()
     {
-        CoordIntMap types = new CoordIntMap();
         for (Entry entry : _sceneModel.getEntries()) {
-            addEntry(types, entry);
+            addEntry(entry);
         }
-        for (Coord coord : types.keySet()) {
+        for (Coord coord : _types.keySet()) {
             _coord.set(coord.x >> TEXTURE_POT, coord.y >> TEXTURE_POT);
-            if (!_units.containsKey(_coord)) {
-                _units.put((Coord)_coord.clone(), buildUnits(types, _coord.x, _coord.y));
+            if (!_textures.containsKey(_coord)) {
+                _textures.put((Coord)_coord.clone(), buildTexture(_coord.x, _coord.y));
             }
         }
     }
@@ -177,7 +228,7 @@ public class SceneMap
     /**
      * Adds the specified entry to the map.
      */
-    protected void addEntry (CoordIntMap types, Entry entry)
+    protected void addEntry (Entry entry)
     {
         if (!(entry instanceof TileEntry)) {
             return; // nothing for now
@@ -188,7 +239,7 @@ public class SceneMap
         for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
             for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
                 int flags = tentry.getCollisionFlags(config, xx, yy);
-                types.put(xx, yy, flags);
+                _types.put(xx, yy, flags);
             }
         }
     }
@@ -196,12 +247,12 @@ public class SceneMap
     /**
      * Builds and returns the texture at the specified coordinates.
      */
-    protected TextureUnit[] buildUnits (CoordIntMap types, int tx, int ty)
+    protected Texture2D buildTexture (int tx, int ty)
     {
         ByteBuffer buf = getBuffer(TEXTURE_SIZE * TEXTURE_SIZE * 4);
         for (int yy = ty << TEXTURE_POT, yymax = yy + TEXTURE_SIZE; yy < yymax; yy++) {
             for (int xx = tx << TEXTURE_POT, xxmax = xx + TEXTURE_SIZE; xx < xxmax; xx++) {
-                int type = types.get(xx, yy);
+                int type = _types.get(xx, yy);
                 if (type == -1) {
                     buf.put(EMPTY_COLOR);
                 } else if (type == 0) {
@@ -217,7 +268,7 @@ public class SceneMap
         texture.setImage(
             0, GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false,
             GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
-        return new TextureUnit[] { new TextureUnit(texture) };
+        return texture;
     }
 
     /**
@@ -253,14 +304,23 @@ public class SceneMap
     /** The scene model. */
     protected TudeySceneModel _sceneModel;
 
-    /** The map texture units. */
-    protected Map<Coord, TextureUnit[]> _units = Maps.newHashMap();
+    /** Stores the "type" of each location (empty, floor, wall, etc). */
+    protected CoordIntMap _types = new CoordIntMap();
+
+    /** The map textures. */
+    protected Map<Coord, Texture2D> _textures = Maps.newHashMap();
 
     /** The RGBA color to use for floors. */
     protected byte[] _floorColor;
 
     /** The RGBA color to use for walls. */
     protected byte[] _wallColor;
+
+    /** Reusable texture unit array for unmasked rendering. */
+    protected TextureUnit[] _unmasked = new TextureUnit[] { new TextureUnit() };
+
+    /** Reusable texture unit array for masked rendering. */
+    protected TextureUnit[] _masked = new TextureUnit[] { new TextureUnit(), new TextureUnit() };
 
     /** Reusable coordinate object. */
     protected Coord _coord = new Coord();

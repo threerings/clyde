@@ -78,6 +78,15 @@ public class Image
     }
 
     /**
+     * Returns a reference to the image texture, loading it if necessary.
+     */
+    public Texture2D getTexture (Renderer renderer)
+    {
+        load(renderer, -1);
+        return (Texture2D)_units[0].texture;
+    }
+
+    /**
      * Renders this image at the specified coordinates.
      */
     public void render (Renderer renderer, int tx, int ty, float alpha)
@@ -128,9 +137,7 @@ public class Image
         int tx, int ty, int twidth, int theight, Color4f color, float alpha)
     {
         // initialize the texture units if necessary
-        if (_units == null) {
-            load(renderer, -1);
-        }
+        load(renderer, -1);
         float lx = sx / (float)_twidth;
         float ly = sy / (float)_theight;
         float ux = (sx+swidth) / (float)_twidth;
@@ -159,6 +166,9 @@ public class Image
      */
     public void load (Renderer renderer, int format)
     {
+        if (_units != null) {
+            return; // already loaded
+        }
         Texture2D texture = new Texture2D(renderer);
         if (format == -1) {
             texture.setImage(_image, true, false, false, false);

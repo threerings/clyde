@@ -141,6 +141,15 @@ public class TextureUnit
     }
 
     /**
+     * Sets the texture and the dirty flag.
+     */
+    public void setTexture (Texture texture)
+    {
+        this.texture = texture;
+        dirty = true;
+    }
+
+    /**
      * Checks whether all of the unit's gen modes equal the supplied mode.
      */
     public boolean allGenModesEqual (int mode)
