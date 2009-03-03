@@ -226,10 +226,19 @@ public class Texture2D extends Texture
     public void setSubimage (
         BufferedImage image, boolean premultiply, int x, int y, int width, int height)
     {
-        _renderer.setTexture(this);
-        GL11.glTexSubImage2D(
-            _target, 0, x, y, width, height, getFormat(image), GL11.GL_UNSIGNED_BYTE,
+        setSubimage(
+            0, x, y, width, height, getFormat(image), GL11.GL_UNSIGNED_BYTE,
             getData(image, premultiply, width, height, true));
+    }
+
+    /**
+     * Sets part of the texture image.
+     */
+    public void setSubimage (
+        int level, int x, int y, int width, int height, int dformat, int dtype, ByteBuffer data)
+    {
+        _renderer.setTexture(this);
+        GL11.glTexSubImage2D(_target, level, x, y, width, height, dformat, dtype, data);
     }
 
     /**

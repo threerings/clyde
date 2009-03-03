@@ -28,18 +28,23 @@ import java.lang.ref.SoftReference;
 
 import java.nio.ByteBuffer;
 
+import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBMultitexture;
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Rect;
+import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.gui.Image;
 import com.threerings.opengl.gui.util.Rectangle;
@@ -53,7 +58,9 @@ import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.TudeyContext;
@@ -197,16 +204,21 @@ public class SceneMap
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryAdded (Entry entry)
     {
+        addEntry(entry, true);
+
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryUpdated (Entry oentry, Entry nentry)
     {
+        removeEntry(oentry, true);
+        addEntry(nentry, true);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryRemoved (Entry oentry)
     {
+        removeEntry(oentry, true);
     }
 
     /**
@@ -215,51 +227,179 @@ public class SceneMap
     protected void build ()
     {
         for (Entry entry : _sceneModel.getEntries()) {
-            addEntry(entry);
+            addEntry(entry, false);
         }
         for (Coord coord : _types.keySet()) {
             _coord.set(coord.x >> TEXTURE_POT, coord.y >> TEXTURE_POT);
             if (!_textures.containsKey(_coord)) {
-                _textures.put((Coord)_coord.clone(), buildTexture(_coord.x, _coord.y));
+                buildTexture(_coord.x, _coord.y);
             }
         }
     }
 
     /**
      * Adds the specified entry to the map.
+     *
+     * @param retexture if true, update the texture as well.
      */
-    protected void addEntry (Entry entry)
+    protected void addEntry (Entry entry, boolean retexture)
     {
-        if (!(entry instanceof TileEntry)) {
-            return; // nothing for now
+        if (entry instanceof TileEntry) {
+            TileEntry tentry = (TileEntry)entry;
+            TileConfig.Original config = tentry.getConfig(_sceneModel.getConfigManager());
+            tentry.getRegion(config, _region);
+            for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
+                for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
+                    int flags = tentry.getCollisionFlags(config, xx, yy);
+                    int type = Math.max(_types.get(xx, yy), flags);
+                    _types.put(xx, yy, type);
+                    if (retexture) {
+                        updateTexture(xx, yy, type);
+                    }
+                }
+            }
+            return;
         }
-        TileEntry tentry = (TileEntry)entry;
-        TileConfig.Original config = tentry.getConfig(_sceneModel.getConfigManager());
-        tentry.getRegion(config, _region);
-        for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
-            for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
-                int flags = tentry.getCollisionFlags(config, xx, yy);
-                _types.put(xx, yy, flags);
+        int flags = entry.getCollisionFlags(_sceneModel.getConfigManager());
+        if (flags == 0) {
+            return;
+        }
+        Shape shape = entry.createShape(_sceneModel.getConfigManager());
+        if (shape == null) {
+            return;
+        }
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = (int)FloatMath.floor(min.x);
+        int maxx = (int)FloatMath.floor(max.x);
+        int miny = (int)FloatMath.floor(min.y);
+        int maxy = (int)FloatMath.floor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                updateQuad(xx, yy);
+                if (shape.intersects(_quad)) {
+                    int type = Math.max(_types.get(xx, yy), flags);
+                    _types.put(xx, yy, type);
+                    if (retexture) {
+                        updateTexture(xx, yy, type);
+                    }
+                }
             }
         }
     }
 
     /**
-     * Builds and returns the texture at the specified coordinates.
+     * Removes the specified entry from the map.
+     *
+     * @param retexture if true, update the texture as well.
      */
-    protected Texture2D buildTexture (int tx, int ty)
+    protected void removeEntry (Entry entry, boolean retexture)
+    {
+        if (entry instanceof TileEntry) {
+            TileEntry tentry = (TileEntry)entry;
+            TileConfig.Original config = tentry.getConfig(_sceneModel.getConfigManager());
+            tentry.getRegion(config, _region);
+            for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
+                for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
+                    updateQuad(xx, yy);
+                    update(xx, yy, retexture);
+                }
+            }
+            return;
+        }
+        int flags = entry.getCollisionFlags(_sceneModel.getConfigManager());
+        if (flags == 0) {
+            return;
+        }
+        Shape shape = entry.createShape(_sceneModel.getConfigManager());
+        if (shape == null) {
+            return;
+        }
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = (int)FloatMath.floor(min.x);
+        int maxx = (int)FloatMath.floor(max.x);
+        int miny = (int)FloatMath.floor(min.y);
+        int maxy = (int)FloatMath.floor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                updateQuad(xx, yy);
+                if (shape.intersects(_quad)) {
+                    update(xx, yy, retexture);
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates the specified location.
+     *
+     * @param retexture if true, update the texture as well.
+     */
+    protected void update (int x, int y, boolean retexture)
+    {
+        int type = -1;
+        TileEntry tentry = _sceneModel.getTileEntry(x, y);
+        ConfigManager cfgmgr = _sceneModel.getConfigManager();
+        if (tentry != null) {
+            type = tentry.getCollisionFlags(tentry.getConfig(cfgmgr), x, y);
+        }
+        _sceneModel.getSpace().getIntersecting(_quad, _elements);
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            SpaceElement element = _elements.get(ii);
+            int flags = ((Entry)element.getUserObject()).getCollisionFlags(cfgmgr);
+            if (flags != 0) {
+                type = Math.max(type, flags);
+            }
+        }
+        _elements.clear();
+        _types.put(x, y, type);
+        if (retexture) {
+            updateTexture(x, y, type);
+        }
+    }
+
+    /**
+     * Updates the coordinates of the quad to encompass the specified grid cell.
+     */
+    protected void updateQuad (int x, int y)
+    {
+        float lx = x, ly = y, ux = lx + 1f, uy = ly + 1f;
+        _quad.getVertex(0).set(lx, ly);
+        _quad.getVertex(1).set(ux, ly);
+        _quad.getVertex(2).set(ux, uy);
+        _quad.getVertex(3).set(lx, uy);
+        _quad.getBounds().getMinimumExtent().set(lx, ly);
+        _quad.getBounds().getMaximumExtent().set(ux, uy);
+    }
+
+    /**
+     * Updates the texture at the specified coordinates.
+     */
+    protected void updateTexture (int x, int y, int type)
+    {
+        int tx = x >> TEXTURE_POT, ty = y >> TEXTURE_POT;
+        Texture2D texture = _textures.get(_coord.set(tx, ty));
+        if (texture == null) {
+            buildTexture(tx, ty);
+            return;
+        }
+        ByteBuffer buf = getBuffer(4);
+        putColor(buf, type);
+        buf.rewind();
+        texture.setSubimage(
+            0, x & TEXTURE_MASK, y & TEXTURE_MASK, 1, 1, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
+    }
+
+    /**
+     * Builds and maps the texture at the specified coordinates.
+     */
+    protected void buildTexture (int tx, int ty)
     {
         ByteBuffer buf = getBuffer(TEXTURE_SIZE * TEXTURE_SIZE * 4);
         for (int yy = ty << TEXTURE_POT, yymax = yy + TEXTURE_SIZE; yy < yymax; yy++) {
             for (int xx = tx << TEXTURE_POT, xxmax = xx + TEXTURE_SIZE; xx < xxmax; xx++) {
-                int type = _types.get(xx, yy);
-                if (type == -1) {
-                    buf.put(EMPTY_COLOR);
-                } else if (type == 0) {
-                    buf.put(_floorColor);
-                } else {
-                    buf.put(_wallColor);
-                }
+                putColor(buf, _types.get(xx, yy));
             }
         }
         buf.rewind();
@@ -268,7 +408,21 @@ public class SceneMap
         texture.setImage(
             0, GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false,
             GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
-        return texture;
+        _textures.put(new Coord(tx, ty), texture);
+    }
+
+    /**
+     * Puts the color corresponding to the specified type into the supplied buffer.
+     */
+    protected void putColor (ByteBuffer buf, int type)
+    {
+         if (type == -1) {
+            buf.put(EMPTY_COLOR);
+         } else if (type == 0) {
+            buf.put(_floorColor);
+         } else {
+            buf.put(_wallColor);
+         }
     }
 
     /**
@@ -328,14 +482,23 @@ public class SceneMap
     /** Region object to reuse. */
     protected Rectangle _region = new Rectangle();
 
+    /** Used to store tile shapes for intersecting testing. */
+    protected Polygon _quad = new Polygon(4);
+
     /** Buffer to reuse. */
     protected SoftReference<ByteBuffer> _buf;
+
+    /** Holds elements during intersection testing. */
+    protected List<SpaceElement> _elements = Lists.newArrayList();
 
     /** The size of the map textures as a power of two. */
     protected static final int TEXTURE_POT = 8;
 
     /** The size of the map textures. */
     protected static final int TEXTURE_SIZE = (1 << TEXTURE_POT);
+
+    /** The mask for texture locations. */
+    protected static final int TEXTURE_MASK = TEXTURE_SIZE - 1;
 
     /** The color to use for empty locations. */
     protected static final byte[] EMPTY_COLOR = new byte[] { 0x0, 0x0, 0x0, 0x0 };
