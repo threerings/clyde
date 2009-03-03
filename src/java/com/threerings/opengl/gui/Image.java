@@ -129,12 +129,7 @@ public class Image
     {
         // initialize the texture units if necessary
         if (_units == null) {
-            Texture2D texture = new Texture2D(renderer);
-            texture.setImage(_image, true, false, false, false);
-            texture.setMinFilter(GL11.GL_LINEAR);
-            _twidth = texture.getWidth();
-            _theight = texture.getHeight();
-            _units = new TextureUnit[] { new TextureUnit(texture) };
+            load(renderer, -1);
         }
         float lx = sx / (float)_twidth;
         float ly = sy / (float)_theight;
@@ -154,6 +149,26 @@ public class Image
         GL11.glTexCoord2f(lx, uy);
         GL11.glVertex2f(tx, ty + theight);
         GL11.glEnd();
+    }
+
+    /**
+     * Loads the image into a texture (this is called automatically when first used and need only
+     * be called manually if a specific format is desired).
+     *
+     * @param format the internal format to use for the texture, or -1 to use the default.
+     */
+    public void load (Renderer renderer, int format)
+    {
+        Texture2D texture = new Texture2D(renderer);
+        if (format == -1) {
+            texture.setImage(_image, true, false, false, false);
+        } else {
+            texture.setImage(format, false, _image, true, false, false);
+        }
+        texture.setMinFilter(GL11.GL_LINEAR);
+        _twidth = texture.getWidth();
+        _theight = texture.getHeight();
+        _units = new TextureUnit[] { new TextureUnit(texture) };
     }
 
     /**
