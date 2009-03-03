@@ -95,6 +95,16 @@ public class Texture2D extends Texture
      */
     public void setImage (int level, int format, int width, int height, boolean border)
     {
+        setImage(level, format, width, height, border, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, null);
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImage (
+        int level, int format, int width, int height, boolean border,
+        int dformat, int dtype, ByteBuffer data)
+    {
         if (!(isRectangle() || GLContext.getCapabilities().GL_ARB_texture_non_power_of_two)) {
             width = GlUtil.nextPowerOfTwo(width);
             height = GlUtil.nextPowerOfTwo(height);
@@ -107,8 +117,7 @@ public class Texture2D extends Texture
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL11.glTexImage2D(
-            _target, level, format, width + ib2, height + ib2, ib,
-            GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            _target, level, format, width + ib2, height + ib2, ib, dformat, dtype, data);
     }
 
     /**

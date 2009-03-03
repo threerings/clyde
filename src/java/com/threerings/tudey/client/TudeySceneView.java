@@ -558,6 +558,9 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface PlaceView
     public void didLeavePlace (PlaceObject plobj)
     {
+        if (_sceneModel != null) {
+            _sceneModel.removeObserver(this);
+        }
         _scene.dispose();
     }
 
