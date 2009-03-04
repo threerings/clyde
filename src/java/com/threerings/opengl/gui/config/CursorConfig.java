@@ -34,6 +34,8 @@ import com.threerings.editor.FileConstraints;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.Cursor;
+import com.threerings.opengl.renderer.config.TextureConfig;
+import com.threerings.opengl.renderer.config.TextureConfig.ColorizationReference;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -48,6 +50,10 @@ public class CursorConfig extends ManagedConfig
         extensions={".png", ".jpg"},
         directory="image_dir")
     public String image;
+
+    /** Colorizations to apply to the cursor. */
+    @Editable
+    public ColorizationReference[] colorizations = new ColorizationReference[0];
 
     /** The hot spot x coordinate. */
     @Editable(min=0, hgroup="h")
@@ -65,7 +71,7 @@ public class CursorConfig extends ManagedConfig
         Cursor cursor = (_cursor == null) ? null : _cursor.get();
         if (cursor == null) {
             _cursor = new SoftReference<Cursor>(cursor = new Cursor(
-                ctx.getImageCache().getBufferedImage(image), hotSpotX, hotSpotY));
+                TextureConfig.getImage(ctx, image, colorizations), hotSpotX, hotSpotY));
         }
         return cursor;
     }

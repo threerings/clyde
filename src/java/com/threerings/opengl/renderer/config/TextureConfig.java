@@ -1089,6 +1089,20 @@ public class TextureConfig extends ParameterizedConfig
     public Implementation implementation = new Original2D();
 
     /**
+     * Gets the requested image from the cache and applies the specified colorizations.
+     */
+    public static BufferedImage getImage (
+        GlContext ctx, String file, ColorizationReference[] colorizations)
+    {
+        Colorization[] zations = new Colorization[colorizations.length];
+        for (int ii = 0; ii < zations.length; ii++) {
+            zations[ii] = ctx.getColorPository().getColorization(
+                colorizations[ii].colorization);
+        }
+        return ctx.getImageCache().getBufferedImage(file, zations);
+    }
+
+    /**
      * Checks whether the texture configuration is supported.
      */
     public boolean isSupported (GlContext ctx)
@@ -1122,20 +1136,6 @@ public class TextureConfig extends ParameterizedConfig
     protected void getUpdateResources (HashSet<String> paths)
     {
         implementation.getUpdateResources(paths);
-    }
-
-    /**
-     * Gets the requested image from the cache and applies the specified colorizations.
-     */
-    protected static BufferedImage getImage (
-        GlContext ctx, String file, ColorizationReference[] colorizations)
-    {
-        Colorization[] zations = new Colorization[colorizations.length];
-        for (int ii = 0; ii < zations.length; ii++) {
-            zations[ii] = ctx.getColorPository().getColorization(
-                colorizations[ii].colorization);
-        }
-        return ctx.getImageCache().getBufferedImage(file, zations);
     }
 
     /**

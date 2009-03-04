@@ -128,6 +128,14 @@ public abstract class ComponentConfig extends DeepObject
         public Fit fit = Fit.WRAP;
 
         @Override // documentation inherited
+        public void invalidate ()
+        {
+            if (icon != null) {
+                icon.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -267,6 +275,14 @@ public abstract class ComponentConfig extends DeepObject
              * Returns the object corresponding to this item.
              */
             public abstract Object getObject (GlContext ctx, MessageBundle msgs);
+
+            /**
+             * Invalidates any cached data.
+             */
+            public void invalidate ()
+            {
+                // nothing by default
+            }
         }
 
         /**
@@ -299,6 +315,14 @@ public abstract class ComponentConfig extends DeepObject
             {
                 return (icon == null) ? null : icon.getIcon(ctx);
             }
+
+            @Override // documentation inherited
+            public void invalidate ()
+            {
+                if (icon != null) {
+                    icon.invalidate();
+                }
+            }
         }
 
         /** The items available for selection. */
@@ -312,6 +336,14 @@ public abstract class ComponentConfig extends DeepObject
         /** The index of the selected item. */
         @Editable(min=0, hgroup="s")
         public int selected;
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Item item : items) {
+                item.invalidate();
+            }
+        }
 
         @Override // documentation inherited
         protected Component maybeRecreate (
@@ -500,6 +532,14 @@ public abstract class ComponentConfig extends DeepObject
         public int selected;
 
         @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Tab tab : tabs) {
+                tab.component.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -599,6 +639,12 @@ public abstract class ComponentConfig extends DeepObject
         public ComponentConfig child = new Spacer();
 
         @Override // documentation inherited
+        public void invalidate ()
+        {
+            child.invalidate();
+        }
+
+        @Override // documentation inherited
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
@@ -651,6 +697,12 @@ public abstract class ComponentConfig extends DeepObject
         /** The layout of the container. */
         @Editable
         public LayoutConfig layout = new LayoutConfig.Absolute();
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            layout.invalidate();
+        }
 
         @Override // documentation inherited
         protected Component maybeRecreate (
@@ -952,6 +1004,14 @@ public abstract class ComponentConfig extends DeepObject
             ScopeUtil.call(scope, "registerComponent", tag, comp);
         }
         return comp;
+    }
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
     }
 
     /**

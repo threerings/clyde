@@ -78,6 +78,14 @@ public class UserInterfaceConfig extends ParameterizedConfig
          * <code>null</code> if no component could be created.
          */
         public abstract Component getComponent (GlContext ctx, Scope scope, Component comp);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -108,6 +116,12 @@ public class UserInterfaceConfig extends ParameterizedConfig
                 ScopeUtil.resolve(scope, "msgs", msgmgr.getBundle("global"), MessageBundle.class) :
                 msgmgr.getBundle(bundle);
             return root.getComponent(ctx, scope, msgs, comp);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            root.invalidate();
         }
     }
 
@@ -171,6 +185,14 @@ public class UserInterfaceConfig extends ParameterizedConfig
     public ConfigManager getConfigManager ()
     {
         return implementation.getConfigManager(_configs);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

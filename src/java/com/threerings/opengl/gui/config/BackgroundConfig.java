@@ -41,13 +41,15 @@ import com.threerings.opengl.gui.background.ImageBackground;
 import com.threerings.opengl.gui.background.TintedBackground;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.config.TextureConfig.ColorizationReference;
 import com.threerings.opengl.util.GlContext;
 
 /**
  * Contains a background configuration.
  */
 @EditorTypes({
-    BackgroundConfig.Solid.class, BackgroundConfig.Image.class, BackgroundConfig.Blank.class })
+    BackgroundConfig.Solid.class, BackgroundConfig.Image.class,
+    BackgroundConfig.ColorizedImage.class, BackgroundConfig.Blank.class })
 public abstract class BackgroundConfig extends DeepObject
     implements Exportable
 {
@@ -153,8 +155,32 @@ public abstract class BackgroundConfig extends DeepObject
         protected Background createBackground (GlContext ctx)
         {
             return (file == null) ? new BlankBackground() :
-                new ImageBackground(mode.getConstant(), ctx.getImageCache().getImage(file),
+                new ImageBackground(mode.getConstant(), getImage(ctx),
                     (frame != null && mode.isFrame()) ? frame.createInsets() : null);
+        }
+
+        /**
+         * Retrieves the image for the background.
+         */
+        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
+        {
+            return ctx.getImageCache().getImage(file);
+        }
+    }
+
+    /**
+     * A colorized image.
+     */
+    public static class ColorizedImage extends Image
+    {
+        /** The colorizations to apply to the image. */
+        @Editable
+        public ColorizationReference[] colorizations = new ColorizationReference[0];
+
+        @Override // documentation inherited
+        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
+        {
+            return IconConfig.getImage(ctx, file, colorizations);
         }
     }
 

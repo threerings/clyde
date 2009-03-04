@@ -28,6 +28,8 @@ import java.lang.ref.SoftReference;
 
 import java.util.HashSet;
 
+import com.threerings.media.image.Colorization;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
@@ -38,12 +40,13 @@ import com.threerings.util.DeepOmit;
 import com.threerings.opengl.gui.icon.BlankIcon;
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.icon.ImageIcon;
+import com.threerings.opengl.renderer.config.TextureConfig.ColorizationReference;
 import com.threerings.opengl.util.GlContext;
 
 /**
  * Contains an icon configuration.
  */
-@EditorTypes({ IconConfig.Image.class, IconConfig.Blank.class })
+@EditorTypes({ IconConfig.Image.class, IconConfig.ColorizedImage.class, IconConfig.Blank.class })
 public abstract class IconConfig extends DeepObject
     implements Exportable
 {
@@ -71,8 +74,31 @@ public abstract class IconConfig extends DeepObject
         @Override // documentation inherited
         protected Icon createIcon (GlContext ctx)
         {
-            return (file == null) ? new BlankIcon(1, 1) :
-                new ImageIcon(ctx.getImageCache().getImage(file));
+            return (file == null) ? new BlankIcon(1, 1) : new ImageIcon(getImage(ctx));
+        }
+
+        /**
+         * Retrieves the image for the icon.
+         */
+        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
+        {
+            return ctx.getImageCache().getImage(file);
+        }
+    }
+
+    /**
+     * A colorized image icon.
+     */
+    public static class ColorizedImage extends Image
+    {
+        /** The colorizations to apply to the image. */
+        @Editable
+        public ColorizationReference[] colorizations = new ColorizationReference[0];
+
+        @Override // documentation inherited
+        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
+        {
+            return getImage(ctx, file, colorizations);
         }
     }
 
@@ -90,6 +116,20 @@ public abstract class IconConfig extends DeepObject
         {
             return new BlankIcon(width, height);
         }
+    }
+
+    /**
+     * Retrieves the specified image, applying the desired colorizations.
+     */
+    public static com.threerings.opengl.gui.Image getImage (
+        GlContext ctx, String file, ColorizationReference[] colorizations)
+    {
+        Colorization[] zations = new Colorization[colorizations.length];
+        for (int ii = 0; ii < zations.length; ii++) {
+            zations[ii] = ctx.getColorPository().getColorization(
+                colorizations[ii].colorization);
+        }
+        return ctx.getImageCache().getImage(file, zations);
     }
 
     /**

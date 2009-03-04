@@ -268,6 +268,14 @@ public abstract class LayoutConfig extends DeepObject
         public Child[] children = new Child[0];
 
         @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Child child : children) {
+                child.component.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
         protected void layout (
             GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
         {
@@ -319,6 +327,14 @@ public abstract class LayoutConfig extends DeepObject
         /** The children of this layout. */
         @Editable
         public Child[] children = new Child[0];
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Child child : children) {
+                child.component.invalidate();
+            }
+        }
 
         @Override // documentation inherited
         protected void layout (
@@ -376,6 +392,14 @@ public abstract class LayoutConfig extends DeepObject
         /** The children of this layout. */
         @Editable
         public Child[] children = new Child[0];
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Child child : children) {
+                child.component.invalidate();
+            }
+        }
 
         @Override // documentation inherited
         protected void layout (
@@ -449,6 +473,14 @@ public abstract class LayoutConfig extends DeepObject
         /** The children of this layout. */
         @Editable
         public Child[] children = new Child[0];
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Child child : children) {
+                child.component.invalidate();
+            }
+        }
 
         @Override // documentation inherited
         protected void layout (
@@ -547,6 +579,14 @@ public abstract class LayoutConfig extends DeepObject
         public Child[] children = new Child[0];
 
         @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Child child : children) {
+                child.component.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
         protected void layout (
             GlContext ctx, Scope scope, MessageBundle msgs, Container cont, Component[] ochildren)
         {
@@ -579,6 +619,14 @@ public abstract class LayoutConfig extends DeepObject
 
         // lay the container out again
         layout(ctx, scope, msgs, cont, ochildren);
+    }
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
     }
 
     /**
