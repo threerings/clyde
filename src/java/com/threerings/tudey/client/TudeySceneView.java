@@ -248,6 +248,15 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Returns a reference to the actor sprite with the supplied id, or <code>null</code> if it
+     * doesn't exist.
+     */
+    public ActorSprite getActorSprite (int id)
+    {
+        return _actorSprites.get(id);
+    }
+
+    /**
      * Returns a reference to the target sprite.
      */
     public ActorSprite getTargetSprite ()

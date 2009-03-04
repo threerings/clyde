@@ -133,10 +133,10 @@ public class SceneMap
                 float ut = (iy2 - by1) / TEXTURE_SIZE;
 
                 // compute the proportional coordinates
-                float lx = (ix1 - sx) / (float)swidth;
-                float ux = (ix2 - sx) / (float)swidth;
-                float ly = (iy1 - sy) / (float)sheight;
-                float uy = (iy2 - sy) / (float)sheight;
+                float lx = (ix1 - sx) / swidth;
+                float ux = (ix2 - sx) / swidth;
+                float ly = (iy1 - sy) / sheight;
+                float uy = (iy2 - sy) / sheight;
 
                 // now the mask coordinates
                 float mls = lx * mwidth;
