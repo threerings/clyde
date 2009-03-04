@@ -63,7 +63,11 @@ public class StringEditor extends PropertyEditor
     @Override // documentation inherited
     public void update ()
     {
+        // this generates two documents events: first a remove, then an add.  we don't want to
+        // fire a state change, so we remove ourselves as a document listener when updating
+        _field.getDocument().removeDocumentListener(this);
         _field.setText((String)_property.get(_object));
+        _field.getDocument().addDocumentListener(this);
     }
 
     @Override // documentation inherited
