@@ -94,7 +94,7 @@ public class SceneMap
      * Renders a section of the map.
      */
     public void render (
-        int sx, int sy, int swidth, int sheight, int tx, int ty,
+        float sx, float sy, float swidth, float sheight, int tx, int ty,
         int twidth, int theight, float alpha, Image mask)
     {
         Renderer renderer = _ctx.getRenderer();
@@ -110,8 +110,10 @@ public class SceneMap
         }
 
         // iterate over all intersecting blocks
-        int xmin = sx >> TEXTURE_POT, ymin = sy >> TEXTURE_POT;
-        int xmax = (sx + swidth - 1) >> TEXTURE_POT, ymax = (sy + sheight - 1) >> TEXTURE_POT;
+        int xmin = (int)FloatMath.floor(sx / TEXTURE_SIZE);
+        int ymin = (int)FloatMath.floor(sy / TEXTURE_SIZE);
+        int xmax = (int)FloatMath.floor((sx + swidth - 1f) / TEXTURE_SIZE);
+        int ymax = (int)FloatMath.floor((sy + sheight - 1f) / TEXTURE_SIZE);
         for (int yy = ymin; yy <= ymax; yy++) {
             for (int xx = xmin; xx <= xmax; xx++) {
                 Texture2D texture = _textures.get(_coord.set(xx, yy));
@@ -119,16 +121,16 @@ public class SceneMap
                     continue;
                 }
                 // find the intersection of the block with the rendered section
-                int bx1 = xx << TEXTURE_POT, bx2 = (xx + 1) << TEXTURE_POT;
-                int by1 = yy << TEXTURE_POT, by2 = (yy + 1) << TEXTURE_POT;
-                int ix1 = Math.max(sx, bx1), ix2 = Math.min(sx + swidth, bx2);
-                int iy1 = Math.max(sy, by1), iy2 = Math.min(sy + sheight, by2);
+                float bx1 = xx << TEXTURE_POT, bx2 = (xx + 1) << TEXTURE_POT;
+                float by1 = yy << TEXTURE_POT, by2 = (yy + 1) << TEXTURE_POT;
+                float ix1 = Math.max(sx, bx1), ix2 = Math.min(sx + swidth, bx2);
+                float iy1 = Math.max(sy, by1), iy2 = Math.min(sy + sheight, by2);
 
                 // compute the texture coordinates within the block
-                float ls = (ix1 - bx1) / (float)TEXTURE_SIZE;
-                float us = (ix2 - bx1) / (float)TEXTURE_SIZE;
-                float lt = (iy1 - by1) / (float)TEXTURE_SIZE;
-                float ut = (iy2 - by1) / (float)TEXTURE_SIZE;
+                float ls = (ix1 - bx1) / TEXTURE_SIZE;
+                float us = (ix2 - bx1) / TEXTURE_SIZE;
+                float lt = (iy1 - by1) / TEXTURE_SIZE;
+                float ut = (iy2 - by1) / TEXTURE_SIZE;
 
                 // compute the proportional coordinates
                 float lx = (ix1 - sx) / (float)swidth;
