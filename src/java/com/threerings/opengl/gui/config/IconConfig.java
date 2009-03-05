@@ -63,6 +63,14 @@ public abstract class IconConfig extends DeepObject
             directory="image_dir")
         public String file;
 
+        /**
+         * Retrieves the image for the icon.
+         */
+        public com.threerings.opengl.gui.Image getImage (GlContext ctx)
+        {
+            return ctx.getImageCache().getImage(file);
+        }
+
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)
         {
@@ -76,14 +84,6 @@ public abstract class IconConfig extends DeepObject
         {
             return (file == null) ? new BlankIcon(1, 1) : new ImageIcon(getImage(ctx));
         }
-
-        /**
-         * Retrieves the image for the icon.
-         */
-        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
-        {
-            return ctx.getImageCache().getImage(file);
-        }
     }
 
     /**
@@ -96,7 +96,7 @@ public abstract class IconConfig extends DeepObject
         public ColorizationReference[] colorizations = new ColorizationReference[0];
 
         @Override // documentation inherited
-        protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
+        public com.threerings.opengl.gui.Image getImage (GlContext ctx)
         {
             return getImage(ctx, file, colorizations);
         }
