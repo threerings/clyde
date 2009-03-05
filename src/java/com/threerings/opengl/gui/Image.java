@@ -62,6 +62,23 @@ public class Image
     }
 
     /**
+     * Creates an image from an existing texture.
+     */
+    public Image (Texture2D texture)
+    {
+        this(texture, texture.getWidth(), texture.getHeight());
+    }
+
+    /**
+     * Creates an image from an existing texture.
+     */
+    public Image (Texture2D texture, int width, int height)
+    {
+        this(width, height);
+        setTexture(texture);
+    }
+
+    /**
      * Returns the width of this image.
      */
     public int getWidth ()
@@ -176,9 +193,7 @@ public class Image
             texture.setImage(format, false, _image, true, false, false);
         }
         texture.setMinFilter(GL11.GL_LINEAR);
-        _twidth = texture.getWidth();
-        _theight = texture.getHeight();
-        _units = new TextureUnit[] { new TextureUnit(texture) };
+        setTexture(texture);
     }
 
     /**
@@ -188,6 +203,16 @@ public class Image
     {
         _width = width;
         _height = height;
+    }
+
+    /**
+     * Sets the image texture.
+     */
+    protected void setTexture (Texture2D texture)
+    {
+        _twidth = texture.getWidth();
+        _theight = texture.getHeight();
+        _units = new TextureUnit[] { new TextureUnit(texture) };
     }
 
     protected int _width, _height;
