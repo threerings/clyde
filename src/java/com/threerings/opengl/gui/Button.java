@@ -140,6 +140,18 @@ public class Button extends Label
             int ostate = getState();
             MouseEvent mev = (MouseEvent)event;
             switch (mev.getType()) {
+            case MouseEvent.MOUSE_DRAGGED:
+                // disarm if the mouse is dragged beyond the bounds (this is not an "exit": that
+                // happens when the mouse button is released
+                int mx = mev.getX(), my = mev.getY();
+                int ax = getAbsoluteX(), ay = getAbsoluteY();
+                if ((mx >= ax) && (my >= ay) && (mx < ax + _width) && (my < ay + _height)) {
+                    _armed = _pressed = (mev.getModifiers() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
+                } else {
+                    _armed = _pressed = false;
+                }
+                break;
+
             case MouseEvent.MOUSE_ENTERED:
                 _armed = _pressed;
                 // let the normal component hovered processing take place
@@ -154,10 +166,6 @@ public class Button extends Label
                 if (mev.getButton() == 0) {
                     _pressed = true;
                     _armed = true;
-                } else if (mev.getButton() == 1) {
-                    // clicking the right mouse button after arming the
-                    // button disarms it
-                    _armed = false;
                 }
                 break;
 
@@ -178,6 +186,13 @@ public class Button extends Label
             int state = getState();
             if (state != ostate) {
                 stateDidChange();
+            }
+
+            // dispatch this event to our listeners
+            if (_listeners != null) {
+                for (int ii = 0, ll = _listeners.size(); ii < ll; ii++) {
+                    event.dispatch(_listeners.get(ii));
+                }
             }
 
             return true;
