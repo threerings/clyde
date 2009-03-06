@@ -51,6 +51,7 @@ import com.threerings.opengl.gui.event.EventListener;
 import com.threerings.opengl.gui.event.FocusEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
+import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
 import static com.threerings.opengl.gui.Log.*;
@@ -449,6 +450,33 @@ public abstract class Root extends SimpleOverlay
         _modalShade = color;
     }
 
+    /**
+     * Initiates a drag operation.
+     */
+    public void startDrag (TransferHandler handler, Component source, int action)
+    {
+        _dhandler = handler;
+        _dsource = source;
+        _ddata = handler.createTransferable(source);
+        _daction = action;
+        _dicon = handler.getVisualRepresentation(_ddata);
+
+        _ccomponent = null;
+        updateHoverComponent(_mouseX, _mouseY);
+    }
+
+    /**
+     * Clears out any drag operation in progress.
+     */
+    public void clearDrag ()
+    {
+        _dhandler = null;
+        _dsource = null;
+        _ddata = null;
+        _dicon = null;
+        updateHoverComponent(_mouseX, _mouseY);
+    }
+
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
@@ -563,6 +591,12 @@ public abstract class Root extends SimpleOverlay
                 log.warning(win + " failed in render()", t);
             }
         }
+
+        // render the drag icon, if any, at the mouse location
+        if (_dicon != null) {
+            _dicon.render(
+                renderer, _mouseX - _dicon.getWidth()/2, _mouseY - _dicon.getHeight()/2, 0.5f);
+        }
     }
 
     /**
@@ -589,6 +623,10 @@ public abstract class Root extends SimpleOverlay
         if (consume) {
             event.consume();
         }
+        if (button == MouseEvent.BUTTON1) {
+            _px = x;
+            _py = y;
+        }
         dispatchMouseEvent(_ccomponent, event);
     }
 
@@ -598,6 +636,15 @@ public abstract class Root extends SimpleOverlay
     protected void mouseReleased (long when, int button, int x, int y, boolean consume)
     {
         checkMouseMoved(x, y);
+
+        if (button == MouseEvent.BUTTON1 && _dhandler != null) {
+            TransferHandler chandler = (_hcomponent == null) ?
+                null : _hcomponent.getTransferHandler();
+            if (chandler != null && chandler.importData(_dsource, _ddata)) {
+                _dhandler.exportDone(_dsource, _ddata, _daction);
+            }
+            clearDrag();
+        }
 
         MouseEvent event = new MouseEvent(
             this, when, _modifiers, MouseEvent.MOUSE_RELEASED, button, x, y);
@@ -615,17 +662,29 @@ public abstract class Root extends SimpleOverlay
     protected void mouseMoved (long when, int x, int y, boolean consume)
     {
         // if the mouse has moved, generate a moved or dragged event
-        if (checkMouseMoved(x, y)) {
-            Component tcomponent = getTargetComponent();
-            int type = (tcomponent != null && tcomponent == _ccomponent) ?
-                MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED;
-            MouseEvent event = new MouseEvent(
-                this, when, _modifiers, type, _mouseX, _mouseY);
-            if (consume) {
-                event.consume();
-            }
-            dispatchMouseEvent(tcomponent, event);
+        if (!checkMouseMoved(x, y)) {
+            return;
         }
+        Component tcomponent = getTargetComponent();
+        int type = (tcomponent != null && tcomponent == _ccomponent) ?
+            MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED;
+        MouseEvent event = new MouseEvent(
+            this, when, _modifiers, type, _mouseX, _mouseY);
+        if (consume) {
+            event.consume();
+        }
+        if (type == MouseEvent.MOUSE_DRAGGED &&
+                (_modifiers & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
+            TransferHandler handler = tcomponent.getTransferHandler();
+            int actions = (handler == null) ?
+                TransferHandler.NONE : handler.getSourceActions(tcomponent);
+            int dist = Math.abs(x - _px) + Math.abs(y - _py);
+            if (actions != TransferHandler.NONE && dist >= DRAG_DISTANCE) {
+                handler.exportAsDrag(tcomponent, event,
+                    actions == TransferHandler.COPY ? actions : TransferHandler.MOVE);
+            }
+        }
+        dispatchMouseEvent(tcomponent, event);
     }
 
     /**
@@ -836,7 +895,14 @@ public abstract class Root extends SimpleOverlay
             Window comp = _windows.get(ii);
             nhcomponent = comp.getHitComponent(mx, my);
             if (nhcomponent != null && nhcomponent.getWindow() != _tipwin) {
-                break;
+                if (_dhandler == null) {
+                    break;
+                }
+                TransferHandler chandler = nhcomponent.getTransferHandler();
+                if (chandler != null && nhcomponent != _dsource && chandler.canImport(
+                        nhcomponent, _ddata.getTransferDataFlavors())) {
+                    break;
+                }
             }
             // if this window is modal, stop here
             if (comp.isModal()) {
@@ -1032,6 +1098,24 @@ public abstract class Root extends SimpleOverlay
     /** Keys currently pressed, mapped by key code. */
     protected HashIntMap<KeyRecord> _pressedKeys = new HashIntMap<KeyRecord>();
 
+    /** The location at which the last press occurred, for drag tracking. */
+    protected int _px, _py;
+
+    /** When dragging, the transfer handler. */
+    protected TransferHandler _dhandler;
+
+    /** When dragging, the drag source component. */
+    protected Component _dsource;
+
+    /** When dragging, the drag data. */
+    protected Transferable _ddata;
+
+    /** When dragging, the drag action. */
+    protected int _daction;
+
+    /** When dragging, the visual representation of the dragged data. */
+    protected Icon _dicon;
+
     protected static final float TIP_MODE_RESET = 0.6f;
 
     /** Mouse buttons released within this interval after being pressed are counted as clicks. */
@@ -1045,4 +1129,7 @@ public abstract class Root extends SimpleOverlay
 
     /** The delay in milliseconds before auto-repeated key presses will begin. */
     protected static final long KEY_REPEAT_DELAY = 500L;
+
+    /** The distance from the press location at which we can start a drag operation. */
+    protected static final int DRAG_DISTANCE = 16;
 }

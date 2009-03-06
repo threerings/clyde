@@ -672,6 +672,24 @@ public class Component
     }
 
     /**
+     * Sets the transfer handler for this component.
+     */
+    public void setTransferHandler (TransferHandler handler)
+    {
+        _transferHandler = handler;
+    }
+
+    /**
+     * Returns the transfer handler for this component.  If this component has no handler of its
+     * own, then the request will be forwarded to the parent, and so on.
+     */
+    public TransferHandler getTransferHandler ()
+    {
+        return (_transferHandler == null && _parent != null) ?
+            _parent.getTransferHandler() : _transferHandler;
+    }
+
+    /**
      * Returns true if this component is added to a hierarchy of components that culminates in a
      * top-level window.
      */
@@ -1146,6 +1164,9 @@ public class Component
     protected Border[] _borders = new Border[getStateCount()];
     protected Background[] _backgrounds = new Background[getStateCount()];
     protected Cursor _cursor;
+
+    /** Handler for data transfer operations. */
+    protected TransferHandler _transferHandler;
 
     /** Temporary storage for scissor box. */
     protected static Rectangle _rect = new Rectangle();
