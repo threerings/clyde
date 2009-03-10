@@ -63,19 +63,6 @@ public class DisplayRoot extends Root
     }
 
     @Override // documentation inherited
-    public void setCursor (Cursor cursor)
-    {
-        if (cursor == null) {
-            cursor = getDefaultCursor();
-        }
-        try {
-            Mouse.setNativeCursor(cursor == null ? null : cursor.getLWJGLCursor());
-        } catch (LWJGLException e) {
-            log.warning("Failed to set cursor.", "cursor", cursor, e);
-        }
-    }
-
-    @Override // documentation inherited
     public void tick (float elapsed)
     {
         super.tick(elapsed);
@@ -136,6 +123,19 @@ public class DisplayRoot extends Root
                 keyReleased(_tickStamp, Keyboard.getEventCharacter(),
                     Keyboard.getEventKey(), false);
             }
+        }
+    }
+
+    @Override // documentation inherited
+    protected void updateCursor (Cursor cursor)
+    {
+        if (cursor == null) {
+            cursor = getDefaultCursor();
+        }
+        try {
+            Mouse.setNativeCursor(cursor == null ? null : cursor.getLWJGLCursor());
+        } catch (LWJGLException e) {
+            log.warning("Failed to set cursor.", "cursor", cursor, e);
         }
     }
 }

@@ -405,7 +405,16 @@ public abstract class Root extends SimpleOverlay
     /**
      * Sets the cursor to display (or <code>null</code> to use the default cursor).
      */
-    public abstract void setCursor (Cursor cursor);
+    public void setCursor (Cursor cursor)
+    {
+        if (_cursor == cursor) {
+            return;
+        }
+        _cursor = cursor;
+        if (!isDragging()) {
+            updateCursor(cursor);
+        }
+    }
 
     /**
      * Returns the x coordinate of the mouse cursor.
@@ -462,6 +471,7 @@ public abstract class Root extends SimpleOverlay
         _dicon = handler.getVisualRepresentation(_ddata);
 
         _ccomponent = null;
+        updateCursor(null);
         updateHoverComponent(_mouseX, _mouseY);
     }
 
@@ -474,7 +484,16 @@ public abstract class Root extends SimpleOverlay
         _dsource = null;
         _ddata = null;
         _dicon = null;
+        updateCursor(_cursor);
         updateHoverComponent(_mouseX, _mouseY);
+    }
+
+    /**
+     * Checks whether a drag operation is in progress.
+     */
+    public boolean isDragging ()
+    {
+        return _dhandler != null;
     }
 
     // documentation inherited from interface Tickable
@@ -598,6 +617,11 @@ public abstract class Root extends SimpleOverlay
                 renderer, _mouseX - _dicon.getWidth()/2, _mouseY - _dicon.getHeight()/2, 0.5f);
         }
     }
+
+    /**
+     * Updates the cursor.
+     */
+    protected abstract void updateCursor (Cursor cursor);
 
     /**
      * Returns a reference to the default cursor, or <code>null</code> to use the operating system
@@ -1090,6 +1114,9 @@ public abstract class Root extends SimpleOverlay
     protected ArrayList<EventListener> _globals = new ArrayList<EventListener>();
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
+
+    /** The cursor being displayed. */
+    protected Cursor _cursor;
 
     /** Mouse button information. */
     protected ButtonRecord[] _buttons = new ButtonRecord[] {

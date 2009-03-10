@@ -167,7 +167,8 @@ public class ChatOverlay extends Container
     public Component getHitComponent (int mx, int my)
     {
         Component comp = super.getHitComponent(mx, my);
-        return (comp == _less || comp == _more || comp == _end) ? comp : null;
+        return ((comp == _less || comp == _more || comp == _end) && comp.isEnabled()) ?
+            comp : null;
     }
 
     /**

@@ -68,15 +68,6 @@ public class CanvasRoot extends Root
         return _canvas.getHeight();
     }
 
-    @Override // documentation inherited
-    public void setCursor (Cursor cursor)
-    {
-        if (cursor == null) {
-            cursor = getDefaultCursor();
-        }
-        _canvas.setCursor(cursor == null ? null : cursor.getAWTCursor(_canvas.getToolkit()));
-    }
-
     // documentation inherited from interface MouseListener
     public void mouseClicked (java.awt.event.MouseEvent e) {
         // N/A
@@ -147,6 +138,15 @@ public class CanvasRoot extends Root
     public void keyTyped (java.awt.event.KeyEvent e)
     {
         // N/A
+    }
+
+    @Override // documentation inherited
+    protected void updateCursor (Cursor cursor)
+    {
+        if (cursor == null) {
+            cursor = getDefaultCursor();
+        }
+        _canvas.setCursor(cursor == null ? null : cursor.getAWTCursor(_canvas.getToolkit()));
     }
 
     protected int convertModifiers (int modifiers)
