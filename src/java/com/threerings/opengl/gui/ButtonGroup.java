@@ -91,12 +91,47 @@ public class ButtonGroup
     }
 
     /**
+     * Returns the number of buttons in the group.
+     */
+    public int getButtonCount ()
+    {
+        return _buttons.size();
+    }
+
+    /**
+     * Returns the button at the specified index.
+     */
+    public ToggleButton getButton (int idx)
+    {
+        return _buttons.get(idx);
+    }
+
+    /**
+     * Sets the selected button.
+     */
+    public void setSelectedButton (ToggleButton button)
+    {
+        if (!button.isSelected()) {
+            button.setSelected(true);
+            selectionChanged(button, 0L, 0);
+        }
+    }
+
+    /**
      * Returns a reference to the selected button, or <code>null</code> for none.
      */
     public ToggleButton getSelectedButton ()
     {
         int idx = getSelectedIndex();
         return (idx == -1) ? null : _buttons.get(idx);
+    }
+
+    /**
+     * Sets the selected index.
+     */
+    public void setSelectedIndex (int idx)
+    {
+        setSelectedButton(_buttons.get(idx));
     }
 
     /**
@@ -120,13 +155,21 @@ public class ButtonGroup
             button.setSelected(true);
             return; // can only unselect by selecting another button
         }
+        selectionChanged(button, event.getWhen(), event.getModifiers());
+    }
+
+    /**
+     * Updates the states of the unselected buttons and fires a selection event.
+     */
+    protected void selectionChanged (ToggleButton selected, long when, int modifiers)
+    {
         for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
-            ToggleButton obutton = _buttons.get(ii);
-            if (obutton != button) {
-                obutton.setSelected(false);
+            ToggleButton button = _buttons.get(ii);
+            if (button != selected) {
+                button.setSelected(false);
             }
         }
-        event = new ActionEvent(this, event.getWhen(), event.getModifiers(), SELECT);
+        ActionEvent event = new ActionEvent(this, when, modifiers, SELECT);
         for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
             event.dispatch(_listeners.get(ii));
         }
