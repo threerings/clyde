@@ -209,6 +209,14 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns the approximate timestamp of the next tick.
+     */
+    public int getNextTimestamp ()
+    {
+        return _timestamp + getTickInterval();
+    }
+
+    /**
      * Returns the list of logic objects with the supplied tag, or <code>null</code> for none.
      */
     public ArrayList<Logic> getTagged (String tag)
@@ -535,8 +543,7 @@ public class TudeySceneManager extends SceneManager
                 translation = entrance.getTranslation();
                 rotation = entrance.getRotation();
             }
-            final ActorLogic logic = spawnActor(
-                _timestamp + getTickInterval(), translation, rotation, ref);
+            final ActorLogic logic = spawnActor(getNextTimestamp(), translation, rotation, ref);
             if (logic != null) {
                 body.setLocal(TudeySceneLocal.class, new TudeySceneLocal() {
                     public int getPawnId () {
@@ -558,7 +565,7 @@ public class TudeySceneManager extends SceneManager
         body.setLocal(TudeySceneLocal.class, null);
         if (local != null) {
             ActorLogic logic = _actors.get(local.getPawnId());
-            logic.destroy(_timestamp + getTickInterval());
+            logic.destroy(getNextTimestamp());
         }
     }
 
