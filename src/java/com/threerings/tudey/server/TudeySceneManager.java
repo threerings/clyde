@@ -545,6 +545,7 @@ public class TudeySceneManager extends SceneManager
             }
             final ActorLogic logic = spawnActor(getNextTimestamp(), translation, rotation, ref);
             if (logic != null) {
+                logic.bodyWillEnter(body);
                 body.setLocal(TudeySceneLocal.class, new TudeySceneLocal() {
                     public int getPawnId () {
                         return logic.getActor().getId();
@@ -565,7 +566,7 @@ public class TudeySceneManager extends SceneManager
         body.setLocal(TudeySceneLocal.class, null);
         if (local != null) {
             ActorLogic logic = _actors.get(local.getPawnId());
-            logic.destroy(getNextTimestamp());
+            logic.bodyWillLeave(body);
         }
     }
 

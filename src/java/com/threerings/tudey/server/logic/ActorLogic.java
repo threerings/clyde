@@ -28,6 +28,8 @@ import java.util.ArrayList;
 
 import com.samskivert.util.ObserverList;
 
+import com.threerings.crowd.data.BodyObject;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
@@ -77,6 +79,24 @@ public class ActorLogic extends Logic
 
         // give subclasses a chance to set up
         didInit();
+    }
+
+    /**
+     * For player-controlled actors, this notifies the logic that the controlling player
+     * is about to enter.
+     */
+    public void bodyWillEnter (BodyObject body)
+    {
+        // nothing by default
+    }
+
+    /**
+     * For player-controlled actors, this notifies the logic that the controlling player
+     * is about to leave.
+     */
+    public void bodyWillLeave (BodyObject body)
+    {
+        destroy(_scenemgr.getNextTimestamp());
     }
 
     /**
