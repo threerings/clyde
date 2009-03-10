@@ -37,6 +37,9 @@ import com.threerings.opengl.gui.event.ActionListener;
 public class ButtonGroup
     implements ActionListener
 {
+    /** The action fired when the list selection changes. */
+    public static final String SELECT = "select";
+
     /**
      * Creates a new button group.
      *
@@ -47,6 +50,22 @@ public class ButtonGroup
         for (ToggleButton button : buttons) {
             add(button);
         }
+    }
+
+    /**
+     * Adds a listener for selection changes.
+     */
+    public void addListener (ActionListener listener)
+    {
+        _listeners.add(listener);
+    }
+
+    /**
+     * Removes a selection change listener.
+     */
+    public void removeListener (ActionListener listener)
+    {
+        _listeners.remove(listener);
     }
 
     /**
@@ -107,8 +126,15 @@ public class ButtonGroup
                 obutton.setSelected(false);
             }
         }
+        event = new ActionEvent(this, event.getWhen(), event.getModifiers(), SELECT);
+        for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
+            event.dispatch(_listeners.get(ii));
+        }
     }
 
     /** The buttons in the group. */
     protected List<ToggleButton> _buttons = Lists.newArrayList();
+
+    /** Listeners for action events. */
+    protected List<ActionListener> _listeners = Lists.newArrayList();
 }
