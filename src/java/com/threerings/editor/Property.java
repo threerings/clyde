@@ -514,7 +514,7 @@ public abstract class Property extends DeepObject
         EditorTypes annotation = (ownAnnotation == null) ?
             type.getAnnotation(EditorTypes.class) : ownAnnotation;
         if (annotation != null) {
-            Collections.addAll(types, annotation.value());
+            addSubtypes(annotation, types);
         }
 
         // get the config key and add the config types
@@ -646,6 +646,36 @@ public abstract class Property extends DeepObject
         return null;
     }
 
+    /**
+     * Adds the subtypes listed in the provided annotation to the supplied list.
+     */
+    protected static void addSubtypes (EditorTypes annotation, Collection<Class> types)
+    {
+        for (Class<?> sclazz : annotation.value()) {
+            // handle the case where the annotation includes the annotated class
+            if (sclazz.getAnnotation(EditorTypes.class) == annotation) {
+                types.add(sclazz);
+            } else {
+                addSubtypes(sclazz, types);
+            }
+        }
+    }
+
+    /**
+     * Adds the subtypes of the specified class to the provided list.  If the class has an
+     * {@link EditorTypes} annotation, the classes therein will be added; otherwise, the
+     * class itself will be added.
+     */
+    protected static void addSubtypes (Class<?> clazz, Collection<Class> types)
+    {
+        EditorTypes annotation = clazz.getAnnotation(EditorTypes.class);
+        if (annotation == null) {
+            types.add(clazz);
+        } else {
+            addSubtypes(annotation, types);
+        }
+    }
+
     /** The property name. */
     protected String _name;
 
@@ -668,13 +698,7 @@ public abstract class Property extends DeepObject
             ArrayList<Class> classes = new ArrayList<Class>();
             for (String cname : config.getValue(key, new String[0])) {
                 try {
-                    Class<?> clazz = Class.forName(cname);
-                    EditorTypes annotation = clazz.getAnnotation(EditorTypes.class);
-                    if (annotation == null) {
-                        classes.add(clazz);
-                    } else {
-                        Collections.addAll(classes, annotation.value());
-                    }
+                    addSubtypes(Class.forName(cname), classes);
                 } catch (ClassNotFoundException e) {
                     log.warning("Missing type config class.", "class", cname, e);
                 }
