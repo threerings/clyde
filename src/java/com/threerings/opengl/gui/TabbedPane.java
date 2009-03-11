@@ -26,8 +26,11 @@ package com.threerings.opengl.gui;
 
 import java.util.ArrayList;
 
+import com.threerings.config.ConfigReference;
+
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.ChangeEvent;
@@ -107,9 +110,18 @@ public class TabbedPane extends Container
     }
 
     /**
-     * Adds a tab to the pane using the specified tile.
+     * Adds a tab to the pane using the specified title.
      */
     public void addTab (String title, Component tab, boolean hasClose)
+    {
+        addTab(title, tab, hasClose, null);
+    }
+
+    /**
+     * Adds a tab to the pane using the specified title.
+     */
+    public void addTab (
+        String title, Component tab, boolean hasClose, ConfigReference<StyleConfig> style)
     {
         ToggleButton tbutton = new ToggleButton(_ctx, title, String.valueOf(_tabs.size())) {
             protected void fireAction (long when, int modifiers) {
@@ -118,7 +130,11 @@ public class TabbedPane extends Container
                 }
             }
         };
-        tbutton.setStyleConfig("Default/Tab");
+        if (style == null) {
+            tbutton.setStyleConfig("Default/Tab");
+        } else {
+            tbutton.setStyleConfig(style);
+        }
         tbutton.addListener(_selector);
         tbutton.setFit(Label.Fit.TRUNCATE);
         _buttons.add(tbutton);

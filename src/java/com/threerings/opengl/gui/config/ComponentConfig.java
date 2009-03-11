@@ -510,6 +510,10 @@ public abstract class ComponentConfig extends DeepObject
             @Editable(hgroup="t")
             public boolean hasClose;
 
+            /** An optional override style for the tab button. */
+            @Editable(nullable=true)
+            public ConfigReference<StyleConfig> styleOverride;
+
             /** The tab component. */
             @Editable
             public ComponentConfig component = new ComponentConfig.Spacer();
@@ -523,13 +527,17 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="t")
         public int gap = GroupLayout.DEFAULT_GAP;
 
+        /** The selected tab. */
+        @Editable(min=0, hgroup="t")
+        public int selected;
+
+        /** The style for the tabs, if non-default. */
+        @Editable(nullable=true)
+        public ConfigReference<StyleConfig> tabStyle;
+
         /** The tabs. */
         @Editable
         public Tab[] tabs = new Tab[0];
-
-        /** The selected tab. */
-        @Editable(min=0)
-        public int selected;
 
         @Override // documentation inherited
         public void invalidate ()
@@ -565,7 +573,8 @@ public abstract class ComponentConfig extends DeepObject
                 pane.addTab(
                     getMessage(msgs, tab.title),
                     tab.component.getComponent(ctx, scope, msgs, tcomp),
-                    tab.hasClose);
+                    tab.hasClose,
+                    tab.styleOverride == null ? tabStyle : tab.styleOverride);
             }
             if (selected < tabs.length) {
                 pane.selectTab(selected);
