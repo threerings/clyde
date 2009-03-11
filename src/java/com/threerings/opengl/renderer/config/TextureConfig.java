@@ -38,6 +38,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -1077,7 +1079,7 @@ public class TextureConfig extends ParameterizedConfig
      * A reference to a colorization.
      */
     public static class ColorizationReference extends DeepObject
-        implements Exportable
+        implements Exportable, Streamable
     {
         /** The colorization reference. */
         @Editable(editor="colorization")
