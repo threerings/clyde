@@ -668,7 +668,13 @@ public abstract class Property extends DeepObject
             ArrayList<Class> classes = new ArrayList<Class>();
             for (String cname : config.getValue(key, new String[0])) {
                 try {
-                    classes.add(Class.forName(cname));
+                    Class<?> clazz = Class.forName(cname);
+                    EditorTypes annotation = clazz.getAnnotation(EditorTypes.class);
+                    if (annotation == null) {
+                        classes.add(clazz);
+                    } else {
+                        Collections.addAll(classes, annotation.value());
+                    }
                 } catch (ClassNotFoundException e) {
                     log.warning("Missing type config class.", "class", cname, e);
                 }
