@@ -664,7 +664,7 @@ public abstract class Root extends SimpleOverlay
         if (button == MouseEvent.BUTTON1 && _dhandler != null) {
             TransferHandler chandler = (_hcomponent == null) ?
                 null : _hcomponent.getTransferHandler();
-            if (chandler != null && chandler.importData(_dsource, _ddata)) {
+            if (chandler != null && chandler.importData(_hcomponent, _ddata)) {
                 _dhandler.exportDone(_dsource, _ddata, _daction);
             }
             clearDrag();
