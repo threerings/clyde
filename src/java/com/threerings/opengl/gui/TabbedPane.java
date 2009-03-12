@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import com.threerings.config.ConfigReference;
 
+import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.config.StyleConfig;
@@ -77,7 +78,19 @@ public class TabbedPane extends Container
             GroupLayout.STRETCH, GroupLayout.LEFT, GroupLayout.CONSTRAIN);
         _top = new Container(_ctx, gl);
         gl = GroupLayout.makeHoriz(GroupLayout.CONSTRAIN, tabAlign, GroupLayout.CONSTRAIN);
-        _top.add(_buttons = new Container(_ctx, gl));
+        _top.add(_buttons = new Container(_ctx, gl) {
+            protected void renderComponent (Renderer renderer) {
+                // render the selected button last
+                for (int ii = 0, nn = getComponentCount(); ii < nn; ii++) {
+                    if (ii != _selidx) {
+                        getComponent(ii).render(renderer);
+                    }
+                }
+                if (_selidx != -1) {
+                    getComponent(_selidx).render(renderer);
+                }
+            }
+        });
         gl.setGap(gap);
         add(_top, BorderLayout.NORTH);
 
