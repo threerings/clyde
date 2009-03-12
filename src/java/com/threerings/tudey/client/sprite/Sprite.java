@@ -45,6 +45,22 @@ public abstract class Sprite extends SimpleScope
         _view = view;
     }
 
+    /**
+     * Determines whether the sprite is hoverable (for purposes of in-game user interaction).
+     */
+    public boolean isHoverable ()
+    {
+        return false;
+    }
+
+    /**
+     * Sets the sprite's hover state.
+     */
+    public void setHover (boolean hover)
+    {
+        throw new UnsupportedOperationException();
+    }
+
     @Override // documentation inherited
     public String getScopeName ()
     {

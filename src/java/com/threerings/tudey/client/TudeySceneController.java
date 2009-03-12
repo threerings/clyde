@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import org.lwjgl.input.Keyboard;
 
 import com.samskivert.util.IntIntMap;
+import com.samskivert.util.Predicate;
 import com.samskivert.util.RunAnywhere;
 
 import com.threerings.presents.data.ClientObject;
@@ -47,14 +48,17 @@ import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.KeyListener;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.MouseListener;
+import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.sprite.ActorSprite;
+import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -199,13 +203,35 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface MouseListener
     public void mousePressed (MouseEvent event)
     {
-        maybeSetFlag(_buttonFlags[event.getButton()]);
+        if (_tsview.getInputWindow().getState() != Component.HOVER) {
+            return;
+        }
+        int button = event.getButton();
+        if (_hsprite == null) {
+            maybeSetFlag(_buttonFlags[button]);
+        } else {
+
+        }
+        if (button == MouseEvent.BUTTON1) {
+            _holdHover = true;
+        }
     }
 
     // documentation inherited from interface MouseListener
     public void mouseReleased (MouseEvent event)
     {
-        maybeClearFlag(_buttonFlags[event.getButton()]);
+        if (_tsview.getInputWindow().getState() != Component.HOVER) {
+            return;
+        }
+        int button = event.getButton();
+        if (_hsprite == null) {
+            maybeClearFlag(_buttonFlags[button]);
+        } else {
+
+        }
+        if (button == MouseEvent.BUTTON1) {
+            _holdHover = false;
+        }
     }
 
     // documentation inherited from interface MouseListener
@@ -322,16 +348,41 @@ public class TudeySceneController extends SceneController
             return;
         }
 
-        // get the pick ray and the camera target plane
-        Root root = _tctx.getRoot();
-        _tctx.getCompositor().getCamera().getPickRay(root.getMouseX(), root.getMouseY(), _pick);
-        Vector3f target = ((OrbitCameraHandler)_tctx.getCameraHandler()).getTarget();
-        _tplane.set(Vector3f.UNIT_Z, -target.z);
-
-        // determine where they intersect and use that to calculate the requested direction
+        // if the mouse is over the input window, update the direction
         float direction = _lastDirection;
-        if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
-            direction = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
+        Sprite nhsprite = null;
+        if (_tsview.getInputWindow().getState() == Component.HOVER) {
+            // get the pick ray
+            Root root = _tctx.getRoot();
+            _tctx.getCompositor().getCamera().getPickRay(root.getMouseX(), root.getMouseY(), _pick);
+
+            // see if it intersects anything in the scene
+            if (_holdHover) {
+                nhsprite = _hsprite;
+            } else {
+                SceneElement element = _tsview.getScene().getIntersection(
+                    _pick, _isect, HOVER_FILTER);
+                nhsprite = (element == null) ? null : (Sprite)element.getUserObject();
+            }
+
+            // find the camera target plane
+            Vector3f target = ((OrbitCameraHandler)_tctx.getCameraHandler()).getTarget();
+            _tplane.set(Vector3f.UNIT_Z, -target.z);
+
+            // determine where they intersect and use that to calculate the requested direction
+            if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
+                direction = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
+            }
+        }
+
+        // update the hover sprite
+        if (_hsprite != nhsprite) {
+            if (_hsprite != null) {
+                _hsprite.setHover(false);
+            }
+            if ((_hsprite = nhsprite) != null) {
+                _hsprite.setHover(true);
+            }
         }
 
         // perhaps enqueue an input frame
@@ -468,6 +519,12 @@ public class TudeySceneController extends SceneController
     /** Whether or not we are in control of the camera target. */
     protected boolean _targetControlled;
 
+    /** The current hover sprite, if any. */
+    protected Sprite _hsprite;
+
+    /** When true, we hold the hover state. */
+    protected boolean _holdHover;
+
     /** Maps key codes to input flags. */
     protected IntIntMap _keyFlags = new IntIntMap();
 
@@ -515,4 +572,12 @@ public class TudeySceneController extends SceneController
 
     /** The exponential rate at which we converge upon the server-corrected translation. */
     protected static final float CONVERGENCE_RATE = 20f * FloatMath.log(0.5f);
+
+    /** Selects hoverable sprites. */
+    protected static final Predicate<SceneElement> HOVER_FILTER = new Predicate<SceneElement>() {
+        public boolean isMatch (SceneElement element) {
+            Object obj = element.getUserObject();
+            return obj instanceof Sprite && ((Sprite)obj).isHoverable();
+        }
+    };
 }

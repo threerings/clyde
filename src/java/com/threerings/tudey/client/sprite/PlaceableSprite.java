@@ -33,6 +33,8 @@ import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.Scene;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -59,6 +61,22 @@ public class PlaceableSprite extends EntrySprite
         public Implementation (Scope parentScope)
         {
             super(parentScope);
+        }
+
+        /**
+         * Determines whether the implementation is hoverable.
+         */
+        public boolean isHoverable ()
+        {
+            return false;
+        }
+
+        /**
+         * Sets the implementation's hover state.
+         */
+        public void setHover (boolean hover)
+        {
+            throw new UnsupportedOperationException();
         }
 
         /**
@@ -161,6 +179,56 @@ public class PlaceableSprite extends EntrySprite
     }
 
     /**
+     * A prop that may be clicked to perform some action.
+     */
+    public static class ClickableProp extends Prop
+    {
+        /**
+         * Creates a new clickable prop implementation.
+         */
+        public ClickableProp (
+            TudeyContext ctx, Scope parentScope, PlaceableConfig.ClickableProp config)
+        {
+            super(ctx, parentScope, config);
+            _model.setColorState(_cstate);
+        }
+
+        @Override // documentation inherited
+        public void setConfig (PlaceableConfig.Original config)
+        {
+            super.setConfig(config);
+            _config = (PlaceableConfig.ClickableProp)config;
+            if (_cstate == null) {
+                _cstate = new ColorState();
+            }
+            setHover(_hover);
+        }
+
+        @Override // documentation inherited
+        public boolean isHoverable ()
+        {
+            return true;
+        }
+
+        @Override // documentation inherited
+        public void setHover (boolean hover)
+        {
+            _hover = hover;
+            _cstate.getColor().set(hover ? _config.hoverColor : _config.defaultColor);
+            _cstate.setDirty(true);
+        }
+
+        /** The prop configuration. */
+        protected PlaceableConfig.ClickableProp _config;
+
+        /** The color state. */
+        protected ColorState _cstate;
+
+        /** Whether or not the hover state is active. */
+        protected boolean _hover;
+    }
+
+    /**
      * A marker implementation.
      */
     public static class Marker extends Original
@@ -197,6 +265,18 @@ public class PlaceableSprite extends EntrySprite
         super.scopeUpdated(event);
         updateFromConfig();
         _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public boolean isHoverable ()
+    {
+        return _impl.isHoverable();
+    }
+
+    @Override // documentation inherited
+    public void setHover (boolean hover)
+    {
+        _impl.setHover(hover);
     }
 
     @Override // documentation inherited

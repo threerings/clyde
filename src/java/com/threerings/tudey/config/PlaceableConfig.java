@@ -38,6 +38,7 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
@@ -57,7 +58,7 @@ public class PlaceableConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the placeable.
      */
-    @EditorTypes({ Prop.class, Marker.class, Derived.class })
+    @EditorTypes({ Prop.class, ClickableProp.class, Marker.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -209,10 +210,36 @@ public class PlaceableConfig extends ParameterizedConfig
         public PlaceableSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
         {
-            if (impl instanceof PlaceableSprite.Prop) {
+            if (impl != null && impl.getClass() == PlaceableSprite.Prop.class) {
                 ((PlaceableSprite.Prop)impl).setConfig(this);
             } else {
                 impl = new PlaceableSprite.Prop(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * Clickable prop implementation.
+     */
+    public static class ClickableProp extends Prop
+    {
+        /** The color to use when not hovering over the prop. */
+        @Editable(mode="alpha", hgroup="c")
+        public Color4f defaultColor = new Color4f(0.5f, 0.5f, 0.5f, 1f);
+
+        /** The color to use when hovering over the prop. */
+        @Editable(mode="alpha", hgroup="c")
+        public Color4f hoverColor = new Color4f(Color4f.WHITE);
+
+        @Override // documentation inherited
+        public PlaceableSprite.Implementation getSpriteImplementation (
+            TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)
+        {
+            if (impl != null && impl.getClass() == PlaceableSprite.ClickableProp.class) {
+                ((PlaceableSprite.ClickableProp)impl).setConfig(this);
+            } else {
+                impl = new PlaceableSprite.ClickableProp(ctx, scope, this);
             }
             return impl;
         }
