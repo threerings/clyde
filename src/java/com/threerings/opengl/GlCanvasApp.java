@@ -27,14 +27,18 @@ package com.threerings.opengl;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Graphics;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.PixelFormat;
@@ -83,6 +87,16 @@ public abstract class GlCanvasApp extends GlApp
         // create the keyboard manager
         _keymgr = new KeyboardManager();
         _keymgr.setTarget(cont, new KeyTranslatorImpl());
+
+        // as a hack, add a focus listener that disables the keyboard manager when a text
+        // component is in focus so that we get the native key repeat
+        PropertyChangeListener pcl = new PropertyChangeListener() {
+            public void propertyChange (PropertyChangeEvent event) {
+                _keymgr.setEnabled(!(event.getNewValue() instanceof JTextComponent));
+            }
+        };
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(
+            "focusOwner", pcl);
     }
 
     /**
