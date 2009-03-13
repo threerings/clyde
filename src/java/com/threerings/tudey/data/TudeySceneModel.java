@@ -156,6 +156,11 @@ public class TudeySceneModel extends SceneModel
         public abstract ConfigReference getReference ();
 
         /**
+         * Determines whether this entry has a valid configuration.
+         */
+        public abstract boolean isValid (ConfigManager cfgmgr);
+
+        /**
          * Returns the elevation of the entry, or {@link Integer#MIN_VALUE} for none.
          */
         public int getElevation ()
@@ -378,6 +383,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public boolean isValid (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr) != TileConfig.NULL_ORIGINAL;
+        }
+
+        @Override // documentation inherited
         public int getElevation ()
         {
             return elevation;
@@ -549,6 +560,12 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public boolean isValid (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr) != SceneGlobalConfig.NULL_ORIGINAL;
+        }
+
+        @Override // documentation inherited
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
@@ -616,6 +633,12 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return placeable;
+        }
+
+        @Override // documentation inherited
+        public boolean isValid (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr) != PlaceableConfig.NULL_ORIGINAL;
         }
 
         @Override // documentation inherited
@@ -762,6 +785,12 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return path;
+        }
+
+        @Override // documentation inherited
+        public boolean isValid (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr) != PathConfig.NULL_ORIGINAL;
         }
 
         @Override // documentation inherited
@@ -921,6 +950,12 @@ public class TudeySceneModel extends SceneModel
         public ConfigReference getReference ()
         {
             return area;
+        }
+
+        @Override // documentation inherited
+        public boolean isValid (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr) != AreaConfig.NULL_ORIGINAL;
         }
 
         @Override // documentation inherited

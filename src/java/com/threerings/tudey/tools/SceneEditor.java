@@ -229,6 +229,8 @@ public class SceneEditor extends TudeyTool
         edit.add(_saveToPalette = createMenuItem("save_to_palette", KeyEvent.VK_V, KeyEvent.VK_L));
         _saveToPalette.setEnabled(false);
         edit.addSeparator();
+        edit.add(createMenuItem("delete_errors", KeyEvent.VK_E, -1));
+        edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
         edit.add(createMenuItem("resources", KeyEvent.VK_S, KeyEvent.VK_E));
         edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_P));
@@ -868,6 +870,8 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("save_to_palette")) {
             setActiveTool(_palette);
             _palette.add(_selection);
+        } else if (action.equals("delete_errors")) {
+            deleteErrors();
         } else if (action.equals("configs")) {
             new ConfigEditor(_msgmgr, _scene.getConfigManager(), _colorpos).setVisible(true);
         } else if (action.equals("raise_grid")) {
@@ -1388,6 +1392,31 @@ public class SceneEditor extends TudeyTool
         Clipboard clipboard = _frame.getToolkit().getSystemClipboard();
         clipboard.setContents(new ToolUtil.WrappedTransfer(selection), this);
         _paste.setEnabled(true);
+    }
+
+    /**
+     * Deletes all entries whose configurations are null or missing.
+     */
+    protected void deleteErrors ()
+    {
+        incrementEditId();
+        if (_selection.length > 0) {
+            for (Entry entry : _selection) {
+                if (!entry.isValid(getConfigManager())) {
+                    removeEntry(entry.getKey());
+                }
+            }
+        } else {
+            ArrayList<Object> keys = new ArrayList<Object>();
+            for (Entry entry : _scene.getEntries()) {
+                if (!entry.isValid(getConfigManager())) {
+                    keys.add(entry.getKey());
+                }
+            }
+            for (Object key : keys) {
+               removeEntry(key);
+            }
+        }
     }
 
     /**

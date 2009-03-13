@@ -82,7 +82,6 @@ public class GlobalEditor extends EditorTool
 
         // compare the current state to the stored state
         EditableGlobals editable = (EditableGlobals)_epanel.getObject();
-        _scene.setName(editable.name);
         for (Iterator<IntEntry<GlobalEntry>> it = _globals.intEntrySet().iterator();
                 it.hasNext(); ) {
             IntEntry<GlobalEntry> entry = it.next();
@@ -147,7 +146,6 @@ public class GlobalEditor extends EditorTool
 
         // create the (cloned) editable list
         EditableGlobals editable = new EditableGlobals();
-        editable.name = scene.name;
         editable.globals = _globals.values().toArray(new GlobalEntry[_globals.size()]);
         QuickSort.sort(editable.globals);
         _epanel.setObject((EditableGlobals)editable.clone());
@@ -211,10 +209,6 @@ public class GlobalEditor extends EditorTool
     protected static class EditableGlobals extends DeepObject
         implements Exportable
     {
-        /** The name of the scene. */
-        @Editable
-        public String name = "";
-
         /** The array of globals to edit. */
         @Editable
         public GlobalEntry[] globals;
