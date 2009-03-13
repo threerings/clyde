@@ -1200,6 +1200,23 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Sets the scene notes.
+     */
+    public void setNotes (String notes)
+    {
+        _notes = notes;
+        invalidate();
+    }
+
+    /**
+     * Returns the scene notes.
+     */
+    public String getNotes ()
+    {
+        return _notes;
+    }
+
+    /**
      * Sets the place config for the model.
      */
     public void setPlaceConfig (TudeySceneConfig config)
@@ -1987,6 +2004,9 @@ public class TudeySceneModel extends SceneModel
         {
         }
     }
+
+    /** The notes regarding this scene. */
+    protected String _notes = "";
 
     /** The place configuration. */
     protected TudeySceneConfig _placeConfig = new TudeySceneConfig();

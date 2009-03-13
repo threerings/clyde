@@ -324,6 +324,7 @@ public class SceneEditor extends TudeyTool
         addTool(tpanel, tgroup, "palette", _palette = new Palette(this));
         addTool(tpanel, tgroup, "eyedropper", new Eyedropper(this));
         addTool(tpanel, tgroup, "eraser", new Eraser(this));
+        addTool(tpanel, tgroup, "notepad", new Notepad(this));
 
         // create the option panel
         _opanel = GroupLayout.makeVStretchBox(5);
