@@ -27,6 +27,8 @@ package com.threerings.tudey.client.sprite;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.gui.event.Event;
+
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.util.TudeyContext;
 
@@ -54,11 +56,13 @@ public abstract class Sprite extends SimpleScope
     }
 
     /**
-     * Sets the sprite's hover state.
+     * Dispatches an event on the sprite.
+     *
+     * @return true if the sprite handled the event, false if it should be handled elsewhere.
      */
-    public void setHover (boolean hover)
+    public boolean dispatchEvent (Event event)
     {
-        throw new UnsupportedOperationException();
+        return false;
     }
 
     @Override // documentation inherited

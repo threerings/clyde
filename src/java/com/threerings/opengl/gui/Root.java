@@ -79,6 +79,14 @@ public abstract class Root extends SimpleOverlay
     }
 
     /**
+     * Returns the current set of event modifiers.
+     */
+    public int getModifiers ()
+    {
+        return _modifiers;
+    }
+
+    /**
      * Returns a reference to the clipboard.
      */
     public Clipboard getClipboard ()

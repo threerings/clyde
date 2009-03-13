@@ -50,10 +50,13 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Root;
+import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.KeyListener;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.MouseListener;
+import com.threerings.opengl.gui.event.MouseMotionListener;
+import com.threerings.opengl.gui.event.MouseWheelListener;
 import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.Tickable;
 
@@ -75,7 +78,8 @@ import static com.threerings.tudey.Log.*;
  * The basic Tudey scene controller class.
  */
 public class TudeySceneController extends SceneController
-    implements SceneDeltaListener, KeyListener, MouseListener, Tickable
+    implements SceneDeltaListener, KeyListener, MouseListener,
+        MouseMotionListener, MouseWheelListener, Tickable
 {
     /**
      * Returns the interval at which we transmit our input frames.
@@ -99,6 +103,14 @@ public class TudeySceneController extends SceneController
     public boolean isTargetControlled ()
     {
         return _targetControlled;
+    }
+
+    /**
+     * Returns a reference to the hover sprite, if any.
+     */
+    public Sprite getHoverSprite ()
+    {
+        return _hsprite;
     }
 
     /**
@@ -203,14 +215,12 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface MouseListener
     public void mousePressed (MouseEvent event)
     {
-        if (_tsview.getInputWindow().getState() != Component.HOVER) {
+        if (!inputWindowHovered()) {
             return;
         }
         int button = event.getButton();
-        if (_hsprite == null) {
+        if (_hsprite == null || !_hsprite.dispatchEvent(event)) {
             maybeSetFlag(_buttonFlags[button]);
-        } else {
-
         }
         if (button == MouseEvent.BUTTON1) {
             _holdHover = true;
@@ -220,14 +230,12 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface MouseListener
     public void mouseReleased (MouseEvent event)
     {
-        if (_tsview.getInputWindow().getState() != Component.HOVER) {
+        if (!inputWindowHovered()) {
             return;
         }
         int button = event.getButton();
-        if (_hsprite == null) {
+        if (_hsprite == null || !_hsprite.dispatchEvent(event)) {
             maybeClearFlag(_buttonFlags[button]);
-        } else {
-
         }
         if (button == MouseEvent.BUTTON1) {
             _holdHover = false;
@@ -237,16 +245,37 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface MouseListener
     public void mouseClicked (MouseEvent event)
     {
+        maybeDispatchToHoverSprite(event);
     }
 
     // documentation inherited from interface MouseListener
     public void mouseEntered (MouseEvent event)
     {
+        // no-op
     }
 
     // documentation inherited from interface MouseListener
     public void mouseExited (MouseEvent event)
     {
+        // no-op
+    }
+
+    // documentation inherited from interface MouseMotionListener
+    public void mouseMoved (MouseEvent event)
+    {
+        maybeDispatchToHoverSprite(event);
+    }
+
+    // documentation inherited from interface MouseMotionListener
+    public void mouseDragged (MouseEvent event)
+    {
+        maybeDispatchToHoverSprite(event);
+    }
+
+    // documentation inherited from interface MouseWheelListener
+    public void mouseWheeled (MouseEvent event)
+    {
+        maybeDispatchToHoverSprite(event);
     }
 
     // documentation inherited from interface Tickable
@@ -317,6 +346,25 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Dispatches the given event to the hover sprite if we have one and the input window is
+     * hovered.
+     */
+    protected void maybeDispatchToHoverSprite (Event event)
+    {
+        if (inputWindowHovered() && _hsprite != null) {
+            _hsprite.dispatchEvent(event);
+        }
+    }
+
+    /**
+     * Determines whether we should process mouse events on the input window.
+     */
+    protected boolean inputWindowHovered ()
+    {
+        return _tsview.getInputWindow().getState() == Component.HOVER;
+    }
+
+    /**
      * Sets the specified input flag, if valid.
      */
     protected void maybeSetFlag (int flag)
@@ -351,10 +399,12 @@ public class TudeySceneController extends SceneController
         // if the mouse is over the input window, update the direction
         float direction = _lastDirection;
         Sprite nhsprite = null;
+
         if (_tsview.getInputWindow().getState() == Component.HOVER) {
             // get the pick ray
             Root root = _tctx.getRoot();
-            _tctx.getCompositor().getCamera().getPickRay(root.getMouseX(), root.getMouseY(), _pick);
+            _tctx.getCompositor().getCamera().getPickRay(
+                root.getMouseX(), root.getMouseY(), _pick);
 
             // see if it intersects anything in the scene
             if (_holdHover) {
@@ -377,12 +427,7 @@ public class TudeySceneController extends SceneController
 
         // update the hover sprite
         if (_hsprite != nhsprite) {
-            if (_hsprite != null) {
-                _hsprite.setHover(false);
-            }
-            if ((_hsprite = nhsprite) != null) {
-                _hsprite.setHover(true);
-            }
+            setHoverSprite(nhsprite);
         }
 
         // perhaps enqueue an input frame
@@ -412,6 +457,24 @@ public class TudeySceneController extends SceneController
 
         // reset the frame flags
         _frameFlags = _flags;
+    }
+
+    /**
+     * Sets the hover sprite.
+     */
+    protected void setHoverSprite (Sprite nhsprite)
+    {
+        Root root = _tctx.getRoot();
+        if (_hsprite != null) {
+            _hsprite.dispatchEvent(new MouseEvent(
+                this, root.getTickStamp(), root.getModifiers(), MouseEvent.MOUSE_EXITED,
+                root.getMouseX(), root.getMouseY()));
+        }
+        if ((_hsprite = nhsprite) != null) {
+            _hsprite.dispatchEvent(new MouseEvent(
+                this, root.getTickStamp(), root.getModifiers(), MouseEvent.MOUSE_ENTERED,
+                root.getMouseX(), root.getMouseY()));
+        }
     }
 
     /**

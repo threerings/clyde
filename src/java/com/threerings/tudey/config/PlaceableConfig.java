@@ -232,6 +232,10 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable(mode="alpha", hgroup="c")
         public Color4f hoverColor = new Color4f(Color4f.WHITE);
 
+        /** The action to perform when clicked. */
+        @Editable
+        public ClientActionConfig action = new ClientActionConfig.ControllerAction();
+
         @Override // documentation inherited
         public PlaceableSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PlaceableSprite.Implementation impl)

@@ -32,6 +32,8 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.gui.event.Event;
+import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
@@ -72,11 +74,14 @@ public class PlaceableSprite extends EntrySprite
         }
 
         /**
-         * Sets the implementation's hover state.
+         * Dispatches an event on the implementation.
+         *
+         * @return true if the implementation handled the event, false if it should be handled
+         * elsewhere.
          */
-        public void setHover (boolean hover)
+        public boolean dispatchEvent (Event event)
         {
-            throw new UnsupportedOperationException();
+            return false;
         }
 
         /**
@@ -211,7 +216,28 @@ public class PlaceableSprite extends EntrySprite
         }
 
         @Override // documentation inherited
-        public void setHover (boolean hover)
+        public boolean dispatchEvent (Event event)
+        {
+            if (!(event instanceof MouseEvent)) {
+                return false;
+            }
+            int type = ((MouseEvent)event).getType();
+            if (type == MouseEvent.MOUSE_ENTERED) {
+                setHover(true);
+            } else if (type == MouseEvent.MOUSE_EXITED) {
+                setHover(false);
+            } else if (type == MouseEvent.MOUSE_PRESSED) {
+                _config.action.execute(_ctx, _view, (PlaceableSprite)_parentScope);
+            } else {
+                return false;
+            }
+            return true;
+        }
+
+        /**
+         * Sets the hover state.
+         */
+        protected void setHover (boolean hover)
         {
             _hover = hover;
             _cstate.getColor().set(hover ? _config.hoverColor : _config.defaultColor);
@@ -226,6 +252,10 @@ public class PlaceableSprite extends EntrySprite
 
         /** Whether or not the hover state is active. */
         protected boolean _hover;
+
+        /** The containing view. */
+        @Bound
+        protected TudeySceneView _view;
     }
 
     /**
@@ -274,9 +304,9 @@ public class PlaceableSprite extends EntrySprite
     }
 
     @Override // documentation inherited
-    public void setHover (boolean hover)
+    public boolean dispatchEvent (Event event)
     {
-        _impl.setHover(hover);
+        return _impl.dispatchEvent(event);
     }
 
     @Override // documentation inherited
