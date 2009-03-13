@@ -59,4 +59,14 @@ public interface TudeySceneService extends InvocationService
      */
     public void setCameraParams (
         Client client, float fovy, float aspect, float near, float far, SphereCoords coords);
+
+    /**
+     * Submits a request related to the identified scene entry.
+     */
+    public void submitEntryRequest (Client client, Object key, String request);
+
+    /**
+     * Submits a request related to the identified actor.
+     */
+    public void submitActorRequest (Client client, int actorId, String request);
 }

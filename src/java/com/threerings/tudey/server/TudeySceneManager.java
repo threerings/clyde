@@ -629,6 +629,70 @@ public class TudeySceneManager extends SceneManager
         }
     }
 
+    // documentation inherited from interface TudeySceneProvider
+    public void submitActorRequest (ClientObject caller, int actorId, String name)
+    {
+        // get the client liaison
+        int cloid = caller.getOid();
+        ClientLiaison client = _clients.get(cloid);
+        if (client == null) {
+            log.warning("Received actor request from unknown client.",
+                "who", caller.who(), "where", where());
+            return;
+        }
+
+        // get their pawn logic to act as a source
+        int pawnId = _tsobj.getPawnId(cloid);
+        if (pawnId <= 0) {
+            log.warning("User without pawn tried to submit actor request.",
+                "who", caller.who());
+            return;
+        }
+        PawnLogic source = (PawnLogic)_actors.get(pawnId);
+
+        // get the target logic
+        ActorLogic target = _actors.get(actorId);
+        if (target == null) {
+            log.warning("Missing actor for request.", "who", caller.who(), "id", actorId);
+            return;
+        }
+
+        // process the request
+        target.request(getNextTimestamp(), source, name);
+    }
+
+    // documentation inherited from interface TudeySceneProvider
+    public void submitEntryRequest (ClientObject caller, Object key, String name)
+    {
+        // get the client liaison
+        int cloid = caller.getOid();
+        ClientLiaison client = _clients.get(cloid);
+        if (client == null) {
+            log.warning("Received entry request from unknown client.",
+                "who", caller.who(), "where", where());
+            return;
+        }
+
+        // get their pawn logic to act as a source
+        int pawnId = _tsobj.getPawnId(cloid);
+        if (pawnId <= 0) {
+            log.warning("User without pawn tried to submit entry request.",
+                "who", caller.who());
+            return;
+        }
+        PawnLogic source = (PawnLogic)_actors.get(pawnId);
+
+        // get the target logic
+        EntryLogic target = _entries.get(key);
+        if (target == null) {
+            log.warning("Missing entry for request.", "who", caller.who(), "key", key);
+            return;
+        }
+
+        // process the request
+        target.request(getNextTimestamp(), source, name);
+    }
+
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryAdded (Entry entry)
     {

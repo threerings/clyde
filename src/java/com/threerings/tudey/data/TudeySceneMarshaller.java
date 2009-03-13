@@ -71,4 +71,26 @@ public class TudeySceneMarshaller extends InvocationMarshaller
             Integer.valueOf(arg2)
         });
     }
+
+    /** The method id used to dispatch {@link #submitActorRequest} requests. */
+    public static final int SUBMIT_ACTOR_REQUEST = 4;
+
+    // from interface TudeySceneService
+    public void submitActorRequest (Client arg1, int arg2, String arg3)
+    {
+        sendRequest(arg1, SUBMIT_ACTOR_REQUEST, new Object[] {
+            Integer.valueOf(arg2), arg3
+        });
+    }
+
+    /** The method id used to dispatch {@link #submitEntryRequest} requests. */
+    public static final int SUBMIT_ENTRY_REQUEST = 5;
+
+    // from interface TudeySceneService
+    public void submitEntryRequest (Client arg1, Object arg2, String arg3)
+    {
+        sendRequest(arg1, SUBMIT_ENTRY_REQUEST, new Object[] {
+            arg2, arg3
+        });
+    }
 }

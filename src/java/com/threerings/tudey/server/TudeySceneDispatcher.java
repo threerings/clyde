@@ -75,6 +75,18 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
             );
             return;
 
+        case TudeySceneMarshaller.SUBMIT_ACTOR_REQUEST:
+            ((TudeySceneProvider)provider).submitActorRequest(
+                source, ((Integer)args[0]).intValue(), (String)args[1]
+            );
+            return;
+
+        case TudeySceneMarshaller.SUBMIT_ENTRY_REQUEST:
+            ((TudeySceneProvider)provider).submitEntryRequest(
+                source, args[0], (String)args[1]
+            );
+            return;
+
         default:
             super.dispatchRequest(source, methodId, args);
             return;

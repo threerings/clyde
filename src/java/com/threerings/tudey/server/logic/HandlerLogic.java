@@ -395,6 +395,21 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
+     * Handles a client request event.
+     */
+    public static class Request extends HandlerLogic
+    {
+        @Override // documentation inherited
+        public void request (int timestamp, PawnLogic source, String name)
+        {
+            HandlerConfig.Request config = (HandlerConfig.Request)_config;
+            if (config.name.equals(name)) {
+                execute(timestamp, source);
+            }
+        }
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, HandlerConfig config, Logic source)

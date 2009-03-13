@@ -124,6 +124,14 @@ public class EntryLogic extends Logic
         }
     }
 
+    @Override // documentation inherited
+    public void request (int timestamp, PawnLogic source, String name)
+    {
+        for (HandlerLogic handler : _handlers) {
+            handler.request(timestamp, source, name);
+        }
+    }
+
     /**
      * Override to perform custom initialization.
      */

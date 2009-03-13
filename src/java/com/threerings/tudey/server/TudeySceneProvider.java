@@ -49,4 +49,14 @@ public interface TudeySceneProvider extends InvocationProvider
      * Handles a {@link TudeySceneService#setTarget} request.
      */
     void setTarget (ClientObject caller, int arg1);
+
+    /**
+     * Handles a {@link TudeySceneService#submitActorRequest} request.
+     */
+    void submitActorRequest (ClientObject caller, int arg1, String arg2);
+
+    /**
+     * Handles a {@link TudeySceneService#submitEntryRequest} request.
+     */
+    void submitEntryRequest (ClientObject caller, Object arg1, String arg2);
 }

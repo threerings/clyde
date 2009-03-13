@@ -152,6 +152,17 @@ public abstract class Logic
     }
 
     /**
+     * Notifies the logic of a client request.
+     *
+     * @param timestamp the request timestamp.
+     * @param source the source of the request.
+     */
+    public void request (int timestamp, PawnLogic source, String name)
+    {
+        // nothing by default
+    }
+
+    /**
      * Creates a handler with the supplied configuration and source.
      */
     protected HandlerLogic createHandler (HandlerConfig config, Logic source)

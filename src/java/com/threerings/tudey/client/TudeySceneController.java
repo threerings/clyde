@@ -61,6 +61,7 @@ import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.sprite.ActorSprite;
+import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
@@ -166,6 +167,23 @@ public class TudeySceneController extends SceneController
     public void controlledTargetRemoved (long timestamp)
     {
         _advancer = null;
+    }
+
+    /**
+     * Submits a named request to the server.
+     */
+    public void submitRequest (Sprite source, String name)
+    {
+        if (source instanceof ActorSprite) {
+            _tsobj.tudeySceneService.submitActorRequest(
+                _ctx.getClient(), ((ActorSprite)source).getActor().getId(), name);
+        } else if (source instanceof EntrySprite) {
+            _tsobj.tudeySceneService.submitEntryRequest(
+                _ctx.getClient(), ((EntrySprite)source).getEntry().getKey(), name);
+        } else {
+            log.warning("Tried to submit request from unknown sprite type.",
+                "source", source, "name", name);
+        }
     }
 
     // documentation inherited from interface SceneDeltaListener

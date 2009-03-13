@@ -30,13 +30,15 @@ import java.io.IOException;
 
 import com.samskivert.util.StringUtil;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.export.Encodable;
 
 /**
  * Represents a pair of 2D integer coordinates.
  */
 public class Coord
-    implements Encodable, Cloneable
+    implements Encodable, Streamable, Cloneable
 {
     /** The coordinates. */
     public int x, y;

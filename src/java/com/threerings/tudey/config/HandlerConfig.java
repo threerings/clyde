@@ -41,7 +41,8 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     HandlerConfig.Timer.class, HandlerConfig.Signal.class,
     HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
     HandlerConfig.Intersection.class, HandlerConfig.IntersectionStart.class,
-    HandlerConfig.IntersectionStop.class, HandlerConfig.Interaction.class })
+    HandlerConfig.IntersectionStop.class, HandlerConfig.Interaction.class,
+    HandlerConfig.Request.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -200,6 +201,22 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Interaction";
+        }
+    }
+
+    /**
+     * The client request event handler.
+     */
+    public static class Request extends HandlerConfig
+    {
+        /** The name of the request of interest. */
+        @Editable
+        public String name = "";
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$Request";
         }
     }
 

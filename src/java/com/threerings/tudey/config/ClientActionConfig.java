@@ -40,6 +40,7 @@ import static com.threerings.tudey.Log.*;
  */
 @EditorTypes({
     ClientActionConfig.ControllerAction.class,
+    ClientActionConfig.ServerRequest.class,
     ClientActionConfig.Compound.class })
 public abstract class ClientActionConfig extends DeepObject
     implements Exportable
@@ -59,6 +60,22 @@ public abstract class ClientActionConfig extends DeepObject
             if (!view.getController().handleAction(source, command, null)) {
                 log.warning("Controller didn't handle action.", "command", command);
             }
+        }
+    }
+
+    /**
+     * Sends a request to the server.
+     */
+    public static class ServerRequest extends ClientActionConfig
+    {
+        /** The name of the request. */
+        @Editable
+        public String name = "";
+
+        @Override // documentation inherited
+        public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
+        {
+            view.getController().submitRequest(source, name);
         }
     }
 
