@@ -228,11 +228,14 @@ public class TileSprite extends EntrySprite
      */
     protected void updateFromConfig ()
     {
-        Implementation nimpl = (_config == null) ?
-            null : _config.getSpriteImplementation(_ctx, this, _impl);
-        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
+        TileConfig.Original original = (_config == null) ?
+            null : _config.getOriginal(_ctx.getConfigManager());
+        original = (original == null) ? TileConfig.NULL_ORIGINAL : original;
+        Implementation nimpl = original.getSpriteImplementation(_ctx, this, _impl);
         if (_impl != nimpl) {
-            _impl.dispose();
+            if (_impl != null) {
+                _impl.dispose();
+            }
             _impl = nimpl;
         }
     }
@@ -241,12 +244,11 @@ public class TileSprite extends EntrySprite
     protected TileEntry _entry;
 
     /** The tile configuration. */
-    protected TileConfig _config;
+    protected TileConfig _config = INVALID_CONFIG;
 
     /** The tile implementation. */
-    protected Implementation _impl = NULL_IMPLEMENTATION;
+    protected Implementation _impl;
 
-    /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
-    };
+    /** An invalid config used to force an initial update. */
+    protected static TileConfig INVALID_CONFIG = new TileConfig();
 }

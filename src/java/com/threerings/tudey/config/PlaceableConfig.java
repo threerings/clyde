@@ -53,7 +53,7 @@ import com.threerings.tudey.util.TudeyContext;
 public class PlaceableConfig extends ParameterizedConfig
 {
     /** Used when we can't resolve the placeable's underlying original implementation. */
-    public static final Original NULL_ORIGINAL = new Marker();
+    public static final Original NULL_ORIGINAL = new Prop("editor/error/model.dat");
 
     /**
      * Contains the actual implementation of the placeable.
@@ -192,6 +192,21 @@ public class PlaceableConfig extends ParameterizedConfig
         /** The prop's collision flags. */
         @Editable
         public int collisionFlags = 0x01;
+
+        /**
+         * Default constructor.
+         */
+        public Prop ()
+        {
+        }
+
+        /**
+         * Creates a prop with the specified model.
+         */
+        public Prop (String model)
+        {
+            this.model = new ConfigReference<ModelConfig>(model);
+        }
 
         @Override // documentation inherited
         public int getCollisionFlags ()

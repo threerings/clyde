@@ -53,7 +53,7 @@ import com.threerings.tudey.util.TudeySceneMetrics;
 public class TileConfig extends ParameterizedConfig
 {
     /** Used when we can't resolve the tile's underlying original implementation. */
-    public static final Original NULL_ORIGINAL = new Original();
+    public static final Original NULL_ORIGINAL = new Original("editor/error/model.dat");
 
     /**
      * Contains the actual implementation of the tile.
@@ -130,6 +130,21 @@ public class TileConfig extends ParameterizedConfig
         /** The tile's event handlers. */
         @Editable
         public HandlerConfig[] handlers = new HandlerConfig[0];
+
+        /**
+         * Default constructor.
+         */
+        public Original ()
+        {
+        }
+
+        /**
+         * Creates an implementation with the specified model.
+         */
+        public Original (String model)
+        {
+            this.model = new ConfigReference<ModelConfig>(model);
+        }
 
         /**
          * Finds the transform of the tile at the specified coordinates.

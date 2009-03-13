@@ -51,7 +51,7 @@ import com.threerings.tudey.util.TudeyContext;
 public class AreaConfig extends ParameterizedConfig
 {
     /** Used when we can't resolve the area's underlying original implementation. */
-    public static final Original NULL_ORIGINAL = new Original();
+    public static final Original NULL_ORIGINAL = new Original(Color4f.RED);
 
     /**
      * Contains the actual implementation of the area.
@@ -116,6 +116,21 @@ public class AreaConfig extends ParameterizedConfig
         /** The area's event handlers. */
         @Editable
         public HandlerConfig[] handlers = new HandlerConfig[0];
+
+        /**
+         * Default constructor.
+         */
+        public Original ()
+        {
+        }
+
+        /**
+         * Creates an implementation with the specified color.
+         */
+        public Original (Color4f color)
+        {
+            this.color.set(color);
+        }
 
         /**
          * Returns the name of the server-side logic class to use for the area, or
