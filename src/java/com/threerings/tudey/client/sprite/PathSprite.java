@@ -384,10 +384,9 @@ public class PathSprite extends EntrySprite
             null : _config.getOriginal(_ctx.getConfigManager());
         original = (original == null) ? PathConfig.NULL_ORIGINAL : original;
         Implementation nimpl = original.getSpriteImplementation(_ctx, this, _impl);
+        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
         if (_impl != nimpl) {
-            if (_impl != null) {
-                _impl.dispose();
-            }
+            _impl.dispose();
             _impl = nimpl;
         }
     }
@@ -399,8 +398,12 @@ public class PathSprite extends EntrySprite
     protected PathConfig _config = INVALID_CONFIG;
 
     /** The path implementation. */
-    protected Implementation _impl;
+    protected Implementation _impl = NULL_IMPLEMENTATION;
 
     /** An invalid config used to force an initial update. */
     protected static PathConfig INVALID_CONFIG = new PathConfig();
+
+    /** An implementation that does nothing. */
+    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+    };
 }

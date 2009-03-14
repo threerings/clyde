@@ -315,10 +315,9 @@ public class AreaSprite extends EntrySprite
             null : _config.getOriginal(_ctx.getConfigManager());
         original = (original == null) ? AreaConfig.NULL_ORIGINAL : original;
         Implementation nimpl = original.getSpriteImplementation(_ctx, this, _impl);
+        nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
         if (_impl != nimpl) {
-            if (_impl != null) {
-                _impl.dispose();
-            }
+            _impl.dispose();
             _impl = nimpl;
         }
     }
@@ -330,8 +329,12 @@ public class AreaSprite extends EntrySprite
     protected AreaConfig _config = INVALID_CONFIG;
 
     /** The area implementation. */
-    protected Implementation _impl;
+    protected Implementation _impl = NULL_IMPLEMENTATION;
 
     /** An invalid config used to force an initial update. */
     protected static AreaConfig INVALID_CONFIG = new AreaConfig();
+
+    /** An implementation that does nothing. */
+    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
+    };
 }
