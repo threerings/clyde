@@ -91,6 +91,17 @@ public class ButtonGroup
     }
 
     /**
+     * Removes all of the buttons in the group.
+     */
+    public void removeAll ()
+    {
+        for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
+            _buttons.get(ii).removeListener(this);
+        }
+        _buttons.clear();
+    }
+
+    /**
      * Returns the number of buttons in the group.
      */
     public int getButtonCount ()

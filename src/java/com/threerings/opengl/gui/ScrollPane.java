@@ -224,21 +224,6 @@ public class ScrollPane extends Container
         }
 
         // documentation inherited
-        public void invalidate ()
-        {
-            // if we're not attached, don't worry about it
-            Window window;
-            Root root;
-            if (!_valid || (window = getWindow()) == null ||
-                (root = window.getRoot()) == null) {
-                return;
-            }
-
-            _valid = false;
-            root.rootInvalidated(this);
-        }
-
-        // documentation inherited
         public void layout ()
         {
             // resize our target component to the larger of our size and its

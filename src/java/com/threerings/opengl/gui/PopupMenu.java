@@ -175,6 +175,7 @@ public class PopupMenu extends PopupWindow
         y = above ?
             Math.min(height - getHeight(), y) : Math.max(0, y - getHeight());
         setLocation(x, y);
+        validate();
     }
 
     /**

@@ -39,10 +39,6 @@ public class PopupWindow extends Window
         super(ctx, layout);
         _parentWindow = parent;
         setLayer(parent.getLayer());
-
-        // set up our background and border from the look and feel
-//         setBackground(_lnf.createPopupBackground());
-//         setBorder(_lnf.createPopupBorder());
     }
 
     @Override // documentation inherited
