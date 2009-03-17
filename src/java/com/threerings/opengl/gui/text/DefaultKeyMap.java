@@ -51,8 +51,6 @@ public class DefaultKeyMap extends KeyMap
         addMapping(ANY_MODIFIER, Keyboard.KEY_HOME, EditCommands.START_OF_LINE);
         addMapping(ANY_MODIFIER, Keyboard.KEY_END, EditCommands.END_OF_LINE);
 
-        addMapping(ANY_MODIFIER, Keyboard.KEY_ESCAPE, EditCommands.RELEASE_FOCUS);
-
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_X, EditCommands.CUT);
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_C, EditCommands.COPY);
         addMapping(InputEvent.CTRL_DOWN_MASK, Keyboard.KEY_V, EditCommands.PASTE);
