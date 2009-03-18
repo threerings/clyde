@@ -94,6 +94,14 @@ public abstract class CameraHandler
     }
 
     /**
+     * Determines whether the camera handler is currently active.
+     */
+    public boolean isAdded ()
+    {
+        return _ctx.getCameraHandler() == this;
+    }
+
+    /**
      * Notifies the handler that it has been added.
      */
     public void wasAdded ()

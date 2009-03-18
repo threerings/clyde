@@ -928,6 +928,13 @@ public class SceneEditor extends TudeyTool
     }
 
     @Override // documentation inherited
+    protected CameraHandler createCameraHandler ()
+    {
+        // just a placeholder; the scene view has the real camera handler
+        return new OrbitCameraHandler(this);
+    }
+
+    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();

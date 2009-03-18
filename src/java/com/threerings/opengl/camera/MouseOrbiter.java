@@ -93,6 +93,9 @@ public class MouseOrbiter
                 _camhand.pan(-dx * _unitsPerPixel, dy * _unitsPerPixel);
             }
         }
+        if (_camhand.isAdded()) {
+            _camhand.updatePosition();
+        }
         mouseMoved(event);
     }
 
@@ -107,6 +110,9 @@ public class MouseOrbiter
     public void mouseWheelMoved (MouseWheelEvent event)
     {
         _camhand.zoom(event.getWheelRotation() * _unitsPerClick);
+        if (_camhand.isAdded()) {
+            _camhand.updatePosition();
+        }
     }
 
     /** The camera handler we're controlling. */

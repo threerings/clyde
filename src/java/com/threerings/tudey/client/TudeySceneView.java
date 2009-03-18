@@ -535,7 +535,8 @@ public class TudeySceneView extends SimpleScope
         // track the target sprite, if any
         if (_targetSprite != null) {
             Vector3f translation = _targetSprite.getModel().getLocalTransform().getTranslation();
-            ((OrbitCameraHandler)_ctx.getCameraHandler()).getTarget().set(translation);
+            _camhand.getTarget().set(translation);
+            _camhand.updatePosition();
         }
 
         // tick the scene
