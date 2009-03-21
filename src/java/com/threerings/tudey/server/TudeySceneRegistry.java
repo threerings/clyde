@@ -42,6 +42,7 @@ import com.threerings.crowd.data.BodyObject;
 
 import com.threerings.whirled.client.SceneService;
 import com.threerings.whirled.data.SceneModel;
+import com.threerings.whirled.server.SceneMoveHandler;
 import com.threerings.whirled.server.SceneRegistry;
 import com.threerings.whirled.util.UpdateList;
 
@@ -83,19 +84,29 @@ public class TudeySceneRegistry extends SceneRegistry
         super.moveBody(source, sceneId);
     }
 
-    // from interface SceneService
+    /**
+     * Resolves a scene for the specified caller.
+     */
+    public void resolveScene (ClientObject caller, int sceneId, ResolutionListener listener)
+    {
+        resolveScene(sceneId, listener);
+    }
+
+    @Override // documentation inherited
     public void moveTo (
         ClientObject caller, int sceneId, int sceneVer, SceneService.SceneMoveListener listener)
     {
         // look for a stored portal key
         PortalMapping mapping = _portals.remove(caller.getOid());
+        SceneMoveHandler handler;
         if (mapping != null && mapping.getSceneId() == sceneId &&
                 mapping.getExpiry() > System.currentTimeMillis()) {
-            resolveScene(sceneId, new TudeySceneMoveHandler(
-                _locman, (BodyObject)caller, sceneVer, mapping.getPortalKey(), listener));
+            handler = new TudeySceneMoveHandler(
+                _locman, (BodyObject)caller, sceneVer, mapping.getPortalKey(), listener);
         } else {
-            super.moveTo(caller, sceneId, sceneVer, listener);
+            handler = new SceneMoveHandler(_locman, (BodyObject)caller, sceneVer, listener);
         }
+        resolveScene(caller, sceneId, handler);
     }
 
     @Override // documentation inherited
