@@ -167,12 +167,10 @@ public class Component
     {
         if (_parent != null && parent != null) {
             Log.log.warning("Already added child readded to interface hierarchy! [comp=" + this +
-                            ", oparent=" + _parent + ", nparent=" + parent + "].");
-            Thread.dumpStack();
+                            ", oparent=" + _parent + ", nparent=" + parent + "].", new Exception());
         } else if (_parent == null && parent == null) {
             Log.log.warning("Already removed child reremoved from interface hierarchy! " +
-                            "[comp=" + this + "].");
-            Thread.dumpStack();
+                            "[comp=" + this + "].", new Exception());
         }
         _parent = parent;
     }
@@ -537,15 +535,13 @@ public class Component
     {
         // sanity check
         if (!acceptsFocus()) {
-            Log.log.warning("Unfocusable component requested focus: " + this);
-            Thread.dumpStack();
+            Log.log.warning("Unfocusable component requested focus: " + this, new Exception());
             return;
         }
 
         Window window = getWindow();
         if (window == null) {
-            Log.log.warning("Focus requested for un-added component: " + this);
-            Thread.dumpStack();
+            Log.log.warning("Focus requested for un-added component: " + this, new Exception());
         } else {
             window.requestFocus(this);
         }

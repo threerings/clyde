@@ -154,8 +154,7 @@ public class Window extends Container
         if (_root != null) {
             _root.removeWindow(this);
         } else {
-            Log.log.warning("Unmanaged window dismissed: " + this + ".");
-            Thread.dumpStack();
+            Log.log.warning("Unmanaged window dismissed: " + this + ".", new Exception());
         }
     }
 

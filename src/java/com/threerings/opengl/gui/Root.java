@@ -251,8 +251,7 @@ public abstract class Root extends SimpleOverlay
 
         // first remove the window from our list
         if (!_windows.remove(window)) {
-            log.warning("Requested to remove unmanaged window.", "window", window);
-            Thread.dumpStack();
+            log.warning("Requested to remove unmanaged window.", "window", window, new Exception());
             return;
         }
 
