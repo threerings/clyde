@@ -581,7 +581,9 @@ public class TudeySceneManager extends SceneManager
             int currentTime = _timestamp + (int)(RunAnywhere.currentTimeMillis() - _lastTick);
             client.enqueueInput(acknowledge, currentTime - smoothedTime, frames);
         } else {
-            log.warning("Received input from unknown client.",
+            // this doesn't require a warning; it's probably an out-of-date packet from a client
+            // that has just left the scene
+            log.debug("Received input from unknown client.",
                 "who", caller.who(), "where", where());
         }
     }
