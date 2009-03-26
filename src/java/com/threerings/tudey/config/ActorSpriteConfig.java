@@ -79,10 +79,6 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Editable
         public MovementSet[] movements = new MovementSet[0];
 
-        /** The name of the interaction animation, if any. */
-        @Editable
-        public String interact = "use_interact";
-
         /**
          * Returns the cached idle weight array.
          */

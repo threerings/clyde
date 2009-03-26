@@ -360,7 +360,6 @@ public class TudeySceneController extends SceneController
         // add the input flag mappings
         _keyFlags.put(Keyboard.KEY_S, InputFrame.STRAFE);
         _buttonFlags[MouseEvent.BUTTON1] = InputFrame.MOVE;
-        _buttonFlags[MouseEvent.BUTTON2] = InputFrame.INTERACT;
     }
 
     /**
@@ -451,7 +450,7 @@ public class TudeySceneController extends SceneController
         // perhaps enqueue an input frame
         if (direction != _lastDirection || _frameFlags != _lastFlags) {
             // create and enqueue the frame
-            InputFrame frame = new InputFrame(
+            InputFrame frame = createInputFrame(
                 _tsview.getAdvancedTime(), _lastDirection = direction, _lastFlags = _frameFlags);
             _input.add(frame);
 
@@ -475,6 +474,14 @@ public class TudeySceneController extends SceneController
 
         // reset the frame flags
         _frameFlags = _flags;
+    }
+
+    /**
+     * Creates an input frame.
+     */
+    protected InputFrame createInputFrame (int timestamp, float direction, int flags)
+    {
+        return new InputFrame(timestamp, direction, flags);
     }
 
     /**

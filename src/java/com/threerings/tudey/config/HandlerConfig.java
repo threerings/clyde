@@ -41,8 +41,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     HandlerConfig.Timer.class, HandlerConfig.Signal.class,
     HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
     HandlerConfig.Intersection.class, HandlerConfig.IntersectionStart.class,
-    HandlerConfig.IntersectionStop.class, HandlerConfig.Interaction.class,
-    HandlerConfig.Request.class })
+    HandlerConfig.IntersectionStop.class, HandlerConfig.Request.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -189,18 +188,6 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$IntersectionStop";
-        }
-    }
-
-    /**
-     * The interaction event handler.
-     */
-    public static class Interaction extends BaseIntersection
-    {
-        @Override // documentation inherited
-        public String getLogicClassName ()
-        {
-            return "com.threerings.tudey.server.logic.HandlerLogic$Interaction";
         }
     }
 

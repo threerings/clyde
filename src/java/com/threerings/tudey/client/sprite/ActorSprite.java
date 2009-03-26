@@ -200,7 +200,6 @@ public class ActorSprite extends Sprite
             _idles = resolve(mconfig.idles);
             _idleWeights = mconfig.getIdleWeights();
             _movements = resolve(mconfig.movements);
-            _interact = _model.getAnimation(mconfig.interact);
         }
 
         @Override // documentation inherited
@@ -218,15 +217,6 @@ public class ActorSprite extends Sprite
             } else {
                 if (_currentIdle == null || !_currentIdle.isPlaying()) {
                     (_currentIdle = getIdle()).start();
-                }
-            }
-
-            // update the action
-            int acted = ((Mobile)actor).getActed();
-            if (acted > _lastActed) {
-                if (actor.isSet(Mobile.INTERACTING) && _interact != null) {
-                    _interact.start();
-                    _lastActed = acted;
                 }
             }
         }
@@ -304,14 +294,8 @@ public class ActorSprite extends Sprite
         /** The movement animations. */
         protected Animation[][] _movements;
 
-        /** The interact animation, if any. */
-        protected Animation _interact;
-
         /** The current idle animation. */
         protected Animation _currentIdle;
-
-        /** The timestamp of the last action. */
-        protected int _lastActed;
     }
 
     /**

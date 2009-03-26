@@ -39,8 +39,8 @@ public class InputFrame extends DeepObject
     /** Indicates that the user wants to strafe. */
     public static final int STRAFE = (1 << 1);
 
-    /** Indicates that the user wants to interact. */
-    public static final int INTERACT = (1 << 2);
+    /** The value of the last flag defined in this class. */
+    public static final int LAST_FLAG = STRAFE;
 
     /**
      * Creates a new input frame.

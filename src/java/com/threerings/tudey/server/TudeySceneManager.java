@@ -138,13 +138,6 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * An interface for objects that should be notified when actors interact with them.
-     */
-    public interface InteractionSensor extends Sensor
-    {
-    }
-
-    /**
      * Returns the number of ticks per second.
      */
     public int getTicksPerSecond ()
@@ -443,14 +436,6 @@ public class TudeySceneManager extends SceneManager
     public void triggerIntersectionSensors (int timestamp, ActorLogic actor)
     {
         triggerSensors(IntersectionSensor.class, timestamp, actor.getShape(), actor);
-    }
-
-    /**
-     * Triggers any interaction sensors intersecting the specified shape.
-     */
-    public void triggerInteractionSensors (int timestamp, Shape shape, ActorLogic actor)
-    {
-        triggerSensors(InteractionSensor.class, timestamp, shape, actor);
     }
 
     /**

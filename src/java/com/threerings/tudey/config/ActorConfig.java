@@ -174,14 +174,6 @@ public class ActorConfig extends ParameterizedConfig
         @Editable(min=0, step=0.01)
         public float speed = 6f;
 
-        /** The shape of the actor's interaction region. */
-        @Editable
-        public ShapeConfig interactionShape = new ShapeConfig.Point();
-
-        /** The delay between when an interaction starts and the time when it "lands." */
-        @Editable(min=0.0, step=0.01)
-        public float interactionDelay;
-
         @Override // documentation inherited
         public String getLogicClassName ()
         {

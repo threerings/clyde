@@ -374,27 +374,6 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
-     * Handles the interaction event.
-     */
-    public static class Interaction extends BaseIntersection
-        implements TudeySceneManager.InteractionSensor
-    {
-        /**
-         * Creates a new interaction handler.
-         */
-        public Interaction ()
-        {
-            super(false, false);
-        }
-
-        // documentation inherited from interface TudeySceneManager.InteractionSensor
-        public void trigger (int timestamp, ActorLogic actor)
-        {
-            execute(timestamp, actor);
-        }
-    }
-
-    /**
      * Handles a client request event.
      */
     public static class Request extends HandlerLogic
