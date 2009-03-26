@@ -52,15 +52,15 @@ public abstract class ConditionLogic extends Logic
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
         {
-            String tag = ((ConditionConfig.Tagged)_config).tag;
+            ConditionConfig.Tagged config = (ConditionConfig.Tagged)_config;
             _target.resolve(activator, _targets);
             try {
                 for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
-                    if (ListUtil.contains(_targets.get(ii).getTags(), tag)) {
-                        return true;
+                    if (ListUtil.contains(_targets.get(ii).getTags(), config.tag) != config.all) {
+                        return !config.all;
                     }
                 }
-                return false;
+                return config.all;
 
             } finally {
                 _targets.clear();
@@ -88,14 +88,15 @@ public abstract class ConditionLogic extends Logic
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
         {
+            boolean all = ((ConditionConfig.InstanceOf)_config).all;
             _target.resolve(activator, _targets);
             try {
                 for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
-                    if (_logicClass.isInstance(_targets.get(ii))) {
-                        return true;
+                    if (_logicClass.isInstance(_targets.get(ii)) != all) {
+                        return !all;
                     }
                 }
-                return false;
+                return all;
 
             } finally {
                 _targets.clear();
@@ -133,19 +134,16 @@ public abstract class ConditionLogic extends Logic
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
         {
+            boolean all = ((ConditionConfig.Intersecting)_config).allFirst;
             _first.resolve(activator, _firsts);
             _second.resolve(activator, _seconds);
             try {
                 for (int ii = 0, nn = _firsts.size(); ii < nn; ii++) {
-                    Shape s1 = _firsts.get(ii);
-                    for (int jj = 0, mm = _seconds.size(); jj < mm; jj++) {
-                        Shape s2 = _seconds.get(jj);
-                        if (s1.intersects(s2)) {
-                            return true;
-                        }
+                    if (intersectsSecond(_firsts.get(ii)) != all) {
+                        return !all;
                     }
                 }
-                return false;
+                return all;
 
             } finally {
                 _firsts.clear();
@@ -159,6 +157,21 @@ public abstract class ConditionLogic extends Logic
             ConditionConfig.Intersecting config = (ConditionConfig.Intersecting)_config;
             _first = createRegion(config.first, _source);
             _second = createRegion(config.second, _source);
+        }
+
+        /**
+         * Determines whether the specified shape from the first target satisfies the intersection
+         * condition.
+         */
+        protected boolean intersectsSecond (Shape shape)
+        {
+            boolean all = ((ConditionConfig.Intersecting)_config).allSecond;
+            for (int ii = 0, nn = _seconds.size(); ii < nn; ii++) {
+                if (shape.intersects(_seconds.get(ii)) != all) {
+                    return !all;
+                }
+            }
+            return all;
         }
 
         /** The regions to check. */
@@ -176,20 +189,16 @@ public abstract class ConditionLogic extends Logic
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
         {
+            boolean all = ((ConditionConfig.DistanceWithin)_config).allFirst;
             _first.resolve(activator, _firsts);
             _second.resolve(activator, _seconds);
             try {
-                ConditionConfig.DistanceWithin config = (ConditionConfig.DistanceWithin)_config;
                 for (int ii = 0, nn = _firsts.size(); ii < nn; ii++) {
-                    Vector2f t1 = _firsts.get(ii).getTranslation();
-                    for (int jj = 0, mm = _seconds.size(); jj < mm; jj++) {
-                        Vector2f t2 = _seconds.get(jj).getTranslation();
-                        if (FloatMath.isWithin(t1.distance(t2), config.minimum, config.maximum)) {
-                            return true;
-                        }
+                    if (withinSecond(_firsts.get(ii).getTranslation()) != all) {
+                        return !all;
                     }
                 }
-                return false;
+                return all;
 
             } finally {
                 _firsts.clear();
@@ -203,6 +212,23 @@ public abstract class ConditionLogic extends Logic
             ConditionConfig.DistanceWithin config = (ConditionConfig.DistanceWithin)_config;
             _first = createTarget(config.first, _source);
             _second = createTarget(config.second, _source);
+        }
+
+        /**
+         * Determines whether the specified shape from the first target satisfies the distance
+         * condition.
+         */
+        protected boolean withinSecond (Vector2f t1)
+        {
+            ConditionConfig.DistanceWithin config = (ConditionConfig.DistanceWithin)_config;
+            for (int ii = 0, nn = _seconds.size(); ii < nn; ii++) {
+                Vector2f t2 = _seconds.get(ii).getTranslation();
+                if (FloatMath.isWithin(t1.distance(t2), config.minimum, config.maximum) !=
+                        config.allSecond) {
+                    return !config.allSecond;
+                }
+            }
+            return config.allSecond;
         }
 
         /** The targets to check. */

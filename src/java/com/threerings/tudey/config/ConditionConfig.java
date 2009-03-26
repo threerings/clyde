@@ -45,8 +45,12 @@ public abstract class ConditionConfig extends DeepObject
     public static class Tagged extends ConditionConfig
     {
         /** The tag of interest. */
-        @Editable
+        @Editable(hgroup="t")
         public String tag = "";
+
+        /** Whether or not all targets must match the condition (as opposed to any). */
+        @Editable(hgroup="t")
+        public boolean all;
 
         /** The target to check. */
         @Editable
@@ -65,8 +69,12 @@ public abstract class ConditionConfig extends DeepObject
     public static class InstanceOf extends ConditionConfig
     {
         /** The name of the class to check. */
-        @Editable
+        @Editable(hgroup="c")
         public String logicClass = "com.threerings.tudey.server.logic.PawnLogic";
+
+        /** Whether or not all targets must match the condition (as opposed to any). */
+        @Editable(hgroup="c")
+        public boolean all;
 
         /** The target to check. */
         @Editable
@@ -84,6 +92,14 @@ public abstract class ConditionConfig extends DeepObject
      */
     public static class Intersecting extends ConditionConfig
     {
+        /** Whether or not to require all targets in the first region. */
+        @Editable(hgroup="a")
+        public boolean allFirst;
+
+        /** Whether or not to require all targets in the second region. */
+        @Editable(hgroup="a")
+        public boolean allSecond;
+
         /** The first region to check. */
         @Editable
         public RegionConfig first = new RegionConfig.Default();
@@ -111,6 +127,14 @@ public abstract class ConditionConfig extends DeepObject
         /** The maximum distance. */
         @Editable(min=0.0, step=0.1, hgroup="m")
         public float maximum;
+
+        /** Whether or not to require all targets in the first region. */
+        @Editable(hgroup="a")
+        public boolean allFirst;
+
+        /** Whether or not to require all targets in the second region. */
+        @Editable(hgroup="a")
+        public boolean allSecond;
 
         /** The first target to check. */
         @Editable
