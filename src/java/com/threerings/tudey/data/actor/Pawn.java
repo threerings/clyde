@@ -56,11 +56,19 @@ public class Pawn extends Mobile
     {
     }
 
+    /**
+     * Creates the advancer for the pawn.
+     */
+    public PawnAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+    {
+        return new PawnAdvancer(environment, this, timestamp);
+    }
+
     @Override // documentation inherited
     public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
     {
         TudeySceneController ctrl = view.getController();
         return (ctrl.getTargetId() == _id && ctrl.isTargetControlled()) ?
-            new PawnAdvancer(view, this, timestamp) : null;
+            createAdvancer(view, timestamp) : null;
     }
 }

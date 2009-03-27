@@ -72,7 +72,7 @@ public class PawnLogic extends MobileLogic
     @Override // documentation inherited
     protected ActorAdvancer createAdvancer ()
     {
-        return (_advancer = new PawnAdvancer(this, (Pawn)_actor, _actor.getCreated()));
+        return (_advancer = ((Pawn)_actor).createAdvancer(this, _actor.getCreated()));
     }
 
     /** A casted reference to the advancer. */
