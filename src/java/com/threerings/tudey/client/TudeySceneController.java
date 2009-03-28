@@ -365,12 +365,12 @@ public class TudeySceneController extends SceneController
     /**
      * Dispatches the given event to the hover sprite if we have one and the input window is
      * hovered.
+     *
+     * @return true if the sprite handled the event, false if not.
      */
-    protected void maybeDispatchToHoverSprite (Event event)
+    protected boolean maybeDispatchToHoverSprite (Event event)
     {
-        if (inputWindowHovered() && _hsprite != null) {
-            _hsprite.dispatchEvent(event);
-        }
+        return inputWindowHovered() && _hsprite != null && _hsprite.dispatchEvent(event);
     }
 
     /**

@@ -102,7 +102,7 @@ public class Animation extends SimpleScope
          */
         public boolean isPlaying ()
         {
-            return _targetWeight > 0f;
+            return _weight > 0f || _targetWeight > 0f;
         }
 
         /**
