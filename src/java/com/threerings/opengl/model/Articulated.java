@@ -789,13 +789,13 @@ public class Articulated extends Model.Implementation
         }
 
         // insert into playing list in priority order
-        for (int ii = 0, nn = _playing.size(); ii < nn; ii++) {
+        int ii = 0;
+        for (int nn = _playing.size(); ii < nn; ii++) {
             if (priority >= _playing.get(ii).getPriority()) {
-                _playing.add(ii, animation);
-                return;
+                break;
             }
         }
-        _playing.add(animation);
+        _playing.add(ii, animation);
 
         // notify containing model
         ((Model)_parentScope).animationStarted(animation);
