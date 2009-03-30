@@ -212,11 +212,11 @@ public class ActorSprite extends Sprite
                 Animation movement = getMovement((Mobile)actor);
                 if (movement != null && !movement.isPlaying()) {
                     movement.start();
-                    _currentIdle = null;
                 }
             } else {
-                if (_currentIdle == null || !_currentIdle.isPlaying()) {
-                    (_currentIdle = getIdle()).start();
+                Animation idle = getIdle();
+                if (idle != null && !idle.isPlaying()) {
+                    idle.start();
                 }
             }
         }
@@ -251,12 +251,19 @@ public class ActorSprite extends Sprite
         }
 
         /**
-         * Returns a random idle animation according to their weights, or returns <code>null</code>
-         * for none.
+         * Returns a reference to the idle animation that the sprite should be playing.
          */
         protected Animation getIdle ()
         {
-            return (_idles.length == 0) ? null : _idles[RandomUtil.getWeightedIndex(_idleWeights)];
+            if (_idles.length == 0) {
+                return null;
+            }
+            for (Animation idle : _idles) {
+                if (idle.isPlaying()) {
+                    return idle;
+                }
+            }
+            return _idles[RandomUtil.getWeightedIndex(_idleWeights)];
         }
 
         /**
