@@ -141,7 +141,7 @@ public class AnimationConfig extends ParameterizedConfig
         public boolean skipLastFrame = true;
 
         /** Actions to perform at specific times within the animation. */
-        @Editable
+        @Editable(weight=2)
         public FrameAction[] actions = new FrameAction[0];
 
         /** The base animation frame rate. */
@@ -179,8 +179,19 @@ public class AnimationConfig extends ParameterizedConfig
         }
 
         /**
+         * Included in order to make duration appear as an editable property.
+         */
+        @Editable(step=0.01, hgroup="l", weight=1,
+            depends={"transition", "source", "speed", "duration"})
+        public void setDuration (float duration)
+        {
+            // no-op
+        }
+
+        /**
          * Returns the duration of the animation (assuming it doesn't loop).
          */
+        @Editable
         public float getDuration ()
         {
             return transition + (transforms.length - 1) / getScaledRate();
