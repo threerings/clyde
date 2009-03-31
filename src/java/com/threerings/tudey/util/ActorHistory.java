@@ -156,7 +156,8 @@ public class ActorHistory
          */
         public Actor interpolate (Entry other, int timestamp, Actor result)
         {
-            return _actor.interpolate(other.getActor(), getPortion(other, timestamp), result);
+            return _actor.interpolate(
+                other.getActor(), _timestamp, other.getTimestamp(), timestamp, result);
         }
 
         /**

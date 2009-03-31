@@ -468,7 +468,15 @@ public class ActorSprite extends Sprite
      */
     protected boolean isRemoved ()
     {
-        return (_advancer == null ? _view.getDelayedTime() : _view.getAdvancedTime()) >= _removed;
+        return getActorTime() >= _removed;
+    }
+
+    /**
+     * Returns the time value for the actor.
+     */
+    protected int getActorTime ()
+    {
+        return (_advancer == null) ? _view.getDelayedTime() : _view.getAdvancedTime();
     }
 
     /**

@@ -210,14 +210,19 @@ public class Actor extends DeepObject
     /**
      * Interpolates between the state of this actor and that of the specified other, placing the
      * result in the provided object.
+     *
+     * @param start the start time (the timestamp of this actor).
+     * @param end the end time (the timestamp of the other actor).
+     * @param timestamp the desired time (the timestamp of the result).
      */
-    public Actor interpolate (Actor other, float t, Actor result)
+    public Actor interpolate (Actor other, int start, int end, int timestamp, Actor result)
     {
         // start by deep-copying this actor
         copy(result);
 
         // interpolate translation and rotation unless warped
         if (!other.isSet(WARP)) {
+            float t = (float)(timestamp - start) / (end - start);
             _translation.lerp(other.getTranslation(), t, result.getTranslation());
             result.setRotation(FloatMath.lerpa(_rotation, other.getRotation(), t));
         }
