@@ -39,7 +39,7 @@ import com.threerings.tudey.util.PawnAdvancer;
 /**
  * Handles the state of a player-controlled actor.
  */
-public class PawnLogic extends MobileLogic
+public class PawnLogic extends ActiveLogic
 {
     /**
      * Enqueues a single frame of input for processing.

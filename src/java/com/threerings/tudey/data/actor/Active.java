@@ -25,24 +25,23 @@
 package com.threerings.tudey.data.actor;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
-import com.threerings.tudey.client.TudeySceneController;
-import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
-import com.threerings.tudey.util.ActorAdvancer;
-import com.threerings.tudey.util.PawnAdvancer;
-import com.threerings.tudey.util.TudeyContext;
 
 /**
- * An actor controlled by a player.
+ * An actor capable of performing activities.
  */
-public class Pawn extends Active
+public class Active extends Mobile
 {
+    /** Indicates that no activity is being performed. */
+    public static final int NONE = 0;
+
     /**
-     * Creates a new pawn.
+     * Creates a new active actor.
      */
-    public Pawn (
+    public Active (
         ConfigReference<ActorConfig> config, int id, int created,
         Vector2f translation, float rotation)
     {
@@ -52,23 +51,67 @@ public class Pawn extends Active
     /**
      * No-arg constructor for deserialization.
      */
-    public Pawn ()
+    public Active ()
     {
     }
 
     /**
-     * Creates the advancer for the pawn.
+     * Sets both the activity and the start timestamp.
      */
-    public PawnAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+    public void setActivity (int activity, int started)
     {
-        return new PawnAdvancer(environment, this, timestamp);
+        setActivity(activity);
+        setActivityStarted(started);
+    }
+
+    /**
+     * Sets the activity identifier.
+     */
+    public void setActivity (int activity)
+    {
+        _activity = activity;
+    }
+
+    /**
+     * Returns the activity identifier.
+     */
+    public int getActivity ()
+    {
+        return _activity;
+    }
+
+    /**
+     * Sets the activity timestamp.
+     */
+    public void setActivityStarted (int started)
+    {
+        _activityStarted = started;
+    }
+
+    /**
+     * Returns the activity timestamp.
+     */
+    public int getActivityStarted ()
+    {
+        return _activityStarted;
     }
 
     @Override // documentation inherited
-    public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
+    public Actor interpolate (Actor other, int start, int end, int timestamp, Actor result)
     {
-        TudeySceneController ctrl = view.getController();
-        return (ctrl.getTargetId() == _id && ctrl.isTargetControlled()) ?
-            createAdvancer(view, timestamp) : null;
+        // apply the activity if the time has come
+        Active aresult = (Active)super.interpolate(other, start, end, timestamp, result);
+        Active oactive = (Active)other;
+        int activityStarted = oactive.getActivityStarted();
+        if (timestamp >= activityStarted) {
+            aresult.setActivity(oactive.getActivity(), activityStarted);
+        }
+        return aresult;
     }
+
+    /** Identifies the activity being performed by the actor. */
+    protected int _activity;
+
+    /** The time at which the current activity started. */
+    protected int _activityStarted;
 }

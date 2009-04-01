@@ -34,7 +34,7 @@ import com.threerings.tudey.shape.Shape;
 /**
  * Controls an autonomous agent.
  */
-public class AgentLogic extends MobileLogic
+public class AgentLogic extends ActiveLogic
 {
     /**
      * Sets the target rotation to face another entity.

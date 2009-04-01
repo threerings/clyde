@@ -24,6 +24,12 @@
 
 package com.threerings.tudey.client.sprite;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
+
+import com.samskivert.util.IntMap;
+import com.samskivert.util.IntMaps;
 import com.samskivert.util.RandomUtil;
 
 import com.threerings.config.ConfigEvent;
@@ -43,6 +49,7 @@ import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.ActorSpriteConfig;
+import com.threerings.tudey.data.actor.Active;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.shape.ShapeElement;
@@ -303,6 +310,108 @@ public class ActorSprite extends Sprite
 
         /** The current idle animation. */
         protected Animation _currentIdle;
+    }
+
+    /**
+     * Depicts an active actor with activity animations.
+     */
+    public static class Acting extends Moving
+    {
+        /**
+         * Creates a new implementation.
+         */
+        public Acting (TudeyContext ctx, Scope parentScope, ActorSpriteConfig.Moving config)
+        {
+            super(ctx, parentScope, config);
+        }
+
+        @Override // documentation inherited
+        public void update (Actor actor)
+        {
+            super.update(actor);
+
+            // update the activity
+            Active active = (Active)actor;
+            int started = active.getActivityStarted();
+            if (started > _lastActivityStarted) {
+                _lastActivityStarted = started;
+                Activity activity = _activities.get(active.getActivity());
+                if (_activity != null) {
+                    _activity.stop();
+                }
+                if ((_activity = activity) != null) {
+                    _activity.start();
+                }
+            }
+            if (_activity != null) {
+                _activity.update();
+            }
+        }
+
+        /**
+         * Handles an activity.
+         */
+        protected class Activity
+        {
+            /**
+             * Creates a new activity.
+             */
+            public Activity (String... anims)
+            {
+                List<Animation> list = Lists.newArrayList();
+                for (String anim : anims) {
+                    Animation animation = _model.getAnimation(anim);
+                    if (animation != null) {
+                        list.add(animation);
+                    }
+                }
+                _anims = list.toArray(new Animation[list.size()]);
+            }
+
+            /**
+             * Starts the activity.
+             */
+            public void start ()
+            {
+                _anims[_idx = 0].start();
+            }
+
+            /**
+             * Stops the activity.
+             */
+            public void stop ()
+            {
+            }
+
+            /**
+             * Updates the activity.
+             */
+            public void update ()
+            {
+                if (!_anims[_idx].isPlaying()) {
+                    if (++_idx < _anims.length) {
+                        _anims[_idx].start();
+                    } else {
+                        _activity = null;
+                    }
+                }
+            }
+
+            /** The activity's component animations. */
+            protected Animation[] _anims;
+
+            /** The index of the current animation. */
+            protected int _idx;
+        }
+
+        /** The time at which the last activity was started. */
+        protected int _lastActivityStarted;
+
+        /** The activity handlers. */
+        protected IntMap<Activity> _activities = IntMaps.newHashIntMap();
+
+        /** The current activity. */
+        protected Activity _activity;
     }
 
     /**

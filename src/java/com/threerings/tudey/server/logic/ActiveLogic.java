@@ -22,53 +22,40 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.tudey.data.actor;
+package com.threerings.tudey.server.logic;
 
-import com.threerings.config.ConfigReference;
-import com.threerings.math.Vector2f;
+import com.samskivert.util.IntMap;
+import com.samskivert.util.IntMaps;
 
-import com.threerings.tudey.client.TudeySceneController;
-import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.config.ActorConfig;
-import com.threerings.tudey.util.ActorAdvancer;
-import com.threerings.tudey.util.PawnAdvancer;
-import com.threerings.tudey.util.TudeyContext;
+import com.threerings.tudey.data.actor.Active;
 
 /**
- * An actor controlled by a player.
+ * Controls the state of an active actor.
  */
-public class Pawn extends Active
+public class ActiveLogic extends MobileLogic
 {
-    /**
-     * Creates a new pawn.
-     */
-    public Pawn (
-        ConfigReference<ActorConfig> config, int id, int created,
-        Vector2f translation, float rotation)
-    {
-        super(config, id, created, translation, rotation);
-    }
-
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public Pawn ()
-    {
-    }
-
-    /**
-     * Creates the advancer for the pawn.
-     */
-    public PawnAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
-    {
-        return new PawnAdvancer(environment, this, timestamp);
-    }
-
     @Override // documentation inherited
-    public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
+    public boolean tick (int timestamp)
     {
-        TudeySceneController ctrl = view.getController();
-        return (ctrl.getTargetId() == _id && ctrl.isTargetControlled()) ?
-            createAdvancer(view, timestamp) : null;
+        super.tick(timestamp);
+
+        // update the activity
+        Active active = (Active)_actor;
+        ActivityLogic activity = _activities.get(active.getActivity());
+        if (activity != null) {
+            int started = active.getActivityStarted();
+            if (started > _lastActivityStarted) {
+                activity.start(_lastActivityStarted = started);
+            }
+            activity.tick(timestamp);
+        }
+
+        return true;
     }
+
+    /** Activity logic mappings. */
+    protected IntMap<ActivityLogic> _activities = IntMaps.newHashIntMap();
+
+    /** The time at which the last activity started. */
+    protected int _lastActivityStarted;
 }

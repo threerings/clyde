@@ -22,53 +22,65 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.tudey.data.actor;
+package com.threerings.tudey.server.logic;
 
-import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
-import com.threerings.tudey.client.TudeySceneController;
-import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.config.ActorConfig;
-import com.threerings.tudey.util.ActorAdvancer;
-import com.threerings.tudey.util.PawnAdvancer;
-import com.threerings.tudey.util.TudeyContext;
+import com.threerings.tudey.server.TudeySceneManager;
 
 /**
- * An actor controlled by a player.
+ * Logic classes for activities.
  */
-public class Pawn extends Active
+public abstract class ActivityLogic extends Logic
 {
     /**
-     * Creates a new pawn.
+     * Initializes the logic.
      */
-    public Pawn (
-        ConfigReference<ActorConfig> config, int id, int created,
-        Vector2f translation, float rotation)
+    public void init (TudeySceneManager scenemgr, ActiveLogic source)
     {
-        super(config, id, created, translation, rotation);
+        super.init(scenemgr);
+        _source = source;
     }
 
     /**
-     * No-arg constructor for deserialization.
+     * Starts the activity.
      */
-    public Pawn ()
+    public void start (int timestamp)
     {
+        _started = timestamp;
     }
 
     /**
-     * Creates the advancer for the pawn.
+     * Updates the activity.
      */
-    public PawnAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+    public void tick (int timestamp)
     {
-        return new PawnAdvancer(environment, this, timestamp);
+        // nothing by default
     }
 
     @Override // documentation inherited
-    public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
+    public Vector2f getTranslation ()
     {
-        TudeySceneController ctrl = view.getController();
-        return (ctrl.getTargetId() == _id && ctrl.isTargetControlled()) ?
-            createAdvancer(view, timestamp) : null;
+        return _source.getTranslation();
     }
+
+    @Override // documentation inherited
+    public float getRotation ()
+    {
+        return _source.getRotation();
+    }
+
+    /**
+     * Override to perform custom initialization.
+     */
+    protected void didInit ()
+    {
+        // nothing by default
+    }
+
+    /** The activity source. */
+    protected ActiveLogic _source;
+
+    /** The time at which the activity started. */
+    protected int _started;
 }
