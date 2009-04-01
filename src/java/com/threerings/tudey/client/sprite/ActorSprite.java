@@ -117,10 +117,7 @@ public class ActorSprite extends Sprite
          */
         public Original (TudeyContext ctx, Scope parentScope, ActorSpriteConfig config)
         {
-            super(parentScope);
-            _ctx = ctx;
-
-            // set the config
+            this(ctx, parentScope);
             setConfig(config);
         }
 
@@ -162,6 +159,15 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Creates a new implementation without configuring it.
+         */
+        protected Original (TudeyContext ctx, Scope parentScope)
+        {
+            super(parentScope);
+            _ctx = ctx;
+        }
+
+        /**
          * Returns the configuration to use for the actor model (gives subclasses a chance to
          * adjust the result).
          */
@@ -195,7 +201,8 @@ public class ActorSprite extends Sprite
          */
         public Moving (TudeyContext ctx, Scope parentScope, ActorSpriteConfig.Moving config)
         {
-            super(ctx, parentScope, config);
+            super(ctx, parentScope);
+            setConfig(config);
         }
 
         @Override // documentation inherited
@@ -226,6 +233,14 @@ public class ActorSprite extends Sprite
                     idle.start();
                 }
             }
+        }
+
+        /**
+         * Creates a new implementation without configuring it.
+         */
+        protected Moving (TudeyContext ctx, Scope parentScope)
+        {
+            super(ctx, parentScope);
         }
 
         /**
@@ -322,7 +337,8 @@ public class ActorSprite extends Sprite
          */
         public Acting (TudeyContext ctx, Scope parentScope, ActorSpriteConfig.Moving config)
         {
-            super(ctx, parentScope, config);
+            super(ctx, parentScope);
+            setConfig(config);
         }
 
         @Override // documentation inherited
@@ -346,6 +362,14 @@ public class ActorSprite extends Sprite
             if (_activity != null) {
                 _activity.update();
             }
+        }
+
+        /**
+         * Creates a new implementation without configuring it.
+         */
+        protected Acting (TudeyContext ctx, Scope parentScope)
+        {
+            super(ctx, parentScope);
         }
 
         /**
