@@ -38,6 +38,9 @@ public class Active extends Mobile
     /** Indicates that no activity is being performed. */
     public static final int NONE = 0;
 
+    /** The last activity defined in this class. */
+    public static final int LAST_ACTIVITY = NONE;
+
     /**
      * Creates a new active actor.
      */
