@@ -51,7 +51,7 @@ public class ActorConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the actor.
      */
-    @EditorTypes({ Original.class, Pawn.class, Agent.class, Derived.class })
+    @EditorTypes({ Original.class, Mobile.class, Pawn.class, Agent.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -168,11 +168,15 @@ public class ActorConfig extends ParameterizedConfig
     /**
      * Base class for mobile implementations.
      */
-    public static abstract class Mobile extends Original
+    public static class Mobile extends Original
     {
         /** The speed at which the actor (normally) travels. */
-        @Editable(min=0, step=0.01)
+        @Editable(min=0, step=0.01, hgroup="s")
         public float speed = 6f;
+
+        /** If true, set the actor in motion after spawning. */
+        @Editable(hgroup="s")
+        public boolean moving;
 
         @Override // documentation inherited
         public String getLogicClassName ()

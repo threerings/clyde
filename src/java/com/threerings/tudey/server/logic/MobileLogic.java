@@ -98,6 +98,12 @@ public class MobileLogic extends ActorLogic
 
         // create advancer
         _advancer = createAdvancer();
+
+        // set the actor in motion if appropriate
+        if (((ActorConfig.Mobile)_actor.getOriginal()).moving) {
+            ((Mobile)_actor).setDirection(_actor.getRotation());
+            _actor.set(Mobile.MOVING);
+        }
     }
 
     /**
