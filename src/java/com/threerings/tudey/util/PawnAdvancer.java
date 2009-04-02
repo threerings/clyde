@@ -52,6 +52,21 @@ public class PawnAdvancer extends MobileAdvancer
         advance(frame.getTimestamp());
 
         // modify the pawn's state based on the input
+        updateMovement(frame);
+    }
+
+    @Override // documentation inherited
+    public void init (Actor actor, int timestamp)
+    {
+        super.init(actor, timestamp);
+        _pawn = (Pawn)actor;
+    }
+
+    /**
+     * Updates the pawn's movement state based on the given input frame.
+     */
+    protected void updateMovement (InputFrame frame)
+    {
         float direction = frame.getDirection();
         if (!frame.isSet(InputFrame.STRAFE)) {
             _pawn.setRotation(direction);
@@ -62,13 +77,6 @@ public class PawnAdvancer extends MobileAdvancer
         } else {
             _pawn.clear(Mobile.MOVING);
         }
-    }
-
-    @Override // documentation inherited
-    public void init (Actor actor, int timestamp)
-    {
-        super.init(actor, timestamp);
-        _pawn = (Pawn)actor;
     }
 
     /** A casted reference to the pawn. */
