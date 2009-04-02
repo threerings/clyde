@@ -194,7 +194,8 @@ public class AnimationConfig extends ParameterizedConfig
         @Editable
         public float getDuration ()
         {
-            return transition + (transforms.length - 1) / getScaledRate();
+            return transition +
+                (transforms == null ? 0f : (transforms.length - 1) / getScaledRate());
         }
 
         /**
