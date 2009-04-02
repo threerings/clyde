@@ -221,17 +221,10 @@ public class ActorSprite extends Sprite
         {
             super.update(actor);
 
-            // if we're moving, update our moving animation
-            if (actor.isSet(Mobile.MOVING)) {
-                Animation movement = getMovement((Mobile)actor);
-                if (movement != null && !movement.isPlaying()) {
-                    movement.start();
-                }
-            } else {
-                Animation idle = getIdle();
-                if (idle != null && !idle.isPlaying()) {
-                    idle.start();
-                }
+            // update the base animation
+            Animation base = getBase((Mobile)actor);
+            if (base != null && !base.isPlaying()) {
+                base.start();
             }
         }
 
@@ -270,6 +263,14 @@ public class ActorSprite extends Sprite
                     _model.getAnimation(set.left) };
             }
             return anims;
+        }
+
+        /**
+         * Returns the base animation for the actor.
+         */
+        protected Animation getBase (Mobile actor)
+        {
+            return actor.isSet(Mobile.MOVING) ? getMovement(actor) : getIdle();
         }
 
         /**
@@ -344,8 +345,6 @@ public class ActorSprite extends Sprite
         @Override // documentation inherited
         public void update (Actor actor)
         {
-            super.update(actor);
-
             // update the activity
             Active active = (Active)actor;
             int started = active.getActivityStarted();
@@ -362,6 +361,16 @@ public class ActorSprite extends Sprite
             if (_activity != null) {
                 _activity.update();
             }
+
+            super.update(actor);
+        }
+
+        @Override // documentation inherited
+        protected Animation getBase (Mobile actor)
+        {
+            // activities at priority zero override default base animation
+            return (_activity != null && _activity.getPriority() == 0) ?
+                null : super.getBase(actor);
         }
 
         /**
@@ -393,6 +402,14 @@ public class ActorSprite extends Sprite
             }
 
             /**
+             * Returns the priority of the activity.
+             */
+            public int getPriority ()
+            {
+                return _anims[0].getPriority();
+            }
+
+            /**
              * Starts the activity.
              */
             public void start ()
@@ -405,6 +422,7 @@ public class ActorSprite extends Sprite
              */
             public void stop ()
             {
+                _anims[_idx].stop();
             }
 
             /**
@@ -412,12 +430,8 @@ public class ActorSprite extends Sprite
              */
             public void update ()
             {
-                if (!_anims[_idx].isPlaying()) {
-                    if (++_idx < _anims.length) {
-                        _anims[_idx].start();
-                    } else {
-                        _activity = null;
-                    }
+                if (_idx < _anims.length - 1 && !_anims[_idx].isPlaying()) {
+                    _anims[++_idx].start();
                 }
             }
 
