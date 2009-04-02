@@ -67,15 +67,22 @@ public class PawnAdvancer extends MobileAdvancer
      */
     protected void updateMovement (InputFrame frame)
     {
-        float direction = frame.getDirection();
-        if (!frame.isSet(InputFrame.STRAFE)) {
-            _pawn.setRotation(direction);
-        }
+        updateRotation(frame);
         if (frame.isSet(InputFrame.MOVE)) {
-            _pawn.setDirection(direction);
+            _pawn.setDirection(frame.getDirection());
             _pawn.set(Mobile.MOVING);
         } else {
             _pawn.clear(Mobile.MOVING);
+        }
+    }
+
+    /**
+     * Updates the pawn's rotation state based on the given input frame.
+     */
+    protected void updateRotation (InputFrame frame)
+    {
+        if (!frame.isSet(InputFrame.STRAFE)) {
+            _pawn.setRotation(frame.getDirection());
         }
     }
 
