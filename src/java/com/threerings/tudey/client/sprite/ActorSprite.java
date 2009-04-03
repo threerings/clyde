@@ -350,12 +350,13 @@ public class ActorSprite extends Sprite
             int started = active.getActivityStarted();
             if (started > _lastActivityStarted) {
                 _lastActivityStarted = started;
-                Activity activity = _activities.get(active.getActivity());
+                Activity previous = _activity;
+                Activity next = _activities.get(active.getActivity());
                 if (_activity != null) {
-                    _activity.stop();
+                    _activity.stop(next);
                 }
-                if ((_activity = activity) != null) {
-                    _activity.start();
+                if ((_activity = next) != null) {
+                    _activity.start(previous);
                 }
             }
             if (_activity != null) {
@@ -412,7 +413,7 @@ public class ActorSprite extends Sprite
             /**
              * Starts the activity.
              */
-            public void start ()
+            public void start (Activity previous)
             {
                 _anims[_idx = 0].start();
             }
@@ -420,7 +421,7 @@ public class ActorSprite extends Sprite
             /**
              * Stops the activity.
              */
-            public void stop ()
+            public void stop (Activity next)
             {
                 _anims[_idx].stop();
             }
