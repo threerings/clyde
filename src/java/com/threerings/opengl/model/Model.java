@@ -470,6 +470,22 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Sets the model's visibility flag.
+     */
+    public void setVisible (boolean visible)
+    {
+        _visible = visible;
+    }
+
+    /**
+     * Returns the value of the model's visibility flag.
+     */
+    public boolean isVisible ()
+    {
+        return _visible;
+    }
+
+    /**
      * Sets the model's color state.
      */
     public void setColorState (ColorState state)
@@ -820,7 +836,9 @@ public class Model extends DynamicScope
     // documentation inherited from interface Renderable
     public void enqueue ()
     {
-        _impl.enqueue();
+        if (_visible) {
+            _impl.enqueue();
+        }
     }
 
     // documentation inherited from interface ConfigUpdateListener
@@ -1041,6 +1059,9 @@ public class Model extends DynamicScope
     /** The model's render scheme. */
     @Scoped
     protected String _renderScheme;
+
+    /** Visibility flag. */
+    protected boolean _visible = true;
 
     /** The model's color state. */
     @Scoped
