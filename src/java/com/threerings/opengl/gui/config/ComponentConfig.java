@@ -800,6 +800,10 @@ public abstract class ComponentConfig extends DeepObject
      */
     public static class RenderableView extends ComponentConfig
     {
+        /** Whether or not this is a static view. */
+        @Editable
+        public boolean staticView;
+
         /** The camera azimuth. */
         @Editable(min=-180.0, max=+180.0, scale=Math.PI/180.0, hgroup="c")
         public float azimuth;
@@ -838,6 +842,10 @@ public abstract class ComponentConfig extends DeepObject
             // set the camera position
             ((OrbitCameraHandler)view.getCameraHandler()).getCoords().set(
                 azimuth, elevation, distance);
+
+            // make static if specified and ensure that it will be validated
+            view.setStatic(staticView);
+            view.invalidate();
 
             // create/reconfigure the models as necessary
             Model[] omodels = view.getConfigModels();

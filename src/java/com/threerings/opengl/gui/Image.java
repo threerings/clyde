@@ -153,6 +153,11 @@ public class Image
         Renderer renderer, int sx, int sy, int swidth, int sheight,
         int tx, int ty, int twidth, int theight, Color4f color, float alpha)
     {
+        // don't bother rendering if it's completely transparent
+        if (alpha == 0f) {
+            return;
+        }
+
         // initialize the texture units if necessary
         load(renderer, -1);
         float lx = sx / (float)_twidth;

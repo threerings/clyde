@@ -27,6 +27,7 @@ package com.threerings.opengl.gui;
 import java.util.ArrayList;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.PixelFormat;
 
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
@@ -40,10 +41,15 @@ import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
+import com.threerings.opengl.renderer.Texture2D;
+import com.threerings.opengl.renderer.TextureRenderer;
+import com.threerings.opengl.renderer.state.ColorMaskState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.GlUtil;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -87,6 +93,30 @@ public class RenderableView extends Component
     }
 
     /**
+     * Sets whether this view is static and must be rendered manually.
+     */
+    public void setStatic (boolean stat)
+    {
+        if (_static == stat) {
+            return;
+        }
+        if (_static = stat) {
+            invalidate();
+        } else {
+            _image = null;
+            _renderer = null;
+        }
+    }
+
+    /**
+     * Checks whether this view is configured as static.
+     */
+    public boolean isStatic ()
+    {
+        return _static;
+    }
+
+    /**
      * Sets the array of config models.
      */
     public void setConfigModels (Model[] models)
@@ -126,6 +156,39 @@ public class RenderableView extends Component
         _renderables.clear();
     }
 
+    /**
+     * Manually rerenders the (static) view.
+     */
+    public void render ()
+    {
+        if (!_static) {
+            return;
+        }
+        Insets insets = getInsets();
+        int width = _width - insets.getHorizontal(), height = _height - insets.getVertical();
+        if (_image == null || _image.getWidth() != width || _image.getHeight() != height) {
+            Renderer renderer = _ctx.getRenderer();
+            Texture2D texture = (_image == null) ? null : _image.getTexture(renderer);
+            if (texture == null) {
+                texture = new Texture2D(renderer);
+                texture.setMinFilter(GL11.GL_LINEAR);
+            }
+            int twidth = GlUtil.nextPowerOfTwo(width), theight = GlUtil.nextPowerOfTwo(height);
+            if (texture.getWidth() != twidth || texture.getHeight() != theight) {
+                texture.setImage(GL11.GL_RGBA, twidth, theight, false, false);
+            }
+            _image = new Image(texture, width, height);
+            _renderer = new TextureRenderer(
+                _ctx, texture, null, width, height, new PixelFormat(1, 8, 0));
+        }
+        _renderer.startRender();
+        try {
+            renderView(_ctx.getRenderer());
+        } finally {
+            _renderer.commitRender();
+        }
+    }
+
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
@@ -160,7 +223,38 @@ public class RenderableView extends Component
     }
 
     @Override // documentation inherited
+    protected void layout ()
+    {
+        render();
+    }
+
+    @Override // documentation inherited
     protected void renderComponent (Renderer renderer)
+    {
+        // static views simply draw the prerendered image
+        if (_static) {
+            if (_image != null) {
+                Insets insets = getInsets();
+                _image.render(renderer, insets.left, insets.bottom,
+                    _width - insets.getHorizontal(), _height - insets.getVertical(), _alpha);
+            }
+        } else {
+            renderView(renderer);
+        }
+    }
+
+    /**
+     * Creates the camera handler for the view.
+     */
+    protected CameraHandler createCameraHandler ()
+    {
+        return new OrbitCameraHandler(_ctx, _camera, false);
+    }
+
+    /**
+     * Renders the view.
+     */
+    protected void renderView (Renderer renderer)
     {
         // save the compositor's original camera and swap in our group state
         Compositor compositor = _ctx.getCompositor();
@@ -174,7 +268,8 @@ public class RenderableView extends Component
         // update the camera viewport
         Insets insets = getInsets();
         _camera.getViewport().set(
-            getAbsoluteX() + insets.left, getAbsoluteY() + insets.bottom,
+            _static ? 0 : (getAbsoluteX() + insets.left),
+            _static ? 0 : (getAbsoluteY() + insets.bottom),
             _width - insets.getHorizontal(), _height - insets.getVertical());
 
         // update the camera handler
@@ -187,9 +282,11 @@ public class RenderableView extends Component
 
         try {
             // push the modelview matrix
-            renderer.setMatrixMode(GL11.GL_MODELVIEW);
-            GL11.glPushMatrix();
-            renderer.setState(TransformState.IDENTITY);
+            if (!_static) {
+                renderer.setMatrixMode(GL11.GL_MODELVIEW);
+                GL11.glPushMatrix();
+                renderer.setState(TransformState.IDENTITY);
+            }
 
             // enqueue the config models
             for (Model model : _configModels) {
@@ -207,7 +304,7 @@ public class RenderableView extends Component
             // apply the camera state
             _camera.apply(renderer);
 
-            // clear the depth buffer
+            // clear the buffers
             Rectangle oscissor = renderer.getScissor();
             if (oscissor != null) {
                 _oscissor.set(oscissor);
@@ -215,7 +312,13 @@ public class RenderableView extends Component
             renderer.setScissor(_camera.getViewport());
             renderer.setClearDepth(1f);
             renderer.setState(DepthState.TEST_WRITE);
-            GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
+            if (_static) {
+                renderer.setState(ColorMaskState.ALL);
+                renderer.setClearColor(new Color4f(0f, 0f, 0f, 0f));
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+            } else {
+                GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
+            }
             renderer.setScissor(oscissor == null ? null : _oscissor);
 
             // render the contents of the queues
@@ -230,25 +333,19 @@ public class RenderableView extends Component
             _gstate.swap(group);
 
             // restore the original viewport and projection
-            Rectangle viewport = ocamera.getViewport();
-            renderer.setViewport(viewport);
-            renderer.setProjection(0f, viewport.width, 0f, viewport.height, -1f, +1f, true);
+            if (!_static) {
+                Rectangle viewport = ocamera.getViewport();
+                renderer.setViewport(viewport);
+                renderer.setProjection(0f, viewport.width, 0f, viewport.height, -1f, +1f, true);
 
-            // reapply the overlay states
-            renderer.setStates(_root.getStates());
+                // reapply the overlay states
+                renderer.setStates(_root.getStates());
 
-            // pop the modelview matrix
-            renderer.setMatrixMode(GL11.GL_MODELVIEW);
-            GL11.glPopMatrix();
+                // pop the modelview matrix
+                renderer.setMatrixMode(GL11.GL_MODELVIEW);
+                GL11.glPopMatrix();
+            }
         }
-    }
-
-    /**
-     * Creates the camera handler for the view.
-     */
-    protected CameraHandler createCameraHandler ()
-    {
-        return new OrbitCameraHandler(_ctx, _camera, false);
     }
 
     /** The view scope. */
@@ -266,11 +363,20 @@ public class RenderableView extends Component
     /** Stores the state of the render queue. */
     protected RenderQueue.Group.State _gstate = new RenderQueue.Group.State();
 
+    /** Whether or not the view is static. */
+    protected boolean _static;
+
     /** The models loaded from the configuration. */
     protected Model[] _configModels = new Model[0];
 
     /** The list of other renderables to include. */
     protected ArrayList<Renderable> _renderables = new ArrayList<Renderable>();
+
+    /** For static views, the rendered image. */
+    protected Image _image;
+
+    /** For static views, the texture renderer. */
+    protected TextureRenderer _renderer;
 
     /** A scoped reference to the camera's view transform. */
     @Scoped
