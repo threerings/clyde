@@ -150,7 +150,7 @@ public class ClientLiaison
         _localInterest.getMaximumExtent().add(translation, _worldInterest.getMaximumExtent());
 
         // retrieve the states of the actors, effects fired in the client's area of interest
-        HashIntMap<Actor> actors = _scenemgr.getActorSnapshots(_worldInterest);
+        HashIntMap<Actor> actors = getActorSnapshots();
         Effect[] effectsFired = _scenemgr.getEffectsFired(_worldInterest);
 
         // record the tick
@@ -203,6 +203,14 @@ public class ClientLiaison
         _updated.clear();
         _removed.clear();
         _fired.clear();
+    }
+
+    /**
+     * Returns a map containing snapshots of all actors in the client's area of interest.
+     */
+    protected HashIntMap<Actor> getActorSnapshots ()
+    {
+        return _scenemgr.getActorSnapshots(_worldInterest);
     }
 
     /**

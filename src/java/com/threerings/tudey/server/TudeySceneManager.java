@@ -809,7 +809,7 @@ public class TudeySceneManager extends SceneManager
         super.bodyEntered(bodyOid);
 
         // create and map the client liaison
-        _clients.put(bodyOid, new ClientLiaison(this, (BodyObject)_omgr.getObject(bodyOid)));
+        _clients.put(bodyOid, createClientLiaison((BodyObject)_omgr.getObject(bodyOid)));
     }
 
     @Override // documentation inherited
@@ -819,6 +819,14 @@ public class TudeySceneManager extends SceneManager
 
         // remove the client liaison
         _clients.remove(bodyOid);
+    }
+
+    /**
+     * Creates the client liaison for the specified body.
+     */
+    protected ClientLiaison createClientLiaison (BodyObject bodyobj)
+    {
+        return new ClientLiaison(this, bodyobj);
     }
 
     /**
