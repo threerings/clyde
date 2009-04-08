@@ -148,7 +148,7 @@ public class ChatOverlay extends Container
         }
         BoundedRangeModel model = _area.getScrollModel();
         boolean end = (model.getValue() == model.getMaximum() - model.getExtent());
-        _area.appendText(text + "\n", color);
+        appendMessage(msg, text + "\n", color);
         if (end) {
             _area.validate();
             model.setValue(model.getMaximum() - model.getExtent());
@@ -169,6 +169,17 @@ public class ChatOverlay extends Container
         Component comp = super.getHitComponent(mx, my);
         return ((comp == _less || comp == _more || comp == _end) && comp.isEnabled()) ?
             comp : null;
+    }
+
+    /**
+     * Appends a message to the text area.
+     *
+     * @param text the formatted, newline-terminated text of the message.
+     * @param color the color to use for the message, or null for the default.
+     */
+    protected void appendMessage (ChatMessage msg, String text, Color4f color)
+    {
+        _area.appendText(text, color);
     }
 
     /**
