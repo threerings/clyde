@@ -50,6 +50,7 @@ public class EntryLogic extends Logic
         _translation = entry.getTranslation(cfgmgr);
         _rotation = entry.getRotation(cfgmgr);
         _tags = entry.getTags(cfgmgr);
+        _defaultEntrance = entry.isDefaultEntrance(cfgmgr);
         _shape = entry.createShape(cfgmgr);
 
         // create the handler logic objects
