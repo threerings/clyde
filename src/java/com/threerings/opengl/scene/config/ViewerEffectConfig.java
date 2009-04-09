@@ -112,6 +112,14 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
 
+        /** The skybox translation scale. */
+        @Editable(step=0.001, hgroup="t")
+        public Vector3f translationScale = new Vector3f();
+
+        /** The skybox translation origin. */
+        @Editable(step=0.01, hgroup="t")
+        public Vector3f translationOrigin = new Vector3f();
+
         @Override // documentation inherited
         public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
         {
@@ -127,7 +135,9 @@ public abstract class ViewerEffectConfig extends DeepObject
                     _scene = null;
                 }
                 public void update () {
-                    model.getLocalTransform().getTranslation().set(translation);
+                    Vector3f trans = model.getLocalTransform().getTranslation();
+                    translationOrigin.subtract(translation, trans).multLocal(translationScale);
+                    trans.addLocal(translation);
                     model.updateBounds();
                 }
                 protected Scene _scene;
