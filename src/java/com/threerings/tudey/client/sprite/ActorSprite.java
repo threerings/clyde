@@ -403,6 +403,14 @@ public class ActorSprite extends Sprite
             }
 
             /**
+             * Creates a new activity.
+             */
+            public Activity (Animation... anims)
+            {
+                _anims = anims;
+            }
+
+            /**
              * Returns the priority of the activity.
              */
             public int getPriority ()

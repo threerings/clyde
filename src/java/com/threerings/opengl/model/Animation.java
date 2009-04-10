@@ -298,12 +298,12 @@ public class Animation extends SimpleScope
                     return false; // still transitioning
                 }
                 // done transitioning; fix accumulated frames and clear transition flag
-                _accum = (_accum - 1f) * _config.transition * _config.getScaledRate();
+                _accum = (_accum - 1f) * _config.transition * getFrameRate();
                 _transitioning = false;
 
             // otherwise, based on frame rate
             } else {
-                _accum += (elapsed * _config.getScaledRate());
+                _accum += (elapsed * getFrameRate());
             }
 
             // advance the frame index and execute any actions
@@ -400,6 +400,14 @@ public class Animation extends SimpleScope
             if (weight == 0f) {
                 _counting = false; // cancel any plans to blend out
             }
+        }
+
+        /**
+         * Returns the animation's frame rate.
+         */
+        protected float getFrameRate ()
+        {
+            return _config.getScaledRate() * ((Animation)_parentScope).getSpeed();
         }
 
         /**
@@ -645,6 +653,22 @@ public class Animation extends SimpleScope
     public String getName ()
     {
         return _name;
+    }
+
+    /**
+     * Sets the speed at which to play the animation.
+     */
+    public void setSpeed (float speed)
+    {
+        _speed = speed;
+    }
+
+    /**
+     * Returns the speed at which the animation is being played.
+     */
+    public float getSpeed ()
+    {
+        return _speed;
     }
 
     /**
@@ -956,6 +980,9 @@ public class Animation extends SimpleScope
 
     /** The configuration of this animation. */
     protected AnimationConfig _config;
+
+    /** The speed at which to play the animation. */
+    protected float _speed = 1f;
 
     /** The animation implementation. */
     protected Implementation _impl = NULL_IMPLEMENTATION;
