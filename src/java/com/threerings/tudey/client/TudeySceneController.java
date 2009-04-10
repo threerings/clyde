@@ -450,8 +450,9 @@ public class TudeySceneController extends SceneController
         // perhaps enqueue an input frame
         if (direction != _lastDirection || _frameFlags != _lastFlags) {
             // create and enqueue the frame
-            InputFrame frame = createInputFrame(
-                _tsview.getAdvancedTime(), _lastDirection = direction, _lastFlags = _frameFlags);
+            InputFrame frame = createInputFrame(_tsview.getAdvancedTime(), direction, _frameFlags);
+            _lastDirection = direction;
+            _lastFlags = _frameFlags;
             _input.add(frame);
 
             // apply it immediately to the controller and sprite advancers
