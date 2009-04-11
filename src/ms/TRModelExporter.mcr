@@ -55,6 +55,10 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
             if mesh.numcpvverts > 0 do (
                 cpvface = getVCFace mesh ii
             )
+            local alphaface
+            if (meshop.getNumMapVerts mesh -2) > 0 do (
+                alphaface = meshop.getMapFace mesh -2 ii
+            )
             for jj = 1 to 3 do (
                 format "    <vertex" to:outFile
                 writePoint3Attr " location" (getVert mesh face[jj]) outFile
@@ -71,8 +75,12 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                 )
                 if cpvface != undefined do (
                     vcolor = getVertColor mesh cpvface[jj]
+                    valpha = [1, 1, 1]
+                    if alphaface != undefined do (
+                        valpha = meshop.getMapVert mesh -2 alphaface[jj]
+                    )
                     format " color=\"%, %, %, %\"" (vcolor.r/255.0) (vcolor.g/255.0) (vcolor.b/255.0) \
-                        (vcolor.a/255.0) to:outFile
+                        valpha[1] to:outFile
                 )
                 if isProperty mesh #skin or isProperty mesh #physique then (
                     format ">\n" to:outFile
