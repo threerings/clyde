@@ -211,6 +211,7 @@ public class ActorSprite extends Sprite
             super.setConfig(config);
 
             ActorSpriteConfig.Moving mconfig = (ActorSpriteConfig.Moving)config;
+            _model.getLocalTransform().setScale(mconfig.scale);
             _idles = resolve(mconfig.idles);
             _idleWeights = mconfig.getIdleWeights();
             _movements = resolve(mconfig.movements);
@@ -220,9 +221,6 @@ public class ActorSprite extends Sprite
         public void update (Actor actor)
         {
             super.update(actor);
-
-            // apply the scale
-            _model.getLocalTransform().setScale(((ActorSpriteConfig.Moving)_config).scale);
 
             // update the base animation
             Animation base = getBase((Mobile)actor);
