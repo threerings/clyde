@@ -71,6 +71,10 @@ public abstract class ActorSpriteConfig extends DeepObject
      */
     public static class Moving extends Default
     {
+        /** A scale to apply to the sprite (affects the movement animation speeds). */
+        @Editable(min=0, step=0.01)
+        public float scale = 1f;
+
         /** The idle animations for the sprite. */
         @Editable
         public WeightedAnimation[] idles = new WeightedAnimation[0];
@@ -134,9 +138,9 @@ public abstract class ActorSpriteConfig extends DeepObject
     public static class MovementSet extends DeepObject
         implements Exportable
     {
-        /** The speed threshold at and beyond which this set is used. */
+        /** The movement speed of this animation set. */
         @Editable(min=0, step=0.01)
-        public float speedThreshold;
+        public float speed;
 
         /** The forward movement animation. */
         @Editable(hgroup="fl")

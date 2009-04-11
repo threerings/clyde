@@ -221,6 +221,9 @@ public class ActorSprite extends Sprite
         {
             super.update(actor);
 
+            // apply the scale
+            _model.getLocalTransform().setScale(((ActorSpriteConfig.Moving)_config).scale);
+
             // update the base animation
             Animation base = getBase((Mobile)actor);
             if (base != null && !base.isPlaying()) {
@@ -300,19 +303,25 @@ public class ActorSprite extends Sprite
             if (mlen == 0) {
                 return null;
             }
-            Animation[] movement = _movements[0];
+            ActorSpriteConfig.Moving config = (ActorSpriteConfig.Moving)_config;
+            ActorSpriteConfig.MovementSet[] sets = config.movements;
+            float sspeed = actor.getSpeed() / config.scale;
+            int idx = 0;
             if (mlen > 1) {
-                float speed = actor.getSpeed();
-                ActorSpriteConfig.MovementSet[] sets =
-                    ((ActorSpriteConfig.Moving)_config).movements;
-                for (int ii = 1; ii < _movements.length && speed >= sets[ii].speedThreshold;
-                        ii++) {
-                    movement = _movements[ii];
+                float cdiff = Math.abs(sspeed - sets[0].speed);
+                for (int ii = 1; ii < sets.length; ii++) {
+                    float diff = Math.abs(sspeed - sets[ii].speed);
+                    if (diff < cdiff) {
+                        cdiff = diff;
+                        idx = ii;
+                    }
                 }
             }
             float angle = FloatMath.getAngularDifference(
                 actor.getDirection(), actor.getRotation()) + FloatMath.PI;
-            return movement[Math.round(angle / FloatMath.HALF_PI) % 4];
+            Animation movement = _movements[idx][Math.round(angle / FloatMath.HALF_PI) % 4];
+            movement.setSpeed(sspeed / sets[idx].speed);
+            return movement;
         }
 
         /** The resolved idle animations. */
