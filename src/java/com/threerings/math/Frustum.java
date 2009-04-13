@@ -44,7 +44,6 @@ public class Frustum
         }
         for (int ii = 0; ii < 6; ii++) {
             _planes[ii] = new Plane();
-            _extents[ii] = new Box();
         }
     }
 
@@ -201,19 +200,16 @@ public class Frustum
         // consider each side of the frustum as a potential separating axis
         int ccount = 0;
         for (int ii = 0; ii < 6; ii++) {
-            // determine how many vertices fall inside/outside the plane and compute cross
-            // product extents
+            // determine how many vertices fall inside/outside the plane
             int inside = 0;
             Plane plane = _planes[ii];
             Vector3f normal = plane.getNormal();
-            _extent.setToEmpty();
             for (int jj = 0; jj < 8; jj++) {
                 if (plane.getDistance(box.getVertex(jj, _vertex)) <= 0f) {
                     inside++;
                 }
-                _extent.addLocal(_vertex.cross(normal, _vector));
             }
-            if (inside == 0 || !_extents[ii].intersects(_extent)) {
+            if (inside == 0) {
                 return IntersectionType.NONE;
             } else if (inside == 8) {
                 ccount++;
@@ -234,16 +230,6 @@ public class Frustum
         _planes[4].fromPoints(_vertices[3], _vertices[2], _vertices[6]); // top
         _planes[5].fromPoints(_vertices[4], _vertices[5], _vertices[1]); // bottom
         _bounds.fromPoints(_vertices);
-
-        // compute the cross product extents
-        for (int ii = 0; ii < 6; ii++) {
-            Box extents = _extents[ii];
-            extents.setToEmpty();
-            Vector3f normal = _planes[ii].getNormal();
-            for (Vector3f vertex : _vertices) {
-                extents.addLocal(vertex.cross(normal, _vector));
-            }
-        }
     }
 
     /** The vertices of the frustum. */
@@ -256,15 +242,6 @@ public class Frustum
     /** The frustum's bounding box (as derived from the vertices). */
     protected Box _bounds = new Box();
 
-    /** Cross product extents for the six planes. */
-    protected Box[] _extents = new Box[6];
-
     /** A working vertex. */
     protected static Vector3f _vertex = new Vector3f();
-
-    /** A working vector. */
-    protected static Vector3f _vector = new Vector3f();
-
-    /** A working box. */
-    protected static Box _extent = new Box();
 }
