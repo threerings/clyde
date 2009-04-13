@@ -130,6 +130,12 @@ public class Texture2D extends Texture
         boolean rescale, boolean mipmap)
     {
         if (!mipmap || isRectangle()) {
+            setGenerateMipmaps(false);
+            setImage(0, format, border, image, premultiply, rescale);
+            return;
+        }
+        if (GLContext.getCapabilities().GL_SGIS_generate_mipmap) {
+            setGenerateMipmaps(true);
             setImage(0, format, border, image, premultiply, rescale);
             return;
         }
@@ -208,11 +214,20 @@ public class Texture2D extends Texture
         }
         _renderer.setTexture(this);
         if (mipmap && !isRectangle()) { // rectangles cannot be mipmapped
-            GLU.gluBuild2DMipmaps(
-                _target, getInternalFormat(image, compress), _width = width, _height = height,
-                _format = getFormat(image), GL11.GL_UNSIGNED_BYTE,
-                getData(image, premultiply, width, height, rescale));
+            if (GLContext.getCapabilities().GL_SGIS_generate_mipmap) {
+                setGenerateMipmaps(true);
+                GL11.glTexImage2D(
+                    _target, 0, getInternalFormat(image, compress), _width = width,
+                    _height = height, 0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE,
+                    getData(image, premultiply, width, height, rescale));
+            } else {
+                GLU.gluBuild2DMipmaps(
+                    _target, getInternalFormat(image, compress), _width = width, _height = height,
+                    _format = getFormat(image), GL11.GL_UNSIGNED_BYTE,
+                    getData(image, premultiply, width, height, rescale));
+            }
         } else {
+            setGenerateMipmaps(false);
             GL11.glTexImage2D(
                 _target, 0, getInternalFormat(image, compress), _width = width, _height = height,
                 0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE,

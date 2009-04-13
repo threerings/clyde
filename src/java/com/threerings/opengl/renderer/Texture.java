@@ -47,6 +47,7 @@ import org.lwjgl.opengl.EXTTextureFilterAnisotropic;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
+import org.lwjgl.opengl.SGISGenerateMipmap;
 
 /**
  * An OpenGL texture object.
@@ -237,6 +238,19 @@ public abstract class Texture
             _renderer.setTexture(this);
             _borderColor.set(borderColor).get(_vbuf).rewind();
             GL11.glTexParameter(_target, GL11.GL_TEXTURE_BORDER_COLOR, _vbuf);
+        }
+    }
+
+    /**
+     * Sets whether or not to generate mipmaps automatically.
+     */
+    public void setGenerateMipmaps (boolean generate)
+    {
+        if (_generateMipmaps != generate) {
+            _renderer.setTexture(this);
+            GL11.glTexParameteri(
+                _target, SGISGenerateMipmap.GL_GENERATE_MIPMAP_SGIS,
+                (_generateMipmaps = generate) ? GL11.GL_TRUE : GL11.GL_FALSE);
         }
     }
 
@@ -443,6 +457,9 @@ public abstract class Texture
 
     /** The border color. */
     protected Color4f _borderColor = new Color4f(0f, 0f, 0f, 0f);
+
+    /** Whether or not mipmaps should be automatically generated. */
+    protected boolean _generateMipmaps;
 
     /** The texture compare mode. */
     protected int _compareMode = GL11.GL_NONE;
