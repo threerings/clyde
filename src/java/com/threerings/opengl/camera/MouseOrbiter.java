@@ -32,11 +32,15 @@ import java.awt.event.MouseWheelListener;
 
 import com.threerings.math.FloatMath;
 
+import com.threerings.opengl.gui.event.InputEvent;
+
 /**
  * Provides a means of manipulating an {@link OrbitCameraHandler} using the mouse.
  */
 public class MouseOrbiter
-    implements MouseMotionListener, MouseWheelListener
+    implements MouseMotionListener, MouseWheelListener,
+        com.threerings.opengl.gui.event.MouseMotionListener,
+        com.threerings.opengl.gui.event.MouseWheelListener
 {
     /**
      * Creates new mouse orbiter for the specified camera handler.
@@ -78,15 +82,60 @@ public class MouseOrbiter
     // documentation inherited from interface MouseMotionListener
     public void mouseDragged (MouseEvent event)
     {
-        int dx = event.getX() - _lx, dy = event.getY() - _ly;
         int modex = event.getModifiersEx();
-        if ((modex & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
+        mouseDragged(event.getX(), event.getY(),
+            (modex & MouseEvent.BUTTON1_DOWN_MASK) != 0,
+            (modex & MouseEvent.BUTTON2_DOWN_MASK) != 0,
+            (modex & MouseEvent.BUTTON3_DOWN_MASK) != 0);
+    }
+
+    // documentation inherited from interface MouseMotionListener
+    public void mouseMoved (MouseEvent event)
+    {
+        mouseMoved(event.getX(), event.getY());
+    }
+
+    // documentation inherited from interface MouseWheelListener
+    public void mouseWheelMoved (MouseWheelEvent event)
+    {
+        mouseWheelMoved(event.getWheelRotation());
+    }
+
+    // documentation inherited from interface com.threerings.opengl.gui.event.MouseMotionListener
+    public void mouseMoved (com.threerings.opengl.gui.event.MouseEvent event)
+    {
+        mouseMoved(event.getX(), -event.getY());
+    }
+
+    // documentation inherited from interface com.threerings.opengl.gui.event.MouseMotionListener
+    public void mouseDragged (com.threerings.opengl.gui.event.MouseEvent event)
+    {
+        int mods = event.getModifiers();
+        mouseDragged(event.getX(), -event.getY(),
+            (mods & InputEvent.BUTTON1_DOWN_MASK) != 0,
+            (mods & InputEvent.BUTTON3_DOWN_MASK) != 0,
+            (mods & InputEvent.BUTTON2_DOWN_MASK) != 0);
+    }
+
+    // documentation inherited from interface com.threerings.opengl.gui.event.MouseWheelListener
+    public void mouseWheeled (com.threerings.opengl.gui.event.MouseEvent event)
+    {
+        mouseWheelMoved(-event.getDelta());
+    }
+
+    /**
+     * Notes that the mouse has been dragged.
+     */
+    protected void mouseDragged (int x, int y, boolean b1, boolean b2, boolean b3)
+    {
+        int dx = x - _lx, dy = y - _ly;
+        if (b1) {
             _camhand.orbit(-dx * _radiansPerPixel, dy * _radiansPerPixel);
         }
-        if ((modex & MouseEvent.BUTTON2_DOWN_MASK) != 0) {
+        if (b2) {
             _camhand.zoom(dy * _unitsPerPixel);
         }
-        if ((modex & MouseEvent.BUTTON3_DOWN_MASK) != 0) {
+        if (b3) {
             if (_panXY) {
                 _camhand.panXY(-dx * _unitsPerPixel, dy * _unitsPerPixel);
             } else {
@@ -96,20 +145,24 @@ public class MouseOrbiter
         if (_camhand.isAdded()) {
             _camhand.updatePosition();
         }
-        mouseMoved(event);
+        mouseMoved(x, y);
     }
 
-    // documentation inherited from interface MouseMotionListener
-    public void mouseMoved (MouseEvent event)
+    /**
+     * Notes that the mouse has moved.
+     */
+    protected void mouseMoved (int x, int y)
     {
-        _lx = event.getX();
-        _ly = event.getY();
+        _lx = x;
+        _ly = y;
     }
 
-    // documentation inherited from interface MouseWheelListener
-    public void mouseWheelMoved (MouseWheelEvent event)
+    /**
+     * Notes that the mouse wheel has moved.
+     */
+    protected void mouseWheelMoved (int delta)
     {
-        _camhand.zoom(event.getWheelRotation() * _unitsPerClick);
+        _camhand.zoom(delta * _unitsPerClick);
         if (_camhand.isAdded()) {
             _camhand.updatePosition();
         }

@@ -47,6 +47,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.camera.MouseOrbiter;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Root;
@@ -325,6 +326,25 @@ public class TudeySceneController extends SceneController
         // listen for input events
         _tsview.getInputWindow().addListener(this);
 
+        // perhaps create the mouse orbiter
+        if (getMouseCameraModifiers() != 0) {
+            OrbitCameraHandler camhand = (OrbitCameraHandler)_tctx.getCameraHandler();
+            _tsview.getInputWindow().addListener(_orbiter = new MouseOrbiter(camhand, true) {
+                public void mouseDragged (MouseEvent event) {
+                    if (mouseCameraEnabled()) {
+                        super.mouseDragged(event);
+                    } else {
+                        super.mouseMoved(event);
+                    }
+                }
+                public void mouseWheeled (MouseEvent event) {
+                    if (mouseCameraEnabled()) {
+                        super.mouseWheeled(event);
+                    }
+                }
+            });
+        }
+
         // if the player controls a pawn, then the target is and will always be that pawn.
         // otherwise, the target starts out being the first pawn in the occupant list
         _targetId = _tsobj.getPawnId(clobj.getOid());
@@ -343,6 +363,10 @@ public class TudeySceneController extends SceneController
         // stop listening to the client object and input events
         _ctx.getClient().getClientObject().removeListener(this);
         _tsview.getInputWindow().removeListener(this);
+        if (_orbiter != null) {
+            _tsview.getInputWindow().removeListener(_orbiter);
+            _orbiter = null;
+        }
     }
 
     @Override // documentation inherited
@@ -378,7 +402,25 @@ public class TudeySceneController extends SceneController
      */
     protected boolean inputWindowHovered ()
     {
-        return _tsview.getInputWindow().getState() == Component.HOVER;
+        return _tsview.getInputWindow().getState() == Component.HOVER && !mouseCameraEnabled();
+    }
+
+    /**
+     * Determines whether the mouse camera is enabled.
+     */
+    protected boolean mouseCameraEnabled ()
+    {
+        int mods = getMouseCameraModifiers();
+        return mods != 0 && (_tctx.getRoot().getModifiers() & mods) == mods;
+    }
+
+    /**
+     * Returns the combination of modifiers that activates the mouse camera, or 0 if the mouse
+     * camera is not enabled.
+     */
+    protected int getMouseCameraModifiers ()
+    {
+        return 0;
     }
 
     /**
@@ -417,7 +459,7 @@ public class TudeySceneController extends SceneController
         float direction = _lastDirection;
         Sprite nhsprite = null;
 
-        if (_tsview.getInputWindow().getState() == Component.HOVER) {
+        if (inputWindowHovered()) {
             // get the pick ray
             Root root = _tctx.getRoot();
             _tctx.getCompositor().getCamera().getPickRay(
@@ -601,6 +643,9 @@ public class TudeySceneController extends SceneController
 
     /** A casted reference to the scene object. */
     protected TudeySceneObject _tsobj;
+
+    /** The orbiter used to control the camera, if any. */
+    protected MouseOrbiter _orbiter;
 
     /** The id of the actor that the camera should track. */
     protected int _targetId;

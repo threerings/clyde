@@ -55,4 +55,10 @@ public class ToolSceneController extends TudeySceneController
             _ctx.getLocationDirector().leavePlace();
         }
     }
+
+    @Override // documentation inherited
+    protected int getMouseCameraModifiers ()
+    {
+        return KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK;
+    }
 }
