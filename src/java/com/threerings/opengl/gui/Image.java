@@ -31,6 +31,7 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -198,6 +199,7 @@ public class Image
             texture.setImage(format, false, _image, true, false, false);
         }
         texture.setMinFilter(GL11.GL_LINEAR);
+        texture.setWrap(GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE);
         setTexture(texture);
     }
 

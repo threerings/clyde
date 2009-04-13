@@ -27,6 +27,7 @@ package com.threerings.opengl.gui;
 import java.util.ArrayList;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.threerings.expr.DynamicScope;
@@ -172,6 +173,7 @@ public class RenderableView extends Component
             if (texture == null) {
                 texture = new Texture2D(renderer);
                 texture.setMinFilter(GL11.GL_LINEAR);
+                texture.setWrap(GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE);
             }
             int twidth = GlUtil.nextPowerOfTwo(width), theight = GlUtil.nextPowerOfTwo(height);
             if (texture.getWidth() != twidth || texture.getHeight() != theight) {
