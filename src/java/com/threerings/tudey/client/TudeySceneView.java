@@ -486,16 +486,21 @@ public class TudeySceneView extends SimpleScope
     {
         _ctx.setCameraHandler(_camhand);
         _ctx.getRoot().addWindow(_inputWindow);
+        if (_ctrl != null) {
+            _ctrl.wasAdded();
+        }
     }
 
     // documentation inherited from interface GlView
     public void wasRemoved ()
     {
         _ctx.getRoot().removeWindow(_inputWindow);
-
         if (_loadingWindow != null) {
             _ctx.getRoot().removeWindow(_loadingWindow);
             _loadingWindow = null;
+        }
+        if (_ctrl != null) {
+            _ctrl.wasRemoved();
         }
     }
 

@@ -314,17 +314,9 @@ public class TudeySceneController extends SceneController
     }
 
     @Override // documentation inherited
-    public void willEnterPlace (PlaceObject plobj)
+    public void wasAdded ()
     {
-        super.willEnterPlace(plobj);
-        _tsobj = (TudeySceneObject)plobj;
-
-        // listen to the client object for delta events
-        ClientObject clobj = _ctx.getClient().getClientObject();
-        clobj.addListener(this);
-
-        // listen for input events
-        _tsview.getInputWindow().addListener(this);
+        super.wasAdded();
 
         // perhaps create the mouse orbiter
         if (getMouseCameraModifiers() != 0) {
@@ -344,6 +336,32 @@ public class TudeySceneController extends SceneController
                 }
             });
         }
+    }
+
+    @Override // documentation inherited
+    public void wasRemoved ()
+    {
+        super.wasRemoved();
+
+        // remove the mouse orbiter
+        if (_orbiter != null) {
+            _tsview.getInputWindow().removeListener(_orbiter);
+            _orbiter = null;
+        }
+    }
+
+    @Override // documentation inherited
+    public void willEnterPlace (PlaceObject plobj)
+    {
+        super.willEnterPlace(plobj);
+        _tsobj = (TudeySceneObject)plobj;
+
+        // listen to the client object for delta events
+        ClientObject clobj = _ctx.getClient().getClientObject();
+        clobj.addListener(this);
+
+        // listen for input events
+        _tsview.getInputWindow().addListener(this);
 
         // if the player controls a pawn, then the target is and will always be that pawn.
         // otherwise, the target starts out being the first pawn in the occupant list
@@ -363,10 +381,6 @@ public class TudeySceneController extends SceneController
         // stop listening to the client object and input events
         _ctx.getClient().getClientObject().removeListener(this);
         _tsview.getInputWindow().removeListener(this);
-        if (_orbiter != null) {
-            _tsview.getInputWindow().removeListener(_orbiter);
-            _orbiter = null;
-        }
     }
 
     @Override // documentation inherited
