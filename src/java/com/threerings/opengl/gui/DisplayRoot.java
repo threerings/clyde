@@ -50,23 +50,11 @@ public class DisplayRoot extends Root
         _clipboard = Toolkit.getDefaultToolkit().getSystemSelection();
     }
 
-    @Override // documentation inherited
-    public int getDisplayWidth ()
+    /**
+     * Polls the input system for events and dispatches them.
+     */
+    public void poll ()
     {
-        return Display.getDisplayMode().getWidth();
-    }
-
-    @Override // documentation inherited
-    public int getDisplayHeight ()
-    {
-        return Display.getDisplayMode().getHeight();
-    }
-
-    @Override // documentation inherited
-    public void tick (float elapsed)
-    {
-        super.tick(elapsed);
-
         // poll the mouse and keyboard
         Mouse.poll();
         Keyboard.poll();
@@ -124,6 +112,18 @@ public class DisplayRoot extends Root
                     Keyboard.getEventKey(), false);
             }
         }
+    }
+
+    @Override // documentation inherited
+    public int getDisplayWidth ()
+    {
+        return Display.getDisplayMode().getWidth();
+    }
+
+    @Override // documentation inherited
+    public int getDisplayHeight ()
+    {
+        return Display.getDisplayMode().getHeight();
     }
 
     @Override // documentation inherited
