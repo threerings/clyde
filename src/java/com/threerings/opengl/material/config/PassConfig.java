@@ -127,6 +127,10 @@ public class PassConfig extends DeepObject
     @Editable
     public ExpressionBinding[] dynamicBindings = new ExpressionBinding[0];
 
+    /** Whether or not to ignore the vertex colors. */
+    @Editable
+    public boolean ignoreVertexColors;
+
     /**
      * Adds the technique's update references to the provided set.
      */
@@ -154,8 +158,13 @@ public class PassConfig extends DeepObject
         PassDescriptor desc = new PassDescriptor();
         shaderState.populateDescriptor(ctx, desc);
         textureState.populateDescriptor(desc);
-        desc.colors |= !(lightStateOverride instanceof LightStateConfig.Enabled) ||
-            materialState == null || materialState.colorMaterialMode != ColorMaterialMode.DISABLED;
+        if (ignoreVertexColors) {
+            desc.colors = false;
+        } else {
+            desc.colors |= !(lightStateOverride instanceof LightStateConfig.Enabled) ||
+                materialState == null ||
+                materialState.colorMaterialMode != ColorMaterialMode.DISABLED;
+        }
         desc.normals |= !(lightStateOverride instanceof LightStateConfig.Disabled);
         return desc;
     }
