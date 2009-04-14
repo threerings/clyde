@@ -92,6 +92,10 @@ public class EffectConfig extends ParameterizedConfig
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
+        /** The action associated with the effect, if any. */
+        @Editable(nullable=true)
+        public ActionConfig action;
+
         /** The lifespan of the effect. */
         @Editable(min=0)
         public int lifespan = 1000;

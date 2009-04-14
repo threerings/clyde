@@ -50,6 +50,10 @@ public class EffectLogic extends Logic
         _effect = createEffect(ref, timestamp, translation, rotation);
         _effect.init(scenemgr.getConfigManager());
         _shape = config.shape.getShape().transform(new Transform2D(translation, rotation));
+        _action = (config.action == null) ? null : createAction(config.action, this);
+
+        // give subclasses a chance to initialize
+        didInit();
     }
 
     /**
@@ -89,9 +93,23 @@ public class EffectLogic extends Logic
         return new Effect(ref, timestamp, translation, rotation);
     }
 
+    /**
+     * Override to perform custom initialization.
+     */
+    protected void didInit ()
+    {
+        // execute the configured action, if any
+        if (_action != null) {
+            _action.execute(_effect.getTimestamp(), this);
+        }
+    }
+
     /** The effect fired. */
     protected Effect _effect;
 
     /** The shape of the effect. */
     protected Shape _shape;
+
+    /** The effect action, if any. */
+    protected ActionLogic _action;
 }
