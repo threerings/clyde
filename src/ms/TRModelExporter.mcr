@@ -56,7 +56,7 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                 cpvface = getVCFace mesh ii
             )
             local alphaface
-            if (meshop.getNumMapVerts mesh -2) > 0 do (
+            if meshop.getMapSupport mesh -2 do (
                 alphaface = meshop.getMapFace mesh -2 ii
             )
             for jj = 1 to 3 do (
