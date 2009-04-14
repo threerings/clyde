@@ -1479,6 +1479,20 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Returns the tile elevation at the specified coordinates, or {@link Integer#MIN_VALUE} if
+     * there is no tile there.
+     */
+    public int getTileElevation (int x, int y)
+    {
+        int pair = _tileCoords.get(x, y);
+        if (pair == EMPTY_COORD) {
+            return Integer.MIN_VALUE;
+        }
+        int value = getTileValue(pair);
+        return (value == -1) ? Integer.MIN_VALUE : getTileElevation(value);
+    }
+
+    /**
      * Adds the resources to preload for this scene model to the supplied set.
      */
     public void getPreloads (PreloadableSet preloads)
@@ -1896,6 +1910,20 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Returns the encoded tile value corresponding to the encoded coordinate pair given, logging
+     * a warning and returning -1 if no value exists at the coordinates.
+     */
+    protected int getTileValue (int pair)
+    {
+        int x = Coord.decodeX(pair), y = Coord.decodeY(pair);
+        int value = _tiles.get(x, y);
+        if (value == -1) {
+            log.warning("Tile shadow points to nonexistent tile.", "x", x, "y", y);
+        }
+        return value;
+    }
+
+    /**
      * Ensures that the entry's reference, if non-null, points to one of the references in the
      * {@link #_references} set (that is, that all entries whose references are equal point to
      * the same reference instance).
@@ -1970,7 +1998,7 @@ public class TudeySceneModel extends SceneModel
         TileEntry entry = new TileEntry();
         entry.getLocation().set(x, y);
         entry.tile = _tileConfigs.get(getTileConfigIndex(value)).tile;
-        entry.elevation = (value << 16) >> 18;
+        entry.elevation = getTileElevation(value);
         entry.rotation = value & 0x03;
         return entry;
     }
@@ -1981,6 +2009,14 @@ public class TudeySceneModel extends SceneModel
     protected static int getTileConfigIndex (int value)
     {
         return value >>> 16;
+    }
+
+    /**
+     * Extracts the tile elevation from the supplied encoded tile.
+     */
+    protected static int getTileElevation (int value)
+    {
+        return (value << 16) >> 18;
     }
 
     /**
