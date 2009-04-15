@@ -82,6 +82,14 @@ public abstract class Logic
     }
 
     /**
+     * Convenience method to retrieve the translation and rotation in a new transform.
+     */
+    public Transform2D getTransform ()
+    {
+        return getTransform(new Transform2D());
+    }
+
+    /**
      * Convenience method to retrieve the translation and rotation in a transform.
      *
      * @return a reference to the result transform, for chaining.
