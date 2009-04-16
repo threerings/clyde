@@ -33,7 +33,7 @@ import com.threerings.tudey.data.InputFrame;
  * Used on the client and the server to advance the state of a pawn based on its inputs and
  * surroundings.
  */
-public class PawnAdvancer extends MobileAdvancer
+public class PawnAdvancer extends ActiveAdvancer
 {
     /**
      * Creates a new advancer for the supplied pawn.
@@ -48,11 +48,9 @@ public class PawnAdvancer extends MobileAdvancer
      */
     public void advance (InputFrame frame)
     {
-        // advance to the input timestamp
+        // save the input frame and advance
+        _frame = frame;
         advance(frame.getTimestamp());
-
-        // modify the pawn's state based on the input
-        updateMovement(frame);
     }
 
     @Override // documentation inherited
@@ -60,32 +58,43 @@ public class PawnAdvancer extends MobileAdvancer
     {
         super.init(actor, timestamp);
         _pawn = (Pawn)actor;
+        _frame = null;
+    }
+
+    @Override // documentation inherited
+    protected void step (float elapsed)
+    {
+        super.step(elapsed);
+
+        // update based on most recent input
+        if (_frame != null) {
+            updateInput();
+        }
     }
 
     /**
-     * Updates the pawn's movement state based on the given input frame.
+     * Updates the pawn's state based on the current input frame.
      */
-    protected void updateMovement (InputFrame frame)
+    protected void updateInput ()
     {
-        updateRotation(frame);
-        if (frame.isSet(InputFrame.MOVE)) {
-            _pawn.setDirection(frame.getDirection());
+        Activity activity = getActivity();
+        if (activity != null) {
+            activity.updateInput();
+        }
+        if (!_frame.isSet(InputFrame.STRAFE) && canRotate()) {
+            _pawn.setRotation(_frame.getDirection());
+        }
+        if (_frame.isSet(InputFrame.MOVE) && canMove()) {
+            _pawn.setDirection(_frame.getDirection());
             _pawn.set(Mobile.MOVING);
         } else {
             _pawn.clear(Mobile.MOVING);
         }
     }
 
-    /**
-     * Updates the pawn's rotation state based on the given input frame.
-     */
-    protected void updateRotation (InputFrame frame)
-    {
-        if (!frame.isSet(InputFrame.STRAFE)) {
-            _pawn.setRotation(frame.getDirection());
-        }
-    }
-
     /** A casted reference to the pawn. */
     protected Pawn _pawn;
+
+    /** The most current input frame. */
+    protected InputFrame _frame;
 }

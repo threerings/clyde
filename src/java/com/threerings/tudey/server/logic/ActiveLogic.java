@@ -28,6 +28,8 @@ import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 
 import com.threerings.tudey.data.actor.Active;
+import com.threerings.tudey.util.ActiveAdvancer;
+import com.threerings.tudey.util.ActorAdvancer;
 
 /**
  * Controls the state of an active actor.
@@ -51,6 +53,12 @@ public class ActiveLogic extends MobileLogic
         }
 
         return true;
+    }
+
+    @Override // documentation inherited
+    protected ActorAdvancer createAdvancer ()
+    {
+        return new ActiveAdvancer(this, (Active)_actor, _actor.getCreated());
     }
 
     /** Activity logic mappings. */
