@@ -548,11 +548,13 @@ public class TudeySceneManager extends SceneManager
                     rotation = entry.getRotation(_cfgmgr);
                 }
             }
-            if (translation == Vector2f.ZERO && !_defaultEntrances.isEmpty()) {
-                // select a default entrance at random
-                Logic entrance = RandomUtil.pickRandom(_defaultEntrances);
-                translation = entrance.getTranslation();
-                rotation = entrance.getRotation();
+            if (translation == Vector2f.ZERO) {
+                // select a default entrance
+                Logic entrance = getDefaultEntrance();
+                if (entrance != null) {
+                    translation = entrance.getTranslation();
+                    rotation = entrance.getRotation();
+                }
             }
             final ActorLogic logic = spawnActor(getNextTimestamp(), translation, rotation, ref);
             if (logic != null) {
@@ -853,6 +855,16 @@ public class TudeySceneManager extends SceneManager
     protected ClientLiaison createClientLiaison (BodyObject bodyobj)
     {
         return new ClientLiaison(this, bodyobj);
+    }
+
+    /**
+     * Selects a default entrance for an entering player.
+     *
+     * @return the default entrance, or null if no such entrance is available.
+     */
+    protected Logic getDefaultEntrance ()
+    {
+        return _defaultEntrances.isEmpty() ? null : RandomUtil.pickRandom(_defaultEntrances);
     }
 
     /**
