@@ -62,7 +62,7 @@ public class ActorLogic extends Logic
         updateShape();
 
         // if specified, attempt to find a non-colliding spawn point
-        if (config.adjustSpawnPoint && scenemgr.collides(this)) {
+        if (config.spawnMask != 0 && scenemgr.collides(config.spawnMask, getShape())) {
             adjustSpawnPoint();
         }
         _scenemgr.getActorSpace().add(_shape);
@@ -311,7 +311,7 @@ public class ActorLogic extends Logic
         updateShape();
 
         // check for collision
-        if (_scenemgr.collides(this)) {
+        if (_scenemgr.collides(_config.spawnMask, getShape())) {
             return false;
         }
 

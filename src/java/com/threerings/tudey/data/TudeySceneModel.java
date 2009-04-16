@@ -1654,6 +1654,52 @@ public class TudeySceneModel extends SceneModel
         return false;
     }
 
+    /**
+     * Checks the specified mask for a collision with the environment.
+     */
+    public boolean collides (int mask, Shape shape)
+    {
+        // check against locations
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = (int)FloatMath.floor(min.x);
+        int maxx = (int)FloatMath.floor(max.x);
+        int miny = (int)FloatMath.floor(min.y);
+        int maxy = (int)FloatMath.floor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                if ((_collisionFlags.get(xx, yy) & mask) == 0) {
+                    continue;
+                }
+                float lx = xx, ly = yy, ux = lx + 1f, uy = ly + 1f;
+                _quad.getVertex(0).set(lx, ly);
+                _quad.getVertex(1).set(ux, ly);
+                _quad.getVertex(2).set(ux, uy);
+                _quad.getVertex(3).set(lx, uy);
+                _quad.getBounds().getMinimumExtent().set(lx, ly);
+                _quad.getBounds().getMaximumExtent().set(ux, uy);
+                if (_quad.intersects(shape)) {
+                    return true;
+                }
+            }
+        }
+
+        // find intersecting elements
+        _space.getIntersecting(shape, _intersecting);
+        try {
+            for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
+                SpaceElement element = _intersecting.get(ii);
+                Entry entry = (Entry)element.getUserObject();
+                if ((entry.getCollisionFlags(_cfgmgr) & mask) != 0) {
+                    return true;
+                }
+            }
+        } finally {
+            _intersecting.clear();
+        }
+        return false;
+    }
+
     // documentation inherited from interface ActorAdvancer.Environment
     public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
     {

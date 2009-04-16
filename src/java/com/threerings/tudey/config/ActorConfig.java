@@ -113,10 +113,10 @@ public class ActorConfig extends ParameterizedConfig
         @Editable(hgroup="d")
         public boolean defaultEntrance;
 
-        /** Whether or not to adjust the actor's spawn point to avoid spawning on top of a
-         * colliding actor. */
+        /** If non-zero, the spawn point will be adjusted so that the actor doesn't collide with
+         * anything that matches the mask (if possible). */
         @Editable(hgroup="d")
-        public boolean adjustSpawnPoint;
+        public int spawnMask;
 
         /** Determines which collision categories the actor belongs to. */
         @Editable(hgroup="c")
