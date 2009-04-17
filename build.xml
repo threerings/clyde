@@ -31,7 +31,7 @@
     <!-- make sure the dobject class files are all compiled -->
     <javac srcdir="src/java" destdir="${classes.dir}" includeAntRuntime="false"
            debug="on" optimize="${build.optimize}" deprecation="on"
-           source="1.6" target="1.5">
+           source="1.5" target="1.5">
       <classpath refid="classpath"/>
       <include name="**/*Object.java"/>
     </javac>
@@ -49,7 +49,7 @@
     <!-- make sure the service class files are all compiled -->
     <javac srcdir="src/java" destdir="${classes.dir}" includeAntRuntime="false"
            debug="on" optimize="${build.optimize}" deprecation="on"
-           source="1.6" target="1.5">
+           source="1.5" target="1.5">
       <classpath refid="classpath"/>
       <include name="**/*Service.java"/>
     </javac>
@@ -95,7 +95,7 @@
   <target name="compile" depends="prepare">
     <javac srcdir="src/java" destdir="${classes.dir}" includeAntRuntime="false"
            debug="on" optimize="${build.optimize}" deprecation="on"
-           source="1.6" target="1.5">
+           source="1.5" target="1.5">
       <classpath refid="classpath"/>
       <compilerarg value="-Xlint"/>
       <compilerarg value="-Xlint:-serial"/>
