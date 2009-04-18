@@ -30,12 +30,29 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.ActiveAdvancer;
 
 /**
  * Controls an autonomous agent.
  */
 public class AgentLogic extends ActiveLogic
 {
+    /**
+     * Checks whether we can move.
+     */
+    public boolean canMove ()
+    {
+        return ((ActiveAdvancer)_advancer).canMove();
+    }
+
+    /**
+     * Checks whether we can rotate.
+     */
+    public boolean canRotate ()
+    {
+        return ((ActiveAdvancer)_advancer).canRotate();
+    }
+
     /**
      * Sets the target rotation to face another entity.
      */
@@ -61,8 +78,10 @@ public class AgentLogic extends ActiveLogic
      */
     public void startMoving ()
     {
-        ((Mobile)_actor).setDirection(_actor.getRotation());
-        _actor.set(Mobile.MOVING);
+        if (canMove()) {
+            ((Mobile)_actor).setDirection(_actor.getRotation());
+            _actor.set(Mobile.MOVING);
+        }
     }
 
     /**
@@ -84,7 +103,9 @@ public class AgentLogic extends ActiveLogic
         _viewShape = config.viewShape.getShape().transform(_shape.getTransform(), _viewShape);
 
         // update the behavior
-        _behavior.tick(timestamp);
+        if (canThink()) {
+            _behavior.tick(timestamp);
+        }
 
         // compute the elapsed time since the last timestamp
         float elapsed = (timestamp - _timestamp) / 1000f;
@@ -92,7 +113,7 @@ public class AgentLogic extends ActiveLogic
 
         // turn towards target rotation
         float rotation = _actor.getRotation();
-        if (rotation != _targetRotation) {
+        if (rotation != _targetRotation && canRotate()) {
             float diff = FloatMath.getAngularDifference(_targetRotation, rotation);
             float angle = elapsed * config.turnRate;
             if (Math.abs(diff) <= angle) {
@@ -129,6 +150,14 @@ public class AgentLogic extends ActiveLogic
     {
         // notify the behavior
         _behavior.penetratedEnvironment(penetration);
+    }
+
+    /**
+     * Checks whether we can think.
+     */
+    protected boolean canThink ()
+    {
+        return true;
     }
 
     /**
