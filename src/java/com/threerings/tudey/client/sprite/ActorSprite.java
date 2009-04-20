@@ -279,15 +279,7 @@ public class ActorSprite extends Sprite
          */
         protected Animation getIdle ()
         {
-            if (_idles.length == 0) {
-                return null;
-            }
-            for (Animation idle : _idles) {
-                if (idle.isPlaying()) {
-                    return idle;
-                }
-            }
-            return _idles[RandomUtil.getWeightedIndex(_idleWeights)];
+            return getWeightedAnimation(_idles, _idleWeights);
         }
 
         /**
@@ -296,14 +288,44 @@ public class ActorSprite extends Sprite
          */
         protected Animation getMovement (Mobile actor)
         {
+            ActorSpriteConfig.Moving config = (ActorSpriteConfig.Moving)_config;
+            return getMovement(actor, config.scale, config.movements, _movements);
+        }
+
+        /**
+         * Returns a weighted random animation (unless one of the animations is already playing,
+         * in which case the method will return that animation).
+         */
+        protected static Animation getWeightedAnimation (Animation[] anims, float[] weights)
+        {
+            if (anims.length == 0) {
+                return null;
+            }
+            for (Animation anim : anims) {
+                if (anim.isPlaying()) {
+                    return anim;
+                }
+            }
+            return anims[RandomUtil.getWeightedIndex(weights)];
+        }
+
+        /**
+         * Configures and returns the appropriate movement animation for the actor.
+         *
+         * @param scale the actor scale.
+         * @param sets the movement set configs.
+         * @param movements the resolved movement animations.
+         */
+        protected static Animation getMovement (
+            Mobile actor, float scale, ActorSpriteConfig.MovementSet[] sets,
+            Animation[][] movements)
+        {
             // make sure we have movement animations
-            int mlen = _movements.length;
+            int mlen = movements.length;
             if (mlen == 0) {
                 return null;
             }
-            ActorSpriteConfig.Moving config = (ActorSpriteConfig.Moving)_config;
-            ActorSpriteConfig.MovementSet[] sets = config.movements;
-            float sspeed = actor.getSpeed() / config.scale;
+            float sspeed = actor.getSpeed() / scale;
             int idx = 0;
             if (mlen > 1) {
                 float cdiff = Math.abs(sspeed - sets[0].speed);
@@ -317,7 +339,7 @@ public class ActorSprite extends Sprite
             }
             float angle = FloatMath.getAngularDifference(
                 actor.getDirection(), actor.getRotation()) + FloatMath.PI;
-            Animation movement = _movements[idx][Math.round(angle / FloatMath.HALF_PI) % 4];
+            Animation movement = movements[idx][Math.round(angle / FloatMath.HALF_PI) % 4];
             movement.setSpeed(sspeed / sets[idx].speed);
             return movement;
         }
