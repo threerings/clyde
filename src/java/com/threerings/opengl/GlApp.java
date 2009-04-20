@@ -42,6 +42,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.MessageManager;
+import com.threerings.util.ToolUtil;
 
 import com.threerings.openal.ClipProvider;
 import com.threerings.openal.Listener;
@@ -265,6 +266,9 @@ public abstract class GlApp extends DynamicScope
                 GlApp.this.enqueueView();
             }
         });
+
+        // note that we've opened a window
+        ToolUtil.windowAdded();
 
         // give subclasses a chance to init
         didInit();

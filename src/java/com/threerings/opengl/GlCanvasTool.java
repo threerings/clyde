@@ -134,9 +134,6 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _bounds = createBounds();
         _compass = new Compass(this);
         _stats = new Stats(this);
-
-        // note that we've opened a window
-        ToolUtil.windowAdded();
     }
 
     @Override // documentation inherited
