@@ -797,7 +797,7 @@ public class TudeySceneManager extends SceneManager
         sceneModel.addObserver(this);
 
         // register and fill in our tudey scene service
-        _tsobj.setTudeySceneService(_invmgr.registerDispatcher(new TudeySceneDispatcher(this)));
+        _tsobj.setTudeySceneService(addDispatcher(new TudeySceneDispatcher(this)));
 
         // initialize the last tick timestamp
         _lastTick = RunAnywhere.currentTimeMillis();
@@ -819,9 +819,6 @@ public class TudeySceneManager extends SceneManager
         // stop the ticker
         _ticker.cancel();
         _ticker = null;
-
-        // clear out the scene service
-        _invmgr.clearDispatcher(_tsobj.tudeySceneService);
 
         // shut down the pathfinder
         _pathfinder.shutdown();
