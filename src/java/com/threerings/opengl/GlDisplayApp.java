@@ -192,6 +192,9 @@ public abstract class GlDisplayApp extends GlApp
         willShutdown();
         Display.destroy();
         _dispatchThread = null;
+
+        // just in case there are any AWT windows hanging around
+        System.exit(0);
     }
 
     @Override // documentation inherited
