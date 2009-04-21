@@ -72,6 +72,7 @@ public class ActorLogic extends Logic
         for (HandlerConfig hconfig : config.handlers) {
             HandlerLogic handler = createHandler(hconfig, this);
             if (handler != null) {
+                handler.startup(timestamp);
                 handlers.add(handler);
             }
         }
@@ -183,6 +184,11 @@ public class ActorLogic extends Logic
                 return false;
             }
         });
+
+        // notify handlers
+        for (HandlerLogic handler : _handlers) {
+            handler.shutdown(timestamp);
+        }
     }
 
     @Override // documentation inherited

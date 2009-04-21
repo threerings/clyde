@@ -55,9 +55,11 @@ public class EntryLogic extends Logic
 
         // create the handler logic objects
         ArrayList<HandlerLogic> handlers = new ArrayList<HandlerLogic>();
+        int timestamp = _scenemgr.getNextTimestamp();
         for (HandlerConfig config : entry.getHandlers(cfgmgr)) {
             HandlerLogic handler = createHandler(config, this);
             if (handler != null) {
+                handler.startup(timestamp);
                 handlers.add(handler);
             }
         }
@@ -73,7 +75,9 @@ public class EntryLogic extends Logic
     public void removed ()
     {
         // notify the handlers
+        int timestamp = _scenemgr.getNextTimestamp();
         for (HandlerLogic handler : _handlers) {
+            handler.shutdown(timestamp);
             handler.removed();
         }
 

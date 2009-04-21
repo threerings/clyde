@@ -51,9 +51,21 @@ public abstract class HandlerLogic extends Logic
     public static class Startup extends HandlerLogic
     {
         @Override // documentation inherited
-        protected void didInit ()
+        public void startup (int timestamp)
         {
-            execute(_scenemgr.getTimestamp());
+            execute(timestamp);
+        }
+    }
+
+    /**
+     * Handles the shutdown event.
+     */
+    public static class Shutdown extends HandlerLogic
+    {
+        @Override // documentation inherited
+        public void shutdown (int timestamp)
+        {
+            execute(timestamp);
         }
     }
 
@@ -71,13 +83,13 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        protected void didInit ()
+        public void startup (int timestamp)
         {
             _scenemgr.addTickParticipant(this);
         }
 
         @Override // documentation inherited
-        protected void wasRemoved ()
+        public void shutdown (int timestamp)
         {
             _scenemgr.removeTickParticipant(this);
         }
@@ -89,7 +101,7 @@ public abstract class HandlerLogic extends Logic
     public static class Timer extends HandlerLogic
     {
         @Override // documentation inherited
-        protected void didInit ()
+        public void startup (int timestamp)
         {
             HandlerConfig.Timer config = (HandlerConfig.Timer)_config;
             _limit = (config.limit == 0) ? Integer.MAX_VALUE : config.limit;
@@ -104,7 +116,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        protected void wasRemoved ()
+        public void shutdown (int timestamp)
         {
             _interval.cancel();
         }
@@ -172,7 +184,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        protected void wasRemoved ()
+        public void shutdown (int timestamp)
         {
             _scenemgr.removeTickParticipant(this);
         }
@@ -274,7 +286,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        protected void didInit ()
+        public void startup (int timestamp)
         {
             Shape shape = ((HandlerConfig.BaseIntersection)_config).shape.getShape(
                 _source.getShape(), _source.getTransform(_transform), null);
@@ -288,7 +300,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        protected void wasRemoved ()
+        public void shutdown (int timestamp)
         {
             if (_shape != null) {
                 _scenemgr.getSensorSpace().remove(_shape);
@@ -403,11 +415,27 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
+     * Starts up the handler.
+     */
+    public void startup (int timestamp)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Shuts down the handler.
+     */
+    public void shutdown (int timestamp)
+    {
+        // nothing by default
+    }
+
+    /**
      * Notes that the logic has been removed.
      */
     public void removed ()
     {
-        wasRemoved();
+        // nothing by default
     }
 
     @Override // documentation inherited
@@ -426,14 +454,6 @@ public abstract class HandlerLogic extends Logic
      * Override to perform custom initialization.
      */
     protected void didInit ()
-    {
-        // nothing by default
-    }
-
-    /**
-     * Override to perform custom cleanup.
-     */
-    protected void wasRemoved ()
     {
         // nothing by default
     }

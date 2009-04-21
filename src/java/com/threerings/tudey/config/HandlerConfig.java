@@ -37,11 +37,12 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  * Configurations for server-side event handlers.
  */
 @EditorTypes({
-    HandlerConfig.Startup.class, HandlerConfig.Tick.class,
-    HandlerConfig.Timer.class, HandlerConfig.Signal.class,
-    HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
-    HandlerConfig.Intersection.class, HandlerConfig.IntersectionStart.class,
-    HandlerConfig.IntersectionStop.class, HandlerConfig.Request.class })
+    HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
+    HandlerConfig.Tick.class, HandlerConfig.Timer.class,
+    HandlerConfig.Signal.class, HandlerConfig.SignalStart.class,
+    HandlerConfig.SignalStop.class, HandlerConfig.Intersection.class,
+    HandlerConfig.IntersectionStart.class, HandlerConfig.IntersectionStop.class,
+    HandlerConfig.Request.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -54,6 +55,18 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Startup";
+        }
+    }
+
+    /**
+     * The shutdown event handler.
+     */
+    public static class Shutdown extends HandlerConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$Shutdown";
         }
     }
 
