@@ -176,6 +176,11 @@ public class ActorLogic extends Logic
      */
     public void destroy (int timestamp)
     {
+        // make sure we're not already destroyed
+        if (isDestroyed()) {
+            return;
+        }
+
         // set the destroyed time and remove on the next tick
         _actor.setDestroyed(timestamp);
         _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
