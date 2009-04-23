@@ -28,6 +28,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.config.BehaviorConfig;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActiveAdvancer;
@@ -92,6 +93,22 @@ public class AgentLogic extends ActiveLogic
         _actor.clear(Mobile.MOVING);
     }
 
+    /**
+     * Creates a behavior for this agent.
+     */
+    public BehaviorLogic createBehavior (BehaviorConfig config)
+    {
+        // create the logic instance
+        BehaviorLogic logic = (BehaviorLogic)_scenemgr.createLogic(config.getLogicClassName());
+        if (logic == null) {
+            return null;
+        }
+
+        // initialize, return the logic
+        logic.init(_scenemgr, config, this);
+        return logic;
+    }
+
     @Override // documentation inherited
     public boolean tick (int timestamp)
     {
@@ -137,12 +154,7 @@ public class AgentLogic extends ActiveLogic
         _timestamp = _actor.getCreated();
 
         // initialize the behavior logic
-        ActorConfig.Agent aconfig = (ActorConfig.Agent)_config;
-        _behavior = (BehaviorLogic)_scenemgr.createLogic(aconfig.behavior.getLogicClassName());
-        if (_behavior == null) {
-            _behavior = new BehaviorLogic.Idle();
-        }
-        _behavior.init(_scenemgr, aconfig.behavior, this);
+        _behavior = createBehavior(((ActorConfig.Agent)_config).behavior);
     }
 
     @Override // documentation inherited
