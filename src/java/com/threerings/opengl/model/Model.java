@@ -53,6 +53,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
@@ -140,6 +141,14 @@ public class Model extends DynamicScope
         public Animation[] getAnimations ()
         {
             return Animation.EMPTY_ARRAY;
+        }
+
+        /**
+         * Creates an animation for the model or returns <code>null</code> if not supported.
+         */
+        public Animation createAnimation ()
+        {
+            return null;
         }
 
         /**
@@ -657,6 +666,51 @@ public class Model extends DynamicScope
     public Animation[] getAnimations ()
     {
         return _impl.getAnimations();
+    }
+
+    /**
+     * Creates an animation for this model.
+     */
+    public Animation createAnimation (String name)
+    {
+        Animation anim = createAnimation();
+        if (anim != null) {
+            anim.setConfig(null, name);
+        }
+        return anim;
+    }
+
+    /**
+     * Creates an animation for this model.
+     */
+    public Animation createAnimation (ConfigReference<AnimationConfig> ref)
+    {
+        Animation anim = createAnimation();
+        if (anim != null) {
+            anim.setConfig(null, ref);
+        }
+        return anim;
+    }
+
+    /**
+     * Creates an animation for this model.
+     */
+    public Animation createAnimation (
+        String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        Animation anim = createAnimation();
+        if (anim != null) {
+            anim.setConfig(null, name, firstKey, firstValue, otherArgs);
+        }
+        return anim;
+    }
+
+    /**
+     * Creates an unconfigured animation for the model.
+     */
+    public Animation createAnimation ()
+    {
+        return _impl.createAnimation();
     }
 
     /**

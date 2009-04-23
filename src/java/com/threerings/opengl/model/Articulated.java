@@ -433,6 +433,12 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public Animation createAnimation ()
+    {
+        return new Animation(_ctx, this);
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
         for (Model model : _configAttachments) {
