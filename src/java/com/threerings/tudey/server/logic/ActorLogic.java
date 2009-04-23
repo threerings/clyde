@@ -209,6 +209,12 @@ public class ActorLogic extends Logic
     }
 
     @Override // documentation inherited
+    public boolean isActive ()
+    {
+        return !isDestroyed();
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _actor.getTranslation();

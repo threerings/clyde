@@ -480,6 +480,12 @@ public abstract class BehaviorLogic extends Logic
     }
 
     @Override // documentation inherited
+    public boolean isActive ()
+    {
+        return _agent.isActive();
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _agent.getTranslation();

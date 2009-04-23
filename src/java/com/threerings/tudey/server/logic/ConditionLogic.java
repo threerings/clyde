@@ -325,6 +325,12 @@ public abstract class ConditionLogic extends Logic
     public abstract boolean isSatisfied (Logic activator);
 
     @Override // documentation inherited
+    public boolean isActive ()
+    {
+        return _source.isActive();
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();

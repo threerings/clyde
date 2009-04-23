@@ -82,6 +82,14 @@ public abstract class Logic
     }
 
     /**
+     * Determines whether this logic object is still active in the scene.
+     */
+    public boolean isActive ()
+    {
+        return true;
+    }
+
+    /**
      * Convenience method to retrieve the translation and rotation in a new transform.
      */
     public Transform2D getTransform ()

@@ -98,6 +98,12 @@ public class EntryLogic extends Logic
     }
 
     @Override // documentation inherited
+    public boolean isActive ()
+    {
+        return _scenemgr.getEntryLogic(_entry.getKey()) == this;
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _translation;

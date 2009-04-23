@@ -439,6 +439,12 @@ public abstract class HandlerLogic extends Logic
     }
 
     @Override // documentation inherited
+    public boolean isActive ()
+    {
+        return _source.isActive();
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _source.getTranslation();
