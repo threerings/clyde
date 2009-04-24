@@ -44,6 +44,7 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -420,6 +421,21 @@ public class ActorSprite extends Sprite
                 for (String anim : anims) {
                     Animation animation = _model.getAnimation(anim);
                     if (animation != null) {
+                        list.add(animation);
+                    }
+                }
+                _anims = list.toArray(new Animation[list.size()]);
+            }
+
+            /**
+             * Creates a new activity.
+             */
+            public Activity (ConfigReference<AnimationConfig>... anims)
+            {
+                List<Animation> list = Lists.newArrayList();
+                for (ConfigReference<AnimationConfig> anim : anims) {
+                    Animation animation = (anim == null) ? null : _model.createAnimation(anim);
+                    if (anim != null) {
                         list.add(animation);
                     }
                 }
