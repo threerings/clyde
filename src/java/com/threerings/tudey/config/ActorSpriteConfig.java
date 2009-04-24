@@ -34,6 +34,9 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.model.Animation;
+import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
@@ -118,45 +121,82 @@ public abstract class ActorSpriteConfig extends DeepObject
     }
 
     /**
-     * Contains the name of an animation and an associated weight.
+     * Contains an animation reference and an associated weight.
      */
     public static class WeightedAnimation extends DeepObject
         implements Exportable
     {
-        /** The name of the animation. */
-        @Editable(hgroup="n")
-        public String name = "";
-
         /** The weight of the animation (affects how often it occurs). */
-        @Editable(min=0, step=0.01, hgroup="n")
+        @Editable(min=0, step=0.01)
         public float weight = 1f;
+
+        /** The animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> animation;
     }
 
     /**
      * Represents a set of movement animations.
      */
-    public static class MovementSet extends DeepObject
+    @EditorTypes({ SingleMovement.class, QuadMovement.class })
+    public static abstract class MovementSet extends DeepObject
         implements Exportable
     {
         /** The movement speed of this animation set. */
         @Editable(min=0, step=0.01)
         public float speed;
 
-        /** The forward movement animation. */
-        @Editable(hgroup="fl")
-        public String forward = "";
+        /**
+         * Resolves the movement set animations for the supplied model.
+         */
+        public abstract Animation[] resolve (Model model);
+    }
 
-        /** The left movement animation. */
-        @Editable(hgroup="fl")
-        public String left = "";
+    /**
+     * A movement set with a single animation.
+     */
+    public static class SingleMovement extends MovementSet
+    {
+        /** The movement animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> animation;
 
-        /** The backward movement animation. */
-        @Editable(hgroup="br")
-        public String backward = "";
+        @Override // documentation inherited
+        public Animation[] resolve (Model model)
+        {
+            Animation anim = model.createAnimation(animation);
+            return new Animation[] { anim, anim, anim, anim };
+        }
+    }
 
-        /** The right movement animation. */
-        @Editable(hgroup="br")
-        public String right = "";
+    /**
+     * A movement set with separate animations for the four directions.
+     */
+    public static class QuadMovement extends MovementSet
+    {
+        /** The forward animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> forward;
+
+        /** The left animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> left;
+
+        /** The backward animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> backward;
+
+        /** The right animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> right;
+
+        @Override // documentation inherited
+        public Animation[] resolve (Model model)
+        {
+            return new Animation[] {
+                model.createAnimation(backward), model.createAnimation(right),
+                model.createAnimation(forward), model.createAnimation(left) };
+        }
     }
 
     /** The actor model. */

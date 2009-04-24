@@ -244,7 +244,7 @@ public class ActorSprite extends Sprite
         {
             Animation[] anims = new Animation[weighted.length];
             for (int ii = 0; ii < anims.length; ii++) {
-                anims[ii] = _model.getAnimation(weighted[ii].name);
+                anims[ii] = _model.createAnimation(weighted[ii].animation);
             }
             return anims;
         }
@@ -256,12 +256,7 @@ public class ActorSprite extends Sprite
         {
             Animation[][] anims = new Animation[sets.length][];
             for (int ii = 0; ii < anims.length; ii++) {
-                ActorSpriteConfig.MovementSet set = sets[ii];
-                anims[ii] = new Animation[] {
-                    _model.getAnimation(set.backward),
-                    _model.getAnimation(set.right),
-                    _model.getAnimation(set.forward),
-                    _model.getAnimation(set.left) };
+                anims[ii] = sets[ii].resolve(_model);
             }
             return anims;
         }
