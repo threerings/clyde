@@ -40,6 +40,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.model.Animation;
@@ -145,8 +146,9 @@ public class ActorSprite extends Sprite
         public void wasCreated ()
         {
             if (_config.creationTransient != null) {
-                _view.getScene().spawnTransient(
-                    _config.creationTransient, _model.getLocalTransform());
+                Transform3D transform = new Transform3D(_model.getLocalTransform());
+                transform.setScale(1f);
+                _view.getScene().spawnTransient(_config.creationTransient, transform);
             }
         }
 
@@ -154,8 +156,9 @@ public class ActorSprite extends Sprite
         public void willBeDestroyed ()
         {
             if (_config.destructionTransient != null) {
-                _view.getScene().spawnTransient(
-                    _config.destructionTransient, _model.getLocalTransform());
+                Transform3D transform = new Transform3D(_model.getLocalTransform());
+                transform.setScale(1f);
+                _view.getScene().spawnTransient(_config.destructionTransient, transform);
             }
         }
 
