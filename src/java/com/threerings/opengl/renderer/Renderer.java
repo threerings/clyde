@@ -2120,7 +2120,9 @@ public class Renderer
         }
         if (_finalizedShaderObjects != null) {
             for (int id : _finalizedShaderObjects) {
-                ARBShaderObjects.glDeleteObjectARB(id);
+                if (id != 0) {
+                    ARBShaderObjects.glDeleteObjectARB(id);
+                }
             }
             _finalizedShaderObjects = null;
         }
