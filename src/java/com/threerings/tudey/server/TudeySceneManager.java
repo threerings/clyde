@@ -467,6 +467,14 @@ public class TudeySceneManager extends SceneManager
      */
     public boolean collides (ActorLogic logic, Shape shape)
     {
+        return collides(logic, shape, _timestamp);
+    }
+
+    /**
+     * Determines whether the specified actor collides with anything in the environment.
+     */
+    public boolean collides (ActorLogic logic, Shape shape, int timestamp)
+    {
         // check the scene model
         Actor actor = logic.getActor();
         if (((TudeySceneModel)_scene.getSceneModel()).collides(actor, shape)) {
@@ -479,7 +487,7 @@ public class TudeySceneManager extends SceneManager
             for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
                 SpaceElement element = _elements.get(ii);
                 Actor oactor = ((ActorLogic)element.getUserObject()).getActor();
-                if (actor.canCollide(oactor)) {
+                if (timestamp < oactor.getDestroyed() && actor.canCollide(oactor)) {
                     return true;
                 }
             }
@@ -494,6 +502,14 @@ public class TudeySceneManager extends SceneManager
      */
     public boolean collides (int mask, Shape shape)
     {
+        return collides(mask, shape, _timestamp);
+    }
+
+    /**
+     * Determines whether the specified shape collides with anything in the environment.
+     */
+    public boolean collides (int mask, Shape shape, int timestamp)
+    {
         // check the scene model
         if (((TudeySceneModel)_scene.getSceneModel()).collides(mask, shape)) {
             return true;
@@ -505,7 +521,7 @@ public class TudeySceneManager extends SceneManager
             for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
                 SpaceElement element = _elements.get(ii);
                 Actor actor = ((ActorLogic)element.getUserObject()).getActor();
-                if ((actor.getCollisionFlags() & mask) != 0) {
+                if (timestamp < actor.getDestroyed() && (actor.getCollisionFlags() & mask) != 0) {
                     return true;
                 }
             }
