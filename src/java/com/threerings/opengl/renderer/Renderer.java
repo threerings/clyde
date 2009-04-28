@@ -2120,6 +2120,8 @@ public class Renderer
         }
         if (_finalizedShaderObjects != null) {
             for (int id : _finalizedShaderObjects) {
+                // technically glDeleteObject is supposed to silently ignore zero values, but
+                // instead, at least on some systems, it raises an invalid value error
                 if (id != 0) {
                     ARBShaderObjects.glDeleteObjectARB(id);
                 }
