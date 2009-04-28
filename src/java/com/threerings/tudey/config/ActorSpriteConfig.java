@@ -33,6 +33,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
@@ -117,6 +118,7 @@ public abstract class ActorSpriteConfig extends DeepObject
         }
 
         /** The cached idle weights. */
+        @DeepOmit
         protected transient SoftReference<float[]> _idleWeights;
     }
 
