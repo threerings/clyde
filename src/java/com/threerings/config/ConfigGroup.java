@@ -50,6 +50,7 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
+import com.threerings.export.util.LazyFileOutputStream;
 import com.threerings.util.Copyable;
 
 import static com.threerings.ClydeLog.*;
@@ -234,7 +235,7 @@ public class ConfigGroup<T extends ManagedConfig>
     public void save (Collection<T> configs, File file)
     {
         try {
-            Exporter out = new XMLExporter(new FileOutputStream(file));
+            Exporter out = new XMLExporter(new LazyFileOutputStream(file));
             out.writeObject(toSortedArray(configs));
             out.close();
 
