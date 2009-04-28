@@ -117,15 +117,19 @@ public class ObjectPanel extends BasePropertyEditor
      */
     public void setValue (Object value)
     {
+        int tidx = getTypeIndex(value);
+        if (tidx == -1) {
+            log.warning("Wrong type for object panel.", "value", value, "types", _types);
+            return;
+        }
         if (_box != null) {
             // clear out the old entries
             Arrays.fill(_values, null);
 
             // put in the new entry
-            int nidx = (value == null) ? 0 : ListUtil.indexOfRef(_types, value.getClass());
-            _values[nidx] = value;
+            _values[tidx] = value;
             _box.removeActionListener(this);
-            _box.setSelectedIndex(nidx);
+            _box.setSelectedIndex(tidx);
             _box.addActionListener(this);
         }
         if (_panel.getObject() == (_lvalue = value)) {
@@ -181,6 +185,21 @@ public class ObjectPanel extends BasePropertyEditor
     protected String getMousePath (Point pt)
     {
         return _panel.getMousePath();
+    }
+
+    /**
+     * Returns the index of the specified value's type, or -1 if it doesn't match any of the
+     * types.
+     */
+    protected int getTypeIndex (Object value)
+    {
+        Class type = (value == null) ? null : value.getClass();
+        for (int ii = 0; ii < _types.length; ii++) {
+            if (_types[ii] == type) {
+                return ii;
+            }
+        }
+        return -1;
     }
 
     /**
