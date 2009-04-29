@@ -27,7 +27,12 @@ package com.threerings.tudey.server.logic;
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 
+import com.threerings.config.ConfigReference;
+import com.threerings.math.Vector2f;
+
+import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Active;
+import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.util.ActiveAdvancer;
 import com.threerings.tudey.util.ActorAdvancer;
 
@@ -53,6 +58,14 @@ public class ActiveLogic extends MobileLogic
         }
 
         return true;
+    }
+
+    @Override // documentation inherited
+    protected Actor createActor (
+        ConfigReference<ActorConfig> ref, int id, int timestamp,
+        Vector2f translation, float rotation)
+    {
+        return new Active(ref, id, timestamp, translation, rotation);
     }
 
     @Override // documentation inherited
