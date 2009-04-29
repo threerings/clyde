@@ -83,6 +83,38 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Sets the reference to the entity that spawned the actor.
+     */
+    public void setSource (Logic source)
+    {
+        _source = source;
+    }
+
+    /**
+     * Returns a reference to the entity that spawned the actor, if known/any.
+     */
+    public Logic getSource ()
+    {
+        return _source;
+    }
+
+    /**
+     * Sets the reference to the entity that caused the actor to be spawned.
+     */
+    public void setActivator (Logic activator)
+    {
+        _activator = activator;
+    }
+
+    /**
+     * Returns a reference to the entity that caused the actor to be spawned, if known/any.
+     */
+    public Logic getActivator ()
+    {
+        return _activator;
+    }
+
+    /**
      * For player-controlled actors, this notifies the logic that the controlling player
      * is about to enter.
      */
@@ -407,6 +439,9 @@ public class ActorLogic extends Logic
 
     /** The actor's shape observers. */
     protected ObserverList<ShapeObserver> _shapeObservers = ObserverList.newFastUnsafe();
+
+    /** Optional references to the spawning and activating logic objects for the actor. */
+    protected Logic _source, _activator;
 
     /** Used to notify observers when the shape is about to change. */
     protected ObserverList.ObserverOp<ShapeObserver> _shapeWillChangeOp =

@@ -66,8 +66,12 @@ public abstract class ActionLogic extends Logic
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
-                _scenemgr.spawnActor(
+                ActorLogic logic = _scenemgr.spawnActor(
                     timestamp, target.getTranslation(), target.getRotation(), actor);
+                if (logic != null) {
+                    logic.setSource(_source);
+                    logic.setActivator(activator);
+                }
             }
             _targets.clear();
         }
