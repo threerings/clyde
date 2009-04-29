@@ -300,7 +300,9 @@ public class ConfigGroup<T extends ManagedConfig>
         throws IOException
     {
         // read in the configs and determine the type
-        @SuppressWarnings("unchecked") T[] configs = (T[])in.read("configs", null, Object.class);
+        Object object = in.read("configs", null, Object.class);
+        @SuppressWarnings("unchecked") T[] configs = (T[])(
+            object == null ? new ManagedConfig[0] : object);
         @SuppressWarnings("unchecked") Class<T> clazz =
             (Class<T>)configs.getClass().getComponentType();
         initConfigClass(clazz);

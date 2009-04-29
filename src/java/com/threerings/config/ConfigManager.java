@@ -30,8 +30,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
@@ -481,14 +484,20 @@ public class ConfigManager
     public void writeFields (Exporter out)
         throws IOException
     {
-        // write out the groups as a sorted array
-        ConfigGroup[] groups = _groups.values().toArray(new ConfigGroup[_groups.size()]);
+        // write out the non-empty groups as a sorted array
+        List<ConfigGroup> list = Lists.newArrayList();
+        for (ConfigGroup group : _groups.values()) {
+            if (!group.getConfigs().isEmpty()) {
+                list.add(group);
+            }
+        }
+        ConfigGroup[] groups = list.toArray(new ConfigGroup[list.size()]);
         QuickSort.sort(groups, new Comparator<ConfigGroup>() {
             public int compare (ConfigGroup g1, ConfigGroup g2) {
                 return g1.getName().compareTo(g2.getName());
             }
         });
-        out.write("groups", groups, null, ConfigGroup[].class);
+        out.write("groups", groups, new ConfigGroup[0], ConfigGroup[].class);
     }
 
     /**
@@ -498,7 +507,7 @@ public class ConfigManager
         throws IOException
     {
         // read in the groups and populate the map
-        ConfigGroup[] groups = in.read("groups", null, ConfigGroup[].class);
+        ConfigGroup[] groups = in.read("groups", new ConfigGroup[0], ConfigGroup[].class);
         for (ConfigGroup group : groups) {
             _groups.put(group.getConfigClass(), group);
         }
