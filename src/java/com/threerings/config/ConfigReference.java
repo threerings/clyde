@@ -78,6 +78,12 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
         return _arguments;
     }
 
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "[name=" + _name + ", arguments=" + _arguments + "]";
+    }
+
     /** The name of the referenced configuration. */
     protected String _name;
 

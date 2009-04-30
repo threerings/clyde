@@ -281,6 +281,12 @@ public class Actor extends DeepObject
         return _original.collisionMask;
     }
 
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "[config=" + _config + ", id=" + _id + "]";
+    }
+
     /** The actor's configuration reference. */
     protected ConfigReference<ActorConfig> _config;
 
