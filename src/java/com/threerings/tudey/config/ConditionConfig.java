@@ -35,7 +35,8 @@ import com.threerings.util.DeepObject;
 @EditorTypes({
     ConditionConfig.Tagged.class, ConditionConfig.InstanceOf.class,
     ConditionConfig.Intersecting.class, ConditionConfig.DistanceWithin.class,
-    ConditionConfig.All.class, ConditionConfig.Any.class })
+    ConditionConfig.Random.class, ConditionConfig.All.class,
+    ConditionConfig.Any.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -148,6 +149,22 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$DistanceWithin";
+        }
+    }
+
+    /**
+     * Satisfied with a fixed probability.
+     */
+    public static class Random extends ConditionConfig
+    {
+        /** The probability that the condition is satisfied. */
+        @Editable(min=0, max=1, step=0.01)
+        public float probability = 0.5f;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Random";
         }
     }
 

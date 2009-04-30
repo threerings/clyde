@@ -342,6 +342,40 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a random action.
+     */
+    public static class Random extends ActionLogic
+    {
+        @Override // documentation inherited
+        public void execute (int timestamp, Logic activator)
+        {
+            int idx = RandomUtil.getWeightedIndex(_weights);
+            if (idx >= 0) {
+                _actions[idx].execute(timestamp, activator);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ActionConfig.WeightedAction[] wactions = ((ActionConfig.Random)_config).actions;
+            _weights = new float[wactions.length];
+            _actions = new ActionLogic[wactions.length];
+            for (int ii = 0; ii < _actions.length; ii++) {
+                ActionConfig.WeightedAction waction = wactions[ii];
+                _weights[ii] = waction.weight;
+                _actions[ii] = createAction(waction.action, _source);
+            }
+        }
+
+        /** Weights for the actions. */
+        protected float[] _weights;
+
+        /** Logic objects for the actions. */
+        protected ActionLogic[] _actions;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ActionConfig config, Logic source)

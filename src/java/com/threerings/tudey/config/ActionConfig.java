@@ -42,7 +42,7 @@ import com.threerings.opengl.util.PreloadableSet;
     ActionConfig.WarpActor.class, ActionConfig.FireEffect.class,
     ActionConfig.Signal.class, ActionConfig.MoveBody.class,
     ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
-    ActionConfig.Compound.class })
+    ActionConfig.Compound.class, ActionConfig.Random.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -250,6 +250,45 @@ public abstract class ActionConfig extends DeepObject
                 action.getPreloads(cfgmgr, preloads);
             }
         }
+    }
+
+    /**
+     * Executes an action from a weighted list.
+     */
+    public static class Random extends ActionConfig
+    {
+        /** The contained actions. */
+        @Editable
+        public WeightedAction[] actions = new WeightedAction[0];
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$Random";
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            for (WeightedAction waction : actions) {
+                waction.action.getPreloads(cfgmgr, preloads);
+            }
+        }
+    }
+
+    /**
+     * Combines an action with a weight.
+     */
+    public static class WeightedAction extends DeepObject
+        implements Exportable
+    {
+        /** The weight of the action. */
+        @Editable(min=0, step=0.01)
+        public float weight = 1f;
+
+        /** The action itself. */
+        @Editable
+        public ActionConfig action = new SpawnActor();
     }
 
     /**

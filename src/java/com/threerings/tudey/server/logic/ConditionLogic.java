@@ -239,6 +239,18 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the random condition.
+     */
+    public static class Random extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            return FloatMath.random() < ((ConditionConfig.Random)_config).probability;
+        }
+    }
+
+    /**
      * Evaluates the all condition.
      */
     public static class All extends ConditionLogic
