@@ -35,8 +35,8 @@ import com.threerings.util.DeepObject;
  * Configurations for agent behavior.
  */
 @EditorTypes({
-    BehaviorConfig.Idle.class, BehaviorConfig.Wander.class,
-    BehaviorConfig.Patrol.class, BehaviorConfig.Follow.class })
+    BehaviorConfig.Idle.class, BehaviorConfig.Wander.class, BehaviorConfig.Patrol.class,
+    BehaviorConfig.Follow.class, BehaviorConfig.Random.class })
 public abstract class BehaviorConfig extends DeepObject
     implements Exportable
 {
@@ -125,6 +125,37 @@ public abstract class BehaviorConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Follow";
         }
+    }
+
+    /**
+     * Chooses a sub-behavior randomly according to their weights for each evaluation.
+     */
+    public static class Random extends Evaluating
+    {
+        /** The weighted component behaviors. */
+        @Editable
+        public WeightedBehavior[] behaviors = new WeightedBehavior[0];
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$Random";
+        }
+    }
+
+    /**
+     * Combines a behavior with its weight.
+     */
+    public static class WeightedBehavior extends DeepObject
+        implements Exportable
+    {
+        /** The weight of the behavior. */
+        @Editable(min=0, step=0.01)
+        public float weight = 1f;
+
+        /** The behavior itself. */
+        @Editable
+        public BehaviorConfig behavior = new BehaviorConfig.Idle();
     }
 
     /**

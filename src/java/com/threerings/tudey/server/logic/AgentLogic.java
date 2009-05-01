@@ -67,11 +67,17 @@ public class AgentLogic extends ActiveLogic
      */
     public void setTargetRotation (float rotation)
     {
-        if (_actor.getRotation() == rotation) {
+        if ((_targetRotation = rotation) == _actor.getRotation()) {
             reachedTargetRotation();
-        } else {
-            _targetRotation = rotation;
         }
+    }
+
+    /**
+     * Clears the agent's target rotation.
+     */
+    public void clearTargetRotation ()
+    {
+        _targetRotation = _actor.getRotation();
     }
 
     /**
@@ -155,6 +161,7 @@ public class AgentLogic extends ActiveLogic
 
         // initialize the behavior logic
         _behavior = createBehavior(((ActorConfig.Agent)_config).behavior);
+        _behavior.startup();
     }
 
     @Override // documentation inherited

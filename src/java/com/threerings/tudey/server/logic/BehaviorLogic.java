@@ -35,6 +35,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.BehaviorConfig;
+import com.threerings.tudey.config.BehaviorConfig.WeightedBehavior;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.server.TudeySceneManager;
@@ -49,6 +50,12 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Idle extends BehaviorLogic
     {
+        @Override // documentation inherited
+        public void startup ()
+        {
+            _agent.stopMoving();
+            _agent.clearTargetRotation();
+        }
     }
 
     /**
@@ -56,6 +63,12 @@ public abstract class BehaviorLogic extends Logic
      */
     public static abstract class Evaluating extends BehaviorLogic
     {
+        @Override // documentation inherited
+        public void startup ()
+        {
+            advanceEvaluation();
+        }
+
         @Override // documentation inherited
         public void tick (int timestamp)
         {
@@ -88,6 +101,14 @@ public abstract class BehaviorLogic extends Logic
         protected void postponeNextEvaluation ()
         {
             _nextEvaluation = Integer.MAX_VALUE;
+        }
+
+        /**
+         * Ensures that we will evaluate on the next tick.
+         */
+        protected void advanceEvaluation ()
+        {
+            _nextEvaluation = _scenemgr.getTimestamp();
         }
 
         /** The time for which the next evaluation is scheduled. */
@@ -441,6 +462,73 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Handles the random behavior.
+     */
+    public static class Random extends Evaluating
+    {
+        @Override // documentation inherited
+        public void tick (int timestamp)
+        {
+            super.tick(timestamp);
+            if (_active != null) {
+                _active.tick(timestamp);
+            }
+        }
+
+        @Override // documentation inherited
+        public void reachedTargetRotation ()
+        {
+            if (_active != null) {
+                _active.reachedTargetRotation();
+            }
+        }
+
+        @Override // documentation inherited
+        public void penetratedEnvironment (Vector2f penetration)
+        {
+            if (_active != null) {
+                _active.penetratedEnvironment(penetration);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            WeightedBehavior[] wbehaviors = ((BehaviorConfig.Random)_config).behaviors;
+            _weights = new float[wbehaviors.length];
+            _behaviors = new BehaviorLogic[wbehaviors.length];
+            for (int ii = 0; ii < wbehaviors.length; ii++) {
+                WeightedBehavior wbehavior = wbehaviors[ii];
+                _weights[ii] = wbehavior.weight;
+                _behaviors[ii] = _agent.createBehavior(wbehavior.behavior);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void evaluate ()
+        {
+            super.evaluate();
+            int nidx = RandomUtil.getWeightedIndex(_weights);
+            BehaviorLogic nactive = (nidx == -1) ? null : _behaviors[nidx];
+            if (nactive == _active) {
+                return;
+            }
+            if ((_active = nactive) != null) {
+                _active.startup();
+            }
+        }
+
+        /** The behavior weights. */
+        protected float[] _weights;
+
+        /** The component behaviors. */
+        protected BehaviorLogic[] _behaviors;
+
+        /** The active behavior. */
+        protected BehaviorLogic _active;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, BehaviorConfig config, AgentLogic agent)
@@ -451,6 +539,14 @@ public abstract class BehaviorLogic extends Logic
 
         // give subclasses a chance to initialize
         didInit();
+    }
+
+    /**
+     * Starts up the behavior after initialization or suspension.
+     */
+    public void startup ()
+    {
+        // nothing by default
     }
 
     /**
