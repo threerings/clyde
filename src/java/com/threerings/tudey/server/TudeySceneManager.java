@@ -862,6 +862,15 @@ public class TudeySceneManager extends SceneManager
         _clients.remove(bodyOid);
     }
 
+    @Override // documentation inherited
+    protected void bodyUpdated (OccupantInfo info)
+    {
+        super.bodyUpdated(info);
+
+        // pass the information on to the liaison
+        _clients.get(info.getBodyOid()).bodyUpdated(info);
+    }
+
     /**
      * Creates the client liaison for the specified body.
      */

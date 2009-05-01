@@ -33,6 +33,7 @@ import com.samskivert.util.StringUtil;
 import com.threerings.presents.net.Transport;
 
 import com.threerings.crowd.data.BodyObject;
+import com.threerings.crowd.data.OccupantInfo;
 
 import com.threerings.math.Rect;
 import com.threerings.math.SphereCoords;
@@ -75,6 +76,21 @@ public class ClientLiaison
 
         // insert the baseline (empty) tick record
         _records.add(new TickRecord(0, new HashIntMap<Actor>(), new Effect[0]));
+    }
+
+    /**
+     * Notes that the client's occupant info has been updated.
+     */
+    public void bodyUpdated (OccupantInfo info)
+    {
+        if (info.status == OccupantInfo.DISCONNECTED) {
+            _records.clear();
+        } else {
+            if (_records.isEmpty()) {
+                // start again from the zero reference time
+                _records.add(new TickRecord(0, new HashIntMap<Actor>(), new Effect[0]));
+            }
+        }
     }
 
     /**
@@ -144,6 +160,11 @@ public class ClientLiaison
      */
     public void postDelta ()
     {
+        // no need to do anything if disconnected
+        if (_bodyobj.status == OccupantInfo.DISCONNECTED) {
+            return;
+        }
+
         // translate the local interest bounds based on the actor translation
         Vector2f translation = _target.getActor().getTranslation();
         _localInterest.getMinimumExtent().add(translation, _worldInterest.getMinimumExtent());
