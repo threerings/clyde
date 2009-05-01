@@ -458,7 +458,7 @@ public class ActorSprite extends Sprite
              */
             public int getPriority ()
             {
-                return _anims[0].getPriority();
+                return (_anims.length == 0) ? 0 : _anims[0].getPriority();
             }
 
             /**
@@ -466,7 +466,9 @@ public class ActorSprite extends Sprite
              */
             public void start (Activity previous)
             {
-                _anims[_idx = 0].start();
+                if (_anims.length > 0) {
+                    _anims[_idx = 0].start();
+                }
             }
 
             /**
@@ -474,7 +476,9 @@ public class ActorSprite extends Sprite
              */
             public void stop (Activity next)
             {
-                _anims[_idx].stop();
+                if (_idx < _anims.length) {
+                    _anims[_idx].stop();
+                }
             }
 
             /**
