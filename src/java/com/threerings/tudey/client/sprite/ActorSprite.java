@@ -454,6 +454,14 @@ public class ActorSprite extends Sprite
             }
 
             /**
+             * Returns a reference to the array of animations.
+             */
+            public Animation[] getAnimations ()
+            {
+                return _anims;
+            }
+
+            /**
              * Returns the priority of the activity.
              */
             public int getPriority ()
