@@ -540,7 +540,7 @@ public class TudeySceneView extends SimpleScope
         // track the target sprite, if any
         if (_targetSprite != null) {
             Vector3f translation = _targetSprite.getModel().getLocalTransform().getTranslation();
-            _camhand.getTarget().set(translation);
+            _camhand.getTarget().set(translation).addLocal(TudeySceneMetrics.getTargetOffset());
             _camhand.updatePosition();
         }
 
@@ -773,6 +773,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The sprite that the camera is tracking. */
     protected ActorSprite _targetSprite;
+
+    /** The offset of the camera target from the target sprite's translation. */
+    protected Vector3f _targetOffset = new Vector3f();
 
     /** Used to find the floor. */
     protected Ray3D _ray = new Ray3D(Vector3f.ZERO, new Vector3f(0f, 0f, -1f));

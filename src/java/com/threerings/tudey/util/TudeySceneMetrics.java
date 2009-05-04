@@ -156,6 +156,14 @@ public class TudeySceneMetrics
     }
 
     /**
+     * Returns a reference to the offset from the target translation to the camera target.
+     */
+    public static Vector3f getTargetOffset ()
+    {
+        return _targetOffset;
+    }
+
+    /**
      * Returns the default local interest region (as derived from the camera parameters).
      */
     public static Rect getDefaultLocalInterest ()
@@ -216,6 +224,9 @@ public class TudeySceneMetrics
     /** The camera's sphere coords relative to its target. */
     protected static SphereCoords _cameraCoords;
 
+    /** The offset from the target translation to the camera target. */
+    protected static Vector3f _targetOffset;
+
     /** The fixed amount by which to expand the area of interest. */
     protected static float _interestExpansion;
 
@@ -233,6 +244,7 @@ public class TudeySceneMetrics
             FloatMath.toRadians(config.getValue("camera_azimuth", 0f)),
             FloatMath.toRadians(config.getValue("camera_elevation", 45f)),
             config.getValue("camera_distance", 10f));
+        _targetOffset = new Vector3f(config.getValue("target_offset", new float[] { 0f, 0f, 1f }));
         _interestExpansion = config.getValue("interest_expansion", 5f);
         _defaultLocalInterest = getLocalInterest(
             _cameraFov, (4f / 3f), _cameraNear, _cameraFar, _cameraCoords);
