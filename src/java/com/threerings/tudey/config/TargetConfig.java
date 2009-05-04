@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -39,7 +41,7 @@ import com.threerings.util.DeepObject;
     TargetConfig.NearestSubset.class, TargetConfig.FarthestSubset.class,
     TargetConfig.Conditional.class, TargetConfig.Compound.class })
 public abstract class TargetConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Refers to the source of the action.

@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -44,7 +46,7 @@ import com.threerings.opengl.util.PreloadableSet;
     ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
     ActionConfig.Compound.class, ActionConfig.Random.class })
 public abstract class ActionConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Spawns a new actor.
