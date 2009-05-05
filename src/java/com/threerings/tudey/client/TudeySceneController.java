@@ -396,7 +396,7 @@ public class TudeySceneController extends SceneController
         _tctx = (TudeyContext)_ctx;
 
         // add the input flag mappings
-        _keyFlags.put(Keyboard.KEY_S, InputFrame.STRAFE);
+        _keyFlags.put(Keyboard.KEY_C, InputFrame.STRAFE);
         _buttonFlags[MouseEvent.BUTTON1] = InputFrame.MOVE;
     }
 
