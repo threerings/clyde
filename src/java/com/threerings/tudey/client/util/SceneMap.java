@@ -185,6 +185,9 @@ public class SceneMap
                     GL11.glVertex2f(lx, uy);
                 }
                 GL11.glEnd();
+
+                // return to modelview matrix mode
+                renderer.setMatrixMode(GL11.GL_MODELVIEW);
             }
         }
     }
