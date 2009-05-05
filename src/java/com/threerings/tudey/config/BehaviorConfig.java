@@ -72,6 +72,14 @@ public abstract class BehaviorConfig extends DeepObject
         public FloatVariable directionChange =
             new FloatVariable.Uniform(-FloatMath.PI, +FloatMath.PI);
 
+        /** The amount of time to pause before rotating. */
+        @Editable(min=0.0, step=0.1)
+        public FloatVariable preRotationPause = new FloatVariable.Constant(0f);
+
+        /** The amount of time to pause after rotating. */
+        @Editable(min=0.0, step=0.1)
+        public FloatVariable postRotationPause = new FloatVariable.Constant(0f);
+
         /** The radius from the origin within which we may wander. */
         @Editable(min=0.0, step=0.1)
         public float radius = 100f;

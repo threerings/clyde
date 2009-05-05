@@ -121,9 +121,30 @@ public abstract class BehaviorLogic extends Logic
     public static class Wander extends Evaluating
     {
         @Override // documentation inherited
+        public void startup ()
+        {
+            super.startup();
+            _startRotating = Integer.MAX_VALUE;
+            _startMoving = Integer.MAX_VALUE;
+        }
+
+        @Override // documentation inherited
         public void tick (int timestamp)
         {
             super.tick(timestamp);
+
+            // start rotating if the time to do so has come
+            if (timestamp >= _startRotating) {
+                _agent.setTargetRotation(_rotation);
+                _startRotating = Integer.MAX_VALUE;
+            }
+
+            // likewise with moving
+            if (timestamp >= _startMoving) {
+                scheduleNextEvaluation();
+                _agent.startMoving();
+                _startMoving = Integer.MAX_VALUE;
+            }
 
             // if we have exceeded the radius and are moving away from the origin, change direction
             Actor actor = _agent.getActor();
@@ -141,8 +162,14 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         public void reachedTargetRotation ()
         {
-            _agent.startMoving();
-            scheduleNextEvaluation();
+            BehaviorConfig.Wander config = (BehaviorConfig.Wander)_config;
+            int pause = (int)(config.postRotationPause.getValue() * 1000f);
+            if (pause == 0) {
+                scheduleNextEvaluation();
+                _agent.startMoving();
+            } else {
+                _startMoving = _scenemgr.getTimestamp() + pause;
+            }
         }
 
         @Override // documentation inherited
@@ -188,13 +215,30 @@ public abstract class BehaviorLogic extends Logic
         protected void changeDirection (float rotation)
         {
             _agent.stopMoving();
-            float delta = ((BehaviorConfig.Wander)_config).directionChange.getValue();
+            BehaviorConfig.Wander config = (BehaviorConfig.Wander)_config;
+            int pause = (int)(config.preRotationPause.getValue() * 1000f);
+            float rot = FloatMath.normalizeAngle(rotation + config.directionChange.getValue());
             postponeNextEvaluation();
-            _agent.setTargetRotation(FloatMath.normalizeAngle(rotation + delta));
+            if (pause == 0) {
+                _agent.setTargetRotation(rot);
+                _startRotating = Integer.MAX_VALUE;
+            } else {
+                _rotation = rot;
+                _startRotating = _scenemgr.getTimestamp() + pause;
+            }
         }
 
         /** The translation of the actor when initialized. */
         protected Vector2f _origin = new Vector2f();
+
+        /** The time at which we should start rotating. */
+        protected int _startRotating = Integer.MAX_VALUE;
+
+        /** The rotation that we will face when we stop pausing. */
+        protected float _rotation;
+
+        /** The time at which we should start moving. */
+        protected int _startMoving = Integer.MAX_VALUE;
     }
 
     /**
