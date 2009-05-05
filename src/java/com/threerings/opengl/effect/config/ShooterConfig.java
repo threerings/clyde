@@ -34,6 +34,7 @@ import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.effect.BaseParticleSystem.Layer;
 import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.Shooter;
 
@@ -62,7 +63,7 @@ public abstract class ShooterConfig extends DeepObject
         public float maximumAngle = FloatMath.PI / 4f;
 
         @Override // documentation inherited
-        public Shooter createShooter ()
+        public Shooter createShooter (Layer layer)
         {
             final Matrix4f matrix = new Matrix4f();
             matrix.setToRotation(Vector3f.UNIT_Z, direction);
@@ -94,11 +95,13 @@ public abstract class ShooterConfig extends DeepObject
         public float upwardBias;
 
         @Override // documentation inherited
-        public Shooter createShooter ()
+        public Shooter createShooter (final Layer layer)
         {
             return new Shooter() {
                 public Vector3f shoot (Particle particle) {
-                    Vector3f velocity = particle.getVelocity().set(particle.getPosition());
+                    Vector3f velocity = particle.getVelocity().set(Vector3f.ZERO);
+                    layer.pointToLayer(velocity, true);
+                    particle.getPosition().subtract(velocity, velocity);
                     float length = velocity.length();
                     if (length > 0.001f) { // use the vector from origin to particle
                         velocity.multLocal(1f / length);
@@ -120,5 +123,5 @@ public abstract class ShooterConfig extends DeepObject
     /**
      * Creates the shooter corresponding to this config.
      */
-    public abstract Shooter createShooter ();
+    public abstract Shooter createShooter (Layer layer);
 }

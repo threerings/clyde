@@ -92,7 +92,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
             // create the counter, placer, and shooter
             _counter = config.counter.createCounter();
             _placer = config.placer.createPlacer(this);
-            _shooter = config.shooter.createShooter();
+            _shooter = config.shooter.createShooter(this);
 
             // create the influences
             _influences = new Influence[config.influences.length];
