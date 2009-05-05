@@ -135,8 +135,8 @@ public abstract class BehaviorLogic extends Logic
 
             // start rotating if the time to do so has come
             if (timestamp >= _startRotating) {
+                _startRotating = _startMoving = Integer.MAX_VALUE;
                 _agent.setTargetRotation(_rotation);
-                _startRotating = Integer.MAX_VALUE;
             }
 
             // likewise with moving
@@ -167,8 +167,10 @@ public abstract class BehaviorLogic extends Logic
             if (pause == 0) {
                 scheduleNextEvaluation();
                 _agent.startMoving();
+                _startRotating = _startMoving = Integer.MAX_VALUE;
             } else {
                 _startMoving = _scenemgr.getTimestamp() + pause;
+                _startRotating = Integer.MAX_VALUE;
             }
         }
 
@@ -220,11 +222,12 @@ public abstract class BehaviorLogic extends Logic
             float rot = FloatMath.normalizeAngle(rotation + config.directionChange.getValue());
             postponeNextEvaluation();
             if (pause == 0) {
+                _startRotating = _startMoving = Integer.MAX_VALUE;
                 _agent.setTargetRotation(rot);
-                _startRotating = Integer.MAX_VALUE;
             } else {
                 _rotation = rot;
                 _startRotating = _scenemgr.getTimestamp() + pause;
+                _startMoving = Integer.MAX_VALUE;
             }
         }
 
