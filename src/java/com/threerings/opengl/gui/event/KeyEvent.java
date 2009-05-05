@@ -38,12 +38,13 @@ public class KeyEvent extends InputEvent
     public static final int KEY_RELEASED = 1;
 
     public KeyEvent (Object source, long when, int modifiers,
-                     int type, char keyChar, int keyCode)
+                     int type, char keyChar, int keyCode, boolean repeat)
     {
         super(source, when, modifiers);
         _type = type;
         _keyChar = keyChar;
         _keyCode = keyCode;
+        _repeat = repeat;
     }
 
     /**
@@ -93,6 +94,14 @@ public class KeyEvent extends InputEvent
         return _keyCode;
     }
 
+    /**
+     * Checks whether this is a repeat (press) event.
+     */
+    public boolean isRepeat ()
+    {
+        return _repeat;
+    }
+
     // documentation inherited
     public void dispatch (ComponentListener listener)
     {
@@ -118,9 +127,11 @@ public class KeyEvent extends InputEvent
         buf.append(", type=").append(_type);
         buf.append(", char=").append(_keyChar);
         buf.append(", code=").append(_keyCode);
+        buf.append(", repeat=").append(_repeat);
     }
 
     protected int _type;
     protected char _keyChar;
     protected int _keyCode;
+    protected boolean _repeat;
 }

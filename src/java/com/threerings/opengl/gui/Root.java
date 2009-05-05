@@ -754,7 +754,7 @@ public abstract class Root extends SimpleOverlay
     protected void keyPressed (long when, char keyChar, int keyCode, boolean consume)
     {
         KeyEvent event = new KeyEvent(
-            this, when, _modifiers, KeyEvent.KEY_PRESSED, keyChar, keyCode);
+            this, when, _modifiers, KeyEvent.KEY_PRESSED, keyChar, keyCode, false);
         if (consume) {
             event.consume();
         }
@@ -767,7 +767,7 @@ public abstract class Root extends SimpleOverlay
     protected void keyReleased (long when, char keyChar, int keyCode, boolean consume)
     {
         KeyEvent event = new KeyEvent(
-            this, when, _modifiers, KeyEvent.KEY_RELEASED, keyChar, keyCode);
+            this, when, _modifiers, KeyEvent.KEY_RELEASED, keyChar, keyCode, false);
         if (consume) {
             event.consume();
         }
@@ -1065,7 +1065,7 @@ public abstract class Root extends SimpleOverlay
             }
             KeyEvent event = new KeyEvent(
                 Root.this, _tickStamp, _modifiers, KeyEvent.KEY_PRESSED,
-                _press.getKeyChar(), _press.getKeyCode());
+                _press.getKeyChar(), _press.getKeyCode(), true);
             dispatchEvent(getFocus(), event);
             _nextRepeat += 1000L / KEY_REPEAT_RATE;
         }
