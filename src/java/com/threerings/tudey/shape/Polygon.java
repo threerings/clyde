@@ -26,6 +26,8 @@ package com.threerings.tudey.shape;
 
 import org.lwjgl.opengl.GL11;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
@@ -210,6 +212,31 @@ public class Polygon extends Shape
             }
         }
         return false;
+    }
+
+    @Override // documentation inherited
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        if (contains(point)) {
+            result.set(point);
+            return;
+        }
+        Vector2f currentResult = new Vector2f();
+        float minDist = Float.MAX_VALUE;
+        float dist;
+        // find the nearest point to each edge
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            Vector2f start = _vertices[ii], end = _vertices[(ii + 1) % _vertices.length];
+            nearestPointOnSegment(start, end, point, currentResult);
+            dist = point.distanceSquared(currentResult);
+            if (dist < minDist) {
+                minDist = dist;
+                result.set(currentResult);
+                if (Math.abs(minDist) < FloatMath.EPSILON) {
+                    return;
+                }
+            }
+        }
     }
 
     @Override // documentation inherited
@@ -464,6 +491,12 @@ public class Polygon extends Shape
             GL11.glVertex2f(vertex.x, vertex.y);
         }
         GL11.glEnd();
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "Poly:(" + StringUtil.join(_vertices) + ")";
     }
 
     /**

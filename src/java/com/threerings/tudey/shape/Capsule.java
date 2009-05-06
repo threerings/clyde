@@ -165,6 +165,20 @@ public class Capsule extends Shape
     }
 
     @Override // documentation inherited
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        if (contains(point)) {
+            result.set(point);
+            return;
+        }
+        nearestPointOnSegment(_start, _end, point, result);
+        Vector2f line = result.subtract(point);
+        float length = line.length();
+        line.mult((length - radius)/length);
+        result.set(point).add(line);
+    }
+
+    @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
         // check the corners of the rectangle

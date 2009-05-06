@@ -127,6 +127,12 @@ public class Circle extends Shape
     }
 
     @Override // documentation inherited
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        getIntersection(new Ray2D(point, _center.subtract(point).normalize()), result);
+    }
+
+    @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
         // test the points of the rect against the circle

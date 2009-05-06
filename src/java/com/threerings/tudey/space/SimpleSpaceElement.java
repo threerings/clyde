@@ -107,6 +107,12 @@ public abstract class SimpleSpaceElement
     }
 
     // documentation inherited from interface SpaceElement
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        result.set(point);
+    }
+
+    // documentation inherited from interface SpaceElement
     public boolean intersects (Point point)
     {
         return false;

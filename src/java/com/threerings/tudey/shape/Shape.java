@@ -164,6 +164,12 @@ public abstract class Shape
     public abstract boolean getIntersection (Ray2D ray, Vector2f result);
 
     /**
+     * Fins the  nearest point of this element to the supplied point and places it in the supplied
+     * vector.
+     */
+    public abstract void getNearestPoint (Vector2f point, Vector2f result);
+
+    /**
      * Checks whether the intersector intersects the specified rect.
      */
     public abstract IntersectionType getIntersectionType (Rect rect);
@@ -352,6 +358,27 @@ public abstract class Shape
         }
         float t = (-b - FloatMath.sqrt(radicand)) / (2f*a);
         return t >= 0f && t <= 1f;
+    }
+
+    /**
+     * Finds the nearest point on the line segment from <code>start</code> to <code>end</code> to
+     * a point <code>point</code> and stores it in <code>result</code>.
+     */
+    protected static void nearestPointOnSegment (
+        Vector2f start, Vector2f end, Vector2f point, Vector2f result)
+    {
+        // Calculate the perpendicular projection of point onto the line of the segment
+        float r = point.subtract(start).dot(end.subtract(start)) / start.distanceSquared(end);
+        // The nearest point on the line is before the start
+        if (r <= 0) {
+            result.set(start);
+        // The nearest point on the line is after the start
+        } else if (r >= 1) {
+            result.set(end);
+        // The nearest point on the line is in the segment
+        } else {
+            result.set(start.add(end.subtract(start).mult(r)));
+        }
     }
 
     /** The bounds of the shape. */

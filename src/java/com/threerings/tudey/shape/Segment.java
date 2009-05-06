@@ -177,6 +177,12 @@ public class Segment extends Shape
     }
 
     @Override // documentation inherited
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        nearestPointOnSegment(_start, _end, point, result);
+    }
+
+    @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
         // see if we start or end inside the rectangle
@@ -291,6 +297,12 @@ public class Segment extends Shape
         GL11.glVertex2f(_start.x, _start.y);
         GL11.glVertex2f(_end.x, _end.y);
         GL11.glEnd();
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "Seg:(" + _start + ", " + _end + ")";
     }
 
     /**

@@ -64,6 +64,12 @@ public interface SpaceElement extends SpaceObject
     public boolean getIntersection (Ray2D ray, Vector2f result);
 
     /**
+     * Finds the nearest point of this element to the supplied point and places it in the supplied
+     * vector.
+     */
+    public void getNearestPoint (Vector2f point, Vector2f result);
+
+    /**
      * Determines whether this element intersects the supplied point.
      */
     public boolean intersects (Point point);

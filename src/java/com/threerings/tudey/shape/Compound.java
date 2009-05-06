@@ -26,6 +26,9 @@ package com.threerings.tudey.shape;
 
 import org.lwjgl.opengl.GL11;
 
+import com.samskivert.util.StringUtil;
+
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -158,6 +161,25 @@ public class Compound extends Shape
             }
         }
         return (result != closest);
+    }
+
+    @Override // documentation inherited
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        Vector2f currentResult = new Vector2f();
+        float minDist = Float.MAX_VALUE;
+        float dist;
+        for (Shape shape : _shapes) {
+            shape.getNearestPoint(point, currentResult);
+            dist = point.distanceSquared(currentResult);
+            if (dist < minDist) {
+                minDist = dist;
+                result.set(currentResult);
+                if (Math.abs(minDist) < FloatMath.EPSILON) {
+                    return;
+                }
+            }
+        }
     }
 
     @Override // documentation inherited
@@ -322,6 +344,12 @@ public class Compound extends Shape
         for (Shape shape : _shapes) {
             shape.draw(outline);
         }
+    }
+
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "Comp:(" + StringUtil.join(_shapes) + ")";
     }
 
     /** The shapes of which this shape is composed. */

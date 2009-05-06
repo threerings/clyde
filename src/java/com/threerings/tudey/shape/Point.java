@@ -121,6 +121,12 @@ public class Point extends Shape
     }
 
     @Override // documentation inherited
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        result.set(_location);
+    }
+
+    @Override // documentation inherited
     public IntersectionType getIntersectionType (Rect rect)
     {
         return rect.contains(_location) ? IntersectionType.INTERSECTS : IntersectionType.NONE;
