@@ -105,6 +105,12 @@ public class ShapeElement extends SimpleSpaceElement
     }
 
     @Override // documentation inherited
+    public void getNearestPoint (Vector2f point, Vector2f result)
+    {
+        return _worldShape.getNearestPoint(point, result);
+    }
+
+    @Override // documentation inherited
     public boolean intersects (Point point)
     {
         return _worldShape.intersects(point);
