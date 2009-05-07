@@ -63,6 +63,9 @@ public abstract class ActionLogic extends Logic
         public void execute (int timestamp, Logic activator)
         {
             ConfigReference<ActorConfig> actor = ((ActionConfig.SpawnActor)_config).actor;
+            if (actor == null) {
+                return;
+            }
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
