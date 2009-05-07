@@ -34,6 +34,9 @@ import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.Shallow;
 
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
+
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.util.ActorAdvancer;
@@ -84,6 +87,15 @@ public class Actor extends DeepObject
         ActorConfig config = cfgmgr.getConfig(ActorConfig.class, _config);
         _original = (config == null) ? null : config.getOriginal(cfgmgr);
         _original = (_original == null) ? NULL_ORIGINAL : _original;
+    }
+
+    /**
+     * Adds the resources to preload for this actor into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+        preloads.add(new Preloadable.Config(ActorConfig.class, _config));
+        _original.getPreloads(cfgmgr, preloads);
     }
 
     /**

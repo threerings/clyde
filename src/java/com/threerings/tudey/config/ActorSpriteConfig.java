@@ -100,6 +100,18 @@ public abstract class ActorSpriteConfig extends DeepObject
         }
 
         @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            super.getPreloads(cfgmgr, preloads);
+            for (WeightedAnimation idle : idles) {
+                preloads.add(new Preloadable.Animation(idle.animation));
+            }
+            for (MovementSet movement : movements) {
+                movement.getPreloads(cfgmgr, preloads);
+            }
+        }
+
+        @Override // documentation inherited
         public ActorSprite.Implementation getImplementation (
             TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
         {
@@ -149,6 +161,11 @@ public abstract class ActorSpriteConfig extends DeepObject
         public float speed;
 
         /**
+         * Adds the resources to preload for this sprite into the provided set.
+         */
+        public abstract void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads);
+
+        /**
          * Resolves the movement set animations for the supplied model.
          */
         public abstract Animation[] resolve (Model model);
@@ -162,6 +179,12 @@ public abstract class ActorSpriteConfig extends DeepObject
         /** The movement animation reference. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Animation(animation));
+        }
 
         @Override // documentation inherited
         public Animation[] resolve (Model model)
@@ -191,6 +214,15 @@ public abstract class ActorSpriteConfig extends DeepObject
         /** The right animation reference. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> right;
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Animation(forward));
+            preloads.add(new Preloadable.Animation(left));
+            preloads.add(new Preloadable.Animation(backward));
+            preloads.add(new Preloadable.Animation(right));
+        }
 
         @Override // documentation inherited
         public Animation[] resolve (Model model)

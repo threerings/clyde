@@ -30,6 +30,9 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
+import com.threerings.opengl.util.Preloadable;
+import com.threerings.opengl.util.PreloadableSet;
+
 import com.threerings.tudey.config.EffectConfig;
 
 /**
@@ -65,6 +68,15 @@ public class Effect extends SimpleStreamableObject
         EffectConfig config = cfgmgr.getConfig(EffectConfig.class, _config);
         _original = (config == null) ? null : config.getOriginal(cfgmgr);
         _original = (_original == null) ? NULL_ORIGINAL : _original;
+    }
+
+    /**
+     * Adds the resources to preload for this effect into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+        preloads.add(new Preloadable.Config(EffectConfig.class, _config));
+        _original.getPreloads(cfgmgr, preloads);
     }
 
     /**

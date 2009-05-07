@@ -400,7 +400,7 @@ public class TudeySceneView extends SimpleScope
                     _preloads = new PreloadableSet());
                 ConfigManager cfgmgr = _ctx.getConfigManager();
                 for (Actor actor : actors.values()) {
-                    actor.getOriginal().getPreloads(cfgmgr, _preloads);
+                    actor.getPreloads(cfgmgr, _preloads);
                 }
             }
             return;
@@ -411,6 +411,7 @@ public class TudeySceneView extends SimpleScope
             int id = actor.getId();
             ActorSprite sprite = _actorSprites.get(id);
             if (sprite == null) {
+                addPreloads(actor);
                 _actorSprites.put(id, sprite = new ActorSprite(_ctx, this, timestamp, actor));
                 if (id == _ctrl.getTargetId()) {
                     _targetSprite = sprite;
@@ -508,12 +509,11 @@ public class TudeySceneView extends SimpleScope
     public void tick (float elapsed)
     {
         // if we are preloading, load up the next batch of resources
-        if (_preloads != null) {
+        if (_loadingWindow != null && _preloads != null) {
             float pct = _preloads.preloadBatch(_ctx);
             updateLoadingWindow(pct);
             if (pct == 1f) {
                 _loadingWindow = null;
-                _preloads = null;
                 setSceneModel((TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel());
             }
         }
@@ -582,12 +582,14 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryAdded (Entry entry)
     {
+        addPreloads(entry);
         addEntrySprite(entry);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryUpdated (Entry oentry, Entry nentry)
     {
+        addPreloads(nentry);
         EntrySprite sprite = _entrySprites.get(nentry.getKey());
         if (sprite != null) {
             sprite.update(nentry);
@@ -674,6 +676,53 @@ public class TudeySceneView extends SimpleScope
     protected void addEntrySprite (Entry entry)
     {
         _entrySprites.put(entry.getKey(), entry.createSprite(_ctx, this));
+    }
+
+    /**
+     * Adds the specified entry's preloads to the set if appropriate.
+     */
+    protected void addPreloads (Entry entry)
+    {
+        if (_preloads != null) {
+            entry.getPreloads(_ctx.getConfigManager(), _npreloads);
+            addNewPreloads();
+        }
+    }
+
+    /**
+     * Adds the specified actor's preloads to the set if appropriate.
+     */
+    protected void addPreloads (Actor actor)
+    {
+        if (_preloads != null) {
+            actor.getPreloads(_ctx.getConfigManager(), _npreloads);
+            addNewPreloads();
+        }
+    }
+
+    /**
+     * Adds the specified effect's preloads to the set if appropriate.
+     */
+    protected void addPreloads (Effect effect)
+    {
+        if (_preloads != null) {
+            effect.getPreloads(_ctx.getConfigManager(), _npreloads);
+            addNewPreloads();
+        }
+    }
+
+    /**
+     * Adds any preloads in the new set that are not yet in the actual set.
+     */
+    protected void addNewPreloads ()
+    {
+        int osize = _preloads.size();
+        for (Preloadable preloadable : _npreloads) {
+            if (_preloads.add(preloadable)) {
+                preloadable.preload(_ctx);
+            }
+        }
+        _npreloads.clear();
     }
 
     /**
@@ -788,6 +837,9 @@ public class TudeySceneView extends SimpleScope
 
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();
+
+    /** Stores "preloads" loaded after the initial load screen. */
+    protected PreloadableSet _npreloads = new PreloadableSet();
 
     /** A predicate that only accepts elements whose user objects are tile or placeable sprites. */
     protected static final Predicate<SceneElement> TILE_PLACEABLE_SPRITE_FILTER =

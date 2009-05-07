@@ -114,6 +114,9 @@ public class EffectConfig extends ParameterizedConfig
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             sprite.getPreloads(cfgmgr, preloads);
+            if (action != null) {
+                action.getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited

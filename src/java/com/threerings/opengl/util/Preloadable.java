@@ -27,7 +27,9 @@ package com.threerings.opengl.util;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 
 /**
@@ -74,6 +76,7 @@ public abstract class Preloadable extends DeepObject
         protected ConfigReference<ManagedConfig> _ref;
 
         /** The reference to the resolved configuration. */
+        @DeepOmit
         protected ManagedConfig _config;
     }
 
@@ -100,7 +103,36 @@ public abstract class Preloadable extends DeepObject
         protected ConfigReference<ModelConfig> _ref;
 
         /** The model prototype. */
+        @DeepOmit
         protected com.threerings.opengl.model.Model _model;
+    }
+
+    /**
+     * An animation resource.
+     */
+    public static class Animation extends Preloadable
+    {
+        /**
+         * Creates a new model resource.
+         */
+        public Animation (ConfigReference<AnimationConfig> ref)
+        {
+            _ref = ref;
+        }
+
+        @Override // documentation inherited
+        public void preload (GlContext ctx)
+        {
+            _anim = new com.threerings.opengl.model.Animation(ctx, ctx.getScope());
+            _anim.setConfig(null, _ref);
+        }
+
+        /** The animation config reference. */
+        protected ConfigReference<AnimationConfig> _ref;
+
+        /** The animation prototype. */
+        @DeepOmit
+        protected com.threerings.opengl.model.Animation _anim;
     }
 
     /**
