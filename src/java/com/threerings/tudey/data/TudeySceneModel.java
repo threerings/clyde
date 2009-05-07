@@ -545,6 +545,17 @@ public class TudeySceneModel extends SceneModel
         @Editable(nullable=true)
         public ConfigReference<SceneGlobalConfig> sceneGlobal;
 
+        /**
+         * Returns the path config implementation.
+         */
+        public SceneGlobalConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
+            SceneGlobalConfig.Original original = (config == null) ?
+                null : config.getOriginal(cfgmgr);
+            return (original == null) ? SceneGlobalConfig.NULL_ORIGINAL : original;
+        }
+
         @Override // documentation inherited
         public void setReference (ConfigReference reference)
         {
@@ -595,17 +606,6 @@ public class TudeySceneModel extends SceneModel
         {
             return new GlobalSprite(ctx, view, this);
         }
-
-        /**
-         * Returns the path config implementation.
-         */
-        protected SceneGlobalConfig.Original getConfig (ConfigManager cfgmgr)
-        {
-            SceneGlobalConfig config = cfgmgr.getConfig(SceneGlobalConfig.class, sceneGlobal);
-            SceneGlobalConfig.Original original = (config == null) ?
-                null : config.getOriginal(cfgmgr);
-            return (original == null) ? SceneGlobalConfig.NULL_ORIGINAL : original;
-        }
     }
 
     /**
@@ -620,6 +620,17 @@ public class TudeySceneModel extends SceneModel
         /** The transform of the placeable. */
         @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
+
+        /**
+         * Returns the placeable config implementation.
+         */
+        public PlaceableConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
+            PlaceableConfig.Original original = (config == null) ?
+                null : config.getOriginal(cfgmgr);
+            return (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
+        }
 
         @Override // documentation inherited
         public void setReference (ConfigReference reference)
@@ -745,17 +756,6 @@ public class TudeySceneModel extends SceneModel
             return new PlaceableSprite(ctx, view, this);
         }
 
-        /**
-         * Returns the placeable config implementation.
-         */
-        protected PlaceableConfig.Original getConfig (ConfigManager cfgmgr)
-        {
-            PlaceableConfig config = cfgmgr.getConfig(PlaceableConfig.class, placeable);
-            PlaceableConfig.Original original = (config == null) ?
-                null : config.getOriginal(cfgmgr);
-            return (original == null) ? PlaceableConfig.NULL_ORIGINAL : original;
-        }
-
         /** The cached collision flags. */
         protected transient int _collisionFlags = -1;
     }
@@ -772,6 +772,16 @@ public class TudeySceneModel extends SceneModel
         /** The path vertices. */
         @Editable
         public Vertex[] vertices = new Vertex[0];
+
+        /**
+         * Returns the path config implementation.
+         */
+        public PathConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            PathConfig config = cfgmgr.getConfig(PathConfig.class, path);
+            PathConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+            return (original == null) ? PathConfig.NULL_ORIGINAL : original;
+        }
 
         @Override // documentation inherited
         public void setReference (ConfigReference reference)
@@ -903,16 +913,6 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
-         * Returns the path config implementation.
-         */
-        protected PathConfig.Original getConfig (ConfigManager cfgmgr)
-        {
-            PathConfig config = cfgmgr.getConfig(PathConfig.class, path);
-            PathConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
-            return (original == null) ? PathConfig.NULL_ORIGINAL : original;
-        }
-
-        /**
          * Creates a shape using the identified region of the vertices.
          */
         protected Shape createShape (int idx0, int idx1)
@@ -937,6 +937,16 @@ public class TudeySceneModel extends SceneModel
         /** The area vertices. */
         @Editable
         public Vertex[] vertices = new Vertex[0];
+
+        /**
+         * Returns the area config implementation.
+         */
+        public AreaConfig.Original getConfig (ConfigManager cfgmgr)
+        {
+            AreaConfig config = cfgmgr.getConfig(AreaConfig.class, area);
+            AreaConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+            return (original == null) ? AreaConfig.NULL_ORIGINAL : original;
+        }
 
         @Override // documentation inherited
         public void setReference (ConfigReference reference)
@@ -1060,16 +1070,6 @@ public class TudeySceneModel extends SceneModel
         public EntrySprite createSprite (TudeyContext ctx, TudeySceneView view)
         {
             return new AreaSprite(ctx, view, this);
-        }
-
-        /**
-         * Returns the area config implementation.
-         */
-        protected AreaConfig.Original getConfig (ConfigManager cfgmgr)
-        {
-            AreaConfig config = cfgmgr.getConfig(AreaConfig.class, area);
-            AreaConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
-            return (original == null) ? AreaConfig.NULL_ORIGINAL : original;
         }
 
         /**

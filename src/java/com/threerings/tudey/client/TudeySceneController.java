@@ -320,7 +320,7 @@ public class TudeySceneController extends SceneController
 
         // perhaps create the mouse orbiter
         if (getMouseCameraModifiers() != 0) {
-            OrbitCameraHandler camhand = (OrbitCameraHandler)_tctx.getCameraHandler();
+            OrbitCameraHandler camhand = _tsview.getCameraHandler();
             _tsview.getInputWindow().addListener(_orbiter = new MouseOrbiter(camhand, true) {
                 public void mouseDragged (MouseEvent event) {
                     if (mouseCameraEnabled()) {
@@ -489,7 +489,7 @@ public class TudeySceneController extends SceneController
             }
 
             // find the camera target plane
-            Vector3f target = ((OrbitCameraHandler)_tctx.getCameraHandler()).getTarget();
+            Vector3f target = _tsview.getCameraHandler().getTarget();
             _tplane.set(Vector3f.UNIT_Z, -target.z);
 
             // determine where they intersect and use that to calculate the requested direction

@@ -27,18 +27,44 @@ package com.threerings.tudey.server.logic;
 import java.util.ArrayList;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.HandlerConfig;
+import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
  * A logic object associated with a scene entry.
  */
 public class EntryLogic extends Logic
 {
+    /**
+     * Special camera logic.
+     */
+    public static class Camera extends EntryLogic
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            GlobalEntry gentry = (GlobalEntry)_entry;
+            SceneGlobalConfig.Camera config =
+                (SceneGlobalConfig.Camera)gentry.getConfig(_scenemgr.getConfigManager());
+            _scenemgr.setDefaultLocalInterest(TudeySceneMetrics.getLocalInterest(
+                config.fov, 4f/3f, config.near, config.far, config.coords));
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            _scenemgr.setDefaultLocalInterest(TudeySceneMetrics.getDefaultLocalInterest());
+        }
+    }
+
     /**
      * Initializes the logic.
      */

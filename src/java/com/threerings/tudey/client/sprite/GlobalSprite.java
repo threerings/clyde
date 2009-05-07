@@ -31,6 +31,7 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
 
@@ -39,6 +40,7 @@ import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 import com.threerings.tudey.util.TudeyContext;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
  * Represents a global entry.
@@ -109,6 +111,42 @@ public class GlobalSprite extends EntrySprite
         /** The scene to which we add our model. */
         @Bound
         protected Scene _scene;
+    }
+
+    /**
+     * A camera implementation.
+     */
+    public static class Camera extends Implementation
+    {
+        /**
+         * Creates a new environment model implementation.
+         */
+        public Camera (TudeyContext ctx, Scope parentScope, SceneGlobalConfig.Camera config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SceneGlobalConfig.Camera config)
+        {
+            OrbitCameraHandler camhand = _view.getCameraHandler();
+            camhand.setPerspective(config.fov, config.near, config.far);
+            camhand.getCoords().set(config.coords);
+        }
+
+        @Override // documentation inherited
+        public void dispose ()
+        {
+            super.dispose();
+            TudeySceneMetrics.initCameraHandler(_view.getCameraHandler());
+        }
+
+        /** The scene view. */
+        @Bound
+        protected TudeySceneView _view;
     }
 
     /**

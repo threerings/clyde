@@ -32,6 +32,7 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.io.Streamable;
 
+import com.threerings.editor.Editable;
 import com.threerings.export.Encodable;
 
 /**
@@ -41,12 +42,15 @@ public class SphereCoords
     implements Encodable, Streamable
 {
     /** The azimuth about the Z axis (in radians CCW from Y+). */
+    @Editable(min=-180.0, max=180.0, scale=Math.PI/180.0, hgroup="c")
     public float azimuth;
 
     /** The elevation above the XY plane, in radians. */
+    @Editable(min=-90.0, max=90.0, scale=Math.PI/180.0, hgroup="c")
     public float elevation;
 
     /** The distance from the origin. */
+    @Editable(min=0.0, step=0.01, hgroup="c")
     public float distance;
 
     /**

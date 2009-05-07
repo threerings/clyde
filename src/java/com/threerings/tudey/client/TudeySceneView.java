@@ -148,6 +148,14 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Returns a reference to the camera handler.
+     */
+    public OrbitCameraHandler getCameraHandler ()
+    {
+        return _camhand;
+    }
+
+    /**
      * Returns a reference to the window used to gather input events.
      */
     public Window getInputWindow ()

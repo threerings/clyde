@@ -77,6 +77,7 @@ import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.ActorAdvancer;
+import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
 
@@ -248,6 +249,22 @@ public class TudeySceneManager extends SceneManager
     public Pathfinder getPathfinder ()
     {
         return _pathfinder;
+    }
+
+    /**
+     * Sets the default untransformed area of interest region for clients.
+     */
+    public void setDefaultLocalInterest (Rect interest)
+    {
+        _defaultLocalInterest = interest;
+    }
+
+    /**
+     * Returns the default untransformed area of interest region for clients.
+     */
+    public Rect getDefaultLocalInterest ()
+    {
+        return _defaultLocalInterest;
     }
 
     /**
@@ -1120,6 +1137,9 @@ public class TudeySceneManager extends SceneManager
 
     /** Runnables enqueued for the next tick. */
     protected Queue<Runnable> _runnables = Queue.newQueue();
+
+    /** The default local interest region. */
+    protected Rect _defaultLocalInterest = TudeySceneMetrics.getDefaultLocalInterest();
 
     /** Holds collected elements during queries. */
     protected ArrayList<SpaceElement> _elements = Lists.newArrayList();

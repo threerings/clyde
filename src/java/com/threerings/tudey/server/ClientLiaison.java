@@ -73,6 +73,7 @@ public class ClientLiaison
             targetId = _tsobj.getFirstPawnId();
         }
         _target = (PawnLogic)_scenemgr.getActorLogic(targetId);
+        _localInterest = _scenemgr.getDefaultLocalInterest();
 
         // insert the baseline (empty) tick record
         _records.add(new TickRecord(0, new HashIntMap<Actor>(), new Effect[0]));
@@ -299,7 +300,7 @@ public class ClientLiaison
     protected boolean _targetControlled;
 
     /** The untranslated area of interest. */
-    protected Rect _localInterest = TudeySceneMetrics.getDefaultLocalInterest();
+    protected Rect _localInterest;
 
     /** The translated area of interest. */
     protected Rect _worldInterest = new Rect();

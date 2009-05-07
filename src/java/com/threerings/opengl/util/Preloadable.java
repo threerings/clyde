@@ -24,6 +24,7 @@
 
 package com.threerings.opengl.util;
 
+import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.util.DeepObject;
@@ -69,6 +70,12 @@ public abstract class Preloadable extends DeepObject
             _config = ctx.getConfigManager().getConfig(_clazz, _ref);
         }
 
+        @Override // documentation inherited
+        public String toString ()
+        {
+            return "[" + ConfigGroup.getName(_clazz) + "=" + _ref + "]";
+        }
+
         /** The configuration class. */
         protected Class<ManagedConfig> _clazz;
 
@@ -99,6 +106,12 @@ public abstract class Preloadable extends DeepObject
             _model = new com.threerings.opengl.model.Model(ctx, _ref);
         }
 
+        @Override // documentation inherited
+        public String toString ()
+        {
+            return "[model=" + _ref + "]";
+        }
+
         /** The model config reference. */
         protected ConfigReference<ModelConfig> _ref;
 
@@ -125,6 +138,12 @@ public abstract class Preloadable extends DeepObject
         {
             _anim = new com.threerings.opengl.model.Animation(ctx, ctx.getScope());
             _anim.setConfig(null, _ref);
+        }
+
+        @Override // documentation inherited
+        public String toString ()
+        {
+            return "[anim=" + _ref + "]";
         }
 
         /** The animation config reference. */

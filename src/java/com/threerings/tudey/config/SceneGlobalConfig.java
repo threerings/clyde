@@ -34,6 +34,8 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.math.FloatMath;
+import com.threerings.math.SphereCoords;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
@@ -55,7 +57,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the global.
      */
-    @EditorTypes({ EnvironmentModel.class, Derived.class })
+    @EditorTypes({ EnvironmentModel.class, Camera.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -152,6 +154,46 @@ public class SceneGlobalConfig extends ParameterizedConfig
                 ((GlobalSprite.EnvironmentModel)impl).setConfig(this);
             } else {
                 impl = new GlobalSprite.EnvironmentModel(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * A set of camera parameters that override the defaults.
+     */
+    public static class Camera extends Original
+    {
+        /** The vertical field of view. */
+        @Editable(min=0.0, max=180.0, scale=Math.PI/180.0, hgroup="f")
+        public float fov = FloatMath.PI/3f;
+
+        /** The distance to the near clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float near = 1f;
+
+        /** The distance to the far clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float far = 100f;
+
+        /** The coordinates about the target. */
+        @Editable
+        public SphereCoords coords = new SphereCoords(0f, FloatMath.PI/4f, 10f);
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.EntryLogic$Camera";
+        }
+
+        @Override // documentation inherited
+        public GlobalSprite.Implementation getSpriteImplementation (
+            TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
+        {
+            if (impl instanceof GlobalSprite.Camera) {
+                ((GlobalSprite.Camera)impl).setConfig(this);
+            } else {
+                impl = new GlobalSprite.Camera(ctx, scope, this);
             }
             return impl;
         }
