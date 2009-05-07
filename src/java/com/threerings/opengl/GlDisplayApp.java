@@ -24,6 +24,7 @@
 
 package com.threerings.opengl;
 
+import java.awt.EventQueue;
 import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
@@ -34,7 +35,7 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 
-import com.samskivert.util.Queue;
+import com.samskivert.util.Interval;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.opengl.gui.DisplayRoot;
@@ -46,7 +47,6 @@ import static com.threerings.opengl.Log.*;
  * A base class for applications that use LWJGL's {@link Display} class.
  */
 public abstract class GlDisplayApp extends GlApp
-    implements RunQueue
 {
     public GlDisplayApp ()
     {
@@ -129,28 +129,10 @@ public abstract class GlDisplayApp extends GlApp
         }
     }
 
-    // documentation inherited from interface RunQueue
-    public void postRunnable (Runnable run)
-    {
-        _queue.append(run);
-    }
-
-    // documentation inherited from interface RunQueue
-    public boolean isDispatchThread ()
-    {
-        return Thread.currentThread() == _dispatchThread;
-    }
-
-    // documentation inherited from interface RunQueue
-    public boolean isRunning ()
-    {
-        return _dispatchThread != null;
-    }
-
     @Override // documentation inherited
     public RunQueue getRunQueue ()
     {
-        return this;
+        return RunQueue.AWT;
     }
 
     @Override // documentation inherited
@@ -162,45 +144,42 @@ public abstract class GlDisplayApp extends GlApp
     @Override // documentation inherited
     public void startup ()
     {
-        if (!createDisplay()) {
-            return;
-        }
-        // set up
-        _dispatchThread = Thread.currentThread();
-        _shutdownRequested = false;
-        init();
-
-        // run main loop
-        while (!(Display.isCloseRequested() || _shutdownRequested)) {
-            try {
-                Runnable runnable;
-                while ((runnable = _queue.getNonBlocking()) != null) {
-                    runnable.run();
-                }
-                updateView();
-                if (Display.isVisible()) {
-                    renderView();
-                }
-                Display.update();
-
-            } catch (Exception e) {
-                log.warning("Caught exception in frame loop.", e);
+        // all the work happens in the AWT thread
+        EventQueue.invokeLater(new Runnable() {
+            public void run () {
+                init();
             }
-        }
-
-        // clean up
-        willShutdown();
-        Display.destroy();
-        _dispatchThread = null;
-
-        // just in case there are any AWT windows hanging around
-        System.exit(0);
+        });
     }
 
     @Override // documentation inherited
     public void shutdown ()
     {
-        _shutdownRequested = true;
+        willShutdown();
+        Display.destroy();
+        System.exit(0);
+    }
+
+    @Override // documentation inherited
+    protected void init ()
+    {
+        if (!createDisplay()) {
+            return;
+        }
+        super.init();
+
+        // start the updater
+        new Interval(RunQueue.AWT) {
+            public void expired () {
+                if (Display.isCloseRequested()) {
+                    shutdown();
+                } else {
+                    makeCurrent();
+                    updateFrame();
+                    schedule(1L);
+                }
+            }
+        }.schedule(1L);
     }
 
     @Override // documentation inherited
@@ -229,12 +208,20 @@ public abstract class GlDisplayApp extends GlApp
         return false;
     }
 
-    /** The dispatch thread. */
-    protected Thread _dispatchThread;
+    /**
+     * Updates and renders a single frame.
+     */
+    protected void updateFrame ()
+    {
+        try {
+            updateView();
+            if (Display.isVisible()) {
+                renderView();
+            }
+            Display.update();
 
-    /** The queue of things to run. */
-    protected Queue<Runnable> _queue = new Queue<Runnable>();
-
-    /** Set when shutdown is desired. */
-    protected boolean _shutdownRequested;
+        } catch (Exception e) {
+            log.warning("Caught exception in frame loop.", e);
+        }
+    }
 }
