@@ -52,8 +52,10 @@ public class MobileAdvancer extends ActorAdvancer
     @Override // documentation inherited
     protected void step (float elapsed)
     {
+        float subElapsed = 0f;
         while (elapsed > 0f) {
-            substep(Math.min(elapsed, MAX_SUBSTEP));
+            substep(Math.min(elapsed, MAX_SUBSTEP), subElapsed);
+            subElapsed += MAX_SUBSTEP;
             elapsed -= MAX_SUBSTEP;
         }
     }
@@ -61,13 +63,13 @@ public class MobileAdvancer extends ActorAdvancer
     /**
      * Executes a substep of the specified duration.
      */
-    protected void substep (float elapsed)
+    protected void substep (float elapsed, float subElapsed)
     {
         // save the mobile's translation
         _otrans.set(_mobile.getTranslation());
 
         // take a step
-        mobileStep(elapsed);
+        mobileStep(elapsed, subElapsed);
 
         // make sure we actually moved
         if (_mobile.getTranslation().equals(_otrans)) {
@@ -92,7 +94,7 @@ public class MobileAdvancer extends ActorAdvancer
     /**
      * Executes a step on the mobile.
      */
-    protected void mobileStep (float elapsed)
+    protected void mobileStep (float elapsed, float subElapsed)
     {
         // take a step
         _mobile.step(elapsed);
