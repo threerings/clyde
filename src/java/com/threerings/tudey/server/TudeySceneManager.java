@@ -470,7 +470,6 @@ public class TudeySceneManager extends SceneManager
                 sensor.trigger(timestamp, actor);
             }
         }
-        elements.clear();
     }
 
     /**
