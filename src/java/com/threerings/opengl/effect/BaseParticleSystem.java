@@ -425,21 +425,17 @@ public abstract class BaseParticleSystem extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void updateBounds ()
+    {
+        tick(0f);
+    }
+
+    @Override // documentation inherited
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
         for (Layer layer : _layers) {
             layer.drawBounds();
-        }
-    }
-
-    @Override // documentation inherited
-    public void setTickPolicy (TickPolicy policy)
-    {
-        if (_tickPolicy != policy) {
-            ((Model)_parentScope).tickPolicyWillChange();
-            _tickPolicy = policy;
-            ((Model)_parentScope).tickPolicyDidChange();
         }
     }
 
@@ -458,7 +454,11 @@ public abstract class BaseParticleSystem extends Model.Implementation
         }
 
         // update the world transform
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
+        if (_parentWorldTransform == null) {
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
+        }
 
         // reset the bounds
         resetBounds();
@@ -516,6 +516,13 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
         // update the influence flags
         _influenceFlags = _config.influences.getFlags();
+
+        // update the tick policy if necessary
+        if (_tickPolicy != _config.tickPolicy) {
+            ((Model)_parentScope).tickPolicyWillChange();
+            _tickPolicy = _config.tickPolicy;
+            ((Model)_parentScope).tickPolicyDidChange();
+        }
 
         // (re)create the layers
         BaseParticleSystemConfig.Layer[] configs = _config.getLayers();

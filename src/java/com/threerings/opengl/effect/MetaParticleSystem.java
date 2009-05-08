@@ -109,9 +109,8 @@ public class MetaParticleSystem extends BaseParticleSystem
                 Model model = _models[ii];
                 model.getLocalTransform().set(
                     particle.getPosition(), particle.getOrientation(), particle.getSize());
-                model.updateBounds();
                 model.getColorState().getColor().set(particle.getColor());
-                _models[ii].tick(elapsed);
+                model.tick(elapsed);
                 _parentBounds.addLocal(model.getBounds());
             }
             return false;

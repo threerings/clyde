@@ -35,6 +35,7 @@ import com.threerings.opengl.model.Compound;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -57,13 +58,17 @@ public class CompoundConfig extends ModelConfig.Implementation
         public Transform3D transform = new Transform3D();
     }
 
-    /** The component models. */
+    /** The model's tick policy. */
     @Editable
-    public ComponentModel[] models = new ComponentModel[0];
+    public TickPolicy tickPolicy = TickPolicy.WHEN_VISIBLE;
 
     /** The influences allowed to affect this model. */
     @Editable
     public InfluenceFlagConfig influences = new InfluenceFlagConfig(true);
+
+    /** The component models. */
+    @Editable
+    public ComponentModel[] models = new ComponentModel[0];
 
     @Override // documentation inherited
     public Model.Implementation getModelImplementation (

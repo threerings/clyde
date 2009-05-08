@@ -234,7 +234,7 @@ public class Model extends DynamicScope
         // documentation inherited from interface Tickable
         public void tick (float elapsed)
         {
-            // nothing by default
+            updateBounds();
         }
 
         // documentation inherited from interface Intersectable

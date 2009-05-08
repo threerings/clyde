@@ -45,6 +45,7 @@ import com.threerings.opengl.effect.MetaParticleSystem;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -144,6 +145,10 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
         @Shallow
         public transient Layer identity = this;
     }
+
+    /** The model's tick policy. */
+    @Editable
+    public TickPolicy tickPolicy = TickPolicy.ALWAYS;
 
     /** The influences allowed to affect this model. */
     @Editable

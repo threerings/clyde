@@ -37,6 +37,7 @@ import com.threerings.opengl.model.config.CompoundConfig;
 import com.threerings.opengl.model.config.CompoundConfig.ComponentModel;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.Scene;
+import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
@@ -87,23 +88,7 @@ public class Compound extends Model.Implementation
     @Override // documentation inherited
     public void updateBounds ()
     {
-        // update the world transform
-        if (_parentWorldTransform == null) {
-            return;
-        }
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
-
-        // and the world bounds
-        _nbounds.setToEmpty();
-        for (Model model : _models) {
-            model.updateBounds();
-            _nbounds.addLocal(model.getBounds());
-        }
-        if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
-            _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
-        }
+        tick(0f);
     }
 
     @Override // documentation inherited
@@ -113,6 +98,12 @@ public class Compound extends Model.Implementation
         for (Model model : _models) {
             model.drawBounds();
         }
+    }
+
+    @Override // documentation inherited
+    public TickPolicy getTickPolicy ()
+    {
+        return _tickPolicy;
     }
 
     @Override // documentation inherited
@@ -138,13 +129,16 @@ public class Compound extends Model.Implementation
     public void tick (float elapsed)
     {
         // update the world transform
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
+        if (_parentWorldTransform == null) {
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
+        }
 
         // tick the component models
         _nbounds.setToEmpty();
         for (Model model : _models) {
             model.tick(elapsed);
-            model.updateBounds();
             _nbounds.addLocal(model.getBounds());
         }
 
@@ -227,6 +221,13 @@ public class Compound extends Model.Implementation
         // update the influence flags
         _influenceFlags = _config.influences.getFlags();
 
+        // update the tick policy if necessary
+        if (_tickPolicy != _config.tickPolicy) {
+            ((Model)_parentScope).tickPolicyWillChange();
+            _tickPolicy = _config.tickPolicy;
+            ((Model)_parentScope).tickPolicyDidChange();
+        }
+
         // update the bounds
         updateBounds();
     }
@@ -259,6 +260,9 @@ public class Compound extends Model.Implementation
     /** The view transform. */
     @Scoped
     protected Transform3D _viewTransform = new Transform3D();
+
+    /** The model's tick policy. */
+    protected TickPolicy _tickPolicy = TickPolicy.WHEN_VISIBLE;
 
     /** Flags indicating which influences can affect the model. */
     protected int _influenceFlags;

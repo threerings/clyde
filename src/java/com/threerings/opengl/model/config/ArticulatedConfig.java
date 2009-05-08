@@ -55,6 +55,7 @@ import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.tools.ModelDef;
+import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -396,6 +397,10 @@ public class ArticulatedConfig extends ModelConfig.Imported
             return getNodeNames();
         }
     }
+
+    /** The model's tick policy. */
+    @Editable
+    public TickPolicy tickPolicy = TickPolicy.WHEN_VISIBLE;
 
     /** The model's animation mappings. */
     @Editable

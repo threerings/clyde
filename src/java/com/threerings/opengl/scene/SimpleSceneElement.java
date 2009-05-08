@@ -185,7 +185,7 @@ public abstract class SimpleSceneElement extends SimpleTransformable
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
-        // nothing by default
+        updateBounds();
     }
 
     // documentation inherited from interface Intersectable

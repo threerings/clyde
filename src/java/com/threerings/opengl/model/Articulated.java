@@ -467,6 +467,12 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void updateBounds ()
+    {
+        tick(0f);
+    }
+
+    @Override // documentation inherited
     public void drawBounds ()
     {
         DebugBounds.draw(_bounds, Color4f.WHITE);
@@ -475,16 +481,6 @@ public class Articulated extends Model.Implementation
         }
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             _userAttachments.get(ii).drawBounds();
-        }
-    }
-
-    @Override // documentation inherited
-    public void setTickPolicy (TickPolicy policy)
-    {
-        if (_tickPolicy != policy) {
-            ((Model)_parentScope).tickPolicyWillChange();
-            _tickPolicy = policy;
-            ((Model)_parentScope).tickPolicyDidChange();
         }
     }
 
@@ -527,7 +523,11 @@ public class Articulated extends Model.Implementation
     public void tick (float elapsed)
     {
         // update the world transform
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
+        if (_parentWorldTransform == null) {
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
+        }
 
         // initialize the bounds
         _config.skin.bounds.transform(_worldTransform, _nbounds);
@@ -561,7 +561,6 @@ public class Articulated extends Model.Implementation
         // tick the configured attachments
         for (Model model : _configAttachments) {
             model.tick(elapsed);
-            model.updateBounds();
             _nbounds.addLocal(model.getBounds());
         }
 
@@ -569,7 +568,6 @@ public class Articulated extends Model.Implementation
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             Model model = _userAttachments.get(ii);
             model.tick(elapsed);
-            model.updateBounds();
             _nbounds.addLocal(model.getBounds());
         }
 
@@ -774,6 +772,16 @@ public class Articulated extends Model.Implementation
                 model.willBeRemoved();
             }
         }
+
+        // update the tick policy if necessary
+        if (_tickPolicy != _config.tickPolicy) {
+            ((Model)_parentScope).tickPolicyWillChange();
+            _tickPolicy = _config.tickPolicy;
+            ((Model)_parentScope).tickPolicyDidChange();
+        }
+
+        // update the bounds
+        updateBounds();
     }
 
     /**
@@ -965,7 +973,7 @@ public class Articulated extends Model.Implementation
     protected Box _nbounds = new Box();
 
     /** The model's tick policy. */
-    protected TickPolicy _tickPolicy = TickPolicy.ALWAYS;
+    protected TickPolicy _tickPolicy = TickPolicy.WHEN_VISIBLE;
 
     /** User attachments (their parent scopes are the nodes to which they're attached). */
     protected ArrayList<Model> _userAttachments = new ArrayList<Model>();
