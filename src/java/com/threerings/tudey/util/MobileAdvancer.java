@@ -67,7 +67,7 @@ public class MobileAdvancer extends ActorAdvancer
         _otrans.set(_mobile.getTranslation());
 
         // take a step
-        _mobile.step(elapsed);
+        mobileStep(elapsed);
 
         // make sure we actually moved
         if (_mobile.getTranslation().equals(_otrans)) {
@@ -87,6 +87,15 @@ public class MobileAdvancer extends ActorAdvancer
 
         // if the mobile is still penetrating, just revert to the original translation
         _mobile.getTranslation().set(_otrans);
+    }
+
+    /**
+     * Executes a step on the mobile.
+     */
+    protected void mobileStep (float elapsed)
+    {
+        // take a step
+        _mobile.step(elapsed);
     }
 
     /** A casted reference to the mobile. */
