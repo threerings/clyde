@@ -36,7 +36,7 @@ import com.threerings.opengl.util.Tickable;
 public interface SceneElement extends SceneObject, Tickable, Intersectable, Renderable
 {
     /** Determines when the {@link #tick} method must be called. */
-    public enum TickPolicy { NEVER, WHEN_VISIBLE, ALWAYS };
+    public enum TickPolicy { DEFAULT, NEVER, WHEN_VISIBLE, ALWAYS };
 
     /**
      * Returns the policy that determines when the {@link #tick} method must be called.

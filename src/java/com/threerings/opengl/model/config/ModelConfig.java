@@ -83,7 +83,7 @@ public class ModelConfig extends ParameterizedConfig
         StaticConfig.class, StaticSetConfig.class, ArticulatedConfig.class,
         ParticleSystemConfig.class, MetaParticleSystemConfig.class, SceneInfluencerConfig.class,
         ViewerAffecterConfig.class, ComponentBillboardConfig.class, CompoundConfig.class,
-        Derived.class })
+        ScriptedConfig.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {

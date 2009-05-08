@@ -25,31 +25,28 @@
 package com.threerings.opengl.model;
 
 import com.threerings.expr.Bound;
+import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
-import com.threerings.math.Ray3D;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
-import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.model.config.CompoundConfig;
-import com.threerings.opengl.model.config.CompoundConfig.ComponentModel;
-import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.scene.Scene;
+import com.threerings.opengl.model.config.ScriptedConfig;
+import com.threerings.opengl.model.config.ScriptedConfig.TimeAction;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
-import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
 /**
- * A compound model implementation.
+ * A scripted model implementation.
  */
-public class Compound extends Model.Implementation
+public class Scripted extends Model.Implementation
 {
     /**
-     * Creates a new compound implementation.
+     * Creates a new scripted implementation.
      */
-    public Compound (GlContext ctx, Scope parentScope, CompoundConfig config)
+    public Scripted (GlContext ctx, Scope parentScope, ScriptedConfig config)
     {
         super(parentScope);
         _ctx = ctx;
@@ -59,18 +56,24 @@ public class Compound extends Model.Implementation
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (CompoundConfig config)
+    public void setConfig (ScriptedConfig config)
     {
         _config = config;
         updateFromConfig();
     }
 
     @Override // documentation inherited
+    public boolean hasCompleted ()
+    {
+        return _completed;
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
-        for (Model model : _models) {
-            model.reset();
-        }
+        _eidx = 0;
+        _time = 0f;
+        _completed = false;
     }
 
     @Override // documentation inherited
@@ -92,37 +95,9 @@ public class Compound extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void drawBounds ()
-    {
-        DebugBounds.draw(_bounds, Color4f.WHITE);
-        for (Model model : _models) {
-            model.drawBounds();
-        }
-    }
-
-    @Override // documentation inherited
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
-    }
-
-    @Override // documentation inherited
-    public void wasAdded ()
-    {
-        // notify component models
-        Scene scene = ((Model)_parentScope).getScene();
-        for (Model model : _models) {
-            model.wasAdded(scene);
-        }
-    }
-
-    @Override // documentation inherited
-    public void willBeRemoved ()
-    {
-        // notify component models
-        for (Model model : _models) {
-            model.willBeRemoved();
-        }
     }
 
     @Override // documentation inherited
@@ -135,48 +110,30 @@ public class Compound extends Model.Implementation
             _parentWorldTransform.compose(_localTransform, _worldTransform);
         }
 
-        // tick the component models
-        _nbounds.setToEmpty();
-        for (Model model : _models) {
-            model.tick(elapsed);
-            _nbounds.addLocal(model.getBounds());
-        }
-
-        // update the bounds if necessary
+        // update the bounds
+        float expand = _config.boundsExpansion;
+        Box.ZERO.expand(expand, expand, expand, _nbounds).transformLocal(_worldTransform);
         if (!_bounds.equals(_nbounds)) {
             ((Model)_parentScope).boundsWillChange();
             _bounds.set(_nbounds);
             ((Model)_parentScope).boundsDidChange();
         }
-    }
-
-    @Override // documentation inherited
-    public boolean getIntersection (Ray3D ray, Vector3f result)
-    {
-        // exit early if there's no bounds intersection
-        if (!_bounds.intersects(ray)) {
-            return false;
+        if (_completed) {
+            return;
         }
-        // check the component models
-        Vector3f closest = result;
-        for (Model model : _models) {
-            if (model.getIntersection(ray, result)) {
-                result = Articulated.updateClosest(ray.getOrigin(), result, closest);
+        _time += elapsed;
+        executeActions();
+
+        // check for loop or completion
+        if (_config.loopDuration > 0f) {
+            if (_time >= _config.loopDuration) {
+                _time = FloatMath.IEEEremainder(_time, _config.loopDuration);
+                _eidx = 0;
+                executeActions();
             }
-        }
-        // if we ever changed the result reference, that means we hit something
-        return (result != closest);
-    }
-
-    @Override // documentation inherited
-    public void enqueue ()
-    {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
-
-        // enqueue the component models
-        for (Model model : _models) {
-            model.enqueue();
+        } else if (_eidx >= _executors.length) {
+            _completed = true;
+            ((Model)_parentScope).completed();
         }
     }
 
@@ -192,62 +149,69 @@ public class Compound extends Model.Implementation
      */
     protected void updateFromConfig ()
     {
-        // create the component models
-        Scene scene = ((Model)_parentScope).getScene();
-        Model[] omodels = _models;
-        _models = new Model[_config.models.length];
-        for (int ii = 0; ii < _models.length; ii++) {
-            Model model = (omodels == null || omodels.length <= ii) ?
-                new Model(_ctx) : omodels[ii];
-            _models[ii] = model;
-            ComponentModel component = _config.models[ii];
-            model.setParentScope(this);
-            model.setConfig(component.model);
-            model.getLocalTransform().set(component.transform);
-            if (model.getScene() == null && scene != null) {
-                model.wasAdded(scene);
-            }
-        }
-        if (omodels != null) {
-            for (int ii = _models.length; ii < omodels.length; ii++) {
-                Model model = omodels[ii];
-                if (scene != null) {
-                    model.willBeRemoved();
-                }
-                model.dispose();
-            }
+        // create the executors
+        _executors = new TimeExecutor[_config.actions.length];
+        for (int ii = 0; ii < _executors.length; ii++) {
+            ScriptedConfig.TimeAction action = _config.actions[ii];
+            _executors[ii] = new TimeExecutor(
+                action.time, action.action.createExecutor(_ctx, this));
         }
 
         // update the influence flags
         _influenceFlags = _config.influences.getFlags();
 
         // update the tick policy if necessary
-        if (_tickPolicy != _config.tickPolicy) {
+        TickPolicy npolicy = _config.tickPolicy;
+        if (npolicy == TickPolicy.DEFAULT) {
+            npolicy = (_config.loopDuration > 0f) ? TickPolicy.WHEN_VISIBLE : TickPolicy.ALWAYS;
+        }
+        if (_tickPolicy != npolicy) {
             ((Model)_parentScope).tickPolicyWillChange();
-            _tickPolicy = _config.tickPolicy;
+            _tickPolicy = npolicy;
             ((Model)_parentScope).tickPolicyDidChange();
         }
+    }
 
-        // update the bounds
-        updateBounds();
+    /**
+     * Executes all actions scheduled before or at the current time.
+     */
+    protected void executeActions ()
+    {
+        for (; _eidx < _executors.length && _executors[_eidx].time <= _time; _eidx++) {
+            _executors[_eidx].executor.execute();
+        }
+    }
+
+    /**
+     * Contains an executor to activate at a specific time.
+     */
+    protected static class TimeExecutor
+    {
+        /** The time at which to execute the action. */
+        public float time;
+
+        /** The action executor. */
+        public Executor executor;
+
+        public TimeExecutor (float time, Executor executor)
+        {
+            this.time = time;
+            this.executor = executor;
+        }
     }
 
     /** The application context. */
     protected GlContext _ctx;
 
     /** The model config. */
-    protected CompoundConfig _config;
+    protected ScriptedConfig _config;
 
-    /** The component models. */
-    protected Model[] _models;
+    /** Executors for the timed actions. */
+    protected TimeExecutor[] _executors;
 
     /** The parent world transform. */
     @Bound("worldTransform")
     protected Transform3D _parentWorldTransform;
-
-    /** The parent view transform. */
-    @Bound("viewTransform")
-    protected Transform3D _parentViewTransform;
 
     /** The local transform. */
     @Bound
@@ -256,10 +220,6 @@ public class Compound extends Model.Implementation
     /** The world transform. */
     @Scoped
     protected Transform3D _worldTransform = new Transform3D();
-
-    /** The view transform. */
-    @Scoped
-    protected Transform3D _viewTransform = new Transform3D();
 
     /** The model's tick policy. */
     protected TickPolicy _tickPolicy = TickPolicy.WHEN_VISIBLE;
@@ -272,4 +232,13 @@ public class Compound extends Model.Implementation
 
     /** Holds the bounds of the model when updating. */
     protected Box _nbounds = new Box();
+
+    /** The amount of time elapsed. */
+    protected float _time;
+
+    /** The index of the next executor. */
+    protected int _eidx;
+
+    /** If true, the script has completed. */
+    protected boolean _completed;
 }
