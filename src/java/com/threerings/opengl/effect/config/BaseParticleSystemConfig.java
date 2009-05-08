@@ -147,12 +147,29 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
     }
 
     /** The model's tick policy. */
-    @Editable
-    public TickPolicy tickPolicy = TickPolicy.ALWAYS;
+    @Editable(hgroup="t")
+    public TickPolicy tickPolicy = TickPolicy.DEFAULT;
+
+    /** A fixed amount by which to expand the bounds. */
+    @Editable(min=0.0, step=0.01, hgroup="t")
+    public float boundsExpansion;
 
     /** The influences allowed to affect this model. */
     @Editable
     public InfluenceFlagConfig influences = new InfluenceFlagConfig(true, false, false, false);
+
+    /**
+     * Checks whether any of the system's layers respawn dead particles.
+     */
+    public boolean anyLayersRespawn ()
+    {
+        for (Layer layer : getLayers()) {
+            if (layer.respawnDeadParticles) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Returns a reference to the system's array of layers.

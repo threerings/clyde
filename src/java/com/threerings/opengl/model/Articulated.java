@@ -774,9 +774,13 @@ public class Articulated extends Model.Implementation
         }
 
         // update the tick policy if necessary
-        if (_tickPolicy != _config.tickPolicy) {
+        TickPolicy npolicy = _config.tickPolicy;
+        if (npolicy == TickPolicy.DEFAULT) {
+            npolicy = TickPolicy.WHEN_VISIBLE;
+        }
+        if (_tickPolicy != npolicy) {
             ((Model)_parentScope).tickPolicyWillChange();
-            _tickPolicy = _config.tickPolicy;
+            _tickPolicy = npolicy;
             ((Model)_parentScope).tickPolicyDidChange();
         }
 

@@ -66,11 +66,18 @@ public class Compound extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public boolean hasCompleted ()
+    {
+        return _completed;
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
         for (Model model : _models) {
             model.reset();
         }
+        _completed = false;
     }
 
     @Override // documentation inherited
@@ -128,6 +135,11 @@ public class Compound extends Model.Implementation
     @Override // documentation inherited
     public void tick (float elapsed)
     {
+        // return immediately if completed
+        if (_completed) {
+            return;
+        }
+
         // update the world transform
         if (_parentWorldTransform == null) {
             _worldTransform.set(_localTransform);
@@ -137,9 +149,11 @@ public class Compound extends Model.Implementation
 
         // tick the component models
         _nbounds.setToEmpty();
+        _completed = true;
         for (Model model : _models) {
             model.tick(elapsed);
             _nbounds.addLocal(model.getBounds());
+            _completed &= model.hasCompleted();
         }
 
         // update the bounds if necessary
@@ -147,6 +161,11 @@ public class Compound extends Model.Implementation
             ((Model)_parentScope).boundsWillChange();
             _bounds.set(_nbounds);
             ((Model)_parentScope).boundsDidChange();
+        }
+
+        // notify containing model if completed
+        if (_completed) {
+            ((Model)_parentScope).completed();
         }
     }
 
@@ -222,9 +241,19 @@ public class Compound extends Model.Implementation
         _influenceFlags = _config.influences.getFlags();
 
         // update the tick policy if necessary
-        if (_tickPolicy != _config.tickPolicy) {
+        TickPolicy npolicy = _config.tickPolicy;
+        if (npolicy == TickPolicy.DEFAULT) {
+            npolicy = TickPolicy.NEVER;
+            for (Model model : _models) {
+                TickPolicy mpolicy = model.getTickPolicy();
+                if (mpolicy.ordinal() > npolicy.ordinal()) {
+                    npolicy = mpolicy;
+                }
+            }
+        }
+        if (_tickPolicy != npolicy) {
             ((Model)_parentScope).tickPolicyWillChange();
-            _tickPolicy = _config.tickPolicy;
+            _tickPolicy = npolicy;
             ((Model)_parentScope).tickPolicyDidChange();
         }
 
@@ -272,4 +301,7 @@ public class Compound extends Model.Implementation
 
     /** Holds the bounds of the model when updating. */
     protected Box _nbounds = new Box();
+
+    /** If true, the model has completed. */
+    protected boolean _completed;
 }

@@ -400,7 +400,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
 
     /** The model's tick policy. */
     @Editable
-    public TickPolicy tickPolicy = TickPolicy.WHEN_VISIBLE;
+    public TickPolicy tickPolicy = TickPolicy.DEFAULT;
 
     /** The model's animation mappings. */
     @Editable

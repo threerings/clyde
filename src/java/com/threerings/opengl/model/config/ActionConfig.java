@@ -84,19 +84,24 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public String node = "";
 
+        /** The transform relative to the node. */
+        @Editable(step=0.01)
+        public Transform3D transform = new Transform3D();
+
         @Override // documentation inherited
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             final Function spawnTransient = ScopeUtil.resolve(
                 scope, "spawnTransient", Function.NULL);
             Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
-            final Transform3D transform = (node == null) ?
+            final Transform3D parent = (node == null) ?
                 ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
                 node.getWorldTransform();
             return new Executor() {
                 public void execute () {
-                    spawnTransient.call(model, transform);
+                    spawnTransient.call(model, parent.compose(transform, _world));
                 }
+                protected Transform3D _world = new Transform3D();
             };
         }
     }
@@ -114,16 +119,22 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public String node = "";
 
+        /** The transform relative to the node. */
+        @Editable(step=0.01)
+        public Transform3D transform = new Transform3D();
+
         @Override // documentation inherited
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
             Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
-            Transform3D transform = (node == null) ?
+            final Transform3D parent = (node == null) ?
                 ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
                 node.getWorldTransform();
-            final Sounder sounder = new Sounder(ctx, scope, transform, this.sounder);
+            final Transform3D world = new Transform3D();
+            final Sounder sounder = new Sounder(ctx, scope, world, this.sounder);
             return new Executor() {
                 public void execute () {
+                    parent.compose(transform, world);
                     sounder.start();
                 }
             };

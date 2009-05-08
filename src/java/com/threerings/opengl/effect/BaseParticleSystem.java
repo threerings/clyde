@@ -518,9 +518,13 @@ public abstract class BaseParticleSystem extends Model.Implementation
         _influenceFlags = _config.influences.getFlags();
 
         // update the tick policy if necessary
-        if (_tickPolicy != _config.tickPolicy) {
+        TickPolicy npolicy = _config.tickPolicy;
+        if (npolicy == TickPolicy.DEFAULT) {
+            npolicy = _config.anyLayersRespawn() ? TickPolicy.WHEN_VISIBLE : TickPolicy.ALWAYS;
+        }
+        if (_tickPolicy != npolicy) {
             ((Model)_parentScope).tickPolicyWillChange();
-            _tickPolicy = _config.tickPolicy;
+            _tickPolicy = npolicy;
             ((Model)_parentScope).tickPolicyDidChange();
         }
 
@@ -552,7 +556,8 @@ public abstract class BaseParticleSystem extends Model.Implementation
      */
     protected void resetBounds ()
     {
-        _nbounds.setToEmpty();
+        float expand = _config.boundsExpansion;
+        Box.ZERO.expand(expand, expand, expand, _nbounds).transformLocal(_worldTransform);
     }
 
     /** The application context. */

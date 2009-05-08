@@ -60,7 +60,7 @@ public class CompoundConfig extends ModelConfig.Implementation
 
     /** The model's tick policy. */
     @Editable
-    public TickPolicy tickPolicy = TickPolicy.WHEN_VISIBLE;
+    public TickPolicy tickPolicy = TickPolicy.DEFAULT;
 
     /** The influences allowed to affect this model. */
     @Editable
