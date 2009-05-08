@@ -26,6 +26,7 @@ package com.threerings.tudey.server;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -461,14 +462,15 @@ public class TudeySceneManager extends SceneManager
     public void triggerSensors (
         Class<? extends Sensor> type, int timestamp, Shape shape, ActorLogic actor)
     {
-        _sensorSpace.getIntersecting(shape, _elements);
-        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            Sensor sensor = (Sensor)_elements.get(ii).getUserObject();
+        List<SpaceElement> elements = Lists.newArrayList();
+        _sensorSpace.getIntersecting(shape, elements);
+        for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
+            Sensor sensor = (Sensor)elements.get(ii).getUserObject();
             if (type.isInstance(sensor)) {
                 sensor.trigger(timestamp, actor);
             }
         }
-        _elements.clear();
+        elements.clear();
     }
 
     /**
