@@ -323,7 +323,7 @@ public class Sounder extends SimpleScope
 
         /** The stream gain. */
         @Bound
-        protected MutableFloat _streamGain = new MutableFloat(1f);
+        protected MutableFloat _streamGain;
     }
 
     /**
