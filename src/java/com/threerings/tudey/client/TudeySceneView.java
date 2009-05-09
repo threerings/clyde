@@ -511,6 +511,7 @@ public class TudeySceneView extends SimpleScope
         if (_ctrl != null) {
             _ctrl.wasRemoved();
         }
+        _scene.dispose();
     }
 
     // documentation inherited from interface Tickable
@@ -584,7 +585,6 @@ public class TudeySceneView extends SimpleScope
         if (_sceneModel != null) {
             _sceneModel.removeObserver(this);
         }
-        _scene.dispose();
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
