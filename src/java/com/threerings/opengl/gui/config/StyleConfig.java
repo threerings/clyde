@@ -32,6 +32,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 
@@ -204,6 +205,14 @@ public class StyleConfig extends ParameterizedConfig
         @Editable(hgroup="a")
         public int lineSpacing = UIConstants.DEFAULT_SPACING;
 
+        /** The feedback sound, if any. */
+        @Editable(editor="resource", nullable=true)
+        @FileConstraints(
+            description="m.sound_files_desc",
+            extensions={".ogg"},
+            directory="sound_dir")
+        public String feedbackSound;
+
         /** The padding. */
         @Editable
         public InsetsConfig padding = new InsetsConfig();
@@ -246,6 +255,9 @@ public class StyleConfig extends ParameterizedConfig
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)
         {
+            if (feedbackSound != null) {
+                paths.add(feedbackSound);
+            }
             if (background != null) {
                 background.getUpdateResources(paths);
             }

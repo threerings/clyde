@@ -38,6 +38,9 @@ import org.lwjgl.opengl.GL11;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.ObserverList;
 
+import com.threerings.openal.Sound;
+import com.threerings.openal.SoundGroup;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -68,6 +71,39 @@ public abstract class Root extends SimpleOverlay
     public Root (GlContext ctx)
     {
         super(ctx);
+        _soundGroup = ctx.getSoundManager().createGroup(ctx.getClipProvider(), SOUND_SOURCES);
+    }
+
+    /**
+     * Releases the resources held by this root.
+     */
+    public void dispose ()
+    {
+        _soundGroup.dispose();
+    }
+
+    /**
+     * Returns the sound group to use for feedback effects.
+     */
+    public SoundGroup getSoundGroup ()
+    {
+        return _soundGroup;
+    }
+
+    /**
+     * Plays a sound by path.
+     */
+    public void playSound (String path)
+    {
+        getSound(path).play(true);
+    }
+
+    /**
+     * Retrieves an instance of the sound at the specified path from the sound group.
+     */
+    public Sound getSound (String path)
+    {
+        return _soundGroup.getSound(path);
     }
 
     /**
@@ -1122,6 +1158,9 @@ public abstract class Root extends SimpleOverlay
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
 
+    /** A sound group for feedback effects. */
+    protected SoundGroup _soundGroup;
+
     /** The cursor being displayed. */
     protected Cursor _cursor;
 
@@ -1166,4 +1205,7 @@ public abstract class Root extends SimpleOverlay
 
     /** The distance from the press location at which we can start a drag operation. */
     protected static final int DRAG_DISTANCE = 16;
+
+    /** The number of sound sources to allocate. */
+    protected static final int SOUND_SOURCES = 2;
 }

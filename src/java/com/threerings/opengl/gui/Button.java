@@ -118,6 +118,15 @@ public class Button extends Label
         return _action;
     }
 
+    /**
+     * Returns a reference to the feedback sound used by this component.
+     */
+    public String getFeedbackSound ()
+    {
+        String sound = _feedbackSounds[getState()];
+        return (sound != null) ? sound : _feedbackSounds[DEFAULT];
+    }
+
     // documentation inherited
     public int getState ()
     {
@@ -232,6 +241,8 @@ public class Button extends Label
         if (state == DEFAULT && config.icon != null) {
             _label.setIcon(config.icon.getIcon(_ctx));
         }
+
+        _feedbackSounds[state] = config.feedbackSound;
     }
 
     /**
@@ -241,11 +252,28 @@ public class Button extends Label
      */
     protected void fireAction (long when, int modifiers)
     {
+        playFeedbackSound();
         emitEvent(new ActionEvent(this, when, modifiers, _action));
+    }
+
+    /**
+     * Plays the feedback sound, if any.
+     */
+    protected void playFeedbackSound ()
+    {
+        String sound = getFeedbackSound();
+        if (sound != null && isAdded()) {
+            Window window = getWindow();
+            if (window != null) {
+                window.getRoot().playSound(sound);
+            }
+        }
     }
 
     protected boolean _armed, _pressed;
     protected String _action;
+
+    protected String[] _feedbackSounds = new String[getStateCount()];
 
     protected static final int STATE_COUNT = Component.STATE_COUNT + 1;
     protected static final String[] STATE_PCLASSES = { "Down" };
