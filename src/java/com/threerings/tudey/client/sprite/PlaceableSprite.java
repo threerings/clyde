@@ -34,6 +34,7 @@ import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
+import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
@@ -206,6 +207,10 @@ public class PlaceableSprite extends EntrySprite
             if (_cstate == null) {
                 _cstate = new ColorState();
             }
+            _defaultAnim = (_config.defaultAnimation == null) ?
+                null : _model.createAnimation(_config.defaultAnimation);
+            _hoverAnim = (_config.hoverAnimation == null) ?
+                null : _model.createAnimation(_config.hoverAnimation);
             setHover(_hover);
         }
 
@@ -239,9 +244,26 @@ public class PlaceableSprite extends EntrySprite
          */
         protected void setHover (boolean hover)
         {
+            // update the color
             _hover = hover;
             _cstate.getColor().set(hover ? _config.hoverColor : _config.defaultColor);
             _cstate.setDirty(true);
+
+            // update the animations
+            Animation active, inactive;
+            if (hover) {
+                active = _hoverAnim;
+                inactive = _defaultAnim;
+            } else {
+                active = _defaultAnim;
+                inactive = _hoverAnim;
+            }
+            if (inactive != null && inactive.isPlaying()) {
+                inactive.stop();
+            }
+            if (active != null && !active.isPlaying()) {
+                active.start();
+            }
         }
 
         /** The prop configuration. */
@@ -249,6 +271,9 @@ public class PlaceableSprite extends EntrySprite
 
         /** The color state. */
         protected ColorState _cstate;
+
+        /** The default and hover animations, if any. */
+        protected Animation _defaultAnim, _hoverAnim;
 
         /** Whether or not the hover state is active. */
         protected boolean _hover;

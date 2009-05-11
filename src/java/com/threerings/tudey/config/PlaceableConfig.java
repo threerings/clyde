@@ -37,6 +37,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.util.Preloadable;
@@ -246,6 +247,14 @@ public class PlaceableConfig extends ParameterizedConfig
         /** The color to use when hovering over the prop. */
         @Editable(mode="alpha", hgroup="c")
         public Color4f hoverColor = new Color4f(Color4f.WHITE);
+
+        /** The animation to play when not hovering, if any. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> defaultAnimation;
+
+        /** The animation to play when hovering, if any. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> hoverAnimation;
 
         /** The action to perform when clicked. */
         @Editable
