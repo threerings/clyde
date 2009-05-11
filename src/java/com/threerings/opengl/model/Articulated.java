@@ -447,11 +447,7 @@ public class Articulated extends Model.Implementation
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             _userAttachments.get(ii).reset();
         }
-        for (int ii = 0; ii < _animations.length; ii++) {
-            if (_config.animationMappings[ii].startAutomatically) {
-                _animations[ii].start();
-            }
-        }
+        _started = false;
     }
 
     @Override // documentation inherited
@@ -531,6 +527,16 @@ public class Articulated extends Model.Implementation
 
         // initialize the bounds
         _config.skin.bounds.transform(_worldTransform, _nbounds);
+
+        // start the automatic animations if appropriate
+        if (!_started) {
+            for (int ii = 0; ii < _animations.length; ii++) {
+               if (_config.animationMappings[ii].startAutomatically) {
+                   _animations[ii].start();
+               }
+            }
+            _started = true;
+        }
 
         // copy the tracks to an array so that callbacks can manipulate the list;
         // note if any tracks have completed
@@ -716,9 +722,6 @@ public class Articulated extends Model.Implementation
             _animations[ii] = anim;
             AnimationMapping mapping = _config.animationMappings[ii];
             anim.setConfig(mapping.name, mapping.animation);
-            if (mapping.startAutomatically && !anim.isPlaying()) {
-                anim.start();
-            }
         }
         if (oanims != null) {
             for (int ii = _animations.length; ii < oanims.length; ii++) {
@@ -981,6 +984,9 @@ public class Articulated extends Model.Implementation
 
     /** User attachments (their parent scopes are the nodes to which they're attached). */
     protected ArrayList<Model> _userAttachments = new ArrayList<Model>();
+
+    /** Whether or not we have started the automatic animations. */
+    protected boolean _started;
 
     /** The animations currently being played, sorted by decreasing priority. */
     protected ArrayList<Animation> _playing = new ArrayList<Animation>();
