@@ -59,7 +59,8 @@ public class PlaceableConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the placeable.
      */
-    @EditorTypes({ Prop.class, ClickableProp.class, Marker.class, Derived.class })
+    @EditorTypes({
+        Prop.class, ClickableProp.class, StatefulProp.class, Marker.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -270,6 +271,22 @@ public class PlaceableConfig extends ParameterizedConfig
                 impl = new PlaceableSprite.ClickableProp(ctx, scope, this);
             }
             return impl;
+        }
+    }
+
+    /**
+     * Stateful prop implementation.
+     */
+    public static class StatefulProp extends Prop
+    {
+        /** The configuration of the state actor. */
+        @Editable(nullable=true)
+        public ConfigReference<ActorConfig> actor;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.EntryLogic$StatefulProp";
         }
     }
 

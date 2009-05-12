@@ -31,9 +31,11 @@ import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.HandlerConfig;
+import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.TudeySceneMetrics;
@@ -66,6 +68,38 @@ public class EntryLogic extends Logic
     }
 
     /**
+     * Logic for stateful props.
+     */
+    public static class StatefulProp extends EntryLogic
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            PlaceableEntry pentry = (PlaceableEntry)_entry;
+            PlaceableConfig.StatefulProp config =
+                (PlaceableConfig.StatefulProp)pentry.getConfig(_scenemgr.getConfigManager());
+            if (config.actor != null) {
+                _actor = _scenemgr.spawnActor(
+                    _scenemgr.getNextTimestamp(), _translation, _rotation, config.actor);
+                if (_actor instanceof EntryStateLogic) {
+                    ((EntryStateLogic)_actor).setEntry(this);
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            if (_actor != null) {
+                _actor.destroy(_scenemgr.getNextTimestamp());
+            }
+        }
+
+        /** The logic for the state actor. */
+        protected ActorLogic _actor;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, Entry entry)
@@ -93,6 +127,14 @@ public class EntryLogic extends Logic
 
         // give subclasses a chance to set up
         didInit();
+    }
+
+    /**
+     * Returns a reference to the scene entry corresponding to this logic.
+     */
+    public Entry getEntry ()
+    {
+        return _entry;
     }
 
     /**

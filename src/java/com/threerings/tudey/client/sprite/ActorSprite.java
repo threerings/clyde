@@ -53,6 +53,7 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.ActorSpriteConfig;
 import com.threerings.tudey.data.actor.Active;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.EntryState;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.util.ActorAdvancer;
@@ -514,6 +515,71 @@ public class ActorSprite extends Sprite
 
         /** The current activity. */
         protected Activity _activity;
+    }
+
+    /**
+     * Executes animations on the corresponding entry sprite.
+     */
+    public static class StatefulEntry extends Original
+    {
+        /**
+         * Creates a new implementation.
+         */
+        public StatefulEntry (
+            TudeyContext ctx, Scope parentScope, ActorSpriteConfig.StatefulEntry config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        @Override // documentation inherited
+        public void setConfig (ActorSpriteConfig config)
+        {
+            super.setConfig(config);
+
+            // find the corresponding entry sprite and its model
+            EntryState estate = (EntryState)((ActorSprite)_parentScope).getActor();
+            EntrySprite esprite = _view.getEntrySprite(estate.getKey());
+            _entryModel = (esprite == null) ? null : esprite.getModel();
+            if (_entryModel == null) {
+                return;
+            }
+
+            // resolve the state animations
+            ActorSpriteConfig.StatefulEntry sconfig = (ActorSpriteConfig.StatefulEntry)config;
+            _states = new Animation[sconfig.states.length];
+            for (int ii = 0; ii < _states.length; ii++) {
+                _states[ii] = _entryModel.createAnimation(sconfig.states[ii].animation);
+            }
+        }
+
+        @Override // documentation inherited
+        public void update (Actor actor)
+        {
+            super.update(actor);
+
+            // update the state animation
+            EntryState estate = (EntryState)actor;
+            int entered = estate.getStateEntered();
+            if (entered > _lastStateEntered) {
+                int state = estate.getState();
+                Animation anim = (state < _states.length) ? _states[state] : null;
+                if (anim != null) {
+                    anim.start();
+                    anim.tick((_view.getDelayedTime() - entered) / 1000f);
+                }
+                _lastStateEntered = entered;
+            }
+        }
+
+        /** The model corresponding to the entry sprite. */
+        protected Model _entryModel;
+
+        /** Animations for the various states. */
+        protected Animation[] _states;
+
+        /** The time at which we entered the last state. */
+        protected int _lastStateEntered;
     }
 
     /**

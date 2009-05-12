@@ -61,6 +61,14 @@ public class TileSprite extends EntrySprite
         }
 
         /**
+         * Returns the model for this implementation, or <code>null</code> for none.
+         */
+        public Model getModel ()
+        {
+            return null;
+        }
+
+        /**
          * Updates the implementation to match the tile state.
          */
         public void update (TileEntry entry)
@@ -109,6 +117,12 @@ public class TileSprite extends EntrySprite
                 _scene.remove(_footprint);
                 _footprint = null;
             }
+        }
+
+        @Override // documentation inherited
+        public Model getModel ()
+        {
+            return _model;
         }
 
         @Override // documentation inherited
@@ -178,6 +192,12 @@ public class TileSprite extends EntrySprite
     {
         setConfig((_entry = (TileEntry)entry).tile);
         _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public Model getModel ()
+    {
+        return _impl.getModel();
     }
 
     @Override // documentation inherited

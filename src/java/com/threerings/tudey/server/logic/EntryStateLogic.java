@@ -22,65 +22,37 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.tudey.client.sprite;
+package com.threerings.tudey.server.logic;
 
-import com.threerings.opengl.model.Model;
-import com.threerings.opengl.renderer.Color4f;
+import com.threerings.config.ConfigReference;
+import com.threerings.math.Vector2f;
 
-import com.threerings.tudey.client.TudeySceneView;
-import com.threerings.tudey.data.TudeySceneModel.Entry;
-import com.threerings.tudey.util.TudeyContext;
+import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.EntryState;
 
 /**
- * Represents a scene entry.
+ * The logic for an entry state actor.
  */
-public abstract class EntrySprite extends Sprite
+public class EntryStateLogic extends ActorLogic
 {
     /**
-     * Creates a new entry sprite.
+     * Sets the reference to the corresponding entry.
      */
-    public EntrySprite (TudeyContext ctx, TudeySceneView view)
+    public void setEntry (EntryLogic entry)
     {
-        super(ctx, view);
+        _entry = entry;
+        ((EntryState)_actor).setKey(entry.getEntry().getKey());
     }
 
-    /**
-     * Returns a reference to the most recently set entry state.
-     */
-    public abstract Entry getEntry ();
-
-    /**
-     * Updates the sprite with new entry state.
-     */
-    public abstract void update (Entry entry);
-
-    /**
-     * Returns the model for this sprite, or <code>null</code> for none.
-     */
-    public Model getModel ()
+    @Override // documentation inherited
+    protected Actor createActor (
+        ConfigReference<ActorConfig> ref, int id, int timestamp,
+        Vector2f translation, float rotation)
     {
-        return null;
+        return new EntryState(ref, id, timestamp, translation, rotation);
     }
 
-    /**
-     * Sets whether or not this sprite is selected.
-     */
-    public void setSelected (boolean selected)
-    {
-        _selected = selected;
-    }
-
-    /**
-     * Checks whether this sprite is selected.
-     */
-    public boolean isSelected ()
-    {
-        return _selected;
-    }
-
-    /** Whether or not the sprite is selected. */
-    protected boolean _selected;
-
-    /** The color to use when rendering the footprints of selected sprites. */
-    protected static final Color4f SELECTED_COLOR = Color4f.GRAY;
+    /** The logic of the corresponding entry, if known. */
+    protected EntryLogic _entry;
 }

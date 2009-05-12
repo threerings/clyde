@@ -67,6 +67,14 @@ public class PlaceableSprite extends EntrySprite
         }
 
         /**
+         * Returns the model for this implementation, or <code>null</code> for none.
+         */
+        public Model getModel ()
+        {
+            return null;
+        }
+
+        /**
          * Determines whether the implementation is hoverable.
          */
         public boolean isHoverable ()
@@ -134,6 +142,12 @@ public class PlaceableSprite extends EntrySprite
                 _scene.remove(_footprint);
                 _footprint = null;
             }
+        }
+
+        @Override // documentation inherited
+        public Model getModel ()
+        {
+            return _model;
         }
 
         @Override // documentation inherited
@@ -345,6 +359,12 @@ public class PlaceableSprite extends EntrySprite
     {
         setConfig((_entry = (PlaceableEntry)entry).placeable);
         _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public Model getModel ()
+    {
+        return _impl.getModel();
     }
 
     @Override // documentation inherited

@@ -51,7 +51,8 @@ public class ActorConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the actor.
      */
-    @EditorTypes({ Original.class, Mobile.class, Pawn.class, Agent.class, Derived.class })
+    @EditorTypes({
+        Original.class, Mobile.class, Pawn.class, Agent.class, EntryState.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -218,6 +219,18 @@ public class ActorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.AgentLogic";
+        }
+    }
+
+    /**
+     * Implementation for actors representing entry states.
+     */
+    public static class EntryState extends Original
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.EntryStateLogic";
         }
     }
 

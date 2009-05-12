@@ -48,7 +48,9 @@ import com.threerings.tudey.util.TudeyContext;
 /**
  * The configuration of an actor sprite.
  */
-@EditorTypes({ ActorSpriteConfig.Default.class, ActorSpriteConfig.Moving.class })
+@EditorTypes({
+    ActorSpriteConfig.Default.class, ActorSpriteConfig.Moving.class,
+    ActorSpriteConfig.StatefulEntry.class })
 public abstract class ActorSpriteConfig extends DeepObject
     implements Exportable
 {
@@ -231,6 +233,48 @@ public abstract class ActorSpriteConfig extends DeepObject
                 model.createAnimation(backward), model.createAnimation(right),
                 model.createAnimation(forward), model.createAnimation(left) };
         }
+    }
+
+    /**
+     * Manipulates an entry sprite to reflect the state of the entry's corresponding actor.
+     */
+    public static class StatefulEntry extends Default
+    {
+        /** The entry's states. */
+        @Editable
+        public State[] states = new State[0];
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            super.getPreloads(cfgmgr, preloads);
+            for (State state : states) {
+                preloads.add(new Preloadable.Animation(state.animation));
+            }
+        }
+
+        @Override // documentation inherited
+        public ActorSprite.Implementation getImplementation (
+            TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
+        {
+            if (impl != null && impl.getClass() == ActorSprite.StatefulEntry.class) {
+                ((ActorSprite.StatefulEntry)impl).setConfig(this);
+            } else {
+                impl = new ActorSprite.StatefulEntry(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * Represents a single animated state.
+     */
+    public static class State extends DeepObject
+        implements Exportable
+    {
+        /** The state animation. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> animation;
     }
 
     /** The actor model. */

@@ -62,6 +62,14 @@ public class GlobalSprite extends EntrySprite
             _ctx = ctx;
         }
 
+        /**
+         * Returns the model for this implementation, or <code>null</code> for none.
+         */
+        public Model getModel ()
+        {
+            return null;
+        }
+
         @Override // documentation inherited
         public String getScopeName ()
         {
@@ -96,6 +104,12 @@ public class GlobalSprite extends EntrySprite
         {
             _model.setConfig(config.model);
             _model.setLocalTransform(config.transform);
+        }
+
+        @Override // documentation inherited
+        public Model getModel ()
+        {
+            return _model;
         }
 
         @Override // documentation inherited
@@ -175,6 +189,12 @@ public class GlobalSprite extends EntrySprite
     {
         _entry = (GlobalEntry)entry;
         setConfig(_entry.sceneGlobal);
+    }
+
+    @Override // documentation inherited
+    public Model getModel ()
+    {
+        return _impl.getModel();
     }
 
     @Override // documentation inherited
