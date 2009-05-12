@@ -35,8 +35,8 @@ import com.threerings.util.DeepObject;
 @EditorTypes({
     ConditionConfig.Tagged.class, ConditionConfig.InstanceOf.class,
     ConditionConfig.Intersecting.class, ConditionConfig.DistanceWithin.class,
-    ConditionConfig.Random.class, ConditionConfig.All.class,
-    ConditionConfig.Any.class })
+    ConditionConfig.Random.class, ConditionConfig.Limit.class,
+    ConditionConfig.All.class, ConditionConfig.Any.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -165,6 +165,22 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Random";
+        }
+    }
+
+    /**
+     * Will be satisfied a fixed number of times.
+     */
+    public static class Limit extends ConditionConfig
+    {
+        /** The number of times this condition is satisfied. */
+        @Editable
+        public int limit = 1;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Limit";
         }
     }
 

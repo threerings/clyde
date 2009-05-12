@@ -251,6 +251,31 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the limit condition.
+     */
+    public static class Limit extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            if (_limit > 0) {
+                _limit--;
+                return true;
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _limit = ((ConditionConfig.Limit)_config).limit;
+        }
+
+        /** The remaining limit. */
+        protected int _limit;
+    }
+
+    /**
      * Evaluates the all condition.
      */
     public static class All extends ConditionLogic
