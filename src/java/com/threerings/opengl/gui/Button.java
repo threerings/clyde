@@ -135,7 +135,7 @@ public class Button extends Label
             return state;
         }
 
-        if (_armed && _pressed) {
+        if (_pressed) {
             return DOWN;
         } else {
             return state; // most likely HOVER
@@ -155,36 +155,34 @@ public class Button extends Label
                 int mx = mev.getX(), my = mev.getY();
                 int ax = getAbsoluteX(), ay = getAbsoluteY();
                 if ((mx >= ax) && (my >= ay) && (mx < ax + _width) && (my < ay + _height)) {
-                    _armed = _pressed = (mev.getModifiers() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
+                    _pressed = (mev.getModifiers() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
                 } else {
-                    _armed = _pressed = false;
+                    _pressed = false;
                 }
                 break;
 
             case MouseEvent.MOUSE_ENTERED:
-                _armed = _pressed;
+                _pressed = false;
                 // let the normal component hovered processing take place
                 return super.dispatchEvent(event);
 
             case MouseEvent.MOUSE_EXITED:
-                _armed = false;
+                _pressed = false;
                 // let the normal component hovered processing take place
                 return super.dispatchEvent(event);
 
             case MouseEvent.MOUSE_PRESSED:
                 if (mev.getButton() == 0) {
                     _pressed = true;
-                    _armed = true;
                 }
                 break;
 
             case MouseEvent.MOUSE_RELEASED:
-                if (_armed && _pressed) {
+                if (_pressed) {
                     // create and dispatch an action event
                     fireAction(mev.getWhen(), mev.getModifiers());
-                    _armed = false;
+                    _pressed = false;
                 }
-                _pressed = false;
                 break;
 
             default:
@@ -270,7 +268,7 @@ public class Button extends Label
         }
     }
 
-    protected boolean _armed, _pressed;
+    protected boolean _pressed;
     protected String _action;
 
     protected String[] _feedbackSounds = new String[getStateCount()];
