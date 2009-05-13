@@ -46,6 +46,7 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.server.ClientManager;
+import com.threerings.presents.server.PresentsSession;
 
 import com.threerings.crowd.data.BodyObject;
 import com.threerings.crowd.data.OccupantInfo;
@@ -579,7 +580,10 @@ public class TudeySceneManager extends SceneManager
     public void bodyWillEnter (BodyObject body)
     {
         // configure the client's message throttle to 1.5 times the absolute minimum
-        _clmgr.getClient(body.username).setIncomingMessageThrottle(1500 / getTransmitInterval());
+        PresentsSession client = _clmgr.getClient(body.username);
+        if (client != null) {
+            client.setIncomingMessageThrottle(1500 / getTransmitInterval());
+        }
 
         // add the pawn and configure a local to provide its id
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
