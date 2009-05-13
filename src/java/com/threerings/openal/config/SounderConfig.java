@@ -49,7 +49,7 @@ public class SounderConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the sounder.
      */
-    @EditorTypes({ Clip.class, Stream.class, Derived.class })
+    @EditorTypes({ Clip.class, Stream.class, MetaStream.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -179,14 +179,10 @@ public class SounderConfig extends ParameterizedConfig
     }
 
     /**
-     * Plays a sound stream.
+     * Base class for {@link Stream} and {@link MetaStream}.
      */
-    public static class Stream extends Original
+    public static abstract class BaseStream extends Original
     {
-        /** The files to enqueue in the stream. */
-        @Editable(weight=-1)
-        public QueuedFile[] queue = new QueuedFile[0];
-
         /** The interval over which to fade in the stream. */
         @Editable(min=0, step=0.01, hgroup="f")
         public float fadeIn;
@@ -194,6 +190,16 @@ public class SounderConfig extends ParameterizedConfig
         /** The interval over which to fade out the stream. */
         @Editable(min=0, step=0.01, hgroup="f")
         public float fadeOut;
+    }
+
+    /**
+     * Plays a sound stream.
+     */
+    public static class Stream extends BaseStream
+    {
+        /** The files to enqueue in the stream. */
+        @Editable(weight=-1)
+        public QueuedFile[] queue = new QueuedFile[0];
 
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)
@@ -222,6 +228,83 @@ public class SounderConfig extends ParameterizedConfig
     }
 
     /**
+     * Represents a file to enqueue in the stream.
+     */
+    public static class QueuedFile extends DeepObject
+        implements Exportable
+    {
+        /** The file to stream. */
+        @Editable(editor="resource", nullable=true, hgroup="f")
+        @FileConstraints(
+            description="m.sound_files_desc",
+            extensions={".ogg"},
+            directory="sound_dir")
+        public String file;
+
+        /** Whether or not to loop the file. */
+        @Editable(hgroup="f")
+        public boolean loop;
+    }
+
+    /**
+     * Selects between a number of substreams.
+     */
+    public static class MetaStream extends BaseStream
+    {
+        /** The files from which to choose. */
+        @Editable(weight=-1)
+        public WeightedFile[] files = new WeightedFile[0];
+
+        /** The cross-fade between tracks. */
+        @Editable(min=0, step=0.01, hgroup="f")
+        public float crossFade;
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            for (WeightedFile wfile : files) {
+                if (wfile.file != null) {
+                    paths.add(wfile.file);
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (files.length == 0) {
+                return null;
+            }
+            if (impl instanceof Sounder.MetaStream) {
+                ((Sounder.MetaStream)impl).setConfig(this);
+            } else {
+                impl = new Sounder.MetaStream(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * Combines a file to enqueue .
+     */
+    public static class WeightedFile extends DeepObject
+        implements Exportable
+    {
+        /** The file to stream. */
+        @Editable(editor="resource", nullable=true, hgroup="f")
+        @FileConstraints(
+            description="m.sound_files_desc",
+            extensions={".ogg"},
+            directory="sound_dir")
+        public String file;
+
+        /** The weight of the file. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float weight = 1f;
+    }
+
+    /**
      * A derived implementation.
      */
     public static class Derived extends Implementation
@@ -243,25 +326,6 @@ public class SounderConfig extends ParameterizedConfig
             SounderConfig config = ctx.getConfigManager().getConfig(SounderConfig.class, sounder);
             return (config == null) ? null : config.getSounderImplementation(ctx, scope, impl);
         }
-    }
-
-    /**
-     * Represents a file to enqueue in the stream.
-     */
-    public static class QueuedFile extends DeepObject
-        implements Exportable
-    {
-        /** The file to stream. */
-        @Editable(editor="resource", nullable=true, hgroup="f")
-        @FileConstraints(
-            description="m.sound_files_desc",
-            extensions={".ogg"},
-            directory="sound_dir")
-        public String file;
-
-        /** Whether or not to loop the file. */
-        @Editable(hgroup="f")
-        public boolean loop;
     }
 
     /** The actual sound implementation. */

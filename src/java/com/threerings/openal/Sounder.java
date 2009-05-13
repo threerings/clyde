@@ -29,6 +29,8 @@ import java.io.IOException;
 
 import org.lwjgl.openal.AL10;
 
+import com.samskivert.util.RandomUtil;
+
 import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ConfigEvent;
@@ -208,49 +210,39 @@ public class Sounder extends SimpleScope
     }
 
     /**
-     * Plays a sound stream.
+     * Base class for {@link Stream} and {@link MetaStream}.
      */
-    public static class Stream extends Implementation
+    public static abstract class BaseStream extends Implementation
     {
         /**
-         * Creates a new clip implementation.
+         * Creates a new implementation.
          */
-        public Stream (AlContext ctx, Scope parentScope, SounderConfig.Stream config)
+        public BaseStream (AlContext ctx, Scope parentScope)
         {
             super(ctx, parentScope);
-            setConfig(config);
         }
 
         /**
          * (Re)configures the implementation.
          */
-        public void setConfig (SounderConfig.Stream config)
+        public void setConfig (SounderConfig.BaseStream config)
         {
             super.setConfig(_config = config);
         }
 
         @Override // documentation inherited
-        public void start ()
+        public void stop ()
         {
-            if (_stream != null) {
-                _stream.dispose();
-            }
-            QueuedFile[] queue = _config.queue;
-            try {
-                _stream = createStream(queue[0]);
-            } catch (IOException e) {
-                log.warning("Error opening stream.", "file", queue[0].file, e);
-                _stream = null;
-                return;
-            }
-            ResourceManager rsrcmgr = _ctx.getResourceManager();
-            for (int ii = 1; ii < queue.length; ii++) {
-                QueuedFile queued = queue[ii];
-                if (queued.file != null) {
-                    _stream.queueFile(rsrcmgr.getResourceFile(queued.file), queued.loop);
-                }
-            }
-            _stream.setGain(_config.gain * _streamGain.value);
+            stopStream(_config.fadeOut);
+        }
+
+        /**
+         * Starts the specified stream.
+         */
+        protected void startStream (FileStream stream, float fadeIn)
+        {
+            stopStream(fadeIn);
+            (_stream = stream).setGain(_config.gain * _streamGain.value);
 
             // configure the stream source
             Source source = _stream.getSource();
@@ -266,35 +258,37 @@ public class Sounder extends SimpleScope
             source.setConeOuterGain(_config.coneOuterGain);
 
             // start playing
-            if (_config.fadeIn > 0f) {
-                _stream.fadeIn(_config.fadeIn);
+            if (fadeIn > 0f) {
+                _stream.fadeIn(fadeIn);
             } else {
                 _stream.play();
             }
         }
 
-        @Override // documentation inherited
-        public void stop ()
+        /**
+         * Stops the current stream, if any.
+         */
+        protected void stopStream (float fadeOut)
         {
-            if (_stream != null) {
-                if (_config.fadeOut > 0f) {
-                    _stream.fadeOut(_config.fadeOut, true);
-                } else {
-                    _stream.dispose();
-                }
-                _stream = null;
+            if (_stream == null) {
+                return;
             }
+            if (fadeOut > 0f) {
+                _stream.fadeOut(fadeOut, true);
+            } else {
+                _stream.dispose();
+            }
+            _stream = null;
         }
 
         /**
-         * Creates the file stream.
+         * Creates a file stream.
          */
-        protected FileStream createStream (QueuedFile queued)
+        protected FileStream createStream (String file, boolean loop)
             throws IOException
         {
             return new FileStream(
-                _ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(queued.file),
-                    queued.loop) {
+                _ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(file), loop) {
                 protected void update (float time) {
                     setGain(_config.gain * _streamGain.value);
                     super.update(time);
@@ -316,14 +310,119 @@ public class Sounder extends SimpleScope
         }
 
         /** The implementation configuration. */
-        protected SounderConfig.Stream _config;
+        protected SounderConfig.BaseStream _config;
 
-        /** The stream. */
+        /** The (current) stream. */
         protected FileStream _stream;
 
         /** The stream gain. */
         @Bound
         protected MutableFloat _streamGain;
+    }
+
+    /**
+     * Plays a sound stream.
+     */
+    public static class Stream extends BaseStream
+    {
+        /**
+         * Creates a new stream implementation.
+         */
+        public Stream (AlContext ctx, Scope parentScope, SounderConfig.Stream config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.Stream config)
+        {
+            super.setConfig(_config = config);
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            QueuedFile[] queue = _config.queue;
+            QueuedFile first = queue[0];
+            try {
+                FileStream stream = createStream(first.file, first.loop);
+                ResourceManager rsrcmgr = _ctx.getResourceManager();
+                for (int ii = 1; ii < queue.length; ii++) {
+                    QueuedFile queued = queue[ii];
+                    if (queued.file != null) {
+                        stream.queueFile(rsrcmgr.getResourceFile(queued.file), queued.loop);
+                    }
+                }
+                startStream(stream, _config.fadeIn);
+
+            } catch (IOException e) {
+                log.warning("Error opening stream.", "file", first.file, e);
+            }
+        }
+
+        /** The implementation configuration. */
+        protected SounderConfig.Stream _config;
+    }
+
+    /**
+     * Selects from a number of streams.
+     */
+    public static class MetaStream extends BaseStream
+    {
+        /**
+         * Creates a new stream implementation.
+         */
+        public MetaStream (AlContext ctx, Scope parentScope, SounderConfig.MetaStream config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.MetaStream config)
+        {
+            super.setConfig(_config = config);
+            _weights = new float[config.files.length];
+            for (int ii = 0; ii < _weights.length; ii++) {
+                _weights[ii] = config.files[ii].weight;
+            }
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            startNextStream();
+        }
+
+        /**
+         * Plays the next stream.
+         */
+        protected void startNextStream ()
+        {
+            int idx = RandomUtil.getWeightedIndex(_weights);
+            if (idx == -1) {
+                return;
+            }
+            String file = _config.files[idx].file;
+            try {
+                startStream(createStream(file, false),
+                    (_stream == null) ? _config.fadeIn : _config.crossFade);
+
+            } catch (IOException e) {
+                log.warning("Error opening stream.", "file", file, e);
+            }
+        }
+
+        /** The implementation configuration. */
+        protected SounderConfig.MetaStream _config;
+
+        /** The weights of the streams. */
+        protected float[] _weights;
     }
 
     /**
