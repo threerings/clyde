@@ -317,7 +317,20 @@ public class Compound extends Shape
     @Override // documentation inherited
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        // start with zero penetration
+        result.set(Vector2f.ZERO);
+
+        // check for intersection with each shape
+        Vector2f oresult = new Vector2f();
+        for (Shape shape : _shapes) {
+            if (shape.intersects(circle)) {
+                shape.getPenetration(circle, oresult);
+                if (oresult.lengthSquared() > result.lengthSquared()) {
+                    result.set(oresult);
+                }
+            }
+        }
+        return result;
     }
 
     @Override // documentation inherited
