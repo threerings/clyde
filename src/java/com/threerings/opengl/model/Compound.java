@@ -117,7 +117,7 @@ public class Compound extends Model.Implementation
     public void wasAdded ()
     {
         // notify component models
-        Scene scene = ((Model)_parentScope).getScene();
+        Scene scene = ((Model)_parentScope).getScene(this);
         for (Model model : _models) {
             model.wasAdded(scene);
         }
@@ -158,14 +158,14 @@ public class Compound extends Model.Implementation
 
         // update the bounds if necessary
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
         }
 
         // notify containing model if completed
         if (_completed) {
-            ((Model)_parentScope).completed();
+            ((Model)_parentScope).completed(this);
         }
     }
 
@@ -212,7 +212,7 @@ public class Compound extends Model.Implementation
     protected void updateFromConfig ()
     {
         // create the component models
-        Scene scene = ((Model)_parentScope).getScene();
+        Scene scene = ((Model)_parentScope).getScene(this);
         Model[] omodels = _models;
         _models = new Model[_config.models.length];
         for (int ii = 0; ii < _models.length; ii++) {
@@ -223,7 +223,7 @@ public class Compound extends Model.Implementation
             model.setParentScope(this);
             model.setConfig(component.model);
             model.getLocalTransform().set(component.transform);
-            if (model.getScene() == null && scene != null) {
+            if (scene != null) {
                 model.wasAdded(scene);
             }
         }
@@ -252,9 +252,9 @@ public class Compound extends Model.Implementation
             }
         }
         if (_tickPolicy != npolicy) {
-            ((Model)_parentScope).tickPolicyWillChange();
+            ((Model)_parentScope).tickPolicyWillChange(this);
             _tickPolicy = npolicy;
-            ((Model)_parentScope).tickPolicyDidChange();
+            ((Model)_parentScope).tickPolicyDidChange(this);
         }
 
         // update the bounds

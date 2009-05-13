@@ -78,19 +78,20 @@ public class ViewerAffecter extends Model.Implementation
     {
         // update the world transform
         if (_parentWorldTransform == null) {
-            return;
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
         }
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // and the world bounds
         _config.extent.transformBounds(_worldTransform, _nbounds);
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
 
             // update the effect bounds if we're in a scene
-            Scene scene = ((Model)_parentScope).getScene();
+            Scene scene = ((Model)_parentScope).getScene(this);
             if (scene != null) {
                 scene.boundsWillChange(_effect);
             }
@@ -110,13 +111,13 @@ public class ViewerAffecter extends Model.Implementation
     @Override // documentation inherited
     public void wasAdded ()
     {
-        ((Model)_parentScope).getScene().add(_effect);
+        ((Model)_parentScope).getScene(this).add(_effect);
     }
 
     @Override // documentation inherited
     public void willBeRemoved ()
     {
-        ((Model)_parentScope).getScene().remove(_effect);
+        ((Model)_parentScope).getScene(this).remove(_effect);
     }
 
     @Override // documentation inherited
@@ -132,7 +133,7 @@ public class ViewerAffecter extends Model.Implementation
     protected void updateFromConfig ()
     {
         // remove the old effect, if any
-        Scene scene = ((Model)_parentScope).getScene();
+        Scene scene = ((Model)_parentScope).getScene(this);
         if (scene != null && _effect != null) {
             scene.remove(_effect);
         }

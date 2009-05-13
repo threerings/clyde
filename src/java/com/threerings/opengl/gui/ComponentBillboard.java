@@ -120,9 +120,9 @@ public class ComponentBillboard extends Model.Implementation
         _nbounds.getMaximumExtent().set(+extent, +extent, +extent);
         _nbounds.transformLocal(_worldTransform);
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
         }
     }
 

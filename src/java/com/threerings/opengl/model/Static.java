@@ -98,9 +98,9 @@ public class Static extends Model.Implementation
         // and the world bounds
         _meshes.bounds.transform(_worldTransform, _nbounds);
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
         }
     }
 

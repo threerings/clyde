@@ -387,7 +387,7 @@ public class Articulated extends Model.Implementation
         }
         model.setParentScope(node);
         _userAttachments.add(model);
-        Scene scene = ((Model)_parentScope).getScene();
+        Scene scene = ((Model)_parentScope).getScene(this);
         if (scene != null) {
             model.wasAdded(scene);
         }
@@ -396,9 +396,10 @@ public class Articulated extends Model.Implementation
     @Override // documentation inherited
     public void detach (Model model)
     {
+        Scene scene = ((Model)_parentScope).getScene(this);
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             if (_userAttachments.get(ii) == model) {
-                if (model.getScene() != null) {
+                if (scene != null) {
                     model.willBeRemoved();
                 }
                 _userAttachments.remove(ii);
@@ -490,7 +491,7 @@ public class Articulated extends Model.Implementation
     public void wasAdded ()
     {
         // notify configured attachments
-        Scene scene = ((Model)_parentScope).getScene();
+        Scene scene = ((Model)_parentScope).getScene(this);
         for (Model model : _configAttachments) {
             model.wasAdded(scene);
         }
@@ -579,9 +580,9 @@ public class Articulated extends Model.Implementation
 
         // update the bounds if necessary
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
         }
     }
 
@@ -736,18 +737,18 @@ public class Articulated extends Model.Implementation
         }
 
         // create the configured attachments
-        Scene scene = ((Model)_parentScope).getScene();
+        Scene scene = ((Model)_parentScope).getScene(this);
         Model[] omodels = _configAttachments;
         _configAttachments = new Model[_config.attachments.length];
         for (int ii = 0; ii < _configAttachments.length; ii++) {
-            Model model = (omodels == null || omodels.length <= ii) ?
-                new Model(_ctx) : omodels[ii];
+            boolean create = (omodels == null || omodels.length <= ii);
+            Model model = create ? new Model(_ctx) : omodels[ii];
             _configAttachments[ii] = model;
             Attachment attachment = _config.attachments[ii];
             model.setParentScope(getAttachmentNode(attachment.node));
             model.setConfig(attachment.model);
             model.getLocalTransform().set(attachment.transform);
-            if (model.getScene() == null && scene != null) {
+            if (create && scene != null) {
                 model.wasAdded(scene);
             }
         }
@@ -782,9 +783,9 @@ public class Articulated extends Model.Implementation
             npolicy = TickPolicy.WHEN_VISIBLE;
         }
         if (_tickPolicy != npolicy) {
-            ((Model)_parentScope).tickPolicyWillChange();
+            ((Model)_parentScope).tickPolicyWillChange(this);
             _tickPolicy = npolicy;
-            ((Model)_parentScope).tickPolicyDidChange();
+            ((Model)_parentScope).tickPolicyDidChange(this);
         }
 
         // update the bounds
@@ -855,10 +856,11 @@ public class Articulated extends Model.Implementation
      */
     protected void detachAll (Node node)
     {
+        Scene scene = ((Model)_parentScope).getScene(this);
         for (int ii = _userAttachments.size() - 1; ii >= 0; ii--) {
             Model model = _userAttachments.get(ii);
             if (model.getParentScope() == node) {
-                if (model.getScene() != null) {
+                if (scene != null) {
                     model.willBeRemoved();
                 }
                 _userAttachments.remove(ii);

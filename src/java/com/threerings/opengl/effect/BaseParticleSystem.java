@@ -471,14 +471,14 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
         // update the bounds if necessary
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
         }
 
         // notify containing model if completed
         if (_completed) {
-            ((Model)_parentScope).completed();
+            ((Model)_parentScope).completed(this);
         }
     }
 
@@ -523,9 +523,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
             npolicy = _config.anyLayersRespawn() ? TickPolicy.WHEN_VISIBLE : TickPolicy.ALWAYS;
         }
         if (_tickPolicy != npolicy) {
-            ((Model)_parentScope).tickPolicyWillChange();
+            ((Model)_parentScope).tickPolicyWillChange(this);
             _tickPolicy = npolicy;
-            ((Model)_parentScope).tickPolicyDidChange();
+            ((Model)_parentScope).tickPolicyDidChange(this);
         }
 
         // (re)create the layers

@@ -81,19 +81,20 @@ public class SceneInfluencer extends Model.Implementation
     {
         // update the world transform
         if (_parentWorldTransform == null) {
-            return;
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
         }
-        _parentWorldTransform.compose(_localTransform, _worldTransform);
 
         // and the world bounds
         _config.extent.transformBounds(_worldTransform, _nbounds);
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
 
             // update the influence bounds if we're in a scene
-            Scene scene = ((Model)_parentScope).getScene();
+            Scene scene = ((Model)_parentScope).getScene(this);
             if (scene != null) {
                 scene.boundsWillChange(_influence);
             }
@@ -113,13 +114,13 @@ public class SceneInfluencer extends Model.Implementation
     @Override // documentation inherited
     public void wasAdded ()
     {
-        ((Model)_parentScope).getScene().add(_influence);
+        ((Model)_parentScope).getScene(this).add(_influence);
     }
 
     @Override // documentation inherited
     public void willBeRemoved ()
     {
-        ((Model)_parentScope).getScene().remove(_influence);
+        ((Model)_parentScope).getScene(this).remove(_influence);
     }
 
     @Override // documentation inherited
@@ -147,7 +148,7 @@ public class SceneInfluencer extends Model.Implementation
     protected void updateFromConfig ()
     {
         // remove the old influence, if any
-        Scene scene = ((Model)_parentScope).getScene();
+        Scene scene = ((Model)_parentScope).getScene(this);
         if (scene != null && _influence != null) {
             scene.remove(_influence);
         }

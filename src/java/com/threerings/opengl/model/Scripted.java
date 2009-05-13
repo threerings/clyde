@@ -114,9 +114,9 @@ public class Scripted extends Model.Implementation
         float expand = _config.boundsExpansion;
         Box.ZERO.expand(expand, expand, expand, _nbounds).transformLocal(_worldTransform);
         if (!_bounds.equals(_nbounds)) {
-            ((Model)_parentScope).boundsWillChange();
+            ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
-            ((Model)_parentScope).boundsDidChange();
+            ((Model)_parentScope).boundsDidChange(this);
         }
         if (_completed) {
             return;
@@ -133,7 +133,7 @@ public class Scripted extends Model.Implementation
             }
         } else if (_eidx >= _executors.length) {
             _completed = true;
-            ((Model)_parentScope).completed();
+            ((Model)_parentScope).completed(this);
         }
     }
 
@@ -166,9 +166,9 @@ public class Scripted extends Model.Implementation
             npolicy = (_config.loopDuration > 0f) ? TickPolicy.WHEN_VISIBLE : TickPolicy.ALWAYS;
         }
         if (_tickPolicy != npolicy) {
-            ((Model)_parentScope).tickPolicyWillChange();
+            ((Model)_parentScope).tickPolicyWillChange(this);
             _tickPolicy = npolicy;
-            ((Model)_parentScope).tickPolicyDidChange();
+            ((Model)_parentScope).tickPolicyDidChange(this);
         }
 
         // update the bounds

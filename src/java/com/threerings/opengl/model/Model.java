@@ -934,17 +934,17 @@ public class Model extends DynamicScope
      * Returns a reference to the scene containing the model, if any.  This should only be called
      * by the {@link #_impl}.
      */
-    public Scene getScene ()
+    public Scene getScene (Implementation impl)
     {
-        return _scene;
+        return (_impl == impl) ? _scene : null;
     }
 
     /**
      * Notes that the model has completed.  This should only be called by the {@link #_impl}.
      */
-    public void completed ()
+    public void completed (Implementation impl)
     {
-        if (_observers != null) {
+        if (_observers != null && _impl == impl) {
             _completedOp.init(this);
             _observers.apply(_completedOp);
             _completedOp.clear();
@@ -954,40 +954,40 @@ public class Model extends DynamicScope
     /**
      * Notes that the tick policy will change.  Should only be called by the {@link #_impl}.
      */
-    public void tickPolicyWillChange ()
+    public void tickPolicyWillChange (Implementation impl)
     {
-        if (_parentScope instanceof Scene) {
-            ((Scene)_parentScope).tickPolicyWillChange(this);
+        if (_scene != null && _parentScope == _scene && _impl == impl) {
+            _scene.tickPolicyWillChange(this);
         }
     }
 
     /**
      * Notes that the tick policy has changed.  Should only be called by the {@link #_impl}.
      */
-    public void tickPolicyDidChange ()
+    public void tickPolicyDidChange (Implementation impl)
     {
-        if (_parentScope instanceof Scene) {
-            ((Scene)_parentScope).tickPolicyDidChange(this);
+        if (_scene != null && _parentScope == _scene && _impl == impl) {
+            _scene.tickPolicyDidChange(this);
         }
     }
 
     /**
      * Notes that the bounds will change.  Should only be called by the {@link #_impl}.
      */
-    public void boundsWillChange ()
+    public void boundsWillChange (Implementation impl)
     {
-        if (_parentScope instanceof Scene) {
-            ((Scene)_parentScope).boundsWillChange(this);
+        if (_scene != null && _parentScope == _scene && _impl == impl) {
+            _scene.boundsWillChange(this);
         }
     }
 
     /**
      * Notes that the bounds have changed.  Should only be called by the {@link #_impl}.
      */
-    public void boundsDidChange ()
+    public void boundsDidChange (Implementation impl)
     {
-        if (_parentScope instanceof Scene) {
-            ((Scene)_parentScope).boundsDidChange(this);
+        if (_scene != null && _parentScope == _scene && _impl == impl) {
+            _scene.boundsDidChange(this);
         }
     }
 
@@ -1015,23 +1015,24 @@ public class Model extends DynamicScope
         boolean tickPolicyChanging = (_impl.getTickPolicy() != nimpl.getTickPolicy());
         boolean boundsChanging = !_impl.getBounds().equals(nimpl.getBounds());
         if (tickPolicyChanging) {
-            tickPolicyWillChange();
+            tickPolicyWillChange(_impl);
         }
         if (boundsChanging) {
-            boundsWillChange();
+            boundsWillChange(_impl);
         }
-        if (_impl != null) {
-            if (_scene != null) {
-                _impl.willBeRemoved();
-            }
-            _impl.dispose();
+        if (_scene != null) {
+            _impl.willBeRemoved();
         }
+        _impl.dispose();
         _impl = nimpl;
         if (tickPolicyChanging) {
-            tickPolicyDidChange();
+            tickPolicyDidChange(_impl);
         }
         if (boundsChanging) {
-            boundsDidChange();
+            boundsDidChange(_impl);
+        }
+        if (_scene != null) {
+            _impl.wasAdded();
         }
     }
 
