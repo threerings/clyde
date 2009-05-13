@@ -27,6 +27,8 @@ package com.threerings.openal;
 import java.io.File;
 import java.io.IOException;
 
+import java.nio.ByteBuffer;
+
 import org.lwjgl.openal.AL10;
 
 import com.samskivert.util.RandomUtil;
@@ -287,26 +289,50 @@ public class Sounder extends SimpleScope
         protected FileStream createStream (String file, boolean loop)
             throws IOException
         {
-            return new FileStream(
-                _ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(file), loop) {
-                protected void update (float time) {
-                    setGain(_config.gain * _streamGain.value);
-                    super.update(time);
-                    if (_state == AL10.AL_PLAYING) {
-                        updateSoundTransform();
-                    }
+            return new TransformedStream(file, loop);
+        }
+
+        /**
+         * Updates the transform of the stream as it plays.
+         */
+        protected class TransformedStream extends FileStream
+        {
+            /**
+             * Creates a new transformed stream.
+             */
+            public TransformedStream (String file, boolean loop)
+                throws IOException
+            {
+                super(_ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(file),
+                    loop);
+            }
+
+            @Override // documentation inherited
+            protected void update (float time)
+            {
+                setGain(_config.gain * _streamGain.value);
+                super.update(time);
+                if (_state == AL10.AL_PLAYING) {
+                    updateSoundTransform();
                 }
-                protected void updateSoundTransform () {
-                    _transform.update(Transform3D.RIGID);
-                    Vector3f translation = _transform.getTranslation();
-                    _source.setPosition(translation.x, translation.y, translation.z);
-                    if (_config.directional) {
-                        _transform.getRotation().transformUnitX(_direction);
-                        _source.setDirection(_direction.x, _direction.y, _direction.z);
-                    }
+            }
+
+            /**
+             * Updates the stream's source transform.
+             */
+            protected void updateSoundTransform ()
+            {
+                _transform.update(Transform3D.RIGID);
+                Vector3f translation = _transform.getTranslation();
+                _source.setPosition(translation.x, translation.y, translation.z);
+                if (_config.directional) {
+                    _transform.getRotation().transformUnitX(_direction);
+                    _source.setDirection(_direction.x, _direction.y, _direction.z);
                 }
-                protected Vector3f _direction = new Vector3f();
-            };
+            }
+
+            /** Holds the direction of the source for updates. */
+            protected Vector3f _direction = new Vector3f();
         }
 
         /** The implementation configuration. */
@@ -396,23 +422,57 @@ public class Sounder extends SimpleScope
         @Override // documentation inherited
         public void start ()
         {
-            startNextStream();
+            startNextStream(_config.fadeIn);
+        }
+
+        @Override // documentation inherited
+        protected FileStream createStream (String file, boolean loop)
+            throws IOException
+        {
+            return new TransformedStream(file, loop) {
+                @Override protected void update (float time) {
+                    super.update(time);
+                    if (_remaining == Float.MAX_VALUE || _transitioning) {
+                        return;
+                    }
+                    if ((_remaining -= time) <= _config.crossFade) {
+                        startNextStream(Math.max(_remaining, 0f));
+                        _transitioning = true;
+                    }
+                }
+                @Override protected int populateBuffer (ByteBuffer buf)
+                    throws IOException
+                {
+                    int read = super.populateBuffer(buf);
+                    if (read < buf.capacity() && _remaining == Float.MAX_VALUE) {
+                        // compute the amount of time remaining
+                        int bytes = _qlen*getBufferSize() - _source.getByteOffset() +
+                            Math.max(read, 0);
+                        int samples = bytes / (getFormat() == AL10.AL_FORMAT_MONO16 ? 2 : 4);
+                        _remaining = (float)samples / getFrequency();
+                    }
+                    return read;
+                }
+                protected float _remaining = Float.MAX_VALUE;
+                protected boolean _transitioning;
+            };
         }
 
         /**
          * Plays the next stream.
          */
-        protected void startNextStream ()
+        protected void startNextStream (float fadeIn)
         {
             int idx = RandomUtil.getWeightedIndex(_weights);
             if (idx == -1) {
                 return;
             }
             String file = _config.files[idx].file;
+            if (file == null) {
+                return;
+            }
             try {
-                startStream(createStream(file, false),
-                    (_stream == null) ? _config.fadeIn : _config.crossFade);
-
+                startStream(createStream(file, false), fadeIn);
             } catch (IOException e) {
                 log.warning("Error opening stream.", "file", file, e);
             }
