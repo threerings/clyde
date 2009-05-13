@@ -216,14 +216,14 @@ public class Compound extends Model.Implementation
         Model[] omodels = _models;
         _models = new Model[_config.models.length];
         for (int ii = 0; ii < _models.length; ii++) {
-            Model model = (omodels == null || omodels.length <= ii) ?
-                new Model(_ctx) : omodels[ii];
+            boolean create = (omodels == null || omodels.length <= ii);
+            Model model = create ? new Model(_ctx) : omodels[ii];
             _models[ii] = model;
             ComponentModel component = _config.models[ii];
             model.setParentScope(this);
             model.setConfig(component.model);
             model.getLocalTransform().set(component.transform);
-            if (scene != null) {
+            if (create && scene != null) {
                 model.wasAdded(scene);
             }
         }
