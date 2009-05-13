@@ -39,6 +39,14 @@ import com.threerings.tudey.client.TudeySceneController;
 public class TudeySceneConfig extends PlaceConfig
     implements Exportable, Cloneable, Copyable
 {
+    /**
+     * Returns the interval at which clients transmit their input frames.
+     */
+    public int getTransmitInterval ()
+    {
+        return 100;
+    }
+
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
     {

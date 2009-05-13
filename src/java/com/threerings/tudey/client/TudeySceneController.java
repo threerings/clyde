@@ -66,6 +66,7 @@ import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
+import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Pawn;
@@ -88,7 +89,7 @@ public class TudeySceneController extends SceneController
      */
     public int getTransmitInterval ()
     {
-        return 110;
+        return ((TudeySceneConfig)_config).getTransmitInterval();
     }
 
     /**

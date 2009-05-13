@@ -45,6 +45,7 @@ import com.samskivert.util.RunQueue;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.data.ClientObject;
+import com.threerings.presents.server.ClientManager;
 
 import com.threerings.crowd.data.BodyObject;
 import com.threerings.crowd.data.OccupantInfo;
@@ -61,6 +62,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneLocal;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
@@ -153,6 +155,14 @@ public class TudeySceneManager extends SceneManager
     public int getTickInterval ()
     {
         return 50;
+    }
+
+    /**
+     * Returns the interval at which clients transmit their input frames.
+     */
+    public int getTransmitInterval ()
+    {
+        return ((TudeySceneConfig)_config).getTransmitInterval();
     }
 
     /**
@@ -568,6 +578,9 @@ public class TudeySceneManager extends SceneManager
     @Override // from PlaceManager
     public void bodyWillEnter (BodyObject body)
     {
+        // configure the client's message throttle to 1.5 times the absolute minimum
+        _clmgr.getClient(body.username).setIncomingMessageThrottle(1500 / getTransmitInterval());
+
         // add the pawn and configure a local to provide its id
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
         if (ref != null) {
@@ -1078,6 +1091,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The injector that we use to create and initialize our logic objects. */
     @Inject protected Injector _injector;
+
+    /** The client manager. */
+    @Inject protected ClientManager _clmgr;
 
     /** A casted reference to the Tudey scene object. */
     protected TudeySceneObject _tsobj;
