@@ -291,7 +291,7 @@ public class Compound extends Model.Implementation
     protected Transform3D _viewTransform = new Transform3D();
 
     /** The model's tick policy. */
-    protected TickPolicy _tickPolicy = TickPolicy.WHEN_VISIBLE;
+    protected TickPolicy _tickPolicy;
 
     /** Flags indicating which influences can affect the model. */
     protected int _influenceFlags;

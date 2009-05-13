@@ -544,6 +544,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
         for (Layer layer : olayers.values()) {
             layer.dispose(); // dispose of the unrecycled old layers
         }
+
+        // update the bounds
+        updateBounds();
     }
 
     /**
@@ -603,7 +606,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
     protected Box[] _groupBounds = new Box[0];
 
     /** The model's tick policy. */
-    protected TickPolicy _tickPolicy = TickPolicy.ALWAYS;
+    protected TickPolicy _tickPolicy;
 
     /** If true, the particle system has completed. */
     protected boolean _completed;

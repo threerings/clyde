@@ -980,7 +980,7 @@ public class Articulated extends Model.Implementation
     protected Box _nbounds = new Box();
 
     /** The model's tick policy. */
-    protected TickPolicy _tickPolicy = TickPolicy.WHEN_VISIBLE;
+    protected TickPolicy _tickPolicy;
 
     /** User attachments (their parent scopes are the nodes to which they're attached). */
     protected ArrayList<Model> _userAttachments = new ArrayList<Model>();
