@@ -302,6 +302,10 @@ public class SounderConfig extends ParameterizedConfig
         /** The weight of the file. */
         @Editable(min=0.0, step=0.01, hgroup="f")
         public float weight = 1f;
+
+        /** The gain of the file. */
+        @Editable(min=0.0, step=0.01)
+        public float gain = 1f;
     }
 
     /**

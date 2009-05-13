@@ -53,6 +53,7 @@ import com.threerings.openal.SoundGroup;
 import com.threerings.openal.Source;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.openal.config.SounderConfig.QueuedFile;
+import com.threerings.openal.config.SounderConfig.WeightedFile;
 import com.threerings.openal.util.AlContext;
 
 import static com.threerings.openal.Log.*;
@@ -284,15 +285,6 @@ public class Sounder extends SimpleScope
         }
 
         /**
-         * Creates a file stream.
-         */
-        protected FileStream createStream (String file, boolean loop)
-            throws IOException
-        {
-            return new TransformedStream(file, loop);
-        }
-
-        /**
          * Updates the transform of the stream as it plays.
          */
         protected class TransformedStream extends FileStream
@@ -310,11 +302,19 @@ public class Sounder extends SimpleScope
             @Override // documentation inherited
             protected void update (float time)
             {
-                setGain(_config.gain * _streamGain.value);
+                setGain(getCombinedGain());
                 super.update(time);
                 if (_state == AL10.AL_PLAYING) {
                     updateSoundTransform();
                 }
+            }
+
+            /**
+             * Returns the combined gain.
+             */
+            protected float getCombinedGain ()
+            {
+                return _config.gain * _streamGain.value;
             }
 
             /**
@@ -374,7 +374,7 @@ public class Sounder extends SimpleScope
             QueuedFile[] queue = _config.queue;
             QueuedFile first = queue[0];
             try {
-                FileStream stream = createStream(first.file, first.loop);
+                FileStream stream = new TransformedStream(first.file, first.loop);
                 ResourceManager rsrcmgr = _ctx.getResourceManager();
                 for (int ii = 1; ii < queue.length; ii++) {
                     QueuedFile queued = queue[ii];
@@ -425,11 +425,33 @@ public class Sounder extends SimpleScope
             startNextStream(_config.fadeIn);
         }
 
-        @Override // documentation inherited
-        protected FileStream createStream (String file, boolean loop)
+        /**
+         * Plays the next stream.
+         */
+        protected void startNextStream (float fadeIn)
+        {
+            int idx = RandomUtil.getWeightedIndex(_weights);
+            if (idx == -1) {
+                return;
+            }
+            WeightedFile wfile = _config.files[idx];
+            if (wfile.file == null) {
+                return;
+            }
+            try {
+                startStream(createStream(wfile), fadeIn);
+            } catch (IOException e) {
+                log.warning("Error opening stream.", "file", wfile.file, e);
+            }
+        }
+
+        /**
+         * Creates a stream to play the specified file.
+         */
+        protected FileStream createStream (final WeightedFile wfile)
             throws IOException
         {
-            return new TransformedStream(file, loop) {
+            return new TransformedStream(wfile.file, false) {
                 @Override protected void update (float time) {
                     super.update(time);
                     if (_remaining == Float.MAX_VALUE || _transitioning) {
@@ -439,6 +461,9 @@ public class Sounder extends SimpleScope
                         startNextStream(Math.max(_remaining, 0f));
                         _transitioning = true;
                     }
+                }
+                @Override protected float getCombinedGain () {
+                    return super.getCombinedGain() * wfile.gain;
                 }
                 @Override protected int populateBuffer (ByteBuffer buf)
                     throws IOException
@@ -456,26 +481,6 @@ public class Sounder extends SimpleScope
                 protected float _remaining = Float.MAX_VALUE;
                 protected boolean _transitioning;
             };
-        }
-
-        /**
-         * Plays the next stream.
-         */
-        protected void startNextStream (float fadeIn)
-        {
-            int idx = RandomUtil.getWeightedIndex(_weights);
-            if (idx == -1) {
-                return;
-            }
-            String file = _config.files[idx].file;
-            if (file == null) {
-                return;
-            }
-            try {
-                startStream(createStream(file, false), fadeIn);
-            } catch (IOException e) {
-                log.warning("Error opening stream.", "file", file, e);
-            }
         }
 
         /** The implementation configuration. */
