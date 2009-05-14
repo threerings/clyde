@@ -121,6 +121,8 @@ public class TudeySceneView extends SimpleScope
         super(ctx.getScope());
         _ctx = ctx;
         _ctrl = ctrl;
+        _placeConfig = (ctrl == null) ?
+            new TudeySceneConfig() : (TudeySceneConfig)ctrl.getPlaceConfig();
         _scene = new HashScene(ctx, 64f, 6);
         _scene.setParentScope(this);
 
@@ -195,7 +197,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getBufferDelay ()
     {
-        return ((TudeySceneConfig)_ctrl.getPlaceConfig()).getBufferDelay();
+        return _placeConfig.getBufferDelay();
     }
 
     /**
@@ -215,7 +217,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getInputAdvance ()
     {
-        return ((TudeySceneConfig)_ctrl.getPlaceConfig()).getInputAdvance(_pingAverage.value());
+        return _placeConfig.getInputAdvance(_pingAverage.value());
     }
 
     /**
@@ -776,6 +778,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The controller that created this view. */
     protected TudeySceneController _ctrl;
+
+    /** The place configuration. */
+    protected TudeySceneConfig _placeConfig;
 
     /** The view's camera handler. */
     protected OrbitCameraHandler _camhand;
