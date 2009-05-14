@@ -141,7 +141,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         {
             if (_completed) {
                 return true;
-            } else if ((_total += elapsed) < _config.startTime) {
+            } else if ((_total += elapsed) <= _config.startTime) {
                 return false;
             }
             elapsed *= _config.timeScale;

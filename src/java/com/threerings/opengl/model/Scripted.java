@@ -180,7 +180,7 @@ public class Scripted extends Model.Implementation
      */
     protected void executeActions ()
     {
-        for (; _eidx < _executors.length && _executors[_eidx].time <= _time; _eidx++) {
+        for (; _eidx < _executors.length && _executors[_eidx].time < _time; _eidx++) {
             _executors[_eidx].executor.execute();
         }
     }

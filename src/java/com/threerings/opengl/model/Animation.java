@@ -416,7 +416,7 @@ public class Animation extends SimpleScope
         protected void executeActions ()
         {
             float frame = _fidx + _accum;
-            for (; _eidx < _executors.length && _executors[_eidx].frame <= frame; _eidx++) {
+            for (; _eidx < _executors.length && _executors[_eidx].frame < frame; _eidx++) {
                 _executors[_eidx].executor.execute();
             }
         }
