@@ -33,6 +33,7 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.server.ClientLiaison;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.PawnAdvancer;
 
@@ -42,11 +43,29 @@ import com.threerings.tudey.util.PawnAdvancer;
 public class PawnLogic extends ActiveLogic
 {
     /**
+     * Notes that the controlling client has entered.
+     */
+    public void bodyEntered (ClientLiaison client)
+    {
+        _client = client;
+    }
+
+    /**
      * Enqueues a single frame of input for processing.
      */
     public void enqueueInput (InputFrame frame)
     {
         _input.add(frame);
+    }
+
+    /**
+     * Computes and returns the difference between the time at which the controlling client depicts
+     * this actor (its advanced time) and the time at which it depicts all other actors (its
+     * delayed time).
+     */
+    public int getControlDelta ()
+    {
+        return (_client == null) ? 0 : _client.getControlDelta();
     }
 
     @Override // documentation inherited
@@ -77,6 +96,9 @@ public class PawnLogic extends ActiveLogic
 
     /** A casted reference to the advancer. */
     protected PawnAdvancer _advancer;
+
+    /** The liaison for the controlling client. */
+    protected ClientLiaison _client;
 
     /** The list of pending input frames for the pawn. */
     protected ArrayList<InputFrame> _input = new ArrayList<InputFrame>();

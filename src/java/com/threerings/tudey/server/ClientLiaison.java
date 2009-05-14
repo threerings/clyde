@@ -43,6 +43,7 @@ import com.threerings.media.util.TrailingAverage;
 
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
+import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
@@ -75,6 +76,9 @@ public class ClientLiaison
             targetId = _tsobj.getFirstPawnId();
         }
         _target = (PawnLogic)_scenemgr.getActorLogic(targetId);
+        if (_targetControlled) {
+            _target.bodyEntered(this);
+        }
         _localInterest = _scenemgr.getDefaultLocalInterest();
 
         // insert the baseline (empty) tick record
@@ -111,6 +115,17 @@ public class ClientLiaison
         float fovy, float aspect, float near, float far, SphereCoords coords)
     {
         _localInterest = TudeySceneMetrics.getLocalInterest(fovy, aspect, near, far, coords);
+    }
+
+    /**
+     * Computes and returns the difference between the time at which the client depicts actors that
+     * it controls (its advanced time) and the time at which it depicts all other actors (its
+     * delayed time).
+     */
+    public int getControlDelta ()
+    {
+        TudeySceneConfig config = (TudeySceneConfig)_scenemgr.getConfig();
+        return config.getBufferDelay() + config.getInputAdvance(_pingAverage.value());
     }
 
     /**
