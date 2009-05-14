@@ -25,6 +25,7 @@
 package com.threerings.tudey.client.sprite;
 
 import java.util.List;
+import java.util.HashSet;
 
 import com.google.common.collect.Lists;
 
@@ -54,6 +55,7 @@ import com.threerings.tudey.config.ActorSpriteConfig;
 import com.threerings.tudey.data.actor.Active;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.EntryState;
+import com.threerings.tudey.data.actor.HasActor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.util.ActorAdvancer;
@@ -64,7 +66,7 @@ import com.threerings.tudey.util.TudeyContext;
  * Represents an active element of the scene.
  */
 public class ActorSprite extends Sprite
-    implements TudeySceneView.TickParticipant, ConfigUpdateListener<ActorConfig>
+    implements TudeySceneView.TickParticipant, ConfigUpdateListener<ActorConfig>, HasActor
 {
     /**
      * The actual sprite implementation.
@@ -138,9 +140,11 @@ public class ActorSprite extends Sprite
         {
             // update the model transform
             Vector2f translation = actor.getTranslation();
-            _view.getFloorTransform(
-                translation.x, translation.y, actor.getRotation(), _model.getLocalTransform());
-            _model.updateBounds();
+            for (Model model : _attachedModels) {
+                _view.getFloorTransform(
+                    translation.x, translation.y, actor.getRotation(), model.getLocalTransform());
+                model.updateBounds();
+            }
         }
 
         @Override // documentation inherited
@@ -194,6 +198,10 @@ public class ActorSprite extends Sprite
         /** The owning view. */
         @Bound
         protected TudeySceneView _view;
+
+        /** Other models attached to this sprite. */
+        @Bound
+        protected HashSet<Model> _attachedModels;
     }
 
     /**
@@ -598,6 +606,8 @@ public class ActorSprite extends Sprite
         // create the model and the shape
         _model = new Model(ctx);
         _model.setUserObject(this);
+        _attachedModels = new HashSet<Model>();
+        _attachedModels.add(_model);
         _shape = new ShapeElement(_actor.getOriginal().shape);
         _shape.setUserObject(this);
 
@@ -613,9 +623,7 @@ public class ActorSprite extends Sprite
         }
     }
 
-    /**
-     * Returns a reference to the "play head" actor containing interpolated state.
-     */
+    @Override // documentation inherited
     public Actor getActor ()
     {
         return _actor;
@@ -636,6 +644,29 @@ public class ActorSprite extends Sprite
     public Model getModel ()
     {
         return _model;
+    }
+
+    /**
+     * Attaches a model to this sprite.
+     */
+    public void attachModel (Model model)
+    {
+        if (_attachedModels.add(model) && isCreated()) {
+            _view.getScene().add(model);
+        }
+    }
+
+    /**
+     * Detaches a model from this sprite.
+     */
+    public void detachModel (Model model)
+    {
+        if (model == _model) {
+            return;
+        }
+        if (_attachedModels.remove(model) && isCreated()) {
+            _view.getScene().remove(model);
+        }
     }
 
     /**
@@ -663,7 +694,9 @@ public class ActorSprite extends Sprite
         // handle pre-creation state
         if (_impl == null) {
             if (isCreated()) {
-                _view.getScene().add(_model);
+                for (Model model : _attachedModels) {
+                    _view.getScene().add(model);
+                }
                 _view.getActorSpace().add(_shape);
                 update();
                 _impl.wasCreated();
@@ -706,7 +739,9 @@ public class ActorSprite extends Sprite
         if (_config != null) {
             _config.removeListener(this);
         }
-        _view.getScene().remove(_model);
+        for (Model model : _attachedModels) {
+            _view.getScene().remove(model);
+        }
         _view.getActorSpace().remove(_shape);
     }
 
@@ -835,6 +870,10 @@ public class ActorSprite extends Sprite
     /** The actor model. */
     @Scoped
     protected Model _model;
+
+    /** Other models attached to this sprite. */
+    @Scoped
+    protected HashSet<Model> _attachedModels;
 
     /** The actor's shape element. */
     protected ShapeElement _shape;

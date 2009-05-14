@@ -37,6 +37,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.HasActor;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
@@ -45,6 +46,7 @@ import com.threerings.tudey.shape.ShapeElement;
  * Controls the state of an actor on the server.
  */
 public class ActorLogic extends Logic
+    implements HasActor
 {
     /**
      * Initializes the actor.
@@ -132,9 +134,7 @@ public class ActorLogic extends Logic
         destroy(_scenemgr.getNextTimestamp());
     }
 
-    /**
-     * Returns a reference to the actor object.
-     */
+    @Override // documentation inherited
     public Actor getActor ()
     {
         return _actor;
