@@ -94,6 +94,12 @@ public class PawnLogic extends ActiveLogic
         return (_advancer = ((Pawn)_actor).createAdvancer(this, _actor.getCreated()));
     }
 
+    @Override // documentation inherited
+    protected int getActivityAdvance ()
+    {
+        return getControlDelta()/2; // split the difference
+    }
+
     /** A casted reference to the advancer. */
     protected PawnAdvancer _advancer;
 

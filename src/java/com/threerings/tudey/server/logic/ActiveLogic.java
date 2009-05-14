@@ -52,7 +52,7 @@ public class ActiveLogic extends MobileLogic
         if (activity != null) {
             int started = active.getActivityStarted();
             if (started > _lastActivityStarted) {
-                activity.start(_lastActivityStarted = started);
+                activity.start((_lastActivityStarted = started) - getActivityAdvance());
             }
             activity.tick(timestamp);
         }
@@ -72,6 +72,14 @@ public class ActiveLogic extends MobileLogic
     protected ActorAdvancer createAdvancer ()
     {
         return new ActiveAdvancer(this, (Active)_actor, _actor.getCreated());
+    }
+
+    /**
+     * Returns the amount of time to advance activities to compensate for control latency.
+     */
+    protected int getActivityAdvance ()
+    {
+        return 0;
     }
 
     /** Activity logic mappings. */
