@@ -39,6 +39,8 @@ import com.threerings.math.Rect;
 import com.threerings.math.SphereCoords;
 import com.threerings.math.Vector2f;
 
+import com.threerings.media.util.TrailingAverage;
+
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -129,7 +131,7 @@ public class ClientLiaison
         }
 
         // remember ping
-        _ping = ping;
+        _pingAverage.record(_ping = ping);
 
         // if we do not control the target, we do not process the input
         if (!_targetControlled) {
@@ -308,8 +310,11 @@ public class ClientLiaison
     /** Records of each update transmitted to the client. */
     protected ArrayList<TickRecord> _records = new ArrayList<TickRecord>();
 
-    /** The ping time estimate. */
+    /** The most recent ping time estimate. */
     protected int _ping;
+
+    /** The trailing average of the ping times. */
+    protected TrailingAverage _pingAverage = new TrailingAverage();
 
     /** The timestamp of the last input frame received from the client. */
     protected int _lastInput;

@@ -40,6 +40,28 @@ public class TudeySceneConfig extends PlaceConfig
     implements Exportable, Cloneable, Copyable
 {
     /**
+     * Returns the delay with which clients display information received from the server in order
+     * to compensate for network jitter and dropped packets.
+     */
+    public int getBufferDelay ()
+    {
+        return 100;
+    }
+
+    /**
+     * Returns the interval ahead of the smoothed server time (which estimates the server time
+     * minus one-way latency) at which clients schedule input events.  This should be at least the
+     * transmit interval (which represents the maximum amount of time that events may be delayed)
+     * plus the two-way latency.
+     *
+     * @param pingAverage the two-way latency estimate to use in the calculation.
+     */
+    public int getInputAdvance (int pingAverage)
+    {
+        return getTransmitInterval() + Math.round(pingAverage * 1.25f);
+    }
+
+    /**
      * Returns the interval at which clients transmit their input frames.
      */
     public int getTransmitInterval ()

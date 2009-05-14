@@ -109,6 +109,12 @@ public abstract class BehaviorConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Patrol";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
     }
 
     /**
@@ -133,6 +139,12 @@ public abstract class BehaviorConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Follow";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
     }
 
     /**
@@ -148,6 +160,14 @@ public abstract class BehaviorConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Random";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (WeightedBehavior wbehavior : behaviors) {
+                wbehavior.behavior.invalidate();
+            }
         }
     }
 
@@ -170,4 +190,12 @@ public abstract class BehaviorConfig extends DeepObject
      * Returns the name of the server-side logic class for this behavior.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

@@ -84,6 +84,14 @@ public class SceneGlobalConfig extends ParameterizedConfig
          */
         public abstract GlobalSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -123,6 +131,14 @@ public class SceneGlobalConfig extends ParameterizedConfig
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (HandlerConfig handler : handlers) {
+                handler.invalidate();
+            }
         }
     }
 
@@ -255,6 +271,14 @@ public class SceneGlobalConfig extends ParameterizedConfig
         TudeyContext ctx, Scope scope, GlobalSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

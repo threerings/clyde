@@ -162,6 +162,13 @@ public abstract class HandlerConfig extends DeepObject
         /** The shape to use for the intersection test. */
         @Editable
         public IntersectionShape shape = new DefaultShape();
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            shape.invalidate();
+        }
     }
 
     /**
@@ -233,6 +240,14 @@ public abstract class HandlerConfig extends DeepObject
          * @param result a result object to reuse if possible.
          */
         public abstract Shape getShape (Shape source, Transform2D transform, Shape result);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -265,6 +280,12 @@ public abstract class HandlerConfig extends DeepObject
         {
             return shape.getShape().transform(transform, result);
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            shape.invalidate();
+        }
     }
 
     /** The action to take in response to the event. */
@@ -275,4 +296,12 @@ public abstract class HandlerConfig extends DeepObject
      * Returns the name of the server-side logic class for this handler.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        action.invalidate();
+    }
 }

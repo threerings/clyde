@@ -121,11 +121,8 @@ public class AgentLogic extends ActiveLogic
         // advance to current time
         super.tick(timestamp);
 
-        // update the view shape
-        ActorConfig.Agent config = (ActorConfig.Agent)_config;
-        _viewShape = config.viewShape.getShape().transform(_shape.getTransform(), _viewShape);
-
         // update the behavior
+        ActorConfig.Agent config = (ActorConfig.Agent)_config;
         if (canThink()) {
             _behavior.tick(timestamp);
         }
@@ -187,9 +184,6 @@ public class AgentLogic extends ActiveLogic
         // notify the behavior
         _behavior.reachedTargetRotation();
     }
-
-    /** The agent's view shape. */
-    protected Shape _viewShape;
 
     /** The agent's behavior logic. */
     protected BehaviorLogic _behavior;

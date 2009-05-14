@@ -94,6 +94,14 @@ public class PathConfig extends ParameterizedConfig
          */
         public abstract PathSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, PathSprite.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -184,6 +192,14 @@ public class PathConfig extends ParameterizedConfig
             }
             return impl;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (HandlerConfig handler : handlers) {
+                handler.invalidate();
+            }
+        }
     }
 
     /**
@@ -263,6 +279,14 @@ public class PathConfig extends ParameterizedConfig
         TudeyContext ctx, Scope scope, PathSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

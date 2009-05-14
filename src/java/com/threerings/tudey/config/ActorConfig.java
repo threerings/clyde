@@ -163,6 +163,10 @@ public class ActorConfig extends ParameterizedConfig
         public void invalidate ()
         {
             sprite.invalidate();
+            shape.invalidate();
+            for (HandlerConfig handler : handlers) {
+                handler.invalidate();
+            }
         }
     }
 
@@ -207,10 +211,6 @@ public class ActorConfig extends ParameterizedConfig
         @Editable(min=0.0, scale=Math.PI/180.0)
         public float turnRate = FloatMath.PI;
 
-        /** The shape that represents what the agent can see. */
-        @Editable
-        public ShapeConfig viewShape = new ShapeConfig.Point();
-
         /** The agent's behavior. */
         @Editable
         public BehaviorConfig behavior = new BehaviorConfig.Idle();
@@ -219,6 +219,13 @@ public class ActorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.AgentLogic";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            behavior.invalidate();
         }
     }
 

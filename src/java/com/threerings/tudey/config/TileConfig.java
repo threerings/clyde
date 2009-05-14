@@ -96,6 +96,14 @@ public class TileConfig extends ParameterizedConfig
          */
         public abstract TileSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, TileSprite.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -261,6 +269,14 @@ public class TileConfig extends ParameterizedConfig
             }
             return impl;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (HandlerConfig handler : handlers) {
+                handler.invalidate();
+            }
+        }
     }
 
     /**
@@ -340,6 +356,14 @@ public class TileConfig extends ParameterizedConfig
         TudeyContext ctx, Scope scope, TileSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

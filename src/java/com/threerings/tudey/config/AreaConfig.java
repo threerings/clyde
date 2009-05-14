@@ -94,6 +94,14 @@ public class AreaConfig extends ParameterizedConfig
          */
         public abstract AreaSprite.Implementation getSpriteImplementation (
             TudeyContext ctx, Scope scope, AreaSprite.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -184,6 +192,14 @@ public class AreaConfig extends ParameterizedConfig
             }
             return impl;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (HandlerConfig handler : handlers) {
+                handler.invalidate();
+            }
+        }
     }
 
     /**
@@ -263,6 +279,14 @@ public class AreaConfig extends ParameterizedConfig
         TudeyContext ctx, Scope scope, AreaSprite.Implementation impl)
     {
         return implementation.getSpriteImplementation(ctx, scope, impl);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

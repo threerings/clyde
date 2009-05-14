@@ -62,6 +62,12 @@ public abstract class ConditionConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Tagged";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
     }
 
     /**
@@ -85,6 +91,12 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$InstanceOf";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
@@ -113,6 +125,13 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Intersecting";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            first.invalidate();
+            second.invalidate();
         }
     }
 
@@ -149,6 +168,13 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$DistanceWithin";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            first.invalidate();
+            second.invalidate();
         }
     }
 
@@ -198,6 +224,14 @@ public abstract class ConditionConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$All";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (ConditionConfig condition : conditions) {
+                condition.invalidate();
+            }
+        }
     }
 
     /**
@@ -214,10 +248,26 @@ public abstract class ConditionConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Any";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (ConditionConfig condition : conditions) {
+                condition.invalidate();
+            }
+        }
     }
 
     /**
      * Returns the name of the server-side logic class for this condition.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

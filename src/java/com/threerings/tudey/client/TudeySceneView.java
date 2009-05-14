@@ -68,6 +68,7 @@ import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
+import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.actor.Actor;
@@ -194,7 +195,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getBufferDelay ()
     {
-        return 100;
+        return ((TudeySceneConfig)_ctrl.getPlaceConfig()).getBufferDelay();
     }
 
     /**
@@ -207,14 +208,14 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
-     * Returns the interval ahead of the smoothed server time (which estimates the server time plus
-     * one-way latency) at which we schedule input events.  This should be at least the transmit
-     * interval (which represents the maximum amount of time that events may be delayed) plus the
-     * two-way latency.
+     * Returns the interval ahead of the smoothed server time (which estimates the server time
+     * minus one-way latency) at which we schedule input events.  This should be at least the
+     * transmit interval (which represents the maximum amount of time that events may be delayed)
+     * plus the two-way latency.
      */
     public int getInputAdvance ()
     {
-        return _ctrl.getTransmitInterval() + Math.round(_pingAverage.value() * 1.25f);
+        return ((TudeySceneConfig)_ctrl.getPlaceConfig()).getInputAdvance(_pingAverage.value());
     }
 
     /**

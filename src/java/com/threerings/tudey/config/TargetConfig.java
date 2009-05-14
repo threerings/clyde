@@ -121,6 +121,12 @@ public abstract class TargetConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Intersecting";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            region.invalidate();
+        }
     }
 
     /**
@@ -135,6 +141,12 @@ public abstract class TargetConfig extends DeepObject
         /** The contained target. */
         @Editable
         public TargetConfig target = new Source();
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
     }
 
     /**
@@ -157,6 +169,13 @@ public abstract class TargetConfig extends DeepObject
         /** The reference location. */
         @Editable
         public TargetConfig location = new Source();
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            location.invalidate();
+        }
     }
 
     /**
@@ -201,6 +220,13 @@ public abstract class TargetConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Conditional";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            condition.invalidate();
+            target.invalidate();
+        }
     }
 
     /**
@@ -217,10 +243,26 @@ public abstract class TargetConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Compound";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (TargetConfig target : targets) {
+                target.invalidate();
+            }
+        }
     }
 
     /**
      * Returns the name of the server-side logic class for this target.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

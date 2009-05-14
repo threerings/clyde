@@ -76,6 +76,12 @@ public abstract class ActionConfig extends DeepObject
                 original.getPreloads(cfgmgr, preloads);
             }
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            location.invalidate();
+        }
     }
 
     /**
@@ -91,6 +97,12 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$DestroyActor";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
@@ -111,6 +123,13 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$WarpActor";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+            location.invalidate();
         }
     }
 
@@ -142,6 +161,12 @@ public abstract class ActionConfig extends DeepObject
                 original.getPreloads(cfgmgr, preloads);
             }
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            location.invalidate();
+        }
     }
 
     /**
@@ -161,6 +186,12 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$Signal";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
@@ -189,6 +220,12 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$MoveBody";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
@@ -228,6 +265,13 @@ public abstract class ActionConfig extends DeepObject
         {
             action.getPreloads(cfgmgr, preloads);
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            condition.invalidate();
+            action.invalidate();
+        }
     }
 
     /**
@@ -252,6 +296,14 @@ public abstract class ActionConfig extends DeepObject
                 action.getPreloads(cfgmgr, preloads);
             }
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (ActionConfig action : actions) {
+                action.invalidate();
+            }
+        }
     }
 
     /**
@@ -274,6 +326,14 @@ public abstract class ActionConfig extends DeepObject
         {
             for (WeightedAction waction : actions) {
                 waction.action.getPreloads(cfgmgr, preloads);
+            }
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (WeightedAction waction : actions) {
+                waction.action.invalidate();
             }
         }
     }
@@ -302,6 +362,14 @@ public abstract class ActionConfig extends DeepObject
      * Adds the resources to preload for this action into the provided set.
      */
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
     {
         // nothing by default
     }

@@ -183,6 +183,9 @@ public class PlaceableConfig extends ParameterizedConfig
         public void invalidate ()
         {
             shape.invalidate();
+            for (HandlerConfig handler : handlers) {
+                handler.invalidate();
+            }
         }
     }
 

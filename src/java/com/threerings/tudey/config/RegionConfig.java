@@ -80,6 +80,12 @@ public abstract class RegionConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.RegionLogic$Transformed";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            shape.invalidate();
+        }
     }
 
     /**
@@ -96,10 +102,24 @@ public abstract class RegionConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.RegionLogic$Fixed";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            shape.invalidate();
+        }
     }
 
     /**
      * Returns the name of the server-side logic class for this region.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

@@ -77,6 +77,14 @@ public class EffectConfig extends ParameterizedConfig
          */
         public abstract EffectSprite.Implementation createSpriteImplementation (
             TudeyContext ctx, Scope scope, Effect effect);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -130,6 +138,15 @@ public class EffectConfig extends ParameterizedConfig
             TudeyContext ctx, Scope scope, Effect effect)
         {
             return sprite.createImplementation(ctx, scope, effect);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            shape.invalidate();
+            if (action != null) {
+                action.invalidate();
+            }
         }
     }
 
@@ -188,6 +205,14 @@ public class EffectConfig extends ParameterizedConfig
         TudeyContext ctx, Scope scope, Effect effect)
     {
         return implementation.createSpriteImplementation(ctx, scope, effect);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited
