@@ -215,6 +215,14 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns the timestamp of the last tick.
+     */
+    public int getPreviousTimestamp ()
+    {
+        return _previousTimestamp;
+    }
+
+    /**
      * Returns the approximate timestamp of the next tick.
      */
     public int getNextTimestamp ()
@@ -1017,6 +1025,7 @@ public class TudeySceneManager extends SceneManager
     {
         // update the scene timestamp
         long now = RunAnywhere.currentTimeMillis();
+        _previousTimestamp = _timestamp;
         _timestamp += (int)(now - _lastTick);
         _lastTick = now;
 
@@ -1111,8 +1120,8 @@ public class TudeySceneManager extends SceneManager
     /** The system time of the last tick. */
     protected long _lastTick;
 
-    /** The timestamp of the current tick. */
-    protected int _timestamp;
+    /** The timestamp of the current and previous ticks. */
+    protected int _timestamp, _previousTimestamp;
 
     /** The last actor id assigned. */
     protected int _lastActorId;
