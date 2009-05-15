@@ -72,6 +72,9 @@ public abstract class GlDisplayApp extends GlApp
      */
     public void setDisplayMode (DisplayMode mode)
     {
+        if (Display.getDisplayMode().equals(mode)) {
+            return;
+        }
         try {
             Display.setDisplayMode(mode);
             if (Display.isCreated()) {
