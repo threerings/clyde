@@ -208,6 +208,19 @@ public abstract class GlDisplayApp extends GlApp
             }
         }
         log.warning("Couldn't find valid pixel format.");
+
+        // if we're in fullscreen mode, try switching to windowed mode and trying again
+        if (Display.isFullscreen()) {
+            try {
+                Display.setFullscreen(false);
+                log.info("Trying again in windowed mode.");
+                return createDisplay();
+
+            } catch (LWJGLException e) {
+                log.warning("Failed to disable fullscreen mode.", e);
+            }
+        }
+
         return false;
     }
 
