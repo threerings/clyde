@@ -127,6 +127,17 @@ public class Button extends Label
         return (sound != null) ? sound : _feedbackSounds[DEFAULT];
     }
 
+    /**
+     * Programmatically activates the button.
+     */
+    public void doClick ()
+    {
+        if (isAdded()) {
+            Root root = getWindow().getRoot();
+            fireAction(root.getTickStamp(), root.getModifiers());
+        }
+    }
+
     // documentation inherited
     public int getState ()
     {
