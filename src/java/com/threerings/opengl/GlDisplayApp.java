@@ -35,7 +35,6 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
 
-import com.samskivert.util.Interval;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.opengl.gui.DisplayRoot;
@@ -172,17 +171,18 @@ public abstract class GlDisplayApp extends GlApp
         super.init();
 
         // start the updater
-        new Interval(RunQueue.AWT) {
-            public void expired () {
+        final Runnable updater = new Runnable() {
+            public void run () {
                 if (Display.isCloseRequested()) {
                     shutdown();
                 } else {
                     makeCurrent();
                     updateFrame();
-                    schedule(1L);
+                    EventQueue.invokeLater(this);
                 }
             }
-        }.schedule(1L);
+        };
+        EventQueue.invokeLater(updater);
     }
 
     @Override // documentation inherited
