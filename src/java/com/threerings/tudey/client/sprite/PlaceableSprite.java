@@ -75,6 +75,14 @@ public class PlaceableSprite extends EntrySprite
         }
 
         /**
+         * Returns the sprite's floor flags.
+         */
+        public int getFloorFlags ()
+        {
+            return 0x0;
+        }
+
+        /**
          * Determines whether the implementation is hoverable.
          */
         public boolean isHoverable ()
@@ -196,6 +204,22 @@ public class PlaceableSprite extends EntrySprite
             super(ctx, parentScope);
             setConfig(config);
         }
+
+        @Override // documentation inherited
+        public void setConfig (PlaceableConfig.Original config)
+        {
+            super.setConfig(config);
+            _config = (PlaceableConfig.Prop)config;
+        }
+
+        @Override // documentation inherited
+        public int getFloorFlags ()
+        {
+            return _config.floorFlags;
+        }
+
+        /** The prop configuration. */
+        protected PlaceableConfig.Prop _config;
     }
 
     /**
@@ -334,6 +358,12 @@ public class PlaceableSprite extends EntrySprite
         super.scopeUpdated(event);
         updateFromConfig();
         _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public int getFloorFlags ()
+    {
+        return _impl.getFloorFlags();
     }
 
     @Override // documentation inherited

@@ -88,7 +88,7 @@ public class EffectSprite extends Sprite
             if (config.model != null) {
                 Vector2f translation = effect.getTranslation();
                 _view.getScene().spawnTransient(config.model, _view.getFloorTransform(
-                    translation.x, translation.y, effect.getRotation()));
+                    translation.x, translation.y, effect.getRotation(), config.floorMask));
             }
         }
 

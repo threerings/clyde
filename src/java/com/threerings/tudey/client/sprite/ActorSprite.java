@@ -82,6 +82,14 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Returns the sprite's floor flags.
+         */
+        public int getFloorFlags ()
+        {
+            return 0x0;
+        }
+
+        /**
          * Updates the implementation with new interpolated state.
          */
         public void update (Actor actor)
@@ -136,13 +144,20 @@ public class ActorSprite extends Sprite
         }
 
         @Override // documentation inherited
+        public int getFloorFlags ()
+        {
+            return _config.floorFlags;
+        }
+
+        @Override // documentation inherited
         public void update (Actor actor)
         {
             // update the model transform
             Vector2f translation = actor.getTranslation();
             for (Model model : _attachedModels) {
                 _view.getFloorTransform(
-                    translation.x, translation.y, actor.getRotation(), model.getLocalTransform());
+                    translation.x, translation.y, actor.getRotation(),
+                    _config.floorMask, model.getLocalTransform());
                 model.updateBounds();
             }
         }
@@ -727,6 +742,12 @@ public class ActorSprite extends Sprite
     {
         updateFromConfig();
         _impl.update(_actor);
+    }
+
+    @Override // documentation inherited
+    public int getFloorFlags ()
+    {
+        return _impl.getFloorFlags();
     }
 
     @Override // documentation inherited

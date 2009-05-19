@@ -195,8 +195,12 @@ public class PlaceableConfig extends ParameterizedConfig
     public static class Prop extends Original
     {
         /** The prop's collision flags. */
-        @Editable
+        @Editable(hgroup="c")
         public int collisionFlags = 0x01;
+
+        /** The prop's floor flags. */
+        @Editable(hgroup="c")
+        public int floorFlags = 0x01;
 
         /**
          * Default constructor.

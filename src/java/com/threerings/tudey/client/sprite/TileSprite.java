@@ -69,6 +69,14 @@ public class TileSprite extends EntrySprite
         }
 
         /**
+         * Returns the sprite's floor flags.
+         */
+        public int getFloorFlags ()
+        {
+            return 0x0;
+        }
+
+        /**
          * Updates the implementation to match the tile state.
          */
         public void update (TileEntry entry)
@@ -126,6 +134,12 @@ public class TileSprite extends EntrySprite
         }
 
         @Override // documentation inherited
+        public int getFloorFlags ()
+        {
+            return _config.floorFlags;
+        }
+
+        @Override // documentation inherited
         public void update (TileEntry entry)
         {
             entry.getTransform(_config, _model.getLocalTransform());
@@ -179,6 +193,12 @@ public class TileSprite extends EntrySprite
     {
         updateFromConfig();
         _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public int getFloorFlags ()
+    {
+        return _impl.getFloorFlags();
     }
 
     @Override // documentation inherited

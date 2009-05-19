@@ -277,6 +277,14 @@ public abstract class ActorSpriteConfig extends DeepObject
         public ConfigReference<AnimationConfig> animation;
     }
 
+    /** Determines which floor categories the sprite belongs to. */
+    @Editable(hgroup="f")
+    public int floorFlags;
+
+    /** Determines which floor categories the actor walks over. */
+    @Editable(hgroup="f")
+    public int floorMask = 0x01;
+
     /** The actor model. */
     @Editable(nullable=true)
     public ConfigReference<ModelConfig> model;

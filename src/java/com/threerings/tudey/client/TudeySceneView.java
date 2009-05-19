@@ -308,19 +308,46 @@ public class TudeySceneView extends SimpleScope
 
     /**
      * Gets the transform of an object on the floor with the provided coordinates.
+     *
+     * @param mask the floor mask to use for the query.
      */
-    public Transform3D getFloorTransform (float x, float y, float rotation)
+    public Transform3D getFloorTransform (float x, float y, float rotation, int mask)
     {
-        return getFloorTransform(x, y, rotation, new Transform3D(Transform3D.UNIFORM));
+        return getFloorTransform(x, y, rotation, _floorMaskFilter.init(mask));
     }
 
     /**
      * Gets the transform of an object on the floor with the provided coordinates.
+     *
+     * @param filter the floor filter to use for the query.
      */
-    public Transform3D getFloorTransform (float x, float y, float rotation, Transform3D result)
+    public Transform3D getFloorTransform (
+        float x, float y, float rotation, Predicate<SceneElement> filter)
+    {
+        return getFloorTransform(x, y, rotation, filter, new Transform3D(Transform3D.UNIFORM));
+    }
+
+    /**
+     * Gets the transform of an object on the floor with the provided coordinates.
+     *
+     * @param mask the floor mask to use for the query.
+     */
+    public Transform3D getFloorTransform (
+        float x, float y, float rotation, int mask, Transform3D result)
+    {
+        return getFloorTransform(x, y, rotation, _floorMaskFilter.init(mask), result);
+    }
+
+    /**
+     * Gets the transform of an object on the floor with the provided coordinates.
+     *
+     * @param filter the floor filter to use for the query.
+     */
+    public Transform3D getFloorTransform (
+        float x, float y, float rotation, Predicate<SceneElement> filter, Transform3D result)
     {
         Vector3f translation = result.getTranslation();
-        translation.set(x, y, getFloorZ(x, y, translation.z));
+        translation.set(x, y, getFloorZ(x, y, filter, translation.z));
         result.getRotation().fromAngleAxis(FloatMath.HALF_PI + rotation, Vector3f.UNIT_Z);
         return result;
     }
@@ -328,12 +355,24 @@ public class TudeySceneView extends SimpleScope
     /**
      * Returns the z coordinate of the floor at the provided coordinates, or the provided default
      * if no floor is found.
+     *
+     * @param mask the floor mask to use for the query.
      */
-    public float getFloorZ (float x, float y, float defvalue)
+    public float getFloorZ (float x, float y, int mask, float defvalue)
+    {
+        return getFloorZ(x, y, _floorMaskFilter.init(mask), defvalue);
+    }
+
+    /**
+     * Returns the z coordinate of the floor at the provided coordinates, or the provided default
+     * if no floor is found.
+     *
+     * @param filter the floor filter to use for the query.
+     */
+    public float getFloorZ (float x, float y, Predicate<SceneElement> filter, float defvalue)
     {
         _ray.getOrigin().set(x, y, 10000f);
-        return (_scene.getIntersection(_ray, _isect, TILE_PLACEABLE_SPRITE_FILTER) == null) ?
-            defvalue : _isect.z;
+        return (_scene.getIntersection(_ray, _isect, filter) == null) ? defvalue : _isect.z;
     }
 
     /**
@@ -773,6 +812,33 @@ public class TudeySceneView extends SimpleScope
         protected HashIntMap<Actor> _actors;
     }
 
+    /**
+     * Used to select sprites according to their floor flags.
+     */
+    protected static class FloorMaskFilter extends Predicate<SceneElement>
+    {
+        /**
+         * (Re)initializes the filter with its mask.
+         *
+         * @return a reference to the filter, for chaining.
+         */
+        public FloorMaskFilter init (int mask)
+        {
+            _mask = mask;
+            return this;
+        }
+
+        @Override // documentation inherited
+        public boolean isMatch (SceneElement element)
+        {
+            Object obj = element.getUserObject();
+            return obj instanceof Sprite && (((Sprite)obj).getFloorFlags() & _mask) != 0;
+        }
+
+        /** The floor mask. */
+        protected int _mask;
+    }
+
     /** The application context. */
     protected TudeyContext _ctx;
 
@@ -846,6 +912,9 @@ public class TudeySceneView extends SimpleScope
     /** Used to find the floor. */
     protected Vector3f _isect = new Vector3f();
 
+    /** Used to find the floor. */
+    protected FloorMaskFilter _floorMaskFilter = new FloorMaskFilter();
+
     /** Holds collected elements during queries. */
     protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();
 
@@ -854,13 +923,4 @@ public class TudeySceneView extends SimpleScope
 
     /** Stores "preloads" loaded after the initial load screen. */
     protected PreloadableSet _npreloads = new PreloadableSet();
-
-    /** A predicate that only accepts elements whose user objects are tile or placeable sprites. */
-    protected static final Predicate<SceneElement> TILE_PLACEABLE_SPRITE_FILTER =
-        new Predicate<SceneElement>() {
-        public boolean isMatch (SceneElement element) {
-            Object obj = element.getUserObject();
-            return obj instanceof TileSprite || obj instanceof PlaceableSprite;
-        }
-    };
 }

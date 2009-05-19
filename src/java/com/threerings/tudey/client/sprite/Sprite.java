@@ -48,6 +48,14 @@ public abstract class Sprite extends SimpleScope
     }
 
     /**
+     * Returns the sprite's floor flags.
+     */
+    public int getFloorFlags ()
+    {
+        return 0x0;
+    }
+
+    /**
      * Determines whether the sprite is hoverable (for purposes of in-game user interaction).
      */
     public boolean isHoverable ()
