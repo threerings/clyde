@@ -122,6 +122,11 @@ public class AnchorLayout extends LayoutManager
     @Override // documentation inherited
     public Dimension computePreferredSize (Container target, int whint, int hhint)
     {
+        for (int ii = 0, nn = target.getComponentCount(); ii < nn; ii++) {
+            Dimension size = target.getComponent(ii).getPreferredSize(whint, hhint);
+            whint = Math.max(whint, size.width);
+            hhint = Math.max(hhint, size.height);
+        }
         return new Dimension(whint, hhint);
     }
 
