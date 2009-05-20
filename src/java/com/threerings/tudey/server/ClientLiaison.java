@@ -129,6 +129,15 @@ public class ClientLiaison
     }
 
     /**
+     * Returns the timestamp of the last input frame received from the client (or zero if none
+     * have yet been received).
+     */
+    public int getLastInput ()
+    {
+        return _lastInput;
+    }
+
+    /**
      * Processes a request to enqueue input received from a client.
      *
      * @param ping the ping calculated from the current time and the client's time estimate.
