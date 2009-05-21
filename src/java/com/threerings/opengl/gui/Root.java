@@ -1057,7 +1057,6 @@ public abstract class Root extends SimpleOverlay
             long when = press.getWhen();
             _clickTime = when + CLICK_INTERVAL;
             _count = (when < _chainTime) ? (_count + 1) : 1;
-            _target = target;
         }
 
         /**
@@ -1066,18 +1065,17 @@ public abstract class Root extends SimpleOverlay
         public void wasReleased (Component target, MouseEvent release)
         {
             long when = release.getWhen();
-            if (target == _target && when < _clickTime) {
+            if (when < _clickTime) {
                 MouseEvent event = new MouseEvent(
                     Root.this, when, _modifiers, MouseEvent.MOUSE_CLICKED,
                     release.getButton(), release.getX(), release.getY(), _count);
-                dispatchEvent(_target, event);
+                dispatchEvent(target, event);
                 _chainTime = when + CLICK_CHAIN_INTERVAL;
             }
         }
 
         protected long _clickTime, _chainTime;
         protected int _count;
-        protected Component _target;
     }
 
     /**
