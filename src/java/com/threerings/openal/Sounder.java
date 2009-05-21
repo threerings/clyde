@@ -476,8 +476,9 @@ public class Sounder extends SimpleScope
                     int read = super.populateBuffer(buf);
                     if (read < buf.capacity() && _remaining == Float.MAX_VALUE) {
                         // compute the amount of time remaining
-                        int bytes = _qlen*getBufferSize() - _source.getByteOffset() +
-                            Math.max(read, 0);
+                        int bytes = _qlen*getBufferSize() -
+                            (_source.isPlaying() ? _source.getByteOffset() : 0) +
+                                Math.max(read, 0);
                         int samples = bytes / (getFormat() == AL10.AL_FORMAT_MONO16 ? 2 : 4);
                         _remaining = (float)samples / getFrequency();
                     }
