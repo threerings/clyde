@@ -371,6 +371,9 @@ public class Sounder extends SimpleScope
         @Override // documentation inherited
         public void start ()
         {
+            if (!_ctx.getSoundManager().isInitialized()) {
+                return;
+            }
             QueuedFile[] queue = _config.queue;
             QueuedFile first = queue[0];
             try {
@@ -422,7 +425,9 @@ public class Sounder extends SimpleScope
         @Override // documentation inherited
         public void start ()
         {
-            startNextStream(_config.fadeIn);
+            if (_ctx.getSoundManager().isInitialized()) {
+                startNextStream(_config.fadeIn);
+            }
         }
 
         /**

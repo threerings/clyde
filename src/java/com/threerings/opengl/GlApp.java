@@ -324,6 +324,9 @@ public abstract class GlApp extends DynamicScope
         _camhand.updatePosition();
 
         // update the listener position and orientation
+        if (!_soundmgr.isInitialized()) {
+            return;
+        }
         Listener listener = _soundmgr.getListener();
         Transform3D transform = _compositor.getCamera().getWorldTransform();
         Vector3f translation = transform.getTranslation();
