@@ -1417,7 +1417,7 @@ public class Renderer
                     if (urec.texture1D != unit.texture) {
                         setActiveUnit(ii);
                         GL11.glBindTexture(GL11.GL_TEXTURE_1D,
-                            (urec.texture = unit.texture).getId());
+                            (urec.texture1D = unit.texture).getId());
                         _textureCount++;
                     }
                     break;
@@ -1425,7 +1425,7 @@ public class Renderer
                     if (urec.texture2D != unit.texture) {
                         setActiveUnit(ii);
                         GL11.glBindTexture(GL11.GL_TEXTURE_2D,
-                            (urec.texture = unit.texture).getId());
+                            (urec.texture2D = unit.texture).getId());
                         _textureCount++;
                     }
                     break;
@@ -1433,7 +1433,7 @@ public class Renderer
                     if (urec.textureRectangle != unit.texture) {
                         setActiveUnit(ii);
                         GL11.glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
-                            (urec.texture = unit.texture).getId());
+                            (urec.textureRectangle = unit.texture).getId());
                         _textureCount++;
                     }
                     break;
@@ -1441,7 +1441,7 @@ public class Renderer
                     if (urec.texture3D != unit.texture) {
                         setActiveUnit(ii);
                         GL11.glBindTexture(GL12.GL_TEXTURE_3D,
-                            (urec.texture = unit.texture).getId());
+                            (urec.texture3D = unit.texture).getId());
                         _textureCount++;
                     }
                     break;
@@ -1449,7 +1449,7 @@ public class Renderer
                     if (urec.textureCubeMap != unit.texture) {
                         setActiveUnit(ii);
                         GL11.glBindTexture(ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB,
-                            (urec.texture = unit.texture).getId());
+                            (urec.textureCubeMap = unit.texture).getId());
                         _textureCount++;
                     }
                     break;
