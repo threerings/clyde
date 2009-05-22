@@ -155,11 +155,6 @@ public class ClientLiaison
      */
     public void enqueueInput (int acknowledge, int ping, InputFrame[] frames)
     {
-        // acknowledgement cannot decrease; if it has, this must be out-of-order
-        if (acknowledge < _records.get(0).getTimestamp()) {
-            return;
-        }
-
         // remove all tick records up to the acknowledgement
         while (acknowledge > _records.get(0).getTimestamp()) {
             _records.remove(0);
