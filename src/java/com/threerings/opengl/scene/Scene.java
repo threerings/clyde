@@ -92,6 +92,29 @@ public abstract class Scene extends DynamicScope
     }
 
     /**
+     * Returns an instance of the referenced model from the transient pool.
+     */
+    public Model getFromTransientPool (ConfigReference<ModelConfig> ref)
+    {
+        ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
+        if (list != null) {
+            for (int ii = list.size() - 1; ii >= 0; ii--) {
+                Model model = list.remove(ii).get();
+                if (model != null) {
+                    model.reset();
+                    return model;
+                }
+            }
+            _transientPool.remove(ref);
+        }
+        Model model = new Model(_ctx, ref);
+        model.setParentScope(this);
+        model.setUserObject(ref);
+        model.addObserver(_transientObserver);
+        return model;
+    }
+
+    /**
      * Adds all of the specified elements to the scene.
      */
     public void addAll (SceneElement[] elements)
@@ -499,29 +522,6 @@ public abstract class Scene extends DynamicScope
             }
         }
         return closest;
-    }
-
-    /**
-     * Returns an instance of the referenced model from the transient pool.
-     */
-    protected Model getFromTransientPool (ConfigReference<ModelConfig> ref)
-    {
-        ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
-        if (list != null) {
-            for (int ii = list.size() - 1; ii >= 0; ii--) {
-                Model model = list.remove(ii).get();
-                if (model != null) {
-                    model.reset();
-                    return model;
-                }
-            }
-            _transientPool.remove(ref);
-        }
-        Model model = new Model(_ctx, ref);
-        model.setParentScope(this);
-        model.setUserObject(ref);
-        model.addObserver(_transientObserver);
-        return model;
     }
 
     /**

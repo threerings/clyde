@@ -46,6 +46,7 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.ModelAdapter;
 import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 
@@ -672,6 +673,19 @@ public class ActorSprite extends Sprite
     }
 
     /**
+     * Gets and attaches a transient model to this sprite.
+     */
+    public void spawnTransientModel (ConfigReference<ModelConfig> ref)
+    {
+        if (isCreated()) {
+            Model model = _view.getScene().getFromTransientPool(ref);
+            model.addObserver(_transientObserver);
+            _attachedModels.add(model);
+            _view.getScene().add(model);
+        }
+    }
+
+    /**
      * Detaches a model from this sprite.
      */
     public void detachModel (Model model)
@@ -901,6 +915,15 @@ public class ActorSprite extends Sprite
 
     /** The actor implementation (<code>null</code> until actually created). */
     protected Implementation _impl;
+
+    /** Detaches transient models. */
+    protected ModelAdapter _transientObserver = new ModelAdapter() {
+        public boolean modelCompleted (Model model) {
+            _attachedModels.remove(model);
+            model.removeObserver(this);
+            return true;
+        }
+    };
 
     /** An implementation that does nothing. */
     protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
