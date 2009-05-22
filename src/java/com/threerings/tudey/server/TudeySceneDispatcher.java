@@ -63,6 +63,12 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
             );
             return;
 
+        case TudeySceneMarshaller.ENTERED_PLACE:
+            ((TudeySceneProvider)provider).enteredPlace(
+                source
+            );
+            return;
+
         case TudeySceneMarshaller.SET_CAMERA_PARAMS:
             ((TudeySceneProvider)provider).setCameraParams(
                 source, ((Float)args[0]).floatValue(), ((Float)args[1]).floatValue(), ((Float)args[2]).floatValue(), ((Float)args[3]).floatValue(), (SphereCoords)args[4]

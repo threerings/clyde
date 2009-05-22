@@ -201,7 +201,6 @@ public class TudeySceneController extends SceneController
         if (timestamp <= _lastDelta) {
             return;
         }
-        _lastDelta = timestamp;
 
         // prune all acknowledged input frames
         int acknowledge = event.getAcknowledge();
@@ -210,7 +209,9 @@ public class TudeySceneController extends SceneController
         }
 
         // pass it on to the view for visualization
-        _tsview.processSceneDelta(event);
+        if (_tsview.processSceneDelta(event)) {
+            _lastDelta = timestamp;
+        }
     }
 
     // documentation inherited from interface KeyListener
@@ -372,6 +373,9 @@ public class TudeySceneController extends SceneController
         } else {
             _targetId = _tsobj.getFirstPawnId();
         }
+
+        // notify the server that we're in (it will start sending updates)
+        _tsobj.tudeySceneService.enteredPlace(_ctx.getClient());
     }
 
     @Override // documentation inherited

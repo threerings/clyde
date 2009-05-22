@@ -41,6 +41,11 @@ public interface TudeySceneProvider extends InvocationProvider
     void enqueueInput (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
 
     /**
+     * Handles a {@link TudeySceneService#enteredPlace} request.
+     */
+    void enteredPlace (ClientObject caller);
+
+    /**
      * Handles a {@link TudeySceneService#setCameraParams} request.
      */
     void setCameraParams (ClientObject caller, float arg1, float arg2, float arg3, float arg4, SphereCoords arg5);

@@ -39,6 +39,11 @@ import com.threerings.tudey.data.InputFrame;
 public interface TudeySceneService extends InvocationService
 {
     /**
+     * Notifies the server that the client has successfully entered the place.
+     */
+    public void enteredPlace (Client client);
+
+    /**
      * Requests to enqueue a batch of input frames recorded on the client.
      *
      * @param acknowledge the timestamp of the last delta received by the client.

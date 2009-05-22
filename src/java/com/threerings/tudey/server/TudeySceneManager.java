@@ -51,6 +51,7 @@ import com.threerings.presents.server.PresentsSession;
 import com.threerings.crowd.data.BodyObject;
 import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
+import com.threerings.crowd.server.CrowdSession;
 
 import com.threerings.whirled.server.SceneManager;
 
@@ -643,6 +644,19 @@ public class TudeySceneManager extends SceneManager
     }
 
     // documentation inherited from interface TudeySceneProvider
+    public void enteredPlace (ClientObject caller)
+    {
+        // forward to client liaison
+        ClientLiaison client = _clients.get(caller.getOid());
+        if (client == null) {
+            log.warning("Received entrance notification from unknown client.",
+                "who", caller.who(), "where", where());
+            return;
+        }
+        client.enteredPlace();
+    }
+
+    // documentation inherited from interface TudeySceneProvider
     public void enqueueInput (
         ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
     {
@@ -893,7 +907,9 @@ public class TudeySceneManager extends SceneManager
         super.bodyEntered(bodyOid);
 
         // create and map the client liaison
-        _clients.put(bodyOid, createClientLiaison((BodyObject)_omgr.getObject(bodyOid)));
+        BodyObject bodyobj = (BodyObject)_omgr.getObject(bodyOid);
+        CrowdSession session = (CrowdSession)_clmgr.getClient(bodyobj.username);
+        _clients.put(bodyOid, createClientLiaison(session));
     }
 
     @Override // documentation inherited
@@ -917,9 +933,9 @@ public class TudeySceneManager extends SceneManager
     /**
      * Creates the client liaison for the specified body.
      */
-    protected ClientLiaison createClientLiaison (BodyObject bodyobj)
+    protected ClientLiaison createClientLiaison (CrowdSession session)
     {
-        return new ClientLiaison(this, bodyobj);
+        return new ClientLiaison(this, session);
     }
 
     /**

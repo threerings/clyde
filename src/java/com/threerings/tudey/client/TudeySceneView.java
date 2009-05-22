@@ -377,8 +377,11 @@ public class TudeySceneView extends SimpleScope
 
     /**
      * Processes a scene delta received from the server.
+     *
+     * @return true if the scene delta was processed, false if we have not yet received the
+     * reference delta.
      */
-    public void processSceneDelta (SceneDeltaEvent event)
+    public boolean processSceneDelta (SceneDeltaEvent event)
     {
         // update the ping estimate (used to compute the input advance)
         _pingAverage.record(_ping = event.getPing());
@@ -393,10 +396,11 @@ public class TudeySceneView extends SimpleScope
             _advancedSmoother.update(advanced);
         }
 
-        // remove all records before the reference
-        int reference = event.getReference();
-        while (reference > _records.get(0).getTimestamp()) {
-            _records.remove(0);
+        // find the reference and remove all records before it
+        if (!pruneRecords(event.getReference())) {
+            log.info("Got delta before reference.", "reference", event.getReference(),
+                "record", _records.get(_records.size() - 1).getTimestamp());
+            return false;
         }
         HashIntMap<Actor> oactors = _records.get(0).getActors();
         HashIntMap<Actor> actors = new HashIntMap<Actor>();
@@ -453,7 +457,7 @@ public class TudeySceneView extends SimpleScope
                     actor.getPreloads(cfgmgr, _preloads);
                 }
             }
-            return;
+            return true;
         }
 
         // create/update the sprites for actors in the set
@@ -506,6 +510,24 @@ public class TudeySceneView extends SimpleScope
                 }
             }
         }
+
+        return true;
+    }
+
+    /**
+     * Prunes all records before the supplied reference time, if found.
+     *
+     * @return true if the reference time was found, false if not.
+     */
+    protected boolean pruneRecords (int reference)
+    {
+        for (int ii = _records.size() - 1; ii >= 0; ii--) {
+            if (_records.get(ii).getTimestamp() == reference) {
+                _records.subList(0, ii).clear();
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

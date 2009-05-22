@@ -34,6 +34,7 @@ import com.threerings.presents.net.Transport;
 
 import com.threerings.crowd.data.BodyObject;
 import com.threerings.crowd.data.OccupantInfo;
+import com.threerings.crowd.server.CrowdSession;
 
 import com.threerings.math.Rect;
 import com.threerings.math.SphereCoords;
@@ -62,14 +63,15 @@ public class ClientLiaison
     /**
      * Creates a new liaison for the specified client.
      */
-    public ClientLiaison (TudeySceneManager scenemgr, BodyObject bodyobj)
+    public ClientLiaison (TudeySceneManager scenemgr, CrowdSession session)
     {
         _scenemgr = scenemgr;
         _tsobj = (TudeySceneObject)scenemgr.getPlaceObject();
-        _bodyobj = bodyobj;
+        _bodyobj = (BodyObject)session.getClientObject();
+        _session = session;
 
         // find the client's initial target
-        int targetId = _tsobj.getPawnId(bodyobj.getOid());
+        int targetId = _tsobj.getPawnId(_bodyobj.getOid());
         if (targetId > 0) {
             _targetControlled = true;
         } else {
@@ -92,6 +94,7 @@ public class ClientLiaison
     {
         if (info.status == OccupantInfo.DISCONNECTED) {
             _records.clear();
+            _receiving = false;
         } else {
             if (_records.isEmpty()) {
                 // start again from the zero reference time
@@ -135,6 +138,14 @@ public class ClientLiaison
     public int getLastInput ()
     {
         return _lastInput;
+    }
+
+    /**
+     * Notes that the client has successfully entered the place.
+     */
+    public void enteredPlace ()
+    {
+        _receiving = true;
     }
 
     /**
@@ -187,9 +198,17 @@ public class ClientLiaison
      */
     public void postDelta ()
     {
-        // no need to do anything if disconnected
-        if (_bodyobj.status == OccupantInfo.DISCONNECTED) {
+        // no need to do anything if not yet receiving
+        if (!_receiving) {
             return;
+        }
+
+        // if any deltas were sent with reliable transport, we can consider them received
+        for (int ii = _records.size() - 1; ii > 0; ii--) {
+            if (_records.get(ii).event.getActualTransport() == Transport.RELIABLE_ORDERED) {
+                _records.subList(0, ii).clear();
+                break;
+            }
         }
 
         // translate the local interest bounds based on the actor translation
@@ -203,7 +222,8 @@ public class ClientLiaison
 
         // record the tick
         int timestamp = _scenemgr.getTimestamp();
-        _records.add(new TickRecord(timestamp, actors, effectsFired));
+        TickRecord record = new TickRecord(timestamp, actors, effectsFired);
+        _records.add(record);
 
         // the last acknowledged tick is the reference
         TickRecord reference = _records.get(0);
@@ -236,15 +256,23 @@ public class ClientLiaison
             }
         }
 
+        // if we know that we can't transmit datagrams, we may as well send the delta as reliable
+        // and immediately consider it received
+        Transport transport = Transport.UNRELIABLE_UNORDERED;
+        if (!_session.getTransmitDatagrams()) {
+            transport = Transport.RELIABLE_ORDERED;
+            _records.subList(0, _records.size() - 1).clear();
+        }
+
         // create and post the event
-        _bodyobj.postEvent(new SceneDeltaEvent(
+        _bodyobj.postEvent(record.event = new SceneDeltaEvent(
             _bodyobj.getOid(), _tsobj.getOid(), _lastInput, _ping,
             reference.getTimestamp(), timestamp,
             _added.isEmpty() ? null : _added.toArray(new Actor[_added.size()]),
             _updated.isEmpty() ? null : _updated.toArray(new ActorDelta[_updated.size()]),
             _removed.isEmpty() ? null : CollectionUtil.toIntArray(_removed),
             _fired.isEmpty() ? null : _fired.toArray(new Effect[_fired.size()]),
-            Transport.UNRELIABLE_UNORDERED));
+            transport));
 
         // clear the arrays
         _added.clear();
@@ -266,6 +294,9 @@ public class ClientLiaison
      */
     protected static class TickRecord
     {
+        /** A reference to the transmitted event. */
+        public SceneDeltaEvent event;
+
         /**
          * Creates a new record.
          */
@@ -319,6 +350,9 @@ public class ClientLiaison
     /** The client body object. */
     protected BodyObject _bodyobj;
 
+    /** The client session. */
+    protected CrowdSession _session;
+
     /** The pawn that the client's camera is tracking. */
     protected PawnLogic _target;
 
@@ -333,6 +367,9 @@ public class ClientLiaison
 
     /** Records of each update transmitted to the client. */
     protected ArrayList<TickRecord> _records = new ArrayList<TickRecord>();
+
+    /** Set when we know that the client will be receiving on the client object. */
+    protected boolean _receiving;
 
     /** The most recent ping time estimate. */
     protected int _ping;
