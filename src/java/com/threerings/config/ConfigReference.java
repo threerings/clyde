@@ -24,6 +24,7 @@
 
 package com.threerings.config;
 
+import com.threerings.io.Intern;
 import com.threerings.io.Streamable;
 
 import com.threerings.export.Exportable;
@@ -85,6 +86,7 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
     }
 
     /** The name of the referenced configuration. */
+    @Intern
     protected String _name;
 
     /** The arguments of the reference, mapped by name. */

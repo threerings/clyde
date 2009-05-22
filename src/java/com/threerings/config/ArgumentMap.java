@@ -71,7 +71,7 @@ public class ArgumentMap extends TreeMap<String, Object>
     {
         out.writeInt(size());
         for (Map.Entry<String, Object> entry : entrySet()) {
-            out.writeObject(entry.getKey());
+            out.writeIntern(entry.getKey());
             out.writeObject(entry.getValue());
         }
     }
@@ -83,7 +83,7 @@ public class ArgumentMap extends TreeMap<String, Object>
         throws IOException, ClassNotFoundException
     {
         for (int ii = 0, nn = in.readInt(); ii < nn; ii++) {
-            put((String)in.readObject(), in.readObject());
+            put(in.readIntern(), in.readObject());
         }
     }
 
