@@ -909,7 +909,7 @@ public class TudeySceneManager extends SceneManager
         // create and map the client liaison
         BodyObject bodyobj = (BodyObject)_omgr.getObject(bodyOid);
         CrowdSession session = (CrowdSession)_clmgr.getClient(bodyobj.username);
-        _clients.put(bodyOid, createClientLiaison(session));
+        _clients.put(bodyOid, createClientLiaison(bodyobj, session));
     }
 
     @Override // documentation inherited
@@ -933,9 +933,9 @@ public class TudeySceneManager extends SceneManager
     /**
      * Creates the client liaison for the specified body.
      */
-    protected ClientLiaison createClientLiaison (CrowdSession session)
+    protected ClientLiaison createClientLiaison (BodyObject bodyobj, CrowdSession session)
     {
-        return new ClientLiaison(this, session);
+        return new ClientLiaison(this, bodyobj, session);
     }
 
     /**

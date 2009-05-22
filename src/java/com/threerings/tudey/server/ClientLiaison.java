@@ -63,11 +63,11 @@ public class ClientLiaison
     /**
      * Creates a new liaison for the specified client.
      */
-    public ClientLiaison (TudeySceneManager scenemgr, CrowdSession session)
+    public ClientLiaison (TudeySceneManager scenemgr, BodyObject bodyobj, CrowdSession session)
     {
         _scenemgr = scenemgr;
         _tsobj = (TudeySceneObject)scenemgr.getPlaceObject();
-        _bodyobj = (BodyObject)session.getClientObject();
+        _bodyobj = bodyobj;
         _session = session;
 
         // find the client's initial target
@@ -254,7 +254,7 @@ public class ClientLiaison
         // if we know that we can't transmit datagrams, we may as well send the delta as reliable
         // and immediately consider it received
         Transport transport = Transport.UNRELIABLE_UNORDERED;
-        if (!_session.getTransmitDatagrams()) {
+        if (_session == null || !_session.getTransmitDatagrams()) {
             transport = Transport.RELIABLE_ORDERED;
             _records.subList(0, _records.size() - 1).clear();
         }
