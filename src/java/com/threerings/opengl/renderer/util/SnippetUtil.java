@@ -319,7 +319,8 @@ public class SnippetUtil
     {
         buf.append("gl_" + side + "Color += gl_" + side + "LightProduct[" + idx +
             "].ambient + gl_" + side + "LightProduct[" + idx + "].diffuse * max(dot(" +
-            eyeNormal + ", gl_LightSource[" + idx + "].position), 0.0); ");
+            (side.equals("Back") ? "-" : "") + eyeNormal + ", gl_LightSource[" + idx +
+            "].position), 0.0); ");
     }
 
     /**

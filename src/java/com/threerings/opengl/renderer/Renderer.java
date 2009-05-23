@@ -1282,13 +1282,18 @@ public class Renderer
     /**
      * Sets the GLSL shader state.
      */
-    public void setShaderState (Program program)
+    public void setShaderState (Program program, boolean vertexProgramTwoSide)
     {
         if (_program != program) {
             int id = (program == null) ? 0 : program.getId();
             ARBShaderObjects.glUseProgramObjectARB(id);
             _program = program;
             _states[RenderState.SHADER_STATE] = null;
+        }
+        if (program != null && program.getVertexShader() != null &&
+                _vertexProgramTwoSide != Boolean.valueOf(vertexProgramTwoSide)) {
+            setCapability(ARBVertexShader.GL_VERTEX_PROGRAM_TWO_SIDE_ARB,
+                _vertexProgramTwoSide = vertexProgramTwoSide);
         }
     }
 
@@ -1299,6 +1304,7 @@ public class Renderer
     {
         if (GLContext.getCapabilities().GL_ARB_shader_objects) {
             _program = INVALID_PROGRAM;
+            _vertexProgramTwoSide = null;
         }
         _states[RenderState.SHADER_STATE] = null;
     }
@@ -2603,6 +2609,9 @@ public class Renderer
 
     /** The currently bound shader program. */
     protected Program _program;
+
+    /** Whether or not two-sided vertex program mode is enabled. */
+    protected Boolean _vertexProgramTwoSide = false;
 
     /** Whether or not stencil testing is enabled. */
     protected Boolean _stencilTestEnabled = false;

@@ -85,6 +85,10 @@ public abstract class ShaderStateConfig extends DeepObject
         @Editable(nullable=true)
         public ConfigReference<ShaderConfig> fragment;
 
+        /** Whether or not to enable two-sided vertex program mode. */
+        @Editable
+        public boolean vertexProgramTwoSide;
+
         @Override // documentation inherited
         public void getUpdateReferences (ConfigReferenceSet refs)
         {
@@ -151,7 +155,8 @@ public abstract class ShaderStateConfig extends DeepObject
                     config.createUniforms(scope, program, uniforms, updaters);
                 }
             }
-            return new ShaderState(program, uniforms.toArray(new Uniform[uniforms.size()]));
+            return new ShaderState(
+                program, uniforms.toArray(new Uniform[uniforms.size()]), vertexProgramTwoSide);
         }
 
         /**

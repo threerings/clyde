@@ -34,15 +34,16 @@ import com.threerings.opengl.renderer.Renderer;
 public class ShaderState extends RenderState
 {
     /** A state that disables shading. */
-    public static final ShaderState DISABLED = new ShaderState(null, null);
+    public static final ShaderState DISABLED = new ShaderState(null, null, false);
 
     /**
      * Creates a new shader state.
      */
-    public ShaderState (Program program, Uniform[] uniforms)
+    public ShaderState (Program program, Uniform[] uniforms, boolean vertexProgramTwoSide)
     {
         _program = program;
         _uniforms = uniforms;
+        _vertexProgramTwoSide = vertexProgramTwoSide;
     }
 
     /**
@@ -61,6 +62,14 @@ public class ShaderState extends RenderState
         return _uniforms;
     }
 
+    /**
+     * Checks whether the state enables two-sided vertex program mode.
+     */
+    public boolean isVertexProgramTwoSide ()
+    {
+        return _vertexProgramTwoSide;
+    }
+
     @Override // documentation inherited
     public int getType ()
     {
@@ -70,7 +79,7 @@ public class ShaderState extends RenderState
     @Override // documentation inherited
     public void apply (Renderer renderer)
     {
-        renderer.setShaderState(_program);
+        renderer.setShaderState(_program, _vertexProgramTwoSide);
         if (_program != null && _uniforms != null) {
             _program.setUniforms(_uniforms);
         }
@@ -81,4 +90,7 @@ public class ShaderState extends RenderState
 
     /** The shader uniforms. */
     protected Uniform[] _uniforms;
+
+    /** Whether or not to enable two-sided vertex program mode. */
+    protected boolean _vertexProgramTwoSide;
 }
