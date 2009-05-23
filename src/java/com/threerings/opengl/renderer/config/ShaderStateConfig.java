@@ -120,8 +120,10 @@ public abstract class ShaderStateConfig extends DeepObject
         {
             ShaderConfig vconfig = getShaderConfig(ctx, vertex);
             ShaderConfig fconfig = getShaderConfig(ctx, fragment);
-            Shader vshader = (vconfig == null) ? null : vconfig.getShader(ctx, scope, states);
-            Shader fshader = (fconfig == null) ? null : fconfig.getShader(ctx, scope, states);
+            Shader vshader = (vconfig == null) ?
+                null : vconfig.getShader(ctx, scope, states, vertexProgramTwoSide);
+            Shader fshader = (fconfig == null) ?
+                null : fconfig.getShader(ctx, scope, states, vertexProgramTwoSide);
             if (vshader == null && fshader == null) {
                 return ShaderState.DISABLED;
             }

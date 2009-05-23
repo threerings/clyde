@@ -108,17 +108,18 @@ public class SnippetUtil
      */
     public static void getVertexLighting (
         String name, String eyeVertex, String eyeNormal, RenderState[] states,
-        ArrayList<String> defs)
+        boolean vertexProgramTwoSide, ArrayList<String> defs)
     {
         CullState cstate = (CullState)states[RenderState.CULL_STATE];
         LightState lstate = (LightState)states[RenderState.LIGHT_STATE];
         int cullFace = (cstate == null) ? -1 : cstate.getCullFace();
         Light[] lights = (lstate == null) ? null : lstate.getLights();
-        ArrayKey key = createVertexLightingKey(name, eyeVertex, eyeNormal, cullFace, lights);
+        ArrayKey key = createVertexLightingKey(
+            name, eyeVertex, eyeNormal, cullFace, vertexProgramTwoSide, lights);
         String def = _vertexLighting.get(key);
         if (def == null) {
             _vertexLighting.put(key, def = createVertexLightingDef(
-                name, eyeVertex, eyeNormal, cullFace, lights));
+                name, eyeVertex, eyeNormal, cullFace, vertexProgramTwoSide, lights));
         }
         defs.add(def);
     }
@@ -248,7 +249,8 @@ public class SnippetUtil
      * Creates and returns a key for the supplied vertex lighting parameters.
      */
     protected static ArrayKey createVertexLightingKey (
-        String name, String eyeVertex, String eyeNormal, int cullFace, Light[] lights)
+        String name, String eyeVertex, String eyeNormal, int cullFace,
+        boolean vertexProgramTwoSide, Light[] lights)
     {
         Light.Type[] types;
         if (lights != null) {
@@ -260,21 +262,21 @@ public class SnippetUtil
         } else {
             types = null;
         }
-        return new ArrayKey(name, eyeVertex, eyeNormal, cullFace, types);
+        return new ArrayKey(name, eyeVertex, eyeNormal, cullFace, vertexProgramTwoSide, types);
     }
 
     /**
      * Creates and returns the definition for the supplied vertex lighting parameters.
      */
     protected static String createVertexLightingDef (
-        String name, String eyeVertex, String eyeNormal, int cullFace, Light[] lights)
+        String name, String eyeVertex, String eyeNormal, int cullFace,
+        boolean vertexProgramTwoSide, Light[] lights)
     {
         StringBuilder buf = new StringBuilder();
-        if (cullFace == -1 || cullFace == GL11.GL_BACK) {
-            buf.append(createVertexLightingSide("Front", eyeVertex, eyeNormal, lights));
-        }
-        if (cullFace == -1 || cullFace == GL11.GL_FRONT) {
-            buf.append(createVertexLightingSide("Back", eyeVertex, eyeNormal, lights));
+        buf.append(createVertexLightingSide("Front", eyeVertex, eyeNormal, lights));
+        if (vertexProgramTwoSide) {
+            buf.append("vec4 rnormal = -" + eyeNormal + "; ");
+            buf.append(createVertexLightingSide("Back", eyeVertex, "rnormal", lights));
         }
         return name + " { " + buf + "}";
     }
@@ -319,8 +321,7 @@ public class SnippetUtil
     {
         buf.append("gl_" + side + "Color += gl_" + side + "LightProduct[" + idx +
             "].ambient + gl_" + side + "LightProduct[" + idx + "].diffuse * max(dot(" +
-            (side.equals("Back") ? "-" : "") + eyeNormal + ", gl_LightSource[" + idx +
-            "].position), 0.0); ");
+            eyeNormal + ", gl_LightSource[" + idx + "].position), 0.0); ");
     }
 
     /**

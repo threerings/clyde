@@ -96,7 +96,8 @@ public class ShaderConfig extends ParameterizedConfig
         /**
          * Returns the shader corresponding to this configuration.
          */
-        public abstract Shader getShader (GlContext ctx, Scope scope, RenderState[] states);
+        public abstract Shader getShader (
+            GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide);
 
         /**
          * Returns the array of uniforms for this configuration.
@@ -163,7 +164,8 @@ public class ShaderConfig extends ParameterizedConfig
             /**
              * Returns the shader.
              */
-            public abstract Shader getShader (GlContext ctx, Scope scope, RenderState[] states);
+            public abstract Shader getShader (
+                GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide);
         }
 
         /**
@@ -192,14 +194,15 @@ public class ShaderConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
+            public Shader getShader (
+                GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
             {
                 if (file == null) {
                     return null;
                 }
                 ArrayList<String> defs = new ArrayList<String>();
                 for (Definition definition : definitions) {
-                    definition.getDefinitions(scope, states, defs);
+                    definition.getDefinitions(scope, states, vertexProgramTwoSide, defs);
                 }
                 return ctx.getShaderCache().getShader(file, defs.toArray(new String[defs.size()]));
             }
@@ -227,9 +230,10 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
+        public Shader getShader (
+            GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
         {
-            return contents.getShader(ctx, scope, states);
+            return contents.getShader(ctx, scope, states, vertexProgramTwoSide);
         }
     }
 
@@ -256,7 +260,8 @@ public class ShaderConfig extends ParameterizedConfig
             /**
              * Returns the shader.
              */
-            public abstract Shader getShader (GlContext ctx, Scope scope, RenderState[] states);
+            public abstract Shader getShader (
+                GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide);
         }
 
         /**
@@ -285,14 +290,15 @@ public class ShaderConfig extends ParameterizedConfig
             }
 
             @Override // documentation inherited
-            public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
+            public Shader getShader (
+                GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
             {
                 if (file == null) {
                     return null;
                 }
                 ArrayList<String> defs = new ArrayList<String>();
                 for (Definition definition : definitions) {
-                    definition.getDefinitions(scope, states, defs);
+                    definition.getDefinitions(scope, states, vertexProgramTwoSide, defs);
                 }
                 return ctx.getShaderCache().getShader(file, defs.toArray(new String[defs.size()]));
             }
@@ -315,9 +321,10 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
+        public Shader getShader (
+            GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
         {
-            return contents.getShader(ctx, scope, states);
+            return contents.getShader(ctx, scope, states, vertexProgramTwoSide);
         }
     }
 
@@ -346,10 +353,12 @@ public class ShaderConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
+        public Shader getShader (
+            GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
         {
             ShaderConfig config = getConfig(ctx);
-            return (config == null) ? null : config.getShader(ctx, scope, states);
+            return (config == null) ?
+                null : config.getShader(ctx, scope, states, vertexProgramTwoSide);
         }
 
         @Override // documentation inherited
@@ -588,7 +597,8 @@ public class ShaderConfig extends ParameterizedConfig
          * Retrieves the definitions for this config and adds them to the provided list.
          */
         public abstract void getDefinitions (
-            Scope scope, RenderState[] states, ArrayList<String> defs);
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs);
     }
 
     /**
@@ -601,7 +611,9 @@ public class ShaderConfig extends ParameterizedConfig
         public boolean value;
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             if (value) {
                 defs.add(name);
@@ -619,7 +631,9 @@ public class ShaderConfig extends ParameterizedConfig
         public Color4f value = new Color4f();
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             defs.add(name + " vec4(" +
                 GLSL_FLOAT.format(value.r) + ", " +
@@ -639,7 +653,9 @@ public class ShaderConfig extends ParameterizedConfig
         public float value;
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             defs.add(name + " " + GLSL_FLOAT.format(value));
         }
@@ -655,7 +671,9 @@ public class ShaderConfig extends ParameterizedConfig
         public int value;
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             defs.add(name + " " + value);
         }
@@ -671,7 +689,9 @@ public class ShaderConfig extends ParameterizedConfig
         public String value = "";
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             defs.add(name + " " + value);
         }
@@ -687,7 +707,9 @@ public class ShaderConfig extends ParameterizedConfig
         public Transform3D value = new Transform3D();
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             value.update(Transform3D.GENERAL);
             Matrix4f matrix = value.getMatrix();
@@ -729,7 +751,9 @@ public class ShaderConfig extends ParameterizedConfig
         public String fogParam = "fogParam";
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             SnippetUtil.getFogParam(name, eyeVertex, fogParam, states, defs);
         }
@@ -746,7 +770,9 @@ public class ShaderConfig extends ParameterizedConfig
         public String fogParam = "fogParam";
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             SnippetUtil.getFogBlend(name, fogParam, states, defs);
         }
@@ -767,7 +793,9 @@ public class ShaderConfig extends ParameterizedConfig
         public String eyeNormal = "eyeNormal";
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
             SnippetUtil.getTexCoord(name, eyeVertex, eyeNormal, states, defs);
         }
@@ -788,9 +816,12 @@ public class ShaderConfig extends ParameterizedConfig
         public String eyeNormal = "eyeNormal";
 
         @Override // documentation inherited
-        public void getDefinitions (Scope scope, RenderState[] states, ArrayList<String> defs)
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
+            ArrayList<String> defs)
         {
-            SnippetUtil.getVertexLighting(name, eyeVertex, eyeNormal, states, defs);
+            SnippetUtil.getVertexLighting(
+                name, eyeVertex, eyeNormal, states, vertexProgramTwoSide, defs);
         }
     }
 
@@ -809,9 +840,10 @@ public class ShaderConfig extends ParameterizedConfig
     /**
      * Returns the shader corresponding to this configuration.
      */
-    public Shader getShader (GlContext ctx, Scope scope, RenderState[] states)
+    public Shader getShader (
+        GlContext ctx, Scope scope, RenderState[] states, boolean vertexProgramTwoSide)
     {
-        return implementation.getShader(ctx, scope, states);
+        return implementation.getShader(ctx, scope, states, vertexProgramTwoSide);
     }
 
     /**
