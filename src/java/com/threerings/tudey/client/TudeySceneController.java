@@ -575,9 +575,15 @@ public class TudeySceneController extends SceneController
         }
 
         // send off our request
-        _tsobj.tudeySceneService.enqueueInput(
-            _ctx.getClient(), _lastDelta, _tsview.getSmoothedTime(),
-            _input.toArray(new InputFrame[_input.size()]));
+        InputFrame[] input = _input.toArray(new InputFrame[_input.size()]);
+        if (_ctx.getClient().getTransmitDatagrams()) {
+            _tsobj.tudeySceneService.enqueueInputUnreliable(
+                _ctx.getClient(), _lastDelta, _tsview.getSmoothedTime(), input);
+        } else {
+            _tsobj.tudeySceneService.enqueueInputReliable(
+                _ctx.getClient(), _lastDelta, _tsview.getSmoothedTime(), input);
+            _input.clear();
+        }
     }
 
     /**

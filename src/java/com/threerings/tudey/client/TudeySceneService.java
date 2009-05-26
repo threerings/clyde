@@ -44,13 +44,22 @@ public interface TudeySceneService extends InvocationService
     public void enteredPlace (Client client);
 
     /**
-     * Requests to enqueue a batch of input frames recorded on the client.
+     * Requests to enqueue a batch of input frames recorded on the client (reliable version).
+     *
+     * @param acknowledge the timestamp of the last delta received by the client.
+     * @param smoothedTime the client's smoothed server time estimate.
+     */
+    public void enqueueInputReliable (
+        Client client, int acknowledge, int smoothedTime, InputFrame[] frames);
+
+    /**
+     * Requests to enqueue a batch of input frames recorded on the client (unreliable version).
      *
      * @param acknowledge the timestamp of the last delta received by the client.
      * @param smoothedTime the client's smoothed server time estimate.
      */
     @TransportHint(type=Transport.Type.UNRELIABLE_UNORDERED)
-    public void enqueueInput (
+    public void enqueueInputUnreliable (
         Client client, int acknowledge, int smoothedTime, InputFrame[] frames);
 
     /**

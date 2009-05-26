@@ -39,19 +39,30 @@ import com.threerings.tudey.client.TudeySceneService;
 public class TudeySceneMarshaller extends InvocationMarshaller
     implements TudeySceneService
 {
-    /** The method id used to dispatch {@link #enqueueInput} requests. */
-    public static final int ENQUEUE_INPUT = 1;
+    /** The method id used to dispatch {@link #enqueueInputReliable} requests. */
+    public static final int ENQUEUE_INPUT_RELIABLE = 1;
 
     // from interface TudeySceneService
-    public void enqueueInput (Client arg1, int arg2, int arg3, InputFrame[] arg4)
+    public void enqueueInputReliable (Client arg1, int arg2, int arg3, InputFrame[] arg4)
     {
-        sendRequest(arg1, ENQUEUE_INPUT, new Object[] {
+        sendRequest(arg1, ENQUEUE_INPUT_RELIABLE, new Object[] {
+            Integer.valueOf(arg2), Integer.valueOf(arg3), arg4
+        });
+    }
+
+    /** The method id used to dispatch {@link #enqueueInputUnreliable} requests. */
+    public static final int ENQUEUE_INPUT_UNRELIABLE = 2;
+
+    // from interface TudeySceneService
+    public void enqueueInputUnreliable (Client arg1, int arg2, int arg3, InputFrame[] arg4)
+    {
+        sendRequest(arg1, ENQUEUE_INPUT_UNRELIABLE, new Object[] {
             Integer.valueOf(arg2), Integer.valueOf(arg3), arg4
         }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
     }
 
     /** The method id used to dispatch {@link #enteredPlace} requests. */
-    public static final int ENTERED_PLACE = 2;
+    public static final int ENTERED_PLACE = 3;
 
     // from interface TudeySceneService
     public void enteredPlace (Client arg1)
@@ -60,7 +71,7 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     }
 
     /** The method id used to dispatch {@link #setCameraParams} requests. */
-    public static final int SET_CAMERA_PARAMS = 3;
+    public static final int SET_CAMERA_PARAMS = 4;
 
     // from interface TudeySceneService
     public void setCameraParams (Client arg1, float arg2, float arg3, float arg4, float arg5, SphereCoords arg6)
@@ -71,7 +82,7 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     }
 
     /** The method id used to dispatch {@link #setTarget} requests. */
-    public static final int SET_TARGET = 4;
+    public static final int SET_TARGET = 5;
 
     // from interface TudeySceneService
     public void setTarget (Client arg1, int arg2)
@@ -82,7 +93,7 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     }
 
     /** The method id used to dispatch {@link #submitActorRequest} requests. */
-    public static final int SUBMIT_ACTOR_REQUEST = 5;
+    public static final int SUBMIT_ACTOR_REQUEST = 6;
 
     // from interface TudeySceneService
     public void submitActorRequest (Client arg1, int arg2, String arg3)
@@ -93,7 +104,7 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     }
 
     /** The method id used to dispatch {@link #submitEntryRequest} requests. */
-    public static final int SUBMIT_ENTRY_REQUEST = 6;
+    public static final int SUBMIT_ENTRY_REQUEST = 7;
 
     // from interface TudeySceneService
     public void submitEntryRequest (Client arg1, Object arg2, String arg3)

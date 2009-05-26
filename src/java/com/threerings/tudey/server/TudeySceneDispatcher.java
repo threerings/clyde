@@ -57,8 +57,14 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
         throws InvocationException
     {
         switch (methodId) {
-        case TudeySceneMarshaller.ENQUEUE_INPUT:
-            ((TudeySceneProvider)provider).enqueueInput(
+        case TudeySceneMarshaller.ENQUEUE_INPUT_RELIABLE:
+            ((TudeySceneProvider)provider).enqueueInputReliable(
+                source, ((Integer)args[0]).intValue(), ((Integer)args[1]).intValue(), (InputFrame[])args[2]
+            );
+            return;
+
+        case TudeySceneMarshaller.ENQUEUE_INPUT_UNRELIABLE:
+            ((TudeySceneProvider)provider).enqueueInputUnreliable(
                 source, ((Integer)args[0]).intValue(), ((Integer)args[1]).intValue(), (InputFrame[])args[2]
             );
             return;

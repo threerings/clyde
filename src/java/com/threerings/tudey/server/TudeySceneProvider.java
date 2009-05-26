@@ -36,9 +36,14 @@ import com.threerings.tudey.data.InputFrame;
 public interface TudeySceneProvider extends InvocationProvider
 {
     /**
-     * Handles a {@link TudeySceneService#enqueueInput} request.
+     * Handles a {@link TudeySceneService#enqueueInputReliable} request.
      */
-    void enqueueInput (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
+    void enqueueInputReliable (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
+
+    /**
+     * Handles a {@link TudeySceneService#enqueueInputUnreliable} request.
+     */
+    void enqueueInputUnreliable (ClientObject caller, int arg1, int arg2, InputFrame[] arg3);
 
     /**
      * Handles a {@link TudeySceneService#enteredPlace} request.

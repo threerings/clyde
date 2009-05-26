@@ -657,7 +657,16 @@ public class TudeySceneManager extends SceneManager
     }
 
     // documentation inherited from interface TudeySceneProvider
-    public void enqueueInput (
+    public void enqueueInputReliable (
+        ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
+    {
+        // these are handled in exactly the same way; the methods are separate to provide different
+        // transport options
+        enqueueInputUnreliable(caller, acknowledge, smoothedTime, frames);
+    }
+
+    // documentation inherited from interface TudeySceneProvider
+    public void enqueueInputUnreliable (
         ClientObject caller, int acknowledge, int smoothedTime, InputFrame[] frames)
     {
         // forward to client liaison
