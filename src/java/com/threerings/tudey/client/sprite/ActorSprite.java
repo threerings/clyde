@@ -166,21 +166,13 @@ public class ActorSprite extends Sprite
         @Override // documentation inherited
         public void wasCreated ()
         {
-            if (_config.creationTransient != null) {
-                Transform3D transform = new Transform3D(_model.getLocalTransform());
-                transform.setScale(1f);
-                _view.getScene().spawnTransient(_config.creationTransient, transform);
-            }
+            ((ActorSprite)getParentScope()).spawnTransientModel(_config.creationTransient);
         }
 
         @Override // documentation inherited
         public void willBeDestroyed ()
         {
-            if (_config.destructionTransient != null) {
-                Transform3D transform = new Transform3D(_model.getLocalTransform());
-                transform.setScale(1f);
-                _view.getScene().spawnTransient(_config.destructionTransient, transform);
-            }
+            ((ActorSprite)getParentScope()).spawnTransientModel(_config.destructionTransient);
         }
 
         /**
@@ -675,13 +667,25 @@ public class ActorSprite extends Sprite
     /**
      * Gets and attaches a transient model to this sprite.
      */
-    public void spawnTransientModel (ConfigReference<ModelConfig> ref)
+    public void spawnAttachedTransientModel (ConfigReference<ModelConfig> ref)
     {
         if (isCreated()) {
             Model model = _view.getScene().getFromTransientPool(ref);
             model.addObserver(_transientObserver);
             _attachedModels.add(model);
             _view.getScene().add(model);
+        }
+    }
+
+    /**
+     * Spawns a transient model at the location of this sprite.
+     */
+    public void spawnTransientModel (ConfigReference<ModelConfig> ref)
+    {
+        if (ref != null) {
+            Transform3D transform = new Transform3D(_model.getLocalTransform());
+            transform.setScale(1f);
+            _view.getScene().spawnTransient(ref, transform);
         }
     }
 
