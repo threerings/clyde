@@ -32,6 +32,7 @@ import com.samskivert.util.IntIntMap;
 import com.samskivert.util.Predicate;
 import com.samskivert.util.RunAnywhere;
 
+import com.threerings.presents.client.Client;
 import com.threerings.presents.data.ClientObject;
 
 import com.threerings.crowd.client.PlaceView;
@@ -570,18 +571,25 @@ public class TudeySceneController extends SceneController
     protected void transmitInput ()
     {
         // remove any input frames guaranteed to be expired
-        while (!_input.isEmpty() && _lastDelta >= _input.get(0).getTimestamp()) {
+        int smoothedTime = _tsview.getSmoothedTime();
+        while (!_input.isEmpty() && smoothedTime >= _input.get(0).getTimestamp()) {
             _input.remove(0);
         }
 
-        // send off our request
+        // estimate the size of the transmission
         InputFrame[] input = _input.toArray(new InputFrame[_input.size()]);
-        if (_ctx.getClient().getTransmitDatagrams()) {
+        int size = 64; // various headers
+        for (InputFrame frame : input) {
+            size += frame.getApproximateSize();
+        }
+
+        // transmit as datagram if we know we can and the size is under the threshold
+        if (_ctx.getClient().getTransmitDatagrams() && size <= Client.MAX_DATAGRAM_SIZE) {
             _tsobj.tudeySceneService.enqueueInputUnreliable(
-                _ctx.getClient(), _lastDelta, _tsview.getSmoothedTime(), input);
+                _ctx.getClient(), _lastDelta, smoothedTime, input);
         } else {
             _tsobj.tudeySceneService.enqueueInputReliable(
-                _ctx.getClient(), _lastDelta, _tsview.getSmoothedTime(), input);
+                _ctx.getClient(), _lastDelta, smoothedTime, input);
             _input.clear();
         }
     }

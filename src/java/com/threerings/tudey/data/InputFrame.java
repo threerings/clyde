@@ -91,6 +91,14 @@ public class InputFrame extends DeepObject
         return (_flags & flag) != 0;
     }
 
+    /**
+     * Returns the approximate size of the frame in bytes.
+     */
+    public int getApproximateSize ()
+    {
+        return 14;
+    }
+
     @Override // documentation inherited
     public String toString ()
     {
