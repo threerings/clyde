@@ -457,6 +457,11 @@ public class Pathfinder
     protected void updateQuad (int x, int y)
     {
         float lx = x, ly = y, ux = lx + 1f, uy = ly + 1f;
+        // Reduce out quad by double our epsilon so we don't intersect edge colliders
+        lx += FloatMath.EPSILON * 2;
+        ly += FloatMath.EPSILON * 2;
+        ux -= FloatMath.EPSILON * 2;
+        uy -= FloatMath.EPSILON * 2;
         _quad.getVertex(0).set(lx, ly);
         _quad.getVertex(1).set(ux, ly);
         _quad.getVertex(2).set(ux, uy);
