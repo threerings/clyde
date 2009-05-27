@@ -731,6 +731,10 @@ public class ActorSprite extends Sprite
                     _view.getScene().add(model);
                 }
                 _view.getActorSpace().add(_shape);
+
+                // start off with a null implementation; that way nothing will break if updating
+                // tries to access the objects we just added to the scene/actor space
+                _impl = NULL_IMPLEMENTATION;
                 update();
                 _impl.wasCreated();
             } else {
