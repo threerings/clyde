@@ -888,9 +888,10 @@ public class TudeySceneManager extends SceneManager
         _ticker = new Interval(_omgr) {
             public void expired () {
                 tick();
+                _ticker.schedule(getTickInterval());
             }
         };
-        _ticker.schedule(getTickInterval(), true);
+        _ticker.schedule(getTickInterval());
     }
 
     @Override // documentation inherited
