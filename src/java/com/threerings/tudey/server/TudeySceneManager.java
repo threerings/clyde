@@ -888,6 +888,10 @@ public class TudeySceneManager extends SceneManager
         _ticker = new Interval(_omgr) {
             public void expired () {
                 tick();
+
+                // we reschedule here, rather than using a recurring interval, because recurring
+                // intervals on RunQueues use fixed rates rather than fixed delays, which could
+                // cause expirations to "batch up" if they take too long
                 _ticker.schedule(getTickInterval());
             }
         };
