@@ -32,8 +32,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
-import java.io.IOException;
-
 import java.lang.reflect.Array;
 
 import java.util.List;
@@ -43,7 +41,6 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -56,8 +53,6 @@ import com.samskivert.util.ListUtil;
 import com.threerings.media.image.ImageUtil;
 
 import com.threerings.editor.swing.ObjectPanel;
-
-import static com.threerings.editor.Log.*;
 
 /**
  * An editor for arrays or lists of objects.  Uses embedded panels.
@@ -193,11 +188,13 @@ public class PanelArrayListEditor extends ArrayListEditor
 
             // make sure we have the icons loaded
             if (_expandIcon == null) {
-                _expandIcon = loadIcon("expand");
-                _collapseIcon = loadIcon("collapse");
-                _raiseIcon = loadIcon("raise");
-                _lowerIcon = loadIcon("lower");
-                _deleteIcon = loadIcon("delete");
+                _expandIcon = loadIcon("expand", _ctx);
+                _collapseIcon = loadIcon("collapse", _ctx);
+            }
+            if (_raiseIcon == null) {
+                _raiseIcon = loadIcon("raise", _ctx);
+                _lowerIcon = loadIcon("lower", _ctx);
+                _deleteIcon = loadIcon("delete", _ctx);
             }
 
             // create the button panel and buttons
@@ -277,32 +274,6 @@ public class PanelArrayListEditor extends ArrayListEditor
             return ListUtil.indexOfRef(_panels.getComponents(), this);
         }
 
-        /**
-         * Loads the named icon.
-         */
-        protected Icon loadIcon (String name)
-        {
-            BufferedImage image;
-            try {
-                image = _ctx.getResourceManager().getImageResource(
-                    "media/editor/" + name + ".png");
-            } catch (IOException e) {
-                log.warning("Error loading image.", "name", name, e);
-                image = ImageUtil.createErrorImage(12, 12);
-            }
-            return new ImageIcon(image);
-        }
-
-        /**
-         * Creates a button with the supplied text.
-         */
-        protected JButton createButton (Icon icon)
-        {
-            JButton button = new JButton(icon);
-            button.setPreferredSize(PANEL_BUTTON_SIZE);
-            return button;
-        }
-
         /** The action buttons. */
         protected JButton _raise, _lower, _delete;
     }
@@ -311,8 +282,5 @@ public class PanelArrayListEditor extends ArrayListEditor
     protected JPanel _panels;
 
     /** Entry panel icons. */
-    protected static Icon _expandIcon, _collapseIcon, _raiseIcon, _lowerIcon, _deleteIcon;
-
-    /** The size of the panel buttons. */
-    protected static final Dimension PANEL_BUTTON_SIZE = new Dimension(16, 16);
+    protected static Icon _raiseIcon, _lowerIcon, _deleteIcon;
 }

@@ -27,26 +27,44 @@ package com.threerings.editor.swing;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.image.BufferedImage;
 
+import java.io.IOException;
+
+import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.samskivert.swing.CollapsiblePanel;
+import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.Spacer;
+import com.samskivert.swing.VGroupLayout;
 import com.samskivert.util.StringUtil;
+
+import com.threerings.media.image.ImageUtil;
 
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 
 import com.threerings.editor.Introspector;
+import com.threerings.editor.util.EditorContext;
+
+import static com.threerings.editor.Log.*;
 
 /**
  * Abstract base class for {@link PropertyEditor} and {@link EditorPanel}.
  */
-public abstract class BasePropertyEditor extends JPanel
+public abstract class BasePropertyEditor extends CollapsiblePanel
 {
     public BasePropertyEditor ()
     {
+        super(new FlowLayout());
         // make sure we inherit the parent's background color
         setBackground(null);
     }
@@ -173,6 +191,65 @@ public abstract class BasePropertyEditor extends JPanel
     }
 
     /**
+     * Adds the collapsible button to the panel.
+     */
+    protected void makeCollapsible (EditorContext ctx)
+    {
+        VGroupLayout gl = new VGroupLayout(VGroupLayout.NONE);
+        gl.setOffAxisPolicy(VGroupLayout.STRETCH);
+        gl.setGap(0);
+        gl.setJustification(VGroupLayout.TOP);
+        gl.setOffAxisJustification(VGroupLayout.LEFT);
+        setLayout(gl);
+
+        // make sure we have the icons loaded
+        if (_expandIcon == null) {
+            _expandIcon = loadIcon("expand", ctx);
+            _collapseIcon = loadIcon("collapse", ctx);
+        }
+
+        JPanel tcont = GroupLayout.makeHBox(
+            GroupLayout.NONE, GroupLayout.RIGHT, GroupLayout.NONE);
+        tcont.setOpaque(false);
+        JButton expand = createButton(_expandIcon);
+        tcont.add(expand);
+
+        setTrigger(expand, _expandIcon, _collapseIcon);
+        expand.setHorizontalAlignment(JButton.CENTER);
+        add(new Spacer(1, -24));
+        setTriggerContainer(tcont, new JPanel(), false);
+        setGap(5);
+        setCollapsed(false);
+        getContent().setBackground(null);
+    }
+
+    /**
+     * Loads the named icon.
+     */
+    protected Icon loadIcon (String name, EditorContext ctx)
+    {
+        BufferedImage image;
+        try {
+            image = ctx.getResourceManager().getImageResource(
+                "media/editor/" + name + ".png");
+        } catch (IOException e) {
+            log.warning("Error loading image.", "name", name, e);
+            image = ImageUtil.createErrorImage(12, 12);
+        }
+        return new ImageIcon(image);
+    }
+
+    /**
+     * Creates a button with the supplied text.
+     */
+    protected JButton createButton (Icon icon)
+    {
+        JButton button = new JButton(icon);
+        button.setPreferredSize(PANEL_BUTTON_SIZE);
+        return button;
+    }
+
+    /**
      * Returns a background color darkened by the specified number of shades.
      */
     protected static Color getDarkerBackground (float shades)
@@ -181,15 +258,24 @@ public abstract class BasePropertyEditor extends JPanel
         return new Color(value, value, value);
     }
 
+    /** Provides access to common services. */
+    protected EditorContext _ctx;
+
     /** The message manager to use for translations. */
     protected MessageManager _msgmgr;
 
     /** The default message bundle. */
     protected MessageBundle _msgs;
 
+    /** Collapse/expand icons. */
+    protected static Icon _expandIcon, _collapseIcon;
+
     /** The base background value that we darken to indicate nesting. */
     protected static final int BASE_BACKGROUND = 0xEE;
 
     /** The number of units to darken for each shade. */
     protected static final int SHADE_DECREMENT = 8;
+
+    /** The size of the panel buttons. */
+    protected static final Dimension PANEL_BUTTON_SIZE = new Dimension(16, 16);
 }

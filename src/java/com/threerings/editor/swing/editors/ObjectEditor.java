@@ -58,9 +58,11 @@ public class ObjectEditor extends PropertyEditor
     @Override // documentation inherited
     protected void didInit ()
     {
-        setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+        makeCollapsible(_ctx);
+        _content.setLayout(
+                new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
-        add(_panel = new ObjectPanel(
+        _content.add(_panel = new ObjectPanel(
             _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
         _panel.addChangeListener(this);
     }

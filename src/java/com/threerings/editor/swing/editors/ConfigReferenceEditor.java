@@ -88,8 +88,11 @@ public class ConfigReferenceEditor extends PropertyEditor
             editor.setVisible(true);
             return;
 
-        } else { // event.getSource() == _clear
+        } else if (source == _clear) {
             nvalue = null;
+        } else {
+            super.actionPerformed(event);
+            return;
         }
         _property.set(_object, nvalue);
         update(nvalue, true);
@@ -111,12 +114,14 @@ public class ConfigReferenceEditor extends PropertyEditor
     @Override // documentation inherited
     protected void didInit ()
     {
-        setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+        makeCollapsible(_ctx);
+        _content.setLayout(
+                new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
 
         JPanel cpanel = new JPanel();
         cpanel.setBackground(null);
-        add(cpanel);
+        _content.add(cpanel);
         cpanel.add(new JLabel(_msgs.get("m.config") + ":"));
         cpanel.add(_config = new JButton(" "));
         _config.addActionListener(this);
@@ -128,7 +133,7 @@ public class ConfigReferenceEditor extends PropertyEditor
             cpanel.add(_clear = new JButton(_msgs.get("m.clear")));
             _clear.addActionListener(this);
         }
-        add(_arguments = GroupLayout.makeVBox(
+        _content.add(_arguments = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         _arguments.setBackground(null);
     }
