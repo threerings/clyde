@@ -124,13 +124,14 @@ public abstract class DeformerConfig extends DeepObject
             // create the array states and, if possible, a VBO to hold the skinned data
             BufferObject arrayBuffer = null;
             FloatBuffer floatArray = null;
-            if (GLContext.getCapabilities().GL_ARB_vertex_buffer_object) {
+            boolean vbos = GLContext.getCapabilities().GL_ARB_vertex_buffer_object;
+            if (vbos) {
                 arrayBuffer = new BufferObject(ctx.getRenderer());
             } else {
                 floatArray = BufferUtils.createFloatBuffer(dest.length);
             }
             final ArrayState[] arrayStates = config.createArrayStates(
-                ctx, passes, summary, false, true, arrayBuffer, floatArray);
+                ctx, passes, summary, false, vbos, arrayBuffer, floatArray);
             final int tangentOffset = tangents ? getTangentOffset(passes, arrayStates) : 0;
             final int normalOffset = normals ? getNormalOffset(arrayStates) : 0;
             ClientArray vertexArray = arrayStates[0].getVertexArray();
@@ -139,7 +140,7 @@ public abstract class DeformerConfig extends DeepObject
 
             // finally, create the draw command and the geometry itself
             final Vector3f center = config.bounds.getCenter();
-            final DrawCommand drawCommand = config.createDrawCommand(true);
+            final DrawCommand drawCommand = config.createDrawCommand(vbos);
             return new DynamicGeometry(dest, arrayBuffer, floatArray) {
                 public CoordSpace getCoordSpace (int pass) {
                     return CoordSpace.EYE;
