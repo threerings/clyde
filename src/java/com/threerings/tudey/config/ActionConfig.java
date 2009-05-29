@@ -70,8 +70,7 @@ public abstract class ActionConfig extends DeepObject
         @Override // documentation inherited
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
-            ActorConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+            ActorConfig.Original original = getOriginal(cfgmgr);
             if (original != null) {
                 original.getPreloads(cfgmgr, preloads);
             }
@@ -81,6 +80,15 @@ public abstract class ActionConfig extends DeepObject
         public void invalidate ()
         {
             location.invalidate();
+        }
+
+        /**
+         * Gets the original configuration of the spawned actor.
+         */
+        public ActorConfig.Original getOriginal (ConfigManager cfgmgr)
+        {
+            ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
+            return (config == null) ? null : config.getOriginal(cfgmgr);
         }
     }
 
@@ -272,6 +280,14 @@ public abstract class ActionConfig extends DeepObject
             condition.invalidate();
             action.invalidate();
         }
+
+        @Override // documentation inherited
+        public ActionConfig[] getSubActions ()
+        {
+            ActionConfig[] actions = new ActionConfig[1];
+            actions[0] = action;
+            return actions;
+        }
     }
 
     /**
@@ -304,6 +320,12 @@ public abstract class ActionConfig extends DeepObject
                 action.invalidate();
             }
         }
+
+        @Override // documentation inherited
+        public ActionConfig[] getSubActions ()
+        {
+            return actions;
+        }
     }
 
     /**
@@ -335,6 +357,16 @@ public abstract class ActionConfig extends DeepObject
             for (WeightedAction waction : actions) {
                 waction.action.invalidate();
             }
+        }
+
+        @Override // documentation inherited
+        public ActionConfig[] getSubActions ()
+        {
+            ActionConfig[] subActions = new ActionConfig[actions.length];
+            for (int ii = 0; ii < actions.length; ii++) {
+                subActions[ii] = actions[ii].action;
+            }
+            return subActions;
         }
     }
 
@@ -372,5 +404,13 @@ public abstract class ActionConfig extends DeepObject
     public void invalidate ()
     {
         // nothing by default
+    }
+
+    /**
+     * Returns an array of any contained ActionConfigs.
+     */
+    public ActionConfig[] getSubActions ()
+    {
+        return null;
     }
 }
