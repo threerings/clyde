@@ -82,8 +82,8 @@ public class HashSpace extends Space
         // find the starting lines
         float rgran = 1f / _granularity;
         float px = _pt.x * rgran, py = _pt.y * rgran;
-        int lx = (int)(xdir < 0 ? FloatMath.ceil(px) : FloatMath.floor(px));
-        int ly = (int)(ydir < 0 ? FloatMath.ceil(py) : FloatMath.floor(py));
+        int lx = (xdir < 0) ? FloatMath.iceil(px) : FloatMath.ifloor(px);
+        int ly = (ydir < 0) ? FloatMath.iceil(py) : FloatMath.ifloor(py);
 
         // step through each cell that the ray intersects, returning the first hit or bailing
         // out when we exceed the bounds
@@ -141,10 +141,10 @@ public class HashSpace extends Space
         // visit the intersecting roots
         Vector2f min = _rect.getMinimumExtent(), max = _rect.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 Node<SpaceElement> root = _elements.get(_coord.set(xx, yy));
@@ -201,10 +201,10 @@ public class HashSpace extends Space
         int level = getLevel(bounds);
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 Node<T> root = roots.get(_coord.set(xx, yy));
@@ -231,10 +231,10 @@ public class HashSpace extends Space
         int level = getLevel(bounds);
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 Node<T> root = roots.get(_coord.set(xx, yy));
@@ -281,10 +281,10 @@ public class HashSpace extends Space
         // visit the intersecting roots
         Vector2f min = _rect.getMinimumExtent(), max = _rect.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 Node<T> root = roots.get(_coord.set(xx, yy));

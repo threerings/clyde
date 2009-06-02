@@ -1415,10 +1415,10 @@ public class TudeySceneModel extends SceneModel
         // find intersecting tiles
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         ArrayIntSet pairs = new ArrayIntSet();
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
@@ -1616,10 +1616,10 @@ public class TudeySceneModel extends SceneModel
         // check against locations
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 if (!actor.canCollide(_collisionFlags.get(xx, yy))) {
@@ -1662,10 +1662,10 @@ public class TudeySceneModel extends SceneModel
         // check against locations
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 if ((_collisionFlags.get(xx, yy) & mask) == 0) {
@@ -1709,10 +1709,10 @@ public class TudeySceneModel extends SceneModel
         // check against locations
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 if (!actor.canCollide(_collisionFlags.get(xx, yy))) {

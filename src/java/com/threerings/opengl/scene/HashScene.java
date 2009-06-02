@@ -91,12 +91,12 @@ public class HashScene extends Scene
         frustum.getBounds().intersect(_bounds, _box);
         Vector3f min = _box.getMinimumExtent(), max = _box.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
-        int minz = (int)FloatMath.floor(min.z * rgran);
-        int maxz = (int)FloatMath.floor(max.z * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
+        int minz = FloatMath.ifloor(min.z * rgran);
+        int maxz = FloatMath.ifloor(max.z * rgran);
         for (int zz = minz; zz <= maxz; zz++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 for (int xx = minx; xx <= maxx; xx++) {
@@ -293,12 +293,12 @@ public class HashScene extends Scene
         int level = getLevel(bounds);
         Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
-        int minz = (int)FloatMath.floor(min.z * rgran);
-        int maxz = (int)FloatMath.floor(max.z * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
+        int minz = FloatMath.ifloor(min.z * rgran);
+        int maxz = FloatMath.ifloor(max.z * rgran);
         for (int zz = minz; zz <= maxz; zz++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 for (int xx = minx; xx <= maxx; xx++) {
@@ -327,12 +327,12 @@ public class HashScene extends Scene
         int level = getLevel(bounds);
         Vector3f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
-        int minz = (int)FloatMath.floor(min.z * rgran);
-        int maxz = (int)FloatMath.floor(max.z * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
+        int minz = FloatMath.ifloor(min.z * rgran);
+        int maxz = FloatMath.ifloor(max.z * rgran);
         for (int zz = minz; zz <= maxz; zz++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 for (int xx = minx; xx <= maxx; xx++) {
@@ -381,12 +381,12 @@ public class HashScene extends Scene
         // visit the intersecting roots
         Vector3f min = _box.getMinimumExtent(), max = _box.getMaximumExtent();
         float rgran = 1f / _granularity;
-        int minx = (int)FloatMath.floor(min.x * rgran);
-        int maxx = (int)FloatMath.floor(max.x * rgran);
-        int miny = (int)FloatMath.floor(min.y * rgran);
-        int maxy = (int)FloatMath.floor(max.y * rgran);
-        int minz = (int)FloatMath.floor(min.z * rgran);
-        int maxz = (int)FloatMath.floor(max.z * rgran);
+        int minx = FloatMath.ifloor(min.x * rgran);
+        int maxx = FloatMath.ifloor(max.x * rgran);
+        int miny = FloatMath.ifloor(min.y * rgran);
+        int maxy = FloatMath.ifloor(max.y * rgran);
+        int minz = FloatMath.ifloor(min.z * rgran);
+        int maxz = FloatMath.ifloor(max.z * rgran);
         for (int zz = minz; zz <= maxz; zz++) {
             for (int yy = miny; yy <= maxy; yy++) {
                 for (int xx = minx; xx <= maxx; xx++) {

@@ -39,7 +39,7 @@ public class NoiseUtil
      */
     public static float getNoise (float x)
     {
-        int x0 = (int)Math.floor(x);
+        int x0 = FloatMath.ifloor(x);
         x -= x0;
         x0 &= PERMUTATION_MASK;
         return FloatMath.lerp(
@@ -53,7 +53,7 @@ public class NoiseUtil
      */
     public static float getNoise (float x, int y)
     {
-        int x0 = (int)Math.floor(x);
+        int x0 = FloatMath.ifloor(x);
         x -= x0;
         x0 &= PERMUTATION_MASK;
         y &= PERMUTATION_MASK;
@@ -68,8 +68,8 @@ public class NoiseUtil
      */
     public static float getNoise (float x, float y)
     {
-        int x0 = (int)Math.floor(x);
-        int y0 = (int)Math.floor(y);
+        int x0 = FloatMath.ifloor(x);
+        int y0 = FloatMath.ifloor(y);
         x -= x0;
         y -= y0;
         x0 &= PERMUTATION_MASK;
@@ -94,8 +94,8 @@ public class NoiseUtil
      */
     public static float getNoise (float x, float y, int z)
     {
-        int x0 = (int)Math.floor(x);
-        int y0 = (int)Math.floor(y);
+        int x0 = FloatMath.ifloor(x);
+        int y0 = FloatMath.ifloor(y);
         x -= x0;
         y -= y0;
         x0 &= PERMUTATION_MASK;
@@ -121,9 +121,9 @@ public class NoiseUtil
      */
     public static float getNoise (float x, float y, float z)
     {
-        int x0 = (int)Math.floor(x);
-        int y0 = (int)Math.floor(y);
-        int z0 = (int)Math.floor(z);
+        int x0 = FloatMath.ifloor(x);
+        int y0 = FloatMath.ifloor(y);
+        int z0 = FloatMath.ifloor(z);
         x -= x0;
         y -= y0;
         z -= z0;

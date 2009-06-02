@@ -204,6 +204,16 @@ public class FloatMath
     }
 
     /**
+     * Returns the floor of v as an integer without calling the relatively expensive
+     * {@link Math#floor}.
+     */
+    public static int ifloor (float v)
+    {
+        int iv = (int)v;
+        return (v < 0f) ? ((iv == v || iv == Integer.MIN_VALUE) ? iv : (iv - 1)) : iv;
+    }
+
+    /**
      * Returns the ceiling of v.
      *
      * @see Math#ceil
@@ -211,6 +221,16 @@ public class FloatMath
     public static float ceil (float v)
     {
         return (float)Math.ceil(v);
+    }
+
+    /**
+     * Returns the ceiling of v as an integer without calling the relatively expensive
+     * {@link Math#ceil}.
+     */
+    public static int iceil (float v)
+    {
+        int iv = (int)v;
+        return (v > 0f) ? ((iv == v || iv == Integer.MAX_VALUE) ? iv : (iv + 1)) : iv;
     }
 
     /**

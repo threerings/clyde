@@ -229,8 +229,8 @@ public class Pathfinder
 
         // determine the actor's extents
         Rect bounds = logic.getShape().getBounds();
-        int width = Math.max(1, (int)Math.ceil(bounds.getWidth()));
-        int height = Math.max(1, (int)Math.ceil(bounds.getHeight()));
+        int width = Math.max(1, FloatMath.iceil(bounds.getWidth()));
+        int height = Math.max(1, FloatMath.iceil(bounds.getHeight()));
 
         // create the traversal predicate
         AStarPathUtil.TraversalPred pred;
@@ -410,10 +410,10 @@ public class Pathfinder
         }
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 updateQuad(xx, yy);
@@ -437,10 +437,10 @@ public class Pathfinder
         }
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 updateQuad(xx, yy);

@@ -119,8 +119,12 @@ public class ArgumentMap extends TreeMap<String, Object>
             return false;
         }
         ArgumentMap omap = (ArgumentMap)other;
-        if (size() != omap.size()) {
+        int size = size(), osize = omap.size();
+        if (size != osize) {
             return false;
+        }
+        if (size == 0) {
+            return true;
         }
         for (Map.Entry<String, Object> entry : entrySet()) {
             String key = entry.getKey();

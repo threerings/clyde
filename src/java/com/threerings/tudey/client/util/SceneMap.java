@@ -110,10 +110,10 @@ public class SceneMap
         }
 
         // iterate over all intersecting blocks
-        int xmin = (int)FloatMath.floor(sx / TEXTURE_SIZE);
-        int ymin = (int)FloatMath.floor(sy / TEXTURE_SIZE);
-        int xmax = (int)FloatMath.floor((sx + swidth - 1f) / TEXTURE_SIZE);
-        int ymax = (int)FloatMath.floor((sy + sheight - 1f) / TEXTURE_SIZE);
+        int xmin = FloatMath.ifloor(sx / TEXTURE_SIZE);
+        int ymin = FloatMath.ifloor(sy / TEXTURE_SIZE);
+        int xmax = FloatMath.ifloor((sx + swidth - 1f) / TEXTURE_SIZE);
+        int ymax = FloatMath.ifloor((sy + sheight - 1f) / TEXTURE_SIZE);
         for (int yy = ymin; yy <= ymax; yy++) {
             for (int xx = xmin; xx <= xmax; xx++) {
                 Texture2D texture = _textures.get(_coord.set(xx, yy));
@@ -275,10 +275,10 @@ public class SceneMap
         }
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 updateQuad(xx, yy);
@@ -322,10 +322,10 @@ public class SceneMap
         }
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
-        int minx = (int)FloatMath.floor(min.x);
-        int maxx = (int)FloatMath.floor(max.x);
-        int miny = (int)FloatMath.floor(min.y);
-        int maxy = (int)FloatMath.floor(max.y);
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 updateQuad(xx, yy);
