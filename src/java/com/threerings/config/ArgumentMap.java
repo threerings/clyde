@@ -26,9 +26,16 @@ package com.threerings.config;
 
 import java.io.IOException;
 
+import java.util.AbstractMap;
+import java.util.AbstractSet;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
+
+import com.samskivert.util.ComparableArrayList;
+import com.samskivert.util.MapEntry;
+import com.samskivert.util.ObjectUtil;
 
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
@@ -38,11 +45,9 @@ import com.threerings.util.Copyable;
 import com.threerings.util.DeepUtil;
 
 /**
- * Stores arguments, extending {@link TreeMap} to implement {@link #hashCode} and {@link #equals}
- * using {@link Arrays#deepHashCode} and {@link Arrays#deepEquals} to provide expected behavior
- * when using arrays as values.  Also implements {@link #clone} to deep-copy values.
+ * Stores arguments in a sorted entry list.
  */
-public class ArgumentMap extends TreeMap<String, Object>
+public class ArgumentMap extends AbstractMap<String, Object>
     implements Copyable, Streamable
 {
     /**
@@ -50,10 +55,11 @@ public class ArgumentMap extends TreeMap<String, Object>
      */
     public ArgumentMap (String firstKey, Object firstValue, Object... otherArgs)
     {
-        put(firstKey, firstValue);
+        _entries.add(new Entry(firstKey, firstValue));
         for (int ii = 0; ii < otherArgs.length; ii += 2) {
-            put((String)otherArgs[ii], otherArgs[ii + 1]);
+            _entries.add(new Entry((String)otherArgs[ii], otherArgs[ii + 1]));
         }
+        _entries.sort();
     }
 
     /**
@@ -69,8 +75,10 @@ public class ArgumentMap extends TreeMap<String, Object>
     public void writeObject (ObjectOutputStream out)
         throws IOException
     {
-        out.writeInt(size());
-        for (Map.Entry<String, Object> entry : entrySet()) {
+        int size = _entries.size();
+        out.writeInt(size);
+        for (int ii = 0; ii < size; ii++) {
+            Entry entry = _entries.get(ii);
             out.writeIntern(entry.getKey());
             out.writeObject(entry.getValue());
         }
@@ -83,7 +91,7 @@ public class ArgumentMap extends TreeMap<String, Object>
         throws IOException, ClassNotFoundException
     {
         for (int ii = 0, nn = in.readInt(); ii < nn; ii++) {
-            put(in.readIntern(), in.readObject());
+            _entries.add(new Entry(in.readIntern(), in.readObject()));
         }
     }
 
@@ -97,16 +105,116 @@ public class ArgumentMap extends TreeMap<String, Object>
         } else {
             cmap = new ArgumentMap();
         }
-        for (Map.Entry<String, Object> entry : entrySet()) {
-            cmap.put(entry.getKey(), DeepUtil.copy(entry.getValue()));
+        for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
+            Entry entry = _entries.get(ii);
+            cmap._entries.add(new Entry(entry.getKey(), DeepUtil.copy(entry.getValue())));
         }
         return cmap;
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public int size ()
     {
-        return copy(null);
+        return _entries.size();
+    }
+
+    @Override // documentation inherited
+    public boolean containsValue (Object value)
+    {
+        for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
+            if (ObjectUtil.equals(_entries.get(ii).getValue(), value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override // documentation inherited
+    public boolean containsKey (Object key)
+    {
+        if (!(key instanceof String)) {
+            return false;
+        }
+        _dummy.setKey((String)key);
+        return _entries.binarySearch(_dummy) >= 0;
+    }
+
+    @Override // documentation inherited
+    public Object get (Object key)
+    {
+        if (!(key instanceof String)) {
+            return null;
+        }
+        _dummy.setKey((String)key);
+        int idx = _entries.binarySearch(_dummy);
+        return (idx >= 0) ? _entries.get(idx).getValue() : null;
+    }
+
+    @Override // documentation inherited
+    public Object put (String key, Object value)
+    {
+        _dummy.setKey(key);
+        int idx = _entries.binarySearch(_dummy);
+        if (idx >= 0) {
+            return _entries.get(idx).setValue(value);
+        } else {
+            _entries.add(-idx - 1, new Entry(key, value));
+            return null;
+        }
+    }
+
+    @Override // documentation inherited
+    public Object remove (Object key)
+    {
+        if (!(key instanceof String)) {
+            return null;
+        }
+        _dummy.setKey((String)key);
+        int idx = _entries.binarySearch(_dummy);
+        return (idx >= 0) ? _entries.remove(idx).getValue() : null;
+    }
+
+    @Override // documentation inherited
+    public void clear ()
+    {
+        _entries.clear();
+    }
+
+    @Override // documentation inherited
+    public Set<Map.Entry<String, Object>> entrySet ()
+    {
+        return new AbstractSet<Map.Entry<String, Object>>() {
+            @Override public int size () {
+                return _entries.size();
+            }
+            @Override public boolean contains (Object o) {
+                if (!(o instanceof Entry)) {
+                    return false;
+                }
+                return _entries.binarySearch((Entry)o) >= 0;
+            }
+            @Override public Iterator<Map.Entry<String, Object>> iterator () {
+                Iterator<?> it = _entries.iterator();
+                @SuppressWarnings("unchecked") Iterator<Map.Entry<String, Object>> cit =
+                    (Iterator<Map.Entry<String, Object>>)it;
+                return cit;
+            }
+            @Override public boolean remove (Object o) {
+                if (!(o instanceof Entry)) {
+                    return false;
+                }
+                int idx = _entries.binarySearch((Entry)o);
+                if (idx >= 0) {
+                    _entries.remove(idx);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            @Override public void clear () {
+                _entries.clear();
+            }
+        };
     }
 
     @Override // documentation inherited
@@ -119,20 +227,17 @@ public class ArgumentMap extends TreeMap<String, Object>
             return false;
         }
         ArgumentMap omap = (ArgumentMap)other;
-        int size = size(), osize = omap.size();
-        if (size != osize) {
+        int size = size();
+        if (size != omap.size()) {
             return false;
         }
-        if (size == 0) {
-            return true;
-        }
-        for (Map.Entry<String, Object> entry : entrySet()) {
-            String key = entry.getKey();
-            if (!omap.containsKey(key)) {
+        for (int ii = 0; ii < size; ii++) {
+            Entry entry = _entries.get(ii), oentry = omap._entries.get(ii);
+            if (!entry.getKey().equals(oentry.getKey())) {
                 return false;
             }
             _a1[0] = entry.getValue();
-            _a2[0] = omap.get(key);
+            _a2[0] = oentry.getValue();
             if (!Arrays.deepEquals(_a1, _a2)) {
                 return false;
             }
@@ -144,12 +249,54 @@ public class ArgumentMap extends TreeMap<String, Object>
     public int hashCode ()
     {
         int hash = 0;
-        for (Map.Entry<String, Object> entry : entrySet()) {
+        for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
+            Entry entry = _entries.get(ii);
             _a1[0] = entry.getValue();
             hash += entry.getKey().hashCode() ^ Arrays.deepHashCode(_a1);
         }
         return hash;
     }
+
+    @Override // documentation inherited
+    public Object clone ()
+    {
+        return copy(null);
+    }
+
+    /**
+     * The map entry class.
+     */
+    protected static class Entry extends MapEntry<String, Object>
+        implements Comparable<Entry>
+    {
+        /**
+         * Creates a new entry.
+         */
+        public Entry (String key, Object value)
+        {
+            super(key, value);
+        }
+
+        /**
+         * Resets the entry key.
+         */
+        public void setKey (String key)
+        {
+            _key = key;
+        }
+
+        // documentation inherited from interface Comparable
+        public int compareTo (Entry oentry)
+        {
+            return _key.compareTo(oentry._key);
+        }
+    }
+
+    /** The entries in the map. */
+    protected transient ComparableArrayList<Entry> _entries = new ComparableArrayList<Entry>();
+
+    /** Dummy entry used for searching. */
+    protected transient Entry _dummy = new Entry(null, null);
 
     /** Used for {@link Arrays#deepHashCode} and {@link Arrays#deepEquals}. */
     protected transient Object[] _a1 = new Object[1], _a2 = new Object[1];
