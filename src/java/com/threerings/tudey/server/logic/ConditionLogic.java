@@ -24,6 +24,7 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import com.google.common.collect.Lists;
@@ -33,6 +34,7 @@ import com.samskivert.util.ListUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.config.ConditionConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
@@ -339,6 +341,53 @@ public abstract class ConditionLogic extends Logic
 
         /** The component conditions. */
         protected ConditionLogic[] _conditions;
+    }
+
+    /**
+     * Evaluates the flag set condition.
+     */
+    public static class FlagSet extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            ConditionConfig.FlagSet config = (ConditionConfig.FlagSet)_config;
+            _target.resolve(activator, _targets);
+            try {
+                for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                    Logic logic = _targets.get(ii);
+                    if (logic instanceof ActorLogic) {
+                        Actor actor = ((ActorLogic)logic).getActor();
+                        try {
+                            Field flag = actor.getClass().getField(config.flagName);
+                            if (actor.isSet(flag.getInt(actor))) {
+                                return config.set;
+                            }
+                        } catch (NoSuchFieldException e) {
+                            log.warning("Flag field not found in class for Flag Set Condition.", e);
+                        } catch (IllegalAccessException e) {
+                            log.warning("Cannot access flag field for Flag Set Condition.", e);
+                        }
+                    }
+                }
+                return !config.set;
+
+            } finally {
+                _targets.clear();
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ConditionConfig.FlagSet)_config).target, _source);
+        }
+
+        /** The target to check. */
+        protected TargetLogic _target;
+
+        /** Holds targets during evaluation. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
     }
 
     /**

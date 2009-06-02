@@ -36,7 +36,8 @@ import com.threerings.util.DeepObject;
     ConditionConfig.Tagged.class, ConditionConfig.InstanceOf.class,
     ConditionConfig.Intersecting.class, ConditionConfig.DistanceWithin.class,
     ConditionConfig.Random.class, ConditionConfig.Limit.class,
-    ConditionConfig.All.class, ConditionConfig.Any.class })
+    ConditionConfig.All.class, ConditionConfig.Any.class,
+    ConditionConfig.FlagSet.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -255,6 +256,36 @@ public abstract class ConditionConfig extends DeepObject
             for (ConditionConfig condition : conditions) {
                 condition.invalidate();
             }
+        }
+    }
+
+    /**
+     * Determines whether an actor's flag is set.
+     */
+    public static class FlagSet extends ConditionConfig
+    {
+        /** The name of the flag definition. */
+        @Editable(hgroup="f")
+        public String flagName = "WARP";
+
+        /** If we're checking for set or not set. */
+        @Editable(hgroup="f")
+        public boolean set = true;
+
+        /** The target to check. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$FlagSet";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
