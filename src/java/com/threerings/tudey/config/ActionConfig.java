@@ -262,6 +262,10 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public ActionConfig action = new ActionConfig.SpawnActor();
 
+        /** The action to take if the condition is not satisfied. */
+        @Editable(nullable=true)
+        public ActionConfig elseAction;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
@@ -279,13 +283,19 @@ public abstract class ActionConfig extends DeepObject
         {
             condition.invalidate();
             action.invalidate();
+            if (elseAction != null) {
+                elseAction.invalidate();
+            }
         }
 
         @Override // documentation inherited
         public ActionConfig[] getSubActions ()
         {
-            ActionConfig[] actions = new ActionConfig[1];
+            ActionConfig[] actions = new ActionConfig[(elseAction == null ? 1 : 2)];
             actions[0] = action;
+            if (elseAction != null) {
+                actions[1] = elseAction;
+            }
             return actions;
         }
     }

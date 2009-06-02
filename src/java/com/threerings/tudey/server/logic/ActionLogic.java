@@ -296,6 +296,8 @@ public abstract class ActionLogic extends Logic
         {
             if (_condition.isSatisfied(activator)) {
                 _action.execute(timestamp, activator);
+            } else if (_elseAction != null) {
+                _elseAction.execute(timestamp, activator);
             }
         }
 
@@ -305,6 +307,9 @@ public abstract class ActionLogic extends Logic
             ActionConfig.Conditional config = (ActionConfig.Conditional)_config;
             _condition = createCondition(config.condition, _source);
             _action = createAction(config.action, _source);
+            if (config.elseAction != null) {
+                _elseAction = createAction(config.elseAction, _source);
+            }
         }
 
         /** The condition to evaluate. */
@@ -312,6 +317,9 @@ public abstract class ActionLogic extends Logic
 
         /** The action to take if the condition is satisfied. */
         protected ActionLogic _action;
+
+        /** The action to take if the condition is not satisfied. */
+        protected ActionLogic _elseAction;
     }
 
     /**
