@@ -134,9 +134,9 @@ public class HashScene extends Scene
         // find the starting lines
         float rgran = 1f / _granularity;
         float px = _pt.x * rgran, py = _pt.y * rgran, pz = _pt.z * rgran;
-        int lx = (int)(xdir < 0 ? FloatMath.ceil(px) : FloatMath.floor(px));
-        int ly = (int)(ydir < 0 ? FloatMath.ceil(py) : FloatMath.floor(py));
-        int lz = (int)(zdir < 0 ? FloatMath.ceil(pz) : FloatMath.floor(pz));
+        int lx = (xdir < 0) ? FloatMath.iceil(px) : FloatMath.ifloor(px);
+        int ly = (ydir < 0) ? FloatMath.iceil(py) : FloatMath.ifloor(py);
+        int lz = (zdir < 0) ? FloatMath.iceil(pz) : FloatMath.ifloor(pz);
 
         // step through each cell that the ray intersects, returning the first hit or bailing
         // out when we exceed the bounds
