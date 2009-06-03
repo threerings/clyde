@@ -27,6 +27,7 @@ package com.threerings.tudey.data.actor;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.tudey.config.ActorConfig;
 
@@ -106,6 +107,33 @@ public class Mobile extends Actor
         return result;
     }
 
+    @Override // documentation inherited
+    public Object copy (Object dest)
+    {
+        Mobile result = (Mobile)super.copy(dest);
+        result._direction = _direction;
+        return result;
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!super.equals(other)) {
+            return false;
+        }
+        Mobile omobile = (Mobile)other;
+        return _direction == omobile._direction;
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        int hash = super.hashCode();
+        hash = 31*hash + Float.floatToIntBits(_direction);
+        return hash;
+    }
+
     /** The direction of motion. */
+    @DeepOmit
     protected float _direction;
 }

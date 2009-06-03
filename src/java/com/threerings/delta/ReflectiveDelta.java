@@ -45,6 +45,8 @@ import static com.threerings.ClydeLog.*;
  */
 public class ReflectiveDelta extends Delta
 {
+
+
     /**
      * Creates a new reflective delta that transforms the original object into the revised object
      * (both of which must be instances of the same class).
@@ -59,7 +61,7 @@ public class ReflectiveDelta extends Delta
         Object[] oarray = new Object[1], narray = new Object[1];
         for (int ii = 0, midx = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
-            if (Modifier.isFinal(field.getModifiers())) {
+            if (isFinal(field)) {
                 continue;
             }
             int idx = midx++;
@@ -106,7 +108,7 @@ public class ReflectiveDelta extends Delta
         Field[] fields = getClassMapping(_clazz).getFields();
         for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
-            if (Modifier.isFinal(field.getModifiers()) || !_mask.isSet(midx++)) {
+            if (isFinal(field) || !_mask.isSet(midx++)) {
                 continue;
             }
             Class type = field.getType();
@@ -138,7 +140,7 @@ public class ReflectiveDelta extends Delta
         ArrayList<Object> values = new ArrayList<Object>();
         for (int ii = 0, midx = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
-            if (Modifier.isFinal(field.getModifiers()) || !_mask.isSet(midx++)) {
+            if (isFinal(field) || !_mask.isSet(midx++)) {
                 continue;
             }
             Class type = field.getType();
@@ -176,7 +178,7 @@ public class ReflectiveDelta extends Delta
             Field field = fields[ii];
             try {
                 Object value;
-                if (!Modifier.isFinal(field.getModifiers()) && _mask.isSet(midx++)) {
+                if (!isFinal(field) && _mask.isSet(midx++)) {
                     value = _values[vidx++];
                     if (value instanceof Delta) {
                         value = ((Delta)value).apply(field.get(original));
@@ -202,7 +204,7 @@ public class ReflectiveDelta extends Delta
         Field[] fields = getClassMapping(_clazz).getFields();
         for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
             Field field = fields[ii];
-            if (!Modifier.isFinal(field.getModifiers()) && _mask.isSet(midx++)) {
+            if (!isFinal(field) && _mask.isSet(midx++)) {
                 buf.append(", " + field.getName() + "=" + _values[vidx++]);
             }
         }
@@ -244,6 +246,16 @@ public class ReflectiveDelta extends Delta
     }
 
     /**
+     * Determines whether the specified field should be treated as final, either because it is
+     * actually final, or because it bears the {@link DeltaFinal} annotation.
+     */
+    protected static boolean isFinal (Field field)
+    {
+        return Modifier.isFinal(field.getModifiers()) ||
+            field.isAnnotationPresent(DeltaFinal.class);
+    }
+
+    /**
      * Contains cached information about a class.
      */
     protected static class ClassMapping
@@ -259,7 +271,7 @@ public class ReflectiveDelta extends Delta
 
             // count the non-final fields
             for (Field field : _fields) {
-                if (!Modifier.isFinal(field.getModifiers())) {
+                if (!isFinal(field)) {
                     _maskLength++;
                 }
             }

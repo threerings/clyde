@@ -28,11 +28,12 @@ import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.delta.DeltaFinal;
 import com.threerings.delta.Deltable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
-import com.threerings.util.Shallow;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
@@ -294,34 +295,94 @@ public class Actor extends DeepObject
     }
 
     @Override // documentation inherited
+    public Object copy (Object dest)
+    {
+        // we handle base class fields "manually" for performance reasons, since they get called
+        // often and the reflective implementation is comparatively slow
+        Actor result = (Actor)super.copy(dest);
+        @SuppressWarnings("unchecked") ConfigReference<ActorConfig> config =
+            (ConfigReference<ActorConfig>)_config.copy(result._config);
+        result._config = config;
+        result._id = _id;
+        result._created = _created;
+        result._destroyed = _destroyed;
+        result._translation.set(_translation);
+        result._rotation = _rotation;
+        result._flags = _flags;
+        result._original = _original;
+        return result;
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!super.equals(other)) {
+            return false;
+        }
+        Actor oactor = (Actor)other;
+        return _config.equals(oactor._config) &&
+            _id == oactor._id &&
+            _created == oactor._created &&
+            _destroyed == oactor._destroyed &&
+            _translation.equals(oactor._translation) &&
+            _rotation == oactor._rotation &&
+            _flags == oactor._flags &&
+            _original == oactor._original;
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        int hash = super.hashCode();
+        hash = 31*hash + _config.hashCode();
+        hash = 31*hash + _id;
+        hash = 31*hash + _created;
+        hash = 31*hash + _destroyed;
+        hash = 31*hash + _translation.hashCode();
+        hash = 31*hash + Float.floatToIntBits(_rotation);
+        hash = 31*hash + _flags;
+        hash = 31*hash + System.identityHashCode(_original);
+        return hash;
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         return "[config=" + _config + ", id=" + _id + "]";
     }
 
     /** The actor's configuration reference. */
+    @DeepOmit
     protected ConfigReference<ActorConfig> _config;
 
     /** The actor's unique identifier. */
-    protected final int _id;
+    @DeepOmit
+    @DeltaFinal
+    protected int _id;
 
     /** The timestamp at which the actor was created. */
-    protected final int _created;
+    @DeepOmit
+    @DeltaFinal
+    protected int _created;
 
     /** The timestamp at which the actor was destroyed. */
+    @DeepOmit
     protected int _destroyed = Integer.MAX_VALUE;
 
     /** The actor's translation. */
+    @DeepOmit
     protected Vector2f _translation = new Vector2f();
 
     /** The actor's rotation angle. */
+    @DeepOmit
     protected float _rotation;
 
     /** Various flags. */
+    @DeepOmit
     protected int _flags;
 
     /** The cached config implementation. */
-    @Shallow
+    @DeepOmit
     protected transient ActorConfig.Original _original;
 
     /** Used when we can't resolve the actor config. */

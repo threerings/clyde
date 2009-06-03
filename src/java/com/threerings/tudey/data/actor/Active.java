@@ -27,6 +27,7 @@ package com.threerings.tudey.data.actor;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.tudey.config.ActorConfig;
 
@@ -112,9 +113,40 @@ public class Active extends Mobile
         return aresult;
     }
 
+    @Override // documentation inherited
+    public Object copy (Object dest)
+    {
+        Active result = (Active)super.copy(dest);
+        result._activity = _activity;
+        result._activityStarted = _activityStarted;
+        return result;
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!super.equals(other)) {
+            return false;
+        }
+        Active oactive = (Active)other;
+        return _activity == oactive._activity &&
+            _activityStarted == oactive._activityStarted;
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        int hash = super.hashCode();
+        hash = 31*hash + _activity;
+        hash = 31*hash + _activityStarted;
+        return hash;
+    }
+
     /** Identifies the activity being performed by the actor. */
+    @DeepOmit
     protected int _activity;
 
     /** The time at which the current activity started. */
+    @DeepOmit
     protected int _activityStarted;
 }
