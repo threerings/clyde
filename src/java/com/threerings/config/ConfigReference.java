@@ -80,6 +80,36 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
     }
 
     @Override // documentation inherited
+    public Object copy (Object dest)
+    {
+        ConfigReference<?> cref;
+        if (dest instanceof ConfigReference) {
+            cref = (ConfigReference<?>)dest;
+            cref._name = _name;
+        } else {
+            cref = new ConfigReference<T>(_name);
+        }
+        _arguments.copy(cref.getArguments());
+        return cref;
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!(other instanceof ConfigReference)) {
+            return false;
+        }
+        ConfigReference<?> oref = (ConfigReference<?>)other;
+        return _name.equals(oref.getName()) && _arguments.equals(oref.getArguments());
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        return 31*_name.hashCode() + _arguments.hashCode();
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         return "[name=" + _name + ", arguments=" + _arguments + "]";
