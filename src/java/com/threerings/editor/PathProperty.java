@@ -258,7 +258,7 @@ public class PathProperty extends Property
                 return getProperty(cfgmgr, object, new MethodProperty(method, method), tok);
             } catch (NoSuchMethodException e) { }
         }
-        log.warning("Failed to find property [name=" + name + "].");
+        log.warning("Failed to find property.", "name", name, "object", object);
         return null;
     }
 
