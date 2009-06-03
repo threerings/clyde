@@ -45,8 +45,6 @@ import static com.threerings.ClydeLog.*;
  */
 public class ReflectiveDelta extends Delta
 {
-
-
     /**
      * Creates a new reflective delta that transforms the original object into the revised object
      * (both of which must be instances of the same class).
