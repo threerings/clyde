@@ -29,13 +29,19 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import com.threerings.io.ArrayMask;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.Streamer;
+
+import com.threerings.expr.MutableInteger;
 
 import static com.threerings.ClydeLog.*;
 
@@ -55,28 +61,14 @@ public class ReflectiveDelta extends Delta
         ClassMapping cmap = getClassMapping(_clazz = original.getClass());
         _mask = new BareArrayMask(cmap.getMaskLength());
         Field[] fields = cmap.getFields();
-        ArrayList<Object> values = new ArrayList<Object>();
-        Object[] oarray = new Object[1], narray = new Object[1];
-        for (int ii = 0, midx = 0; ii < fields.length; ii++) {
-            Field field = fields[ii];
-            if (isFinal(field)) {
-                continue;
-            }
-            int idx = midx++;
+        FieldHandler[] handlers = cmap.getHandlers();
+        List<Object> values = Lists.newArrayList();
+        MutableInteger midx = new MutableInteger();
+        for (int ii = 0; ii < fields.length; ii++) {
             try {
-                Object ovalue = oarray[0] = field.get(original);
-                Object nvalue = narray[0] = field.get(revised);
-                if (Arrays.deepEquals(oarray, narray)) {
-                    continue; // no change
-                }
-                if (Delta.checkDeltable(ovalue, nvalue)) {
-                    nvalue = Delta.createDelta(ovalue, nvalue);
-                }
-                _mask.set(idx);
-                values.add(nvalue);
-
+                handlers[ii].populate(fields[ii], original, revised, _mask, midx, values);
             } catch (IllegalAccessException e) {
-                throw new RuntimeException("Failed to access " + field +
+                throw new RuntimeException("Failed to access " + fields[ii] +
                     " for delta computation", e);
             }
         }
@@ -103,19 +95,9 @@ public class ReflectiveDelta extends Delta
         _mask.writeTo(out);
 
         // write the changed fields
-        Field[] fields = getClassMapping(_clazz).getFields();
-        for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
-            Field field = fields[ii];
-            if (isFinal(field) || !_mask.isSet(midx++)) {
-                continue;
-            }
-            Class type = field.getType();
-            Object value = _values[vidx++];
-            if (type.isPrimitive()) {
-                out.writeBareObject(value);
-            } else {
-                out.writeObject(value);
-            }
+        MutableInteger midx = new MutableInteger(), vidx = new MutableInteger();
+        for (FieldHandler handler : getClassMapping(_clazz).getHandlers()) {
+            handler.write(_mask, midx, _values, vidx, out);
         }
     }
 
@@ -134,20 +116,10 @@ public class ReflectiveDelta extends Delta
         _mask.readFrom(in);
 
         // read the changed fields
-        Field[] fields = cmap.getFields();
-        ArrayList<Object> values = new ArrayList<Object>();
-        for (int ii = 0, midx = 0; ii < fields.length; ii++) {
-            Field field = fields[ii];
-            if (isFinal(field) || !_mask.isSet(midx++)) {
-                continue;
-            }
-            Class type = field.getType();
-            if (type.isPrimitive()) {
-                Streamer streamer = _wrapperStreamers.get(type);
-                values.add(streamer.createObject(in));
-            } else {
-                values.add(in.readObject());
-            }
+        List<Object> values = Lists.newArrayList();
+        MutableInteger midx = new MutableInteger();
+        for (FieldHandler handler : cmap.getHandlers()) {
+            handler.read(_mask, midx, values, in);
         }
         _values = values.toArray(new Object[values.size()]);
     }
@@ -171,23 +143,15 @@ public class ReflectiveDelta extends Delta
         }
 
         // set the fields
-        Field[] fields = getClassMapping(_clazz).getFields();
-        for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
-            Field field = fields[ii];
+        ClassMapping cmap = getClassMapping(_clazz);
+        Field[] fields = cmap.getFields();
+        FieldHandler[] handlers = cmap.getHandlers();
+        MutableInteger midx = new MutableInteger(), vidx = new MutableInteger();
+        for (int ii = 0; ii < fields.length; ii++) {
             try {
-                Object value;
-                if (!isFinal(field) && _mask.isSet(midx++)) {
-                    value = _values[vidx++];
-                    if (value instanceof Delta) {
-                        value = ((Delta)value).apply(field.get(original));
-                    }
-                } else {
-                    value = field.get(original);
-                }
-                field.set(revised, value);
-
+                handlers[ii].apply(fields[ii], original, revised, _mask, midx, _values, vidx);
             } catch (IllegalAccessException e) {
-                throw new RuntimeException("Failed to access " + field +
+                throw new RuntimeException("Failed to access " + fields[ii] +
                     " for delta application", e);
             }
         }
@@ -199,12 +163,12 @@ public class ReflectiveDelta extends Delta
     {
         StringBuilder buf = new StringBuilder();
         buf.append("[class=" + _clazz.getName());
-        Field[] fields = getClassMapping(_clazz).getFields();
-        for (int ii = 0, midx = 0, vidx = 0; ii < fields.length; ii++) {
-            Field field = fields[ii];
-            if (!isFinal(field) && _mask.isSet(midx++)) {
-                buf.append(", " + field.getName() + "=" + _values[vidx++]);
-            }
+        ClassMapping cmap = getClassMapping(_clazz);
+        Field[] fields = cmap.getFields();
+        FieldHandler[] handlers = cmap.getHandlers();
+        MutableInteger midx = new MutableInteger(), vidx = new MutableInteger();
+        for (int ii = 0; ii < fields.length; ii++) {
+            handlers[ii].toString(fields[ii], _mask, midx, _values, vidx, buf);
         }
         return buf.append("]").toString();
     }
@@ -225,7 +189,7 @@ public class ReflectiveDelta extends Delta
      * Collects all appropriate fields of the specified class (and its superclasses) and places
      * them in the provided results object.
      */
-    protected static void collectFields (Class clazz, ArrayList<Field> fields)
+    protected static void collectFields (Class clazz, List<Field> fields)
     {
         // add those of the superclass, if any
         Class sclazz = clazz.getSuperclass();
@@ -244,16 +208,6 @@ public class ReflectiveDelta extends Delta
     }
 
     /**
-     * Determines whether the specified field should be treated as final, either because it is
-     * actually final, or because it bears the {@link DeltaFinal} annotation.
-     */
-    protected static boolean isFinal (Field field)
-    {
-        return Modifier.isFinal(field.getModifiers()) ||
-            field.isAnnotationPresent(DeltaFinal.class);
-    }
-
-    /**
      * Contains cached information about a class.
      */
     protected static class ClassMapping
@@ -263,14 +217,23 @@ public class ReflectiveDelta extends Delta
          */
         public ClassMapping (Class clazz)
         {
-            ArrayList<Field> fields = new ArrayList<Field>();
+            List<Field> fields = Lists.newArrayList();
             collectFields(clazz, fields);
             _fields = fields.toArray(new Field[fields.size()]);
+            _handlers = new FieldHandler[_fields.length];
 
-            // count the non-final fields
-            for (Field field : _fields) {
-                if (!isFinal(field)) {
+            // get the handlers and count the non-final fields
+            for (int ii = 0; ii < _fields.length; ii++) {
+                Field field = _fields[ii];
+                Class<?> type = field.getType();
+                if (Modifier.isFinal(field.getModifiers()) ||
+                        field.isAnnotationPresent(DeltaFinal.class)) {
+                    _handlers[ii] = type.isPrimitive() ?
+                        FINAL_PRIMITIVE_FIELD_HANDLERS.get(type) : FINAL_OBJECT_FIELD_HANDLER;
+                } else {
                     _maskLength++;
+                    _handlers[ii] = type.isPrimitive() ?
+                        PRIMITIVE_FIELD_HANDLERS.get(type) : OBJECT_FIELD_HANDLER;
                 }
             }
         }
@@ -281,6 +244,14 @@ public class ReflectiveDelta extends Delta
         public Field[] getFields ()
         {
             return _fields;
+        }
+
+        /**
+         * Returns a reference to the array of field handlers.
+         */
+        public FieldHandler[] getHandlers ()
+        {
+            return _handlers;
         }
 
         /**
@@ -295,8 +266,111 @@ public class ReflectiveDelta extends Delta
         /** The array of non-transient fields. */
         protected Field[] _fields;
 
+        /** Handlers for each field. */
+        protected FieldHandler[] _handlers;
+
         /** The number of elements in the field mask. */
         protected int _maskLength;
+    }
+
+    /**
+     * Handles a particular field.
+     */
+    protected static abstract class FieldHandler
+    {
+        /**
+         * Compares the field in the original and revised objects and, if they differ, populates
+         * the supplied mask and values list with the delta values.
+         *
+         * @param midx an in/out parameter representing the index in the mask.
+         */
+        public abstract void populate (
+            Field field, Object original, Object revised,
+            ArrayMask mask, MutableInteger midx, List<Object> values)
+                throws IllegalAccessException;
+
+        /**
+         * Writes the delta value for the field (if any) to the stream.
+         *
+         * @param midx an in/out parameter representing the index in the mask.
+         * @param vidx an in/out parameter representing the index in the value array.
+         */
+        public abstract void write (
+            ArrayMask mask, MutableInteger midx, Object[] values,
+            MutableInteger vidx, ObjectOutputStream out)
+                throws IOException;
+
+        /**
+         * Reads the delta value for the field (if any) from the stream.
+         *
+         * @param midx an in/out parameter representing the index in the mask.
+         */
+        public abstract void read (
+            ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                throws IOException, ClassNotFoundException;
+
+        /**
+         * Applies the delta value (if any) to the provided objects.
+         *
+         * @param midx an in/out parameter representing the index in the mask.
+         * @param vidx an in/out parameter representing the index in the value array.
+         */
+        public abstract void apply (
+            Field field, Object original, Object revised, ArrayMask mask,
+            MutableInteger midx, Object[] values, MutableInteger vidx)
+                throws IllegalAccessException;
+
+        /**
+         * Writes the delta value (if any) to the specified string.
+         *
+         * @param midx an in/out parameter representing the index in the mask.
+         * @param vidx an in/out parameter representing the index in the value array.
+         */
+        public void toString (
+            Field field, ArrayMask mask, MutableInteger midx,
+            Object[] values, MutableInteger vidx, StringBuilder buf)
+        {
+            if (mask.isSet(midx.value++)) {
+                buf.append(", " + field.getName() + "=" + values[vidx.value++]);
+            }
+        }
+    }
+
+    /**
+     * Base class for final field handlers.
+     */
+    protected static abstract class FinalFieldHandler extends FieldHandler
+    {
+        @Override // documentation inherited
+        public void populate (
+            Field field, Object original, Object revised,
+            ArrayMask mask, MutableInteger midx, List<Object> values)
+        {
+            // no-op
+        }
+
+        @Override // documentation inherited
+        public void write (
+            ArrayMask mask, MutableInteger midx, Object[] values,
+            MutableInteger vidx, ObjectOutputStream out)
+        {
+            // no-op
+        }
+
+        @Override // documentation inherited
+        public void read (
+            ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+        {
+            // no-op
+        }
+
+        @Override // documentation inherited
+        public void toString (
+            Field field, ArrayMask mask, MutableInteger midx,
+            Object[] values, MutableInteger vidx, StringBuilder buf)
+        {
+            // no-op
+        }
     }
 
     /** The object class. */
@@ -310,5 +384,474 @@ public class ReflectiveDelta extends Delta
     protected Object[] _values;
 
     /** Cached mappings for deltable classes. */
-    protected static HashMap<Class, ClassMapping> _classes = new HashMap<Class, ClassMapping>();
+    protected static Map<Class, ClassMapping> _classes = Maps.newHashMap();
+
+    /** Field handlers for primitive fields mapped by class. */
+    protected static final Map<Class, FieldHandler> PRIMITIVE_FIELD_HANDLERS = Maps.newHashMap();
+    static {
+        PRIMITIVE_FIELD_HANDLERS.put(Boolean.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                boolean nvalue = field.getBoolean(revised);
+                if (field.getBoolean(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeBoolean((Boolean)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readBoolean());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                boolean value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Boolean)values[vidx.value++];
+                } else {
+                    value = field.getBoolean(original);
+                }
+                field.setBoolean(revised, value);
+            }
+        });
+
+        PRIMITIVE_FIELD_HANDLERS.put(Byte.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                byte nvalue = field.getByte(revised);
+                if (field.getByte(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeByte((Byte)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readByte());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                byte value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Byte)values[vidx.value++];
+                } else {
+                    value = field.getByte(original);
+                }
+                field.setByte(revised, value);
+            }
+        });
+
+        PRIMITIVE_FIELD_HANDLERS.put(Character.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                char nvalue = field.getChar(revised);
+                if (field.getChar(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeChar((Character)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readChar());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                char value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Character)values[vidx.value++];
+                } else {
+                    value = field.getChar(original);
+                }
+                field.setChar(revised, value);
+            }
+        });
+
+        PRIMITIVE_FIELD_HANDLERS.put(Double.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                double nvalue = field.getDouble(revised);
+                if (field.getDouble(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeDouble((Double)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readDouble());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                double value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Double)values[vidx.value++];
+                } else {
+                    value = field.getDouble(original);
+                }
+                field.setDouble(revised, value);
+            }
+        });
+
+        PRIMITIVE_FIELD_HANDLERS.put(Float.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                float nvalue = field.getFloat(revised);
+                if (field.getFloat(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeFloat((Float)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readFloat());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                float value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Float)values[vidx.value++];
+                } else {
+                    value = field.getFloat(original);
+                }
+                field.setFloat(revised, value);
+            }
+        });
+
+        PRIMITIVE_FIELD_HANDLERS.put(Integer.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                int nvalue = field.getInt(revised);
+                if (field.getInt(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeInt((Integer)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readInt());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                int value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Integer)values[vidx.value++];
+                } else {
+                    value = field.getInt(original);
+                }
+                field.setInt(revised, value);
+            }
+        });
+
+        PRIMITIVE_FIELD_HANDLERS.put(Long.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                long nvalue = field.getLong(revised);
+                if (field.getLong(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeLong((Long)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readLong());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                long value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Long)values[vidx.value++];
+                } else {
+                    value = field.getLong(original);
+                }
+                field.setLong(revised, value);
+            }
+        });
+
+        PRIMITIVE_FIELD_HANDLERS.put(Short.TYPE, new FieldHandler() {
+            @Override public void populate (
+                Field field, Object original, Object revised,
+                ArrayMask mask, MutableInteger midx, List<Object> values)
+                    throws IllegalAccessException {
+                int idx = midx.value++;
+                short nvalue = field.getShort(revised);
+                if (field.getShort(original) != nvalue) {
+                    mask.set(idx);
+                    values.add(nvalue);
+                }
+            }
+            @Override public void write (
+               ArrayMask mask, MutableInteger midx, Object[] values,
+               MutableInteger vidx, ObjectOutputStream out)
+                   throws IOException {
+               if (mask.isSet(midx.value++)) {
+                   out.writeShort((Short)values[vidx.value++]);
+               }
+            }
+            @Override public void read (
+                ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                    throws IOException, ClassNotFoundException {
+                if (mask.isSet(midx.value++)) {
+                    values.add(in.readShort());
+                }
+            }
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                short value;
+                if (mask.isSet(midx.value++)) {
+                    value = (Short)values[vidx.value++];
+                } else {
+                    value = field.getShort(original);
+                }
+                field.setShort(revised, value);
+            }
+        });
+    }
+
+    /** Field handlers for final primitive fields mapped by class. */
+    protected static final Map<Class, FieldHandler> FINAL_PRIMITIVE_FIELD_HANDLERS =
+        Maps.newHashMap();
+    static {
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Boolean.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setBoolean(revised, field.getBoolean(original));
+            }
+        });
+
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Byte.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setByte(revised, field.getByte(original));
+            }
+        });
+
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Character.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setChar(revised, field.getChar(original));
+            }
+        });
+
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Double.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setDouble(revised, field.getDouble(original));
+            }
+        });
+
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Float.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setFloat(revised, field.getFloat(original));
+            }
+        });
+
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Integer.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setInt(revised, field.getInt(original));
+            }
+        });
+
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Long.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setLong(revised, field.getLong(original));
+            }
+        });
+
+        FINAL_PRIMITIVE_FIELD_HANDLERS.put(Short.TYPE, new FinalFieldHandler() {
+            @Override public void apply (
+                Field field, Object original, Object revised, ArrayMask mask,
+                MutableInteger midx, Object[] values, MutableInteger vidx)
+                    throws IllegalAccessException {
+                field.setShort(revised, field.getShort(original));
+            }
+        });
+    }
+
+    /** Handler for object fields. */
+    protected static final FieldHandler OBJECT_FIELD_HANDLER = new FieldHandler() {
+        @Override public void populate (
+            Field field, Object original, Object revised,
+            ArrayMask mask, MutableInteger midx, List<Object> values)
+                throws IllegalAccessException {
+            int idx = midx.value++;
+            Object ovalue = _oarray[0] = field.get(original);
+            Object nvalue = _narray[0] = field.get(revised);
+            if (!Arrays.deepEquals(_oarray, _narray)) {
+                if (Delta.checkDeltable(ovalue, nvalue)) {
+                    nvalue = Delta.createDelta(ovalue, nvalue);
+                }
+                mask.set(idx);
+                values.add(nvalue);
+            }
+        }
+        @Override public void write (
+            ArrayMask mask, MutableInteger midx, Object[] values,
+            MutableInteger vidx, ObjectOutputStream out)
+                throws IOException {
+            if (mask.isSet(midx.value++)) {
+                out.writeObject(values[vidx.value++]);
+            }
+        }
+        @Override public void read (
+            ArrayMask mask, MutableInteger midx, List<Object> values, ObjectInputStream in)
+                throws IOException, ClassNotFoundException {
+            if (mask.isSet(midx.value++)) {
+                values.add(in.readObject());
+            }
+        }
+        @Override public void apply (
+            Field field, Object original, Object revised, ArrayMask mask,
+            MutableInteger midx, Object[] values, MutableInteger vidx)
+                throws IllegalAccessException {
+            Object value;
+            if (mask.isSet(midx.value++)) {
+                value = values[vidx.value++];
+                if (value instanceof Delta) {
+                    value = ((Delta)value).apply(field.get(original));
+                }
+            } else {
+                value = field.get(original);
+            }
+            field.set(revised, value);
+        }
+        protected Object[] _oarray = new Object[1], _narray = new Object[1];
+    };
+
+    /** Handler for final object fields. */
+    protected static final FieldHandler FINAL_OBJECT_FIELD_HANDLER = new FinalFieldHandler() {
+        @Override public void apply (
+            Field field, Object original, Object revised, ArrayMask mask,
+            MutableInteger midx, Object[] values, MutableInteger vidx)
+                throws IllegalAccessException {
+            field.set(revised, field.get(original));
+        }
+    };
 }
