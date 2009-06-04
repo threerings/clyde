@@ -398,8 +398,6 @@ public class TudeySceneView extends SimpleScope
 
         // find the reference and remove all records before it
         if (!pruneRecords(event.getReference())) {
-            log.info("Got delta before reference.", "reference", event.getReference(),
-                "record", _records.get(_records.size() - 1).getTimestamp());
             return false;
         }
         HashIntMap<Actor> oactors = _records.get(0).getActors();
