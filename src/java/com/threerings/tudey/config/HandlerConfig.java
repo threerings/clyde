@@ -42,7 +42,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     HandlerConfig.Signal.class, HandlerConfig.SignalStart.class,
     HandlerConfig.SignalStop.class, HandlerConfig.Intersection.class,
     HandlerConfig.IntersectionStart.class, HandlerConfig.IntersectionStop.class,
-    HandlerConfig.Request.class })
+    HandlerConfig.ThresholdIntersectionCount.class, HandlerConfig.Request.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -208,6 +208,45 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$IntersectionStop";
+        }
+    }
+
+    /**
+     * The intersection count event handler.
+     */
+    public static abstract class BaseIntersectionCount extends BaseIntersection
+    {
+        /** The condition that must be satisfied for a valid intersection. */
+        @Editable
+        public ConditionConfig condition = new ConditionConfig.InstanceOf();
+    }
+
+    /**
+     * An threshold instsection count event handler.
+     */
+    public static class ThresholdIntersectionCount extends BaseIntersectionCount
+    {
+        /** The threshold value. */
+        @Editable(min=0)
+        public int threshold;
+
+        /** The action to perform when we go under the threshold. */
+        @Editable(nullable=true, weight=2)
+        public ActionConfig underAction;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$ThresholdIntersectionCount";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            if (underAction != null) {
+                underAction.invalidate();
+            }
         }
     }
 

@@ -40,6 +40,8 @@ import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
 
+import static com.threerings.tudey.Log.*;
+
 /**
  * Handles the server-side processing for an event handler type.
  */
@@ -383,6 +385,93 @@ public abstract class HandlerLogic extends Logic
         {
             activate(timestamp, actor);
         }
+    }
+
+    /**
+     * Handles the intersection count event.
+     */
+    public abstract static class BaseIntersectionCount extends BaseIntersection
+        implements TudeySceneManager.IntersectionSensor
+    {
+        /**
+         * Creates a new base intersection count handler.
+         */
+        public BaseIntersectionCount ()
+        {
+            super(false, false);
+        }
+
+        @Override // documentation inherited
+        public void didInit ()
+        {
+            _condition = createCondition(
+                    ((HandlerConfig.BaseIntersectionCount)_config).condition, _source);
+        }
+
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public void trigger (int timestamp, ActorLogic actor)
+        {
+            if (_condition.isSatisfied(actor)) {
+                activate(timestamp, actor);
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean tick (int timestamp)
+        {
+            super.tick(timestamp);
+
+            int size = _activated.size();
+            if (_lastCount != size) {
+                countChanged(timestamp, size);
+                _lastCount = size;
+            }
+            return _lastCount != 0;
+        }
+
+        /**
+         * Called when the intersection count changes.
+         */
+        protected abstract void countChanged (int timestamp, int newCount);
+
+        /** The condition to evaluate. */
+        protected ConditionLogic _condition;
+
+        /** The last known count. */
+        protected int _lastCount = -1;
+    }
+
+    /**
+     * Handles a threshold intersection count event.
+     */
+    public static class ThresholdIntersectionCount extends BaseIntersectionCount
+    {
+        @Override // documentation inherited
+        public void didInit ()
+        {
+            super.didInit();
+            HandlerConfig.ThresholdIntersectionCount config =
+                (HandlerConfig.ThresholdIntersectionCount) _config;
+            if (config.underAction != null) {
+                _underAction = createAction(config.underAction, _source);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void countChanged (int timestamp, int newCount)
+        {
+            HandlerConfig.ThresholdIntersectionCount config =
+                (HandlerConfig.ThresholdIntersectionCount) _config;
+            if (_lastCount < config.threshold && newCount >= config.threshold) {
+                execute(timestamp);
+            } else if (_underAction != null && _lastCount >= config.threshold &&
+                    newCount < config.threshold) {
+                _underAction.execute(timestamp, _source);
+            }
+        }
+
+        /** The action to perform when we go under the threshold. */
+        protected ActionLogic _underAction;
     }
 
     /**
