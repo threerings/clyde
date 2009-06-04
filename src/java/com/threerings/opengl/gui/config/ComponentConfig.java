@@ -804,6 +804,18 @@ public abstract class ComponentConfig extends DeepObject
         @Editable
         public boolean staticView;
 
+        /** The vertical field of view. */
+        @Editable(min=0.0, max=180.0, scale=Math.PI/180.0, hgroup="f")
+        public float fov = FloatMath.PI/3f;
+
+        /** The distance to the near clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float near = 1f;
+
+        /** The distance to the far clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float far = 100f;
+
         /** The camera azimuth. */
         @Editable(min=-180.0, max=+180.0, scale=Math.PI/180.0, hgroup="c")
         public float azimuth;
@@ -839,9 +851,10 @@ public abstract class ComponentConfig extends DeepObject
             DynamicScope vscope = view.getScope();
             vscope.setParentScope(scope);
 
-            // set the camera position
-            ((OrbitCameraHandler)view.getCameraHandler()).getCoords().set(
-                azimuth, elevation, distance);
+            // set the camera parameters
+            OrbitCameraHandler camhand = (OrbitCameraHandler)view.getCameraHandler();
+            camhand.setPerspective(fov, near, far);
+            camhand.getCoords().set(azimuth, elevation, distance);
 
             // make static if specified and ensure that it will be validated
             view.setStatic(staticView);
