@@ -294,9 +294,13 @@ public class SceneEditor extends TudeyTool
         save.setPressedIcon(createIcon("save_click"));
         _toolbar.add(new Spacer(80, 1), GroupLayout.FIXED);
         _toolbar.add(_markers = createToggleButton("markers"), GroupLayout.FIXED);
+        _markers.setSelected(!_markersVisible);
         _toolbar.add(_light = createToggleButton("light"), GroupLayout.FIXED);
+        _light.setSelected(!_lightingEnabled);
         _toolbar.add(_fog = createToggleButton("fog"), GroupLayout.FIXED);
+        _fog.setSelected(!_fogEnabled);
         _toolbar.add(_sound = createToggleButton("sound"), GroupLayout.FIXED);
+        _sound.setSelected(!_soundEnabled);
         _toolbar.add(new Spacer(1, 1));
         _toolbar.add(createIconButton("raise_grid"), GroupLayout.FIXED);
         _toolbar.add(createIconButton("lower_grid"), GroupLayout.FIXED);
@@ -882,16 +886,16 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("reorient")) {
             ((OrbitCameraHandler)_camhand).getCoords().set(TudeySceneMetrics.getCameraCoords());
         } else if (action.equals("markers")) {
-            _markersVisible = !_markers.isSelected();
+            _prefs.putBoolean("markersVisible", _markersVisible = !_markers.isSelected());
             wasUpdated();
         } else if (action.equals("light")) {
-            _lightingEnabled = !_light.isSelected();
+            _prefs.putBoolean("lightingEnabled", _lightingEnabled = !_light.isSelected());
             wasUpdated();
         } else if (action.equals("fog")) {
-            _fogEnabled = !_fog.isSelected();
+            _prefs.putBoolean("fogEnabled", _fogEnabled = !_fog.isSelected());
             wasUpdated();
         } else if (action.equals("sound")) {
-            _soundEnabled = !_sound.isSelected();
+            _prefs.putBoolean("soundEnabled", _soundEnabled = !_sound.isSelected());
             wasUpdated();
         } else {
             super.actionPerformed(event);
@@ -1560,19 +1564,19 @@ public class SceneEditor extends TudeyTool
 
     /** Whether or not markers are visible. */
     @Scoped
-    protected boolean _markersVisible = true;
+    protected boolean _markersVisible = _prefs.getBoolean("markersVisible", true);
 
     /** Whether or not lighting is enabled. */
     @Scoped
-    protected boolean _lightingEnabled = true;
+    protected boolean _lightingEnabled = _prefs.getBoolean("lightingEnabled", true);
 
     /** Whether or not fog is enabled. */
     @Scoped
-    protected boolean _fogEnabled = true;
+    protected boolean _fogEnabled = _prefs.getBoolean("fogEnabled", true);
 
     /** Whether or not sound is enabled. */
     @Scoped
-    protected boolean _soundEnabled = true;
+    protected boolean _soundEnabled = _prefs.getBoolean("soundEnabled", true);
 
     /** A casted reference to the editor grid. */
     protected EditorGrid _grid;
