@@ -628,6 +628,8 @@ public class ActorSprite extends Sprite
             _view.getScene().add(_model);
             _view.getActorSpace().add(_shape);
             update();
+        } else {
+            _impl = null; // signifies that the actor has not yet been created
         }
     }
 
@@ -922,7 +924,7 @@ public class ActorSprite extends Sprite
     protected ShapeElement _shape;
 
     /** The actor implementation (<code>null</code> until actually created). */
-    protected Implementation _impl;
+    protected Implementation _impl = NULL_IMPLEMENTATION;
 
     /** Detaches transient models. */
     protected ModelAdapter _transientObserver = new ModelAdapter() {
