@@ -171,6 +171,18 @@ public class ChatOverlay extends Container
             comp : null;
     }
 
+    @Override // documentation inherited
+    public void validate ()
+    {
+        // If the overlay is resized, ensure we maintain our end state
+        BoundedRangeModel model = _area.getScrollModel();
+        boolean end = (model.getValue() == model.getMaximum() - model.getExtent());
+        super.validate();
+        if (end) {
+            model.setValue(model.getMaximum() - model.getExtent());
+        }
+    }
+
     /**
      * Appends a message to the text area.
      *
