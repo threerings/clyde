@@ -24,13 +24,20 @@
 
 package com.threerings.swing;
 
+import java.io.IOException;
+
+import java.util.Vector;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
+import com.threerings.export.Exportable;
+import com.threerings.export.Exporter;
+import com.threerings.export.Importer;
 import com.threerings.export.util.ExportUtil;
 
 import static com.threerings.ClydeLog.*;
@@ -41,6 +48,7 @@ import static com.threerings.ClydeLog.*;
  * properties set in the parent {@link Preferences} node).
  */
 public class PrefsTreeNode extends DefaultMutableTreeNode
+    implements Exportable
 {
     /**
      * Creates a new preferences node from the supplied preferences.
@@ -82,11 +90,32 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
     }
 
     /**
+     * No-arg constructor for deserialization.
+     */
+    public PrefsTreeNode ()
+    {
+    }
+
+    /**
      * Returns a reference to the decoded value of this node.
      */
     public Object getValue ()
     {
         return _value;
+    }
+
+    /**
+     * Returns the child with the supplied name, if it exists.
+     */
+    public PrefsTreeNode getChild (String name)
+    {
+        for (int ii = 0, nn = getChildCount(); ii < nn; ii++) {
+            PrefsTreeNode child = (PrefsTreeNode)getChildAt(ii);
+            if (child.getUserObject().equals(name)) {
+                return child;
+            }
+        }
+        return null;
     }
 
     /**
@@ -186,6 +215,31 @@ public class PrefsTreeNode extends DefaultMutableTreeNode
                 }
             }
         }
+    }
+
+    /**
+     * Custom field write method.
+     */
+    public void writeFields (Exporter out)
+        throws IOException
+    {
+        out.defaultWriteFields();
+        out.write("parent", (PrefsTreeNode)parent, null, PrefsTreeNode.class);
+        out.write("children", children, null, Vector.class);
+        out.write("userObject", (String)userObject, (String)null);
+    }
+
+    /**
+     * Custom field read method.
+     */
+    public void readFields (Importer in)
+        throws IOException
+    {
+        in.defaultReadFields();
+        setAllowsChildren(_value == null);
+        parent = in.read("parent", null, PrefsTreeNode.class);
+        children = in.read("children", null, Vector.class);
+        userObject = in.read("userObject", (String)null);
     }
 
     /**
