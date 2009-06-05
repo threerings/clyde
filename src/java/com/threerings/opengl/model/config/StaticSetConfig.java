@@ -81,7 +81,7 @@ public class StaticSetConfig extends ModelConfig.Imported
     @Override // documentation inherited
     protected VisibleMesh getParticleMesh ()
     {
-        MeshSet mset = (meshes == null) ? null : meshes.get(model);
+        MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
         return (mset == null || mset.visible.length == 0) ? null : mset.visible[0];
     }
 

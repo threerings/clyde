@@ -113,6 +113,8 @@ public abstract class ParticleGeometry extends DynamicGeometry
             Particle[] particles = _particles;
             float[] data = _data;
             int stride = _stride;
+            Vector3f n = _n;
+            boolean normals = (_normalOffset >= 0);
 
             // figure out the texture coordinate parameters
             int udivs = _config.textureDivisionsS;
@@ -122,6 +124,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             // update the living particles
             int texCoordIdx = _texCoordOffset;
             int colorIdx = _colorOffset;
+            int normalIdx = _normalOffset;
             int vertexIdx = _vertexOffset;
             for (int ii = 0, nn = _living.value; ii < nn; ii++) {
                 Particle particle = particles[ii];
@@ -133,6 +136,10 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 // write the vertex attributes and advance the positions
                 texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
                 colorIdx = write(data, colorIdx, stride, particle.getColor());
+                if (normals) {
+                    normalIdx = write(data, normalIdx, stride,
+                        particle.getOrientation().transformUnitZ(n));
+                }
                 vertexIdx = write(data, vertexIdx, stride, particle.getPosition());
             }
         }
@@ -180,8 +187,9 @@ public abstract class ParticleGeometry extends DynamicGeometry
             Particle[] particles = _particles;
             float[] data = _data;
             int stride = _stride;
-            Vector3f s = _s;
+            Vector3f s = _s, n = _n;
             Quaternion rotation = _rotation, vrot = _vrot;
+            boolean normals = (_normalOffset >= 0);
 
             // figure out the texture coordinate parameters
             int udivs = _config.textureDivisionsS;
@@ -199,6 +207,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             // update the living particles
             int texCoordIdx = _texCoordOffset;
             int colorIdx = _colorOffset;
+            int normalIdx = _normalOffset;
             int vertexIdx = _vertexOffset;
             for (int ii = 0, nn = _living.value; ii < nn; ii++) {
                 Particle particle = particles[ii];
@@ -224,23 +233,45 @@ public abstract class ParticleGeometry extends DynamicGeometry
                     } else {
                         velocity.mult(particle.getSize() / length, s);
                     }
+                    if (normals) {
+                        particle.getOrientation().transformUnitZ(n);
+                    }
                 } else {
                     Quaternion rot = (alignment == Alignment.BILLBOARD) ?
                         vrot.mult(particle.getOrientation(), rotation) :
                         particle.getOrientation();
                     rot.transformUnitX(s).multLocal(particle.getSize());
+                    if (normals) {
+                        rot.transformUnitZ(n);
+                    }
                 }
                 float sx = s.x, sy = s.y, sz = s.z;
+                if (normals) {
+                    float nx = n.x, ny = n.y, nz = n.z;
 
-                // write the first vertex
-                texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px - sx, py - sy, pz - sz);
+                    // write the first vertex
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px - sx, py - sy, pz - sz);
 
-                // then the second
-                texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px + sx, py + sy, pz + sz);
+                    // then the second
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px + sx, py + sy, pz + sz);
+
+                } else {
+                    // write the first vertex
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px - sx, py - sy, pz - sz);
+
+                    // then the second
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px + sx, py + sy, pz + sz);
+                }
             }
         }
     }
@@ -294,7 +325,8 @@ public abstract class ParticleGeometry extends DynamicGeometry
             float[] data = _data;
             int stride = _stride;
             int segments = _segments;
-            Vector3f position = _position;
+            Vector3f position = _position, n = _n;
+            boolean normals = (_normalOffset >= 0);
 
             // figure out the texture coordinate parameters
             int udivs = _config.textureDivisionsS;
@@ -305,6 +337,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             float tscale = 1f / segments;
             int texCoordIdx = _texCoordOffset;
             int colorIdx = _colorOffset;
+            int normalIdx = _normalOffset;
             int vertexIdx = _vertexOffset;
             for (int ii = 0, nn = _living.value; ii < nn; ii++) {
                 Particle particle = particles[ii];
@@ -318,16 +351,35 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 float cr = color.r, cg = color.g, cb = color.b, ca = color.a;
 
                 // write the initial segments, then the final one
-                for (int jj = 0; jj < segments; jj++) {
-                    float frac = jj * tscale;
-                    particle.getPosition(frac, position);
-                    texCoordIdx = write(data, texCoordIdx, stride, uoff + frac*uscale, voff);
+                if (normals) {
+                    particle.getOrientation().transformUnitZ(n);
+                    float nx = n.x, ny = n.y, nz = n.z;
+
+                    for (int jj = 0; jj < segments; jj++) {
+                        float frac = jj * tscale;
+                        particle.getPosition(frac, position);
+                        texCoordIdx = write(data, texCoordIdx, stride, uoff + frac*uscale, voff);
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                        normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                        vertexIdx = write(data, vertexIdx, stride, position);
+                    }
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
                     colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                    vertexIdx = write(data, vertexIdx, stride, position);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, particle.getPosition());
+
+                } else {
+                    for (int jj = 0; jj < segments; jj++) {
+                        float frac = jj * tscale;
+                        particle.getPosition(frac, position);
+                        texCoordIdx = write(data, texCoordIdx, stride, uoff + frac*uscale, voff);
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                        vertexIdx = write(data, vertexIdx, stride, position);
+                    }
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, particle.getPosition());
                 }
-                texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, particle.getPosition());
             }
         }
 
@@ -377,8 +429,9 @@ public abstract class ParticleGeometry extends DynamicGeometry
             Particle[] particles = _particles;
             float[] data = _data;
             int stride = _stride;
-            Vector3f s = _s, t = _t, view = _view;
+            Vector3f s = _s, t = _t, n = _n, view = _view;
             Quaternion rotation = _rotation, vrot = _vrot;
+            boolean normals = (_normalOffset >= 0);
 
             // figure out the texture coordinate parameters
             int udivs = _config.textureDivisionsS;
@@ -401,6 +454,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             // update the living particles
             int texCoordIdx = _texCoordOffset;
             int colorIdx = _colorOffset;
+            int normalIdx = _normalOffset;
             int vertexIdx = _vertexOffset;
             for (int ii = 0, nn = _living.value; ii < nn; ii++) {
                 Particle particle = particles[ii];
@@ -430,34 +484,64 @@ public abstract class ParticleGeometry extends DynamicGeometry
                         s.set(Vector3f.ZERO);
                         t.set(Vector3f.ZERO);
                     }
+                    if (normals) {
+                        computeOffset(s, t, 1f, n);
+                    }
                 } else {
                     Quaternion rot = (alignment == Alignment.BILLBOARD) ?
                         vrot.mult(particle.getOrientation(), rotation) :
                         particle.getOrientation();
                     rot.transformUnitX(s).multLocal(size);
                     rot.transformUnitY(t).multLocal(size);
+                    if (normals) {
+                        rot.transformUnitZ(n);
+                    }
                 }
                 float sx = s.x, sy = s.y, sz = s.z;
                 float tx = t.x, ty = t.y, tz = t.z;
+                float vtop = voff + vscale, uright = uoff + uscale;
 
                 // write the vertices
-                float vtop = voff + vscale;
-                texCoordIdx = write(data, texCoordIdx, stride, uoff, vtop);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px+tx-sx, py+ty-sy, pz+tz-sz);
+                if (normals) {
+                    float nx = n.x, ny = n.y, nz = n.z;
 
-                texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px-sx-tx, py-sy-ty, pz-sz-tz);
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px+tx-sx, py+ty-sy, pz+tz-sz);
 
-                float uright = uoff + uscale;
-                texCoordIdx = write(data, texCoordIdx, stride, uright, vtop);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px+sx+tx, py+sy+ty, pz+sz+tz);
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px-sx-tx, py-sy-ty, pz-sz-tz);
 
-                texCoordIdx = write(data, texCoordIdx, stride, uright, voff);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px+sx-tx, py+sy-ty, pz+sz-tz);
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px+sx+tx, py+sy+ty, pz+sz+tz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px+sx-tx, py+sy-ty, pz+sz-tz);
+
+                } else {
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px+tx-sx, py+ty-sy, pz+tz-sz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px-sx-tx, py-sy-ty, pz-sz-tz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px+sx+tx, py+sy+ty, pz+sz+tz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px+sx-tx, py+sy-ty, pz+sz-tz);
+                }
             }
         }
     }
@@ -518,7 +602,8 @@ public abstract class ParticleGeometry extends DynamicGeometry
             int stride = _stride;
             int segments = _segments;
             Vector3f position = _position, last = _last, next = _next;
-            Vector3f s = _s, t = _t;
+            Vector3f s = _s, t = _t, n = _n;
+            boolean normals = (_normalOffset >= 0);
 
             // figure out the texture coordinate parameters
             int udivs = _config.textureDivisionsS;
@@ -533,6 +618,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             float tscale = 1f / segments;
             int texCoordIdx = _texCoordOffset;
             int colorIdx = _colorOffset;
+            int normalIdx = _normalOffset;
             int vertexIdx = _vertexOffset;
             for (int ii = 0, nn = _living.value; ii < nn; ii++) {
                 Particle particle = particles[ii];
@@ -557,13 +643,29 @@ public abstract class ParticleGeometry extends DynamicGeometry
 
                 // write the first two vertices
                 float vtop = voff + vscale;
-                texCoordIdx = write(data, texCoordIdx, stride, uoff, vtop);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+                if (normals) {
+                    computeOffset(s, t, 1f, n);
+                    float nx = n.x, ny = n.y, nz = n.z;
 
-                texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+
+                } else {
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uoff, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+                }
 
                 for (int jj = 1; jj < segments; jj++) {
                     // update the last, current, and next positions
@@ -577,13 +679,29 @@ public abstract class ParticleGeometry extends DynamicGeometry
                     tx = t.x; ty = t.y; tz = t.z;
 
                     float u = uoff + frac * uscale;
-                    texCoordIdx = write(data, texCoordIdx, stride, u, vtop);
-                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                    vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+                    if (normals) {
+                        computeOffset(s, t, 1f, n);
+                        float nx = n.x, ny = n.y, nz = n.z;
 
-                    texCoordIdx = write(data, texCoordIdx, stride, u, voff);
-                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                    vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+                        texCoordIdx = write(data, texCoordIdx, stride, u, vtop);
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                        normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                        vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+
+                        texCoordIdx = write(data, texCoordIdx, stride, u, voff);
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                        normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                        vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+
+                    } else {
+                        texCoordIdx = write(data, texCoordIdx, stride, u, vtop);
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                        vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+
+                        texCoordIdx = write(data, texCoordIdx, stride, u, voff);
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                        vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+                    }
                 }
                 // update the last and current positions
                 last.set(px, py, pz);
@@ -595,13 +713,29 @@ public abstract class ParticleGeometry extends DynamicGeometry
 
                 // write the final two vertices
                 float uright = uoff + uscale;
-                texCoordIdx = write(data, texCoordIdx, stride, uright, vtop);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+                if (normals) {
+                    computeOffset(s, t, 1f, n);
+                    float nx = n.x, ny = n.y, nz = n.z;
 
-                texCoordIdx = write(data, texCoordIdx, stride, uright, voff);
-                colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
+                    vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+
+                } else {
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, vtop);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px + tx, py + ty, pz + tz);
+
+                    texCoordIdx = write(data, texCoordIdx, stride, uright, voff);
+                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    vertexIdx = write(data, vertexIdx, stride, px - tx, py - ty, pz - tz);
+                }
             }
         }
 
@@ -640,10 +774,18 @@ public abstract class ParticleGeometry extends DynamicGeometry
             // get the source data
             ClientArrayConfig texCoordArray = geom.texCoordArrays[0];
             ClientArrayConfig vertexArray = geom.vertexArray;
-            _source = _geom.getFloatArray(false, texCoordArray, vertexArray);
+            ClientArrayConfig normalArray = geom.normalArray;
+            if (_normalOffset >= 0) {
+                _source = _geom.getFloatArray(false, texCoordArray, normalArray, vertexArray);
+                _sourceStride = texCoordArray.size + normalArray.size + vertexArray.size;
+                _sourceNormalOffset = texCoordArray.size;
+                _sourceVertexOffset = texCoordArray.size + normalArray.size;
+            } else {
+                _source = _geom.getFloatArray(false, texCoordArray, vertexArray);
+                _sourceStride = texCoordArray.size + vertexArray.size;
+                _sourceVertexOffset = texCoordArray.size;
+            }
             _sourceTexCoordOffset = 0;
-            _sourceVertexOffset = texCoordArray.size;
-            _sourceStride = texCoordArray.size + vertexArray.size;
         }
 
         @Override // documentation inherited
@@ -683,7 +825,8 @@ public abstract class ParticleGeometry extends DynamicGeometry
             int stride = _stride, sourceStride = _sourceStride;
             Transform3D xform = _xform;
             Quaternion vrot = _vrot, rotation = _rotation;
-            Vector3f s = _s, t = _t, r = _r, view = _view;
+            Vector3f s = _s, t = _t, r = _r, n = _n, view = _view;
+            boolean normals = (_normalOffset >= 0);
 
             // figure out the texture coordinate parameters
             int udivs = _config.textureDivisionsS;
@@ -707,6 +850,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             int vpp = _geom.getVertexCount();
             int texCoordIdx = _texCoordOffset;
             int colorIdx = _colorOffset;
+            int normalIdx = _normalOffset;
             int vertexIdx = _vertexOffset;
             for (int ii = 0, nn = _living.value; ii < nn; ii++) {
                 Particle particle = particles[ii];
@@ -723,6 +867,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 float m00, m10, m20, m30;
                 float m01, m11, m21, m31;
                 float m02, m12, m22, m32;
+                float size = particle.getSize();
                 if (alignment == Alignment.VELOCITY) {
                     Vector3f velocity = particle.getVelocity();
                     view.cross(velocity, t);
@@ -737,7 +882,6 @@ public abstract class ParticleGeometry extends DynamicGeometry
                         r.set(Vector3f.ZERO);
                     }
                     Vector3f position = particle.getPosition();
-                    float size = particle.getSize();
                     m00 = s.x*size; m10 = t.x*size; m20 = r.x*size; m30 = position.x;
                     m01 = s.y*size; m11 = t.y*size; m21 = r.y*size; m31 = position.y;
                     m02 = s.z*size; m12 = t.z*size; m22 = r.z*size; m32 = position.z;
@@ -748,7 +892,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                         (alignment == Alignment.BILLBOARD) ?
                             vrot.mult(particle.getOrientation(), rotation) :
                             particle.getOrientation(),
-                        particle.getSize());
+                        size);
                     xform.update(Transform3D.AFFINE);
                     Matrix4f m = xform.getMatrix();
                     m00 = m.m00; m10 = m.m10; m20 = m.m20; m30 = m.m30;
@@ -758,25 +902,64 @@ public abstract class ParticleGeometry extends DynamicGeometry
 
                 int sourceTexCoordIdx = _sourceTexCoordOffset;
                 int sourceVertexIdx = _sourceVertexOffset;
-                for (int jj = 0; jj < vpp; jj++) {
-                    // write the texture coordinates
-                    texCoordIdx = write(data, texCoordIdx, stride,
-                        uoff + source[sourceTexCoordIdx]*uscale,
-                        voff + source[sourceTexCoordIdx + 1]*vscale);
-                    sourceTexCoordIdx += sourceStride;
+                if (normals) {
+                    int sourceNormalIdx = _sourceNormalOffset;
+                    float rsize = 1f / particle.getSize();
+                    float n00 = m00*rsize, n10 = m10*rsize, n20 = m20*rsize;
+                    float n01 = m01*rsize, n11 = m11*rsize, n21 = m21*rsize;
+                    float n02 = m02*rsize, n12 = m12*rsize, n22 = m22*rsize;
 
-                    // write the color
-                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+                    for (int jj = 0; jj < vpp; jj++) {
+                        // write the texture coordinates
+                        texCoordIdx = write(data, texCoordIdx, stride,
+                            uoff + source[sourceTexCoordIdx]*uscale,
+                            voff + source[sourceTexCoordIdx + 1]*vscale);
+                        sourceTexCoordIdx += sourceStride;
 
-                    // write the transformed vertex
-                    float vx = source[sourceVertexIdx];
-                    float vy = source[sourceVertexIdx + 1];
-                    float vz = source[sourceVertexIdx + 2];
-                    vertexIdx = write(data, vertexIdx, stride,
-                        m00*vx + m10*vy + m20*vz + m30,
-                        m01*vx + m11*vy + m21*vz + m31,
-                        m02*vx + m12*vy + m22*vz + m32);
-                    sourceVertexIdx += sourceStride;
+                        // write the color
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+
+                        // write the transformed normal
+                        float nx = source[sourceNormalIdx];
+                        float ny = source[sourceNormalIdx + 1];
+                        float nz = source[sourceNormalIdx + 2];
+                        normalIdx = write(data, normalIdx, stride,
+                            n00*nx + n10*ny + n20*nz,
+                            n01*nx + n11*ny + n21*nz,
+                            n02*nx + n12*ny + n22*nz);
+                        sourceNormalIdx += sourceStride;
+
+                        // write the transformed vertex
+                        float vx = source[sourceVertexIdx];
+                        float vy = source[sourceVertexIdx + 1];
+                        float vz = source[sourceVertexIdx + 2];
+                        vertexIdx = write(data, vertexIdx, stride,
+                            m00*vx + m10*vy + m20*vz + m30,
+                            m01*vx + m11*vy + m21*vz + m31,
+                            m02*vx + m12*vy + m22*vz + m32);
+                        sourceVertexIdx += sourceStride;
+                    }
+                } else {
+                    for (int jj = 0; jj < vpp; jj++) {
+                        // write the texture coordinates
+                        texCoordIdx = write(data, texCoordIdx, stride,
+                            uoff + source[sourceTexCoordIdx]*uscale,
+                            voff + source[sourceTexCoordIdx + 1]*vscale);
+                        sourceTexCoordIdx += sourceStride;
+
+                        // write the color
+                        colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
+
+                        // write the transformed vertex
+                        float vx = source[sourceVertexIdx];
+                        float vy = source[sourceVertexIdx + 1];
+                        float vz = source[sourceVertexIdx + 2];
+                        vertexIdx = write(data, vertexIdx, stride,
+                            m00*vx + m10*vy + m20*vz + m30,
+                            m01*vx + m11*vy + m21*vz + m31,
+                            m02*vx + m12*vy + m22*vz + m32);
+                        sourceVertexIdx += sourceStride;
+                    }
                 }
             }
         }
@@ -792,6 +975,9 @@ public abstract class ParticleGeometry extends DynamicGeometry
 
         /** The offset of the texture coordinates in the source array. */
         protected int _sourceTexCoordOffset;
+
+        /** The offset of the normals in the source array. */
+        protected int _sourceNormalOffset;
 
         /** The offset of the vertices in the source array. */
         protected int _sourceVertexOffset;
@@ -838,13 +1024,19 @@ public abstract class ParticleGeometry extends DynamicGeometry
      */
     protected void init (GlContext ctx, PassDescriptor[] passes)
     {
+        // determine whether any of the passes require normals
+        boolean normals = false;
+        for (PassDescriptor pass : passes) {
+            normals |= pass.normals;
+        }
+
         // create the base arrays
         HashMap<String, ClientArray> vertexAttribArrays = new HashMap<String, ClientArray>();
         HashIntMap<ClientArray> texCoordArrays = new HashIntMap<ClientArray>();
         ClientArray texCoordArray = new ClientArray(2, (FloatBuffer)null);
         texCoordArrays.put(0, texCoordArray);
         ClientArray colorArray = new ClientArray(4, (FloatBuffer)null);
-        ClientArray normalArray = null;
+        ClientArray normalArray = normals ? new ClientArray(3, (FloatBuffer)null) : null;
         ClientArray vertexArray = new ClientArray(3, (FloatBuffer)null);
 
         // put them in a list and compute the offsets and stride
@@ -853,6 +1045,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         _stride = GeometryUtil.updateOffsetsAndStride(arrays) / 4;
         _texCoordOffset = (int)(texCoordArray.offset / 4);
         _colorOffset = (int)(colorArray.offset / 4);
+        _normalOffset = normals ? (int)(normalArray.offset / 4) : -1;
         _vertexOffset = (int)(vertexArray.offset / 4);
 
         // (re)create the data array if necessary
@@ -1047,6 +1240,9 @@ public abstract class ParticleGeometry extends DynamicGeometry
     /** The offset of the color data. */
     protected int _colorOffset;
 
+    /** The offset of the normal data, or -1 if not using normals. */
+    protected int _normalOffset;
+
     /** The offset of the vertex data. */
     protected int _vertexOffset;
 
@@ -1070,4 +1266,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
 
     /** Used to compute particle offsets. */
     protected Vector3f _s = new Vector3f(), _t = new Vector3f(), _r = new Vector3f();
+
+    /** Used to compute particle normals. */
+    protected Vector3f _n = new Vector3f();
 }
