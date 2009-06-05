@@ -154,6 +154,14 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
     @Editable(min=0.0, step=0.01, hgroup="t")
     public float boundsExpansion;
 
+    /** The amount of time to spend "warming up" the system on reset. */
+    @Editable(min=0.0, step=0.01, hgroup="w")
+    public float warmupTime;
+
+    /** The maximum tick duration during warmup. */
+    @Editable(min=0.0, step=0.01, hgroup="w")
+    public float warmupGranularity = 0.1f;
+
     /** The influences allowed to affect this model. */
     @Editable
     public InfluenceFlagConfig influences = new InfluenceFlagConfig(true, false, false, false);

@@ -409,7 +409,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         for (Layer layer : _layers) {
             layer.reset();
         }
-        _completed = false;
+        _warmed = _completed = false;
     }
 
     @Override // documentation inherited
@@ -458,6 +458,19 @@ public abstract class BaseParticleSystem extends Model.Implementation
             _worldTransform.set(_localTransform);
         } else {
             _parentWorldTransform.compose(_localTransform, _worldTransform);
+        }
+
+        // the first non-zero elapsed interval triggers the warmup
+        if (!_warmed && elapsed > 0f) {
+            float remaining = _config.warmupTime;
+            while (remaining > 0f) {
+                float welapsed = Math.min(remaining, _config.warmupGranularity);
+                for (Layer layer : _layers) {
+                    layer.tick(welapsed);
+                }
+                remaining -= welapsed;
+            }
+            _warmed = true;
         }
 
         // reset the bounds
@@ -607,6 +620,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
     /** The model's tick policy. */
     protected TickPolicy _tickPolicy;
+
+    /** If true, the particle system has warmed up. */
+    protected boolean _warmed;
 
     /** If true, the particle system has completed. */
     protected boolean _completed;
