@@ -24,10 +24,21 @@
 
 package com.threerings.opengl.model;
 
+import com.threerings.expr.Bound;
+import com.threerings.expr.BooleanExpression;
+import com.threerings.expr.MutableFloat;
 import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
+import com.threerings.expr.Scoped;
+import com.threerings.math.Box;
+import com.threerings.math.Ray3D;
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.model.config.ConditionalConfig;
+import com.threerings.opengl.model.config.ConditionalConfig.Case;
+import com.threerings.opengl.scene.Scene;
+import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -55,6 +66,130 @@ public class Conditional extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public boolean hasCompleted ()
+    {
+        return _completed;
+    }
+
+    @Override // documentation inherited
+    public void reset ()
+    {
+        for (Model model : _models) {
+            model.reset();
+        }
+        _completed = false;
+    }
+
+    @Override // documentation inherited
+    public int getInfluenceFlags ()
+    {
+        return _influenceFlags;
+    }
+
+    @Override // documentation inherited
+    public Box getBounds ()
+    {
+        return _bounds;
+    }
+
+    @Override // documentation inherited
+    public void updateBounds ()
+    {
+        // update the world transform
+        if (_parentWorldTransform == null) {
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
+        }
+
+        // update the active model and its bounds
+        updateActive();
+        _active.updateBounds();
+
+        // update the bounds if necessary
+        Box nbounds = _active.getBounds();
+        if (!_bounds.equals(nbounds)) {
+            ((Model)_parentScope).boundsWillChange(this);
+            _bounds.set(nbounds);
+            ((Model)_parentScope).boundsDidChange(this);
+        }
+    }
+
+    @Override // documentation inherited
+    public void drawBounds ()
+    {
+        _active.drawBounds();
+    }
+
+    @Override // documentation inherited
+    public TickPolicy getTickPolicy ()
+    {
+        return _tickPolicy;
+    }
+
+    @Override // documentation inherited
+    public void wasAdded ()
+    {
+        Scene scene = ((Model)_parentScope).getScene(this);
+        _active.wasAdded(scene);
+    }
+
+    @Override // documentation inherited
+    public void willBeRemoved ()
+    {
+        _active.willBeRemoved();
+    }
+
+    @Override // documentation inherited
+    public void tick (float elapsed)
+    {
+        // return immediately if completed
+        if (_completed) {
+            return;
+        }
+
+        // update the world transform
+        if (_parentWorldTransform == null) {
+            _worldTransform.set(_localTransform);
+        } else {
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
+        }
+
+        // update and tick the active model
+        updateActive();
+        _active.tick(elapsed);
+
+        // update the bounds if necessary
+        Box nbounds = _active.getBounds();
+        if (!_bounds.equals(nbounds)) {
+            ((Model)_parentScope).boundsWillChange(this);
+            _bounds.set(nbounds);
+            ((Model)_parentScope).boundsDidChange(this);
+        }
+
+        // notify containing model if completed
+        if (_completed = _active.hasCompleted()) {
+            ((Model)_parentScope).completed(this);
+        }
+    }
+
+    @Override // documentation inherited
+    public boolean getIntersection (Ray3D ray, Vector3f result)
+    {
+        return _active.getIntersection(ray, result);
+    }
+
+    @Override // documentation inherited
+    public void enqueue ()
+    {
+        // update the view transform
+        _parentViewTransform.compose(_localTransform, _viewTransform);
+
+        // enqueue the active model
+        _active.enqueue();
+    }
+
+    @Override // documentation inherited
     public void scopeUpdated (ScopeEvent event)
     {
         super.scopeUpdated(event);
@@ -66,6 +201,79 @@ public class Conditional extends Model.Implementation
      */
     protected void updateFromConfig ()
     {
+        // create the evaluators
+        _evaluators = new BooleanExpression.Evaluator[_config.cases.length];
+        for (int ii = 0; ii < _evaluators.length; ii++) {
+            _evaluators[ii] = _config.cases[ii].condition.createEvaluator(this);
+        }
+
+        // create the models
+        Model[] omodels = _models;
+        _models = new Model[_config.cases.length + 1];
+        for (int ii = 0; ii < _models.length; ii++) {
+            Model model = (omodels == null || omodels.length <= ii) ?
+                new Model(_ctx) : omodels[ii];
+            _models[ii] = model;
+            model.setParentScope(this);
+            if (ii == _config.cases.length) {
+                model.setConfig(_config.defaultModel);
+                model.getLocalTransform().set(_config.defaultTransform);
+            } else {
+                Case caze = _config.cases[ii];
+                model.setConfig(caze.model);
+                model.getLocalTransform().set(caze.transform);
+            }
+        }
+        if (omodels != null) {
+            for (int ii = _models.length; ii < omodels.length; ii++) {
+                omodels[ii].dispose();
+            }
+        }
+
+        // update the influence flags
+        _influenceFlags = _config.influences.getFlags();
+
+        // update the bounds
+        updateBounds();
+    }
+
+    /**
+     * Updates the active model.
+     */
+    protected void updateActive ()
+    {
+        // get the distance from the camera for lod conditions
+        Transform3D cameraTransform = _ctx.getCompositor().getCamera().getWorldTransform();
+        _worldTransform.update(Transform3D.UNIFORM);
+        _distance.value = cameraTransform.getTranslation().distance(
+            _worldTransform.getTranslation());
+
+        // evaluate the cases to find the active index
+        int idx = 0;
+        for (; idx < _evaluators.length && !_evaluators[idx].evaluate(); idx++);
+        Model nactive = _models[idx];
+        if (_active == nactive) {
+            return;
+        }
+        Scene scene = ((Model)_parentScope).getScene(this);
+        if (scene != null && _active != null) {
+            _active.willBeRemoved();
+        }
+        _active = nactive;
+        if (scene != null) {
+            _active.wasAdded(scene);
+        }
+
+        // update the tick policy
+        TickPolicy npolicy = _config.tickPolicy;
+        if (npolicy == TickPolicy.DEFAULT) {
+            npolicy = _active.getTickPolicy();
+        }
+        if (_tickPolicy != npolicy) {
+            ((Model)_parentScope).tickPolicyWillChange(this);
+            _tickPolicy = npolicy;
+            ((Model)_parentScope).tickPolicyDidChange(this);
+        }
     }
 
     /** The application context. */
@@ -74,6 +282,48 @@ public class Conditional extends Model.Implementation
     /** The model config. */
     protected ConditionalConfig _config;
 
-    /** The contained model. */
-    protected Model _model;
+    /** The evaluators for the cases. */
+    protected BooleanExpression.Evaluator[] _evaluators;
+
+    /** The case models. */
+    protected Model[] _models;
+
+    /** The active model. */
+    protected Model _active;
+
+    /** The parent world transform. */
+    @Bound("worldTransform")
+    protected Transform3D _parentWorldTransform;
+
+    /** The parent view transform. */
+    @Bound("viewTransform")
+    protected Transform3D _parentViewTransform;
+
+    /** The local transform. */
+    @Bound
+    protected Transform3D _localTransform;
+
+    /** The world transform. */
+    @Scoped
+    protected Transform3D _worldTransform = new Transform3D();
+
+    /** The view transform. */
+    @Scoped
+    protected Transform3D _viewTransform = new Transform3D();
+
+    /** The distance to the camera. */
+    @Scoped
+    protected MutableFloat _distance = new MutableFloat();
+
+    /** The model's tick policy. */
+    protected TickPolicy _tickPolicy;
+
+    /** Flags indicating which influences can affect the model. */
+    protected int _influenceFlags;
+
+    /** The bounds of the model. */
+    protected Box _bounds = new Box();
+
+    /** If true, the model has completed. */
+    protected boolean _completed;
 }

@@ -42,6 +42,25 @@ import com.threerings.opengl.util.GlContext;
  */
 public class ConditionalConfig extends ModelConfig.Implementation
 {
+    /**
+     * Represents one of the cases that makes up the conditional.
+     */
+    public static class Case extends DeepObject
+        implements Exportable
+    {
+        /** The condition for the case. */
+        @Editable
+        public BooleanExpression condition = new BooleanExpression.Constant(true);
+
+        /** The model reference. */
+        @Editable(nullable=true)
+        public ConfigReference<ModelConfig> model;
+
+        /** The model transform. */
+        @Editable(step=0.01)
+        public Transform3D transform = new Transform3D();
+    }
+
     /** The model's tick policy. */
     @Editable
     public TickPolicy tickPolicy = TickPolicy.DEFAULT;
@@ -50,13 +69,17 @@ public class ConditionalConfig extends ModelConfig.Implementation
     @Editable
     public InfluenceFlagConfig influences = new InfluenceFlagConfig(true);
 
-    /** The condition for the model. */
+    /** The condition cases. */
     @Editable
-    public BooleanExpression condition = new BooleanExpression.Constant(true);
+    public Case[] cases = new Case[0];
 
-    /** The model reference. */
+    /** The default model reference. */
     @Editable(nullable=true)
-    public ConfigReference<ModelConfig> model;
+    public ConfigReference<ModelConfig> defaultModel;
+
+    /** The default model transform. */
+    @Editable(step=0.01)
+    public Transform3D defaultTransform = new Transform3D();
 
     @Override // documentation inherited
     public Model.Implementation getModelImplementation (
