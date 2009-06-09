@@ -22,6 +22,9 @@
   <target name="prepare">
     <mkdir dir="${deploy.dir}"/>
     <mkdir dir="${classes.dir}"/>
+    <copy todir="${classes.dir}/rsrc">
+      <fileset dir="rsrc" includes="**/*"/>
+    </copy>
   </target>
 
   <!-- cleans out the installed application -->
@@ -37,11 +40,21 @@
     </javac>
   </target>
 
+  <!-- creates the serialized color repository config -->
+  <target name="colorpos">
+    <taskdef name="confcomp" classpathref="classpath"
+      classname="com.threerings.tools.CompiledConfigTask"/>
+    <confcomp dest="${deploy.dir}" parser="com.threerings.media.image.tools.xml.ColorPositoryParser"
+              configdef="rsrc/config/media/colordefs.xml"/>
+  </target>
+
   <!-- run the tests -->
-  <target name="test" depends="compile" description="Run the tests.">
+  <target name="test" depends="compile,colorpos" description="Run the tests.">
     <junit printsummary="no" haltonfailure="yes" fork="${junit.fork}">
       <classpath refid="classpath"/>
       <sysproperty key="test_dir" value="${test.dir}"/>
+      <sysproperty key="resource_dir" value="${test.dir}/rsrc"/>
+      <sysproperty key="no_unpack_resources" value="true"/>
       <formatter type="brief" usefile="false"/>
       <batchtest>
         <fileset dir="${src.dir}">

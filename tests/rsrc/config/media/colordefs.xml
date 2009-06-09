@@ -1,0 +1,33 @@
+<?xml version="1.0" standalone="yes"?>
+<colors>
+
+  <!-- example recolorations -->
+  <class classId="1" name="example" source="#FF00FF" range="0.025, 1.0, 1.0" starter="true">
+    <color colorId="1" name="magenta" offsets="0.0, 0.0, 0.0"/>
+    <color colorId="2" name="lavender" offsets="0.041, 0.0, 0.0"/>
+    <color colorId="3" name="crimson" offsets="0.083, 0.0, 0.0"/>
+    <color colorId="4" name="lake" offsets="0.125, 0.0, 0.0"/>
+    <color colorId="5" name="red" offsets="0.166, 0.0, 0.0"/>
+    <color colorId="6" name="vermillion" offsets="0.208, 0.0, 0.0"/>
+    <color colorId="7" name="orange" offsets="0.25, 0.0, 0.0"/>
+    <color colorId="8" name="amber" offsets="0.291, 0.0, 0.0"/>
+    <color colorId="9" name="yellow" offsets="0.333, 0.0, 0.0"/>
+    <color colorId="10" name="chartreuse" offsets="0.375, 0.0, 0.0"/>
+    <color colorId="11" name="lime" offsets="0.416, 0.0, 0.0"/>
+    <color colorId="12" name="emerald" offsets="0.458, 0.0, 0.0"/>
+    <color colorId="13" name="green" offsets="0.5, 0.0, 0.0"/>
+    <color colorId="14" name="aquamarine" offsets="0.541, 0.0, 0.0"/>
+    <color colorId="15" name="turquoise" offsets="0.583, 0.0, 0.0"/>
+    <color colorId="16" name="viridian" offsets="0.625, 0.0, 0.0"/>
+    <color colorId="17" name="cyan" offsets="0.666, 0.0, 0.0"/>
+    <color colorId="18" name="sky" offsets="0.708, 0.0, 0.0"/>
+    <color colorId="19" name="cobalt" offsets="0.75, 0.0, 0.0"/>
+    <color colorId="20" name="utramarine" offsets="0.791, 0.0, 0.0"/>
+    <color colorId="21" name="blue" offsets="0.833, 0.0, 0.0"/>
+    <color colorId="22" name="indigo" offsets="0.875, 0.0, 0.0"/>
+    <color colorId="23" name="violet" offsets="0.916, 0.0, 0.0"/>
+    <color colorId="24" name="purple" offsets="0.958, 0.0, 0.0"/>
+  </class>
+
+</colors>
+

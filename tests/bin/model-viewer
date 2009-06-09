@@ -1,0 +1,3 @@
+#!/bin/sh
+
+`dirname $0`/runjava com.threerings.opengl.model.tools.ModelViewer "$@"

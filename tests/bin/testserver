@@ -1,4 +1,0 @@
-#!/bin/sh
-
-bindir=`dirname $0`
-$bindir/runjava com.threerings.packit.server.TestServer $*

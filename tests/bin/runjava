@@ -55,7 +55,8 @@ foreach $dir (@dirs) {
 $classpath = "$classpath";
 
 # specify our server root (this is for server code)
-my $rootarg = "-Dresource_dir=$realroot/rsrc -Dtest_dir=$realroot";
+my $rootarg = "-Dno_unpack_resources=true -Dresource_dir=$realroot/dist/rsrc " .
+  "-Drsrc_cache_dir=/tmp -Dno_log_redir=true -Dtest_dir=$realroot";
 
 my $pid_file = undef;
 my $i = 0;

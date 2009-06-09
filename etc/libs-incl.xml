@@ -3,10 +3,12 @@
 <project name="library-dependencies">
   <fileset dir="${libs.dir}" id="clyde.libs">
     <include name="ant.jar"/>
+    <include name="commons-beanutils.jar"/>
     <include name="commons-collections.jar"/>
     <include name="commons-digester.jar"/>
     <include name="commons-io.jar"/>
     <include name="commons-lang.jar"/>
+    <include name="commons-logging.jar"/>
     <include name="google-collect.jar"/>
     <include name="guice.jar"/>
     <include name="junit4.jar"/>
