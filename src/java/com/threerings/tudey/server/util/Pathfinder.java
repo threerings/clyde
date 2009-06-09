@@ -125,7 +125,7 @@ public class Pathfinder
         ActorLogic actor, float longest, float ax, float ay,
         float bx, float by, boolean partial, boolean shortcut)
     {
-        return getPath(_entryFlags, actor, longest, ax, ay, bx, by, partial, shortcut);
+        return getPath(false, actor, longest, ax, ay, bx, by, partial, shortcut);
     }
 
     /**
@@ -155,7 +155,7 @@ public class Pathfinder
         ActorLogic actor, float longest, float ax, float ay,
         float bx, float by, boolean partial, boolean shortcut)
     {
-        return getPath(_combinedFlags, actor, longest, ax, ay, bx, by, partial, shortcut);
+        return getPath(true, actor, longest, ax, ay, bx, by, partial, shortcut);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -212,7 +212,7 @@ public class Pathfinder
      * @return the computed path, or null if unreachable.
      */
     protected Vector2f[] getPath (
-        final CoordIntMap flags, ActorLogic logic, float longest, float ax, float ay,
+        final boolean collideActor, ActorLogic logic, float longest, float ax, float ay,
         float bx, float by, boolean partial, boolean shortcut)
     {
         // first things first: are we there already?
@@ -223,14 +223,14 @@ public class Pathfinder
 
         // can we simply slide on over?
         Vector2f end = new Vector2f(bx, by);
-        if (!sweptShapeCollides(flags, logic, start, end)) {
+        if (!sweptShapeCollides(collideActor, logic, start, end)) {
             return new Vector2f[] { start, end };
         }
 
         // determine the actor's extents
         Rect bounds = logic.getShape().getBounds();
-        int width = Math.max(1, FloatMath.iceil(bounds.getWidth()));
-        int height = Math.max(1, FloatMath.iceil(bounds.getHeight()));
+        int width = Math.max(1, FloatMath.iceil(bounds.getWidth() * SUBDIVISION));
+        int height = Math.max(1, FloatMath.iceil(bounds.getHeight() * SUBDIVISION));
 
         // create the traversal predicate
         AStarPathUtil.TraversalPred pred;
@@ -239,7 +239,11 @@ public class Pathfinder
             // simpler predicate for the common case of 1x1 actors
             pred = new AStarPathUtil.TraversalPred() {
                 public boolean canTraverse (Object traverser, int x, int y) {
-                    return !actor.canCollide(flags.get(x, y));
+                    if (actor.canCollide(_entryFlags.get(x/SUBDIVISION, y/SUBDIVISION))) {
+                        return false;
+                    }
+                    return !collideActor || !actor.canCollide(_actorFlags.get(x, y));
+                    //return !actor.canCollide(flags.get(x, y));
                 }
             };
         } else {
@@ -249,7 +253,9 @@ public class Pathfinder
                 public boolean canTraverse (Object traverser, int x, int y) {
                     for (int yy = y - bottom, yymax = y + top; yy <= yymax; yy++) {
                         for (int xx = x - left, xxmax = x + right; xx <= xxmax; xx++) {
-                            if (actor.canCollide(flags.get(xx, yy))) {
+                            if (actor.canCollide(_entryFlags.get(xx/SUBDIVISION, yy/SUBDIVISION))) {
+                                return false;
+                            } else if (collideActor && actor.canCollide(_actorFlags.get(x, y))) {
                                 return false;
                             }
                         }
@@ -260,12 +266,16 @@ public class Pathfinder
         }
 
         // compute the offsets for converting to/from integer coordinates
-        float xoff = (width % 2) * 0.5f;
-        float yoff = (height % 2) * 0.5f;
+        float xoff = (width % 2) * 0.5f / SUBDIVISION;
+        float yoff = (height % 2) * 0.5f / SUBDIVISION;
+        ax *= SUBDIVISION;
+        ay *= SUBDIVISION;
+        bx *= SUBDIVISION;
+        by *= SUBDIVISION;
 
         // if the actor is in the space and can collide with its own flags,
         // remove them before we compute the path
-        boolean remove = (!logic.isRemoved() && flags == _combinedFlags &&
+        boolean remove = (!logic.isRemoved() && collideActor &&
             actor.canCollide(actor.getCollisionFlags()));
         if (remove) {
             removeFlags(logic);
@@ -288,7 +298,7 @@ public class Pathfinder
         Vector2f[] waypoints = new Vector2f[path.size()];
         for (int ii = 0; ii < waypoints.length; ii++) {
             Point pt = path.get(ii);
-            waypoints[ii] = new Vector2f(pt.x + xoff, pt.y + yoff);
+            waypoints[ii] = new Vector2f((pt.x + xoff) / SUBDIVISION, (pt.y + yoff) / SUBDIVISION);
         }
 
         // process for shortcuts if requested
@@ -299,7 +309,7 @@ public class Pathfinder
         for (int ii = 0; ii < waypoints.length; ) {
             for (int jj = waypoints.length - 1; jj >= ii; jj--) {
                 Vector2f waypoint = waypoints[jj];
-                if (jj == ii || !sweptShapeCollides(flags, logic, current, waypoint)) {
+                if (jj == ii || !sweptShapeCollides(collideActor, logic, current, waypoint)) {
                     _waypoints.add(current = waypoint);
                     ii = jj + 1;
                     break;
@@ -315,12 +325,12 @@ public class Pathfinder
      * Determines whether the swept shape of the specified actor collides with anything.
      */
     protected boolean sweptShapeCollides (
-        CoordIntMap flags, ActorLogic logic, Vector2f start, Vector2f end)
+        boolean collideActor, ActorLogic logic, Vector2f start, Vector2f end)
     {
         _worldShape = logic.getShapeElement().getLocalShape().transform(
             _transform.set(start, logic.getRotation()), _worldShape);
         _sweptShape = _worldShape.sweep(end.subtract(start, _translation), _sweptShape);
-        if (flags == _entryFlags) {
+        if (!collideActor) {
             return ((TudeySceneModel)_scenemgr.getScene().getSceneModel()).collides(
                 logic.getActor(), _sweptShape);
         } else {
@@ -349,7 +359,6 @@ public class Pathfinder
                 int flags = tentry.getCollisionFlags(config, xx, yy);
                 if (flags != 0) {
                     _entryFlags.setBits(xx, yy, flags);
-                    _combinedFlags.setBits(xx, yy, flags);
                 }
             }
         }
@@ -376,7 +385,7 @@ public class Pathfinder
                 int flags = tentry.getCollisionFlags(config, xx, yy);
                 if (flags != 0) {
                     updateQuad(xx, yy);
-                    updateFlags(xx, yy, true, null);
+                    updateEntryFlags(xx, yy, null);
                 }
             }
         }
@@ -416,12 +425,21 @@ public class Pathfinder
         int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
-                updateQuad(xx, yy);
-                if (shape.intersects(_quad)) {
-                    if (entry) {
+                if (entry) {
+                    updateQuad(xx, yy);
+                    if (shape.intersects(_quad)) {
                         _entryFlags.setBits(xx, yy, flags);
                     }
-                    _combinedFlags.setBits(xx, yy, flags);
+                } else {
+                    for (int ys = 0; ys < SUBDIVISION; ys++) {
+                        for (int xs = 0; xs < SUBDIVISION; xs++) {
+                            updateQuad(xx, yy, xs, ys);
+                            if (shape.intersects(_quad)) {
+                                _actorFlags.setBits(
+                                        xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, flags);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -443,9 +461,21 @@ public class Pathfinder
         int maxy = FloatMath.ifloor(max.y);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
-                updateQuad(xx, yy);
-                if (shape.intersects(_quad)) {
-                    updateFlags(xx, yy, entry, skip);
+                if (entry) {
+                    updateQuad(xx, yy);
+                    if (shape.intersects(_quad)) {
+                        updateEntryFlags(xx, yy, skip);
+                    }
+                } else {
+                    for (int ys = 0; ys < SUBDIVISION; ys++) {
+                        for (int xs = 0; xs < SUBDIVISION; xs++) {
+                            updateQuad(xx, yy, xs, ys);
+                            if (shape.intersects(_quad)) {
+                                updateActorFlags(
+                                        xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, skip);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -456,7 +486,24 @@ public class Pathfinder
      */
     protected void updateQuad (int x, int y)
     {
-        float lx = x, ly = y, ux = lx + 1f, uy = ly + 1f;
+        updateQuad(x, y, x + 1, y + 1);
+    }
+
+    /**
+     * Updates the coordinates of the quad to encompass the subdivided section of the specified
+     * grid cell.
+     */
+    protected void updateQuadSubdivision (int x, int y, int xs, int ys)
+    {
+        updateQuad(x + (float)xs / SUBDIVISION, y + (float)ys / SUBDIVISION,
+                x + (float)(xs + 1) / SUBDIVISION, y + (float)(ys + 1) / SUBDIVISION);
+    }
+
+    /**
+     * Updates the coordinates of the quad.
+     */
+    protected void updateQuad (float lx, float ly, float ux, float uy)
+    {
         // Reduce out quad by double our epsilon so we don't intersect edge colliders
         lx += FloatMath.EPSILON * 2;
         ly += FloatMath.EPSILON * 2;
@@ -471,32 +518,38 @@ public class Pathfinder
     }
 
     /**
-     * Updates the flags at the specified location ({@link #_quad} should be set to the cell
+     * Updates the entry flags at the specified location ({@link #_quad} should be set to the cell
      * boundaries).
      *
      * @param skip an element to skip, or null for none.
      */
-    protected void updateFlags (int x, int y, boolean entry, SpaceElement skip)
+    protected void updateEntryFlags (int x, int y, SpaceElement skip)
     {
         // if we're updating an entry, recompute its flags; otherwise, retrieve from map
         int flags;
-        if (entry) {
-            TudeySceneModel model = (TudeySceneModel)_scenemgr.getScene().getSceneModel();
-            flags = model.getCollisionFlags().get(x, y);
-            model.getSpace().getIntersecting(_quad, _elements);
-            ConfigManager cfgmgr = _scenemgr.getConfigManager();
-            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-                SpaceElement element = _elements.get(ii);
-                if (element != skip) {
-                    flags |= ((Entry)element.getUserObject()).getCollisionFlags(cfgmgr);
-                }
+        TudeySceneModel model = (TudeySceneModel)_scenemgr.getScene().getSceneModel();
+        flags = model.getCollisionFlags().get(x, y);
+        model.getSpace().getIntersecting(_quad, _elements);
+        ConfigManager cfgmgr = _scenemgr.getConfigManager();
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            SpaceElement element = _elements.get(ii);
+            if (element != skip) {
+                flags |= ((Entry)element.getUserObject()).getCollisionFlags(cfgmgr);
             }
-            _elements.clear();
-            _entryFlags.put(x, y, flags);
-        } else {
-            flags = _entryFlags.get(x, y);
         }
+        _elements.clear();
+        _entryFlags.put(x, y, flags);
+    }
 
+    /**
+     * Updates the actor flags at the specified location ({@link #_quad} should be set to the cell
+     * boundaries).
+     *
+     * @param skip an element to skip, or null for none.
+     */
+    protected void updateActorFlags (int x, int y, SpaceElement skip)
+    {
+        int flags = 0;
         // add the flags for the actors
         _scenemgr.getActorSpace().getIntersecting(_quad, _elements);
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
@@ -508,7 +561,7 @@ public class Pathfinder
         _elements.clear();
 
         // store the combined flags
-        _combinedFlags.put(x, y, flags);
+        _actorFlags.put(x, y, flags);
     }
 
     /** The owning scene manager. */
@@ -518,7 +571,7 @@ public class Pathfinder
     protected CoordIntMap _entryFlags = new CoordIntMap(3, 0);
 
     /** The collision flags corresponding to the scene entries and the actors. */
-    protected CoordIntMap _combinedFlags = new CoordIntMap(3, 0);
+    protected CoordIntMap _actorFlags = new CoordIntMap(3, 0);
 
     /** Used to store tile shapes for intersecting testing. */
     protected Polygon _quad = new Polygon(4);
@@ -543,4 +596,7 @@ public class Pathfinder
 
     /** Swept shape to reuse. */
     protected Shape _sweptShape;
+
+    /** The subdivision of the actor collision map. */
+    protected static final int SUBDIVISION = 2;
 }

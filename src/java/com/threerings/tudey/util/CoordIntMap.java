@@ -91,6 +91,12 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         }
 
         @Override // documentation inherited
+        public String toString ()
+        {
+            return getKey().toString() + ": " + getValue().toString();
+        }
+
+        @Override // documentation inherited
         public boolean equals (Object other)
         {
             if (!(other instanceof CoordIntEntry)) {
