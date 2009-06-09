@@ -42,7 +42,8 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     HandlerConfig.Signal.class, HandlerConfig.SignalStart.class,
     HandlerConfig.SignalStop.class, HandlerConfig.Intersection.class,
     HandlerConfig.IntersectionStart.class, HandlerConfig.IntersectionStop.class,
-    HandlerConfig.ThresholdIntersectionCount.class, HandlerConfig.Request.class })
+    HandlerConfig.ThresholdIntersectionCount.class, HandlerConfig.Request.class,
+    HandlerConfig.ActorRemoved.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -263,6 +264,32 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Request";
+        }
+    }
+
+    /**
+     * An actor is removed event handler.
+     */
+    public static class ActorRemoved extends HandlerConfig
+    {
+        /** The targets we're observering. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Tagged();
+
+        /** If we're waiting for them all to be removed. */
+        @Editable
+        public boolean all = true;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$ActorRemoved";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 

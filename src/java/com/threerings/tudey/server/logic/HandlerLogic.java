@@ -24,9 +24,11 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.Interval;
@@ -487,6 +489,69 @@ public abstract class HandlerLogic extends Logic
                 execute(timestamp, source);
             }
         }
+    }
+
+    /**
+     * Handles a actor removed event.
+     */
+    public static class ActorRemoved extends HandlerLogic
+        implements TudeySceneManager.ActorObserver
+    {
+        // documentation inherited from interface TudeySceneManager.ActorObserver
+        public void actorAdded (ActorLogic logic)
+        {
+            _target.resolve(logic, _targets);
+            int count = _targets.size();
+            if (count > _lastCount) {
+                _lastCount = count;
+            }
+            _targets.clear();
+        }
+
+        // documentation inherited from interface TudeySceneManager.ActorObserver
+        public void actorRemoved (ActorLogic logic)
+        {
+            if (_lastCount > 0) {
+                _target.resolve(logic, _targets);
+                int count = _targets.size();
+                if (((HandlerConfig.ActorRemoved)_config).all ? count == 0 : count < _lastCount) {
+                    execute(_scenemgr.getTimestamp(), logic);
+                }
+                _lastCount = count;
+                _targets.clear();
+            }
+        }
+
+        @Override // documentation inherited
+        public void startup (int timestamp)
+        {
+            _target.resolve(_source, _targets);
+            _lastCount = _targets.size();
+            _targets.clear();
+            _scenemgr.addActorObserver(this);
+        }
+
+        @Override // documentation inherited
+        public void shutdown (int timestamp)
+        {
+            _scenemgr.removeActorObserver(this);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((HandlerConfig.ActorRemoved)_config).target, _source);
+        }
+
+
+        /** The target actors. */
+        protected TargetLogic _target;
+
+        /** Temporary container for targets. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
+
+        /** The number of relevant actors at last count. */
+        protected int _lastCount;
     }
 
     /**
