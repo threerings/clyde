@@ -144,4 +144,27 @@
     </jar>
   </target>
 
+  <!-- creates a zipfile with our source distribution -->
+  <target name="snapshot">
+     <echo message="You may want to stop and run 'ant savedoc' first."/>
+     <delete file="${deploy.dir}/${lib.name}-snapshot.zip"/>
+     <mkdir dir="${deploy.dir}/snapshot/${lib.name}"/>
+     <copy todir="${deploy.dir}/snapshot/${lib.name}">
+       <fileset dir=".">
+         <include name="**"/>
+         <exclude name="dist/**"/>
+         <exclude name="tests/dist/**"/>
+         <exclude name="${lib.name}-*.zip"/>
+       </fileset>
+     </copy>
+     <copy todir="${deploy.dir}/snapshot/${lib.name}/lib">
+       <fileset dir="${deploy.dir}/lib" includes="*.jar"/>
+     </copy>
+     <copy todir="${deploy.dir}/snapshot/${lib.name}/docs/api">
+       <fileset dir="${deploy.dir}/docs" includes="**"/>
+     </copy>
+     <zip destfile="${deploy.dir}/${lib.name}-snapshot.zip" basedir="${deploy.dir}/snapshot"/>
+     <delete dir="${deploy.dir}/snapshot"/>
+  </target>
+
 </project>
