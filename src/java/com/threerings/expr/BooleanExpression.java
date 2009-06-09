@@ -39,7 +39,8 @@ import com.threerings.expr.util.ScopeUtil;
     BooleanExpression.Not.class, BooleanExpression.And.class,
     BooleanExpression.Or.class, BooleanExpression.Xor.class,
     BooleanExpression.FloatLess.class, BooleanExpression.FloatGreater.class,
-    BooleanExpression.FloatEquals.class, BooleanExpression.StringEquals.class })
+    BooleanExpression.FloatEquals.class, BooleanExpression.FloatLessEquals.class,
+    BooleanExpression.FloatGreaterEquals.class, BooleanExpression.StringEquals.class })
 public abstract class BooleanExpression extends DeepObject
     implements Exportable
 {
@@ -282,6 +283,40 @@ public abstract class BooleanExpression extends DeepObject
             return new Evaluator() {
                 public boolean evaluate () {
                     return eval1.evaluate() == eval2.evaluate();
+                }
+            };
+        }
+    }
+
+    /**
+     * Determines whether the first float is greater than or equal to the second.
+     */
+    public static class FloatLessEquals extends FloatBinaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (
+            final FloatExpression.Evaluator eval1, final FloatExpression.Evaluator eval2)
+        {
+            return new Evaluator() {
+                public boolean evaluate () {
+                    return eval1.evaluate() <= eval2.evaluate();
+                }
+            };
+        }
+    }
+
+    /**
+     * Determines whether the first float is greater than or equal to the second.
+     */
+    public static class FloatGreaterEquals extends FloatBinaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (
+            final FloatExpression.Evaluator eval1, final FloatExpression.Evaluator eval2)
+        {
+            return new Evaluator() {
+                public boolean evaluate () {
+                    return eval1.evaluate() >= eval2.evaluate();
                 }
             };
         }
