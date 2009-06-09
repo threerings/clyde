@@ -87,11 +87,11 @@ public abstract class FloatExpression extends DeepObject
     public static class Reference extends FloatExpression
     {
         /** The name of the variable. */
-        @Editable
+        @Editable(hgroup="n")
         public String name = "";
 
         /** The default value of the variable. */
-        @Editable(step=0.01)
+        @Editable(step=0.01, hgroup="n")
         public float defvalue;
 
         @Override // documentation inherited

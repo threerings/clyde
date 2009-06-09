@@ -27,35 +27,21 @@ package com.threerings.opengl.model.config;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.expr.BooleanExpression;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.model.Compound;
+import com.threerings.opengl.model.Conditional;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
 /**
- * A compound model implementation.
+ * A conditional model implementation.
  */
-public class CompoundConfig extends ModelConfig.Implementation
+public class ConditionalConfig extends ModelConfig.Implementation
 {
-    /**
-     * Represents one of the models that makes up the compound.
-     */
-    public static class ComponentModel extends DeepObject
-        implements Exportable
-    {
-        /** The model reference. */
-        @Editable(nullable=true)
-        public ConfigReference<ModelConfig> model;
-
-        /** The model transform. */
-        @Editable(step=0.01)
-        public Transform3D transform = new Transform3D();
-    }
-
     /** The model's tick policy. */
     @Editable
     public TickPolicy tickPolicy = TickPolicy.DEFAULT;
@@ -64,20 +50,23 @@ public class CompoundConfig extends ModelConfig.Implementation
     @Editable
     public InfluenceFlagConfig influences = new InfluenceFlagConfig(true);
 
-    /** The component models. */
+    /** The condition for the model. */
     @Editable
-    public ComponentModel[] models = new ComponentModel[0];
+    public BooleanExpression condition = new BooleanExpression.Constant(true);
+
+    /** The model reference. */
+    @Editable(nullable=true)
+    public ConfigReference<ModelConfig> model;
 
     @Override // documentation inherited
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
-        if (impl instanceof Compound) {
-            ((Compound)impl).setConfig(this);
+        if (impl instanceof Conditional) {
+            ((Conditional)impl).setConfig(this);
         } else {
-            impl = new Compound(ctx, scope, this);
+            impl = new Conditional(ctx, scope, this);
         }
         return impl;
     }
 }
-

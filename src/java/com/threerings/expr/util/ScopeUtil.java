@@ -44,6 +44,7 @@ import com.threerings.opengl.renderer.Color4f;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Function;
 import com.threerings.expr.Variable;
+import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.MutableFloat;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.MutableLong;
@@ -136,6 +137,14 @@ public class ScopeUtil
     public static Variable resolve (Scope scope, String name, Variable defvalue)
     {
         return resolve(scope, name, defvalue, Variable.class);
+    }
+
+    /**
+     * Attempts to resolve a mutable boolean symbol.
+     */
+    public static MutableBoolean resolve (Scope scope, String name, MutableBoolean defvalue)
+    {
+        return resolve(scope, name, defvalue, MutableBoolean.class);
     }
 
     /**
