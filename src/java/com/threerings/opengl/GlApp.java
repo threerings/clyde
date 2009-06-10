@@ -299,6 +299,7 @@ public abstract class GlApp extends DynamicScope
      */
     protected void willShutdown ()
     {
+        _soundmgr.shutdown();
     }
 
     /**
