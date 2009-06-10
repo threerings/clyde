@@ -161,7 +161,9 @@ public class TudeySceneController extends SceneController
         Actor sactor = _tsview.getTargetSprite().getActor();
         _translation.set(sactor.getTranslation());
         nactor.copy(sactor);
-        sactor.getTranslation().set(_translation);
+        if (!sactor.isSet(Actor.WARP)) {
+            sactor.getTranslation().set(_translation);
+        }
     }
 
     /**
