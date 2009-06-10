@@ -182,9 +182,27 @@ public class ActorLogic extends Logic
      */
     public void warp (float x, float y, float rotation)
     {
+        warp(x, y, rotation, true);
+    }
+
+    /**
+     * Warps the actor.
+     *
+     * @param adjust if true, adjusts the location as when spawning to avoid intersecting other
+     * actors.
+     */
+    public void warp (float x, float y, float rotation, boolean adjust)
+    {
         // set the warp flag and clear it on the next tick
         _actor.set(Actor.WARP);
         move(x, y, rotation);
+        if (adjust && _config.spawnMask != 0) {
+            _scenemgr.getActorSpace().remove(_shape);
+            if (_scenemgr.collides(_config.spawnMask, getShape(), _scenemgr.getTimestamp())) {
+                adjustSpawnPoint();
+            }
+            _scenemgr.getActorSpace().add(_shape);
+        }
         _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
             public boolean tick (int timestamp) {
                 _actor.clear(Actor.WARP);
