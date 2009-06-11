@@ -31,7 +31,9 @@ import java.util.Iterator;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap.IntEntry;
 
+import com.threerings.crowd.client.OccupantObserver;
 import com.threerings.crowd.client.PlaceView;
+import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.media.util.TrailingAverage;
@@ -68,6 +70,7 @@ import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
+import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
@@ -89,7 +92,8 @@ import static com.threerings.tudey.Log.*;
  * Displays a view of a Tudey scene.
  */
 public class TudeySceneView extends SimpleScope
-    implements GlView, PlaceView, TudeySceneModel.Observer, ActorAdvancer.Environment
+    implements GlView, PlaceView, TudeySceneModel.Observer,
+        OccupantObserver, ActorAdvancer.Environment
 {
     /**
      * An interface for objects (such as sprites and observers) that require per-tick updates.
@@ -513,22 +517,6 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
-     * Prunes all records before the supplied reference time, if found.
-     *
-     * @return true if the reference time was found, false if not.
-     */
-    protected boolean pruneRecords (int reference)
-    {
-        for (int ii = _records.size() - 1; ii >= 0; ii--) {
-            if (_records.get(ii).getTimestamp() == reference) {
-                _records.subList(0, ii).clear();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Adds a participant to tick at each frame.
      */
     public void addTickParticipant (TickParticipant participant)
@@ -628,6 +616,8 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface PlaceView
     public void willEnterPlace (PlaceObject plobj)
     {
+        _ctx.getOccupantDirector().addOccupantObserver(this);
+
         // if we don't need to preload, set the scene model immediately; otherwise, create the
         // loading screen and wait for the first scene delta to start preloading
         TudeySceneModel model =
@@ -647,6 +637,7 @@ public class TudeySceneView extends SimpleScope
         if (_sceneModel != null) {
             _sceneModel.removeObserver(this);
         }
+        _ctx.getOccupantDirector().removeOccupantObserver(this);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -676,6 +667,36 @@ public class TudeySceneView extends SimpleScope
             sprite.dispose();
         } else {
             log.warning("Missing entry sprite to remove.", "entry", oentry);
+        }
+    }
+
+    // documentation inherited from interface OccupantObserver
+    public void occupantEntered (OccupantInfo info)
+    {
+        TudeyOccupantInfo toi = (TudeyOccupantInfo)info;
+        ActorSprite sprite = _actorSprites.get(toi.pawnId);
+        if (sprite != null) {
+            sprite.occupantEntered(toi);
+        }
+    }
+
+    // documentation inherited from interface OccupantObserver
+    public void occupantLeft (OccupantInfo info)
+    {
+        TudeyOccupantInfo toi = (TudeyOccupantInfo)info;
+        ActorSprite sprite = _actorSprites.get(toi.pawnId);
+        if (sprite != null) {
+            sprite.occupantLeft(toi);
+        }
+    }
+
+    // documentation inherited from interface OccupantObserver
+    public void occupantUpdated (OccupantInfo oinfo, OccupantInfo ninfo)
+    {
+        TudeyOccupantInfo otoi = (TudeyOccupantInfo)oinfo;
+        ActorSprite sprite = _actorSprites.get(otoi.pawnId);
+        if (sprite != null) {
+            sprite.occupantUpdated(otoi, (TudeyOccupantInfo)ninfo);
         }
     }
 
@@ -793,6 +814,22 @@ public class TudeySceneView extends SimpleScope
             }
         }
         _npreloads.clear();
+    }
+
+    /**
+     * Prunes all records before the supplied reference time, if found.
+     *
+     * @return true if the reference time was found, false if not.
+     */
+    protected boolean pruneRecords (int reference)
+    {
+        for (int ii = _records.size() - 1; ii >= 0; ii--) {
+            if (_records.get(ii).getTimestamp() == reference) {
+                _records.subList(0, ii).clear();
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

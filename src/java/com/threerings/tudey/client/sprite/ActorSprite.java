@@ -53,6 +53,7 @@ import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.ActorSpriteConfig;
+import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.actor.Active;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.EntryState;
@@ -110,6 +111,30 @@ public class ActorSprite extends Sprite
          * Notes that the actor is about to be destroyed (as opposed to just being removed).
          */
         public void willBeDestroyed ()
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the occupant controlling this actor has entered.
+         */
+        public void occupantEntered (TudeyOccupantInfo info)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the occupant controlling this actor has left.
+         */
+        public void occupantLeft (TudeyOccupantInfo info)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Notes that the occupant controlling this actor has been updated.
+         */
+        public void occupantUpdated (TudeyOccupantInfo oinfo, TudeyOccupantInfo ninfo)
         {
             // nothing by default
         }
@@ -718,6 +743,36 @@ public class ActorSprite extends Sprite
     public void remove (int timestamp)
     {
         _removed = timestamp;
+    }
+
+    /**
+     * Notes that the occupant controlling this actor has entered.
+     */
+    public void occupantEntered (TudeyOccupantInfo info)
+    {
+        if (_impl != null) {
+            _impl.occupantEntered(info);
+        }
+    }
+
+    /**
+     * Notes that the occupant controlling this actor has left.
+     */
+    public void occupantLeft (TudeyOccupantInfo info)
+    {
+        if (_impl != null) {
+            _impl.occupantLeft(info);
+        }
+    }
+
+    /**
+     * Notes that the occupant controlling this actor has been updated.
+     */
+    public void occupantUpdated (TudeyOccupantInfo oinfo, TudeyOccupantInfo ninfo)
+    {
+        if (_impl != null) {
+            _impl.occupantUpdated(oinfo, ninfo);
+        }
     }
 
     // documentation inherited from interface TudeySceneView.TickParticipant
