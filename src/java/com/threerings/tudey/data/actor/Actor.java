@@ -197,6 +197,14 @@ public class Actor extends DeepObject
     }
 
     /**
+     * Sets or clears a flag.
+     */
+    public void set (int flag, boolean value)
+    {
+        _flags = value ? (_flags | flag) : (_flags & ~flag);
+    }
+
+    /**
      * Sets a flag.
      */
     public void set (int flag)
