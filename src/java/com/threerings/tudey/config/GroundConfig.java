@@ -98,9 +98,10 @@ public class GroundConfig extends PaintableConfig
         /**
          * Creates a new floor tile with the supplied maximum dimensions.
          */
-        public TileEntry createFloor (ConfigManager cfgmgr, int maxWidth, int maxHeight)
+        public TileEntry createFloor (
+            ConfigManager cfgmgr, int maxWidth, int maxHeight, int elevation)
         {
-            return createRandomEntry(cfgmgr, floor, maxWidth, maxHeight);
+            return createRandomEntry(cfgmgr, floor, maxWidth, maxHeight, elevation);
         }
 
         /**
@@ -137,11 +138,12 @@ public class GroundConfig extends PaintableConfig
          * Creates a new edge tile with the supplied case/rotations and maximum dimensions.
          */
         public TileEntry createEdge (
-            ConfigManager cfgmgr, IntTuple caseRotations, int maxWidth, int maxHeight)
+            ConfigManager cfgmgr, IntTuple caseRotations,
+            int maxWidth, int maxHeight, int elevation)
         {
             return createRandomEntry(
                 cfgmgr, edgeCases[caseRotations.left].tiles,
-                caseRotations.right, maxWidth, maxHeight);
+                caseRotations.right, maxWidth, maxHeight, elevation);
         }
 
         @Override // documentation inherited

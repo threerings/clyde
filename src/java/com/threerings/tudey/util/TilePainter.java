@@ -198,7 +198,7 @@ public class TilePainter
             while (!set.isEmpty()) {
                 set.getLargestRegion(region);
                 TileEntry tentry = original.createWall(
-                    _cfgmgr, tuple, region.width, region.height);
+                    _cfgmgr, tuple, region.width, region.height, elevation);
                 if (tentry == null) {
                     continue OUTER; // no appropriate tiles
                 }
@@ -207,7 +207,6 @@ public class TilePainter
                 TileConfig.Original tconfig = tentry.getConfig(_cfgmgr);
                 int twidth = tentry.getWidth(tconfig);
                 int theight = tentry.getHeight(tconfig);
-                tentry.elevation = elevation;
                 addEntry(tentry, region.set(coord.x, coord.y, twidth, theight));
                 set.removeAll(region);
             }
@@ -233,7 +232,8 @@ public class TilePainter
         Rectangle region = new Rectangle();
         while (!coords.isEmpty()) {
             coords.getLargestRegion(region);
-            TileEntry entry = original.createFloor(_cfgmgr, region.width, region.height);
+            TileEntry entry = original.createFloor(
+                _cfgmgr, region.width, region.height, elevation);
             if (entry == null) {
                 break; // no appropriate tiles
             }
@@ -242,7 +242,6 @@ public class TilePainter
             TileConfig.Original tconfig = entry.getConfig(_cfgmgr);
             int twidth = entry.getWidth(tconfig);
             int theight = entry.getHeight(tconfig);
-            entry.elevation = elevation;
             addEntry(entry, region.set(coord.x, coord.y, twidth, theight));
             coords.removeAll(region);
         }
@@ -288,7 +287,7 @@ public class TilePainter
             while (!set.isEmpty()) {
                 set.getLargestRegion(region);
                 TileEntry tentry = original.createEdge(
-                    _cfgmgr, tuple, region.width, region.height);
+                    _cfgmgr, tuple, region.width, region.height, elevation);
                 if (tentry == null) {
                     continue OUTER; // no appropriate tiles
                 }
@@ -297,7 +296,6 @@ public class TilePainter
                 TileConfig.Original tconfig = tentry.getConfig(_cfgmgr);
                 int twidth = tentry.getWidth(tconfig);
                 int theight = tentry.getHeight(tconfig);
-                tentry.elevation = elevation;
                 addEntry(tentry, region.set(coord.x, coord.y, twidth, theight));
                 set.removeAll(region);
             }

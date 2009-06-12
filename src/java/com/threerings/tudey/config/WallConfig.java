@@ -117,11 +117,12 @@ public class WallConfig extends PaintableConfig
          * Creates a new wall tile with the supplied case/rotations and maximum dimensions.
          */
         public TileEntry createWall (
-            ConfigManager cfgmgr, IntTuple caseRotations, int maxWidth, int maxHeight)
+            ConfigManager cfgmgr, IntTuple caseRotations,
+            int maxWidth, int maxHeight, int elevation)
         {
             return createRandomEntry(
                 cfgmgr, cases[caseRotations.left].tiles,
-                caseRotations.right, maxWidth, maxHeight);
+                caseRotations.right, maxWidth, maxHeight, elevation);
         }
 
         @Override // documentation inherited

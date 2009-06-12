@@ -159,16 +159,21 @@ public abstract class PaintableConfig extends ParameterizedConfig
         @Editable(hgroup="d")
         public boolean north = true, west = true, south = true, east = true;
 
+        /** The elevation offset of the tile. */
+        @Editable(hgroup="e")
+        public int elevationOffset;
+
         /** The weight of the tile (affects how often it occurs). */
-        @Editable(min=0, step=0.01)
+        @Editable(min=0, step=0.01, hgroup="e")
         public float weight = 1f;
 
         /**
          * Determines whether the specified tile entry matches this tile.
          */
-        public boolean matches (TileEntry entry)
+        public boolean matches (TileEntry entry, int elevation)
         {
-            if (!ObjectUtil.equals(entry.tile, tile)) {
+            if (!ObjectUtil.equals(entry.tile, tile) ||
+                    entry.elevation != (elevation + elevationOffset)) {
                 return false;
             }
             switch (entry.rotation) {
@@ -214,16 +219,16 @@ public abstract class PaintableConfig extends ParameterizedConfig
                     null : config.getOriginal(cfgmgr);
                 if (original != null) {
                     if (north) {
-                        list.add(new TileRotation(tile, 0));
+                        list.add(new TileRotation(this, 0));
                     }
                     if (west) {
-                        list.add(new TileRotation(tile, 1));
+                        list.add(new TileRotation(this, 1));
                     }
                     if (south) {
-                        list.add(new TileRotation(tile, 2));
+                        list.add(new TileRotation(this, 2));
                     }
                     if (east) {
-                        list.add(new TileRotation(tile, 3));
+                        list.add(new TileRotation(this, 3));
                     }
                 }
                 _rotations = list.toArray(new TileRotation[list.size()]);
@@ -288,9 +293,9 @@ public abstract class PaintableConfig extends ParameterizedConfig
      */
     protected static boolean matchesAny (Tile[] tiles, TileEntry entry, int elevation)
     {
-        if (entry != null && entry.elevation == elevation) {
+        if (entry != null) {
             for (Tile tile : tiles) {
-                if (tile.matches(entry)) {
+                if (tile.matches(entry, elevation)) {
                     return true;
                 }
             }
@@ -303,9 +308,9 @@ public abstract class PaintableConfig extends ParameterizedConfig
      * height.
      */
     protected static TileEntry createRandomEntry (
-        ConfigManager cfgmgr, Tile[] tiles, int maxWidth, int maxHeight)
+        ConfigManager cfgmgr, Tile[] tiles, int maxWidth, int maxHeight, int elevation)
     {
-        return createRandomEntry(cfgmgr, tiles, 0x0F, maxWidth, maxHeight);
+        return createRandomEntry(cfgmgr, tiles, 0x0F, maxWidth, maxHeight, elevation);
     }
 
     /**
@@ -313,19 +318,19 @@ public abstract class PaintableConfig extends ParameterizedConfig
      * maximum width, and maximum height.
      */
     protected static TileEntry createRandomEntry (
-        ConfigManager cfgmgr, Tile[] tiles, int mask, int maxWidth, int maxHeight)
+        ConfigManager cfgmgr, Tile[] tiles, int mask, int maxWidth, int maxHeight, int elevation)
     {
         ArrayList<TileRotation> rotations = new ArrayList<TileRotation>();
         for (Tile tile : tiles) {
             tile.getRotations(cfgmgr, rotations, mask, maxWidth, maxHeight);
         }
-        return createRandomEntry(rotations);
+        return createRandomEntry(rotations, elevation);
     }
 
     /**
      * Creates an entry using one of the supplied tile rotations.
      */
-    protected static TileEntry createRandomEntry (ArrayList<TileRotation> rotations)
+    protected static TileEntry createRandomEntry (ArrayList<TileRotation> rotations, int elevation)
     {
         float tweight = 0f;
         for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
@@ -336,7 +341,7 @@ public abstract class PaintableConfig extends ParameterizedConfig
         for (int ii = 0, nn = rotations.size(); ii < nn; ii++) {
             TileRotation rotation = rotations.get(ii);
             if (random < (tweight += rotation.weight)) {
-                return rotation.createEntry();
+                return rotation.createEntry(elevation);
             }
         }
         return null;
@@ -347,8 +352,8 @@ public abstract class PaintableConfig extends ParameterizedConfig
      */
     protected static class TileRotation
     {
-        /** The tile config reference. */
-        public ConfigReference<TileConfig> tile;
+        /** The owning tile. */
+        public Tile tile;
 
         /** The tile rotation. */
         public int rotation;
@@ -362,7 +367,10 @@ public abstract class PaintableConfig extends ParameterizedConfig
         /** The weight of the rotation. */
         public float weight;
 
-        public TileRotation (ConfigReference<TileConfig> tile, int rotation)
+        /**
+         * Creates a new tile rotation.
+         */
+        public TileRotation (Tile tile, int rotation)
         {
             this.tile = tile;
             this.rotation = rotation;
@@ -371,11 +379,12 @@ public abstract class PaintableConfig extends ParameterizedConfig
         /**
          * Creates and returns a tile entry based on this configuration.
          */
-        public TileEntry createEntry ()
+        public TileEntry createEntry (int elevation)
         {
             TileEntry entry = new TileEntry();
-            entry.tile = tile;
+            entry.tile = tile.tile;
             entry.rotation = rotation;
+            entry.elevation = elevation + tile.elevationOffset;
             return entry;
         }
     }
