@@ -91,6 +91,7 @@ public abstract class BaseMover extends EditorTool
         // find the center and elevation
         bounds.getCenter(_center);
         _elevation = (minElevation < maxElevation) ? (minElevation + maxElevation)/2 : 0;
+        _elevation += _editor.getGrid().getElevation();
 
         // reset the angle
         _angle = 0f;
