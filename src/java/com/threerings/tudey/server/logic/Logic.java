@@ -90,6 +90,14 @@ public abstract class Logic
     }
 
     /**
+     * Determines whether this logic object is "visible" to the specified actor.
+     */
+    public boolean isVisible (ActorLogic actor)
+    {
+        return true;
+    }
+
+    /**
      * Convenience method to retrieve the translation and rotation in a new transform.
      */
     public Transform2D getTransform ()

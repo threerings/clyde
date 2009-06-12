@@ -281,7 +281,7 @@ public class ClientLiaison
      */
     protected HashIntMap<Actor> getActorSnapshots ()
     {
-        return _scenemgr.getActorSnapshots(_worldInterest);
+        return _scenemgr.getActorSnapshots(_target, _worldInterest);
     }
 
     /**

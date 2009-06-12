@@ -38,6 +38,7 @@ import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.Predicate;
 import com.samskivert.util.Queue;
 import com.samskivert.util.RandomUtil;
 import com.samskivert.util.RunAnywhere;
@@ -422,13 +423,16 @@ public class TudeySceneManager extends SceneManager
      * Returns a map containing the snapshots of all actors whose influence regions intersect the
      * provided bounds.
      */
-    public HashIntMap<Actor> getActorSnapshots (Rect bounds)
+    public HashIntMap<Actor> getActorSnapshots (PawnLogic target, Rect bounds)
     {
         _actorSpace.getElements(bounds, _elements);
         HashIntMap<Actor> map = new HashIntMap<Actor>();
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            Actor actor = ((ActorLogic)_elements.get(ii).getUserObject()).getSnapshot();
-            map.put(actor.getId(), actor);
+            ActorLogic actor = (ActorLogic)_elements.get(ii).getUserObject();
+            if (actor.isVisible(target)) {
+                Actor snapshot = actor.getSnapshot();
+                map.put(snapshot.getId(), snapshot);
+            }
         }
         _elements.clear();
         return map;
