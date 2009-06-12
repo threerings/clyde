@@ -45,6 +45,9 @@ import com.threerings.tudey.server.TudeySceneManager;
  */
 public abstract class BehaviorLogic extends Logic
 {
+    /** The maximum path length for following. */
+    public static final float MAX_FOLLOW_PATH_LENGTH = 8f;
+
     /**
      * Handles the idle behavior.
      */
@@ -709,7 +712,4 @@ public abstract class BehaviorLogic extends Logic
 
     /** The controlled agent. */
     protected AgentLogic _agent;
-
-    /** The maximum path length for following. */
-    protected static final float MAX_FOLLOW_PATH_LENGTH = 8f;
 }
