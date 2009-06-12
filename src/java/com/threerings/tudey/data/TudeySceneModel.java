@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.ArrayIntSet;
@@ -84,6 +85,7 @@ import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.config.AreaConfig;
 import com.threerings.tudey.config.HandlerConfig;
+import com.threerings.tudey.config.PaintableConfig;
 import com.threerings.tudey.config.PathConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
@@ -1135,6 +1137,35 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Contains information on a painted location.
+     */
+    public static class Paint extends DeepObject
+        implements Exportable
+    {
+        /** The types of paint. */
+        public enum Type { FLOOR, EDGE, WALL };
+
+        /** The paint type. */
+        public Type type;
+
+        /** The configuration of the paintable. */
+        public ConfigReference<? extends PaintableConfig> paintable;
+
+        /** The paintable's elevation. */
+        public int elevation;
+
+        /**
+         * Returns the encoded form of this paint entry.
+         *
+         * @param idx the paint config index.
+         */
+        public int encode (int idx)
+        {
+            return (idx << 16) | ((elevation & 0x3FFF) << 2) | type.ordinal();
+        }
+    }
+
+    /**
      * Creates a new, empty scene model.
      */
     public TudeySceneModel ()
@@ -1440,7 +1471,7 @@ public class TudeySceneModel extends SceneModel
         }
 
         // find intersecting elements
-        ArrayList<SpaceElement> intersecting = new ArrayList<SpaceElement>();
+        ArrayList<SpaceElement> intersecting = Lists.newArrayList();
         _space.getIntersecting(shape, intersecting);
         for (int ii = 0, nn = intersecting.size(); ii < nn; ii++) {
             results.add((Entry)intersecting.get(ii).getUserObject());
@@ -1489,7 +1520,40 @@ public class TudeySceneModel extends SceneModel
             return Integer.MIN_VALUE;
         }
         int value = getTileValue(pair);
-        return (value == -1) ? Integer.MIN_VALUE : getTileElevation(value);
+        return (value == -1) ? Integer.MIN_VALUE : getElevation(value);
+    }
+
+    /**
+     * Sets the paint at the specified coordinates.
+     *
+     * @return the previous paint at the coordinates, if any.
+     */
+    public Paint setPaint (int x, int y, Paint paint)
+    {
+        int ovalue;
+        if (paint == null) {
+            ovalue = _paint.remove(x, y);
+        } else {
+            int idx = addPaintConfig(paint.paintable);
+            ovalue = _paint.put(x, y, paint.encode(idx));
+        }
+        invalidate();
+        if (ovalue == -1) {
+            return null;
+        } else {
+            Paint opaint = decodePaint(ovalue);
+            removePaintConfig(getConfigIndex(ovalue));
+            return opaint;
+        }
+    }
+
+    /**
+     * Returns the paint at the specified coordinates, if any.
+     */
+    public Paint getPaint (int x, int y)
+    {
+        int value = _paint.get(x, y);
+        return (value == -1) ? null : decodePaint(value);
     }
 
     /**
@@ -1531,7 +1595,7 @@ public class TudeySceneModel extends SceneModel
 
         // initialize the tile config counts
         for (CoordIntEntry entry : _tiles.coordIntEntrySet()) {
-            int idx = getTileConfigIndex(entry.getIntValue());
+            int idx = getConfigIndex(entry.getIntValue());
             _tileConfigs.get(idx).count++;
         }
 
@@ -1540,6 +1604,20 @@ public class TudeySceneModel extends SceneModel
             TileConfigMapping mapping = _tileConfigs.get(ii);
             if (mapping != null) {
                 _tileConfigIds.put(mapping.tile, ii);
+            }
+        }
+
+        // initialize the paint config counts
+        for (CoordIntEntry entry : _paint.coordIntEntrySet()) {
+            int idx = getConfigIndex(entry.getIntValue());
+            _paintConfigs.get(idx).count++;
+        }
+
+        // initialize the reverse mapping for the paint configs
+        for (int ii = 0, nn = _paintConfigs.size(); ii < nn; ii++) {
+            PaintConfigMapping mapping = _paintConfigs.get(ii);
+            if (mapping != null) {
+                _paintConfigIds.put(mapping.paintable, ii);
             }
         }
 
@@ -1581,6 +1659,9 @@ public class TudeySceneModel extends SceneModel
         _tiles = nmodel._tiles;
         _tileConfigs = nmodel._tileConfigs;
         _tileConfigIds = nmodel._tileConfigIds;
+        _paint = nmodel._paint;
+        _paintConfigs = nmodel._paintConfigs;
+        _paintConfigIds = nmodel._paintConfigIds;
         _entries = nmodel._entries;
         _references = nmodel._references;
 
@@ -1770,6 +1851,18 @@ public class TudeySceneModel extends SceneModel
             }
         }
 
+        // and the paint
+        model._paint.putAll(_paint);
+
+        // and the paint configs
+        for (int ii = 0, nn = _paintConfigs.size(); ii < nn; ii++) {
+            PaintConfigMapping mapping = DeepUtil.copy(_paintConfigs.get(ii), null);
+            model._paintConfigs.add(mapping);
+            if (mapping != null) {
+                model._paintConfigIds.put(mapping.paintable, ii);
+            }
+        }
+
         // and the entries
         for (Entry entry : _entries.values()) {
             entry = DeepUtil.copy(entry, null);
@@ -1845,7 +1938,7 @@ public class TudeySceneModel extends SceneModel
             return null;
         }
         TileEntry oentry = decodeTileEntry(coord, ovalue);
-        removeTileConfig(getTileConfigIndex(ovalue));
+        removeTileConfig(getConfigIndex(ovalue));
         deleteShadow(oentry);
         createShadow(tentry);
         invalidate();
@@ -1873,7 +1966,7 @@ public class TudeySceneModel extends SceneModel
             return null;
         }
         TileEntry oentry = decodeTileEntry(coord, ovalue);
-        removeTileConfig(getTileConfigIndex(ovalue));
+        removeTileConfig(getConfigIndex(ovalue));
         deleteShadow(oentry);
         invalidate();
         return oentry;
@@ -2043,16 +2136,68 @@ public class TudeySceneModel extends SceneModel
     {
         TileEntry entry = new TileEntry();
         entry.getLocation().set(x, y);
-        entry.tile = _tileConfigs.get(getTileConfigIndex(value)).tile;
-        entry.elevation = getTileElevation(value);
+        entry.tile = _tileConfigs.get(getConfigIndex(value)).tile;
+        entry.elevation = getElevation(value);
         entry.rotation = value & 0x03;
         return entry;
     }
 
     /**
+     * Adds a reference to the specified paint config and returns the index assigned to the config.
+     */
+    protected int addPaintConfig (ConfigReference<? extends PaintableConfig> paintable)
+    {
+        PaintConfigMapping mapping;
+        Integer idx = _paintConfigIds.get(paintable);
+        if (idx == null) {
+            mapping = new PaintConfigMapping(paintable);
+            for (int ii = 0, nn = _paintConfigs.size(); ii < nn; ii++) {
+                if (_paintConfigs.get(ii) == null) {
+                    idx = ii;
+                    _paintConfigs.set(ii, mapping);
+                    break;
+                }
+            }
+            if (idx == null) {
+                idx = _paintConfigs.size();
+                _paintConfigs.add(mapping);
+            }
+            _paintConfigIds.put(paintable, idx);
+        } else {
+            mapping = _paintConfigs.get(idx);
+        }
+        mapping.count++;
+        return idx;
+    }
+
+    /**
+     * Removes a reference for the indexed paint config.
+     */
+    protected void removePaintConfig (int idx)
+    {
+        PaintConfigMapping mapping = _paintConfigs.get(idx);
+        if (--mapping.count == 0) {
+            _paintConfigs.set(idx, null);
+            _paintConfigIds.remove(mapping.paintable);
+        }
+    }
+
+    /**
+     * Decodes the specified paint value.
+     */
+    protected Paint decodePaint (int value)
+    {
+        Paint paint = new Paint();
+        paint.paintable = _paintConfigs.get(getConfigIndex(value)).paintable;
+        paint.type = Paint.Type.values()[value & 0x03];
+        paint.elevation = getElevation(value);
+        return paint;
+    }
+
+    /**
      * Extracts the tile configuration index from the supplied encoded tile.
      */
-    protected static int getTileConfigIndex (int value)
+    protected static int getConfigIndex (int value)
     {
         return value >>> 16;
     }
@@ -2060,7 +2205,7 @@ public class TudeySceneModel extends SceneModel
     /**
      * Extracts the tile elevation from the supplied encoded tile.
      */
-    protected static int getTileElevation (int value)
+    protected static int getElevation (int value)
     {
         return (value << 16) >> 18;
     }
@@ -2087,6 +2232,28 @@ public class TudeySceneModel extends SceneModel
         }
     }
 
+    /**
+     * Represents a type of paint identified by an integer id.
+     */
+    protected static class PaintConfigMapping extends DeepObject
+        implements Exportable
+    {
+        /** The paintable configuration. */
+        public ConfigReference<? extends PaintableConfig> paintable;
+
+        /** The number of paint entries of this type. */
+        public transient int count;
+
+        public PaintConfigMapping (ConfigReference<? extends PaintableConfig> paintable)
+        {
+            this.paintable = paintable;
+        }
+
+        public PaintConfigMapping ()
+        {
+        }
+    }
+
     /** The notes regarding this scene. */
     protected String _notes = "";
 
@@ -2102,16 +2269,29 @@ public class TudeySceneModel extends SceneModel
 
     /** Tile config references by id. */
     @DeepOmit
-    protected ArrayList<TileConfigMapping> _tileConfigs = new ArrayList<TileConfigMapping>();
+    protected ArrayList<TileConfigMapping> _tileConfigs = Lists.newArrayList();
 
     /** Tile config ids mapped by reference. */
     @DeepOmit
-    protected transient HashMap<ConfigReference<TileConfig>, Integer> _tileConfigIds =
+    protected transient Map<ConfigReference<TileConfig>, Integer> _tileConfigIds =
         Maps.newHashMap();
 
     /** Scene entries mapped by key. */
     @DeepOmit
     protected transient HashMap<Object, Entry> _entries = Maps.newHashMap();
+
+    /** Encoded paint data. */
+    @DeepOmit
+    protected CoordIntMap _paint = new CoordIntMap();
+
+    /** Paint config references by id. */
+    @DeepOmit
+    protected ArrayList<PaintConfigMapping> _paintConfigs = Lists.newArrayList();
+
+    /** Paint config ids mapped by reference. */
+    @DeepOmit
+    protected transient Map<ConfigReference<? extends PaintableConfig>, Integer> _paintConfigIds =
+        Maps.newHashMap();
 
     /** The last entry id assigned. */
     protected transient int _lastEntryId;
@@ -2160,7 +2340,7 @@ public class TudeySceneModel extends SceneModel
 
     /** (Re)used to store intersecting elements. */
     @DeepOmit
-    protected transient ArrayList<SpaceElement> _intersecting = new ArrayList<SpaceElement>();
+    protected transient ArrayList<SpaceElement> _intersecting = Lists.newArrayList();
 
     /** Stores penetration vector during queries. */
     @DeepOmit

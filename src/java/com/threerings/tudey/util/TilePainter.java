@@ -91,7 +91,7 @@ public class TilePainter
             removeEntries(coords);
             CoordSet border = coords.getBorder();
             removeEntries(border);
-            updateGroundEdges(border, original, elevation, revise);
+            updateGroundEdges(border, coords, original, elevation, revise);
             return;
         }
 
@@ -114,7 +114,7 @@ public class TilePainter
         paintFloor(coords, ground, elevation);
 
         // find the border tiles that need to be updated
-        updateGroundEdges(border, original, elevation, revise);
+        updateGroundEdges(border, coords, original, elevation, revise);
     }
 
     /**
@@ -249,9 +249,12 @@ public class TilePainter
 
     /**
      * Updates the edge tiles in the specified coordinate set.
+     *
+     * @param inner the inner region to exclude from the update.
      */
     protected void updateGroundEdges (
-        CoordSet coords, GroundConfig.Original original, int elevation, boolean revise)
+        CoordSet coords, CoordSet inner, GroundConfig.Original original,
+        int elevation, boolean revise)
     {
         // divide the coordinates up by case/rotation pairs
         HashMap<IntTuple, CoordSet> sets = new HashMap<IntTuple, CoordSet>();
@@ -299,6 +302,15 @@ public class TilePainter
                 addEntry(tentry, region.set(coord.x, coord.y, twidth, theight));
                 set.removeAll(region);
             }
+        }
+
+        // if there's a base ground config, expand the edges and update again
+        GroundConfig bconfig = _cfgmgr.getConfig(GroundConfig.class, original.base);
+        GroundConfig.Original boriginal = (bconfig == null) ? null : bconfig.getOriginal(_cfgmgr);
+        if (boriginal != null) {
+            CoordSet combined = new CoordSet(inner);
+            combined.addAll(coords);
+            updateGroundEdges(combined.getBorder(), combined, boriginal, elevation, revise);
         }
     }
 

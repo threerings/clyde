@@ -79,6 +79,10 @@ public class GroundConfig extends PaintableConfig
         @Editable
         public boolean extendEdge;
 
+        /** The base ground type, if any. */
+        @Editable(nullable=true)
+        public ConfigReference<GroundConfig> base;
+
         /** The floor tiles. */
         @Editable
         public Tile[] floor = new Tile[0];
