@@ -25,6 +25,7 @@
 package com.threerings.tudey.util;
 
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.Paint;
 
 /**
  * Provides a generic interface for manipulating scene entries.
@@ -45,4 +46,9 @@ public interface EntryManipulator
      * Removes an entry from the scene.
      */
     public void removeEntry (Object key);
+
+    /**
+     * Sets or clears a paint entry in the scene.
+     */
+    public void setPaint (int x, int y, Paint paint);
 }

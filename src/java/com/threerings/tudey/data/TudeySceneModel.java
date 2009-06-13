@@ -1557,6 +1557,16 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Clears all paint from the scene.
+     */
+    public void clearPaint ()
+    {
+        _paint.clear();
+        _paintConfigs.clear();
+        _paintConfigIds.clear();
+    }
+
+    /**
      * Adds the resources to preload for this scene model to the supplied set.
      */
     public void getPreloads (PreloadableSet preloads)

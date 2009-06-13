@@ -70,6 +70,8 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEditSupport;
 
+import com.google.common.collect.Maps;
+
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.HGroupLayout;
 import com.samskivert.swing.Spacer;
@@ -113,10 +115,12 @@ import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
+import com.threerings.tudey.data.TudeySceneModel.Paint;
 import com.threerings.tudey.data.TudeySceneModel.PathEntry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.shape.Shape;
+import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.EntryManipulator;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
@@ -656,6 +660,12 @@ public class SceneEditor extends TudeyTool
     {
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, new Entry[0], new Entry[0], new Object[] { key }));
+    }
+
+    // documentation inherited from interface EntryManipulator
+    public void setPaint (int x, int y, Paint paint)
+    {
+        _undoSupport.postEdit(new EntryEdit(_scene, _editId, x, y, paint));
     }
 
     // documentation inherited from interface TudeySceneModel.Observer

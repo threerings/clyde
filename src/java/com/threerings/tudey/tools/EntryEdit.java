@@ -32,18 +32,23 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoableEdit;
 
+import com.google.common.collect.Maps;
+
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.Paint;
+import com.threerings.tudey.util.Coord;
 
 /**
- * Represents an edit to the scene's entries.
+ * Represents an edit to the scene's entries (and paint).
  */
 public class EntryEdit extends AbstractUndoableEdit
 {
     /**
-     * Creates and applies a new edit.
+     * Creates and applies a new entry edit.
      */
-    public EntryEdit (TudeySceneModel scene, int id, Entry[] add, Entry[] update, Object[] remove)
+    public EntryEdit (
+        TudeySceneModel scene, int id, Entry[] add, Entry[] update, Object[] remove)
     {
         _scene = scene;
         _id = id;
@@ -70,6 +75,19 @@ public class EntryEdit extends AbstractUndoableEdit
                 _removed.put(key, oentry);
             }
         }
+    }
+
+    /**
+     * Creates and applies a new paint edit.
+     */
+    public EntryEdit (TudeySceneModel scene, int id, int x, int y, Paint paint)
+    {
+        _scene = scene;
+        _id = id;
+
+        // set the paint entry and store the old state
+        Paint opaint = _scene.setPaint(x, y, paint);
+        _paint.put(new Coord(x, y), opaint);
     }
 
     @Override // documentation inherited
@@ -113,6 +131,14 @@ public class EntryEdit extends AbstractUndoableEdit
             }
         }
 
+        // merge the paint
+        for (Map.Entry<Coord, Paint> entry : oedit._paint.entrySet()) {
+            Coord coord = entry.getKey();
+            if (!_paint.containsKey(coord)) {
+                _paint.put(coord, entry.getValue());
+            }
+        }
+
         return true;
     }
 
@@ -138,7 +164,7 @@ public class EntryEdit extends AbstractUndoableEdit
      * @param removed the map containing the entries to add.
      * @param added the map containing the entries to remove.
      */
-    protected void swap (HashMap<Object, Entry> removed, HashMap<Object, Entry> added)
+    protected void swap (Map<Object, Entry> removed, Map<Object, Entry> added)
     {
         // add back the entries we removed (retaining their ids)
         for (Map.Entry<Object, Entry> entry : removed.entrySet()) {
@@ -155,6 +181,12 @@ public class EntryEdit extends AbstractUndoableEdit
         for (Map.Entry<Object, Entry> entry : added.entrySet()) {
             entry.setValue(_scene.removeEntry(entry.getKey()));
         }
+
+        // swap the paint
+        for (Map.Entry<Coord, Paint> entry : _paint.entrySet()) {
+            Coord coord = entry.getKey();
+            entry.setValue(_scene.setPaint(coord.x, coord.y, entry.getValue()));
+        }
     }
 
     /** The affected scene. */
@@ -164,11 +196,14 @@ public class EntryEdit extends AbstractUndoableEdit
     protected int _id;
 
     /** The entries added in this edit. */
-    protected HashMap<Object, Entry> _added = new HashMap<Object, Entry>();
+    protected Map<Object, Entry> _added = Maps.newHashMap();
 
     /** The entries updated in this edit. */
-    protected HashMap<Object, Entry> _updated = new HashMap<Object, Entry>();
+    protected Map<Object, Entry> _updated = Maps.newHashMap();
 
     /** The entries removed in this edit. */
-    protected HashMap<Object, Entry> _removed = new HashMap<Object, Entry>();
+    protected Map<Object, Entry> _removed = Maps.newHashMap();
+
+    /** The paint set or cleared in this edit. */
+    protected Map<Coord, Paint> _paint = Maps.newHashMap();
 }
