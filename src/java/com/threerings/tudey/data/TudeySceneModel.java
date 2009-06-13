@@ -1155,6 +1155,24 @@ public class TudeySceneModel extends SceneModel
         public int elevation;
 
         /**
+         * Default constructor.
+         */
+        public Paint (
+            Type type, ConfigReference<? extends PaintableConfig> paintable, int elevation)
+        {
+            this.type = type;
+            this.paintable = paintable;
+            this.elevation = elevation;
+        }
+
+        /**
+         * No-arg constructor for deserialization.
+         */
+        public Paint ()
+        {
+        }
+
+        /**
          * Returns the encoded form of this paint entry.
          *
          * @param idx the paint config index.
@@ -2129,6 +2147,11 @@ public class TudeySceneModel extends SceneModel
         if (--mapping.count == 0) {
             _tileConfigs.set(idx, null);
             _tileConfigIds.remove(mapping.tile);
+            if (idx == _tileConfigs.size() - 1) {
+                for (int ii = idx; ii >= 0 && _tileConfigs.get(ii) == null; ii--) {
+                    _tileConfigs.remove(ii);
+                }
+            }
         }
     }
 
@@ -2190,6 +2213,11 @@ public class TudeySceneModel extends SceneModel
         if (--mapping.count == 0) {
             _paintConfigs.set(idx, null);
             _paintConfigIds.remove(mapping.paintable);
+            if (idx == _paintConfigs.size() - 1) {
+                for (int ii = idx; ii >= 0 && _paintConfigs.get(ii) == null; ii--) {
+                    _paintConfigs.remove(ii);
+                }
+            }
         }
     }
 

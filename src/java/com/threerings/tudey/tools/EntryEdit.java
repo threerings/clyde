@@ -34,6 +34,10 @@ import javax.swing.undo.UndoableEdit;
 
 import com.google.common.collect.Maps;
 
+import com.samskivert.util.ObjectUtil;
+
+import com.threerings.opengl.gui.util.Rectangle;
+
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.Paint;
@@ -80,14 +84,20 @@ public class EntryEdit extends AbstractUndoableEdit
     /**
      * Creates and applies a new paint edit.
      */
-    public EntryEdit (TudeySceneModel scene, int id, int x, int y, Paint paint)
+    public EntryEdit (TudeySceneModel scene, int id, Rectangle region, Paint paint)
     {
         _scene = scene;
         _id = id;
 
         // set the paint entry and store the old state
-        Paint opaint = _scene.setPaint(x, y, paint);
-        _paint.put(new Coord(x, y), opaint);
+        for (int yy = region.y, yymax = yy + region.height; yy < yymax; yy++) {
+            for (int xx = region.x, xxmax = xx + region.width; xx < xxmax; xx++) {
+                Paint opaint = _scene.setPaint(xx, yy, paint);
+                if (!ObjectUtil.equals(opaint, paint)) {
+                    _paint.put(new Coord(xx, yy), opaint);
+                }
+            }
+        }
     }
 
     @Override // documentation inherited

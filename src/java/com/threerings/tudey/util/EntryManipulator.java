@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.util;
 
+import com.threerings.opengl.gui.util.Rectangle;
+
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.Paint;
 
@@ -48,7 +50,7 @@ public interface EntryManipulator
     public void removeEntry (Object key);
 
     /**
-     * Sets or clears a paint entry in the scene.
+     * Sets or clears the paint for a region in the scene.
      */
-    public void setPaint (int x, int y, Paint paint);
+    public void setPaint (Rectangle region, Paint paint);
 }

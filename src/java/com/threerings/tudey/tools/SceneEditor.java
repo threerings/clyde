@@ -84,6 +84,7 @@ import com.threerings.media.image.ImageUtil;
 import com.threerings.util.KeyboardManager.KeyObserver;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -110,7 +111,9 @@ import com.threerings.opengl.util.Grid;
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.config.GroundConfig;
 import com.threerings.tudey.config.TileConfig;
+import com.threerings.tudey.config.WallConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.AreaEntry;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
@@ -551,10 +554,26 @@ public class SceneEditor extends TudeyTool
             _pathDefiner.setReference(((PathEntry)entry).path);
 
         } else if (entry instanceof TileEntry) {
-            setActiveTool(_tileBrush);
             TileEntry tentry = (TileEntry)entry;
-            _tileBrush.setReference(tentry.tile);
-            _tileBrush.setRotation(tentry.rotation);
+            Coord coord = tentry.getLocation();
+            Paint paint = _scene.getPaint(coord.x, coord.y);
+            if (paint == null) {
+                setActiveTool(_tileBrush);
+                _tileBrush.setReference(tentry.tile);
+                _tileBrush.setRotation(tentry.rotation);
+
+            } else if (paint.type == Paint.Type.FLOOR || paint.type == Paint.Type.EDGE) {
+                setActiveTool(_groundBrush);
+                @SuppressWarnings("unchecked") ConfigReference<GroundConfig> ref =
+                    (ConfigReference<GroundConfig>)paint.paintable;
+                _groundBrush.setReference(ref);
+
+            } else if (paint.type == Paint.Type.WALL) {
+                setActiveTool(_wallBrush);
+                @SuppressWarnings("unchecked") ConfigReference<WallConfig> ref =
+                    (ConfigReference<WallConfig>)paint.paintable;
+                _wallBrush.setReference(ref);
+            }
         }
     }
 
@@ -644,6 +663,9 @@ public class SceneEditor extends TudeyTool
     // documentation inherited from interface EntryManipulator
     public void addEntry (Entry entry)
     {
+        if (entry instanceof TileEntry) {
+            clearPaint((TileEntry)entry);
+        }
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, new Entry[] { entry }, new Entry[0], new Object[0]));
     }
@@ -651,6 +673,10 @@ public class SceneEditor extends TudeyTool
     // documentation inherited from interface EntryManipulator
     public void updateEntry (Entry entry)
     {
+        if (entry instanceof TileEntry) {
+            clearPaint((TileEntry)_scene.getEntry(entry.getKey()));
+            clearPaint((TileEntry)entry);
+        }
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, new Entry[0], new Entry[] { entry }, new Object[0]));
     }
@@ -658,14 +684,17 @@ public class SceneEditor extends TudeyTool
     // documentation inherited from interface EntryManipulator
     public void removeEntry (Object key)
     {
+        if (key instanceof Coord) {
+            clearPaint((TileEntry)_scene.getEntry(key));
+        }
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, new Entry[0], new Entry[0], new Object[] { key }));
     }
 
     // documentation inherited from interface EntryManipulator
-    public void setPaint (int x, int y, Paint paint)
+    public void setPaint (Rectangle region, Paint paint)
     {
-        _undoSupport.postEdit(new EntryEdit(_scene, _editId, x, y, paint));
+        _undoSupport.postEdit(new EntryEdit(_scene, _editId, region, paint));
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -1453,6 +1482,20 @@ public class SceneEditor extends TudeyTool
             }
         }
         return -1;
+    }
+
+    /**
+     * Clears any paint underneath the specified tile entry.
+     */
+    protected void clearPaint (TileEntry entry)
+    {
+        if (entry == null) {
+            return;
+        }
+        TileConfig.Original config = entry.getConfig(getConfigManager());
+        Rectangle region = new Rectangle();
+        entry.getRegion(config, region);
+        setPaint(region, null);
     }
 
     /** The file to attempt to load on initialization, if any. */

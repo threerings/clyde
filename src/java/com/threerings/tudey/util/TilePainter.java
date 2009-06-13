@@ -42,6 +42,7 @@ import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.config.WallConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.Paint;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 
 /**
@@ -91,7 +92,7 @@ public class TilePainter
             removeEntries(coords);
             CoordSet border = coords.getBorder();
             removeEntries(border);
-            updateGroundEdges(border, coords, original, elevation, revise);
+            updateGroundEdges(border, coords, ground, elevation, revise);
             return;
         }
 
@@ -114,7 +115,7 @@ public class TilePainter
         paintFloor(coords, ground, elevation);
 
         // find the border tiles that need to be updated
-        updateGroundEdges(border, coords, original, elevation, revise);
+        updateGroundEdges(border, coords, ground, elevation, revise);
     }
 
     /**
@@ -191,6 +192,7 @@ public class TilePainter
 
         // add wall tiles as appropriate
         Rectangle region = new Rectangle();
+        Paint paint = new Paint(Paint.Type.WALL, wall, elevation);
     OUTER:
         for (Map.Entry<IntTuple, CoordSet> entry : sets.entrySet()) {
             IntTuple tuple = entry.getKey();
@@ -207,7 +209,7 @@ public class TilePainter
                 TileConfig.Original tconfig = tentry.getConfig(_cfgmgr);
                 int twidth = tentry.getWidth(tconfig);
                 int theight = tentry.getHeight(tconfig);
-                addEntry(tentry, region.set(coord.x, coord.y, twidth, theight));
+                addEntry(tentry, region.set(coord.x, coord.y, twidth, theight), paint);
                 set.removeAll(region);
             }
         }
@@ -230,6 +232,7 @@ public class TilePainter
 
         // cover floor tiles randomly until filled in
         Rectangle region = new Rectangle();
+        Paint paint = new Paint(Paint.Type.FLOOR, ground, elevation);
         while (!coords.isEmpty()) {
             coords.getLargestRegion(region);
             TileEntry entry = original.createFloor(
@@ -242,7 +245,7 @@ public class TilePainter
             TileConfig.Original tconfig = entry.getConfig(_cfgmgr);
             int twidth = entry.getWidth(tconfig);
             int theight = entry.getHeight(tconfig);
-            addEntry(entry, region.set(coord.x, coord.y, twidth, theight));
+            addEntry(entry, region.set(coord.x, coord.y, twidth, theight), paint);
             coords.removeAll(region);
         }
     }
@@ -253,9 +256,18 @@ public class TilePainter
      * @param inner the inner region to exclude from the update.
      */
     protected void updateGroundEdges (
-        CoordSet coords, CoordSet inner, GroundConfig.Original original,
+        CoordSet coords, CoordSet inner, ConfigReference<GroundConfig> ground,
         int elevation, boolean revise)
     {
+        GroundConfig config = _cfgmgr.getConfig(GroundConfig.class, ground);
+        GroundConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
+
+        // if no config, just erase the coordinates
+        if (original == null) {
+            removeEntries(coords);
+            return;
+        }
+
         // divide the coordinates up by case/rotation pairs
         HashMap<IntTuple, CoordSet> sets = new HashMap<IntTuple, CoordSet>();
         for (Coord coord : coords) {
@@ -283,6 +295,7 @@ public class TilePainter
 
         // add edge tiles as appropriate
         Rectangle region = new Rectangle();
+        Paint paint = new Paint(Paint.Type.EDGE, ground, elevation);
     OUTER:
         for (Map.Entry<IntTuple, CoordSet> entry : sets.entrySet()) {
             IntTuple tuple = entry.getKey();
@@ -299,28 +312,27 @@ public class TilePainter
                 TileConfig.Original tconfig = tentry.getConfig(_cfgmgr);
                 int twidth = tentry.getWidth(tconfig);
                 int theight = tentry.getHeight(tconfig);
-                addEntry(tentry, region.set(coord.x, coord.y, twidth, theight));
+                addEntry(tentry, region.set(coord.x, coord.y, twidth, theight), paint);
                 set.removeAll(region);
             }
         }
 
         // if there's a base ground config, expand the edges and update again
-        GroundConfig bconfig = _cfgmgr.getConfig(GroundConfig.class, original.base);
-        GroundConfig.Original boriginal = (bconfig == null) ? null : bconfig.getOriginal(_cfgmgr);
-        if (boriginal != null) {
+        if (original.base != null) {
             CoordSet combined = new CoordSet(inner);
             combined.addAll(coords);
-            updateGroundEdges(combined.getBorder(), combined, boriginal, elevation, revise);
+            updateGroundEdges(combined.getBorder(), combined, original.base, elevation, revise);
         }
     }
 
     /**
      * Adds the specified entry, removing any entries underneath it.
      */
-    protected void addEntry (TileEntry entry, Rectangle region)
+    protected void addEntry (TileEntry entry, Rectangle region, Paint paint)
     {
         removeEntries(region);
         _manipulator.addEntry(entry);
+        _manipulator.setPaint(region, paint);
     }
 
     /**
