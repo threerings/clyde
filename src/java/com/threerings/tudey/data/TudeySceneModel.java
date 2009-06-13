@@ -1564,6 +1564,7 @@ public class TudeySceneModel extends SceneModel
         _paint.clear();
         _paintConfigs.clear();
         _paintConfigIds.clear();
+        invalidate();
     }
 
     /**
