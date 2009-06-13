@@ -33,6 +33,7 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
+import com.threerings.math.Box;
 
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.state.ColorState;
@@ -165,6 +166,13 @@ public class AreaSprite extends EntrySprite
 
             // and the area
             _area.setVertices(entry.vertices);
+            if (_edges.length > 0) {
+                float size = _area.getBounds().getDiagonalLength();
+                float offset = _edges[0].getBounds().getMaximumExtent().z -
+                    _edges[0].getBounds().getMinimumExtent().z;
+                offset *= 0.5f;
+                _area.getTransform().getTranslation().z = offset + (size > 0 ? offset/size : 0);
+            }
 
             // update the footprint's elevation and shape (which also updates the bounds)
             if (_footprint != null) {
