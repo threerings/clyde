@@ -273,7 +273,16 @@ public class TilePainter
         for (Coord coord : coords) {
             TileEntry entry = _scene.getTileEntry(coord.x, coord.y);
             if (entry != null && !original.isEdge(entry, elevation)) {
-                continue; // if it's not blank or an edge tile, leave it alone
+                Paint paint = _scene.getPaint(coord.x, coord.y);
+                if (paint == null || paint.type == Paint.Type.WALL) {
+                    continue;
+                }
+                GroundConfig oconfig = paint.getConfig(_cfgmgr, GroundConfig.class);
+                GroundConfig.Original ooriginal = (oconfig == null) ?
+                    null : oconfig.getOriginal(_cfgmgr);
+                if (ooriginal == null || ooriginal.priority >= original.priority) {
+                    continue;
+                }
             }
             IntTuple tuple = original.getEdgeCaseRotations(
                 _scene, ground, coord.x, coord.y, elevation);
