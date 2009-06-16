@@ -105,7 +105,7 @@ public class TilePainter
             // remove anything that's already a floor tile
             for (Iterator<Coord> it = coords.iterator(); it.hasNext(); ) {
                 Coord coord = it.next();
-                if (original.isFloor(_scene.getTileEntry(coord.x, coord.y), elevation)) {
+                if (original.isFloor(_scene, ground, coord.x, coord.y, elevation)) {
                     it.remove();
                 }
             }
@@ -275,15 +275,8 @@ public class TilePainter
             if (entry != null && !original.isEdge(entry, elevation)) {
                 continue; // if it's not blank or an edge tile, leave it alone
             }
-            // classify the tile based on its surroundings
-            int pattern = 0;
-            for (Direction dir : Direction.values()) {
-                int x = coord.x + dir.getX(), y = coord.y + dir.getY();
-                if (original.isFloor(_scene.getTileEntry(x, y), elevation)) {
-                    pattern |= (1 << dir.ordinal());
-                }
-            }
-            IntTuple tuple = original.getEdgeCaseRotations(pattern);
+            IntTuple tuple = original.getEdgeCaseRotations(
+                _scene, ground, coord.x, coord.y, elevation);
             if (tuple != null && (revise || !original.isEdge(entry, tuple, elevation))) {
                 CoordSet set = sets.get(tuple);
                 if (set == null) {

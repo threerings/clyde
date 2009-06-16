@@ -33,8 +33,12 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
+import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Paint;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.util.Direction;
 
 /**
  * The configuration of a ground type.
@@ -75,8 +79,12 @@ public class GroundConfig extends PaintableConfig
      */
     public static class Original extends Implementation
     {
+        /** The priority of this ground type. */
+        @Editable(hgroup="p")
+        public int priority;
+
         /** Whether or not to extend the edge. */
-        @Editable
+        @Editable(hgroup="p")
         public boolean extendEdge;
 
         /** The base ground type, if any. */
@@ -89,14 +97,32 @@ public class GroundConfig extends PaintableConfig
 
         /** The edge cases (in order of priority). */
         @Editable
-        public Case[] edgeCases = new Case[0];
+        public EdgeCase[] edgeCases = new EdgeCase[0];
 
         /**
-         * Checks whether the specified entry qualifies as a floor tile.
+         * Checks whether the specified location qualifies as a floor tile.
+         *
+         * @param scene the scene model to check.
+         * @param ref the config reference of this ground config.
+         * @param elevation the elevation of the brush.
          */
-        public boolean isFloor (TileEntry entry, int elevation)
+        public boolean isFloor (
+            TudeySceneModel scene, ConfigReference<GroundConfig> ref, int x, int y, int elevation)
         {
-            return matchesAny(floor, entry, elevation);
+            Paint paint = scene.getPaint(x, y);
+            if (paint != null && paint.type != Paint.Type.WALL && paint.elevation == elevation) {
+                if (paint.type == Paint.Type.FLOOR && paint.paintable.equals(ref)) {
+                    return true;
+                }
+                GroundConfig config = paint.getConfig(
+                    scene.getConfigManager(), GroundConfig.class);
+                Original original = (config == null) ?
+                    null : config.getOriginal(scene.getConfigManager());
+                if (original != null && ref.equals(original.base)) {
+                    return true;
+                }
+            }
+            return matchesAny(floor, scene.getTileEntry(x, y), elevation);
         }
 
         /**
@@ -122,20 +148,27 @@ public class GroundConfig extends PaintableConfig
         }
 
         /**
-         * Determines the case and allowed rotations of the edge tile that matches the specified
-         * pattern.
-         */
-        public IntTuple getEdgeCaseRotations (int pattern)
-        {
-            return getCaseRotations(edgeCases, pattern);
-        }
-
-        /**
          * Checks whether the specified entry qualifies as an edge tile.
          */
         public boolean isEdge (TileEntry entry, IntTuple caseRotations, int elevation)
         {
             return matchesAny(edgeCases, entry, caseRotations, elevation);
+        }
+
+        /**
+         * Determines the case and allowed rotations of the edge tile that matches the specified
+         * pattern.
+         */
+        public IntTuple getEdgeCaseRotations (
+            TudeySceneModel scene, ConfigReference<GroundConfig> ref, int x, int y, int elevation)
+        {
+            for (int ii = 0; ii < edgeCases.length; ii++) {
+                int rotations = edgeCases[ii].getRotations(scene, ref, this, x, y, elevation);
+                if (rotations != 0) {
+                    return new IntTuple(ii, rotations);
+                }
+            }
+            return null;
         }
 
         /**
@@ -177,6 +210,81 @@ public class GroundConfig extends PaintableConfig
                 caze.invalidate();
             }
         }
+    }
+
+    /**
+     * Ground edge case class.
+     */
+    @EditorTypes({ EdgeCase.class, TransitionCase.class })
+    public static class EdgeCase extends Case
+    {
+        /**
+         * Returns a bit set containing the rotations of this case that match the specified
+         * pattern.
+         */
+        public int getRotations (
+            TudeySceneModel scene, ConfigReference<GroundConfig> ref,
+            GroundConfig.Original original, int x, int y, int elevation)
+        {
+            return getRotations(createPattern(scene, ref, original, x, y, elevation));
+        }
+    }
+
+    /**
+     * Transition edge case.
+     */
+    public static class TransitionCase extends EdgeCase
+    {
+        /** The "other" ground to which we are transitioning. */
+        @Editable(nullable=true)
+        public ConfigReference<GroundConfig> other;
+
+        /** The constraints for the other ground. */
+        @Editable(hgroup="d")
+        public boolean on, onw, ow, osw, os, ose, oe, one;
+
+        @Override // documentation inherited
+        public int getRotations (
+            TudeySceneModel scene, ConfigReference<GroundConfig> ref,
+            GroundConfig.Original original, int x, int y, int elevation)
+        {
+            int base = super.getRotations(scene, ref, original, x, y, elevation);
+            GroundConfig oconfig = scene.getConfigManager().getConfig(GroundConfig.class, other);
+            GroundConfig.Original ooriginal = (oconfig == null) ?
+                null : oconfig.getOriginal(scene.getConfigManager());
+            if (ooriginal == null) {
+                return base;
+            }
+            return base & getRotations(getOtherPatterns(),
+                createPattern(scene, other, ooriginal, x, y, elevation));
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            _opatterns = null;
+        }
+
+        /**
+         * Gets the cached other pattern rotations.
+         */
+        protected int[] getOtherPatterns ()
+        {
+            if (_opatterns == null) {
+                _opatterns = new int[] {
+                    createPattern(on, onw, ow, osw, os, ose, oe, one),
+                    createPattern(oe, one, on, onw, ow, osw, os, ose),
+                    createPattern(os, ose, oe, one, on, onw, ow, osw),
+                    createPattern(ow, osw, os, ose, oe, one, on, onw)
+                };
+            }
+            return _opatterns;
+        }
+
+        /** Constraint patterns for the other ground for each rotation. */
+        @DeepOmit
+        protected transient int[] _opatterns;
     }
 
     /**
@@ -226,5 +334,23 @@ public class GroundConfig extends PaintableConfig
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
+    }
+
+    /**
+     * Creates a bit pattern identifying the bordering locations matching the specified
+     * ground config.
+     */
+    protected static int createPattern (
+        TudeySceneModel scene, ConfigReference<GroundConfig> ref,
+        GroundConfig.Original original, int x, int y, int elevation)
+    {
+        int pattern = 0;
+        for (Direction dir : Direction.values()) {
+            int dx = x + dir.getX(), dy = y + dir.getY();
+            if (original.isFloor(scene, ref, dx, dy, elevation)) {
+                pattern |= (1 << dir.ordinal());
+            }
+        }
+        return pattern;
     }
 }

@@ -57,7 +57,7 @@ public abstract class PaintableConfig extends ParameterizedConfig
         public boolean n, nw, w, sw, s, se, e, ne;
 
         /** The tiles for the case. */
-        @Editable
+        @Editable(weight=1)
         public Tile[] tiles = new Tile[0];
 
         /**
@@ -76,19 +76,7 @@ public abstract class PaintableConfig extends ParameterizedConfig
          */
         public int getRotations (int pattern)
         {
-            int rotations = 0;
-            int[] patterns = getPatterns();
-            boolean[] orientations = getOrientations();
-            for (int ii = 0; ii < 4; ii++) {
-                if (!orientations[ii]) {
-                    continue;
-                }
-                int mask = patterns[ii];
-                if ((pattern & mask) == mask) {
-                    rotations |= (1 << ii);
-                }
-            }
-            return rotations;
+            return getRotations(getPatterns(), pattern);
         }
 
         /**
@@ -101,6 +89,26 @@ public abstract class PaintableConfig extends ParameterizedConfig
             }
             _patterns = null;
             _orientations = null;
+        }
+
+        /**
+         * Returns a bit set containing the rotations of this case that match the specified
+         * pattern.
+         */
+        protected int getRotations (int[] patterns, int pattern)
+        {
+            int rotations = 0;
+            boolean[] orientations = getOrientations();
+            for (int ii = 0; ii < 4; ii++) {
+                if (!orientations[ii]) {
+                    continue;
+                }
+                int mask = patterns[ii];
+                if ((pattern & mask) == mask) {
+                    rotations |= (1 << ii);
+                }
+            }
+            return rotations;
         }
 
         /**

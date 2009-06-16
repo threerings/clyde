@@ -1173,6 +1173,15 @@ public class TudeySceneModel extends SceneModel
         }
 
         /**
+         * Resolves the paintable configuration for this paint.
+         */
+        public <T extends PaintableConfig> T getConfig (ConfigManager cfgmgr, Class<T> clazz)
+        {
+            @SuppressWarnings("unchecked") ConfigReference<T> ref = (ConfigReference<T>)paintable;
+            return cfgmgr.getConfig(clazz, ref);
+        }
+
+        /**
          * Returns the encoded form of this paint entry.
          *
          * @param idx the paint config index.
