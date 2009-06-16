@@ -71,10 +71,7 @@ public abstract class ActionLogic extends Logic
                 Logic target = _targets.get(ii);
                 ActorLogic logic = _scenemgr.spawnActor(
                     timestamp, target.getTranslation(), target.getRotation(), actor);
-                if (logic != null) {
-                    logic.setSource(_source);
-                    logic.setActivator(activator);
-                }
+                initLogic(logic, timestamp, activator);
             }
             _targets.clear();
         }
@@ -83,6 +80,17 @@ public abstract class ActionLogic extends Logic
         protected void didInit ()
         {
             _location = createTarget(((ActionConfig.SpawnActor)_config).location, _source);
+        }
+
+        /**
+         * Initialize the logic.
+         */
+        protected void initLogic (ActorLogic logic, int timestamp, Logic activator)
+        {
+            if (logic != null) {
+                logic.setSource(_source);
+                logic.setActivator(activator);
+            }
         }
 
         /** The target location. */
