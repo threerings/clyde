@@ -100,9 +100,27 @@ public class TilePainter
         if (original.extendEdge) {
             coords.addAll(coords.getCardinalBorder());
         }
-        CoordSet border = coords.getBorder();
+
+        // remove any coordinates painted with a higher priority
+        for (Iterator<Coord> it = coords.iterator(); it.hasNext(); ) {
+            Coord coord = it.next();
+            Paint paint = _scene.getPaint(coord.x, coord.y);
+            if (paint == null || paint.type == Paint.Type.WALL) {
+                continue;
+            }
+            GroundConfig oconfig = paint.getConfig(_cfgmgr, GroundConfig.class);
+            GroundConfig.Original ooriginal =
+                (oconfig == null) ? null : oconfig.getOriginal(_cfgmgr);
+            if (ooriginal != null && ooriginal.priority > original.priority) {
+                it.remove();
+            }
+        }
+        CoordSet inner = new CoordSet(coords);
+        CoordSet border = inner.getBorder();
+        coords.removeAll(border);
+
+        // if not revising, remove anything that's already a floor tile
         if (!revise) {
-            // remove anything that's already a floor tile
             for (Iterator<Coord> it = coords.iterator(); it.hasNext(); ) {
                 Coord coord = it.next();
                 if (original.isFloor(_scene, ground, coord.x, coord.y, elevation)) {
@@ -115,7 +133,7 @@ public class TilePainter
         paintFloor(coords, ground, elevation);
 
         // find the border tiles that need to be updated
-        updateGroundEdges(border, coords, ground, elevation, revise);
+        updateGroundEdges(inner.getBorder(), inner, ground, elevation, revise);
     }
 
     /**
