@@ -27,12 +27,15 @@ package com.threerings.opengl.gui;
 import java.awt.Toolkit;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Controller;
+import org.lwjgl.input.Controllers;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.event.ControllerEvent;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
@@ -55,9 +58,10 @@ public class DisplayRoot extends Root
      */
     public void poll ()
     {
-        // poll the mouse and keyboard
+        // poll the mouse, keyboard, and controllers
         Mouse.poll();
         Keyboard.poll();
+        Controllers.poll();
 
         // update the modifiers
         _modifiers = 0;
@@ -112,6 +116,30 @@ public class DisplayRoot extends Root
                     Keyboard.getEventKey(), false);
             }
         }
+
+        // process controller events
+        while (Controllers.next()) {
+            Controller controller = Controllers.getEventSource();
+            if (Controllers.isEventButton()) {
+                int index = Controllers.getEventControlIndex();
+                if (controller.isButtonPressed(index)) {
+                    controllerPressed(controller, _tickStamp, index);
+                } else {
+                    controllerReleased(controller, _tickStamp, index);
+                }
+            } else if (Controllers.isEventAxis()) {
+                int index = Controllers.getEventControlIndex();
+                controllerMoved(
+                    controller, _tickStamp, index, Controllers.isEventXAxis(),
+                    Controllers.isEventYAxis(), controller.getAxisValue(index));
+
+            } else if (Controllers.isEventPovX()) {
+                controllerPovXMoved(controller, _tickStamp, controller.getPovX());
+
+            } else if (Controllers.isEventPovY()) {
+                controllerPovYMoved(controller, _tickStamp, controller.getPovY());
+            }
+        }
     }
 
     @Override // documentation inherited
@@ -137,5 +165,57 @@ public class DisplayRoot extends Root
         } catch (LWJGLException e) {
             log.warning("Failed to set cursor.", "cursor", cursor, e);
         }
+    }
+
+    /**
+     * Notes that a controller button has been pressed.
+     */
+    protected void controllerPressed (Controller controller, long when, int index)
+    {
+        ControllerEvent event = new ControllerEvent(
+            controller, when, _modifiers, ControllerEvent.CONTROLLER_PRESSED, index);
+        dispatchEvent(getFocus(), event);
+    }
+
+    /**
+     * Notes that a controller button has been released.
+     */
+    protected void controllerReleased (Controller controller, long when, int index)
+    {
+        ControllerEvent event = new ControllerEvent(
+            controller, when, _modifiers, ControllerEvent.CONTROLLER_RELEASED, index);
+        dispatchEvent(getFocus(), event);
+    }
+
+    /**
+     * Notes that a controller has moved on an axis.
+     */
+    protected void controllerMoved (
+        Controller controller, long when, int index, boolean xAxis, boolean yAxis, float value)
+    {
+        ControllerEvent event = new ControllerEvent(
+            controller, when, _modifiers, ControllerEvent.CONTROLLER_MOVED,
+            index, xAxis, yAxis, value);
+        dispatchEvent(getFocus(), event);
+    }
+
+    /**
+     * Notes that a controller has moved on the pov x axis.
+     */
+    protected void controllerPovXMoved (Controller controller, long when, float value)
+    {
+        ControllerEvent event = new ControllerEvent(
+            controller, when, _modifiers, ControllerEvent.CONTROLLER_POV_X_MOVED, value);
+        dispatchEvent(getFocus(), event);
+    }
+
+    /**
+     * Notes that a controller has moved on the pov y axis.
+     */
+    protected void controllerPovYMoved (Controller controller, long when, float value)
+    {
+        ControllerEvent event = new ControllerEvent(
+            controller, when, _modifiers, ControllerEvent.CONTROLLER_POV_Y_MOVED, value);
+        dispatchEvent(getFocus(), event);
     }
 }
