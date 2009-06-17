@@ -31,6 +31,9 @@ import java.nio.ByteBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
+import org.lwjgl.input.Controllers;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.PixelFormat;
@@ -158,6 +161,9 @@ public abstract class GlDisplayApp extends GlApp
     public void shutdown ()
     {
         willShutdown();
+        Keyboard.destroy();
+        Mouse.destroy();
+        Controllers.destroy();
         Display.destroy();
         System.exit(0);
     }
@@ -169,6 +175,23 @@ public abstract class GlDisplayApp extends GlApp
             return;
         }
         super.init();
+
+        // create the input devices
+        try {
+            Keyboard.create();
+        } catch (LWJGLException e) {
+            log.warning("Failed to create keyboard.", e);
+        }
+        try {
+            Mouse.create();
+        } catch (LWJGLException e) {
+            log.warning("Failed to create mouse.", e);
+        }
+        try {
+            Controllers.create();
+        } catch (LWJGLException e) {
+            log.warning("Failed to create controllers.", e);
+        }
 
         // start the updater
         final Runnable updater = new Runnable() {
