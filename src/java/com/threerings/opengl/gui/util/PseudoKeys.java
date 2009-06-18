@@ -331,6 +331,35 @@ public class PseudoKeys
     }
 
     /**
+     * Checks whether the supplied key is valid.  Controller keys are invalid if they refer to
+     * controllers or controls that don't exist.
+     */
+    public static boolean isValid (int key)
+    {
+        int controllerIndex;
+        switch (getType(key)) {
+            case KEY_CONTROLLER_BUTTON:
+                controllerIndex = getControllerIndex(key);
+                return controllerIndex < Controllers.getControllerCount() &&
+                    getControlIndex(key) <
+                        Controllers.getController(controllerIndex).getButtonCount();
+            case KEY_CONTROLLER_AXIS_POSITIVE:
+            case KEY_CONTROLLER_AXIS_NEGATIVE:
+                controllerIndex = getControllerIndex(key);
+                return controllerIndex < Controllers.getControllerCount() &&
+                    getControlIndex(key) <
+                        Controllers.getController(controllerIndex).getAxisCount();
+            case KEY_CONTROLLER_POV_X_POSITIVE:
+            case KEY_CONTROLLER_POV_X_NEGATIVE:
+            case KEY_CONTROLLER_POV_Y_POSITIVE:
+            case KEY_CONTROLLER_POV_Y_NEGATIVE:
+                return getControllerIndex(key) < Controllers.getControllerCount();
+            default:
+                return true;
+        }
+    }
+
+    /**
      * Returns a string describing the specified key.
      */
     public static String getDesc (MessageBundle msgs, int key)
