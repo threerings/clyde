@@ -30,6 +30,7 @@ import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.util.CrowdContext;
 
 import com.threerings.opengl.gui.event.KeyEvent;
+import com.threerings.opengl.gui.util.PseudoKeys;
 
 import com.threerings.tudey.client.TudeySceneController;
 import com.threerings.tudey.util.TudeyContext;
@@ -46,14 +47,16 @@ public class ToolSceneController extends TudeySceneController
     }
 
     @Override // documentation inherited
-    public void keyPressed (KeyEvent event)
+    protected void bindKeys ()
     {
-        super.keyPressed(event);
+        super.bindKeys();
 
         // go back to editor mode if escape is pressed
-        if (event.getKeyCode() == Keyboard.KEY_ESCAPE) {
-            _ctx.getLocationDirector().leavePlace();
-        }
+        _keyObservers.put(Keyboard.KEY_ESCAPE, new PseudoKeys.Adapter() {
+            public void keyPressed (long when, int key, float amount) {
+                _ctx.getLocationDirector().leavePlace();
+            }
+        });
     }
 
     @Override // documentation inherited

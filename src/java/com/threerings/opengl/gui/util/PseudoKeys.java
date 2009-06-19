@@ -68,16 +68,35 @@ public class PseudoKeys
     }
 
     /**
-     * Processes key, mouse, and controller events, converting them into unified "key" events.
-     * Users may either subclass this adapter or pass an observer to the constructor.
+     * For convenience, provides no-op implementations of the observer interface.
      */
-    public static class Adapter extends MouseAdapter
+    public static class Adapter
+        implements Observer
+    {
+        // documentation inherited from interface Observer
+        public void keyPressed (long when, int key, float amount)
+        {
+            // no-op
+        }
+
+        // documentation inherited from interface Observer
+        public void keyReleased (long when, int key)
+        {
+            // no-op
+        }
+    }
+
+    /**
+     * Processes unconsumed key, mouse, and controller events, converting them into unified "key"
+     * events.  Users may either subclass this adapter or pass an observer to the constructor.
+     */
+    public static class Unifier extends MouseAdapter
         implements KeyListener, MouseWheelListener, ControllerListener
     {
         /**
          * Constructor for observers.
          */
-        public Adapter (Observer observer)
+        public Unifier (Observer observer)
         {
             _observer = observer;
         }
@@ -85,7 +104,7 @@ public class PseudoKeys
         /**
          * Constructor for subclasses.
          */
-        public Adapter ()
+        public Unifier ()
         {
         }
 
@@ -114,18 +133,25 @@ public class PseudoKeys
         // documentation inherited from interface KeyListener
         public void keyPressed (KeyEvent event)
         {
-            keyPressed(event.getWhen(), event.getKeyCode(), 1f);
+            if (!event.isConsumed()) {
+                keyPressed(event.getWhen(), event.getKeyCode(), 1f);
+            }
         }
 
         // documentation inherited from interface KeyListener
         public void keyReleased (KeyEvent event)
         {
-            keyReleased(event.getWhen(), event.getKeyCode());
+            if (!event.isConsumed()) {
+                keyReleased(event.getWhen(), event.getKeyCode());
+            }
         }
 
         // documentation inherited from interface MouseWheelListener
         public void mouseWheeled (MouseEvent event)
         {
+            if (event.isConsumed()) {
+                return;
+            }
             long when = event.getWhen();
             int delta = event.getDelta();
             if (delta > 0) {
@@ -140,20 +166,27 @@ public class PseudoKeys
         // documentation inherited from interface ControllerListener
         public void controllerPressed (ControllerEvent event)
         {
-            keyPressed(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
-                event.getController().getIndex(), event.getControlIndex()), 1f);
+            if (!event.isConsumed()) {
+                keyPressed(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
+                    event.getController().getIndex(), event.getControlIndex()), 1f);
+            }
         }
 
         // documentation inherited from interface ControllerListener
         public void controllerReleased (ControllerEvent event)
         {
-            keyReleased(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
-                event.getController().getIndex(), event.getControlIndex()));
+            if (!event.isConsumed()) {
+                keyReleased(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
+                    event.getController().getIndex(), event.getControlIndex()));
+            }
         }
 
         // documentation inherited from interface ControllerListener
         public void controllerMoved (ControllerEvent event)
         {
+            if (event.isConsumed()) {
+                return;
+            }
             Controller controller = event.getController();
             int controllerIndex = controller.getIndex();
             int axisIndex = event.getControlIndex();
@@ -191,6 +224,9 @@ public class PseudoKeys
         // documentation inherited from interface ControllerListener
         public void controllerPovXMoved (ControllerEvent event)
         {
+            if (event.isConsumed()) {
+                return;
+            }
             Controller controller = event.getController();
             int controllerIndex = controller.getIndex();
             float value = controller.getPovX();
@@ -221,6 +257,9 @@ public class PseudoKeys
         // documentation inherited from interface ControllerListener
         public void controllerPovYMoved (ControllerEvent event)
         {
+            if (event.isConsumed()) {
+                return;
+            }
             Controller controller = event.getController();
             int controllerIndex = controller.getIndex();
             float value = controller.getPovY();
@@ -251,13 +290,17 @@ public class PseudoKeys
         @Override // documentation inherited
         public void mousePressed (MouseEvent event)
         {
-            keyPressed(event.getWhen(), getMouseKey(event.getButton()), 1f);
+            if (!event.isConsumed()) {
+                keyPressed(event.getWhen(), getMouseKey(event.getButton()), 1f);
+            }
         }
 
         @Override // documentation inherited
         public void mouseReleased (MouseEvent event)
         {
-            keyReleased(event.getWhen(), getMouseKey(event.getButton()));
+            if (!event.isConsumed()) {
+                keyReleased(event.getWhen(), getMouseKey(event.getButton()));
+            }
         }
 
         /** The observer that we notify, if any. */

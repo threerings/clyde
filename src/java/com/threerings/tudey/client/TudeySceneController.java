@@ -28,7 +28,8 @@ import java.util.ArrayList;
 
 import org.lwjgl.input.Keyboard;
 
-import com.samskivert.util.IntIntMap;
+import com.samskivert.util.IntMap;
+import com.samskivert.util.IntMaps;
 import com.samskivert.util.Predicate;
 import com.samskivert.util.RunAnywhere;
 
@@ -53,12 +54,11 @@ import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.gui.event.Event;
-import com.threerings.opengl.gui.event.KeyEvent;
-import com.threerings.opengl.gui.event.KeyListener;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.MouseListener;
 import com.threerings.opengl.gui.event.MouseMotionListener;
 import com.threerings.opengl.gui.event.MouseWheelListener;
+import com.threerings.opengl.gui.util.PseudoKeys;
 import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.Tickable;
 
@@ -82,8 +82,8 @@ import static com.threerings.tudey.Log.*;
  * The basic Tudey scene controller class.
  */
 public class TudeySceneController extends SceneController
-    implements SceneDeltaListener, KeyListener, MouseListener,
-        MouseMotionListener, MouseWheelListener, Tickable
+    implements SceneDeltaListener, PseudoKeys.Observer, MouseListener,
+        MouseMotionListener, MouseWheelListener,  Tickable
 {
     /**
      * Returns the interval at which we transmit our input frames.
@@ -217,23 +217,26 @@ public class TudeySceneController extends SceneController
         }
     }
 
-    // documentation inherited from interface KeyListener
-    public void keyPressed (KeyEvent event)
+    // documentation inherited from interface PseudoKeys.Observer
+    public void keyPressed (long when, int key, float amount)
     {
-        int code = event.getKeyCode();
-        if (_targetControlled) {
-            maybeSetFlag(_keyFlags.get(code));
-        } else if (code == Keyboard.KEY_LEFT) {
-            cycleTarget(false);
-        } else if (code == Keyboard.KEY_RIGHT) {
-            cycleTarget(true);
+        if (inputWindowHovered()) {
+            PseudoKeys.Observer observer = _keyObservers.get(key);
+            if (observer != null) {
+                observer.keyPressed(when, key, amount);
+            }
         }
     }
 
-    // documentation inherited from interface KeyListener
-    public void keyReleased (KeyEvent event)
+    // documentation inherited from interface PseudoKeys.Observer
+    public void keyReleased (long when, int key)
     {
-        maybeClearFlag(_keyFlags.get(event.getKeyCode()));
+        if (inputWindowHovered()) {
+            PseudoKeys.Observer observer = _keyObservers.get(key);
+            if (observer != null) {
+                observer.keyReleased(when, key);
+            }
+        }
     }
 
     // documentation inherited from interface MouseListener
@@ -242,11 +245,10 @@ public class TudeySceneController extends SceneController
         if (!inputWindowHovered()) {
             return;
         }
-        int button = event.getButton();
-        if (_hsprite == null || !_hsprite.dispatchEvent(event)) {
-            maybeSetFlag(_buttonFlags[button]);
+        if (_hsprite != null && _hsprite.dispatchEvent(event)) {
+            event.consume();
         }
-        if (button == MouseEvent.BUTTON1) {
+        if (event.getButton() == MouseEvent.BUTTON1) {
             _holdHover = true;
         }
     }
@@ -257,11 +259,10 @@ public class TudeySceneController extends SceneController
         if (!inputWindowHovered()) {
             return;
         }
-        int button = event.getButton();
-        if (_hsprite == null || !_hsprite.dispatchEvent(event)) {
-            maybeClearFlag(_buttonFlags[button]);
+        if (_hsprite != null && _hsprite.dispatchEvent(event)) {
+            event.consume();
         }
-        if (button == MouseEvent.BUTTON1) {
+        if (event.getButton() == MouseEvent.BUTTON1) {
             _holdHover = false;
         }
     }
@@ -367,6 +368,7 @@ public class TudeySceneController extends SceneController
 
         // listen for input events
         _tsview.getInputWindow().addListener(this);
+        _tsview.getInputWindow().addListener(_unifier);
 
         // if the player controls a pawn, then the target is and will always be that pawn.
         // otherwise, the target starts out being the first pawn in the occupant list
@@ -376,6 +378,9 @@ public class TudeySceneController extends SceneController
         } else {
             _targetId = _tsobj.getFirstPawnId();
         }
+
+        // bind keys to actions
+        bindKeys();
 
         // notify the server that we're in (it will start sending updates)
         _tsobj.tudeySceneService.enteredPlace(_ctx.getClient());
@@ -389,6 +394,7 @@ public class TudeySceneController extends SceneController
         // stop listening to the client object and input events
         _ctx.getClient().getClientObject().removeListener(this);
         _tsview.getInputWindow().removeListener(this);
+        _tsview.getInputWindow().removeListener(_unifier);
     }
 
     @Override // documentation inherited
@@ -402,21 +408,59 @@ public class TudeySceneController extends SceneController
     {
         super.didInit();
         _tctx = (TudeyContext)_ctx;
+    }
 
-        // add the input flag mappings
-        _keyFlags.put(Keyboard.KEY_C, InputFrame.STRAFE);
-        _buttonFlags[MouseEvent.BUTTON1] = InputFrame.MOVE;
+    /**
+     * Binds pseudo-keys to observers that act on key press and/or release events.
+     */
+    protected void bindKeys ()
+    {
+        if (_targetControlled) {
+            bindKeyFlag(PseudoKeys.KEY_BUTTON1, InputFrame.MOVE);
+            bindKeyFlag(Keyboard.KEY_C, InputFrame.STRAFE);
+        } else {
+            bindKeyCycle(Keyboard.KEY_LEFT, false);
+            bindKeyCycle(Keyboard.KEY_RIGHT, true);
+        }
+    }
+
+    /**
+     * Binds a key to an input flag.
+     */
+    protected void bindKeyFlag (int key, final int flag)
+    {
+        _keyObservers.put(key, new PseudoKeys.Observer() {
+            public void keyPressed (long when, int key, float amount) {
+                _flags |= flag;
+                _frameFlags |= flag;
+            }
+            public void keyReleased (long when, int key) {
+                _flags &= ~flag;
+            }
+        });
+    }
+
+    /**
+     * Binds a key to cycle between targets.
+     */
+    protected void bindKeyCycle (int key, final boolean forward)
+    {
+        _keyObservers.put(key, new PseudoKeys.Adapter() {
+            public void keyPressed (long when, int key, float amount) {
+                cycleTarget(forward);
+            }
+        });
     }
 
     /**
      * Dispatches the given event to the hover sprite if we have one and the input window is
      * hovered.
-     *
-     * @return true if the sprite handled the event, false if not.
      */
-    protected boolean maybeDispatchToHoverSprite (Event event)
+    protected void maybeDispatchToHoverSprite (Event event)
     {
-        return inputWindowHovered() && _hsprite != null && _hsprite.dispatchEvent(event);
+        if (inputWindowHovered() && _hsprite != null && _hsprite.dispatchEvent(event)) {
+            event.consume();
+        }
     }
 
     /**
@@ -443,27 +487,6 @@ public class TudeySceneController extends SceneController
     protected int getMouseCameraModifiers ()
     {
         return 0;
-    }
-
-    /**
-     * Sets the specified input flag, if valid.
-     */
-    protected void maybeSetFlag (int flag)
-    {
-        if (flag > 0) {
-            _flags |= flag;
-            _frameFlags |= flag;
-        }
-    }
-
-    /**
-     * Clears the specified input flag, if valid.
-     */
-    protected void maybeClearFlag (int flag)
-    {
-        if (flag > 0) {
-            _flags &= ~flag;
-        }
     }
 
     /**
@@ -694,11 +717,11 @@ public class TudeySceneController extends SceneController
     /** When true, we hold the hover state. */
     protected boolean _holdHover;
 
-    /** Maps key codes to input flags. */
-    protected IntIntMap _keyFlags = new IntIntMap();
+    /** Translates various events into pseudo-key events. */
+    protected PseudoKeys.Unifier _unifier = new PseudoKeys.Unifier(this);
 
-    /** Maps mouse buttons to input flags. */
-    protected int[] _buttonFlags = new int[3];
+    /** Maps pseudo-key codes to observers for individual keys. */
+    protected IntMap<PseudoKeys.Observer> _keyObservers = IntMaps.newHashIntMap();
 
     /** The current value of the input flags. */
     protected int _flags;
