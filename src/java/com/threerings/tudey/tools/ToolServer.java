@@ -124,7 +124,7 @@ public class ToolServer extends TudeyServer
         super.init(injector);
 
         // configure the client manager to use the appropriate client object class
-        _clmgr.setSessionFactory(new SessionFactory() {
+        _clmgr.setDefaultSessionFactory(new SessionFactory() {
             public Class<? extends PresentsSession> getSessionClass (AuthRequest areq) {
                 return WhirledSession.class;
             }
