@@ -44,6 +44,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.ModelAdapter;
@@ -89,6 +90,25 @@ public class ActorSprite extends Sprite
         public int getFloorFlags ()
         {
             return 0x0;
+        }
+
+        /**
+         * Determines whether the implementation is hoverable.
+         */
+        public boolean isHoverable ()
+        {
+            return false;
+        }
+
+        /**
+         * Dispatches an event on the implementation.
+         *
+         * @return true if the implementation handled the event, false if it should be handled
+         * elsewhere.
+         */
+        public boolean dispatchEvent (Event event)
+        {
+            return false;
         }
 
         /**
@@ -827,6 +847,18 @@ public class ActorSprite extends Sprite
     public int getFloorFlags ()
     {
         return _impl.getFloorFlags();
+    }
+
+    @Override // documentation inherited
+    public boolean isHoverable ()
+    {
+        return _impl.isHoverable();
+    }
+
+    @Override // documentation inherited
+    public boolean dispatchEvent (Event event)
+    {
+        return _impl.dispatchEvent(event);
     }
 
     @Override // documentation inherited
