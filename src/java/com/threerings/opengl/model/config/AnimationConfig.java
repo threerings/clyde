@@ -35,6 +35,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Transform3DExpression;
 import com.threerings.math.Transform3D;
+import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
@@ -139,6 +140,10 @@ public class AnimationConfig extends ParameterizedConfig
          * first). */
         @Editable(hgroup="l")
         public boolean skipLastFrame = true;
+
+        /** A (possibly random) offset to apply when the animation starts. */
+        @Editable(min=0, step=0.01, weight=2)
+        public FloatVariable offset = new FloatVariable.Constant(0f);
 
         /** Actions to perform at specific times within the animation. */
         @Editable(weight=2)
@@ -271,6 +276,10 @@ public class AnimationConfig extends ParameterizedConfig
      */
     public static class Procedural extends Original
     {
+        /** A (possibly random) offset to apply when the animation starts. */
+        @Editable(min=0, step=0.01)
+        public FloatVariable offset = new FloatVariable.Constant(0f);
+
         /** The list of target transforms. */
         @Editable
         public TargetTransform[] transforms = new TargetTransform[0];

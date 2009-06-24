@@ -247,7 +247,8 @@ public class Animation extends SimpleScope
         public void start ()
         {
             // initialize frame counter
-            _fidx = _eidx = 0;
+            int offset = Math.round(_config.offset.getValue() * getFrameRate());
+            _fidx = _eidx = offset % _config.transforms.length;
             _accum = 0f;
             _completed = false;
 
@@ -342,7 +343,7 @@ public class Animation extends SimpleScope
             Transform3D[] t1, t2;
             if (_transitioning) {
                 t1 = _snapshot;
-                t2 = transforms[0];
+                t2 = transforms[_fidx];
             } else {
                 t1 = transforms[_fidx];
                 t2 = transforms[(_fidx + 1) % transforms.length];
@@ -363,7 +364,7 @@ public class Animation extends SimpleScope
             Transform3D[] t1, t2;
             if (_transitioning) {
                 t1 = _snapshot;
-                t2 = transforms[0];
+                t2 = transforms[_fidx];
             } else {
                 t1 = transforms[_fidx];
                 t2 = transforms[(_fidx + 1) % transforms.length];
@@ -481,6 +482,16 @@ public class Animation extends SimpleScope
         }
 
         @Override // documentation inherited
+        public void start ()
+        {
+            // set the offset epoch
+            resetEpoch();
+
+            // blend in
+            super.start();
+        }
+
+        @Override // documentation inherited
         public void updateTransforms ()
         {
             for (TargetTransform transform : _transforms) {
@@ -500,6 +511,7 @@ public class Animation extends SimpleScope
         public void scopeUpdated (ScopeEvent event)
         {
             super.scopeUpdated(event);
+            resetEpoch();
             updateFromConfig();
         }
 
@@ -524,6 +536,15 @@ public class Animation extends SimpleScope
                     targets.toArray(new Articulated.Node[targets.size()]),
                     transform.expression.createEvaluator(this));
             }
+        }
+
+        /**
+         * Resets the epoch value to the current time minus the offset.
+         */
+        protected void resetEpoch ()
+        {
+            _epoch.value = ((Animation)_parentScope)._epoch.value -
+                (long)(_config.offset.getValue() * 1000f);
         }
 
         /**
@@ -588,6 +609,10 @@ public class Animation extends SimpleScope
 
         /** The target transforms. */
         protected TargetTransform[] _transforms;
+
+        /** The offset epoch. */
+        @Scoped
+        protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
     }
 
     /** An empty array of animations. */
