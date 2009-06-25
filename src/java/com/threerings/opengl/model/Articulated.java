@@ -386,6 +386,9 @@ public class Articulated extends Model.Implementation
             detachAll(node);
         }
         model.setParentScope(node);
+        if (_userAttachments.contains(model)) {
+            return;
+        }
         _userAttachments.add(model);
         Scene scene = ((Model)_parentScope).getScene(this);
         if (scene != null) {
