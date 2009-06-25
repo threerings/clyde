@@ -519,7 +519,7 @@ public class TudeySceneController extends SceneController
                 root.getMouseX(), root.getMouseY(), _pick);
 
             // see if it intersects anything in the scene
-            if (_holdHover) {
+            if (_holdHover && (_hsprite == null || _hsprite.isClickable())) {
                 nhsprite = _hsprite;
             } else {
                 SceneElement element = _tsview.getScene().getIntersection(
