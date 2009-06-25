@@ -101,6 +101,14 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Determines whether the implementation is clickable.
+         */
+        public boolean isClickable ()
+        {
+            return false;
+        }
+
+        /**
          * Dispatches an event on the implementation.
          *
          * @return true if the implementation handled the event, false if it should be handled
@@ -853,6 +861,12 @@ public class ActorSprite extends Sprite
     public boolean isHoverable ()
     {
         return _impl.isHoverable();
+    }
+
+    @Override // documentation inherited
+    public boolean isClickable ()
+    {
+        return _impl.isClickable();
     }
 
     @Override // documentation inherited

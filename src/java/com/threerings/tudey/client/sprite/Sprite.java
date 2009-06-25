@@ -64,6 +64,14 @@ public abstract class Sprite extends SimpleScope
     }
 
     /**
+     * Determines whether the sprite is clickable.
+     */
+    public boolean isClickable ()
+    {
+        return false;
+    }
+
+    /**
      * Dispatches an event on the sprite.
      *
      * @return true if the sprite handled the event, false if it should be handled elsewhere.

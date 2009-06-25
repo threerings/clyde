@@ -476,7 +476,7 @@ public class TudeySceneView extends SimpleScope
                     }
                 }
             } else {
-                if (id == _ctrl.getTargetId() && _ctrl.isTargetControlled()) {
+                if (_ctrl.isControlledTargetId(id)) {
                     _ctrl.controlledTargetUpdated(timestamp, actor);
                 } else {
                     sprite.update(timestamp, actor);

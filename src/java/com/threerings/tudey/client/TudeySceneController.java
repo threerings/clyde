@@ -110,6 +110,14 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Checks whether the specified actor id is that of the controlled target.
+     */
+    public boolean isControlledTargetId (int actorId)
+    {
+        return actorId == _targetId && _targetControlled;
+    }
+
+    /**
      * Returns a reference to the hover sprite, if any.
      */
     public Sprite getHoverSprite ()
