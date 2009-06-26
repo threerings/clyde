@@ -24,6 +24,18 @@
 
 package com.threerings.opengl;
 
+import java.awt.Transparency;
+import java.awt.color.ColorSpace;
+import java.awt.image.BufferedImage;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
+
+import java.nio.ByteBuffer;
+
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.samskivert.util.ObjectUtil;
@@ -134,6 +146,32 @@ public abstract class GlApp extends DynamicScope
     public String xlate (String bundle, String msg)
     {
         return _msgmgr.getBundle(bundle).xlate(msg);
+    }
+
+    /**
+     * Creates and returns a snapshot image of the current frame.
+     */
+    public BufferedImage createSnapshot ()
+    {
+        // read the contents of the frame buffer
+        int width = _renderer.getWidth(), height = _renderer.getHeight();
+        ByteBuffer buf = BufferUtils.createByteBuffer(3 * width * height);
+        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, buf);
+
+        // create a buffered image to match the format
+        ComponentColorModel cmodel = new ComponentColorModel(
+            ColorSpace.getInstance(ColorSpace.CS_sRGB), false, false,
+            Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
+        BufferedImage image = new BufferedImage(
+            cmodel, Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 3, null),
+            true, null);
+
+        // retrieve and populate the image data buffer
+        byte[] data = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
+        for (int yy = height - 1; yy >= 0; yy--) {
+            buf.get(data, yy*width*3, width*3);
+        }
+        return image;
     }
 
     // documentation inherited from interface GlContext

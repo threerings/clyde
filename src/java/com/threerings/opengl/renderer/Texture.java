@@ -419,7 +419,7 @@ public abstract class Texture
         }
 
         // get the pixel data and copy it to a byte buffer
-        byte[] rgba = ((DataBufferByte)dest.getData().getDataBuffer()).getData();
+        byte[] rgba = ((DataBufferByte)dest.getRaster().getDataBuffer()).getData();
         ByteBuffer data = BufferUtils.createByteBuffer(width * height * ncomps);
         data.put(rgba).rewind();
         return data;
