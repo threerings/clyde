@@ -94,6 +94,15 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Returns a reference to the world transform of the given point.
+         */
+        public Transform3D getPointWorldTransform (String point)
+        {
+            log.warning("Pointtransformation not supported.", "point", point);
+            return null;
+        }
+
+        /**
          * Attaches the specified model at the given point.
          *
          * @param replace if true, replace any existing attachments at the point.
@@ -399,6 +408,14 @@ public class Model extends DynamicScope
     public Transform3D getLocalTransform ()
     {
         return _localTransform;
+    }
+
+    /**
+     * Returns a reference to the world transform of the model point.
+     */
+    public Transform3D getPointWorldTransform (String point)
+    {
+        return _impl.getPointWorldTransform(point);
     }
 
     /**

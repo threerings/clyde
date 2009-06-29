@@ -376,6 +376,16 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public Transform3D getPointWorldTransform (String point)
+    {
+        Node node = getAttachmentNode(point);
+        if (node == null) {
+            return null;
+        }
+        return node.getWorldTransform();
+    }
+
+    @Override // documentation inherited
     public void attach (String point, Model model, boolean replace)
     {
         Node node = getAttachmentNode(point);

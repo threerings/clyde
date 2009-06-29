@@ -217,6 +217,14 @@ public abstract class Shape
     public abstract boolean intersects (Compound compound);
 
     /**
+     * Shapes can never intserct none.
+     */
+    public boolean intersects (None none)
+    {
+        return false;
+    }
+
+    /**
      * Finds the penetration of the specified shape into this one, assuming that they intersect.
      * The penetration vector represents the minimum translation required to separate the two
      * shapes.  Uses double-dispatch to invoke the appropriate method specialization.
@@ -254,6 +262,14 @@ public abstract class Shape
      * Finds the penetration of the specified compound into this shape.
      */
     public abstract Vector2f getPenetration (Compound compound, Vector2f result);
+
+    /**
+     * Shapes never penetrate none.
+     */
+    public Vector2f getPenetration (None none, Vector2f result)
+    {
+        return result.set(Vector2f.ZERO);
+    }
 
     /**
      * Draws this shape in immediate mode.

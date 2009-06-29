@@ -35,6 +35,7 @@ import com.threerings.tudey.shape.Circle;
 import com.threerings.tudey.shape.Capsule;
 import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Compound;
+import com.threerings.tudey.shape.None;
 
 /**
  * A simple implementation of the {@link SpaceElement} interface.
@@ -144,6 +145,12 @@ public abstract class SimpleSpaceElement
 
     // documentation inherited from interface SpaceElement
     public boolean intersects (Compound compound)
+    {
+        return false;
+    }
+
+    // documentation inherited from interface SpaceElement
+    public boolean intersects (None compound)
     {
         return false;
     }

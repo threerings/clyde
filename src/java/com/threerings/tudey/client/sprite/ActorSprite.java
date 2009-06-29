@@ -26,6 +26,7 @@ package com.threerings.tudey.client.sprite;
 
 import java.util.List;
 import java.util.HashSet;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 
@@ -707,6 +708,14 @@ public class ActorSprite extends Sprite
     public Model getModel ()
     {
         return _model;
+    }
+
+    /**
+     * Returns a reference to all the sprites models.
+     */
+    public Set<Model> getModels ()
+    {
+        return _attachedModels;
     }
 
     /**

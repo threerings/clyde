@@ -33,6 +33,7 @@ import com.threerings.tudey.shape.Circle;
 import com.threerings.tudey.shape.Capsule;
 import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Compound;
+import com.threerings.tudey.shape.None;
 
 /**
  * Interface for elements that can be embedded into spaces.
@@ -98,4 +99,9 @@ public interface SpaceElement extends SpaceObject
      * Determines whether this element intersects the supplied compound.
      */
     public boolean intersects (Compound compound);
+
+    /**
+     * Determines whether this element intersects the supplied none.
+     */
+    public boolean intersects (None none);
 }
