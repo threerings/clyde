@@ -247,6 +247,14 @@ public class ActorSprite extends Sprite
             return _config.model;
         }
 
+        /**
+         * Returns true if this sprite is being controlled by the client.
+         */
+        protected boolean isControlled ()
+        {
+            return ((ActorSprite)getParentScope()).getAdvancer() != null;
+        }
+
         /** The renderer context. */
         protected TudeyContext _ctx;
 
