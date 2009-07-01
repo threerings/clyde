@@ -272,6 +272,9 @@ public class TabbedPane extends Container
         add(tab.component, BorderLayout.CENTER);
         updateClose(tab.close);
         _selidx = tabidx;
+
+        // emit a change event
+        emitEvent(new ChangeEvent(this));
     }
 
     /**
