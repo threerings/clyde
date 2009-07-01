@@ -38,7 +38,10 @@ import com.threerings.opengl.effect.FloatFunction;
 @EditorTypes(value={
     FloatFunctionVariable.Fixed.class,
     FloatFunctionVariable.VariableConstant.class,
-    FloatFunctionVariable.VariableLinear.class }, label="mode")
+    FloatFunctionVariable.VariableLinear.class,
+    FloatFunctionVariable.VariableInAndOut.class,
+    FloatFunctionVariable.VariableThreePoint.class,
+    FloatFunctionVariable.VariableMultipoint.class }, label="mode")
 public abstract class FloatFunctionVariable extends DeepObject
     implements Exportable
 {
@@ -101,13 +104,13 @@ public abstract class FloatFunctionVariable extends DeepObject
      */
     public static class VariableLinear extends FloatFunctionVariable
     {
-        /** The value to return. */
+        /** The start value. */
         @Editable(
             min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
             step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
         public FloatVariable start = new FloatVariable.Constant();
 
-        /** The value to return. */
+        /** The end value. */
         @Editable(
             min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
             step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
@@ -126,6 +129,152 @@ public abstract class FloatFunctionVariable extends DeepObject
             lresult.end = end.getValue();
             lresult.easing = easing.copy(lresult.easing);
             return lresult;
+        }
+    }
+
+    /**
+     * Returns an in-and-out function with independent variable start and end values.
+     */
+    public static class VariableInAndOut extends FloatFunctionVariable
+    {
+        /** The start value. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public FloatVariable start = new FloatVariable.Constant();
+
+        /** The end value. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public FloatVariable end = new FloatVariable.Constant();
+
+        /** The proportional time to spend blending into the middle value. */
+        @Editable(min=0.0, max=1.0, step=0.01)
+        public FloatVariable in = new FloatVariable.Constant(0.25f);
+
+        /** The proportional time to spend blending into the end value. */
+        @Editable(min=0.0, max=1.0, step=0.01)
+        public FloatVariable out = new FloatVariable.Constant(0.25f);
+
+        @Override // documentation inherited
+        public FloatFunction getValue (FloatFunction result)
+        {
+            FloatFunction.InAndOut ioresult = (result instanceof FloatFunction.InAndOut) ?
+                ((FloatFunction.InAndOut)result) : new FloatFunction.InAndOut();
+            ioresult.start = start.getValue();
+            ioresult.end = end.getValue();
+            ioresult.in = in.getValue();
+            ioresult.out = out.getValue();
+            return ioresult;
+        }
+    }
+
+    /**
+     * Returns a three-point function with independent variable start, middle, and end values.
+     */
+    public static class VariableThreePoint extends FloatFunctionVariable
+    {
+        /** The start value. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public FloatVariable start = new FloatVariable.Constant();
+
+        /** The middle value. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public FloatVariable middle = new FloatVariable.Constant();
+
+        /** The end value. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public FloatVariable end = new FloatVariable.Constant();
+
+        /** The proportional time to spend blending into the middle value. */
+        @Editable(min=0.0, max=1.0, step=0.01)
+        public FloatVariable in = new FloatVariable.Constant(0.25f);
+
+        /** The proportional time to spend blending into the end value. */
+        @Editable(min=0.0, max=1.0, step=0.01)
+        public FloatVariable out = new FloatVariable.Constant(0.25f);
+
+        @Override // documentation inherited
+        public FloatFunction getValue (FloatFunction result)
+        {
+            FloatFunction.ThreePoint tpresult = (result instanceof FloatFunction.ThreePoint) ?
+                ((FloatFunction.ThreePoint)result) : new FloatFunction.ThreePoint();
+            tpresult.start = start.getValue();
+            tpresult.middle = middle.getValue();
+            tpresult.end = end.getValue();
+            tpresult.in = in.getValue();
+            tpresult.out = out.getValue();
+            return tpresult;
+        }
+    }
+
+    /**
+     * Returns a multipoint function with independent values.
+     */
+    public static class VariableMultipoint extends FloatFunctionVariable
+    {
+        /**
+         * A single point to blend between.
+         */
+        public static class Point extends DeepObject
+            implements Exportable
+        {
+            /** The value of the point. */
+            @Editable(
+                min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+                step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+            public FloatVariable value = new FloatVariable.Constant();
+
+            /** The time offset of the point. */
+            @Editable(min=0.0, max=1.0, step=0.01)
+            public FloatVariable offset = new FloatVariable.Constant(0.25f);
+        }
+
+        /** The start value. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public FloatVariable start = new FloatVariable.Constant();
+
+        /** The middle values. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public Point[] middle = new Point[0];
+
+        /** The end value. */
+        @Editable(
+            min=Editable.INHERIT_DOUBLE, max=Editable.INHERIT_DOUBLE,
+            step=Editable.INHERIT_DOUBLE, scale=Editable.INHERIT_DOUBLE)
+        public FloatVariable end = new FloatVariable.Constant();
+
+        @Override // documentation inherited
+        public FloatFunction getValue (FloatFunction result)
+        {
+            FloatFunction.Multipoint mpresult = (result instanceof FloatFunction.Multipoint) ?
+                ((FloatFunction.Multipoint)result) : new FloatFunction.Multipoint();
+            mpresult.start = start.getValue();
+            if (mpresult.middle.length != middle.length) {
+                mpresult.middle = new FloatFunction.Multipoint.Point[middle.length];
+                for (int ii = 0; ii < middle.length; ii++) {
+                    mpresult.middle[ii] = new FloatFunction.Multipoint.Point();
+                }
+            }
+            for (int ii = 0; ii < middle.length; ii++) {
+                Point point = middle[ii];
+                FloatFunction.Multipoint.Point mpoint = mpresult.middle[ii];
+                mpoint.value = point.value.getValue();
+                mpoint.offset = point.offset.getValue();
+            }
+            mpresult.end = end.getValue();
+            return mpresult;
         }
     }
 

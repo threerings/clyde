@@ -324,7 +324,7 @@ public abstract class FloatFunction extends DeepObject
         /**
          * A single point to blend between.
          */
-        public static class Point
+        public static class Point extends DeepObject
             implements Exportable
         {
             /** The value of the point. */
