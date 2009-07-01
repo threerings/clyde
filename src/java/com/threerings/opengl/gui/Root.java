@@ -553,12 +553,19 @@ public abstract class Root extends SimpleOverlay
         }
 
         // validate all invalid roots
+        boolean updateHover = false;
         while (_invalidRoots.size() > 0) {
             Component root = _invalidRoots.remove(0);
             // make sure the root is still added to the view hierarchy
             if (root.isAdded()) {
                 root.validate();
+                updateHover = true;
             }
+        }
+
+        // update the hover component if necessary
+        if (updateHover) {
+            updateHoverComponent(_mouseX, _mouseY);
         }
 
         // notify our tick participants
