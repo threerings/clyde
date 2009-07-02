@@ -668,6 +668,14 @@ public class Component
     }
 
     /**
+     * Returns the component's tooltip timeout, or -1 to use the default.
+     */
+    public float getTooltipTimeout ()
+    {
+        return -1f;
+    }
+
+    /**
      * Sets the transfer handler for this component.
      */
     public void setTransferHandler (TransferHandler handler)

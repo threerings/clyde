@@ -342,7 +342,8 @@ public abstract class Root extends SimpleOverlay
      */
     public float getTooltipTimeout ()
     {
-        return _tipTime;
+        float htimeout = (_hcomponent == null) ? -1f : _hcomponent.getTooltipTimeout();
+        return (htimeout < 0f) ? _tipTime : htimeout;
     }
 
     /**
