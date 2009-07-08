@@ -167,7 +167,10 @@ public class PopupMenu extends PopupWindow
             }
         } while (columns < 4);
 
-        // now actually lay ourselves out
+        // pack with a rough estimate of the preferred size, then lay out and pack with
+        // the actual size
+        pack();
+        validate();
         pack();
 
         // adjust x and y to ensure that we fit on the screen
@@ -175,7 +178,6 @@ public class PopupMenu extends PopupWindow
         y = above ?
             Math.min(height - getHeight(), y) : Math.max(0, y - getHeight());
         setLocation(x, y);
-        validate();
     }
 
     /**
