@@ -554,26 +554,10 @@ public class SceneEditor extends TudeyTool
             _pathDefiner.setReference(((PathEntry)entry).path);
 
         } else if (entry instanceof TileEntry) {
+            setActiveTool(_tileBrush);
             TileEntry tentry = (TileEntry)entry;
-            Coord coord = tentry.getLocation();
-            Paint paint = _scene.getPaint(coord.x, coord.y);
-            if (paint == null) {
-                setActiveTool(_tileBrush);
-                _tileBrush.setReference(tentry.tile);
-                _tileBrush.setRotation(tentry.rotation);
-
-            } else if (paint.type == Paint.Type.FLOOR || paint.type == Paint.Type.EDGE) {
-                setActiveTool(_groundBrush);
-                @SuppressWarnings("unchecked") ConfigReference<GroundConfig> ref =
-                    (ConfigReference<GroundConfig>)paint.paintable;
-                _groundBrush.setReference(ref);
-
-            } else if (paint.type == Paint.Type.WALL) {
-                setActiveTool(_wallBrush);
-                @SuppressWarnings("unchecked") ConfigReference<WallConfig> ref =
-                    (ConfigReference<WallConfig>)paint.paintable;
-                _wallBrush.setReference(ref);
-            }
+            _tileBrush.setReference(tentry.tile);
+            _tileBrush.setRotation(tentry.rotation);
         }
     }
 
