@@ -82,17 +82,17 @@ public class TextureUnitConfig extends DeepObject
     /**
      * Checks whether the unit configuration is supported.
      */
-    public boolean isSupported (GlContext ctx)
+    public boolean isSupported (GlContext ctx, boolean fallback)
     {
-        if (!(environment.isSupported() &&
-            (coordGenS == null || coordGenS.isSupported()) &&
-            (coordGenT == null || coordGenT.isSupported()) &&
-            (coordGenR == null || coordGenR.isSupported()) &&
-            (coordGenQ == null || coordGenQ.isSupported()))) {
+        if (!(environment.isSupported(fallback) &&
+            (coordGenS == null || coordGenS.isSupported(fallback)) &&
+            (coordGenT == null || coordGenT.isSupported(fallback)) &&
+            (coordGenR == null || coordGenR.isSupported(fallback)) &&
+            (coordGenQ == null || coordGenQ.isSupported(fallback)))) {
             return false;
         }
         TextureConfig config = getTextureConfig(ctx);
-        return config == null || config.isSupported(ctx);
+        return config == null || config.isSupported(ctx, fallback);
     }
 
     /**

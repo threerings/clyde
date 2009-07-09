@@ -59,7 +59,7 @@ public abstract class ShaderStateConfig extends DeepObject
     public static class Disabled extends ShaderStateConfig
     {
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return true;
         }
@@ -97,7 +97,7 @@ public abstract class ShaderStateConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return (vertex == null || GLContext.getCapabilities().GL_ARB_vertex_shader) &&
                 (fragment == null || GLContext.getCapabilities().GL_ARB_fragment_shader);
@@ -182,7 +182,7 @@ public abstract class ShaderStateConfig extends DeepObject
     /**
      * Determines whether this state is supported by the hardware.
      */
-    public abstract boolean isSupported (GlContext ctx);
+    public abstract boolean isSupported (GlContext ctx, boolean fallback);
 
     /**
      * Populates the relevant portion of the supplied descriptor.

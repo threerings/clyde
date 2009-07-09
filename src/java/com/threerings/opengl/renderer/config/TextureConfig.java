@@ -118,7 +118,7 @@ public class TextureConfig extends ParameterizedConfig
             return _constant;
         }
 
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return (!_depth || GLContext.getCapabilities().GL_ARB_depth_texture);
         }
@@ -199,18 +199,25 @@ public class TextureConfig extends ParameterizedConfig
     {
         CLAMP(GL11.GL_CLAMP),
         CLAMP_TO_EDGE(GL12.GL_CLAMP_TO_EDGE) {
-            public boolean isSupported () {
-                return GLContext.getCapabilities().OpenGL12;
+            public int getConstant () {
+                return GLContext.getCapabilities().OpenGL12 ? _constant : GL11.GL_CLAMP;
+            }
+            public boolean isSupported (boolean fallback) {
+                return GLContext.getCapabilities().OpenGL12 || fallback;
             }
         },
         REPEAT(GL11.GL_REPEAT),
         CLAMP_TO_BORDER(ARBTextureBorderClamp.GL_CLAMP_TO_BORDER_ARB) {
-            public boolean isSupported () {
-                return GLContext.getCapabilities().GL_ARB_texture_border_clamp;
+            public int getConstant () {
+                return GLContext.getCapabilities().GL_ARB_texture_border_clamp ?
+                    _constant : GL11.GL_CLAMP;
+            }
+            public boolean isSupported (boolean fallback) {
+                return GLContext.getCapabilities().GL_ARB_texture_border_clamp || fallback;
             }
         },
         MIRRORED_REPEAT(ARBTextureMirroredRepeat.GL_MIRRORED_REPEAT_ARB) {
-            public boolean isSupported () {
+            public boolean isSupported (boolean fallback) {
                 return GLContext.getCapabilities().GL_ARB_texture_mirrored_repeat;
             }
         };
@@ -220,7 +227,7 @@ public class TextureConfig extends ParameterizedConfig
             return _constant;
         }
 
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return true;
         }
@@ -238,7 +245,7 @@ public class TextureConfig extends ParameterizedConfig
     {
         NONE(GL11.GL_NONE),
         COMPARE_R_TO_TEXTURE(ARBShadow.GL_COMPARE_R_TO_TEXTURE_ARB) {
-            public boolean isSupported () {
+            public boolean isSupported (boolean fallback) {
                 return GLContext.getCapabilities().GL_ARB_shadow;
             }
         };
@@ -248,7 +255,7 @@ public class TextureConfig extends ParameterizedConfig
             return _constant;
         }
 
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return true;
         }
@@ -328,7 +335,7 @@ public class TextureConfig extends ParameterizedConfig
         /**
          * Determines whether this configuration is supported by the hardware.
          */
-        public abstract boolean isSupported (GlContext ctx);
+        public abstract boolean isSupported (GlContext ctx, boolean fallback);
 
         /**
          * Returns the texture corresponding to this configuration.
@@ -403,11 +410,11 @@ public class TextureConfig extends ParameterizedConfig
         public DepthMode depthMode = DepthMode.LUMINANCE;
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
-            return format.isSupported() &&
-                wrapS.isSupported() && wrapT.isSupported() && wrapR.isSupported() &&
-                compareMode.isSupported();
+            return format.isSupported(fallback) && wrapS.isSupported(fallback) &&
+                wrapT.isSupported(fallback) && wrapR.isSupported(fallback) &&
+                compareMode.isSupported(fallback);
         }
 
         @Override // documentation inherited
@@ -674,9 +681,10 @@ public class TextureConfig extends ParameterizedConfig
     public static class OriginalRectangle extends Original2D
     {
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
-            return super.isSupported(ctx) && GLContext.getCapabilities().GL_ARB_texture_rectangle;
+            return super.isSupported(ctx, fallback) &&
+                GLContext.getCapabilities().GL_ARB_texture_rectangle;
         }
 
         @Override // documentation inherited
@@ -806,9 +814,9 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
-            return super.isSupported(ctx) && GLContext.getCapabilities().OpenGL12;
+            return super.isSupported(ctx, fallback) && GLContext.getCapabilities().OpenGL12;
         }
 
         @Override // documentation inherited
@@ -1031,9 +1039,10 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
-            return super.isSupported(ctx) && GLContext.getCapabilities().GL_ARB_texture_cube_map;
+            return super.isSupported(ctx, fallback) &&
+                GLContext.getCapabilities().GL_ARB_texture_cube_map;
         }
 
         @Override // documentation inherited
@@ -1061,10 +1070,10 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
-            return config == null || config.isSupported(ctx);
+            return config == null || config.isSupported(ctx, fallback);
         }
 
         @Override // documentation inherited
@@ -1107,9 +1116,9 @@ public class TextureConfig extends ParameterizedConfig
     /**
      * Checks whether the texture configuration is supported.
      */
-    public boolean isSupported (GlContext ctx)
+    public boolean isSupported (GlContext ctx, boolean fallback)
     {
-        return implementation.isSupported(ctx);
+        return implementation.isSupported(ctx, fallback);
     }
 
     /**

@@ -95,13 +95,13 @@ public abstract class TargetConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             TextureConfig cconfig = ctx.getConfigManager().getConfig(TextureConfig.class, color);
             TextureConfig dconfig = ctx.getConfigManager().getConfig(TextureConfig.class, depth);
             return (cconfig != null || dconfig != null) &&
-                (cconfig == null || cconfig.isSupported(ctx)) &&
-                (dconfig == null || dconfig.isSupported(ctx));
+                (cconfig == null || cconfig.isSupported(ctx, fallback)) &&
+                (dconfig == null || dconfig.isSupported(ctx, fallback));
         }
 
         @Override // documentation inherited
@@ -142,10 +142,10 @@ public abstract class TargetConfig extends DeepObject
     /**
      * Determines whether this target config is supported by the hardware.
      */
-    public boolean isSupported (GlContext ctx)
+    public boolean isSupported (GlContext ctx, boolean fallback)
     {
         for (StepConfig step : steps) {
-            if (!step.isSupported(ctx)) {
+            if (!step.isSupported(ctx, fallback)) {
                 return false;
             }
         }

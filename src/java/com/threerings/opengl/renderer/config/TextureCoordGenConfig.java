@@ -111,7 +111,7 @@ public abstract class TextureCoordGenConfig extends DeepObject
     public static class NormalMap extends TextureCoordGenConfig
     {
         @Override // documentation inherited
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_cube_map;
         }
@@ -129,7 +129,7 @@ public abstract class TextureCoordGenConfig extends DeepObject
     public static class ReflectionMap extends TextureCoordGenConfig
     {
         @Override // documentation inherited
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_cube_map;
         }
@@ -144,7 +144,7 @@ public abstract class TextureCoordGenConfig extends DeepObject
     /**
      * Checks whether the mode is supported.
      */
-    public boolean isSupported ()
+    public boolean isSupported (boolean fallback)
     {
         return true;
     }

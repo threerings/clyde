@@ -57,13 +57,13 @@ public class TextureStateConfig extends DeepObject
     /**
      * Determines whether this state is supported by the hardware.
      */
-    public boolean isSupported (GlContext ctx)
+    public boolean isSupported (GlContext ctx, boolean fallback)
     {
         if (units.length > ctx.getRenderer().getMaxTextureImageUnits()) {
             return false;
         }
         for (TextureUnitConfig unit : units) {
-            if (!unit.isSupported(ctx)) {
+            if (!unit.isSupported(ctx, fallback)) {
                 return false;
             }
         }

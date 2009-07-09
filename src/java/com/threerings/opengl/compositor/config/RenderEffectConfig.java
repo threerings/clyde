@@ -142,12 +142,20 @@ public class RenderEffectConfig extends BoundConfig
         {
             if (_processedTechniques == null) {
                 ArrayList<Technique> list = new ArrayList<Technique>();
+                ArrayList<Technique> fallbacks = new ArrayList<Technique>();
                 for (Technique technique : techniques) {
-                    Technique processed = technique.process(ctx);
-                    if (processed != null) {
+                    // first try without fallbacks, then with
+                    Technique processed = technique.process(ctx, false);
+                    if (processed == null) {
+                        Technique fallback = technique.process(ctx, true);
+                        if (fallback != null) {
+                            fallbacks.add(fallback);
+                        }
+                    } else {
                         list.add(processed);
                     }
                 }
+                list.addAll(fallbacks);
                 _processedTechniques = list.toArray(new Technique[list.size()]);
             }
             return _processedTechniques;
@@ -224,23 +232,23 @@ public class RenderEffectConfig extends BoundConfig
          *
          * @return the processed technique, or <code>null</code> if the technique is not supported.
          */
-        public Technique process (GlContext ctx)
+        public Technique process (GlContext ctx, boolean fallback)
         {
             // for now, we don't do any actual processing; we just check for support
-            return isSupported(ctx) ? this : null;
+            return isSupported(ctx, fallback) ? this : null;
         }
 
         /**
          * Determines whether this technique is supported.
          */
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (TargetConfig target : targets) {
-                if (!target.isSupported(ctx)) {
+                if (!target.isSupported(ctx, fallback)) {
                     return false;
                 }
             }
-            return output.isSupported(ctx);
+            return output.isSupported(ctx, fallback);
         }
 
         /**

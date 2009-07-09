@@ -57,12 +57,12 @@ public abstract class TextureEnvironmentConfig extends DeepObject
         INTERPOLATE(ARBTextureEnvCombine.GL_INTERPOLATE_ARB),
         SUBTRACT(ARBTextureEnvCombine.GL_SUBTRACT_ARB),
         DOT3_RGB(ARBTextureEnvDot3.GL_DOT3_RGB_ARB) {
-            public boolean isSupported () {
+            public boolean isSupported (boolean fallback) {
                 return GLContext.getCapabilities().GL_ARB_texture_env_dot3;
             }
         },
         DOT3_RGBA(ARBTextureEnvDot3.GL_DOT3_RGBA_ARB) {
-            public boolean isSupported () {
+            public boolean isSupported (boolean fallback) {
                 return GLContext.getCapabilities().GL_ARB_texture_env_dot3;
             }
         };
@@ -72,7 +72,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
             return _constant;
         }
 
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return true;
         }
@@ -243,7 +243,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     public static class Add extends TextureEnvironmentConfig
     {
         @Override // documentation inherited
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_env_add;
         }
@@ -301,7 +301,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
         public Scale alphaScale = Scale.ONE;
 
         @Override // documentation inherited
-        public boolean isSupported ()
+        public boolean isSupported (boolean fallback)
         {
             return GLContext.getCapabilities().GL_ARB_texture_env_combine;
         }
@@ -396,7 +396,7 @@ public abstract class TextureEnvironmentConfig extends DeepObject
     /**
      * Checks whether the mode is supported.
      */
-    public boolean isSupported ()
+    public boolean isSupported (boolean fallback)
     {
         return true;
     }

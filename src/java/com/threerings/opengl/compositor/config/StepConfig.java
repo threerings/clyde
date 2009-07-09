@@ -195,7 +195,7 @@ public abstract class StepConfig extends DeepObject
         public int divisionsY = 1;
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             MaterialConfig config = ctx.getConfigManager().getConfig(
                 MaterialConfig.class, material);
@@ -235,7 +235,7 @@ public abstract class StepConfig extends DeepObject
     /**
      * Determines whether this step config is supported by the hardware.
      */
-    public boolean isSupported (GlContext ctx)
+    public boolean isSupported (GlContext ctx, boolean fallback)
     {
         return true;
     }

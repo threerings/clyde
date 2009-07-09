@@ -126,6 +126,8 @@ public abstract class MaterialStateConfig extends DeepObject
         @Override // documentation inherited
         public MaterialState getState ()
         {
+            boolean separateSpecular =
+                this.separateSpecular && GLContext.getCapabilities().OpenGL12;
             return uniqueInstance ?
                 new MaterialState(
                     ambient, diffuse, specular, emission, shininess,
@@ -166,6 +168,8 @@ public abstract class MaterialStateConfig extends DeepObject
         @Override // documentation inherited
         public MaterialState getState ()
         {
+            boolean separateSpecular =
+                this.separateSpecular && GLContext.getCapabilities().OpenGL12;
             return uniqueInstance ?
                 new MaterialState(
                     front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
@@ -242,9 +246,9 @@ public abstract class MaterialStateConfig extends DeepObject
     /**
      * Determines whether this state is supported by the hardware.
      */
-    public boolean isSupported ()
+    public boolean isSupported (boolean fallback)
     {
-        return !separateSpecular || GLContext.getCapabilities().OpenGL12;
+        return !separateSpecular || GLContext.getCapabilities().OpenGL12 || fallback;
     }
 
     /**

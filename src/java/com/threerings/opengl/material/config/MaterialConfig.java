@@ -154,12 +154,20 @@ public class MaterialConfig extends ParameterizedConfig
         {
             if (_processedTechniques == null) {
                 _processedTechniques = new ArrayList<TechniqueConfig>();
+                ArrayList<TechniqueConfig> fallbacks = new ArrayList<TechniqueConfig>();
                 for (TechniqueConfig technique : techniques) {
-                    TechniqueConfig processed = technique.process(ctx);
-                    if (processed != null) {
+                    // first try without fallbacks, then with
+                    TechniqueConfig processed = technique.process(ctx, false);
+                    if (processed == null) {
+                        TechniqueConfig fallback = technique.process(ctx, true);
+                        if (fallback != null) {
+                            fallbacks.add(fallback);
+                        }
+                    } else {
                         _processedTechniques.add(processed);
                     }
                 }
+                _processedTechniques.addAll(fallbacks);
             }
             return _processedTechniques;
         }

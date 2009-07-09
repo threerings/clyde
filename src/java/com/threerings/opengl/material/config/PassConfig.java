@@ -143,11 +143,11 @@ public class PassConfig extends DeepObject
     /**
      * Determines whether this pass is supported.
      */
-    public boolean isSupported (GlContext ctx)
+    public boolean isSupported (GlContext ctx, boolean fallback)
     {
-        return (materialState == null || materialState.isSupported()) &&
-            shaderState.isSupported(ctx) &&
-            textureState.isSupported(ctx);
+        return (materialState == null || materialState.isSupported(fallback)) &&
+            shaderState.isSupported(ctx, fallback) &&
+            textureState.isSupported(ctx, fallback);
     }
 
     /**

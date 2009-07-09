@@ -80,7 +80,7 @@ public class TechniqueConfig extends DeepObject
         /**
          * Determines whether the dependency is supported.
          */
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return true;
         }
@@ -98,7 +98,7 @@ public class TechniqueConfig extends DeepObject
     public static class StencilReflectionDependency extends TechniqueDependency
     {
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return ctx.getRenderer().getStencilBits() > 0;
         }
@@ -126,7 +126,7 @@ public class TechniqueConfig extends DeepObject
         public float ratio = 1f;
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return ctx.getRenderer().getStencilBits() > 0;
         }
@@ -154,7 +154,7 @@ public class TechniqueConfig extends DeepObject
         public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             RenderEffectConfig config = ctx.getConfigManager().getConfig(
                 RenderEffectConfig.class, renderEffect);
@@ -208,7 +208,7 @@ public class TechniqueConfig extends DeepObject
         /**
          * Determines whether this enqueuer is supported by the hardware.
          */
-        public abstract boolean isSupported (GlContext ctx);
+        public abstract boolean isSupported (GlContext ctx, boolean fallback);
 
         /**
          * Calls the appropriate corresponding rewrite method of {@link MaterialRewriter}.
@@ -259,10 +259,10 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (PassConfig pass : passes) {
-                if (!pass.isSupported(ctx)) {
+                if (!pass.isSupported(ctx, fallback)) {
                     return false;
                 }
             }
@@ -433,10 +433,10 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
             for (Enqueuer enqueuer : enqueuers) {
-                if (!enqueuer.isSupported(ctx)) {
+                if (!enqueuer.isSupported(ctx, fallback)) {
                     return false;
                 }
             }
@@ -538,9 +538,9 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public boolean isSupported (GlContext ctx)
+        public boolean isSupported (GlContext ctx, boolean fallback)
         {
-            return _wrapped.isSupported(ctx);
+            return _wrapped.isSupported(ctx, fallback);
         }
 
         @Override // documentation inherited
@@ -617,23 +617,23 @@ public class TechniqueConfig extends DeepObject
      *
      * @return the processed technique, or <code>null</code> if the technique is not supported.
      */
-    public TechniqueConfig process (GlContext ctx)
+    public TechniqueConfig process (GlContext ctx, boolean fallback)
     {
         // for now, we don't do any actual processing; we just check for support
-        return isSupported(ctx) ? this : null;
+        return isSupported(ctx, fallback) ? this : null;
     }
 
     /**
      * Determines whether this technique is supported.
      */
-    public boolean isSupported (GlContext ctx)
+    public boolean isSupported (GlContext ctx, boolean fallback)
     {
         for (TechniqueDependency dependency : dependencies) {
-            if (!dependency.isSupported(ctx)) {
+            if (!dependency.isSupported(ctx, fallback)) {
                 return false;
             }
         }
-        return enqueuer.isSupported(ctx);
+        return enqueuer.isSupported(ctx, fallback);
     }
 
     /**
