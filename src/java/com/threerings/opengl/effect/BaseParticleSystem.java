@@ -139,7 +139,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
          */
         public boolean tick (float elapsed)
         {
-            if (_completed) {
+            if (!_config.visible || _completed) {
                 return true;
             } else if ((_total += elapsed) <= _config.startTime) {
                 return false;

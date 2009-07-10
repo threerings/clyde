@@ -39,6 +39,7 @@ import java.util.prefs.Preferences;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -109,6 +110,8 @@ public class ModelViewer extends ModelTool
 
         JMenu view = createMenu("view", KeyEvent.VK_V);
         menubar.add(view);
+        view.add(_autoReset = createCheckBoxMenuItem("auto_reset", KeyEvent.VK_A, KeyEvent.VK_E));
+        view.addSeparator();
         view.add(_showEnvironment =
             createCheckBoxMenuItem("environment", KeyEvent.VK_E, KeyEvent.VK_V));
         _showEnvironment.setSelected(true);
@@ -299,6 +302,15 @@ public class ModelViewer extends ModelTool
         updateView(lelapsed / 1000f);
     }
 
+    @Override // documentation inherited
+    protected void updateView (float elapsed)
+    {
+        super.updateView(elapsed);
+        if (_autoReset.isSelected() && _model.hasCompleted()) {
+            _model.reset();
+        }
+    }
+
     /**
      * Updates all of the track controls.
      */
@@ -370,6 +382,9 @@ public class ModelViewer extends ModelTool
         /** The start and stop buttons. */
         protected JButton _start, _stop;
     }
+
+    /** The toggle for automatic reset. */
+    protected JCheckBoxMenuItem _autoReset;
 
     /** The panel that holds the control bits. */
     protected JPanel _cpanel;
