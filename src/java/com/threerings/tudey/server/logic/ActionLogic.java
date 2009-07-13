@@ -60,11 +60,11 @@ public abstract class ActionLogic extends Logic
     public static class SpawnActor extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
             ConfigReference<ActorConfig> actor = ((ActionConfig.SpawnActor)_config).actor;
             if (actor == null) {
-                return;
+                return true;
             }
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
@@ -74,6 +74,7 @@ public abstract class ActionLogic extends Logic
                 initLogic(logic, timestamp, activator);
             }
             _targets.clear();
+            return true;
         }
 
         @Override // documentation inherited
@@ -103,16 +104,19 @@ public abstract class ActionLogic extends Logic
     public static class DestroyActor extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
+            boolean success = false;
             _target.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
                 if (target instanceof ActorLogic) {
                     ((ActorLogic)target).destroy(timestamp);
+                    success = true;
                 }
             }
             _targets.clear();
+            return success;
         }
 
         @Override // documentation inherited
@@ -131,8 +135,9 @@ public abstract class ActionLogic extends Logic
     public static class WarpActor extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
+            boolean success = false;
             _target.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
@@ -147,8 +152,10 @@ public abstract class ActionLogic extends Logic
                 _locations.clear();
                 Vector2f translation = location.getTranslation();
                 ((ActorLogic)target).warp(translation.x, translation.y, location.getRotation());
+                success = true;
             }
             _targets.clear();
+            return success;
         }
 
         @Override // documentation inherited
@@ -175,7 +182,7 @@ public abstract class ActionLogic extends Logic
     public static class FireEffect extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
             ConfigReference<EffectConfig> effect = ((ActionConfig.FireEffect)_config).effect;
             _location.resolve(activator, _targets);
@@ -185,6 +192,7 @@ public abstract class ActionLogic extends Logic
                     timestamp, target.getTranslation(), target.getRotation(), effect);
             }
             _targets.clear();
+            return true;
         }
 
         @Override // documentation inherited
@@ -203,7 +211,7 @@ public abstract class ActionLogic extends Logic
     public static class Signal extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
             String name = ((ActionConfig.Signal)_config).name;
             _target.resolve(activator, _targets);
@@ -211,6 +219,7 @@ public abstract class ActionLogic extends Logic
                 _targets.get(ii).signal(timestamp, _source, name);
             }
             _targets.clear();
+            return true;
         }
 
         @Override // documentation inherited
@@ -251,8 +260,9 @@ public abstract class ActionLogic extends Logic
     public static class MoveBody extends AbstractMove
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
+            boolean success = false;
             _target.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
@@ -264,9 +274,11 @@ public abstract class ActionLogic extends Logic
                     ((TudeySceneObject)_scenemgr.getPlaceObject()).getOccupantInfo(pawnId);
                 if (info != null) {
                     moveBody(info.getBodyOid());
+                    success = true;
                 }
             }
             _targets.clear();
+            return success;
         }
 
         @Override // documentation inherited
@@ -285,12 +297,13 @@ public abstract class ActionLogic extends Logic
     public static class MoveAll extends AbstractMove
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
             OidList occupants = _scenemgr.getPlaceObject().occupants;
             for (int ii = 0, nn = occupants.size(); ii < nn; ii++) {
                 moveBody(occupants.get(ii));
             }
+            return true;
         }
     }
 
@@ -300,13 +313,14 @@ public abstract class ActionLogic extends Logic
     public static class Conditional extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
             if (_condition.isSatisfied(activator)) {
-                _action.execute(timestamp, activator);
+                return _action.execute(timestamp, activator);
             } else if (_elseAction != null) {
-                _elseAction.execute(timestamp, activator);
+                return _elseAction.execute(timestamp, activator);
             }
+            return true;
         }
 
         @Override // documentation inherited
@@ -336,11 +350,13 @@ public abstract class ActionLogic extends Logic
     public static class Compound extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
+            boolean success = false;
             for (ActionLogic action : _actions) {
-                action.execute(timestamp, activator);
+                success = action.execute(timestamp, activator) | success;
             }
+            return success;
         }
 
         @Override // documentation inherited
@@ -366,12 +382,13 @@ public abstract class ActionLogic extends Logic
     public static class Random extends ActionLogic
     {
         @Override // documentation inherited
-        public void execute (int timestamp, Logic activator)
+        public boolean execute (int timestamp, Logic activator)
         {
             int idx = RandomUtil.getWeightedIndex(_weights);
             if (idx >= 0) {
-                _actions[idx].execute(timestamp, activator);
+                return _actions[idx].execute(timestamp, activator);
             }
+            return true;
         }
 
         @Override // documentation inherited
@@ -411,8 +428,9 @@ public abstract class ActionLogic extends Logic
      * Executes the action.
      *
      * @param activator the entity that triggered the action.
+     * @return true of the action completed successfully
      */
-    public abstract void execute (int timestamp, Logic activator);
+    public abstract boolean execute (int timestamp, Logic activator);
 
     @Override // documentation inherited
     public boolean isActive ()
