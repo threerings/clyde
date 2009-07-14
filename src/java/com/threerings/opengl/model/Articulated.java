@@ -708,7 +708,7 @@ public class Articulated extends Model.Implementation
         for (NodeTransform transform : _config.nodeTransforms) {
             Node node = _nodesByName.get(transform.node);
             if (node != null) {
-                node.setUpdater(transform.createUpdater(node));
+                node.setUpdater(transform.createUpdater(_ctx, node));
             }
         }
 

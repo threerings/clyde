@@ -80,6 +80,22 @@ public final class Quaternion
     }
 
     /**
+     * Sets this quaternion to the rotation of the first normalized vector onto the second.
+     */
+    public Quaternion fromVectors (Vector3f v1, Vector3f v2)
+    {
+        float ax = v1.y*v2.z - v1.z*v2.y;
+        float ay = v1.z*v2.x - v1.x*v2.z;
+        float az = v1.x*v2.y - v1.y*v2.x;
+        float l2 = ax*ax + ay*ay + az*az;
+        if (l2 < FloatMath.EPSILON) {
+            return set(IDENTITY);
+        }
+        float len = FloatMath.sqrt(l2), rlen = 1f / len;
+        return fromAngleAxis(FloatMath.asin(len), ax * rlen, ay * rlen, az * rlen);
+    }
+
+    /**
      * Sets this quaternion to the rotation described by the given angle and normalized
      * axis.
      *

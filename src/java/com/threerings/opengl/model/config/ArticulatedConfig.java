@@ -263,7 +263,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
     /**
      * Represents a transform to apply to a node.
      */
-    @EditorTypes({ Billboard.class })
+    @EditorTypes({ Billboard.class, Upright.class })
     public abstract class NodeTransform extends DeepObject
         implements Exportable
     {
@@ -282,7 +282,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         /**
          * Creates the updater that will apply the node transform.
          */
-        public abstract Updater createUpdater (Articulated.Node node);
+        public abstract Updater createUpdater (GlContext ctx, Articulated.Node node);
     }
 
     /**
@@ -299,7 +299,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         public BillboardRotationY rotationY = BillboardRotationY.ALIGN_TO_VIEW;
 
         @Override // documentation inherited
-        public Updater createUpdater (Articulated.Node node)
+        public Updater createUpdater (GlContext ctx, Articulated.Node node)
         {
             Transform3D viewTransform = node.getViewTransform();
             final Quaternion rotation = viewTransform.getRotation();
@@ -367,6 +367,39 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 public void update () {
                     rotation.set(value);
                 }
+            };
+        }
+    }
+
+    /**
+     * A transform that orients the node vertically with respect to the world coordinate system.
+     */
+    public class Upright extends NodeTransform
+    {
+        /** Whether or not the transform incorporates the node's direction. */
+        @Editable
+        public boolean directional;
+
+        @Override // documentation inherited
+        public Updater createUpdater (final GlContext ctx, Articulated.Node node)
+        {
+            final Quaternion vrot = node.getViewTransform().getRotation();
+            if (!directional) {
+                return new Updater() {
+                    public void update () {
+                        vrot.set(ctx.getCompositor().getCamera().getViewTransform().getRotation());
+                    }
+                };
+            }
+            return new Updater() {
+                public void update () {
+                    Transform3D camview = ctx.getCompositor().getCamera().getViewTransform();
+                    camview.getRotation().transformUnitZ(_cup);
+                    vrot.transformUnitZ(_vup);
+                    _rot.fromVectors(_vup, _cup).mult(vrot, vrot);
+                }
+                protected Vector3f _cup = new Vector3f(), _vup = new Vector3f();
+                protected Quaternion _rot = new Quaternion();
             };
         }
     }
