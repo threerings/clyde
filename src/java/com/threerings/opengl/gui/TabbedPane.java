@@ -34,8 +34,6 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
-import com.threerings.opengl.gui.event.ChangeEvent;
-import com.threerings.opengl.gui.event.ChangeListener;
 import com.threerings.opengl.gui.layout.BorderLayout;
 import com.threerings.opengl.gui.layout.GroupLayout;
 
@@ -251,30 +249,7 @@ public class TabbedPane extends Container
      */
     public void selectTab (int tabidx)
     {
-        // no NOOPing
-        if (tabidx == _selidx) {
-            return;
-        }
-        tabidx = Math.max(0, Math.min(_tabs.size() - 1, tabidx));
-
-        // make sure the appropriate button is selected
-        for (int ii = 0; ii < _tabs.size(); ii++) {
-            getTabButton(ii).setSelected(ii == tabidx);
-        }
-
-        // remove the current tab
-        if (_selidx != -1) {
-            remove(_tabs.get(_selidx).component);
-        }
-
-        // and add the requested one
-        Tab tab = _tabs.get(tabidx);
-        add(tab.component, BorderLayout.CENTER);
-        updateClose(tab.close);
-        _selidx = tabidx;
-
-        // emit a change event
-        emitEvent(new ChangeEvent(this));
+        selectTab(tabidx, -1L, 0);
     }
 
     /**
@@ -332,6 +307,37 @@ public class TabbedPane extends Container
     }
 
     /**
+     * Selects the tab with the specified index.
+     */
+    protected void selectTab (int tabidx, long when, int modifiers)
+    {
+        // no NOOPing
+        if (tabidx == _selidx) {
+            return;
+        }
+        tabidx = Math.max(0, Math.min(_tabs.size() - 1, tabidx));
+
+        // make sure the appropriate button is selected
+        for (int ii = 0; ii < _tabs.size(); ii++) {
+            getTabButton(ii).setSelected(ii == tabidx);
+        }
+
+        // remove the current tab
+        if (_selidx != -1) {
+            remove(_tabs.get(_selidx).component);
+        }
+
+        // and add the requested one
+        Tab tab = _tabs.get(tabidx);
+        add(tab.component, BorderLayout.CENTER);
+        updateClose(tab.close);
+        _selidx = tabidx;
+
+        // emit an action event
+        emitEvent(new ActionEvent(this, when, modifiers, "selectionChanged"));
+    }
+
+    /**
      * Updates the visibility of the close tab button.
      */
     protected void updateClose (boolean showClose)
@@ -365,7 +371,8 @@ public class TabbedPane extends Container
     protected ActionListener _selector = new ActionListener() {
         public void actionPerformed (ActionEvent event) {
             try {
-                selectTab(Integer.parseInt(event.getAction()));
+                selectTab(Integer.parseInt(event.getAction()),
+                    event.getWhen(), event.getModifiers());
             } catch (Exception e) {
                 log.warning("Got weird action event " + event + ".");
             }
