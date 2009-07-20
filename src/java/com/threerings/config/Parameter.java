@@ -43,6 +43,8 @@ import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Inner;
 
+import static com.threerings.ClydeLog.*;
+
 /**
  * A single configuration parameter.
  */
@@ -77,6 +79,9 @@ public abstract class Parameter extends DeepObject
                 return new ArgumentPathProperty(
                     reference.getConfigManager(), name, reference, paths);
             } catch (InvalidPathsException e) {
+                return null;
+            } catch (Exception e) {
+                log.warning("Failed to create argument property.", "name", name, e);
                 return null;
             }
         }
@@ -197,6 +202,9 @@ public abstract class Parameter extends DeepObject
                     reference.getConfigManager(), name, reference,
                     "parameters[" + idx + "].choice");
             } catch (InvalidPathsException e) {
+                return null;
+            } catch (Exception e) {
+                log.warning("Failed to create argument property.", "name", name, e);
                 return null;
             }
         }
