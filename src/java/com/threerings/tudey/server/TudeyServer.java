@@ -31,6 +31,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 
+import com.threerings.presents.server.PresentsServer;
 import com.threerings.whirled.server.SceneRegistry;
 import com.threerings.whirled.server.WhirledServer;
 import com.threerings.whirled.util.SceneFactory;
@@ -47,6 +48,7 @@ public abstract class TudeyServer extends WhirledServer
     {
         @Override protected void configure () {
             super.configure();
+            bind(PresentsServer.class).to(TudeyServer.class);
             ResourceManager rsrcmgr = new ResourceManager("rsrc/");
             bind(ResourceManager.class).toInstance(rsrcmgr);
             ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");

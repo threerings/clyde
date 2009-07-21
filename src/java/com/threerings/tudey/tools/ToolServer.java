@@ -69,6 +69,7 @@ public class ToolServer extends TudeyServer
     {
         @Override protected void configure () {
             super.configure();
+            bind(TudeyServer.class).to(ToolServer.class);
             bind(PresentsDObjectMgr.class).to(LocalDObjectMgr.class);
             bind(SceneRepository.class).to(ToolSceneRepository.class);
             bind(SceneRegistry.ConfigFactory.class).toInstance(new SceneRegistry.ConfigFactory() {
