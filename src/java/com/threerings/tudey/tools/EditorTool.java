@@ -24,6 +24,7 @@
 
 package com.threerings.tudey.tools;
 
+import java.awt.Canvas;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -44,7 +45,6 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.MessageBundle;
 
-import com.threerings.opengl.GlCanvas;
 import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
@@ -97,7 +97,7 @@ public abstract class EditorTool extends JPanel
     {
         _button.setSelected(true);
 
-        GlCanvas canvas = _editor.getCanvas();
+        Canvas canvas = _editor.getCanvas();
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
         canvas.addMouseWheelListener(this);
@@ -108,7 +108,7 @@ public abstract class EditorTool extends JPanel
      */
     public void deactivate ()
     {
-        GlCanvas canvas = _editor.getCanvas();
+        Canvas canvas = _editor.getCanvas();
         canvas.removeMouseListener(this);
         canvas.removeMouseMotionListener(this);
         canvas.removeMouseWheelListener(this);

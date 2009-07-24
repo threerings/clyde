@@ -35,9 +35,6 @@ import org.lwjgl.opengl.AWTGLCanvas;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.opengl.Util;
 
-import com.samskivert.util.Interval;
-import com.samskivert.util.RunQueue;
-
 import static com.threerings.opengl.Log.*;
 
 /**
@@ -65,6 +62,16 @@ public class GlCanvas extends AWTGLCanvas
     {
         super(device, pformat);
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+    }
+
+    @Override // documentation inherited
+    public void releaseContext ()
+    {
+        try {
+            super.releaseContext();
+        } catch (LWJGLException e) {
+            log.warning("Failed to release context.", e);
+        }
     }
 
     @Override // documentation inherited
@@ -136,13 +143,16 @@ public class GlCanvas extends AWTGLCanvas
      */
     protected void startUpdating ()
     {
-        (_updater = new Interval(RunQueue.AWT) {
-            public void expired () {
-                makeCurrent();
-                updateFrame();
-                schedule(1L);
+        _updater = new Runnable() {
+            public void run () {
+                if (_updater != null) {
+                    makeCurrent();
+                    updateFrame();
+                    EventQueue.invokeLater(this);
+                }
             }
-        }).schedule(1L);
+        };
+        EventQueue.invokeLater(_updater);
     }
 
     /**
@@ -150,10 +160,7 @@ public class GlCanvas extends AWTGLCanvas
      */
     protected void stopUpdating ()
     {
-        if (_updater != null) {
-            _updater.cancel();
-            _updater = null;
-        }
+        _updater = null;
     }
 
     /**
@@ -188,6 +195,6 @@ public class GlCanvas extends AWTGLCanvas
     {
     }
 
-    /** The interval that updates the frame. */
-    protected Interval _updater;
+    /** The runnable that updates the frame. */
+    protected Runnable _updater;
 }
