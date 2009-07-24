@@ -24,20 +24,13 @@
 
 package com.threerings.opengl;
 
-import java.awt.AWTEvent;
 import java.awt.BorderLayout;
-import java.awt.Canvas;
 import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.KeyboardFocusManager;
-import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.event.AWTEventListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeEvent;
@@ -45,16 +38,12 @@ import java.beans.PropertyChangeListener;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
 import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.samskivert.swing.util.SwingUtil;
-import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.media.ManagedJFrame;
@@ -73,7 +62,7 @@ import static com.threerings.opengl.Log.*;
 /**
  * A base class for applications centered around an OpenGL canvas.
  */
-public abstract class GlCanvasApp extends GlDisplayApp
+public abstract class GlCanvasApp extends GlApp
 {
     public GlCanvasApp ()
     {
@@ -89,12 +78,11 @@ public abstract class GlCanvasApp extends GlDisplayApp
         });
 
         // add the canvas inside a container so that we can use KeyboardManager
-        _canvas = createCanvas();
+        if ((_canvas = createCanvas()) == null) {
+            return;
+        }
         JComponent cont = createCanvasContainer();
         _frame.add(cont, BorderLayout.CENTER);
-
-        // make popups heavyweight so that we can see them over the canvas
-        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
         // create the keyboard manager
         _keymgr = new KeyboardManager();
@@ -122,7 +110,7 @@ public abstract class GlCanvasApp extends GlDisplayApp
     /**
      * Returns a reference to the canvas.
      */
-    public Canvas getCanvas ()
+    public GlCanvas getCanvas ()
     {
         return _canvas;
     }
@@ -152,6 +140,18 @@ public abstract class GlCanvasApp extends GlDisplayApp
         _compositor.getCamera().getPickRay(x, _canvas.getHeight() - y - 1, result);
     }
 
+    // documentation inherited from interface GlContext
+    public void makeCurrent ()
+    {
+        _canvas.makeCurrent();
+    }
+
+    @Override // documentation inherited
+    public RunQueue getRunQueue ()
+    {
+        return RunQueue.AWT;
+    }
+
     @Override // documentation inherited
     public Root createRoot ()
     {
@@ -162,55 +162,33 @@ public abstract class GlCanvasApp extends GlDisplayApp
     public void startup ()
     {
         _frame.setVisible(true);
-        super.startup();
     }
 
     @Override // documentation inherited
-    protected boolean createDisplay ()
+    public void shutdown ()
     {
-        try {
-            Display.setParent(_canvas);
-        } catch (LWJGLException e) {
-            log.warning("Failed to parent Display to canvas.", e);
-            return false;
-        }
-        return super.createDisplay();
+        willShutdown();
+        System.exit(0);
     }
 
     @Override // documentation inherited
     protected void initRenderer ()
     {
-        _renderer.init(Display.getDrawable(), _canvas.getWidth(), _canvas.getHeight());
-    }
-
-    @Override // documentation inherited
-    protected void createInputDevices ()
-    {
-        // handled in AWT
-    }
-
-    @Override // documentation inherited
-    protected void destroyInputDevices ()
-    {
-        // handled in AWT
+        _renderer.init(_canvas, _canvas.getWidth(), _canvas.getHeight());
     }
 
     @Override // documentation inherited
     protected void didInit ()
     {
+        // enable vsync unless configured otherwise
+        _canvas.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+
         // notify the renderer on resize
         _canvas.addComponentListener(new ComponentAdapter() {
             public void componentResized (ComponentEvent event) {
                 _renderer.setSize(_canvas.getWidth(), _canvas.getHeight());
             }
         });
-
-        // listen to all key/mouse events in order to keep modifiers up to date
-        _canvas.getToolkit().addAWTEventListener(new AWTEventListener() {
-            public void eventDispatched (AWTEvent event) {
-                _modifiers = ((InputEvent)event).getModifiersEx();
-            }
-        }, AWTEvent.KEY_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK);
 
         // request focus for the canvas
         _canvas.requestFocusInWindow();
@@ -219,61 +197,29 @@ public abstract class GlCanvasApp extends GlDisplayApp
         _keymgr.setEnabled(true);
     }
 
-    @Override // documentation inherited
-    protected void updateView (float elapsed)
-    {
-        // check for mouse movement
-        Point pt;
-        if (_dragging) {
-            pt = MouseInfo.getPointerInfo().getLocation();
-            SwingUtilities.convertPointFromScreen(pt, _canvas);
-        } else {
-            pt = _canvas.getMousePosition();
-        }
-        if (!ObjectUtil.equals(_lastPoint, pt)) {
-            if ((_lastPoint = pt) != null) {
-                int id = _dragging ? MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED;
-                _canvas.dispatchEvent(new MouseEvent(_canvas, id,
-                    System.currentTimeMillis(), _modifiers, pt.x, pt.y, 0, false));
-            }
-        }
-        super.updateView(elapsed);
-    }
-
     /**
-     * Creates our canvas component.
+     * Creates a canvas using one of our supported pixel formats.
      */
-    protected Canvas createCanvas ()
-    {
-        return new Canvas() { {
-                setIgnoreRepaint(true);
-                disableEvents(AWTEvent.PAINT_EVENT_MASK);
-                enableEvents(AWTEvent.MOUSE_EVENT_MASK);
+    protected GlCanvas createCanvas () {
+        for (PixelFormat format : PIXEL_FORMATS) {
+            try {
+                return new GlCanvas(format) {
+                    public void didInit () {
+                        GlCanvasApp.this.init();
+                    }
+                    public void updateView () {
+                        GlCanvasApp.this.updateView();
+                    }
+                    public void renderView () {
+                        GlCanvasApp.this.renderView();
+                    }
+                };
+            } catch (LWJGLException e) {
+                // proceed to next format
             }
-            @Override public void addFocusListener (FocusListener listener) {
-                // no-op; prevent LWJGL from stealing focus
-            }
-            @Override public void paint (Graphics g) {
-                // no-op
-            }
-            @Override public void update (Graphics g) {
-                // no-op
-            }
-            @Override protected void processMouseEvent (MouseEvent event) {
-                super.processMouseEvent(event);
-                int id = event.getID();
-                int bit = 1 << event.getButton();
-                if (id == MouseEvent.MOUSE_PRESSED) {
-                    _buttons |= bit;
-                } else if (id == MouseEvent.MOUSE_RELEASED) {
-                    _buttons &= ~bit;
-                } else {
-                    return;
-                }
-                _dragging = (_buttons != 0);
-            }
-            protected int _buttons;
-        };
+        }
+        log.warning("Couldn't find valid pixel format.");
+        return null;
     }
 
     /**
@@ -291,21 +237,8 @@ public abstract class GlCanvasApp extends GlDisplayApp
     protected JFrame _frame;
 
     /** The render canvas. */
-    protected Canvas _canvas;
+    protected GlCanvas _canvas;
 
     /** The keyboard manager for the canvas. */
     protected KeyboardManager _keymgr;
-
-    /** The last recorded mouse location. */
-    protected Point _lastPoint;
-
-    /** The current set of modifiers. */
-    protected int _modifiers;
-
-    /** Whether or not we're currently dragging the mouse. */
-    protected boolean _dragging;
-
-    /** Combines all three button down masks. */
-    protected static final int BUTTON_DOWN_MASK =
-        MouseEvent.BUTTON1_DOWN_MASK | MouseEvent.BUTTON2_DOWN_MASK | MouseEvent.BUTTON3_DOWN_MASK;
 }

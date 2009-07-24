@@ -161,7 +161,9 @@ public abstract class GlDisplayApp extends GlApp
     public void shutdown ()
     {
         willShutdown();
-        destroyInputDevices();
+        Keyboard.destroy();
+        Mouse.destroy();
+        Controllers.destroy();
         Display.destroy();
         System.exit(0);
     }
@@ -173,7 +175,23 @@ public abstract class GlDisplayApp extends GlApp
             return;
         }
         super.init();
-        createInputDevices();
+
+        // create the input devices
+        try {
+            Keyboard.create();
+        } catch (LWJGLException e) {
+            log.warning("Failed to create keyboard.", e);
+        }
+        try {
+            Mouse.create();
+        } catch (LWJGLException e) {
+            log.warning("Failed to create mouse.", e);
+        }
+        try {
+            Controllers.create();
+        } catch (LWJGLException e) {
+            log.warning("Failed to create controllers.", e);
+        }
 
         // start the updater
         final Runnable updater = new Runnable() {
@@ -227,38 +245,6 @@ public abstract class GlDisplayApp extends GlApp
         }
 
         return false;
-    }
-
-    /**
-     * Creates the input devices that will be used by the application.
-     */
-    protected void createInputDevices ()
-    {
-        try {
-            Keyboard.create();
-        } catch (LWJGLException e) {
-            log.warning("Failed to create keyboard.", e);
-        }
-        try {
-            Mouse.create();
-        } catch (LWJGLException e) {
-            log.warning("Failed to create mouse.", e);
-        }
-        try {
-            Controllers.create();
-        } catch (LWJGLException e) {
-            log.warning("Failed to create controllers.", e);
-        }
-    }
-
-    /**
-     * Destroys the input devices used by the application.
-     */
-    protected void destroyInputDevices ()
-    {
-        Keyboard.destroy();
-        Mouse.destroy();
-        Controllers.destroy();
     }
 
     /**
