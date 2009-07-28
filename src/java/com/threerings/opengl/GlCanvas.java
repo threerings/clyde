@@ -28,6 +28,9 @@ import java.awt.AWTEvent;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.GraphicsDevice;
+
+import java.lang.reflect.Field;
+
 import javax.swing.JPopupMenu;
 
 import org.lwjgl.LWJGLException;
@@ -104,23 +107,16 @@ public class GlCanvas extends AWTGLCanvas
     @Override // documentation inherited
     protected void initGL ()
     {
-        // initialize outside of LWJGL's context window
-        EventQueue.invokeLater(new Runnable() {
-            public void run () {
-                init();
-            }
-        });
-    }
+        // hackery: increment the reentry count so that the context is never released
+        try {
+            Field field = AWTGLCanvas.class.getDeclaredField("reentry_count");
+            field.setAccessible(true);
+            field.setInt(this, 2);
+        } catch (Exception e) {
+            log.warning("Failed to access field.", e);
+        }
 
-    /**
-     * Called once the canvas has a valid OpenGL context.
-     */
-    protected void init ()
-    {
-        // make the context current
-        makeCurrent();
-
-        // now that we're initialized, make sure we don't call LWJGL's paint method
+        // now that we're initialized, make sure AWT doesn't call our paint method
         disableEvents(AWTEvent.PAINT_EVENT_MASK);
         setIgnoreRepaint(true);
 
@@ -129,6 +125,12 @@ public class GlCanvas extends AWTGLCanvas
 
         // start rendering frames
         startUpdating();
+    }
+
+    @Override // documentation inherited
+    protected void paintGL ()
+    {
+        renderView();
     }
 
     /**
@@ -146,7 +148,6 @@ public class GlCanvas extends AWTGLCanvas
         _updater = new Runnable() {
             public void run () {
                 if (_updater != null) {
-                    makeCurrent();
                     updateFrame();
                     EventQueue.invokeLater(this);
                 }
@@ -171,7 +172,9 @@ public class GlCanvas extends AWTGLCanvas
         try {
             updateView();
             if (isShowing()) {
-                renderView();
+                // LWJGL's paint method obtains a lock on the AWT surface; without it, we crash
+                // due to failed synchronization-related assertions on Linux
+                paint(null);
                 swapBuffers();
             }
             Util.checkGLError();
