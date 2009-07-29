@@ -66,6 +66,14 @@ public abstract class Property extends DeepObject
     }
 
     /**
+     * Returns the name of the color lookup for the property.
+     */
+    public String getColorName ()
+    {
+        return _name;
+    }
+
+    /**
      * Returns an array containing the available subtypes of this type.
      */
     public Class[] getSubtypes ()

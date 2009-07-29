@@ -120,10 +120,10 @@ public class ConfigReferenceEditor extends PropertyEditor
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
 
         JPanel cpanel = new JPanel();
-        cpanel.setBackground(null);
         _content.add(cpanel);
         cpanel.add(new JLabel(_msgs.get("m.config") + ":"));
         cpanel.add(_config = new JButton(" "));
+        cpanel.setBackground(null);
         _config.addActionListener(this);
         if (!getMode().equals("compact")) {
             cpanel.add(_edit = new JButton(_msgs.get("m.edit")));

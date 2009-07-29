@@ -53,6 +53,7 @@ import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 
 import com.threerings.editor.Introspector;
+import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
 import static com.threerings.editor.Log.*;
@@ -250,12 +251,72 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     }
 
     /**
+     * Returns a label for the supplied name, translating it if a translation exists.
+     */
+    protected int getColor (String name)
+    {
+        return getColor(name, _msgs, DEFAULT_BACKGROUND);
+    }
+
+    /**
+     * Returns a label for the supplied name, translating it if a translation exists.
+     */
+    protected int getColor (String name, String bundle, int defaultColor)
+    {
+        return getColor(name, _msgmgr.getBundle(bundle), defaultColor);
+    }
+
+    /**
+     * Returns a label for the supplied name, translating it if a translation exists.
+     */
+    protected int getColor (String name, MessageBundle msgs, int defaultColor)
+    {
+        if (name.length() == 0) {
+            return defaultColor;
+        }
+        name = "c." + name;
+        return msgs.exists(name) ? Integer.parseInt(msgs.get(name), 16) : defaultColor;
+    }
+
+    protected int getPropertyColor (Property[] lineage)
+    {
+        for (int ii = lineage.length - 1; ii >= 0; ii--) {
+            int color = getColor(lineage[ii].getColorName(), lineage[ii].getMessageBundle(), -1);
+            if (color != -1) {
+                return color;
+            }
+        }
+        return DEFAULT_BACKGROUND;
+    }
+
+    /**
      * Returns a background color darkened by the specified number of shades.
      */
-    protected static Color getDarkerBackground (float shades)
+    protected Color getDarkerBackground (float shades)
     {
         int value = BASE_BACKGROUND - (int)(shades*SHADE_DECREMENT);
         return new Color(value, value, value);
+    }
+
+    /**
+     * Returns a background color darkened and colored for this level.
+     */
+    protected Color getBackgroundColor (Property[] lineage)
+    {
+        int color = getPropertyColor(lineage);
+        if (lineage == null) {
+            return new Color(color);
+        }
+        return darkenColor(color, lineage.length / 2);
+    }
+
+    protected Color darkenColor (int color, float shades)
+    {
+        int darken = (int)(shades * SHADE_DECREMENT);
+        int r = Math.max(0, ((color & 0xFF0000) >> 16) - darken);
+        int g = Math.max(0, ((color & 0xFF00) >> 8) - darken);
+        int b = Math.max(0, ((color & 0xFF)) - darken);
+        return new Color(r, g, b);
     }
 
     /** Provides access to common services. */
@@ -272,6 +333,9 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
 
     /** The base background value that we darken to indicate nesting. */
     protected static final int BASE_BACKGROUND = 0xEE;
+
+    /** The default background value. */
+    protected static final int DEFAULT_BACKGROUND = 0xEEEEEE;
 
     /** The number of units to darken for each shade. */
     protected static final int SHADE_DECREMENT = 8;

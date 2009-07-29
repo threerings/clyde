@@ -91,7 +91,8 @@ public class ObjectPanel extends BasePropertyEditor
         _outer = outer;
         _types = types;
 
-        setBackground(getDarkerBackground(ancestors.length));
+        //setBackground(getDarkerBackground(ancestors.length));
+        setBackground(getBackgroundColor(ancestors));
 
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         if (_types.length > 1) {

@@ -148,6 +148,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
         _lineage = (ancestors == null) ?
             new Property[] { _property } : ArrayUtil.append(ancestors, _property);
 
+        setBackground(getBackgroundColor(_lineage));
+
         // give subclasses a chance to initialize themselves
         didInit();
     }
@@ -197,6 +199,14 @@ public abstract class PropertyEditor extends BasePropertyEditor
     protected String getPropertyLabel ()
     {
         return getLabel(_property.getName(), _property.getMessageBundle());
+    }
+
+    /**
+     * Returns the base color for this property.
+     */
+    protected int getPropertyColor ()
+    {
+        return getPropertyColor(_lineage);
     }
 
     /**

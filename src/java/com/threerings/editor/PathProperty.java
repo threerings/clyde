@@ -121,6 +121,12 @@ public class PathProperty extends Property
     }
 
     @Override // documentation inherited
+    public String getColorName ()
+    {
+        return _paths[0][_paths[0].length - 1].getColorName();
+    }
+
+    @Override // documentation inherited
     public Member getMember ()
     {
         return _paths[0][_paths[0].length - 1].getMember();
