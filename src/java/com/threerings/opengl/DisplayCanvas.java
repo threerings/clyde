@@ -283,7 +283,6 @@ public class DisplayCanvas extends Canvas
         }
 
         // process mouse events
-        int trotation = 0;
         while (Mouse.next()) {
             int x = Mouse.getEventX(), y = getHeight() - Mouse.getEventY() - 1;
             checkEntered(now, modifiers, x, y);
@@ -609,7 +608,7 @@ public class DisplayCanvas extends Canvas
     /** The last button states we reported. */
     protected boolean[] _lbuttons = new boolean[3];
 
-    /** The number of positive and negative wheel clicks recorded. */
+    /** The number of wheel clicks recorded. */
     protected int _lclicks;
 
     /** A mask for checking whether any mouse buttons are down. */
