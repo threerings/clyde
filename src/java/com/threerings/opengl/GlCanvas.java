@@ -24,180 +24,30 @@
 
 package com.threerings.opengl;
 
-import java.awt.AWTEvent;
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.GraphicsDevice;
-
-import java.lang.reflect.Field;
-
-import javax.swing.JPopupMenu;
-
-import org.lwjgl.LWJGLException;
-import org.lwjgl.opengl.AWTGLCanvas;
-import org.lwjgl.opengl.PixelFormat;
-import org.lwjgl.opengl.Util;
-
-import static com.threerings.opengl.Log.*;
+import org.lwjgl.opengl.Drawable;
 
 /**
- * A canvas for OpenGL rendering.
+ * An interface implemented by {@link AWTCanvas} and {@link DisplayCanvas}.
  */
-public class GlCanvas extends AWTGLCanvas
+public interface GlCanvas
 {
     /**
-     * Creates a canvas with the supplied pixel format.
+     * Returns the canvas drawable.
      */
-    public GlCanvas (PixelFormat pformat)
-        throws LWJGLException
-    {
-        super(pformat);
-
-        // make popups heavyweight so that we can see them over the canvas
-        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-    }
+    public Drawable getDrawable ();
 
     /**
-     * Creates a canvas on the specified device with the supplied pixel format.
+     * Enables or disables vsync.
      */
-    public GlCanvas (GraphicsDevice device, PixelFormat pformat)
-        throws LWJGLException
-    {
-        super(device, pformat);
-        JPopupMenu.setDefaultLightWeightPopupEnabled(false);
-    }
-
-    @Override // documentation inherited
-    public void releaseContext ()
-    {
-        try {
-            super.releaseContext();
-        } catch (LWJGLException e) {
-            log.warning("Failed to release context.", e);
-        }
-    }
-
-    @Override // documentation inherited
-    public void makeCurrent ()
-    {
-        try {
-            super.makeCurrent();
-        } catch (LWJGLException e) {
-            log.warning("Failed to make context current.", e);
-        }
-    }
-
-    @Override // documentation inherited
-    public void swapBuffers ()
-    {
-        try {
-            super.swapBuffers();
-        } catch (LWJGLException e) {
-            log.warning("Error swapping buffers.", e);
-        }
-    }
-
-    @Override // documentation inherited
-    public void removeNotify ()
-    {
-        super.removeNotify();
-        stopUpdating();
-    }
-
-    @Override // documentation inherited
-    protected void initGL ()
-    {
-        // hackery: increment the reentry count so that the context is never released
-        try {
-            Field field = AWTGLCanvas.class.getDeclaredField("reentry_count");
-            field.setAccessible(true);
-            field.setInt(this, 2);
-        } catch (Exception e) {
-            log.warning("Failed to access field.", e);
-        }
-
-        // now that we're initialized, make sure AWT doesn't call our paint method
-        disableEvents(AWTEvent.PAINT_EVENT_MASK);
-        setIgnoreRepaint(true);
-
-        // let subclasses do their own initialization
-        didInit();
-
-        // start rendering frames
-        startUpdating();
-    }
-
-    @Override // documentation inherited
-    protected void paintGL ()
-    {
-        renderView();
-    }
+    public void setVSyncEnabled (boolean vsync);
 
     /**
-     * Override to perform custom initialization.
+     * Makes the canvas context current.
      */
-    protected void didInit ()
-    {
-    }
+    public void makeCurrent ();
 
     /**
-     * Starts calling {@link #updateFrame} regularly.
+     * Destroys the canvas.
      */
-    protected void startUpdating ()
-    {
-        _updater = new Runnable() {
-            public void run () {
-                if (_updater != null) {
-                    updateFrame();
-                    EventQueue.invokeLater(this);
-                }
-            }
-        };
-        EventQueue.invokeLater(_updater);
-    }
-
-    /**
-     * Stops calling {@link #updateFrame}.
-     */
-    protected void stopUpdating ()
-    {
-        _updater = null;
-    }
-
-    /**
-     * Updates and, if the canvas is showing, renders the scene and swaps the buffers.
-     */
-    protected void updateFrame ()
-    {
-        try {
-            updateView();
-            if (isShowing()) {
-                // LWJGL's paint method obtains a lock on the AWT surface; without it, we crash
-                // due to failed synchronization-related assertions on Linux
-                paint(null);
-                swapBuffers();
-            }
-            Util.checkGLError();
-
-        } catch (Exception e) {
-            log.warning("Caught exception in frame loop.", e);
-        }
-    }
-
-    /**
-     * Override to perform any updates that are required even if not rendering.
-     */
-    protected void updateView ()
-    {
-    }
-
-    /**
-     * Override to render the contents of the canvas.
-     */
-    protected void renderView ()
-    {
-    }
-
-    /** The runnable that updates the frame. */
-    protected Runnable _updater;
+    public void destroy ();
 }

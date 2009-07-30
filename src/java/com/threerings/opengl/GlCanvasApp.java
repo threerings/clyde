@@ -25,6 +25,7 @@
 package com.threerings.opengl;
 
 import java.awt.BorderLayout;
+import java.awt.Canvas;
 import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.KeyboardFocusManager;
@@ -44,6 +45,7 @@ import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.samskivert.swing.util.SwingUtil;
+import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
 
 import com.threerings.media.ManagedJFrame;
@@ -110,7 +112,7 @@ public abstract class GlCanvasApp extends GlApp
     /**
      * Returns a reference to the canvas.
      */
-    public GlCanvas getCanvas ()
+    public Canvas getCanvas ()
     {
         return _canvas;
     }
@@ -143,7 +145,7 @@ public abstract class GlCanvasApp extends GlApp
     // documentation inherited from interface GlContext
     public void makeCurrent ()
     {
-        _canvas.makeCurrent();
+        ((GlCanvas)_canvas).makeCurrent();
     }
 
     @Override // documentation inherited
@@ -168,20 +170,21 @@ public abstract class GlCanvasApp extends GlApp
     public void shutdown ()
     {
         willShutdown();
+        ((GlCanvas)_canvas).destroy();
         System.exit(0);
     }
 
     @Override // documentation inherited
     protected void initRenderer ()
     {
-        _renderer.init(_canvas, _canvas.getWidth(), _canvas.getHeight());
+        _renderer.init(((GlCanvas)_canvas).getDrawable(), _canvas.getWidth(), _canvas.getHeight());
     }
 
     @Override // documentation inherited
     protected void didInit ()
     {
         // enable vsync unless configured otherwise
-        _canvas.setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
+        ((GlCanvas)_canvas).setVSyncEnabled(!Boolean.getBoolean("no_vsync"));
 
         // notify the renderer on resize
         _canvas.addComponentListener(new ComponentAdapter() {
@@ -200,17 +203,31 @@ public abstract class GlCanvasApp extends GlApp
     /**
      * Creates a canvas using one of our supported pixel formats.
      */
-    protected GlCanvas createCanvas () {
+    protected Canvas createCanvas ()
+    {
+        if (RunAnywhere.isLinux()) {
+            return new DisplayCanvas() {
+                @Override protected void didInit () {
+                    GlCanvasApp.this.init();
+                }
+                @Override protected void updateView () {
+                    GlCanvasApp.this.updateView();
+                }
+                @Override protected void renderView () {
+                    GlCanvasApp.this.renderView();
+                }
+            };
+        }
         for (PixelFormat format : PIXEL_FORMATS) {
             try {
-                return new GlCanvas(format) {
-                    public void didInit () {
+                return new AWTCanvas(format) {
+                    @Override protected void didInit () {
                         GlCanvasApp.this.init();
                     }
-                    public void updateView () {
+                    @Override protected void updateView () {
                         GlCanvasApp.this.updateView();
                     }
-                    public void renderView () {
+                    @Override protected void renderView () {
                         GlCanvasApp.this.renderView();
                     }
                 };
@@ -237,7 +254,7 @@ public abstract class GlCanvasApp extends GlApp
     protected JFrame _frame;
 
     /** The render canvas. */
-    protected GlCanvas _canvas;
+    protected Canvas _canvas;
 
     /** The keyboard manager for the canvas. */
     protected KeyboardManager _keymgr;

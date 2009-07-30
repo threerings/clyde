@@ -27,6 +27,8 @@ package com.threerings.tudey.tools;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
@@ -134,7 +136,7 @@ import static com.threerings.tudey.Log.*;
  */
 public class SceneEditor extends TudeyTool
     implements EntryManipulator, TudeySceneModel.Observer,
-        KeyObserver, MouseListener, ClipboardOwner
+        KeyEventDispatcher, MouseListener, ClipboardOwner
 {
     /** Allows only tile entries. */
     public static final Predicate<Entry> TILE_ENTRY_FILTER =
@@ -344,10 +346,10 @@ public class SceneEditor extends TudeyTool
         // activate the arrow tool
         setActiveTool(_arrow);
 
-        // add ourself as a key observer
-        _keymgr.registerKeyObserver(this);
+        // add ourself as a key dispatcher
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
 
-        // and as a mouse listener
+        // add ourself as a mouse listener
         _canvas.addMouseListener(this);
     }
 
@@ -707,11 +709,19 @@ public class SceneEditor extends TudeyTool
         }
     }
 
-    // documentation inherited from interface KeyObserver
-    public void handleKeyEvent (int id, int keyCode, long timestamp)
+    // documentation inherited from interface KeyEventDispatcher
+    public boolean dispatchKeyEvent (KeyEvent event)
     {
-        boolean pressed = (id == KeyEvent.KEY_PRESSED);
-        switch (keyCode) {
+        boolean pressed;
+        int id = event.getID();
+        if (id == KeyEvent.KEY_PRESSED) {
+            pressed = true;
+        } else if (id == KeyEvent.KEY_RELEASED) {
+            pressed = false;
+        } else {
+            return false;
+        }
+        switch (event.getKeyCode()) {
             case KeyEvent.VK_SHIFT:
                 _shiftDown = pressed;
                 break;
@@ -722,6 +732,7 @@ public class SceneEditor extends TudeyTool
                 _altDown = pressed;
                 break;
         }
+        return false;
     }
 
     // documentation inherited from interface MouseListener
