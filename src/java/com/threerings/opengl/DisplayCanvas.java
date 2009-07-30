@@ -34,6 +34,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -91,6 +92,11 @@ public class DisplayCanvas extends Canvas
         };
         addMouseListener(listener);
         addMouseMotionListener(listener);
+        addMouseWheelListener(new MouseWheelListener() {
+            public void mouseWheelMoved (MouseWheelEvent event) {
+                _lclicks--;
+            }
+        });
     }
 
     // documentation inherited from interface GlCanvas
@@ -277,6 +283,7 @@ public class DisplayCanvas extends Canvas
         }
 
         // process mouse events
+        int trotation = 0;
         while (Mouse.next()) {
             int x = Mouse.getEventX(), y = getHeight() - Mouse.getEventY() - 1;
             checkEntered(now, modifiers, x, y);
@@ -286,7 +293,7 @@ public class DisplayCanvas extends Canvas
                 checkButtonState(now, modifiers, x, y, button, Mouse.getEventButtonState());
             }
             int delta = -Integer.signum(Mouse.getEventDWheel());
-            if (delta != 0) {
+            if (delta != 0 && ++_lclicks > 0) {
                 dispatchEvent(new MouseWheelEvent(
                     this, MouseEvent.MOUSE_WHEEL, now, modifiers, x, y,
                     0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, delta, delta));
@@ -601,6 +608,9 @@ public class DisplayCanvas extends Canvas
 
     /** The last button states we reported. */
     protected boolean[] _lbuttons = new boolean[3];
+
+    /** The number of positive and negative wheel clicks recorded. */
+    protected int _lclicks;
 
     /** A mask for checking whether any mouse buttons are down. */
     protected static final int ANY_BUTTONS_DOWN_MASK =
