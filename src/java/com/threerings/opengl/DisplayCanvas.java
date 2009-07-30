@@ -37,6 +37,7 @@ import java.awt.event.MouseWheelEvent;
 
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+import javax.swing.event.MouseInputAdapter;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -60,6 +61,36 @@ public class DisplayCanvas extends Canvas
     {
         // make popups heavyweight so that we can see them over the canvas
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+
+        // add a listener to record states.  we do this here rather than in the check methods
+        // because on some platforms AWT dispatches some of the mouse events that are also
+        // picked up by LWJGL
+        MouseInputAdapter listener = new MouseInputAdapter() {
+            @Override public void mouseEntered (MouseEvent event) {
+                _entered = true;
+                _lx = event.getX();
+                _ly = event.getY();
+            }
+            @Override public void mouseExited (MouseEvent event) {
+                _entered = false;
+            }
+            @Override public void mousePressed (MouseEvent event) {
+                _lbuttons[getLWJGLButton(event.getButton())] = true;
+            }
+            @Override public void mouseReleased (MouseEvent event) {
+                _lbuttons[getLWJGLButton(event.getButton())] = false;
+            }
+            @Override public void mouseMoved (MouseEvent event) {
+                _lx = event.getX();
+                _ly = event.getY();
+            }
+            @Override public void mouseDragged (MouseEvent event) {
+                _lx = event.getX();
+                _ly = event.getY();
+            }
+        };
+        addMouseListener(listener);
+        addMouseMotionListener(listener);
     }
 
     // documentation inherited from interface GlCanvas
@@ -280,8 +311,7 @@ public class DisplayCanvas extends Canvas
     {
         if (!_entered && contains(x, y)) {
             dispatchEvent(new MouseEvent(
-                this, MouseEvent.MOUSE_ENTERED, now, modifiers, _lx = x, _ly = y, 0, false));
-            _entered = true;
+                this, MouseEvent.MOUSE_ENTERED, now, modifiers, x, y, 0, false));
         }
     }
 
@@ -296,7 +326,6 @@ public class DisplayCanvas extends Canvas
             }
             dispatchEvent(new MouseEvent(
                 this, MouseEvent.MOUSE_EXITED, now, modifiers, x, y, 0, false));
-            _entered = false;
         }
     }
 
@@ -309,7 +338,7 @@ public class DisplayCanvas extends Canvas
             dispatchEvent(new MouseEvent(
                 this,
                 anyButtonsDown(modifiers) ? MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED,
-                now, modifiers, _lx = x, _ly = y, 0, false));
+                now, modifiers, x, y, 0, false));
         }
     }
 
@@ -323,7 +352,6 @@ public class DisplayCanvas extends Canvas
                 this,
                 pressed ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_RELEASED,
                 now, modifiers, x, y, 0, false, getAWTButton(button)));
-            _lbuttons[button] = pressed;
         }
     }
 
@@ -535,6 +563,19 @@ public class DisplayCanvas extends Canvas
             case 1: return MouseEvent.BUTTON3;
             case 2: return MouseEvent.BUTTON2;
             default: return MouseEvent.NOBUTTON;
+        }
+    }
+
+    /**
+     * Returns the LWJGL button corresponding to the specified AWT button.
+     */
+    protected static int getLWJGLButton (int button)
+    {
+        switch (button) {
+            case MouseEvent.BUTTON1: return 0;
+            case MouseEvent.BUTTON2: return 2;
+            case MouseEvent.BUTTON3: return 1;
+            default: return -1;
         }
     }
 
