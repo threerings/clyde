@@ -331,8 +331,9 @@ public class TudeySceneManager extends SceneManager
         }
 
         // initialize the logic and add it to the map
-        logic.init(this, ref, original, ++_lastActorId, timestamp, translation, rotation);
-        _actors.put(_lastActorId, logic);
+        int id = ++_lastActorId;
+        logic.init(this, ref, original, id, timestamp, translation, rotation);
+        _actors.put(id, logic);
         addMappings(logic);
 
         // notify observers
