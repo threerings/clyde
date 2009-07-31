@@ -143,6 +143,14 @@ public class Label extends TextComponent
         return _label._fit;
     }
 
+    /**
+     * Returns a reference to teh label's renderer.
+     */
+    public LabelRenderer getLabelRenderer ()
+    {
+        return _label;
+    }
+
     // documentation inherited
     public void setText (String text)
     {
