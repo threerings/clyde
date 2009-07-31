@@ -157,9 +157,9 @@ public class TableLayout extends LayoutManager
         }
 
         // account for our vertical alignment
-        int y = insets.bottom;
+        int y = insets.bottom + totheight;
         if (_valign == CENTER) {
-            y += totheight + (target.getHeight() - insets.getVertical() - totheight)/2;
+            y += (target.getHeight() - insets.getVertical() - totheight)/2;
         } else if (_valign == TOP) {
             y = target.getHeight() - insets.top;
         }
