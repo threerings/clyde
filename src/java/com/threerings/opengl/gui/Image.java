@@ -199,7 +199,8 @@ public class Image
             texture.setImage(format, false, _image, true, false, false);
         }
         texture.setMinFilter(GL11.GL_LINEAR);
-        texture.setWrap(GL12.GL_CLAMP_TO_EDGE, GL12.GL_CLAMP_TO_EDGE);
+        int wrap = GLContext.getCapabilities().OpenGL12 ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_CLAMP;
+        texture.setWrap(wrap, wrap);
         setTexture(texture);
     }
 

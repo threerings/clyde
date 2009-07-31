@@ -1917,14 +1917,14 @@ public class Renderer
         switch (texture.getTarget()) {
             case GL11.GL_TEXTURE_1D:
                 if (unit.texture1D != texture) {
-                    GL11.glBindTexture(GL11.GL_TEXTURE_1D, (unit.texture = texture).getId());
+                    GL11.glBindTexture(GL11.GL_TEXTURE_1D, (unit.texture1D = texture).getId());
                     unit.unit = unit; // note that the unit is set
                 }
                 break;
 
             case GL11.GL_TEXTURE_2D:
                 if (unit.texture2D != texture) {
-                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, (unit.texture = texture).getId());
+                    GL11.glBindTexture(GL11.GL_TEXTURE_2D, (unit.texture2D = texture).getId());
                     unit.unit = unit;
                 }
                 break;
@@ -1932,14 +1932,14 @@ public class Renderer
             case ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB:
                 if (unit.textureRectangle != texture) {
                     GL11.glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
-                        (unit.texture = texture).getId());
+                        (unit.textureRectangle = texture).getId());
                     unit.unit = unit;
                 }
                 break;
 
             case GL12.GL_TEXTURE_3D:
                 if (unit.texture3D != texture) {
-                    GL11.glBindTexture(GL12.GL_TEXTURE_3D, (unit.texture = texture).getId());
+                    GL11.glBindTexture(GL12.GL_TEXTURE_3D, (unit.texture3D = texture).getId());
                     unit.unit = unit;
                 }
                 break;
@@ -1947,7 +1947,7 @@ public class Renderer
             case ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB:
                 if (unit.textureCubeMap != texture) {
                     GL11.glBindTexture(ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB,
-                        (unit.texture = texture).getId());
+                        (unit.textureCubeMap = texture).getId());
                     unit.unit = unit;
                 }
                 break;
