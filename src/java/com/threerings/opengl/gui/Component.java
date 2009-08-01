@@ -771,11 +771,15 @@ public class Component
      */
     public Component getHitComponent (int mx, int my)
     {
-        if (isVisible() && _hoverable && (mx >= _x) && (my >= _y) &&
-            (mx < _x + _width) && (my < _y + _height)) {
-            return this;
-        }
-        return null;
+        return (isVisible() && _hoverable && contains(mx, my)) ? this : null;
+    }
+
+    /**
+     * Determines whether this component contains the specified coordinates.
+     */
+    public boolean contains (int mx, int my)
+    {
+        return (mx >= _x) && (my >= _y) && (mx < _x + _width) && (my < _y + _height);
     }
 
     /**

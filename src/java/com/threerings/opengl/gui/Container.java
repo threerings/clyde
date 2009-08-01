@@ -244,11 +244,22 @@ public class Container extends Component
         }
     }
 
+    @Override // documentation inherited
+    public void setHoverable (boolean hoverable)
+    {
+        super.setHoverable(hoverable);
+
+        // update our children accordingly
+        for (int ii = getComponentCount() - 1; ii >= 0; ii--) {
+            getComponent(ii).setHoverable(hoverable);
+        }
+    }
+
     // documentation inherited
     public Component getHitComponent (int mx, int my)
     {
         // if we're not within our bounds, we don't need to check our children
-        if (super.getHitComponent(mx, my) != this) {
+        if (!(isVisible() && contains(mx, my))) {
             return null;
         }
 
@@ -263,7 +274,7 @@ public class Container extends Component
                 return hit;
             }
         }
-        return this;
+        return _hoverable ? this : null;
     }
 
     // documentation inherited
