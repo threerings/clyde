@@ -407,7 +407,6 @@ public class Component
     {
         if (enabled != _enabled) {
             _enabled = enabled;
-            _hover &= enabled;
             stateDidChange();
         }
     }
@@ -814,7 +813,7 @@ public class Component
         }
 
         // handle mouse hover detection
-        if (_enabled && event instanceof MouseEvent) {
+        if (event instanceof MouseEvent) {
             int ostate = getState();
             MouseEvent mev = (MouseEvent)event;
             switch (mev.getType()) {
