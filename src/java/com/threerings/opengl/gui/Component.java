@@ -407,6 +407,7 @@ public class Component
     {
         if (enabled != _enabled) {
             _enabled = enabled;
+            _hover &= enabled;
             stateDidChange();
         }
     }
