@@ -214,6 +214,22 @@ public class LabelRenderer
     }
 
     /**
+     * Returns the x coordinate of the icon.
+     */
+    public int getIconX ()
+    {
+        return _ix;
+    }
+
+    /**
+     * Returns the y coordinate of the icon.
+     */
+    public int getIconY ()
+    {
+        return _iy;
+    }
+
+    /**
      * Renders the label text and icon.
      */
     public void render (Renderer renderer, int x, int y, int contWidth, int contHeight, float alpha)
