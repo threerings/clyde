@@ -589,7 +589,11 @@ public abstract class HandlerLogic extends Logic
      */
     public void removed ()
     {
-        // nothing by default
+        // notify the action
+        _action.removed();
+
+        // give subclasses a chance to cleanup
+        wasRemoved();
     }
 
     @Override // documentation inherited
@@ -614,6 +618,14 @@ public abstract class HandlerLogic extends Logic
      * Override to perform custom initialization.
      */
     protected void didInit ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Override to perform custom cleanup.
+     */
+    protected void wasRemoved ()
     {
         // nothing by default
     }

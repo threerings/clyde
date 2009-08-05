@@ -425,6 +425,15 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Notes that the action has been removed.
+     */
+    public void removed ()
+    {
+        // give subclasses a chance to cleanup
+        wasRemoved();
+    }
+
+    /**
      * Executes the action.
      *
      * @param activator the entity that triggered the action.
@@ -454,6 +463,14 @@ public abstract class ActionLogic extends Logic
      * Override to perform custom initialization.
      */
     protected void didInit ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Override to perform custom cleanup.
+     */
+    protected void wasRemoved ()
     {
         // nothing by default
     }

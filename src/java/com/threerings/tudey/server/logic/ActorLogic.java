@@ -246,6 +246,24 @@ public class ActorLogic extends Logic
         }
     }
 
+    /**
+     * Removes this actor after it has been destroyed.
+     */
+    public void remove ()
+    {
+        // remove from space and logic mapping
+        _scenemgr.getActorSpace().remove(_shape);
+        _scenemgr.removeActorLogic(_actor.getId());
+
+        // notify the handlers
+        for (HandlerLogic handler : _handlers) {
+            handler.removed();
+        }
+
+        // give subclasses a chance to cleanup
+        wasRemoved();
+    }
+
     @Override // documentation inherited
     public String[] getTags ()
     {
@@ -401,24 +419,6 @@ public class ActorLogic extends Logic
 
         // notify observers that the shape has changed
         _shapeObservers.apply(_shapeDidChangeOp);
-    }
-
-    /**
-     * Removes this actor after it has been destroyed.
-     */
-    protected void remove ()
-    {
-        // remove from space and logic mapping
-        _scenemgr.getActorSpace().remove(_shape);
-        _scenemgr.removeActorLogic(_actor.getId());
-
-        // notify the handlers
-        for (HandlerLogic handler : _handlers) {
-            handler.removed();
-        }
-
-        // give subclasses a chance to cleanup
-        wasRemoved();
     }
 
     /**

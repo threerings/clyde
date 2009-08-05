@@ -915,6 +915,20 @@ public class TudeySceneManager extends SceneManager
     {
         super.didShutdown();
 
+        // stop listening to the scene model
+        ((TudeySceneModel)_scene.getSceneModel()).removeObserver(this);
+
+        // remove all actors
+        ActorLogic[] actors = _actors.values().toArray(new ActorLogic[_actors.size()]);
+        for (ActorLogic logic : actors) {
+            logic.remove();
+        }
+
+        // and all scene entries
+        for (EntryLogic logic : _entries.values()) {
+            logic.removed();
+        }
+
         // stop the ticker
         _ticker.cancel();
         _ticker = null;
@@ -922,9 +936,6 @@ public class TudeySceneManager extends SceneManager
         // shut down the pathfinder
         _pathfinder.shutdown();
         _pathfinder = null;
-
-        // stop listening to the scene model
-        ((TudeySceneModel)_scene.getSceneModel()).removeObserver(this);
     }
 
     @Override // documentation inherited
