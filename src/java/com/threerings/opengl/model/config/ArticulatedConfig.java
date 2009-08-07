@@ -301,18 +301,19 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Override // documentation inherited
         public Updater createUpdater (GlContext ctx, Articulated.Node node)
         {
-            Transform3D viewTransform = node.getViewTransform();
+            final Transform3D viewTransform = node.getViewTransform();
             final Quaternion rotation = viewTransform.getRotation();
             if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
                     rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
                 // simplest case; just clear the rotation
-                return createUpdater(rotation, Quaternion.IDENTITY);
+                return createUpdater(viewTransform, rotation, Quaternion.IDENTITY);
             }
             if (rotationX == BillboardRotationX.NONE &&
                     rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
                 // axial alignment; these all share the same rotation
                 return createUpdater(
-                    rotation, ScopeUtil.resolve(node, "billboardRotation", Quaternion.IDENTITY));
+                    viewTransform, rotation,
+                    ScopeUtil.resolve(node, "billboardRotation", Quaternion.IDENTITY));
             }
             final Vector3f translation = viewTransform.getTranslation();
             if (rotationX == BillboardRotationX.FACE_VIEWER &&
@@ -320,6 +321,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 // pivot about the x axis
                 return new Updater() {
                     public void update () {
+                        ensureRigidOrUniform(viewTransform);
                         rotation.fromAngleAxis(
                             FloatMath.atan2(translation.y, -translation.z), Vector3f.UNIT_X);
                     }
@@ -330,6 +332,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 // pivot about the y axis
                 return new Updater() {
                     public void update () {
+                        ensureRigidOrUniform(viewTransform);
                         rotation.fromAngleAxis(
                             FloatMath.atan2(-translation.x, -translation.z), Vector3f.UNIT_Y);
                     }
@@ -340,6 +343,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 // pivot about the x and y axes
                 return new Updater() {
                     public void update () {
+                        ensureRigidOrUniform(viewTransform);
                         rotation.fromAnglesXY(
                             FloatMath.atan2(translation.y, -translation.z),
                             FloatMath.atan2(-translation.x, -translation.z));
@@ -351,6 +355,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 node, "billboardRotation", Quaternion.IDENTITY);
             return new Updater() {
                 public void update () {
+                    ensureRigidOrUniform(viewTransform);
                     rotation.fromAngleAxis(
                         FloatMath.atan2(-translation.x, -translation.z), Vector3f.UNIT_Y);
                     billboardRotation.mult(rotation, rotation);
@@ -361,10 +366,12 @@ public class ArticulatedConfig extends ModelConfig.Imported
         /**
          * Creates an updater that simply sets the rotation to a referenced value.
          */
-        protected Updater createUpdater (final Quaternion rotation, final Quaternion value)
+        protected Updater createUpdater (
+            final Transform3D transform, final Quaternion rotation, final Quaternion value)
         {
             return new Updater() {
                 public void update () {
+                    ensureRigidOrUniform(transform);
                     rotation.set(value);
                 }
             };
@@ -383,16 +390,19 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Override // documentation inherited
         public Updater createUpdater (final GlContext ctx, Articulated.Node node)
         {
-            final Quaternion vrot = node.getViewTransform().getRotation();
+            final Transform3D vtrans = node.getViewTransform();
+            final Quaternion vrot = vtrans.getRotation();
             if (!directional) {
                 return new Updater() {
                     public void update () {
+                        ensureRigidOrUniform(vtrans);
                         vrot.set(ctx.getCompositor().getCamera().getViewTransform().getRotation());
                     }
                 };
             }
             return new Updater() {
                 public void update () {
+                    ensureRigidOrUniform(vtrans);
                     Transform3D camview = ctx.getCompositor().getCamera().getViewTransform();
                     camview.getRotation().transformUnitZ(_cup);
                     vrot.transformUnitZ(_vup);
@@ -534,6 +544,19 @@ public class ArticulatedConfig extends ModelConfig.Imported
         }
         if (skin != null) {
             skin.getTextureTagPairs(pairs);
+        }
+    }
+
+    /**
+     * Ensures that the specified transform is rigid or uniform.
+     */
+    protected static void ensureRigidOrUniform (Transform3D transform)
+    {
+        int type = transform.getType();
+        if (type != Transform3D.RIGID && type != Transform3D.UNIFORM) {
+            transform.extractTranslation(transform.getTranslation());
+            transform.setScale(transform.approximateUniformScale());
+            transform.setType(Transform3D.UNIFORM);
         }
     }
 }
