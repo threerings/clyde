@@ -359,6 +359,7 @@ public class CharacterTextFactory extends TextFactory
             int uy = ly + _bounds.height;
 
             renderer.setTextureState(_units);
+            renderer.setMatrixMode(GL11.GL_MODELVIEW);
             GL11.glBegin(GL11.GL_QUADS);
             GL11.glTexCoord2f(_s1, _t1);
             GL11.glVertex2f(lx, ly);

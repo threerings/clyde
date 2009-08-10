@@ -169,6 +169,7 @@ public class Image
         float a = color.a * alpha;
         renderer.setColorState(color.r * a, color.g * a, color.b * a, a);
         renderer.setTextureState(_units);
+        renderer.setMatrixMode(GL11.GL_MODELVIEW);
         GL11.glBegin(GL11.GL_QUADS);
         GL11.glTexCoord2f(lx, ly);
         GL11.glVertex2f(tx, ty);
