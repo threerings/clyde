@@ -24,8 +24,10 @@
 
 package com.threerings.opengl.renderer;
 
+import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.Transparency;
+import java.awt.RenderingHints;
 import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -398,7 +400,7 @@ public abstract class Texture
         BufferedImage dest = new BufferedImage(
             cmodel,
             Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, ncomps, null),
-            true, null);
+            cmodel.isAlphaPremultiplied(), null);
 
         // draw the image into the target buffer, scaling and flipping it in the process
         double xscale, yscale;
@@ -413,7 +415,12 @@ public abstract class Texture
         xform.translate(0.0, -iheight);
         Graphics2D graphics = dest.createGraphics();
         try {
-            graphics.drawImage(image, xform, null);
+            graphics.setComposite(AlphaComposite.Src);
+            graphics.setRenderingHint(
+                RenderingHints.KEY_INTERPOLATION,
+                rescale ? RenderingHints.VALUE_INTERPOLATION_BILINEAR :
+                    RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+            graphics.drawRenderedImage(image, xform);
         } finally {
             graphics.dispose();
         }
