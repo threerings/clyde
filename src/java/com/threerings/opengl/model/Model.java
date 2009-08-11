@@ -98,7 +98,6 @@ public class Model extends DynamicScope
          */
         public Transform3D getPointWorldTransform (String point)
         {
-            log.warning("Pointtransformation not supported.", "point", point);
             return null;
         }
 

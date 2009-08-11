@@ -801,8 +801,12 @@ public abstract class ComponentConfig extends DeepObject
     public static class RenderableView extends ComponentConfig
     {
         /** Whether or not this is a static view. */
-        @Editable
+        @Editable(hgroup="v")
         public boolean staticView;
+
+        /** The name of a node representing the view location. */
+        @Editable(hgroup="v")
+        public String viewNode = "";
 
         /** The vertical field of view. */
         @Editable(min=0.0, max=180.0, scale=Math.PI/180.0, hgroup="f")
@@ -855,6 +859,7 @@ public abstract class ComponentConfig extends DeepObject
             OrbitCameraHandler camhand = (OrbitCameraHandler)view.getCameraHandler();
             camhand.setPerspective(fov, near, far);
             camhand.getCoords().set(azimuth, elevation, distance);
+            view.setViewNode(viewNode);
 
             // make static if specified and ensure that it will be validated
             view.setStatic(staticView);

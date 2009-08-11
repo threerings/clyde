@@ -378,11 +378,8 @@ public class Articulated extends Model.Implementation
     @Override // documentation inherited
     public Transform3D getPointWorldTransform (String point)
     {
-        Node node = getAttachmentNode(point);
-        if (node == null) {
-            return null;
-        }
-        return node.getWorldTransform();
+        Node node = _nodesByName.get(point);
+        return (node == null) ? null : node.getWorldTransform();
     }
 
     @Override // documentation inherited
@@ -425,7 +422,7 @@ public class Articulated extends Model.Implementation
     @Override // documentation inherited
     public void detachAll (String point)
     {
-        detachAll(getAttachmentNode(point));
+        detachAll(_nodesByName.get(point));
     }
 
     @Override // documentation inherited

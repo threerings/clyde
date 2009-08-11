@@ -30,6 +30,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.PixelFormat;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Transform3D;
@@ -115,6 +117,24 @@ public class RenderableView extends Component
     public boolean isStatic ()
     {
         return _static;
+    }
+
+    /**
+     * Sets the name of the view node.  If non-blank, the camera transform will assume the
+     * transform of the first node encountered with this name in the model list (overriding
+     * the transform applied by the camera handler).
+     */
+    public void setViewNode (String node)
+    {
+        _viewNode = node;
+    }
+
+    /**
+     * Returns the name of the view node.
+     */
+    public String getViewNode ()
+    {
+        return _viewNode;
     }
 
     /**
@@ -274,9 +294,15 @@ public class RenderableView extends Component
             _static ? 0 : (getAbsoluteY() + insets.bottom),
             _width - insets.getHorizontal(), _height - insets.getVertical());
 
-        // update the camera handler
+        // update the camera handler/camera position
         _camhand.updatePerspective();
-        _camhand.updatePosition();
+        Transform3D viewNodeTransform = getViewNodeTransform();
+        if (viewNodeTransform == null) {
+            _camhand.updatePosition();
+        } else {
+            _camera.getWorldTransform().set(viewNodeTransform);
+            _camera.updateTransform();
+        }
 
         // update the view transform state
         _viewTransformState.getModelview().set(_viewTransform);
@@ -350,6 +376,32 @@ public class RenderableView extends Component
         }
     }
 
+    /**
+     * Returns the transform corresponding to the view node, or <code>null</code> for none.
+     */
+    protected Transform3D getViewNodeTransform ()
+    {
+        if (StringUtil.isBlank(_viewNode)) {
+            return null;
+        }
+        for (Model model : _configModels) {
+            Transform3D xform = model.getPointWorldTransform(_viewNode);
+            if (xform != null) {
+                return xform;
+            }
+        }
+        for (int ii = 0, nn = _renderables.size(); ii < nn; ii++) {
+            Renderable renderable = _renderables.get(ii);
+            if (renderable instanceof Model) {
+                Transform3D xform = ((Model)renderable).getPointWorldTransform(_viewNode);
+                if (xform != null) {
+                    return xform;
+                }
+            }
+        }
+        return null;
+    }
+
     /** The view scope. */
     protected DynamicScope _scope = new DynamicScope(this, "view");
 
@@ -367,6 +419,9 @@ public class RenderableView extends Component
 
     /** Whether or not the view is static. */
     protected boolean _static;
+
+    /** The name of the view node, if any. */
+    protected String _viewNode;
 
     /** The models loaded from the configuration. */
     protected Model[] _configModels = new Model[0];
