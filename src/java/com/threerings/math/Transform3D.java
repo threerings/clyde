@@ -693,6 +693,37 @@ public final class Transform3D
     }
 
     /**
+     * Extracts the rotation component of the transform.
+     *
+     * @return a new quaternion containing the result.
+     */
+    public Quaternion extractRotation ()
+    {
+        return extractRotation(new Quaternion());
+    }
+
+    /**
+     * Extracts the rotation component of the transform and places it in the provided result
+     * quaternion.
+     *
+     * @return a reference to the result quaternion, for chaining.
+     */
+    public Quaternion extractRotation (Quaternion result)
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+                return result.set(Quaternion.IDENTITY);
+            case RIGID:
+            case UNIFORM:
+                return result.set(_rotation);
+            case AFFINE:
+            case GENERAL:
+                return result.set(Quaternion.IDENTITY); // TODO
+        }
+    }
+
+    /**
      * Extracts an approximation of the uniform scale from this transform.
      */
     public float approximateUniformScale ()

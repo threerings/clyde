@@ -198,10 +198,8 @@ public abstract class ParticleGeometry extends DynamicGeometry
 
             Alignment alignment = _config.alignment;
             if (alignment == Alignment.BILLBOARD) {
-                // get the inverse of the modelview rotation (better not be a general matrix!)
-                Transform3D modelview = _transformState.getModelview();
-                modelview.update(Transform3D.RIGID);
-                modelview.getRotation().invert(vrot);
+                // get the inverse of the modelview rotation
+                _transformState.getModelview().extractRotation(vrot).invertLocal();
             }
 
             // update the living particles
@@ -445,10 +443,8 @@ public abstract class ParticleGeometry extends DynamicGeometry
                     Vector3f.UNIT_Z, view);
 
             } else if (alignment == Alignment.BILLBOARD) {
-                // get the inverse of the modelview rotation (better not be a general matrix!)
-                Transform3D modelview = _transformState.getModelview();
-                modelview.update(Transform3D.RIGID);
-                modelview.getRotation().invert(vrot);
+                // get the inverse of the modelview rotation
+                _transformState.getModelview().extractRotation(vrot).invertLocal();
             }
 
             // update the living particles
@@ -840,10 +836,8 @@ public abstract class ParticleGeometry extends DynamicGeometry
                     Vector3f.UNIT_Z, view);
 
             } else if (alignment == Alignment.BILLBOARD) {
-                // get the inverse of the modelview rotation (better not be a general matrix!)
-                Transform3D modelview = _transformState.getModelview();
-                modelview.update(Transform3D.RIGID);
-                modelview.getRotation().invert(vrot);
+                // get the inverse of the modelview rotation
+                _transformState.getModelview().extractRotation(vrot).invertLocal();
             }
 
             // update the living particles
