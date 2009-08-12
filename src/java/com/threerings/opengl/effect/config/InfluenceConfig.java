@@ -316,7 +316,10 @@ public abstract class InfluenceConfig extends DeepObject
         {
             return new Influence() {
                 public void tick (float elapsed) {
+                    // the unscaled strength was based on an expected frame rate of sixty
+                    // frames per second
                     _time += elapsed * frequency;
+                    _sstrength = strength * elapsed * 60f;
                 }
                 public void apply (Particle particle) {
                     // using the system hash gives each particle a consistent unique identity;
@@ -325,11 +328,11 @@ public abstract class InfluenceConfig extends DeepObject
                     int pid = System.identityHashCode(particle);
                     float time = _time + (pid & 255) / 256f;
                     particle.getVelocity().addLocal(
-                        NoiseUtil.getNoise(time, pid) * strength,
-                        NoiseUtil.getNoise(time, pid + 1) * strength,
-                        NoiseUtil.getNoise(time, pid + 2) * strength);
+                        NoiseUtil.getNoise(time, pid) * _sstrength,
+                        NoiseUtil.getNoise(time, pid + 1) * _sstrength,
+                        NoiseUtil.getNoise(time, pid + 2) * _sstrength);
                 }
-                protected float _time;
+                protected float _time, _sstrength;
             };
         }
     }
@@ -353,17 +356,18 @@ public abstract class InfluenceConfig extends DeepObject
             return new Influence() {
                 public void tick (float elapsed) {
                     _time += elapsed * frequency;
+                    _sstrength = strength * elapsed * 60f;
                 }
                 public void apply (Particle particle) {
                     // jitter is just like wander, except it directly influences the position
                     int pid = System.identityHashCode(particle);
                     float time = _time + (pid & 255) / 256f;
                     particle.getPosition().addLocal(
-                        NoiseUtil.getNoise(time, pid) * strength,
-                        NoiseUtil.getNoise(time, pid + 1) * strength,
-                        NoiseUtil.getNoise(time, pid + 2) * strength);
+                        NoiseUtil.getNoise(time, pid) * _sstrength,
+                        NoiseUtil.getNoise(time, pid + 1) * _sstrength,
+                        NoiseUtil.getNoise(time, pid + 2) * _sstrength);
                 }
-                protected float _time;
+                protected float _time, _sstrength;
             };
         }
     }
