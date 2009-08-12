@@ -106,8 +106,7 @@ public final class Color4f
      */
     public Color4f (Color color)
     {
-        float[] comps = color.getRGBComponents(null);
-        set(comps[0], comps[1], comps[2], comps[3]);
+        set(color);
     }
 
     /**
@@ -272,6 +271,16 @@ public final class Color4f
     public Color4f set (Color4f other)
     {
         return set(other.r, other.g, other.b, other.a);
+    }
+
+    /**
+     * Copies the components of an AWT color.
+     *
+     * @return a reference to this color, for chaining.
+     */
+    public Color4f set (Color color)
+    {
+        return set(color.getRGBComponents(null));
     }
 
     /**
