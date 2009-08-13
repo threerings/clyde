@@ -177,6 +177,14 @@ public abstract class MaterialRewriter extends DeepObject
         }
 
         @Override // documentation inherited
+        protected TextureStateConfig rewrite (TextureStateConfig textureState)
+        {
+            textureState = super.rewrite(textureState);
+            textureState.uniqueInstance = true;
+            return textureState;
+        }
+
+        @Override // documentation inherited
         protected TextureUnitConfig rewrite (TextureUnitConfig textureUnit)
         {
             textureUnit.coordGenS =

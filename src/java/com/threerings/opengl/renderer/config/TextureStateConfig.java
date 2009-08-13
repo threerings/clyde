@@ -24,10 +24,13 @@
 
 package com.threerings.opengl.renderer.config;
 
+import java.lang.ref.SoftReference;
+
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.renderer.TextureUnit;
@@ -40,6 +43,10 @@ import com.threerings.opengl.util.GlContext;
 public class TextureStateConfig extends DeepObject
     implements Exportable
 {
+    /** If true, do not use a shared instance. */
+    @Editable
+    public boolean uniqueInstance;
+
     /** The texture unit configurations. */
     @Editable
     public TextureUnitConfig[] units = new TextureUnitConfig[0];
@@ -89,10 +96,29 @@ public class TextureStateConfig extends DeepObject
         if (units.length == 0) {
             return TextureState.DISABLED;
         }
+        if (uniqueInstance) {
+            return createInstance(ctx);
+        }
+        TextureState instance = (_instance == null) ? null : _instance.get();
+        if (instance == null) {
+            _instance = new SoftReference<TextureState>(instance = createInstance(ctx));
+        }
+        return instance;
+    }
+
+    /**
+     * Creates a material state instance corresponding to this config.
+     */
+    protected TextureState createInstance (GlContext ctx)
+    {
         TextureUnit[] sunits = new TextureUnit[units.length];
         for (int ii = 0; ii < units.length; ii++) {
             sunits[ii] = units[ii].createUnit(ctx);
         }
         return new TextureState(sunits);
     }
+
+    /** Cached state instance. */
+    @DeepOmit
+    protected transient SoftReference<TextureState> _instance;
 }
