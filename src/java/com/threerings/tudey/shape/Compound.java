@@ -305,44 +305,31 @@ public class Compound extends Shape
     @Override // documentation inherited
     public Vector2f getPenetration (Point point, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        return getSimplePenetration(point, result);
     }
 
     @Override // documentation inherited
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        return getSimplePenetration(segment, result);
     }
 
     @Override // documentation inherited
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
-        // start with zero penetration
-        result.set(Vector2f.ZERO);
-
-        // check for intersection with each shape
-        Vector2f oresult = new Vector2f();
-        for (Shape shape : _shapes) {
-            if (shape.intersects(circle)) {
-                shape.getPenetration(circle, oresult);
-                if (oresult.lengthSquared() > result.lengthSquared()) {
-                    result.set(oresult);
-                }
-            }
-        }
-        return result;
+        return getSimplePenetration(circle, result);
     }
 
     @Override // documentation inherited
     public Vector2f getPenetration (Capsule capsule, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        return getSimplePenetration(capsule, result);
     }
 
     @Override // documentation inherited
     public Vector2f getPenetration (Polygon polygon, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        return getSimplePenetration(polygon, result);
     }
 
     @Override // documentation inherited
@@ -363,6 +350,27 @@ public class Compound extends Shape
     public String toString ()
     {
         return "Comp:(" + StringUtil.join(_shapes) + ")";
+    }
+
+    /**
+     * Performs a simple penetration test against all shapes in the compound.
+     */
+    protected Vector2f getSimplePenetration (Shape shape, Vector2f result)
+    {
+        // start with zero penetration
+        result.set(Vector2f.ZERO);
+
+        // check for intersection with each shape
+        Vector2f oresult = new Vector2f();
+        for (Shape cshape : _shapes) {
+            if (cshape.intersects(shape)) {
+                cshape.getPenetration(shape, oresult);
+                if (oresult.lengthSquared() > result.lengthSquared()) {
+                    result.set(oresult);
+                }
+            }
+        }
+        return result;
     }
 
     /** The shapes of which this shape is composed. */
