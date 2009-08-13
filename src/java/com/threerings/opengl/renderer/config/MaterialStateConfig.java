@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.renderer.config;
 
+import java.lang.ref.SoftReference;
+
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
@@ -124,17 +126,12 @@ public abstract class MaterialStateConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public MaterialState getState ()
+        protected MaterialState createInstance ()
         {
-            boolean separateSpecular =
-                this.separateSpecular && GLContext.getCapabilities().OpenGL12;
-            return uniqueInstance ?
-                new MaterialState(
-                    ambient, diffuse, specular, emission, shininess,
-                    colorMaterialMode.getConstant(), localViewer, separateSpecular, flatShading) :
-                MaterialState.getInstance(
-                    ambient, diffuse, specular, emission, shininess,
-                    colorMaterialMode.getConstant(), localViewer, separateSpecular, flatShading);
+            return new MaterialState(
+                ambient, diffuse, specular, emission, shininess, colorMaterialMode.getConstant(),
+                localViewer, separateSpecular && GLContext.getCapabilities().OpenGL12,
+                flatShading);
         }
     }
 
@@ -166,21 +163,13 @@ public abstract class MaterialStateConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public MaterialState getState ()
+        protected MaterialState createInstance ()
         {
-            boolean separateSpecular =
-                this.separateSpecular && GLContext.getCapabilities().OpenGL12;
-            return uniqueInstance ?
-                new MaterialState(
-                    front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
-                    back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
-                    colorMaterialMode.getConstant(), colorMaterialFace.getConstant(),
-                    localViewer, separateSpecular, flatShading) :
-                MaterialState.getInstance(
-                    front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
-                    back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
-                    colorMaterialMode.getConstant(), colorMaterialFace.getConstant(),
-                    localViewer, separateSpecular, flatShading);
+            return new MaterialState(
+                front.ambient, front.diffuse, front.specular, front.emission, front.shininess,
+                back.ambient, back.diffuse, back.specular, back.emission, back.shininess,
+                colorMaterialMode.getConstant(), colorMaterialFace.getConstant(), localViewer,
+                separateSpecular && GLContext.getCapabilities().OpenGL12, flatShading);
         }
     }
 
@@ -254,5 +243,24 @@ public abstract class MaterialStateConfig extends DeepObject
     /**
      * Returns the corresponding material state.
      */
-    public abstract MaterialState getState ();
+    public MaterialState getState ()
+    {
+        if (uniqueInstance) {
+            return createInstance();
+        }
+        MaterialState instance = (_instance == null) ? null : _instance.get();
+        if (instance == null) {
+            _instance = new SoftReference<MaterialState>(
+                instance = MaterialState.getInstance(createInstance()));
+        }
+        return instance;
+    }
+
+    /**
+     * Creates a material state instance corresponding to this config.
+     */
+    protected abstract MaterialState createInstance ();
+
+    /** Cached state instance. */
+    protected SoftReference<MaterialState> _instance;
 }
