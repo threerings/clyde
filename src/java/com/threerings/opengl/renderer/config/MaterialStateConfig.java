@@ -33,6 +33,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.MaterialState;
@@ -262,5 +263,6 @@ public abstract class MaterialStateConfig extends DeepObject
     protected abstract MaterialState createInstance ();
 
     /** Cached state instance. */
-    protected SoftReference<MaterialState> _instance;
+    @DeepOmit
+    protected transient SoftReference<MaterialState> _instance;
 }
