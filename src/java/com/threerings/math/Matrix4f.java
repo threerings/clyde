@@ -929,6 +929,63 @@ public final class Matrix4f
     }
 
     /**
+     * Extracts the rotation component of the matrix.
+     *
+     * @return a new quaternion containing the result.
+     */
+    public Quaternion extractRotation ()
+    {
+        return extractRotation(new Quaternion());
+    }
+
+    /**
+     * Extracts the rotation component of the matrix and places it in the provided result
+     * quaternion.
+     *
+     * @return a reference to the result quaternion, for chaining.
+     */
+    public Quaternion extractRotation (Quaternion result)
+    {
+        float rsx = 1f / FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02);
+        float rsy = 1f / FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12);
+        float rsz = 1f / FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22);
+        float n00 = m00 * rsx;
+        float n11 = m11 * rsy;
+        float n22 = m22 * rsz;
+        float x2 = (1f + n00 - n11 - n22)/4f;
+        float y2 = (1f - n00 + n11 - n22)/4f;
+        float z2 = (1f - n00 - n11 + n22)/4f;
+        return result.set(
+            FloatMath.sqrt(x2) * (m12*rsy >= m21*rsz ? +1f : -1f),
+            FloatMath.sqrt(y2) * (m20*rsz >= m02*rsx ? +1f : -1f),
+            FloatMath.sqrt(z2) * (m01*rsx >= m10*rsy ? +1f : -1f),
+            FloatMath.sqrt(1f - x2 - y2 - z2));
+    }
+
+    /**
+     * Extracts the scale component of the matrix.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector3f extractScale ()
+    {
+        return extractScale(new Vector3f());
+    }
+
+    /**
+     * Extracts the scale component of the matrix and places it in the provided result vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector3f extractScale (Vector3f result)
+    {
+        return result.set(
+            FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02),
+            FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12),
+            FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22));
+    }
+
+    /**
      * Returns an approximation of the uniform scale for this matrix.
      */
     public float approximateUniformScale ()

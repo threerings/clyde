@@ -719,7 +719,38 @@ public final class Transform3D
                 return result.set(_rotation);
             case AFFINE:
             case GENERAL:
-                return result.set(Quaternion.IDENTITY); // TODO
+                return _matrix.extractRotation(result);
+        }
+    }
+
+    /**
+     * Extracts the scale component of the transform.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector3f extractScale ()
+    {
+        return extractScale(new Vector3f());
+    }
+
+    /**
+     * Extracts the scale component of the transform and places it in the provided result
+     * vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector3f extractScale (Vector3f result)
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+            case RIGID:
+                return result.set(1f, 1f, 1f);
+            case UNIFORM:
+                return result.set(_scale, _scale, _scale);
+            case AFFINE:
+            case GENERAL:
+                return _matrix.extractScale(result);
         }
     }
 
