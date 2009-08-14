@@ -34,6 +34,8 @@ import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
+import com.threerings.opengl.model.config.ModelConfig;
+
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.data.actor.Actor;
@@ -310,6 +312,12 @@ public class ActorLogic extends Logic
     public void removeShapeObserver (ShapeObserver observer)
     {
         _shapeObservers.remove(observer);
+    }
+
+    @Override // documentation inherited
+    public ConfigReference<ModelConfig> getModel ()
+    {
+        return _config.sprite.model;
     }
 
     @Override // documentation inherited

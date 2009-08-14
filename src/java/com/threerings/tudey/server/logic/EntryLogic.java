@@ -27,8 +27,11 @@ package com.threerings.tudey.server.logic;
 import java.util.ArrayList;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
+
+import com.threerings.opengl.model.config.ModelConfig;
 
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.config.PlaceableConfig;
@@ -193,6 +196,12 @@ public class EntryLogic extends Logic
     public Vector2f[] getPatrolPath ()
     {
         return _entry.createPatrolPath(_shape);
+    }
+
+    @Override // documentation inherited
+    public ConfigReference<ModelConfig> getModel ()
+    {
+        return _entry.getModel(_scenemgr.getConfigManager());
     }
 
     @Override // documentation inherited

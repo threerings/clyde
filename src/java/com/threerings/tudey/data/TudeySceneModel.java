@@ -68,6 +68,7 @@ import com.threerings.util.DeepOmit;
 import com.threerings.util.DeepUtil;
 
 import com.threerings.opengl.gui.util.Rectangle;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
@@ -224,6 +225,14 @@ public class TudeySceneModel extends SceneModel
         public float getRotation (ConfigManager cfgmgr)
         {
             return 0f;
+        }
+
+        /**
+         * Returns a reference to the model associated with the entry, if any.
+         */
+        public ConfigReference<ModelConfig> getModel (ConfigManager cfgmgr)
+        {
+            return null;
         }
 
         /**
@@ -441,6 +450,12 @@ public class TudeySceneModel extends SceneModel
         public float getRotation (ConfigManager cfgmgr)
         {
             return FloatMath.normalizeAngle((rotation - 1) * FloatMath.HALF_PI);
+        }
+
+        @Override // documentation inherited
+        public ConfigReference<ModelConfig> getModel (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).model;
         }
 
         @Override // documentation inherited
@@ -715,6 +730,12 @@ public class TudeySceneModel extends SceneModel
             transform.update(Transform3D.RIGID);
             return FloatMath.normalizeAngle(
                 transform.getRotation().getRotationZ() - FloatMath.HALF_PI);
+        }
+
+        @Override // documentation inherited
+        public ConfigReference<ModelConfig> getModel (ConfigManager cfgmgr)
+        {
+            return getConfig(cfgmgr).model;
         }
 
         @Override // documentation inherited

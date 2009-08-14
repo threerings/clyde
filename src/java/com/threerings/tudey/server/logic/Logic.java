@@ -24,8 +24,11 @@
 
 package com.threerings.tudey.server.logic;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
+
+import com.threerings.opengl.model.config.ModelConfig;
 
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.ConditionConfig;
@@ -162,6 +165,14 @@ public abstract class Logic
     public void removeShapeObserver (ShapeObserver observer)
     {
         // nothing by default
+    }
+
+    /**
+     * Returns a reference to the model associated with this logic, if any.
+     */
+    public ConfigReference<ModelConfig> getModel ()
+    {
+        return null;
     }
 
     /**
