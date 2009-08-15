@@ -727,6 +727,14 @@ public class ActorSprite extends Sprite
     }
 
     /**
+     * Returns a reference to the sprite implementation.
+     */
+    public Implementation getImplementation ()
+    {
+        return _impl;
+    }
+
+    /**
      * Attaches a model to this sprite.
      */
     public void attachModel (Model model)
