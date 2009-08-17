@@ -31,6 +31,10 @@ import java.util.Iterator;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap.IntEntry;
 
+import com.threerings.crowd.chat.client.ChatDisplay;
+import com.threerings.crowd.chat.data.ChatCodes;
+import com.threerings.crowd.chat.data.ChatMessage;
+import com.threerings.crowd.chat.data.UserMessage;
 import com.threerings.crowd.client.OccupantObserver;
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.OccupantInfo;
@@ -93,7 +97,7 @@ import static com.threerings.tudey.Log.*;
  */
 public class TudeySceneView extends SimpleScope
     implements GlView, PlaceView, TudeySceneModel.Observer,
-        OccupantObserver, ActorAdvancer.Environment
+        OccupantObserver, ChatDisplay, ActorAdvancer.Environment
 {
     /**
      * An interface for objects (such as sprites and observers) that require per-tick updates.
@@ -617,6 +621,7 @@ public class TudeySceneView extends SimpleScope
     public void willEnterPlace (PlaceObject plobj)
     {
         _ctx.getOccupantDirector().addOccupantObserver(this);
+        _ctx.getChatDirector().addChatDisplay(this);
 
         // if we don't need to preload, set the scene model immediately; otherwise, create the
         // loading screen and wait for the first scene delta to start preloading
@@ -638,6 +643,7 @@ public class TudeySceneView extends SimpleScope
             _sceneModel.removeObserver(this);
         }
         _ctx.getOccupantDirector().removeOccupantObserver(this);
+        _ctx.getChatDirector().removeChatDisplay(this);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -697,6 +703,30 @@ public class TudeySceneView extends SimpleScope
         ActorSprite sprite = _actorSprites.get(otoi.pawnId);
         if (sprite != null) {
             sprite.occupantUpdated(otoi, (TudeyOccupantInfo)ninfo);
+        }
+    }
+
+    // documentation inherited from interface ChatDisplay
+    public boolean displayMessage (ChatMessage msg, boolean alreadyDisplayed)
+    {
+        if (!(msg instanceof UserMessage && ChatCodes.PLACE_CHAT_TYPE.equals(msg.localtype))) {
+            return false;
+        }
+        UserMessage umsg = (UserMessage)msg;
+        TudeyOccupantInfo info =
+            (TudeyOccupantInfo)_ctx.getOccupantDirector().getOccupantInfo(umsg.speaker);
+        if (info == null) {
+            return false;
+        }
+        ActorSprite sprite = _actorSprites.get(info.pawnId);
+        return sprite != null && sprite.displayMessage(umsg, alreadyDisplayed);
+    }
+
+    // documentation inherited from interface ChatDisplay
+    public void clear ()
+    {
+        for (ActorSprite sprite : _actorSprites.values()) {
+            sprite.clearMessages();
         }
     }
 

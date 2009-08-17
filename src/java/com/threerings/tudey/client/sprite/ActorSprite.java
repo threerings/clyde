@@ -34,6 +34,8 @@ import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.RandomUtil;
 
+import com.threerings.crowd.chat.data.UserMessage;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
@@ -164,6 +166,25 @@ public class ActorSprite extends Sprite
          * Notes that the occupant controlling this actor has been updated.
          */
         public void occupantUpdated (TudeyOccupantInfo oinfo, TudeyOccupantInfo ninfo)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Gives the sprite a chance to display a message sent by the occupant
+         * controlling the actor.
+         *
+         * @return true if the sprite displayed the message.
+         */
+        public boolean displayMessage (UserMessage msg, boolean alreadyDisplayed)
+        {
+            return false;
+        }
+
+        /**
+         * Requests that the sprite clear any chat messages being displayed.
+         */
+        public void clearMessages ()
         {
             // nothing by default
         }
@@ -825,6 +846,26 @@ public class ActorSprite extends Sprite
     {
         if (_impl != null) {
             _impl.occupantUpdated(oinfo, ninfo);
+        }
+    }
+
+    /**
+     * Gives the sprite a chance to display a message sent by the occupant controlling the actor.
+     *
+     * @return true if the sprite displayed the message.
+     */
+    public boolean displayMessage (UserMessage msg, boolean alreadyDisplayed)
+    {
+        return _impl != null && _impl.displayMessage(msg, alreadyDisplayed);
+    }
+
+    /**
+     * Requests that the sprite clear any chat messages being displayed.
+     */
+    public void clearMessages ()
+    {
+        if (_impl != null) {
+            _impl.clearMessages();
         }
     }
 
