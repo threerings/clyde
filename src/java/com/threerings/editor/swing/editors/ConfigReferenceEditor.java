@@ -76,7 +76,8 @@ public class ConfigReferenceEditor extends PropertyEditor
             if (!_chooser.showDialog(this)) {
                 return;
             }
-            nvalue = new ConfigReference(_chooser.getSelectedConfig());
+            String config = _chooser.getSelectedConfig();
+            nvalue = (config == null) ? null : new ConfigReference(config);
 
         } else if (source == _edit) {
             BaseConfigEditor editor = BaseConfigEditor.createEditor(
