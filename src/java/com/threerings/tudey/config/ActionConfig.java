@@ -31,6 +31,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.util.Preloadable;
@@ -40,11 +41,12 @@ import com.threerings.opengl.util.PreloadableSet;
  * Configurations for server-side actions.
  */
 @EditorTypes({
-    ActionConfig.SpawnActor.class, ActionConfig.DestroyActor.class,
-    ActionConfig.WarpActor.class, ActionConfig.FireEffect.class,
-    ActionConfig.Signal.class, ActionConfig.MoveBody.class,
-    ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
-    ActionConfig.Compound.class, ActionConfig.Random.class })
+    ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
+    ActionConfig.DestroyActor.class, ActionConfig.WarpActor.class,
+    ActionConfig.FireEffect.class, ActionConfig.Signal.class,
+    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
+    ActionConfig.Conditional.class, ActionConfig.Compound.class,
+    ActionConfig.Random.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -89,6 +91,22 @@ public abstract class ActionConfig extends DeepObject
         {
             ActorConfig config = cfgmgr.getConfig(ActorConfig.class, actor);
             return (config == null) ? null : config.getOriginal(cfgmgr);
+        }
+    }
+
+    /**
+     * Spawns a new actor with a fixed rotation.
+     */
+    public static class SpawnRotatedActor extends SpawnActor
+    {
+        /** The fixed rotation for the new actor. */
+        @Editable(min=-180, max=+180, scale=Math.PI/180.0)
+        public float rotation = 0;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$SpawnRotatedActor";
         }
     }
 
