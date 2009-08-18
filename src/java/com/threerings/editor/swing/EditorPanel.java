@@ -119,14 +119,7 @@ public class EditorPanel extends BasePropertyEditor
             }
         });
         dialog.pack();
-        if (parent == null || !parent.isShowing()) {
-            SwingUtil.centerWindow(dialog);
-        } else {
-            Point pt = parent.getLocationOnScreen();
-            dialog.setLocation(
-                pt.x + (parent.getWidth() - dialog.getWidth()) / 2,
-                pt.y + (parent.getHeight() - dialog.getHeight()) / 2);
-        }
+        dialog.setLocationRelativeTo(parent);
         return dialog;
     }
 

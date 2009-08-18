@@ -82,10 +82,7 @@ public class ConfigReferenceEditor extends PropertyEditor
         } else if (source == _edit) {
             BaseConfigEditor editor = BaseConfigEditor.createEditor(
                 _ctx, _property.getArgumentType(ConfigReference.class), ovalue.getName());
-            Point pt = getLocationOnScreen();
-            editor.setLocation(
-                pt.x + (getWidth() - editor.getWidth()) / 2,
-                pt.y + (getHeight() - editor.getHeight()) / 2);
+            editor.setLocationRelativeTo(this);
             editor.setVisible(true);
             return;
 

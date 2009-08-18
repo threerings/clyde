@@ -238,14 +238,7 @@ public abstract class ConfigChooser extends JPanel
 
             // position and show the dialog
             dialog.setSize(300, 400);
-            if (parent == null || !parent.isShowing()) {
-                SwingUtil.centerWindow(dialog);
-            } else {
-                Point pt = parent.getLocationOnScreen();
-                dialog.setLocation(
-                    pt.x + (parent.getWidth() - dialog.getWidth()) / 2,
-                    pt.y + (parent.getHeight() - dialog.getHeight()) / 2);
-            }
+            dialog.setLocationRelativeTo(parent);
             dialog.setVisible(true);
 
             // remove our listeners
