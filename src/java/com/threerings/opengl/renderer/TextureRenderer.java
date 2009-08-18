@@ -159,8 +159,11 @@ public class TextureRenderer
         }
 
         // then try pbuffers with or without rtt (temporarily disabled)
-        int pcaps = Pbuffer.getCapabilities();
-        if (false && (pcaps & Pbuffer.PBUFFER_SUPPORTED) != 0) {
+        // even calling Pbuffer.getCapabilities has side effects on Windows with AWTGLCanvas: it
+        // seems to put us in a glBegin segment, which causes a subsequent call to glViewport to
+        // fail with GL_INVALID_OPERATION
+        int pcaps = 0; // Pbuffer.getCapabilities();
+        if ((pcaps & Pbuffer.PBUFFER_SUPPORTED) != 0) {
             int target = getRenderTextureTarget(tex.getTarget());
             boolean rectangle = (target == RenderTexture.RENDER_TEXTURE_RECTANGLE);
             _pwidth = _width;
