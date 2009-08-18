@@ -150,13 +150,29 @@ public class LabelRenderer
     }
 
     /**
+     * Configures the preferred width of this label (the preferred height will be calculated
+     * from the font).
+     */
+    public void setPreferredWidth (int width)
+    {
+        _prefWidth = width;
+    }
+
+    /**
      * Computes the preferred size of the label.
      */
     public Dimension computePreferredSize (int whint, int hhint)
     {
         // if our cached preferred size is not valid, recompute it
         int hint = getWidth(whint, hhint, _textRotation);
-        Config prefconfig = layoutConfig(_prefconfig, hint > 0 ? hint : Short.MAX_VALUE-1);
+        if (_prefWidth > 0) {
+            // our preferred width overrides any hint
+            hint = _prefWidth;
+        } else if (hint <= 0) {
+            // if we have no hints and no preferred width, allow arbitrarily wide lines
+            hint = Short.MAX_VALUE-1;
+        }
+        Config prefconfig = layoutConfig(_prefconfig, hint);
         _prefsize = computeSize(_prefconfig = prefconfig);
         prefconfig.glyphs = null; // we don't need to retain these
         return new Dimension(_prefsize);
@@ -590,6 +606,8 @@ public class LabelRenderer
 
     protected Config _prefconfig;
     protected Dimension _prefsize;
+
+    protected int _prefWidth = -1;
 
     protected Rectangle _srect = new Rectangle();
 }

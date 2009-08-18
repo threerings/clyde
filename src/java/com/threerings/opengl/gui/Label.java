@@ -144,6 +144,15 @@ public class Label extends TextComponent
     }
 
     /**
+     * Configures the preferred width of this label (the preferred height will be calculated
+     * from the font).
+     */
+    public void setPreferredWidth (int width)
+    {
+        _label.setPreferredWidth(width);
+    }
+
+    /**
      * Returns a reference to teh label's renderer.
      */
     public LabelRenderer getLabelRenderer ()

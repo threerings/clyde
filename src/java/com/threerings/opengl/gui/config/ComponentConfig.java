@@ -127,6 +127,10 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="o")
         public Fit fit = Fit.WRAP;
 
+        /** The label's preferred width, or zero for none. */
+        @Editable(min=0, hgroup="o")
+        public int preferredWidth;
+
         @Override // documentation inherited
         public void invalidate ()
         {
@@ -156,6 +160,7 @@ public abstract class ComponentConfig extends DeepObject
             label.setTextRotation(textRotation);
             label.setOrientation(orientation.getConstant());
             label.setFit(fit);
+            label.setPreferredWidth(preferredWidth);
         }
 
         /**
