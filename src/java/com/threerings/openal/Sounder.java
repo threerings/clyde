@@ -354,15 +354,20 @@ public class Sounder extends SimpleScope
                 } else {
                     dispose();
                 }
+                int oldLevel = _level;
+                _level = -1;
                 int top = getTop();
-                if (top > -1 && top < _level) {
+                if (top > -1 && top < oldLevel) {
                     for (com.threerings.openal.Stream stream : _soundmgr.getStreams()) {
                         if (sameStack(stream) && ((StackedStream)stream).getLevel() == top) {
-                            stream.fadeIn(interval);
+                            if (interval > 0f) {
+                                stream.fadeIn(interval);
+                            } else {
+                                stream.play();
+                            }
                         }
                     }
                 }
-                _level = -1;
             }
 
             /**
