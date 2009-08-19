@@ -242,7 +242,7 @@ public class Sounder extends SimpleScope
         /**
          * Starts the specified stream.
          */
-        protected void startStream (FileStream stream, float fadeIn)
+        protected void startStream (StackedStream stream, float fadeIn)
         {
             stopStream(fadeIn);
             (_stream = stream).setGain(_config.gain * _streamGain.value);
@@ -261,11 +261,7 @@ public class Sounder extends SimpleScope
             source.setConeOuterGain(_config.coneOuterGain);
 
             // start playing
-            if (fadeIn > 0f) {
-                _stream.fadeIn(fadeIn);
-            } else {
-                _stream.play();
-            }
+            _stream.push(fadeIn, !_config.push);
         }
 
         /**
@@ -276,27 +272,144 @@ public class Sounder extends SimpleScope
             if (_stream == null) {
                 return;
             }
-            if (fadeOut > 0f) {
-                _stream.fadeOut(fadeOut, true);
-            } else {
-                _stream.dispose();
-            }
+            _stream.pop(fadeOut);
             _stream = null;
+        }
+
+        /**
+         * A stream that is part of a stack where only the top level of the stack is playing.
+         */
+        protected class StackedStream extends FileStream
+        {
+            /**
+             * Creates a new stacked stream.
+             */
+            public StackedStream (String file, boolean loop, String stack)
+                throws IOException
+            {
+                super(_ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(file),
+                        loop);
+                _stack = stack;
+            }
+
+            /**
+             * Returns the name of the stack.
+             */
+            public String getStack ()
+            {
+                return _stack;
+            }
+
+            /**
+             * Returns the level of the stack.
+             */
+            public int getLevel ()
+            {
+                return _level;
+            }
+
+            /**
+             * Pushes the stream onto the stack, stopping any streams on top of the stack.
+             */
+            public void push (float interval, boolean current)
+            {
+                if (_level > -1) {
+                    log.warning("Can't push stream already on the stack", "level", _level);
+                    return;
+                }
+                int top = getTop();
+                if (top > -1 && !current) {
+                    for (com.threerings.openal.Stream stream : _soundmgr.getStreams()) {
+                        if (sameStack(stream) && ((StackedStream)stream).getLevel() == top) {
+                            if (interval > 0f) {
+                                stream.fadeOut(interval, false);
+                            } else {
+                                stream.stop();
+                            }
+                        }
+                    }
+                }
+                _level = top;
+                if (top == -1 || !current) {
+                    _level++;
+                }
+                if (interval > 0f) {
+                    fadeIn(interval);
+                } else {
+                    play();
+                }
+            }
+
+            /**
+             * Pops the stream off the stack, resuming any streams that were below it.
+             */
+            public void pop (float interval)
+            {
+                if (_level == -1) {
+                    log.warning("Can't pop stream not on the stack");
+                    return;
+                }
+                if (interval > 0f) {
+                    fadeOut(interval, true);
+                } else {
+                    dispose();
+                }
+                int top = getTop();
+                if (top > -1 && top < _level) {
+                    for (com.threerings.openal.Stream stream : _soundmgr.getStreams()) {
+                        if (sameStack(stream) && ((StackedStream)stream).getLevel() == top) {
+                            stream.fadeIn(interval);
+                        }
+                    }
+                }
+                _level = -1;
+            }
+
+            /**
+             * Returns true if this stream is on the same stack.
+             */
+            protected boolean sameStack (com.threerings.openal.Stream other)
+            {
+                if (other instanceof StackedStream) {
+                    String stack = ((StackedStream)other).getStack();
+                    return _stack == null ? stack == null : _stack.equals(stack);
+                }
+                return false;
+            }
+
+            /**
+             * Returns the top level of the stack.
+             */
+            protected int getTop ()
+            {
+                int top = -1;
+                for (com.threerings.openal.Stream stream : _soundmgr.getStreams()) {
+                    if (sameStack(stream)) {
+                        top = Math.max(top, ((StackedStream)stream).getLevel());
+                    }
+                }
+                return top;
+            }
+
+            /** The stack this stream is on. */
+            protected String _stack;
+
+            /** The level of the stack this stream is on. */
+            protected int _level = -1;
         }
 
         /**
          * Updates the transform of the stream as it plays.
          */
-        protected class TransformedStream extends FileStream
+        protected class TransformedStream extends StackedStream
         {
             /**
              * Creates a new transformed stream.
              */
-            public TransformedStream (String file, boolean loop)
+            public TransformedStream (String file, boolean loop, String stack)
                 throws IOException
             {
-                super(_ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(file),
-                    loop);
+                super(file, loop, stack);
             }
 
             @Override // documentation inherited
@@ -339,7 +452,7 @@ public class Sounder extends SimpleScope
         protected SounderConfig.BaseStream _config;
 
         /** The (current) stream. */
-        protected FileStream _stream;
+        protected StackedStream _stream;
 
         /** The stream gain. */
         @Bound
@@ -377,7 +490,7 @@ public class Sounder extends SimpleScope
             QueuedFile[] queue = _config.queue;
             QueuedFile first = queue[0];
             try {
-                FileStream stream = new TransformedStream(first.file, first.loop);
+                StackedStream stream = new TransformedStream(first.file, first.loop, _config.stack);
                 ResourceManager rsrcmgr = _ctx.getResourceManager();
                 for (int ii = 1; ii < queue.length; ii++) {
                     QueuedFile queued = queue[ii];
@@ -453,10 +566,10 @@ public class Sounder extends SimpleScope
         /**
          * Creates a stream to play the specified file.
          */
-        protected FileStream createStream (final WeightedFile wfile)
+        protected StackedStream createStream (final WeightedFile wfile)
             throws IOException
         {
-            return new TransformedStream(wfile.file, false) {
+            return new TransformedStream(wfile.file, false, _config.stack) {
                 @Override protected void update (float time) {
                     super.update(time);
                     if (_remaining == Float.MAX_VALUE || _transitioning) {

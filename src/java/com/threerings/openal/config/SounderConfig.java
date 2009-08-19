@@ -190,6 +190,14 @@ public class SounderConfig extends ParameterizedConfig
         /** The interval over which to fade out the stream. */
         @Editable(min=0, step=0.01, hgroup="f")
         public float fadeOut;
+
+        /** The stack this stream is on. */
+        @Editable(hgroup="s")
+        public String stack = "default";
+
+        /** Wether we push onto the stack. */
+        @Editable(hgroup="s")
+        public boolean push = false;
     }
 
     /**
