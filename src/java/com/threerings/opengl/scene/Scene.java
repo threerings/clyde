@@ -362,7 +362,7 @@ public abstract class Scene extends DynamicScope
 
         // tick the visible tick-when-visible elements
         if (!_visible.isEmpty()) {
-            for (SceneElement element : _visible) {
+            for (SceneElement element : _visible.toArray(new SceneElement[_visible.size()])) {
                 element.tick(elapsed);
             }
             _visible.clear();
