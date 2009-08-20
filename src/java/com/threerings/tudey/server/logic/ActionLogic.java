@@ -354,6 +354,15 @@ public abstract class ActionLogic extends Logic
             }
         }
 
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            _action.removed();
+            if (_elseAction != null) {
+                _elseAction.removed();
+            }
+        }
+
         /** The condition to evaluate. */
         protected ConditionLogic _condition;
 
@@ -392,6 +401,14 @@ public abstract class ActionLogic extends Logic
             _actions = actions.toArray(new ActionLogic[actions.size()]);
         }
 
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            for (ActionLogic action : _actions) {
+                action.removed();
+            }
+        }
+
         /** Logic objects for the actions. */
         protected ActionLogic[] _actions;
     }
@@ -421,6 +438,14 @@ public abstract class ActionLogic extends Logic
                 ActionConfig.WeightedAction waction = wactions[ii];
                 _weights[ii] = waction.weight;
                 _actions[ii] = createAction(waction.action, _source);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            for (ActionLogic action : _actions) {
+                action.removed();
             }
         }
 
