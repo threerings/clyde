@@ -219,6 +219,7 @@ public class CharacterTextFactory extends TextFactory
                 String extra = "";
                 if (c != '\n') {
                     // scan backwards, see if we can break on a space
+                    line.append(c);
                     int widx = lastIndexOfWhitespace(line);
                     if (widx != -1) {
                         extra = line.substring(widx + 1, line.length());
@@ -232,8 +233,7 @@ public class CharacterTextFactory extends TextFactory
                 for (int jj = 0, ll = extra.length(); jj < ll; jj++) {
                     width += getGlyph(extra.charAt(jj)).width;
                 }
-            }
-            if (c != '\n') {
+            } else {
                 line.append(c);
                 width += glyph.width;
             }
