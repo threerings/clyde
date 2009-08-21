@@ -294,6 +294,9 @@ public abstract class ActionConfig extends DeepObject
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             action.getPreloads(cfgmgr, preloads);
+            if (elseAction != null) {
+                elseAction.getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited
