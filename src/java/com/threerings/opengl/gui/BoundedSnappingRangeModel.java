@@ -48,9 +48,7 @@ public class BoundedSnappingRangeModel extends BoundedRangeModel
      */
     public void setValue (int value)
     {
-        int val = Math.min(_max - _extent, Math.max(_min, value));
-        val = val - (val % _snap);
-        setRange(_min, val, _extent, _max);
+        super.setValue(value - (value % _snap));
     }
 
     // documentation inherited
