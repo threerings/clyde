@@ -442,8 +442,12 @@ public class ArticulatedConfig extends ModelConfig.Imported
     }
 
     /** The model's tick policy. */
-    @Editable
+    @Editable(hgroup="t")
     public TickPolicy tickPolicy = TickPolicy.DEFAULT;
+
+    /** Whether or not the model can be completed. */
+    @Editable(hgroup="t")
+    public boolean completable;
 
     /** The model's animation mappings. */
     @Editable

@@ -450,6 +450,12 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public boolean hasCompleted ()
+    {
+        return _completed;
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
         for (Model model : _configAttachments) {
@@ -459,6 +465,7 @@ public class Articulated extends Model.Implementation
             _userAttachments.get(ii).reset();
         }
         _started = false;
+        _completed = false;
     }
 
     @Override // documentation inherited
@@ -529,6 +536,11 @@ public class Articulated extends Model.Implementation
     @Override // documentation inherited
     public void tick (float elapsed)
     {
+        // return immediately if completed
+        if (_completed) {
+            return;
+        }
+
         // update the world transform
         if (_parentWorldTransform == null) {
             _worldTransform.set(_localTransform);
@@ -551,17 +563,17 @@ public class Articulated extends Model.Implementation
 
         // copy the tracks to an array so that callbacks can manipulate the list;
         // note if any tracks have completed
-        boolean completed = false;
+        boolean tracksCompleted = false;
         _playingArray = _playing.toArray(_playingArray);
         for (int ii = 0, nn = _playing.size(); ii < nn; ii++) {
-            completed |= _playingArray[ii].tick(elapsed);
+            tracksCompleted |= _playingArray[ii].tick(elapsed);
         }
 
         // update the local node transforms
         updateTransforms();
 
         // if any tracks have completed, remove them
-        if (completed) {
+        if (tracksCompleted) {
             for (int ii = _playing.size() - 1; ii >= 0; ii--) {
                 Animation animation = _playing.get(ii);
                 if (animation.hasCompleted()) {
@@ -576,9 +588,11 @@ public class Articulated extends Model.Implementation
         }
 
         // tick the configured attachments
+        _completed = _config.completable && _playing.isEmpty();
         for (Model model : _configAttachments) {
             model.tick(elapsed);
             _nbounds.addLocal(model.getBounds());
+            _completed &= model.hasCompleted();
         }
 
         // and the user attachments
@@ -586,6 +600,7 @@ public class Articulated extends Model.Implementation
             Model model = _userAttachments.get(ii);
             model.tick(elapsed);
             _nbounds.addLocal(model.getBounds());
+            _completed &= model.hasCompleted();
         }
 
         // update the bounds if necessary
@@ -593,6 +608,11 @@ public class Articulated extends Model.Implementation
             ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
             ((Model)_parentScope).boundsDidChange(this);
+        }
+
+        // notify containing model if completed
+        if (_completed) {
+            ((Model)_parentScope).completed(this);
         }
     }
 
@@ -791,6 +811,12 @@ public class Articulated extends Model.Implementation
         TickPolicy npolicy = _config.tickPolicy;
         if (npolicy == TickPolicy.DEFAULT) {
             npolicy = TickPolicy.WHEN_VISIBLE;
+            for (Model model : _configAttachments) {
+                npolicy = mergePolicy(npolicy, model);
+            }
+            for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
+                npolicy = mergePolicy(npolicy, _userAttachments.get(ii));
+            }
         }
         if (_tickPolicy != npolicy) {
             ((Model)_parentScope).tickPolicyWillChange(this);
@@ -929,6 +955,15 @@ public class Articulated extends Model.Implementation
         return result;
     }
 
+    /**
+     * Returns the policy covering both the current policy and that of the specified model.
+     */
+    protected static TickPolicy mergePolicy (TickPolicy policy, Model model)
+    {
+        TickPolicy mpolicy = model.getTickPolicy();
+        return (mpolicy.ordinal() > policy.ordinal()) ? mpolicy : policy;
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -1009,4 +1044,7 @@ public class Articulated extends Model.Implementation
     /** Incremented on each call to {@link #updateTransforms} and used to determine which nodes
      * have been manipulated by animations on the current update. */
     protected int _update;
+
+    /** If true, the model has completed. */
+    protected boolean _completed;
 }
