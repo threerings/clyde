@@ -258,6 +258,14 @@ public abstract class MaterialStateConfig extends DeepObject
     }
 
     /**
+     * Invalidates the config's cached data.
+     */
+    public void invalidate ()
+    {
+        _instance = null;
+    }
+
+    /**
      * Creates a material state instance corresponding to this config.
      */
     protected abstract MaterialState createInstance ();

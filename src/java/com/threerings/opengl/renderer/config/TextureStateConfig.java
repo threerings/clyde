@@ -107,6 +107,14 @@ public class TextureStateConfig extends DeepObject
     }
 
     /**
+     * Invalidates the config's cached data.
+     */
+    public void invalidate ()
+    {
+        _instance = null;
+    }
+
+    /**
      * Creates a material state instance corresponding to this config.
      */
     protected TextureState createInstance (GlContext ctx)

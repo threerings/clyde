@@ -231,6 +231,11 @@ public class TechniqueConfig extends DeepObject
         public abstract Renderable createRenderable (
             GlContext ctx, Scope scope, Geometry geometry,
             boolean update, RenderQueue.Group group, MutableInteger pidx);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public abstract void invalidate ();
     }
 
     /**
@@ -339,6 +344,14 @@ public class TechniqueConfig extends DeepObject
                         }
                     };
                 }
+            }
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (PassConfig pass : passes) {
+                pass.invalidate();
             }
         }
 
@@ -486,6 +499,14 @@ public class TechniqueConfig extends DeepObject
                 };
             }
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Enqueuer enqueuer : enqueuers) {
+                enqueuer.invalidate();
+            }
+        }
     }
 
     /**
@@ -561,6 +582,12 @@ public class TechniqueConfig extends DeepObject
             boolean update, RenderQueue.Group group, MutableInteger pidx)
         {
             return _wrapped.createRenderable(ctx, scope, geometry, update, group, pidx);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            _wrapped.invalidate();
         }
 
         /** The wrapped enqueuer. */
@@ -699,6 +726,7 @@ public class TechniqueConfig extends DeepObject
      */
     public void invalidate ()
     {
+        enqueuer.invalidate();
         _schemeConfig = RenderSchemeConfig.INVALID;
         _descriptors = null;
     }

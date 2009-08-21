@@ -200,4 +200,15 @@ public class PassConfig extends DeepObject
         states[RenderState.SHADER_STATE] = shaderState.getState(ctx, scope, states, updaters);
         return states;
     }
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        if (materialState != null) {
+            materialState.invalidate();
+        }
+        textureState.invalidate();
+    }
 }

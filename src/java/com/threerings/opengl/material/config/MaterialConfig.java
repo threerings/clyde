@@ -219,11 +219,11 @@ public class MaterialConfig extends ParameterizedConfig
     }
 
     @Override // documentation inherited
-    public void wasUpdated ()
+    protected void fireConfigUpdated ()
     {
         // invalidate the implementation
         implementation.invalidate();
-        super.wasUpdated();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited
