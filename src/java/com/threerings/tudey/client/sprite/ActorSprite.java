@@ -779,14 +779,28 @@ public class ActorSprite extends Sprite
     }
 
     /**
-     * Spawns a transient model at the location of this sprite.
+     * Spawns a transient model at the location (translation and rotation) of this sprite.
      */
     public void spawnTransientModel (ConfigReference<ModelConfig> ref)
     {
+        spawnTransientModel(ref, true);
+    }
+
+    /**
+     * Spawns a transient model at the location of this sprite.
+     *
+     * @param rotate if true, match the rotation as well as the translation of the sprite.
+     */
+    public void spawnTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
+    {
         if (ref != null) {
-            Transform3D transform = new Transform3D(_model.getLocalTransform());
-            transform.setScale(1f);
-            _view.getScene().spawnTransient(ref, transform);
+            Transform3D mxform = _model.getLocalTransform();
+            Transform3D txform = new Transform3D(Transform3D.UNIFORM);
+            mxform.extractTranslation(txform.getTranslation());
+            if (rotate) {
+                mxform.extractRotation(txform.getRotation());
+            }
+            _view.getScene().spawnTransient(ref, txform);
         }
     }
 
