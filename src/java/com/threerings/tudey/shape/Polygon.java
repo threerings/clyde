@@ -36,6 +36,8 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.space.SpaceElement;
 
+import static com.threerings.tudey.Log.*;
+
 /**
  * A convex polygon.
  */
@@ -474,7 +476,11 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public Vector2f getPenetration (Polygon polygon, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        // Calculate the conves hull of the minkowski difference between the two polygons then
+        // determine the shortest vector to the hull which will be the penetration vector
+        Vector2f minDistance = getMinMinkowskyDifference(this, polygon, null);
+        minDistance = getMinMinkowskyDifference(polygon, this, minDistance);
+        return result.set(minDistance);
     }
 
     @Override // documentation inherited
@@ -536,6 +542,47 @@ public class Polygon extends Shape
             return false;
         }
         return true;
+    }
+
+    /**
+     * Calculates the minimum distance to the origin for the A polygon edges in the convex
+     * hull of the Minkowski difference of the A and B polygons.
+     */
+    protected Vector2f getMinMinkowskyDifference (Polygon A, Polygon B, Vector2f minDistance)
+    {
+        boolean flip = minDistance != null;
+        for (int ii = 0, nn = A.getVertexCount(); ii < nn; ii++) {
+            Vector2f start = A.getVertex(ii);
+            Vector2f end = A.getVertex((ii + 1) % nn);
+            Vector2f sprime = Vector2f.ZERO;
+            Vector2f eprime = Vector2f.ZERO;
+            Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
+            float dot = Float.NEGATIVE_INFINITY;
+            for (int jj = 0, mm = B.getVertexCount(); jj < mm; jj++) {
+                float odot = perp.dot(B.getVertex(jj));
+                if (odot > dot) {
+                    dot = odot;
+                    sprime = B.getVertex(jj);
+                    eprime = sprime;
+                } else if (odot == dot) {
+                    eprime = B.getVertex(jj);
+                }
+            }
+            if (flip) {
+                sprime = sprime.subtract(start);
+                eprime = eprime.subtract(end);
+            } else {
+                sprime = start.subtract(sprime);
+                eprime = end.subtract(eprime);
+            }
+            Vector2f distance = new Vector2f();
+            nearestPointOnSegment(sprime, eprime, Vector2f.ZERO, distance);
+            if (minDistance == null || minDistance.distanceSquared(Vector2f.ZERO) >
+                    distance.distanceSquared(Vector2f.ZERO)) {
+                minDistance = distance;
+            }
+        }
+        return minDistance;
     }
 
     /** The vertices of the polygon. */
