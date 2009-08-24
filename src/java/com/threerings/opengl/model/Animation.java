@@ -225,11 +225,15 @@ public class Animation extends SimpleScope
 
             // resolve the targets and initialize the snapshot array
             _targets = new Articulated.Node[config.targets.length];
-            _snapshot = new Transform3D[_targets.length];
+            if (_snapshot == null || _snapshot.length != _targets.length) {
+                _snapshot = new Transform3D[_targets.length];
+            }
             Function getNode = ScopeUtil.resolve(_parentScope, "getNode", Function.NULL);
             for (int ii = 0; ii < _targets.length; ii++) {
                 _targets[ii] = (Articulated.Node)getNode.call(config.targets[ii]);
-                if (_targets[ii] != null) {
+                if (_targets[ii] == null) {
+                    _snapshot[ii] = null;
+                } else if (_snapshot[ii] == null) {
                     _snapshot[ii] = new Transform3D();
                 }
             }
