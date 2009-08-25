@@ -34,6 +34,7 @@ import com.samskivert.util.IntMap.IntEntry;
 import com.threerings.crowd.chat.client.ChatDisplay;
 import com.threerings.crowd.chat.data.ChatCodes;
 import com.threerings.crowd.chat.data.ChatMessage;
+import com.threerings.crowd.chat.data.TellFeedbackMessage;
 import com.threerings.crowd.chat.data.UserMessage;
 import com.threerings.crowd.client.OccupantObserver;
 import com.threerings.crowd.client.PlaceView;
@@ -709,7 +710,8 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface ChatDisplay
     public boolean displayMessage (ChatMessage msg, boolean alreadyDisplayed)
     {
-        if (!(msg instanceof UserMessage && ChatCodes.PLACE_CHAT_TYPE.equals(msg.localtype))) {
+        if (!(msg instanceof UserMessage && ChatCodes.PLACE_CHAT_TYPE.equals(msg.localtype)) ||
+                msg instanceof TellFeedbackMessage) {
             return false;
         }
         UserMessage umsg = (UserMessage)msg;
