@@ -45,6 +45,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.openal.SoundGroup;
+import com.threerings.openal.SoundClipManager;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.ModelAdapter;
 import com.threerings.opengl.model.config.ModelConfig;
@@ -78,6 +79,7 @@ public abstract class Scene extends DynamicScope
         super("scene");
         _ctx = ctx;
         _soundGroup = ctx.getSoundManager().createGroup(ctx.getClipProvider(), sources);
+        _clipmgr = new SoundClipManager();
     }
 
     /**
@@ -391,6 +393,8 @@ public abstract class Scene extends DynamicScope
                 _influences.clear();
             }
         }
+
+        _clipmgr.tick(elapsed);
     }
 
     @Override // documentation inherited
@@ -586,6 +590,10 @@ public abstract class Scene extends DynamicScope
     /** A sound group for the scene. */
     @Scoped
     protected SoundGroup _soundGroup;
+
+    /** A sound clip manager for the scene. */
+    @Scoped
+    protected SoundClipManager _clipmgr;
 
     /** The viewer volume. */
     protected Box _viewer = new Box();
