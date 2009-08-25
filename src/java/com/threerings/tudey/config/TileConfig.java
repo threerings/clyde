@@ -132,7 +132,7 @@ public class TileConfig extends ParameterizedConfig
         public int[][] collisionFlags = new int[][] { { 0x01 } };
 
         /** The tile's floor flags. */
-        @Editable
+        @Editable(editor="mask", mode="floor")
         public int floorFlags = 0x01;
 
         /** Tags used to identify the tile within the scene. */

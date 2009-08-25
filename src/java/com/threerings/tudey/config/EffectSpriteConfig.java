@@ -61,7 +61,7 @@ public abstract class EffectSpriteConfig extends DeepObject
     }
 
     /** Determines which floor categories the effect lies over. */
-    @Editable
+    @Editable(editor="mask", mode="floor")
     public int floorMask = 0x01;
 
     /** The transient to fire off for the effect. */

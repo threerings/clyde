@@ -116,15 +116,15 @@ public class ActorConfig extends ParameterizedConfig
 
         /** If non-zero, the spawn point will be adjusted so that the actor doesn't collide with
          * anything that matches the mask (if possible). */
-        @Editable(hgroup="d")
+        @Editable(editor="mask", mode="collision", hgroup="d")
         public int spawnMask;
 
         /** Determines which collision categories the actor belongs to. */
-        @Editable(hgroup="c")
+        @Editable(editor="mask", mode="collision", hgroup="c")
         public int collisionFlags = 0x01;
 
         /** Determines which collision categories the actor collides with. */
-        @Editable(hgroup="c")
+        @Editable(editor="mask", mode="collision", hgroup="c")
         public int collisionMask = 0x01;
 
         /**

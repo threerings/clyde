@@ -195,11 +195,11 @@ public class PlaceableConfig extends ParameterizedConfig
     public static class Prop extends Original
     {
         /** The prop's collision flags. */
-        @Editable(hgroup="c")
+        @Editable(editor="mask", mode="collision", hgroup="c")
         public int collisionFlags = 0x01;
 
         /** The prop's floor flags. */
-        @Editable(hgroup="c")
+        @Editable(editor="mask", mode="floor", hgroup="c")
         public int floorFlags = 0x01;
 
         /**
