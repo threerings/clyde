@@ -38,12 +38,13 @@ import com.threerings.tudey.space.SpaceElement;
  */
 public class Global extends Shape
 {
-    /**
-     * Creates a global shape.
-     */
-    public Global ()
+    /** Get the global shape. */
+    public static Global getShape ()
     {
-        _bounds.set(Rect.MAX_VALUE);
+        if (_global == null) {
+            _global = new Global();
+        }
+        return _global;
     }
 
     @Override // documentation inherited
@@ -61,19 +62,19 @@ public class Global extends Shape
     @Override // documentation inherited
     public Shape transform (Transform2D transform, Shape result)
     {
-        return (result instanceof Global) ? ((Global)result) : new Global();
+        return this;
     }
 
     @Override // documentation inherited
     public Shape expand (float amount, Shape result)
     {
-        return (result instanceof Global) ? ((Global)result) : new Global();
+        return this;
     }
 
     @Override // documentation inherited
     public Shape sweep (Vector2f translation, Shape result)
     {
-        return (result instanceof Global) ? ((Global)result) : new Global();
+        return this;
     }
 
     @Override // documentation inherited
@@ -195,4 +196,15 @@ public class Global extends Shape
     {
         // do nothing
     }
+
+    /**
+     * Creates a global shape.
+     */
+    protected Global ()
+    {
+        _bounds.set(Rect.MAX_VALUE);
+    }
+
+    /** The global instance. */
+    protected static Global _global;
 }

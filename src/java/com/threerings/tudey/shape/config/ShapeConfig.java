@@ -331,7 +331,7 @@ public abstract class ShapeConfig extends DeepObject
         @Override // documentation inherited
         protected Shape createShape ()
         {
-            return new com.threerings.tudey.shape.Global();
+            return com.threerings.tudey.shape.Global.getShape();
         }
 
         @Override // documentation inherited
