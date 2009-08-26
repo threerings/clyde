@@ -20,8 +20,8 @@ public class SoundClipManager
      */
     public void playSound (Sound sound, SounderConfig.Clip config)
     {
-        int count = _counts.getCount(sound.getBuffer().getPath());
         String path = sound.getBuffer().getPath();
+        int count = _counts.getCount(path);
         boolean canStop = false;
         if (sound.isPlaying() || count > 0) {
             for (int ii = _sounds.size() - 1; ii >= 0; ii--) {
