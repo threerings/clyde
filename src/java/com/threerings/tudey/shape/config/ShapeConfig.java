@@ -50,7 +50,7 @@ import com.threerings.tudey.shape.Shape;
 @EditorTypes({
     ShapeConfig.Point.class, ShapeConfig.Segment.class, ShapeConfig.Rectangle.class,
     ShapeConfig.Circle.class, ShapeConfig.Capsule.class, ShapeConfig.Polygon.class,
-    ShapeConfig.Compound.class, ShapeConfig.None.class })
+    ShapeConfig.Compound.class, ShapeConfig.None.class, ShapeConfig.Global.class  })
 public abstract class ShapeConfig extends DeepObject
     implements Exportable
 {
@@ -320,6 +320,24 @@ public abstract class ShapeConfig extends DeepObject
             GL11.glBegin(GL11.GL_POINTS);
             GL11.glVertex2f(0f, 0f);
             GL11.glEnd();
+        }
+    }
+
+    /**
+     * A global shape.
+     */
+    public static class Global extends ShapeConfig
+    {
+        @Override // documentation inherited
+        protected Shape createShape ()
+        {
+            return new com.threerings.tudey.shape.Global();
+        }
+
+        @Override // documentation inherited
+        protected void draw (boolean outline)
+        {
+            // do nothing
         }
     }
 
