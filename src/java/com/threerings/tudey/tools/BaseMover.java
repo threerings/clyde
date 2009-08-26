@@ -90,8 +90,6 @@ public abstract class BaseMover extends EditorTool
         }
         // find the center and elevation
         bounds.getCenter(_center);
-        _elevation = (minElevation < maxElevation) ? (minElevation + maxElevation)/2 : 0;
-        _elevation += _editor.getGrid().getElevation();
 
         // reset the angle
         _angle = 0f;
@@ -198,6 +196,15 @@ public abstract class BaseMover extends EditorTool
             tentry.transform(_editor.getConfigManager(), transform);
         }
         return tentries;
+    }
+
+    /**
+     * Calculates the elevation.
+     */
+    public void calculateElevation (int minElevation, int maxElevation)
+    {
+        _elevation = (minElevation < maxElevation) ? (minElevation + maxElevation)/2 : 0;
+        _elevation += _editor.getGrid().getElevation();
     }
 
     /** The cursor representing the selection that we're moving. */
