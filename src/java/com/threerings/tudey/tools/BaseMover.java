@@ -90,6 +90,7 @@ public abstract class BaseMover extends EditorTool
         }
         // find the center and elevation
         bounds.getCenter(_center);
+        calculateElevation( minElevation, maxElevation);
 
         // reset the angle
         _angle = 0f;
