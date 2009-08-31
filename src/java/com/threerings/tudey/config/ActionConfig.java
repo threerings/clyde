@@ -100,8 +100,12 @@ public abstract class ActionConfig extends DeepObject
     public static class SpawnRotatedActor extends SpawnActor
     {
         /** The fixed rotation for the new actor. */
-        @Editable(min=-180, max=+180, scale=Math.PI/180.0)
+        @Editable(min=-180, max=+180, scale=Math.PI/180.0, hgroup="r")
         public float rotation = 0;
+
+        /** If the rotation should be relative to the target. */
+        @Editable(hgroup="r")
+        public boolean relative = false;
 
         @Override // documentation inherited
         public String getLogicClassName ()

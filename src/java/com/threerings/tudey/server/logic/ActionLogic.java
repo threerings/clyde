@@ -114,7 +114,8 @@ public abstract class ActionLogic extends Logic
         @Override // documentation inherited
         protected float getRotation (Logic target)
         {
-            return ((ActionConfig.SpawnRotatedActor)_config).rotation;
+            ActionConfig.SpawnRotatedActor config = (ActionConfig.SpawnRotatedActor)_config;
+            return (config.relative ? target.getRotation() : 0f) + config.rotation;
         }
     }
 
