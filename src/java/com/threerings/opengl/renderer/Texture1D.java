@@ -66,6 +66,15 @@ public class Texture1D extends Texture
      */
     public void setImage (int level, int format, int width, boolean border)
     {
+        setImage(level, format, width, border, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, null);
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImage (
+        int level, int format, int width, boolean border, int dformat, int dtype, ByteBuffer data)
+    {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             width = GlUtil.nextPowerOfTwo(width);
         }
@@ -76,8 +85,7 @@ public class Texture1D extends Texture
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL11.glTexImage1D(
-            GL11.GL_TEXTURE_1D, level, format, width + ib2, ib,
-            GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            GL11.GL_TEXTURE_1D, level, format, width + ib2, ib, dformat, dtype, data);
     }
 
     /**

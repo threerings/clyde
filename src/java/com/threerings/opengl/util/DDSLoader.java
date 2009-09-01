@@ -58,7 +58,23 @@ public class DDSLoader
         if ((header.caps2 & (DDSCAPS2_VOLUME | DDSCAPS2_CUBEMAP)) != 0 || header.height != 1) {
             throw new IOException("Not a 1D texture: " + file);
         }
-
+        if (header.fourCC != null) {
+            throw new IOException("Compression not supported for 1D textures: " + header.fourCC);
+        }
+        int width = header.width;
+        int format = ((header.pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) ?
+            GL11.GL_RGB : GL11.GL_RGBA;
+        int dformat = header.getUncompressedFormat();
+        if (dformat == -1) {
+            throw new IOException("Unknown format");
+        }
+        for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
+            int pitch = width * (format == GL11.GL_RGB ? 3 : 4);
+            buf.limit(buf.position() + pitch);
+            texture.setImage(ii, format, width, border, dformat, GL11.GL_UNSIGNED_BYTE, buf);
+            width = Math.max(width/2, 1);
+            buf.position(buf.limit());
+        }
     }
 
     /**
@@ -119,7 +135,28 @@ public class DDSLoader
         if ((header.caps2 & DDSCAPS2_VOLUME) == 0) {
             throw new IOException("Not a volume texture: " + file);
         }
-
+        if (header.fourCC != null) {
+            throw new IOException("Compression not supported for 3D textures: " + header.fourCC);
+        }
+        int width = header.width;
+        int height = header.height;
+        int depth = header.depth;
+        int format = ((header.pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) ?
+            GL11.GL_RGB : GL11.GL_RGBA;
+        int dformat = header.getUncompressedFormat();
+        if (dformat == -1) {
+            throw new IOException("Unknown format");
+        }
+        for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
+            int pitch = width * (format == GL11.GL_RGB ? 3 : 4);
+            buf.limit(buf.position() + depth*height*pitch);
+            texture.setImage(ii, format, width, height, depth, border,
+                dformat, GL11.GL_UNSIGNED_BYTE, buf);
+            width = Math.max(width/2, 1);
+            height = Math.max(height/2, 1);
+            depth = Math.max(depth/2, 1);
+            buf.position(buf.limit());
+        }
     }
 
     /**
@@ -130,8 +167,45 @@ public class DDSLoader
     {
         ByteBuffer buf = load(file);
         Header header = new Header(buf);
-        if ((header.caps2 & DDSCAPS2_CUBEMAP) == 0) {
+        if ((header.caps2 & DDSCAPS2_CUBEMAP) == 0 || header.width != header.height) {
             throw new IOException("Not a cube map texture: " + file);
+        }
+        if (header.fourCC == null) {
+            int width = header.width;
+            int format = ((header.pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) ?
+                GL11.GL_RGB : GL11.GL_RGBA;
+            int dformat = header.getUncompressedFormat();
+            if (dformat == -1) {
+                throw new IOException("Unknown format");
+            }
+            for (int target : TextureCubeMap.FACE_TARGETS) {
+                for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
+                    int pitch = width * (format == GL11.GL_RGB ? 3 : 4);
+                    buf.limit(buf.position() + width*pitch);
+                    texture.setImage(
+                        target, ii, format, width, border, dformat, GL11.GL_UNSIGNED_BYTE, buf);
+                    width = Math.max(width/2, 1);
+                    buf.position(buf.limit());
+                }
+            }
+        } else {
+            int width = header.width;
+            int format = header.getCompressedFormat();
+            if (format == -1) {
+                throw new IOException("Unknown format: " + header.fourCC);
+            }
+            for (int target : TextureCubeMap.FACE_TARGETS) {
+                for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
+                    int mwidth = Math.max(width/4, 1);
+                    int size = mwidth * mwidth *
+                        (format == EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT ?
+                            8 : 16);
+                    buf.limit(buf.position() + size);
+                    texture.setCompressedImage(target, ii, format, width, border, buf);
+                    width = Math.max(width/2, 1);
+                    buf.position(buf.limit());
+                }
+            }
         }
     }
 
@@ -300,21 +374,8 @@ public class DDSLoader
         }
     }
 
-    /** Flag indicating that the header contains the bytes per scan line (uncompressed texture). */
-    protected static final int DDSD_PITCH = 0x00000008;
-
-    /** Flag indicating that the header contains the total number of bytes in the top-level texture
-     * (compressed texture). */
-    protected static final int DDSD_LINEARSIZE = 0x00080000;
-
     /** Flag indicating that the header contains a mipmap count. */
     protected static final int DDSD_MIPMAPCOUNT = 0x00020000;
-
-    /** Flag indicating that the header contains a depth value for volume textures. */
-    protected static final int DDSD_DEPTH = 0x00800000;
-
-    /** Pixel format flag indicating that the texture contains uncompressed RGB data. */
-    protected static final int DDPF_RGB = 0x00000040;
 
     /** Pixel format flag indicating that the texture contains compressed RGB data. */
     protected static final int DDPF_FOURCC = 0x00000004;
@@ -322,29 +383,8 @@ public class DDSLoader
     /** Pixel format flag indicating that the texture contains alpha data. */
     protected static final int DDPF_ALPHAPIXELS = 0x00000001;
 
-    /** Caps flag indicating that the texture contains mipmaps. */
-    protected static final int DDSCAPS_MIPMAP = 0x00400000;
-
     /** Caps flag indicating that the texture contains a cube map. */
     protected static final int DDSCAPS2_CUBEMAP = 0x00000200;
-
-    /** Caps flag indicating the presence of the positive x cube map face. */
-    protected static final int DDSCAPS2_CUBEMAP_POSITIVEX = 0x00000400;
-
-    /** Caps flag indicating the presence of the negative x cube map face. */
-    protected static final int DDSCAPS2_CUBEMAP_NEGATIVEX = 0x00000800;
-
-    /** Caps flag indicating the presence of the positive y cube map face. */
-    protected static final int DDSCAPS2_CUBEMAP_POSITIVEY = 0x00001000;
-
-    /** Caps flag indicating the presence of the negative y cube map face. */
-    protected static final int DDSCAPS2_CUBEMAP_NEGATIVEY = 0x00002000;
-
-    /** Caps flag indicating the presence of the positive z cube map face. */
-    protected static final int DDSCAPS2_CUBEMAP_POSITIVEZ = 0x00004000;
-
-    /** Caps flag indicating the presence of the negative z cube map face. */
-    protected static final int DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x00008000;
 
     /** Caps flag indicating that the texture is a volume texture. */
     protected static final int DDSCAPS2_VOLUME = 0x00200000;

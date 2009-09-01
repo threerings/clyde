@@ -69,6 +69,17 @@ public class Texture3D extends Texture
      */
     public void setImage (int level, int format, int width, int height, int depth, boolean border)
     {
+        setImage(level, format, width, height, depth, border,
+            GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, null);
+    }
+
+    /**
+     * Sets a single mipmap level of this texture.
+     */
+    public void setImage (
+        int level, int format, int width, int height, int depth, boolean border,
+        int dformat, int dtype, ByteBuffer data)
+    {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             width = GlUtil.nextPowerOfTwo(width);
             height = GlUtil.nextPowerOfTwo(height);
@@ -84,7 +95,7 @@ public class Texture3D extends Texture
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL12.glTexImage3D(
             GL12.GL_TEXTURE_3D, level, format, width + ib2, height + ib2, depth + ib2, ib,
-            GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+            dformat, dtype, data);
     }
 
     /**

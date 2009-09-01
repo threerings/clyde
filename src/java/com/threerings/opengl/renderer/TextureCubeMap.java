@@ -28,6 +28,7 @@ import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
 
+import org.lwjgl.opengl.ARBTextureCompression;
 import org.lwjgl.opengl.ARBTextureCubeMap;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
@@ -76,6 +77,19 @@ public class TextureCubeMap extends Texture
      */
     public void setImages (int level, int format, int size, boolean border)
     {
+        for (int target : FACE_TARGETS) {
+            setImage(target, level, format, size, border, GL11.GL_RGBA,
+                GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+        }
+    }
+
+    /**
+     * Sets a single mipmap level of a single face of this texture.
+     */
+    public void setImage (
+        int target, int level, int format, int size, boolean border,
+        int dformat, int dtype, ByteBuffer data)
+    {
         if (!GLContext.getCapabilities().GL_ARB_texture_non_power_of_two) {
             size = GlUtil.nextPowerOfTwo(size);
         }
@@ -86,11 +100,24 @@ public class TextureCubeMap extends Texture
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
         int bsize = size + ib2;
-        for (int target : FACE_TARGETS) {
-            GL11.glTexImage2D(
-                target, level, format, bsize, bsize, ib,
-                GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
+        GL11.glTexImage2D(target, level, format, bsize, bsize, ib, dformat, dtype, data);
+    }
+
+    /**
+     * Sets a single compressed mipmap level of a single face of this texture.
+     */
+    public void setCompressedImage (
+        int target, int level, int format, int size, boolean border, ByteBuffer data)
+    {
+        if (level == 0) {
+            _format = format;
+            _size = size;
         }
+        _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
+        int bsize = size + ib2;
+        ARBTextureCompression.glCompressedTexImage2DARB(
+            target, level, format, bsize, bsize, ib, data);
     }
 
     /**
