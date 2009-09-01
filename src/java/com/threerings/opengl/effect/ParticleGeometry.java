@@ -130,7 +130,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 Particle particle = particles[ii];
 
                 // determine the texture coordinate offsets
-                int frame = Math.round(particle.getFrame());
+                int frame = FloatMath.round(particle.getFrame());
                 float uoff = (frame % udivs) * uscale, voff = (frame / udivs) * vscale;
 
                 // write the vertex attributes and advance the positions
@@ -211,7 +211,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 Particle particle = particles[ii];
 
                 // determine the texture coordinate offsets
-                int frame = Math.round(particle.getFrame());
+                int frame = FloatMath.round(particle.getFrame());
                 float uoff = (frame % udivs) * uscale, voff = (frame / udivs) * vscale;
 
                 // extract the color
@@ -341,7 +341,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 Particle particle = particles[ii];
 
                 // determine the texture coordinate offsets
-                int frame = Math.round(particle.getFrame());
+                int frame = FloatMath.round(particle.getFrame());
                 float uoff = (frame % udivs) * uscale, voff = (frame / udivs) * vscale;
 
                 // extract the color
@@ -456,7 +456,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 Particle particle = particles[ii];
 
                 // determine the texture coordinate offsets
-                int frame = Math.round(particle.getFrame());
+                int frame = FloatMath.round(particle.getFrame());
                 float uoff = (frame % udivs) * uscale, voff = (frame / udivs) * vscale;
 
                 // extract the color
@@ -634,7 +634,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 float tx = t.x, ty = t.y, tz = t.z;
 
                 // determine the texture coordinate offsets
-                int frame = Math.round(particle.getFrame());
+                int frame = FloatMath.round(particle.getFrame());
                 float uoff = (frame % udivs) * uscale, voff = (frame / udivs) * vscale;
 
                 // write the first two vertices
@@ -850,7 +850,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                 Particle particle = particles[ii];
 
                 // determine the texture coordinate offsets
-                int frame = Math.round(particle.getFrame());
+                int frame = FloatMath.round(particle.getFrame());
                 float uoff = (frame % udivs) * uscale, voff = (frame / udivs) * vscale;
 
                 // extract the color

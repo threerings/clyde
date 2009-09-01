@@ -204,6 +204,14 @@ public class FloatMath
     }
 
     /**
+     * A cheaper version of {@link Math#round} that doesn't handle the special cases.
+     */
+    public static int round (float v)
+    {
+        return (v < 0f) ? (int)(v - 0.5f) : (int)(v + 0.5f);
+    }
+
+    /**
      * Returns the floor of v as an integer without calling the relatively expensive
      * {@link Math#floor}.
      */

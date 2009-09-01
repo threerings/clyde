@@ -26,6 +26,8 @@ package com.threerings.tudey.util;
 
 import java.util.ArrayList;
 
+import com.threerings.math.FloatMath;
+
 import com.threerings.tudey.data.actor.Actor;
 
 /**
@@ -98,7 +100,7 @@ public class ActorHistory
             } else {
                 midx = sidx +
                     Math.min(Math.max(
-                        Math.round(dist * start.getPortion(end, timestamp)),
+                        FloatMath.round(dist * start.getPortion(end, timestamp)),
                     1), dist - 1);
             }
             Entry middle = _entries.get(midx);

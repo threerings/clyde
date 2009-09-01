@@ -300,7 +300,7 @@ public class HashSpace extends Space
      */
     protected int getLevel (Rect bounds)
     {
-        int level = Math.round(
+        int level = FloatMath.round(
             FloatMath.log(bounds.getLongestEdge() / _granularity) / FloatMath.log(0.5f));
         return Math.min(Math.max(level, 0), _levels - 1);
     }

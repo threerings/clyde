@@ -26,6 +26,7 @@ package com.threerings.opengl.effect;
 
 import java.util.ArrayList;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 
 /**
@@ -93,7 +94,7 @@ public final class PositionHistory
             } else {
                 midx = sidx +
                     Math.min(Math.max(
-                        Math.round(dist * (time - start.time) / (end.time - start.time)),
+                        FloatMath.round(dist * (time - start.time) / (end.time - start.time)),
                     1), dist - 1);
             }
             Entry middle = _entries.get(midx);
