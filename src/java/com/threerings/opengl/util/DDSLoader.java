@@ -43,7 +43,10 @@ import com.threerings.opengl.renderer.Texture3D;
 import com.threerings.opengl.renderer.TextureCubeMap;
 
 /**
- * Provides a means of loading texture data from DirectDraw Surface (DDS) files.
+ * Provides a means of loading texture data from DirectDraw Surface (DDS) files.  Note: Currently,
+ * this class does not do any format conversions, so it will fail for formats not supported by
+ * the OpenGL implementation.  We may need to decompress or swizzle textures in unsupported
+ * formats.
  */
 public class DDSLoader
 {
@@ -65,9 +68,6 @@ public class DDSLoader
         int format = ((header.pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) ?
             GL11.GL_RGB : GL11.GL_RGBA;
         int dformat = header.getUncompressedFormat();
-        if (dformat == -1) {
-            throw new IOException("Unknown format");
-        }
         for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
             int pitch = width * (format == GL11.GL_RGB ? 3 : 4);
             buf.limit(buf.position() + pitch);
@@ -94,9 +94,6 @@ public class DDSLoader
             int format = ((header.pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) ?
                 GL11.GL_RGB : GL11.GL_RGBA;
             int dformat = header.getUncompressedFormat();
-            if (dformat == -1) {
-                throw new IOException("Unknown format");
-            }
             for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
                 int pitch = width * (format == GL11.GL_RGB ? 3 : 4);
                 buf.limit(buf.position() + height*pitch);
@@ -109,9 +106,6 @@ public class DDSLoader
             int width = header.width;
             int height = header.height;
             int format = header.getCompressedFormat();
-            if (format == -1) {
-                throw new IOException("Unknown format: " + header.fourCC);
-            }
             for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
                 int size = Math.max(width/4, 1) * Math.max(height/4, 1) *
                     (format == EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT ? 8 : 16);
@@ -144,9 +138,6 @@ public class DDSLoader
         int format = ((header.pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) ?
             GL11.GL_RGB : GL11.GL_RGBA;
         int dformat = header.getUncompressedFormat();
-        if (dformat == -1) {
-            throw new IOException("Unknown format");
-        }
         for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
             int pitch = width * (format == GL11.GL_RGB ? 3 : 4);
             buf.limit(buf.position() + depth*height*pitch);
@@ -175,9 +166,6 @@ public class DDSLoader
             int format = ((header.pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) ?
                 GL11.GL_RGB : GL11.GL_RGBA;
             int dformat = header.getUncompressedFormat();
-            if (dformat == -1) {
-                throw new IOException("Unknown format");
-            }
             for (int target : TextureCubeMap.FACE_TARGETS) {
                 for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
                     int pitch = width * (format == GL11.GL_RGB ? 3 : 4);
@@ -191,9 +179,6 @@ public class DDSLoader
         } else {
             int width = header.width;
             int format = header.getCompressedFormat();
-            if (format == -1) {
-                throw new IOException("Unknown format: " + header.fourCC);
-            }
             for (int target : TextureCubeMap.FACE_TARGETS) {
                 for (int ii = 0, nn = header.getLevels(); ii < nn; ii++) {
                     int mwidth = Math.max(width/4, 1);
@@ -335,8 +320,11 @@ public class DDSLoader
         /**
          * Returns the OpenGL uncompressed format corresponding to the texture, or -1 if
          * unknown.
+         *
+         * @exception IOException if the format is unknown or unsupported.
          */
         public int getUncompressedFormat ()
+            throws IOException
         {
             // this is a little confusing because the masks are in little-endian order, so they're
             // reversed with respect to the OpenGL constants
@@ -347,30 +335,41 @@ public class DDSLoader
                     return GL11.GL_RGBA;
                 }
             } else if (rBitMask == 0xFF0000 && gBitMask == 0xFF00 && bBitMask == 0xFF) {
+                if (!GLContext.getCapabilities().GL_EXT_bgra) {
+                    throw new IOException("BGRA format not supported.");
+                }
                 if ((pixelFormatFlags & DDPF_ALPHAPIXELS) == 0) {
                     return EXTBgra.GL_BGR_EXT;
                 } else if (alphaBitMask == 0xFF000000) {
                     return EXTBgra.GL_BGRA_EXT;
                 }
             }
-            return -1;
+            throw new IOException("Unknown format: " + rBitMask + "/" + gBitMask + "/" +
+                bBitMask + "/" + alphaBitMask);
         }
 
         /**
-         * Returns the OpenGL compressed format corresponding to the texture, or -1 if
-         * unknown.
+         * Returns the OpenGL compressed format corresponding to the texture.
+         *
+         * @exception IOException if the format is unknown or unsupported.
          */
         public int getCompressedFormat ()
+            throws IOException
         {
+            int format;
             if ("DXT1".equals(fourCC)) {
-                return EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+                format = EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
             } else if ("DXT3".equals(fourCC)) {
-                return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+                format = EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
             } else if ("DXT5".equals(fourCC)) {
-                return EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+                format = EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
             } else {
-                return -1;
+                throw new IOException("Unknown format: " + fourCC);
             }
+            if (!GLContext.getCapabilities().GL_EXT_texture_compression_s3tc) {
+                throw new IOException("S3TC texture compression not supported.");
+            }
+            return format;
         }
     }
 
