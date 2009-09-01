@@ -59,7 +59,7 @@ public abstract class IconConfig extends DeepObject
         @Editable(editor="resource", nullable=true)
         @FileConstraints(
             description="m.image_files_desc",
-            extensions={".png", ".jpg"},
+            extensions={".png", ".jpg", ".dds"},
             directory="image_dir")
         public String file;
 

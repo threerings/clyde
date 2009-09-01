@@ -28,6 +28,7 @@ import java.awt.image.BufferedImage;
 
 import java.nio.ByteBuffer;
 
+import org.lwjgl.opengl.ARBTextureCompression;
 import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -118,6 +119,23 @@ public class Texture2D extends Texture
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL11.glTexImage2D(
             _target, level, format, width + ib2, height + ib2, ib, dformat, dtype, data);
+    }
+
+    /**
+     * Sets a single compressed level of this texture.
+     */
+    public void setCompressedImage (
+        int level, int format, int width, int height, boolean border, ByteBuffer data)
+    {
+        if (level == 0) {
+            _format = format;
+            _width = width;
+            _height = height;
+        }
+        _renderer.setTexture(this);
+        int ib = border ? 1 : 0, ib2 = ib*2;
+        ARBTextureCompression.glCompressedTexImage2DARB(
+            _target, level, format, width + ib2, height + ib2, ib, data);
     }
 
     /**

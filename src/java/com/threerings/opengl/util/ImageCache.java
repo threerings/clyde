@@ -36,6 +36,8 @@ import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 
 import com.threerings.opengl.gui.Image;
+import com.threerings.opengl.renderer.Texture2D;
+import com.threerings.opengl.util.DDSLoader;
 
 import static com.threerings.opengl.Log.*;
 
@@ -106,6 +108,17 @@ public class ImageCache extends ResourceCache
     /** The GUI image subcache. */
     protected Subcache<ImageKey, Image> _images = new Subcache<ImageKey, Image>() {
         protected Image loadResource (ImageKey key) {
+            if (key.path.endsWith(".dds")) {
+                Texture2D texture = new Texture2D(_ctx.getRenderer());
+                try {
+                    DDSLoader.load(_ctx.getResourceManager().getResourceFile(key.path),
+                        texture, false);
+                    Image.configureTexture(texture);
+                    return new Image(texture);
+                } catch (IOException e) {
+                    // fall through to buffered image loader
+                }
+            }
             return new Image(_buffered.getResource(key));
         }
         protected String getResourcePath (ImageKey key) {

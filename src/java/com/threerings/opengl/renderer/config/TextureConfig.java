@@ -26,6 +26,8 @@ package com.threerings.opengl.renderer.config;
 
 import java.awt.image.BufferedImage;
 
+import java.io.IOException;
+
 import java.lang.ref.SoftReference;
 
 import java.util.HashSet;
@@ -59,6 +61,7 @@ import com.threerings.opengl.renderer.Texture1D;
 import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.renderer.Texture3D;
 import com.threerings.opengl.renderer.TextureCubeMap;
+import com.threerings.opengl.util.DDSLoader;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -502,7 +505,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
-                extensions={".png", ".jpg"},
+                extensions={".png", ".jpg", ".dds"},
                 directory="image_dir")
             public String file;
 
@@ -528,6 +531,15 @@ public class TextureConfig extends ParameterizedConfig
             {
                 if (file == null) {
                     return;
+                }
+                if (file.endsWith(".dds")) {
+                    try {
+                        DDSLoader.load(ctx.getResourceManager().getResourceFile(file),
+                            texture, border);
+                        return;
+                    } catch (IOException e) {
+                        // fall through to the buffered image loader
+                    }
                 }
                 BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImage(
@@ -611,7 +623,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
-                extensions={".png", ".jpg"},
+                extensions={".png", ".jpg", ".dds"},
                 directory="image_dir")
             public String file;
 
@@ -637,6 +649,16 @@ public class TextureConfig extends ParameterizedConfig
             {
                 if (file == null) {
                     return;
+                }
+                if (file.endsWith(".dds")) {
+                    try {
+                        DDSLoader.load(ctx.getResourceManager().getResourceFile(file),
+                            texture, border);
+                        return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        // fall through to the buffered image loader
+                    }
                 }
                 BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImage(
@@ -757,7 +779,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
-                extensions={".png", ".jpg"},
+                extensions={".png", ".jpg", ".dds"},
                 directory="image_dir")
             public String file;
 
@@ -795,6 +817,15 @@ public class TextureConfig extends ParameterizedConfig
             {
                 if (file == null) {
                     return;
+                }
+                if (file.endsWith(".dds")) {
+                    try {
+                        DDSLoader.load(ctx.getResourceManager().getResourceFile(file),
+                            texture, border);
+                        return;
+                    } catch (IOException e) {
+                        // fall through to the buffered image loader
+                    }
                 }
                 BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImages(
@@ -883,7 +914,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
-                extensions={".png", ".jpg"},
+                extensions={".png", ".jpg", ".dds"},
                 directory="image_dir")
             public String file;
 
@@ -918,6 +949,15 @@ public class TextureConfig extends ParameterizedConfig
             {
                 if (file == null) {
                     return;
+                }
+                if (file.endsWith(".dds")) {
+                    try {
+                        DDSLoader.load(ctx.getResourceManager().getResourceFile(file),
+                            texture, border);
+                        return;
+                    } catch (IOException e) {
+                        // fall through to the buffered image loader
+                    }
                 }
                 BufferedImage image = getImage(ctx, file, colorizations);
                 texture.setImages(
@@ -991,7 +1031,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
-                extensions={".png", ".jpg"},
+                extensions={".png", ".jpg", ".dds"},
                 directory="image_dir")
             public String x;
 
@@ -999,7 +1039,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
-                extensions={".png", ".jpg"},
+                extensions={".png", ".jpg", ".dds"},
                 directory="image_dir")
             public String y;
 
@@ -1007,7 +1047,7 @@ public class TextureConfig extends ParameterizedConfig
             @Editable(editor="resource", nullable=true)
             @FileConstraints(
                 description="m.image_files_desc",
-                extensions={".png", ".jpg"},
+                extensions={".png", ".jpg", ".dds"},
                 directory="image_dir")
             public String z;
 

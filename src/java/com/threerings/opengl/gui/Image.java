@@ -45,6 +45,16 @@ import com.threerings.opengl.renderer.TextureUnit;
 public class Image
 {
     /**
+     * Configures a texture for use as an image.
+     */
+    public static void configureTexture (Texture2D texture)
+    {
+        texture.setMinFilter(GL11.GL_LINEAR);
+        int wrap = GLContext.getCapabilities().OpenGL12 ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_CLAMP;
+        texture.setWrap(wrap, wrap);
+    }
+
+    /**
      * Creates an image from the supplied source URL.
      */
     public Image (URL image)
@@ -199,9 +209,7 @@ public class Image
         } else {
             texture.setImage(format, false, _image, true, false, false);
         }
-        texture.setMinFilter(GL11.GL_LINEAR);
-        int wrap = GLContext.getCapabilities().OpenGL12 ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_CLAMP;
-        texture.setWrap(wrap, wrap);
+        configureTexture(texture);
         setTexture(texture);
     }
 

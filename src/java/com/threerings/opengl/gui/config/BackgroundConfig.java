@@ -131,7 +131,7 @@ public abstract class BackgroundConfig extends DeepObject
         @Editable(editor="resource", nullable=true, hgroup="f")
         @FileConstraints(
             description="m.image_files_desc",
-            extensions={".png", ".jpg"},
+            extensions={".png", ".jpg", ".dds"},
             directory="image_dir")
         public String file;
 
