@@ -130,14 +130,6 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /**
-     * Retrieves a configuration by integer identifier.
-     */
-    public T getConfig (int id)
-    {
-        return _configsById.get(id);
-    }
-
-    /**
      * Returns the collection of all registered configurations.
      */
     public Collection<T> getConfigs ()
@@ -185,18 +177,6 @@ public class ConfigGroup<T extends ManagedConfig>
     public void addConfig (T config)
     {
         _configsByName.put(config.getName(), config);
-        if (_configsById != null) {
-            int id = config.getId();
-            if (id == 0 || _configsById.containsKey(id)) {
-                // no id or id in use; assign new id
-                config.setId(id = assignId());
-            } else {
-                // make sure we don't assign this id
-                _highestId = Math.max(_highestId, id);
-                _freeIds.remove(Integer.valueOf(id));
-            }
-            _configsById.put(id, config);
-        }
         config.init(_cfgmgr);
         fireConfigAdded(config);
     }
@@ -207,9 +187,6 @@ public class ConfigGroup<T extends ManagedConfig>
     public void removeConfig (T config)
     {
         _configsByName.remove(config.getName());
-        if (_configsById != null) {
-            _configsById.remove(config.getId());
-        }
         fireConfigRemoved(config);
     }
 
@@ -327,12 +304,6 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         _cclass = clazz;
         _name = getName(clazz);
-
-        // create the id state if appropriate
-        if (IntegerIdentified.class.isAssignableFrom(clazz)) {
-            _configsById = new HashIntMap<T>();
-            _freeIds = new ArrayList<Integer>();
-        }
     }
 
     /**
@@ -394,16 +365,6 @@ public class ConfigGroup<T extends ManagedConfig>
     {
         for (T config : configs) {
             _configsByName.put(config.getName(), config);
-            if (_configsById != null) {
-                int id = config.getId();
-                _highestId = Math.max(_highestId, id);
-                _configsById.put(id, config);
-            }
-        }
-        for (int id = _highestId - 1; id >= 1; id--) {
-            if (!_configsById.containsKey(id)) {
-                _freeIds.add(id);
-            }
         }
     }
 
@@ -461,18 +422,6 @@ public class ConfigGroup<T extends ManagedConfig>
     }
 
     /**
-     * Assigns and returns a new id.
-     */
-    protected int assignId ()
-    {
-        int size = _freeIds.size();
-        if (size > 0) {
-            return _freeIds.remove(size - 1);
-        }
-        return ++_highestId;
-    }
-
-    /**
      * Fires a configuration added event.
      */
     protected void fireConfigAdded (T config)
@@ -517,15 +466,6 @@ public class ConfigGroup<T extends ManagedConfig>
 
     /** Configurations mapped by name. */
     protected HashMap<String, T> _configsByName = new HashMap<String, T>();
-
-    /** Configurations mapped by integer identifier. */
-    protected HashIntMap<T> _configsById;
-
-    /** The highest id in use.  The next id is guaranteed to be available. */
-    protected int _highestId;
-
-    /** Free ids below the highest. */
-    protected ArrayList<Integer> _freeIds;
 
     /** Configuration event listeners. */
     protected ObserverList<ConfigGroupListener<T>> _listeners;

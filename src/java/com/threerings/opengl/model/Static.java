@@ -156,7 +156,8 @@ public class Static extends Model.Implementation
             }
         }
         _surfaces = createSurfaces(
-            _ctx, this, _meshes.visible, _materialMappings, new HashMap<String, MaterialConfig>());
+            _ctx, this, _meshes.visible, _materialMappings,
+            new HashMap<String, MaterialConfig>(_materialMappings.length));
         updateBounds();
     }
 

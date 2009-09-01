@@ -97,6 +97,9 @@ public class DynamicScope
      */
     public void put (String name, Object value)
     {
+        if (_symbols == null) {
+            _symbols = new HashMap<String, Object>(1);
+        }
         _symbols.put(name, value);
         wasUpdated();
     }
@@ -106,8 +109,10 @@ public class DynamicScope
      */
     public void remove (String name)
     {
-        _symbols.remove(name);
-        wasUpdated();
+        if (_symbols != null) {
+            _symbols.remove(name);
+            wasUpdated();
+        }
     }
 
     /**
@@ -171,7 +176,7 @@ public class DynamicScope
     public <T> T get (String name, Class<T> clazz)
     {
         // first try the dynamic symbols, then the reflective ones
-        Object value = _symbols.get(name);
+        Object value = (_symbols == null) ? null : _symbols.get(name);
         return clazz.isInstance(value) ? clazz.cast(value) : ScopeUtil.get(_owner, name, clazz);
     }
 
@@ -207,7 +212,7 @@ public class DynamicScope
     protected int _compoundDepth;
 
     /** The mappings for the dynamic symbols in this scope. */
-    protected HashMap<String, Object> _symbols = new HashMap<String, Object>();
+    protected HashMap<String, Object> _symbols;
 
     /** The listeners to this scope. */
     protected WeakObserverList<ScopeUpdateListener> _listeners = WeakObserverList.newFastUnsafe();

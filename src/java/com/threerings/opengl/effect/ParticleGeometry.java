@@ -1025,7 +1025,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
         }
 
         // create the base arrays
-        HashMap<String, ClientArray> vertexAttribArrays = new HashMap<String, ClientArray>();
+        HashMap<String, ClientArray> vertexAttribArrays = new HashMap<String, ClientArray>(0);
         HashIntMap<ClientArray> texCoordArrays = new HashIntMap<ClientArray>();
         ClientArray texCoordArray = new ClientArray(2, (FloatBuffer)null);
         texCoordArrays.put(0, texCoordArray);

@@ -153,8 +153,8 @@ public class MaterialConfig extends ParameterizedConfig
         protected ArrayList<TechniqueConfig> getProcessedTechniques (GlContext ctx)
         {
             if (_processedTechniques == null) {
-                _processedTechniques = new ArrayList<TechniqueConfig>();
-                ArrayList<TechniqueConfig> fallbacks = new ArrayList<TechniqueConfig>();
+                _processedTechniques = new ArrayList<TechniqueConfig>(techniques.length);
+                ArrayList<TechniqueConfig> fallbacks = new ArrayList<TechniqueConfig>(0);
                 for (TechniqueConfig technique : techniques) {
                     // first try without fallbacks, then with
                     TechniqueConfig processed = technique.process(ctx, false);

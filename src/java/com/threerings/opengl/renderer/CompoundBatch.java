@@ -69,5 +69,5 @@ public class CompoundBatch extends Batch
     }
 
     /** The sub-batches of this batch. */
-    protected ArrayList<Batch> _batches = new ArrayList<Batch>();
+    protected ArrayList<Batch> _batches = new ArrayList<Batch>(1);
 }

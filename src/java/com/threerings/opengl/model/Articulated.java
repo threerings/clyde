@@ -708,7 +708,7 @@ public class Articulated extends Model.Implementation
         _influenceFlags = _config.influences.getFlags();
 
         // create the node list
-        ArrayList<Node> nnodes = new ArrayList<Node>();
+        ArrayList<Node> nnodes = new ArrayList<Node>(8);
         _config.root.getArticulatedNodes(this, onodes, nnodes, _worldTransform, _viewTransform);
         _nodes = nnodes.toArray(new Node[nnodes.size()]);
         for (Node node : onodes.values()) {
@@ -730,7 +730,8 @@ public class Articulated extends Model.Implementation
         }
 
         // create the node surfaces
-        Map<String, MaterialConfig> materialConfigs = Maps.newHashMap();
+        Map<String, MaterialConfig> materialConfigs =
+            Maps.newHashMapWithExpectedSize(_config.materialMappings.length);
         for (Node node : _nodes) {
             node.createSurfaces(_ctx, _config.materialMappings, materialConfigs);
         }
@@ -794,7 +795,7 @@ public class Articulated extends Model.Implementation
 
         // update the user attachments
         ArrayList<Model> oattachments = _userAttachments;
-        _userAttachments = new ArrayList<Model>();
+        _userAttachments = new ArrayList<Model>(userAttachmentNodes.length);
         for (int ii = 0; ii < userAttachmentNodes.length; ii++) {
             Model model = oattachments.get(ii);
             Node node = getAttachmentNode(userAttachmentNodes[ii]);
@@ -974,7 +975,7 @@ public class Articulated extends Model.Implementation
     protected Node[] _nodes;
 
     /** Maps node names to nodes. */
-    protected HashMap<String, Node> _nodesByName = new HashMap<String, Node>();
+    protected HashMap<String, Node> _nodesByName = new HashMap<String, Node>(0);
 
     /** The skinned surfaces. */
     protected Surface[] _surfaces;
@@ -983,7 +984,7 @@ public class Articulated extends Model.Implementation
     protected Animation[] _animations;
 
     /** Maps animation names to animations. */
-    protected HashMap<String, Animation> _animationsByName = new HashMap<String, Animation>();
+    protected HashMap<String, Animation> _animationsByName = new HashMap<String, Animation>(0);
 
     /** The attachments created from the configuration. */
     protected Model[] _configAttachments;
@@ -1030,13 +1031,13 @@ public class Articulated extends Model.Implementation
     protected TickPolicy _tickPolicy;
 
     /** User attachments (their parent scopes are the nodes to which they're attached). */
-    protected ArrayList<Model> _userAttachments = new ArrayList<Model>();
+    protected ArrayList<Model> _userAttachments = new ArrayList<Model>(0);
 
     /** Whether or not we have started the automatic animations. */
     protected boolean _started;
 
     /** The animations currently being played, sorted by decreasing priority. */
-    protected ArrayList<Animation> _playing = new ArrayList<Animation>();
+    protected ArrayList<Animation> _playing = new ArrayList<Animation>(0);
 
     /** Holds the playing animations during the tick. */
     protected Animation[] _playingArray = new Animation[0];

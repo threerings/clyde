@@ -64,7 +64,7 @@ public class BoundConfig extends ParameterizedConfig
             return this;
         }
         if (_bound == null) {
-            _bound = new SoftCache<ScopeKey, BoundConfig>();
+            _bound = new SoftCache<ScopeKey, BoundConfig>(1);
         }
         ScopeKey key = new ScopeKey(scope);
         BoundConfig bound = _bound.get(key);
@@ -109,6 +109,9 @@ public class BoundConfig extends ParameterizedConfig
             }
             copy(bound);
             bound.wasUpdated();
+        }
+        if (_bound.getMap().isEmpty()) {
+            _bound = null;
         }
     }
 

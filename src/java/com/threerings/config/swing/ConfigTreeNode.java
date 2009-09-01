@@ -347,7 +347,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
         parent = in.read("parent", null, MutableTreeNode.class);
         children = in.read("children", null, Vector.class);
         if (children != null) {
-            _childrenByName = new HashMap<String, ConfigTreeNode>();
+            _childrenByName = new HashMap<String, ConfigTreeNode>(children.size());
             for (Object child : children) {
                 ConfigTreeNode node = (ConfigTreeNode)child;
                 _childrenByName.put((String)node.getUserObject(), node);
@@ -361,7 +361,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     {
         super.insert(child, index);
         if (_childrenByName == null) {
-            _childrenByName = new HashMap<String, ConfigTreeNode>();
+            _childrenByName = new HashMap<String, ConfigTreeNode>(1);
         }
         ConfigTreeNode node = (ConfigTreeNode)child;
         _childrenByName.put((String)node.getUserObject(), node);

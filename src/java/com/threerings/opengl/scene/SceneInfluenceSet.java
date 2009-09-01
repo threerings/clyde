@@ -137,7 +137,7 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
      */
     public Map<String, Object> getDefinitions (Map<String, Object> definitions)
     {
-        Map<String, Object> defs = new HashMap<String, Object>();
+        Map<String, Object> defs = new HashMap<String, Object>(0);
         for (SceneInfluence influence : this) {
             Tuple<String, Object>[] idefs = influence.getDefinitions();
             if (idefs != null) {

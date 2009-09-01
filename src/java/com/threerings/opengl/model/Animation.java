@@ -529,7 +529,8 @@ public class Animation extends SimpleScope
             _transforms = new TargetTransform[_config.transforms.length];
             for (int ii = 0; ii < _transforms.length; ii++) {
                 AnimationConfig.TargetTransform transform = _config.transforms[ii];
-                ArrayList<Articulated.Node> targets = new ArrayList<Articulated.Node>();
+                ArrayList<Articulated.Node> targets =
+                    new ArrayList<Articulated.Node>(transform.targets.length);
                 for (String target : transform.targets) {
                     Articulated.Node node = (Articulated.Node)getNode.call(target);
                     if (node != null) {

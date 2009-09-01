@@ -520,7 +520,7 @@ public class ActorSprite extends Sprite
              */
             public Activity (String... anims)
             {
-                List<Animation> list = Lists.newArrayList();
+                List<Animation> list = Lists.newArrayListWithCapacity(anims.length);
                 for (String anim : anims) {
                     Animation animation = _model.getAnimation(anim);
                     if (animation != null) {
@@ -535,7 +535,7 @@ public class ActorSprite extends Sprite
              */
             public Activity (ConfigReference<AnimationConfig>... anims)
             {
-                List<Animation> list = Lists.newArrayList();
+                List<Animation> list = Lists.newArrayListWithCapacity(anims.length);
                 for (ConfigReference<AnimationConfig> anim : anims) {
                     Animation animation = (anim == null) ? null : _model.createAnimation(anim);
                     if (anim != null) {

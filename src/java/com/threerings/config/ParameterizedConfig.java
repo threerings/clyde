@@ -82,7 +82,7 @@ public class ParameterizedConfig extends ManagedConfig
             }
         }
         if (_derived == null) {
-            _derived = new SoftCache<ArgumentMap, ParameterizedConfig>();
+            _derived = new SoftCache<ArgumentMap, ParameterizedConfig>(1);
         }
         ParameterizedConfig instance = _derived.get(args);
         if (instance == null) {
@@ -120,6 +120,9 @@ public class ParameterizedConfig extends ManagedConfig
             copy(instance);
             applyArguments(instance, entry.getKey());
             instance.wasUpdated();
+        }
+        if (_derived.getMap().isEmpty()) {
+            _derived = null;
         }
     }
 

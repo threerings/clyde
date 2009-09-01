@@ -331,51 +331,6 @@ public class ConfigManager
     }
 
     /**
-     * Retrieves a configuration by class, integer identifier, and arguments.  If the
-     * configuration is not found in this manager, the request will be forwarded to the parent,
-     * and so on.
-     *
-     * @return the requested configuration, or <code>null</code> if not found.
-     */
-    public <T extends ManagedConfig> T getConfig (
-        Class<T> clazz, int id, String firstKey, Object firstValue, Object... otherArgs)
-    {
-        return getConfig(clazz, id, new ArgumentMap(firstKey, firstValue, otherArgs));
-    }
-
-    /**
-     * Retrieves a configuration by class, integer identifier, and arguments.  If the
-     * configuration is not found in this manager, the request will be forwarded to the parent,
-     * and so on.
-     *
-     * @param args the configuration arguments, or <code>null</code> for none.
-     * @return the requested configuration, or <code>null</code> if not found.
-     */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id, ArgumentMap args)
-    {
-        T config = getConfig(clazz, id);
-        return (config == null) ? null : clazz.cast(config.getInstance(args));
-    }
-
-    /**
-     * Retrieves a configuration by class and integer identifier.  If the configuration is not
-     * found in this manager, the request will be forwarded to the parent, and so on.
-     *
-     * @return the requested configuration, or <code>null</code> if not found.
-     */
-    public <T extends ManagedConfig> T getConfig (Class<T> clazz, int id)
-    {
-        ConfigGroup<T> group = getGroup(clazz);
-        if (group != null) {
-            T config = group.getConfig(id);
-            if (config != null) {
-                return config;
-            }
-        }
-        return (_parent == null) ? null : _parent.getConfig(clazz, id);
-    }
-
-    /**
      * Retrieves the groups registered for the specified class in this manager and all of its
      * ancestors.
      */

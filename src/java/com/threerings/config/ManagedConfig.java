@@ -64,22 +64,6 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /**
-     * Sets the unique identifier of this configuration.
-     */
-    public void setId (int id)
-    {
-        _id = id;
-    }
-
-    /**
-     * Returns the unique identifier of this configuration.
-     */
-    public int getId ()
-    {
-        return _id;
-    }
-
-    /**
      * Returns a reference to the config manager to use when resolving references within this
      * config.
      */
@@ -243,7 +227,7 @@ public abstract class ManagedConfig extends DeepObject
         // add the config dependencies
         ConfigReferenceSet refs = new ConfigReferenceSet();
         getUpdateReferences(refs);
-        _updateConfigs = new ArrayList<ManagedConfig>();
+        _updateConfigs = new ArrayList<ManagedConfig>(refs.size());
         for (Tuple<Class, ConfigReference> ref : refs) {
             @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
                 (Class<ManagedConfig>)ref.left;
@@ -283,9 +267,6 @@ public abstract class ManagedConfig extends DeepObject
 
     /** The name of this configuration. */
     protected String _name;
-
-    /** The unique identifier of this configuration. */
-    protected int _id;
 
     /** The config manager that we use to resolve references. */
     @DeepOmit

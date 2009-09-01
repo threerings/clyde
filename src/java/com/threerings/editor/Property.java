@@ -198,7 +198,7 @@ public abstract class Property extends DeepObject
     public Class[] getArgumentTypes (Class clazz)
     {
         if (_argumentTypes == null) {
-            _argumentTypes = new HashMap<Class, Class[]>();
+            _argumentTypes = new HashMap<Class, Class[]>(0);
         }
         Class[] classes = _argumentTypes.get(clazz);
         if (classes == null) {
@@ -237,7 +237,7 @@ public abstract class Property extends DeepObject
     public Type[] getGenericArgumentTypes (Class clazz)
     {
         if (_genericArgumentTypes == null) {
-            _genericArgumentTypes = new HashMap<Class, Type[]>();
+            _genericArgumentTypes = new HashMap<Class, Type[]>(0);
         }
         Type[] types = _genericArgumentTypes.get(clazz);
         if (types == null) {

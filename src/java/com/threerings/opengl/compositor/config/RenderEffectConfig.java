@@ -141,8 +141,8 @@ public class RenderEffectConfig extends BoundConfig
         protected Technique[] getProcessedTechniques (GlContext ctx)
         {
             if (_processedTechniques == null) {
-                ArrayList<Technique> list = new ArrayList<Technique>();
-                ArrayList<Technique> fallbacks = new ArrayList<Technique>();
+                ArrayList<Technique> list = new ArrayList<Technique>(techniques.length);
+                ArrayList<Technique> fallbacks = new ArrayList<Technique>(0);
                 for (Technique technique : techniques) {
                     // first try without fallbacks, then with
                     Technique processed = technique.process(ctx, false);

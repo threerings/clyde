@@ -240,7 +240,7 @@ public abstract class ExpressionBinding extends DeepObject
     protected Property[][] createPaths (
         ConfigManager cfgmgr, Object reference, String[] paths, Class type)
     {
-        ArrayList<Property[]> list = new ArrayList<Property[]>();
+        ArrayList<Property[]> list = new ArrayList<Property[]>(paths.length);
         for (String path : paths) {
             Property[] props = PathProperty.createPath(cfgmgr, reference, path);
             if (props != null &&
@@ -257,7 +257,7 @@ public abstract class ExpressionBinding extends DeepObject
      */
     protected Tuple<Property, Object>[] resolvePaths (Object object, Property[][] paths)
     {
-        ArrayList<Tuple<Property, Object>> list = Lists.newArrayList();
+        ArrayList<Tuple<Property, Object>> list = Lists.newArrayListWithCapacity(paths.length);
         for (Property[] path : paths) {
             Object ref = object;
             int lidx = path.length - 1;

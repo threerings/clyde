@@ -106,7 +106,7 @@ public class PathProperty extends Property
         _name = name;
 
         // attempt to resolve each path, storing the successes
-        ArrayList<Property[]> list = new ArrayList<Property[]>();
+        ArrayList<Property[]> list = new ArrayList<Property[]>(paths.length);
         for (String path : paths) {
             // the final component must be editable
             Property[] props = createPath(cfgmgr, reference, path);

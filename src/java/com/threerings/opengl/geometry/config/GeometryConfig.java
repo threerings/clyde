@@ -185,7 +185,7 @@ public abstract class GeometryConfig extends DeepObject
         public float[] getFloatArray (boolean align, ClientArrayConfig... arrays)
         {
             if (_floatArrays == null) {
-                _floatArrays = new SoftCache<IdentityKey, float[]>();
+                _floatArrays = new SoftCache<IdentityKey, float[]>(1);
             }
             IdentityKey key = new IdentityKey(align, (Object[])arrays);
             float[] array = _floatArrays.get(key);
@@ -213,7 +213,7 @@ public abstract class GeometryConfig extends DeepObject
         public int[] getIntArray (boolean align, ClientArrayConfig... arrays)
         {
             if (_intArrays == null) {
-                _intArrays = new SoftCache<IdentityKey, int[]>();
+                _intArrays = new SoftCache<IdentityKey, int[]>(1);
             }
             IdentityKey key = new IdentityKey(align, (Object[])arrays);
             int[] array = _intArrays.get(key);
@@ -352,7 +352,7 @@ public abstract class GeometryConfig extends DeepObject
             // otherwise, if we're to use a static vbo, look it up
             } else if (staticVBO) {
                 if (_arrayBuffers == null) {
-                    _arrayBuffers = new SoftCache<PassSummary, BufferObject>();
+                    _arrayBuffers = new SoftCache<PassSummary, BufferObject>(1);
                 }
                 arrayBuffer = _arrayBuffers.get(summary);
                 if (arrayBuffer == null) {
@@ -464,7 +464,7 @@ public abstract class GeometryConfig extends DeepObject
         protected DrawCommand[] getListCommands (GlContext ctx, PassDescriptor[] passes)
         {
             if (_listCommands == null) {
-                _listCommands = new SoftCache<PassDescriptor, DrawCommand>();
+                _listCommands = new SoftCache<PassDescriptor, DrawCommand>(1);
             }
             DrawCommand[] commands = new DrawCommand[passes.length];
             for (int ii = 0; ii < passes.length; ii++) {

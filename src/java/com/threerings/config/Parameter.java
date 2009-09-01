@@ -228,7 +228,7 @@ public abstract class Parameter extends DeepObject
         protected Property[] getOptionProperties ()
         {
             if (_optionProperties == null) {
-                ArrayList<Property> props = new ArrayList<Property>();
+                ArrayList<Property> props = new ArrayList<Property>(directs.length);
                 for (Direct direct : directs) {
                     final Property aprop = direct.getArgumentProperty(_outer);
                     if (aprop == null) {
