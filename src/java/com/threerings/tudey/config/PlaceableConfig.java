@@ -249,11 +249,11 @@ public class PlaceableConfig extends ParameterizedConfig
     public static class ClickableProp extends Prop
     {
         /** The color to use when not hovering over the prop. */
-        @Editable(mode="alpha", hgroup="c")
+        @Editable(mode="alpha", hgroup="d")
         public Color4f defaultColor = new Color4f(0.5f, 0.5f, 0.5f, 1f);
 
         /** The color to use when hovering over the prop. */
-        @Editable(mode="alpha", hgroup="c")
+        @Editable(mode="alpha", hgroup="d")
         public Color4f hoverColor = new Color4f(Color4f.WHITE);
 
         /** The animation to play when not hovering, if any. */
