@@ -139,7 +139,7 @@ public class DynamicScope
      */
     public void wasUpdated ()
     {
-        if (_compoundDepth == 0) {
+        if (_compoundDepth == 0 && _listeners != null) {
             final ScopeEvent event = new ScopeEvent(this);
             _listeners.apply(new ObserverList.ObserverOp<ScopeUpdateListener>() {
                 public boolean apply (ScopeUpdateListener listener) {
@@ -183,13 +183,21 @@ public class DynamicScope
     // documentation inherited from interface Scope
     public void addListener (ScopeUpdateListener listener)
     {
+        if (_listeners == null) {
+            _listeners = WeakObserverList.newList(ObserverList.FAST_UNSAFE_NOTIFY, true);
+        }
         _listeners.add(listener);
     }
 
     // documentation inherited from interface Scope
     public void removeListener (ScopeUpdateListener listener)
     {
-        _listeners.remove(listener);
+        if (_listeners != null) {
+            _listeners.remove(listener);
+            if (_listeners.isEmpty()) {
+                _listeners = null;
+            }
+        }
     }
 
     // documentation inherited from interface ScopeUpdateListener
@@ -215,7 +223,7 @@ public class DynamicScope
     protected HashMap<String, Object> _symbols;
 
     /** The listeners to this scope. */
-    protected WeakObserverList<ScopeUpdateListener> _listeners = WeakObserverList.newFastUnsafe();
+    protected WeakObserverList<ScopeUpdateListener> _listeners;
 
     /** Used to force initialization. */
     protected static final Scope INVALID_SCOPE = new DynamicScope(null);
