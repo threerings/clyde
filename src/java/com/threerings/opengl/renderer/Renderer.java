@@ -527,8 +527,15 @@ public class Renderer
                 continue;
             }
             if (!prec.equals(plane)) {
-                setState(TransformState.IDENTITY);
-                prec.set(plane).get(_dbuf).rewind();
+                // transform by transpose of modelview matrix to negate OpenGL's multiplying by
+                // inverse
+                Matrix4f mat = getModelviewMatrix();
+                Vector3f normal = prec.set(plane).getNormal();
+                _dbuf.put(normal.x*mat.m00 + normal.y*mat.m01 + normal.z*mat.m02);
+                _dbuf.put(normal.x*mat.m10 + normal.y*mat.m11 + normal.z*mat.m12);
+                _dbuf.put(normal.x*mat.m20 + normal.y*mat.m21 + normal.z*mat.m22);
+                _dbuf.put(normal.x*mat.m30 + normal.y*mat.m31 + normal.z*mat.m32 + prec.constant);
+                _dbuf.rewind();
                 GL11.glClipPlane(pname, _dbuf);
             }
         }
@@ -1039,16 +1046,26 @@ public class Renderer
                 GL11.glLight(lname, GL11.GL_SPECULAR, _vbuf);
             }
             if (!lrec.position.equals(light.position)) {
-                setState(TransformState.IDENTITY);
-                lrec.position.set(light.position).get(_vbuf).rewind();
+                // transform by inverse of modelview matrix to negate OpenGL's multiplying the
+                // direction by the modelview matrix
+                Matrix4f mat = getModelviewInverseMatrix();
+                Vector4f pos = lrec.position.set(light.position);
+                _vbuf.put(pos.x*mat.m00 + pos.y*mat.m10 + pos.z*mat.m20 + pos.w*mat.m30);
+                _vbuf.put(pos.x*mat.m01 + pos.y*mat.m11 + pos.z*mat.m21 + pos.w*mat.m31);
+                _vbuf.put(pos.x*mat.m02 + pos.y*mat.m12 + pos.z*mat.m22 + pos.w*mat.m32);
+                _vbuf.put(pos.w).rewind();
                 GL11.glLight(lname, GL11.GL_POSITION, _vbuf);
             }
             if (light.position.w == 0f) {
                 continue; // light is directional; the rest does not apply
             }
             if (light.spotCutoff != 180f && !lrec.spotDirection.equals(light.spotDirection)) {
-                setState(TransformState.IDENTITY);
-                lrec.spotDirection.set(light.spotDirection).get(_vbuf).rewind();
+                // as with the position, transform by inverse of modelview
+                Matrix4f mat = getModelviewInverseMatrix();
+                Vector3f dir = lrec.spotDirection.set(light.spotDirection);
+                _vbuf.put(dir.x*mat.m00 + dir.y*mat.m10 + dir.z*mat.m20);
+                _vbuf.put(dir.x*mat.m01 + dir.y*mat.m11 + dir.z*mat.m21);
+                _vbuf.put(dir.x*mat.m02 + dir.y*mat.m12 + dir.z*mat.m22).rewind();
                 GL11.glLight(lname, GL11.GL_SPOT_DIRECTION, _vbuf);
             }
             if (lrec.spotExponent != light.spotExponent) {
@@ -1597,7 +1614,7 @@ public class Renderer
                 } else if (unit.genModeS == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneS.equals(unit.genPlaneS)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneS.set(unit.genPlaneS));
+                        transposeTransform(urec.genEyePlaneS.set(unit.genPlaneS), _vbuf);
                         GL11.glTexGen(GL11.GL_S, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1622,7 +1639,7 @@ public class Renderer
                 } else if (unit.genModeT == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneT.equals(unit.genPlaneT)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneT.set(unit.genPlaneT));
+                        transposeTransform(urec.genEyePlaneT.set(unit.genPlaneT), _vbuf);
                         GL11.glTexGen(GL11.GL_T, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1647,7 +1664,7 @@ public class Renderer
                 } else if (unit.genModeR == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneR.equals(unit.genPlaneR)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneR.set(unit.genPlaneR));
+                        transposeTransform(urec.genEyePlaneR.set(unit.genPlaneR), _vbuf);
                         GL11.glTexGen(GL11.GL_R, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1672,7 +1689,7 @@ public class Renderer
                 } else if (unit.genModeQ == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneQ.equals(unit.genPlaneQ)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneQ.set(unit.genPlaneQ));
+                        transposeTransform(urec.genEyePlaneQ.set(unit.genPlaneQ), _vbuf);
                         GL11.glTexGen(GL11.GL_Q, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1708,6 +1725,7 @@ public class Renderer
             loadTransformMatrix(_modelview.set(modelview));
             _states[RenderState.TRANSFORM_STATE] = null;
             _modelviewMatrixValid = false;
+            _modelviewInverse.setType(-1);
         }
     }
 
@@ -1719,6 +1737,7 @@ public class Renderer
         _modelview.setType(-1);
         _states[RenderState.TRANSFORM_STATE] = null;
         _modelviewMatrixValid = false;
+        _modelviewInverse.setType(-1);
     }
 
     /**
@@ -1886,17 +1905,17 @@ public class Renderer
     }
 
     /**
-     * Transforms a vector by the transpose of the modelview matrix and stores it in the vector
+     * Transforms a vector by the transpose of the modelview matrix and stores it in the supplied
      * buffer.
      */
-    protected void transposeTransform (Vector4f vector)
+    protected void transposeTransform (Vector4f vector, FloatBuffer result)
     {
         Matrix4f mat = getModelviewMatrix();
-        _vbuf.put(vector.x*mat.m00 + vector.y*mat.m01 + vector.z*mat.m02);
-        _vbuf.put(vector.x*mat.m10 + vector.y*mat.m11 + vector.z*mat.m12);
-        _vbuf.put(vector.x*mat.m20 + vector.y*mat.m21 + vector.z*mat.m22);
-        _vbuf.put(vector.x*mat.m30 + vector.y*mat.m31 + vector.z*mat.m32 + vector.w);
-        _vbuf.rewind();
+        result.put(vector.x*mat.m00 + vector.y*mat.m01 + vector.z*mat.m02);
+        result.put(vector.x*mat.m10 + vector.y*mat.m11 + vector.z*mat.m12);
+        result.put(vector.x*mat.m20 + vector.y*mat.m21 + vector.z*mat.m22);
+        result.put(vector.x*mat.m30 + vector.y*mat.m31 + vector.z*mat.m32 + vector.w);
+        result.rewind();
     }
 
     /**
@@ -1909,6 +1928,19 @@ public class Renderer
             _modelviewMatrixValid = true;
         }
         return _modelview.getMatrix();
+    }
+
+    /**
+     * Returns a reference to the matrix of the inverse of the modelview transform, ensuring that
+     * it is up-to-date.
+     */
+    protected Matrix4f getModelviewInverseMatrix ()
+    {
+        if (_modelviewInverse.getType() == -1) {
+            _modelview.invert(_modelviewInverse);
+            _modelviewInverse.update(Transform3D.AFFINE);
+        }
+        return _modelviewInverse.getMatrix();
     }
 
     /**
@@ -2676,6 +2708,9 @@ public class Renderer
 
     /** The current modelview transform. */
     protected Transform3D _modelview = new Transform3D();
+
+    /** The lazily computed modelview transform inverse. */
+    protected Transform3D _modelviewInverse = new Transform3D(-1);
 
     /** Whether or not the modelview matrix is valid. */
     protected boolean _modelviewMatrixValid;
