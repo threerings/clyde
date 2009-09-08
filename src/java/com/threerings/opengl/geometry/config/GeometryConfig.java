@@ -48,6 +48,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.util.ArrayKey;
 import com.threerings.util.DeepObject;
@@ -564,6 +565,17 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
+        public GeometryConfig merge (Transform3D xform, GeometryConfig other, Transform3D oxform)
+        {
+            if (!(other instanceof ArrayStored)) {
+                return null;
+            }
+            ArrayStored ostored = (ArrayStored)other;
+
+            return null;
+        }
+
+        @Override // documentation inherited
         public DrawCommand createDrawCommand (boolean ibo)
         {
             return new SimpleBatch.DrawArrays(mode.getConstant(), first, count);
@@ -600,6 +612,12 @@ public abstract class GeometryConfig extends DeepObject
 
         public IndexedStored ()
         {
+        }
+
+        @Override // documentation inherited
+        public GeometryConfig merge (Transform3D xform, GeometryConfig other, Transform3D oxform)
+        {
+            return null;
         }
 
         @Override // documentation inherited
@@ -743,6 +761,18 @@ public abstract class GeometryConfig extends DeepObject
      * Returns the bounds of the geometry.
      */
     public abstract Box getBounds ();
+
+    /**
+     * Attempts to merge this geometry with another.
+     *
+     * @param xform the transform to apply to this geometry before merging.
+     * @param oxform the transform to apply to the other geometry before merging.
+     * @return the combined geometry, or <code>null</code> if the configs could not be merged.
+     */
+    public GeometryConfig merge (Transform3D xform, GeometryConfig other, Transform3D oxform)
+    {
+        return null;
+    }
 
     /**
      * Creates an instance of the geometry described by this config.

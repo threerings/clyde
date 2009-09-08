@@ -56,6 +56,7 @@ import com.samskivert.util.ObserverList;
 import com.samskivert.util.WeakObserverList;
 
 import com.threerings.math.FloatMath;
+import com.threerings.math.Matrix4f;
 import com.threerings.math.Plane;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
@@ -1596,8 +1597,7 @@ public class Renderer
                 } else if (unit.genModeS == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneS.equals(unit.genPlaneS)) {
                         setActiveUnit(ii);
-                        setState(TransformState.IDENTITY);
-                        urec.genEyePlaneS.set(unit.genPlaneS).get(_vbuf).rewind();
+                        transposeTransform(urec.genEyePlaneS.set(unit.genPlaneS));
                         GL11.glTexGen(GL11.GL_S, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1622,8 +1622,7 @@ public class Renderer
                 } else if (unit.genModeT == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneT.equals(unit.genPlaneT)) {
                         setActiveUnit(ii);
-                        setState(TransformState.IDENTITY);
-                        urec.genEyePlaneT.set(unit.genPlaneT).get(_vbuf).rewind();
+                        transposeTransform(urec.genEyePlaneT.set(unit.genPlaneT));
                         GL11.glTexGen(GL11.GL_T, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1648,8 +1647,7 @@ public class Renderer
                 } else if (unit.genModeR == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneR.equals(unit.genPlaneR)) {
                         setActiveUnit(ii);
-                        setState(TransformState.IDENTITY);
-                        urec.genEyePlaneR.set(unit.genPlaneR).get(_vbuf).rewind();
+                        transposeTransform(urec.genEyePlaneR.set(unit.genPlaneR));
                         GL11.glTexGen(GL11.GL_R, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1674,8 +1672,7 @@ public class Renderer
                 } else if (unit.genModeQ == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneQ.equals(unit.genPlaneQ)) {
                         setActiveUnit(ii);
-                        setState(TransformState.IDENTITY);
-                        urec.genEyePlaneQ.set(unit.genPlaneQ).get(_vbuf).rewind();
+                        transposeTransform(urec.genEyePlaneQ.set(unit.genPlaneQ));
                         GL11.glTexGen(GL11.GL_Q, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1710,6 +1707,7 @@ public class Renderer
             setMatrixMode(GL11.GL_MODELVIEW);
             loadTransformMatrix(_modelview.set(modelview));
             _states[RenderState.TRANSFORM_STATE] = null;
+            _modelviewMatrixValid = false;
         }
     }
 
@@ -1720,6 +1718,7 @@ public class Renderer
     {
         _modelview.setType(-1);
         _states[RenderState.TRANSFORM_STATE] = null;
+        _modelviewMatrixValid = false;
     }
 
     /**
@@ -1884,6 +1883,32 @@ public class Renderer
                 GL11.glScalef(scale, scale, scale);
             }
         }
+    }
+
+    /**
+     * Transforms a vector by the transpose of the modelview matrix and stores it in the vector
+     * buffer.
+     */
+    protected void transposeTransform (Vector4f vector)
+    {
+        Matrix4f mat = getModelviewMatrix();
+        _vbuf.put(vector.x*mat.m00 + vector.y*mat.m01 + vector.z*mat.m02);
+        _vbuf.put(vector.x*mat.m10 + vector.y*mat.m11 + vector.z*mat.m12);
+        _vbuf.put(vector.x*mat.m20 + vector.y*mat.m21 + vector.z*mat.m22);
+        _vbuf.put(vector.x*mat.m30 + vector.y*mat.m31 + vector.z*mat.m32 + vector.w);
+        _vbuf.rewind();
+    }
+
+    /**
+     * Returns a reference to the modelview matrix, ensuring that it is up-to-date.
+     */
+    protected Matrix4f getModelviewMatrix ()
+    {
+        if (!_modelviewMatrixValid) {
+            _modelview.update(Transform3D.AFFINE);
+            _modelviewMatrixValid = true;
+        }
+        return _modelview.getMatrix();
     }
 
     /**
@@ -2651,6 +2676,9 @@ public class Renderer
 
     /** The current modelview transform. */
     protected Transform3D _modelview = new Transform3D();
+
+    /** Whether or not the modelview matrix is valid. */
+    protected boolean _modelviewMatrixValid;
 
     /** The currently bound frame buffer. */
     protected Framebuffer _framebuffer;
