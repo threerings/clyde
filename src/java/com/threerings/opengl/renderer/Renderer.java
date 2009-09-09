@@ -2193,7 +2193,7 @@ public class Renderer
     protected synchronized void bufferObjectFinalized (int id, int size)
     {
         _finalizedBufferObjects = IntListUtil.add(_finalizedBufferObjects, id);
-        _finalizedBufferBytes += size;
+        _finalizedBufferObjectBytes += size;
     }
 
     /**
@@ -2263,9 +2263,9 @@ public class Renderer
             idbuf.put(compacted).rewind();
             ARBBufferObject.glDeleteBuffersARB(idbuf);
             _bufferObjectCount -= compacted.length;
-            _bufferObjectBytes -= _finalizedBufferBytes;
+            _bufferObjectBytes -= _finalizedBufferObjectBytes;
             _finalizedBufferObjects = null;
-            _finalizedBufferBytes = 0;
+            _finalizedBufferObjectBytes = 0;
         }
         if (_finalizedDisplayLists != null) {
             for (int id : _finalizedDisplayLists) {
@@ -2867,7 +2867,7 @@ public class Renderer
     protected int[] _finalizedBufferObjects;
 
     /** The total number of bytes in the buffer objects to be deleted. */
-    protected int _finalizedBufferBytes;
+    protected int _finalizedBufferObjectBytes;
 
     /** The list of display lists to be deleted. */
     protected int[] _finalizedDisplayLists;
