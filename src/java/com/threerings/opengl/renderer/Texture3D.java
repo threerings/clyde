@@ -96,6 +96,7 @@ public class Texture3D extends Texture
         GL12.glTexImage3D(
             GL12.GL_TEXTURE_3D, level, format, width + ib2, height + ib2, depth + ib2, ib,
             dformat, dtype, data);
+        setBytes(level, (data == null) ? (width*height*depth*4) : data.remaining());
     }
 
     /**

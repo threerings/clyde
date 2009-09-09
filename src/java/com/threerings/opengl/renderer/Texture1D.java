@@ -86,6 +86,7 @@ public class Texture1D extends Texture
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL11.glTexImage1D(
             GL11.GL_TEXTURE_1D, level, format, width + ib2, ib, dformat, dtype, data);
+        setBytes(level, (data == null) ? (width*4) : data.remaining());
     }
 
     /**
@@ -122,10 +123,11 @@ public class Texture1D extends Texture
         }
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
+        ByteBuffer data = getData(image, premultiply, width, 1, rescale);
         GL11.glTexImage1D(
             GL11.GL_TEXTURE_1D, level, format, width + ib2, ib,
-            getFormat(image), GL11.GL_UNSIGNED_BYTE,
-            getData(image, premultiply, width, 1, rescale));
+            getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
+        setBytes(level, data.remaining());
     }
 
     /**

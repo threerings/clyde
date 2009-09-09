@@ -51,6 +51,8 @@ import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.opengl.SGISGenerateMipmap;
 
+import com.samskivert.util.IntListUtil;
+
 /**
  * An OpenGL texture object.
  */
@@ -324,7 +326,7 @@ public abstract class Texture
         idbuf.put(_id).rewind();
         GL11.glDeleteTextures(idbuf);
         _id = 0;
-        _renderer.textureDeleted();
+        _renderer.textureDeleted(getTotalBytes());
     }
 
     /**
@@ -340,8 +342,41 @@ public abstract class Texture
     {
         super.finalize();
         if (_id > 0) {
-            _renderer.textureFinalized(_id);
+            _renderer.textureFinalized(_id, getTotalBytes());
         }
+    }
+
+    /**
+     * Sets the number of bytes occupied by all mipmap levels.
+     */
+    protected void setMipmapBytes (int bytes, int... dimensions)
+    {
+        int size = IntListUtil.getMaxValue(dimensions);
+        for (int ll = 0; size > 0; ll++, bytes /= 4, size /= 2) {
+            setBytes(ll, bytes);
+        }
+    }
+
+    /**
+     * Sets the number of bytes occupied by the specified mipmap level.
+     */
+    protected void setBytes (int level, int bytes)
+    {
+        if (level >= _bytes.length) {
+            int[] obytes = _bytes;
+            _bytes = new int[level + 1];
+            System.arraycopy(obytes, 0, _bytes, 0, obytes.length);
+        }
+        _renderer.textureResized(bytes - _bytes[level]);
+        _bytes[level] = bytes;
+    }
+
+    /**
+     * Returns the total number of bytes in the texture.
+     */
+    protected int getTotalBytes ()
+    {
+        return IntListUtil.sum(_bytes);
     }
 
     /**
@@ -478,6 +513,9 @@ public abstract class Texture
 
     /** The depth texture mode. */
     protected int _depthMode = GL11.GL_LUMINANCE;
+
+    /** The number of bytes occupied by each mipmap level. */
+    protected int[] _bytes = new int[0];
 
     /** A buffer for floating point values. */
     protected static FloatBuffer _vbuf = BufferUtils.createFloatBuffer(16);

@@ -376,6 +376,14 @@ public class Renderer
     }
 
     /**
+     * Returns the total number of bytes in textures.
+     */
+    public int getTextureBytes ()
+    {
+        return _textureBytes;
+    }
+
+    /**
      * Gives the renderer a chance to perform any periodic cleanup necessary.
      */
     public void cleanup ()
@@ -2124,6 +2132,8 @@ public class Renderer
 
     /**
      * Notes that a buffer object's size has changed.
+     *
+     * @param delta the difference in bytes between the new and old sizes.
      */
     protected void bufferObjectResized (int delta)
     {
@@ -2180,20 +2190,31 @@ public class Renderer
     }
 
     /**
+     * Notes that a texture's size has changed.
+     *
+     * @param delta the difference in bytes between the new and old sizes.
+     */
+    protected void textureResized (int delta)
+    {
+        _textureBytes += delta;
+    }
+
+    /**
      * Notes that a texture has been deleted.
      */
-    protected void textureDeleted ()
+    protected void textureDeleted (int bytes)
     {
         _textureCount--;
+        _textureBytes -= bytes;
     }
 
     /**
      * Called when a buffer object has been finalized.
      */
-    protected synchronized void bufferObjectFinalized (int id, int size)
+    protected synchronized void bufferObjectFinalized (int id, int bytes)
     {
         _finalizedBufferObjects = IntListUtil.add(_finalizedBufferObjects, id);
-        _finalizedBufferObjectBytes += size;
+        _finalizedBufferObjectBytes += bytes;
     }
 
     /**
@@ -2247,9 +2268,10 @@ public class Renderer
     /**
      * Called when a texture has been finalized.
      */
-    protected synchronized void textureFinalized (int id)
+    protected synchronized void textureFinalized (int id, int bytes)
     {
         _finalizedTextures = IntListUtil.add(_finalizedTextures, id);
+        _finalizedTextureBytes += bytes;
     }
 
     /**
@@ -2319,7 +2341,9 @@ public class Renderer
             idbuf.put(compacted).rewind();
             GL11.glDeleteTextures(idbuf);
             _textureCount -= compacted.length;
+            _textureBytes -= _finalizedTextureBytes;
             _finalizedTextures = null;
+            _finalizedTextureBytes = 0;
         }
     }
 
@@ -2863,6 +2887,9 @@ public class Renderer
     /** The number of active textures. */
     protected int _textureCount;
 
+    /** The total number of bytes in textures. */
+    protected int _textureBytes;
+
     /** The list of buffer objects to be deleted. */
     protected int[] _finalizedBufferObjects;
 
@@ -2889,6 +2916,9 @@ public class Renderer
 
     /** The list of textures to be deleted. */
     protected int[] _finalizedTextures;
+
+    /** The total number of bytes in the textures to be deleted. */
+    protected int _finalizedTextureBytes;
 
     /** A buffer for floating point values. */
     protected FloatBuffer _vbuf = BufferUtils.createFloatBuffer(16);

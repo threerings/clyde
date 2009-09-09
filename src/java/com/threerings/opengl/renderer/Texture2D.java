@@ -119,6 +119,7 @@ public class Texture2D extends Texture
         int ib = border ? 1 : 0, ib2 = ib*2;
         GL11.glTexImage2D(
             _target, level, format, width + ib2, height + ib2, ib, dformat, dtype, data);
+        setBytes(level, (data == null) ? (width*height*4) : data.remaining());
     }
 
     /**
@@ -136,6 +137,7 @@ public class Texture2D extends Texture
         int ib = border ? 1 : 0, ib2 = ib*2;
         ARBTextureCompression.glCompressedTexImage2DARB(
             _target, level, format, width + ib2, height + ib2, ib, data);
+        setBytes(level, (data == null) ? (width*height*4) : data.remaining());
     }
 
     /**
@@ -166,10 +168,11 @@ public class Texture2D extends Texture
         _width = width;
         _height = height;
         _renderer.setTexture(this);
+        ByteBuffer data = getData(image, premultiply, width, height, rescale);
         GLU.gluBuild2DMipmaps(
             _target, format, width, height,
-            getFormat(image), GL11.GL_UNSIGNED_BYTE,
-            getData(image, premultiply, width, height, rescale));
+            getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
+        setMipmapBytes(data.remaining(), width, height);
     }
 
     /**
@@ -191,10 +194,15 @@ public class Texture2D extends Texture
         }
         _renderer.setTexture(this);
         int ib = border ? 1 : 0, ib2 = ib*2;
+        ByteBuffer data = getData(image, premultiply, width, height, rescale);
         GL11.glTexImage2D(
             _target, level, format, width + ib2, height + ib2, ib,
-            getFormat(image), GL11.GL_UNSIGNED_BYTE,
-            getData(image, premultiply, width, height, rescale));
+            getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
+        if (level == 0 && _generateMipmaps) {
+            setMipmapBytes(data.remaining(), width, height);
+        } else {
+            setBytes(level, data.remaining());
+        }
     }
 
     /**
@@ -231,25 +239,26 @@ public class Texture2D extends Texture
             height = GlUtil.nextPowerOfTwo(height);
         }
         _renderer.setTexture(this);
+        ByteBuffer data = getData(image, premultiply, width, height, rescale);
         if (mipmap && !isRectangle()) { // rectangles cannot be mipmapped
             if (GLContext.getCapabilities().GL_SGIS_generate_mipmap) {
                 setGenerateMipmaps(true);
                 GL11.glTexImage2D(
                     _target, 0, getInternalFormat(image, compress), _width = width,
-                    _height = height, 0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE,
-                    getData(image, premultiply, width, height, rescale));
+                    _height = height, 0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
             } else {
                 GLU.gluBuild2DMipmaps(
                     _target, getInternalFormat(image, compress), _width = width, _height = height,
-                    _format = getFormat(image), GL11.GL_UNSIGNED_BYTE,
-                    getData(image, premultiply, width, height, rescale));
+                    _format = getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
             }
+            setMipmapBytes(data.remaining(), width, height);
+
         } else {
             setGenerateMipmaps(false);
             GL11.glTexImage2D(
                 _target, 0, getInternalFormat(image, compress), _width = width, _height = height,
-                0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE,
-                getData(image, premultiply, width, height, rescale));
+                0, _format = getFormat(image), GL11.GL_UNSIGNED_BYTE, data);
+            setBytes(0, data.remaining());
         }
     }
 
