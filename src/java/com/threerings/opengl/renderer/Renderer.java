@@ -2133,10 +2133,10 @@ public class Renderer
     /**
      * Notes that a buffer object has been deleted.
      */
-    protected void bufferObjectDeleted (int size)
+    protected void bufferObjectDeleted (int bytes)
     {
         _bufferObjectCount--;
-        _bufferObjectBytes -= size;
+        _bufferObjectBytes -= bytes;
     }
 
     /**

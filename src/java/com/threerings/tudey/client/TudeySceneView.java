@@ -252,6 +252,11 @@ public class TudeySceneView extends SimpleScope
         }
         _entrySprites.clear();
 
+        // suggest garbage collection/finalization here, because we may have OpenGL objects hanging
+        // around that should be reclaimed
+        System.gc();
+        System.runFinalization();
+
         // create the new sprites
         (_sceneModel = model).addObserver(this);
         for (Entry entry : _sceneModel.getEntries()) {

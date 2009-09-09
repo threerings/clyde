@@ -72,7 +72,7 @@ public class BufferObject
     {
         _renderer.setArrayBuffer(this);
         ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, size, usage);
-        setSize((int)size);
+        setBytes((int)size);
     }
 
     /**
@@ -90,7 +90,7 @@ public class BufferObject
     {
         _renderer.setArrayBuffer(this);
         ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, usage);
-        setSize(data.remaining() * 4);
+        setBytes(data.remaining() * 4);
     }
 
     /**
@@ -108,7 +108,7 @@ public class BufferObject
     {
         _renderer.setArrayBuffer(this);
         ARBBufferObject.glBufferDataARB(ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, data, usage);
-        setSize(data.remaining() * 2);
+        setBytes(data.remaining() * 2);
     }
 
     /**
@@ -140,7 +140,7 @@ public class BufferObject
         idbuf.put(_id).rewind();
         ARBBufferObject.glDeleteBuffersARB(idbuf);
         _id = 0;
-        _renderer.bufferObjectDeleted(_size);
+        _renderer.bufferObjectDeleted(_bytes);
     }
 
     /**
@@ -156,17 +156,17 @@ public class BufferObject
     {
         super.finalize();
         if (_id > 0) {
-            _renderer.bufferObjectFinalized(_id, _size);
+            _renderer.bufferObjectFinalized(_id, _bytes);
         }
     }
 
     /**
      * Notes the size of the buffer (and notifies the renderer).
      */
-    protected void setSize (int size)
+    protected void setBytes (int bytes)
     {
-        _renderer.bufferObjectResized(size - _size);
-        _size = size;
+        _renderer.bufferObjectResized(bytes - _bytes);
+        _bytes = bytes;
     }
 
     /** The renderer that loaded this buffer. */
@@ -176,5 +176,5 @@ public class BufferObject
     protected int _id;
 
     /** The current size of the buffer, in bytes. */
-    protected int _size;
+    protected int _bytes;
 }
