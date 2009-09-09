@@ -27,6 +27,7 @@ package com.threerings.opengl.scene;
 import java.lang.ref.SoftReference;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -392,6 +393,8 @@ public abstract class Scene extends DynamicScope
                 element.setInfluences(_influences);
                 _influences.clear();
             }
+            // make sure we don't retain any references
+            Arrays.fill(_updateArray, 0, size, null);
         }
 
         _clipmgr.tick(elapsed);

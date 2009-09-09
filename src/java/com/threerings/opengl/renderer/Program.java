@@ -336,6 +336,7 @@ public class Program extends ShaderObject
     {
         super(renderer);
         _id = ARBShaderObjects.glCreateProgramObjectARB();
+        _renderer.shaderObjectCreated();
     }
 
     /**

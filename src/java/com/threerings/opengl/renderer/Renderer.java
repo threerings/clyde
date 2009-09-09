@@ -304,9 +304,9 @@ public class Renderer
     /**
      * Returns the number of texture changes since the last call to {@link #resetStats}.
      */
-    public int getTextureCount ()
+    public int getTextureChangeCount ()
     {
-        return _textureCount;
+        return _textureChangeCount;
     }
 
     /**
@@ -330,9 +330,49 @@ public class Renderer
      */
     public void resetStats ()
     {
-        _textureCount = 0;
+        _textureChangeCount = 0;
         _batchCount = 0;
         _primitiveCount = 0;
+    }
+
+    /**
+     * Returns the number of active buffer objects.
+     */
+    public int getBufferObjectCount ()
+    {
+        return _bufferObjectCount;
+    }
+
+    /**
+     * Returns the total number of bytes in buffer objects.
+     */
+    public int getBufferObjectBytes ()
+    {
+        return _bufferObjectBytes;
+    }
+
+    /**
+     * Returns the number of active display lists.
+     */
+    public int getDisplayListCount ()
+    {
+        return _displayListCount;
+    }
+
+    /**
+     * Returns the number of active shader objects.
+     */
+    public int getShaderObjectCount ()
+    {
+        return _shaderObjectCount;
+    }
+
+    /**
+     * Returns the number of active textures.
+     */
+    public int getTextureCount ()
+    {
+        return _textureCount;
     }
 
     /**
@@ -1442,7 +1482,7 @@ public class Renderer
                         setActiveUnit(ii);
                         GL11.glBindTexture(GL11.GL_TEXTURE_1D,
                             (urec.texture1D = unit.texture).getId());
-                        _textureCount++;
+                        _textureChangeCount++;
                     }
                     break;
                 case GL11.GL_TEXTURE_2D:
@@ -1450,7 +1490,7 @@ public class Renderer
                         setActiveUnit(ii);
                         GL11.glBindTexture(GL11.GL_TEXTURE_2D,
                             (urec.texture2D = unit.texture).getId());
-                        _textureCount++;
+                        _textureChangeCount++;
                     }
                     break;
                 case ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB:
@@ -1458,7 +1498,7 @@ public class Renderer
                         setActiveUnit(ii);
                         GL11.glBindTexture(ARBTextureRectangle.GL_TEXTURE_RECTANGLE_ARB,
                             (urec.textureRectangle = unit.texture).getId());
-                        _textureCount++;
+                        _textureChangeCount++;
                     }
                     break;
                 case GL12.GL_TEXTURE_3D:
@@ -1466,7 +1506,7 @@ public class Renderer
                         setActiveUnit(ii);
                         GL11.glBindTexture(GL12.GL_TEXTURE_3D,
                             (urec.texture3D = unit.texture).getId());
-                        _textureCount++;
+                        _textureChangeCount++;
                     }
                     break;
                 case ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB:
@@ -1474,7 +1514,7 @@ public class Renderer
                         setActiveUnit(ii);
                         GL11.glBindTexture(ARBTextureCubeMap.GL_TEXTURE_CUBE_MAP_ARB,
                             (urec.textureCubeMap = unit.texture).getId());
-                        _textureCount++;
+                        _textureChangeCount++;
                     }
                     break;
             }
@@ -2075,11 +2115,85 @@ public class Renderer
     }
 
     /**
+     * Notes that a buffer object has been created.
+     */
+    protected void bufferObjectCreated ()
+    {
+        _bufferObjectCount++;
+    }
+
+    /**
+     * Notes that a buffer object's size has changed.
+     */
+    protected void bufferObjectResized (int delta)
+    {
+        _bufferObjectBytes += delta;
+    }
+
+    /**
+     * Notes that a buffer object has been deleted.
+     */
+    protected void bufferObjectDeleted (int size)
+    {
+        _bufferObjectCount--;
+        _bufferObjectBytes -= size;
+    }
+
+    /**
+     * Notes that a display list has been created.
+     */
+    protected void displayListCreated ()
+    {
+        _displayListCount++;
+    }
+
+    /**
+     * Notes that a display list has been deleted.
+     */
+    protected void displayListDeleted ()
+    {
+        _displayListCount--;
+    }
+
+    /**
+     * Notes that a shader object has been created.
+     */
+    protected void shaderObjectCreated ()
+    {
+        _shaderObjectCount++;
+    }
+
+    /**
+     * Notes that a shader object has been deleted.
+     */
+    protected void shaderObjectDeleted ()
+    {
+        _shaderObjectCount--;
+    }
+
+    /**
+     * Notes that a texture has been created.
+     */
+    protected void textureCreated ()
+    {
+        _textureCount++;
+    }
+
+    /**
+     * Notes that a texture has been deleted.
+     */
+    protected void textureDeleted ()
+    {
+        _textureCount--;
+    }
+
+    /**
      * Called when a buffer object has been finalized.
      */
-    protected synchronized void bufferObjectFinalized (int id)
+    protected synchronized void bufferObjectFinalized (int id, int size)
     {
         _finalizedBufferObjects = IntListUtil.add(_finalizedBufferObjects, id);
+        _finalizedBufferBytes += size;
     }
 
     /**
@@ -2144,14 +2258,22 @@ public class Renderer
     protected synchronized void deleteFinalizedObjects ()
     {
         if (_finalizedBufferObjects != null) {
-            IntBuffer idbuf = BufferUtils.createIntBuffer(_finalizedBufferObjects.length);
-            idbuf.put(_finalizedBufferObjects).rewind();
+            int[] compacted = IntListUtil.compact(_finalizedBufferObjects);
+            System.out.println("deleting " + compacted.length + " buffer objects");
+            IntBuffer idbuf = BufferUtils.createIntBuffer(compacted.length);
+            idbuf.put(compacted).rewind();
             ARBBufferObject.glDeleteBuffersARB(idbuf);
+            _bufferObjectCount -= compacted.length;
+            _bufferObjectBytes -= _finalizedBufferBytes;
             _finalizedBufferObjects = null;
+            _finalizedBufferBytes = 0;
         }
         if (_finalizedDisplayLists != null) {
             for (int id : _finalizedDisplayLists) {
-                GL11.glDeleteLists(id, 1);
+                if (id != 0) {
+                    GL11.glDeleteLists(id, 1);
+                    _displayListCount--;
+                }
             }
             _finalizedDisplayLists = null;
         }
@@ -2187,14 +2309,18 @@ public class Renderer
                 // instead, at least on some systems, it raises an invalid value error
                 if (id != 0) {
                     ARBShaderObjects.glDeleteObjectARB(id);
+                    _shaderObjectCount--;
                 }
             }
             _finalizedShaderObjects = null;
         }
         if (_finalizedTextures != null) {
-            IntBuffer idbuf = BufferUtils.createIntBuffer(_finalizedTextures.length);
-            idbuf.put(_finalizedTextures).rewind();
+            int[] compacted = IntListUtil.compact(_finalizedTextures);
+            System.out.println("deleting " + compacted.length + " textures");
+            IntBuffer idbuf = BufferUtils.createIntBuffer(compacted.length);
+            idbuf.put(compacted).rewind();
             GL11.glDeleteTextures(idbuf);
+            _textureCount -= compacted.length;
             _finalizedTextures = null;
         }
     }
@@ -2439,8 +2565,8 @@ public class Renderer
     /** The maximum number of vertex attributes available to vertex shaders. */
     protected int _maxVertexAttribs;
 
-    /** The number of textures used in the current frame. */
-    protected int _textureCount;
+    /** The number of texture changes in the current frame. */
+    protected int _textureChangeCount;
 
     /** The number of batches rendered in the current frame. */
     protected int _batchCount;
@@ -2724,8 +2850,26 @@ public class Renderer
     /** The active buffers for drawing and reading. */
     protected int _drawBuffer, _readBuffer;
 
+    /** The number of active buffer objects. */
+    protected int _bufferObjectCount;
+
+    /** The total number of bytes in buffer objects. */
+    protected int _bufferObjectBytes;
+
+    /** The number of active display lists. */
+    protected int _displayListCount;
+
+    /** The number of active shader objects. */
+    protected int _shaderObjectCount;
+
+    /** The number of active textures. */
+    protected int _textureCount;
+
     /** The list of buffer objects to be deleted. */
     protected int[] _finalizedBufferObjects;
+
+    /** The total number of bytes in the buffer objects to be deleted. */
+    protected int _finalizedBufferBytes;
 
     /** The list of display lists to be deleted. */
     protected int[] _finalizedDisplayLists;

@@ -45,6 +45,7 @@ public class Shader extends ShaderObject
     {
         super(renderer);
         _id = ARBShaderObjects.glCreateShaderObjectARB(type);
+        _renderer.shaderObjectCreated();
     }
 
     /**

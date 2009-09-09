@@ -66,6 +66,7 @@ public abstract class Texture
         GL11.glGenTextures(idbuf);
         _id = idbuf.get(0);
         _target = target;
+        _renderer.textureCreated();
     }
 
     /**
@@ -323,6 +324,7 @@ public abstract class Texture
         idbuf.put(_id).rewind();
         GL11.glDeleteTextures(idbuf);
         _id = 0;
+        _renderer.textureDeleted();
     }
 
     /**

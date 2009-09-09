@@ -63,7 +63,9 @@ public class Stats extends SimpleOverlay
             Renderer renderer = _ctx.getRenderer();
             _stats = _textFactory.createText(
                 fps + " fps (" + "batches: " + renderer.getBatchCount() + "; " + "primitives: " +
-                renderer.getPrimitiveCount() + "; textures: " + renderer.getTextureCount() + ")",
+                renderer.getPrimitiveCount() + "; textures: " + renderer.getTextureChangeCount() +
+                ") [bo: " + renderer.getBufferObjectCount() + "/" +
+                renderer.getBufferObjectBytes() + ", tx: " + renderer.getTextureCount() + "]",
                 Color4f.WHITE, 0, 0, Color4f.BLACK, true);
             _lastUpdate = now;
             _frameCount = 0;

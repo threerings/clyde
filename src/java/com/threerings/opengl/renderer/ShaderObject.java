@@ -78,6 +78,7 @@ public abstract class ShaderObject
     {
         ARBShaderObjects.glDeleteObjectARB(_id);
         _id = 0;
+        _renderer.shaderObjectDeleted();
     }
 
     @Override // documentation inherited

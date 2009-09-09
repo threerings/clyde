@@ -38,6 +38,7 @@ public class DisplayList
     {
         _renderer = renderer;
         _id = GL11.glGenLists(1);
+        _renderer.displayListCreated();
     }
 
     /**
@@ -79,6 +80,7 @@ public class DisplayList
     {
         GL11.glDeleteLists(_id, 1);
         _id = 0;
+        _renderer.displayListDeleted();
     }
 
     @Override // documentation inherited
