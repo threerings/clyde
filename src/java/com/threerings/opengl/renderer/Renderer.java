@@ -2259,7 +2259,6 @@ public class Renderer
     {
         if (_finalizedBufferObjects != null) {
             int[] compacted = IntListUtil.compact(_finalizedBufferObjects);
-            System.out.println("deleting " + compacted.length + " buffer objects");
             IntBuffer idbuf = BufferUtils.createIntBuffer(compacted.length);
             idbuf.put(compacted).rewind();
             ARBBufferObject.glDeleteBuffersARB(idbuf);
@@ -2316,7 +2315,6 @@ public class Renderer
         }
         if (_finalizedTextures != null) {
             int[] compacted = IntListUtil.compact(_finalizedTextures);
-            System.out.println("deleting " + compacted.length + " textures");
             IntBuffer idbuf = BufferUtils.createIntBuffer(compacted.length);
             idbuf.put(compacted).rewind();
             GL11.glDeleteTextures(idbuf);
