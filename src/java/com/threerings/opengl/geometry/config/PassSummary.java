@@ -48,6 +48,9 @@ public class PassSummary extends DeepObject
     /** Whether or not any of the passes use vertex normals. */
     public boolean normals;
 
+    /**
+     * Creates a new summary for the described passes.
+     */
     public PassSummary (PassDescriptor... passes)
     {
         for (PassDescriptor pass : passes) {
@@ -56,5 +59,28 @@ public class PassSummary extends DeepObject
             colors |= pass.colors;
             normals |= pass.normals;
         }
+    }
+
+    @Override // documentation inherited
+    public int hashCode ()
+    {
+        int hash = 1;
+        hash = 31*hash + vertexAttribs.hashCode();
+        hash = 31*hash + texCoordSets.hashCode();
+        hash = 31*hash + (colors ? 1231 : 1237);
+        hash = 31*hash + (normals ? 1231 : 1237);
+        return hash;
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        if (!(other instanceof PassSummary)) {
+            return false;
+        }
+        PassSummary osummary = (PassSummary)other;
+        return vertexAttribs.equals(osummary.vertexAttribs) &&
+            texCoordSets.equals(osummary.texCoordSets) &&
+            colors == osummary.colors && normals == osummary.normals;
     }
 }
