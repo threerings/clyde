@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -1455,6 +1456,23 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Returns the first entry bearing the specified tag, or <code>null</code> for none.
+     */
+    public Entry getTaggedEntry (String tag)
+    {
+        List<Entry> entries = getTaggedEntries(tag);
+        return (entries == null) ? null : entries.get(0);
+    }
+
+    /**
+     * Returns the list of all entries bearing the specified tag, or <code>null</code> for none.
+     */
+    public List<Entry> getTaggedEntries (String tag)
+    {
+        return _tagged.get(tag);
+    }
+
+    /**
      * Returns a reference to the collection of entries.
      */
     public Collection<Entry> getEntries ()
@@ -2032,7 +2050,7 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
-     * Adds the entry's space element to the hash space.
+     * Adds the entry's space element to the hash space and maps it by its tags.
      */
     protected void addElement (Entry entry)
     {
@@ -2041,10 +2059,13 @@ public class TudeySceneModel extends SceneModel
             _space.add(element);
             _elements.put(entry.getKey(), element);
         }
+
+        // map the entry by its tags
+        mapEntry(entry);
     }
 
     /**
-     * Removes the entry's space element from the hash space.
+     * Removes the entry's space element from the hash space and removes its tag mappings.
      */
     protected void removeElement (Entry entry)
     {
@@ -2052,10 +2073,13 @@ public class TudeySceneModel extends SceneModel
         if (element != null) {
             _space.remove(element);
         }
+
+        // remove the tag mappings
+        unmapEntry(entry);
     }
 
     /**
-     * Creates the shadow data for the specified tile.
+     * Creates the shadow data for the specified tile and maps it by its tags.
      */
     protected void createShadow (TileEntry entry)
     {
@@ -2074,10 +2098,13 @@ public class TudeySceneModel extends SceneModel
                 }
             }
         }
+
+        // map the entry by its tags
+        mapEntry(entry);
     }
 
     /**
-     * Deletes the shadow data for the supplied tile.
+     * Deletes the shadow data for the supplied tile and removes its tag mappings.
      */
     protected void deleteShadow (TileEntry entry)
     {
@@ -2089,6 +2116,39 @@ public class TudeySceneModel extends SceneModel
 
                 // remove collision flags
                 _collisionFlags.remove(xx, yy);
+            }
+        }
+
+        // remove the tag mappings
+        unmapEntry(entry);
+    }
+
+    /**
+     * Maps the specified entry according to its tags.
+     */
+    protected void mapEntry (Entry entry)
+    {
+        for (String tag : entry.getTags(_cfgmgr)) {
+            List<Entry> list = _tagged.get(tag);
+            if (list == null) {
+                _tagged.put(tag, list = Lists.newArrayList());
+            }
+            list.add(entry);
+        }
+    }
+
+    /**
+     * Unmaps the specified entry according to its tags.
+     */
+    protected void unmapEntry (Entry entry)
+    {
+        for (String tag : entry.getTags(_cfgmgr)) {
+            List<Entry> list = _tagged.get(tag);
+            if (list != null) {
+                list.remove(entry);
+                if (list.isEmpty()) {
+                    _tagged.remove(tag);
+                }
             }
         }
     }
@@ -2361,6 +2421,10 @@ public class TudeySceneModel extends SceneModel
     @DeepOmit
     protected transient Map<ConfigReference<? extends PaintableConfig>, Integer> _paintConfigIds =
         Maps.newHashMap();
+
+    /** Maps tags to lists of tagged entries. */
+    @DeepOmit
+    protected transient Map<String, List<Entry>> _tagged = Maps.newHashMap();
 
     /** The last entry id assigned. */
     protected transient int _lastEntryId;

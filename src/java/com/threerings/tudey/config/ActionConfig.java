@@ -231,6 +231,7 @@ public abstract class ActionConfig extends DeepObject
     public static abstract class AbstractMove extends ActionConfig
     {
         /** The id of the destination scene. */
+        @Editable(min=0)
         public int sceneId;
 
         /** The key of the portal in the destination scene. */
