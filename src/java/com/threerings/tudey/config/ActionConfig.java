@@ -37,6 +37,8 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
+import com.threerings.tudey.util.Coord;
+
 /**
  * Configurations for server-side actions.
  */
@@ -235,7 +237,69 @@ public abstract class ActionConfig extends DeepObject
         public int sceneId;
 
         /** The key of the portal in the destination scene. */
-        public Object portalKey;
+        @Editable
+        public Portal portal = new TaggedPortal();
+    }
+
+    /**
+     * Identifies a portal within the target scene.
+     */
+    @EditorTypes({ TaggedPortal.class, TilePortal.class, EntryPortal.class })
+    public static abstract class Portal extends DeepObject
+        implements Exportable
+    {
+        /**
+         * Returns the key identifying the portal.
+         */
+        public abstract Object getKey ();
+    }
+
+    /**
+     * A portal identified by its tag.
+     */
+    public static class TaggedPortal extends Portal
+    {
+        /** The portal tag. */
+        @Editable
+        public String tag = "";
+
+        @Override // documentation inherited
+        public Object getKey ()
+        {
+            return tag;
+        }
+    }
+
+    /**
+     * A tile portal identified by its coordinates.
+     */
+    public static class TilePortal extends Portal
+    {
+        /** The tile coordinates. */
+        @Editable(hgroup="c")
+        public int x, y;
+
+        @Override // documentation inherited
+        public Object getKey ()
+        {
+            return new Coord(x, y);
+        }
+    }
+
+    /**
+     * A (non-tile) scene model entry portal identified by its entry id.
+     */
+    public static class EntryPortal extends Portal
+    {
+        /** The entry id. */
+        @Editable(min=0)
+        public int id;
+
+        @Override // documentation inherited
+        public Object getKey ()
+        {
+            return id;
+        }
     }
 
     /**

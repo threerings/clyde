@@ -612,6 +612,13 @@ public class TudeySceneManager extends SceneManager
                     translation = entrance.getTranslation();
                     rotation = entrance.getRotation();
                 }
+            } else if (portalKey instanceof String) {
+                List<Logic> tagged = getTagged((String)portalKey);
+                if (tagged != null) {
+                    Logic entrance = RandomUtil.pickRandom(tagged);
+                    translation = entrance.getTranslation();
+                    rotation = entrance.getRotation();
+                }
             } else if (portalKey != null) {
                 // get the translation/rotation from the entering portal
                 Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(portalKey);

@@ -265,7 +265,7 @@ public abstract class ActionLogic extends Logic
         {
             BodyObject body = (BodyObject)_omgr.getObject(bodyOid);
             ActionConfig.MoveBody mconfig = (ActionConfig.MoveBody)_config;
-            _screg.moveBody(body, mconfig.sceneId, mconfig.portalKey);
+            _screg.moveBody(body, mconfig.sceneId, mconfig.portal.getKey());
         }
 
         /** The distributed object manager. */
