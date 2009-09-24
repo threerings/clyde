@@ -28,6 +28,8 @@ import com.threerings.io.SimpleStreamableObject;
 
 import com.threerings.presents.dobj.DSet;
 
+import com.threerings.config.ManagedConfig;
+
 /**
  * Identifies a configuration.
  */
@@ -37,7 +39,7 @@ public class ConfigKey extends SimpleStreamableObject
     /**
      * Constructor for new keys.
      */
-    public ConfigKey (Class cclass, String name)
+    public ConfigKey (Class<? extends ManagedConfig> cclass, String name)
     {
         _cclass = cclass;
         _name = name;
@@ -53,7 +55,7 @@ public class ConfigKey extends SimpleStreamableObject
     /**
      * Returns the config class.
      */
-    public Class getConfigClass ()
+    public Class<? extends ManagedConfig> getConfigClass ()
     {
         return _cclass;
     }
@@ -90,7 +92,7 @@ public class ConfigKey extends SimpleStreamableObject
     }
 
     /** The config class. */
-    protected Class _cclass;
+    protected Class<? extends ManagedConfig> _cclass;
 
     /** The config name. */
     protected String _name;

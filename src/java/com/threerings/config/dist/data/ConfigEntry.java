@@ -24,9 +24,16 @@
 
 package com.threerings.config.dist.data;
 
+import java.io.IOException;
+
+import com.threerings.io.ObjectInputStream;
+import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.SimpleStreamableObject;
 
 import com.threerings.presents.dobj.DSet;
+
+import com.threerings.config.ManagedConfig;
+import com.threerings.export.util.ExportUtil;
 
 /**
  * Represents an added or updated configuration.
@@ -34,6 +41,56 @@ import com.threerings.presents.dobj.DSet;
 public class ConfigEntry extends SimpleStreamableObject
     implements DSet.Entry
 {
+    /**
+     * Creates a new config entry.
+     */
+    public <T extends ManagedConfig> ConfigEntry (Class<T> cclass, T config)
+    {
+        _key = new ConfigKey(cclass, config.getName());
+        _bytes = ExportUtil.toBytes(_config = config);
+    }
+
+    /**
+     * No-arg constructor for deserialization.
+     */
+    public ConfigEntry ()
+    {
+    }
+
+    /**
+     * Returns the config class.
+     */
+    public Class<? extends ManagedConfig> getConfigClass ()
+    {
+        return _key.getConfigClass();
+    }
+
+    /**
+     * Returns the name of the config.
+     */
+    public String getName ()
+    {
+        return _key.getName();
+    }
+
+    /**
+     * Returns a reference to the config object.
+     */
+    public ManagedConfig getConfig ()
+    {
+        return _config;
+    }
+
+    /**
+     * Custom read method for streaming.
+     */
+    public void readObject (ObjectInputStream in)
+        throws IOException, ClassNotFoundException
+    {
+        in.defaultReadObject();
+        _config = (ManagedConfig)ExportUtil.fromBytes(_bytes);
+    }
+
     // documentation inherited from interface DSet.Entry
     public Comparable<?> getKey ()
     {
@@ -42,4 +99,10 @@ public class ConfigEntry extends SimpleStreamableObject
 
     /** The config key. */
     protected ConfigKey _key;
+
+    /** The exported config. */
+    protected byte[] _bytes;
+
+    /** The config object. */
+    protected transient ManagedConfig _config;
 }

@@ -25,12 +25,25 @@
 package com.threerings.config.dist.client;
 
 import com.threerings.presents.client.BasicDirector;
+import com.threerings.presents.client.Client;
+import com.threerings.presents.dobj.EntryAddedEvent;
+import com.threerings.presents.dobj.EntryRemovedEvent;
+import com.threerings.presents.dobj.EntryUpdatedEvent;
+import com.threerings.presents.dobj.ObjectAccessException;
+import com.threerings.presents.dobj.SetListener;
+import com.threerings.presents.dobj.Subscriber;
 import com.threerings.presents.util.PresentsContext;
+
+import com.threerings.config.dist.data.DConfigBootstrapData;
+import com.threerings.config.dist.data.DConfigObject;
+
+import static com.threerings.ClydeLog.*;
 
 /**
  * Handles the client side of the distributed config system.
  */
 public class DConfigDirector extends BasicDirector
+    implements Subscriber<DConfigObject>, SetListener
 {
     /**
      * Creates a new distributed config director.
@@ -39,4 +52,58 @@ public class DConfigDirector extends BasicDirector
     {
         super(ctx);
     }
+
+    // documentation inherited from interface Subscriber
+    public void objectAvailable (DConfigObject cfgobj)
+    {
+        _cfgobj = cfgobj;
+        _cfgobj.addListener(this);
+    }
+
+    // documentation inherited from interface Subscriber
+    public void requestFailed (int oid, ObjectAccessException cause)
+    {
+        log.warning("Failed to subscribe to config object.", "oid", oid, cause);
+    }
+
+    // documentation inherited from interface SetListener
+    public void entryAdded (EntryAddedEvent event)
+    {
+        if (event.getSourceOid() == _ctx.getClient().getClientOid()) {
+            return;
+        }
+    }
+
+    // documentation inherited from interface SetListener
+    public void entryUpdated (EntryUpdatedEvent event)
+    {
+        if (event.getSourceOid() == _ctx.getClient().getClientOid()) {
+            return;
+        }
+    }
+
+    // documentation inherited from interface SetListener
+    public void entryRemoved (EntryRemovedEvent event)
+    {
+        if (event.getSourceOid() == _ctx.getClient().getClientOid()) {
+            return;
+        }
+    }
+
+    @Override // documentation inherited
+    public void clientDidLogoff (Client client)
+    {
+        super.clientDidLogoff(client);
+        _cfgobj = null;
+    }
+
+    @Override // documentation inherited
+    protected void fetchServices (Client client)
+    {
+        int oid = ((DConfigBootstrapData)client.getBootstrapData()).dconfigOid;
+        _ctx.getDObjectManager().subscribeToObject(oid, this);
+    }
+
+    /** The config object. */
+    protected DConfigObject _cfgobj;
 }

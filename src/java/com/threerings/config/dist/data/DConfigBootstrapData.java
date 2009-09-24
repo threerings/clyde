@@ -22,38 +22,15 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.config.dist.server;
+package com.threerings.config.dist.data;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import com.threerings.presents.annotation.EventThread;
-import com.threerings.presents.server.PresentsDObjectMgr;
-
-import com.threerings.config.dist.data.DConfigObject;
+import com.threerings.presents.net.BootstrapData;
 
 /**
- * Handles the server side of the distributed config system.
+ * Includes the oid of the distributed config object.
  */
-@Singleton @EventThread
-public class DConfigManager
+public class DConfigBootstrapData extends BootstrapData
 {
-    /**
-     * Creates a new config manager.
-     */
-    @Inject public DConfigManager (PresentsDObjectMgr omgr)
-    {
-        omgr.registerObject(_cfgobj = new DConfigObject());
-    }
-
-    /**
-     * Returns a reference to the config object.
-     */
-    public DConfigObject getConfigObject ()
-    {
-        return _cfgobj;
-    }
-
-    /** The config object. */
-    protected DConfigObject _cfgobj;
+    /** The oid of the distributed config object. */
+    public int dconfigOid;
 }
