@@ -80,7 +80,7 @@ public class TudeySceneRegistry extends SceneRegistry
     public void moveBody (BodyObject source, int sceneId, Object portalKey)
     {
         // store the portal mapping
-        _portals.put(source.getOid(), new PortalMapping(sceneId, portalKey));
+        addPortalMapping(source, sceneId, portalKey);
         super.moveBody(source, sceneId);
     }
 
@@ -117,6 +117,14 @@ public class TudeySceneRegistry extends SceneRegistry
         ((TudeySceneModel)model).init(_cfgmgr);
 
         super.processSuccessfulResolution(model, updates, extras);
+    }
+
+    /**
+     * Adds a portal mapping.
+     */
+    protected void addPortalMapping (BodyObject source, int sceneId, Object portalKey)
+    {
+        _portals.put(source.getOid(), new PortalMapping(sceneId, portalKey));
     }
 
     /**

@@ -35,6 +35,7 @@ import com.threerings.presents.server.PresentsServer;
 import com.threerings.whirled.server.SceneRegistry;
 import com.threerings.whirled.server.WhirledServer;
 import com.threerings.whirled.util.SceneFactory;
+import com.threerings.whirled.zone.server.ZoneRegistry;
 
 import com.threerings.tudey.util.TudeySceneFactory;
 
@@ -59,6 +60,7 @@ public abstract class TudeyServer extends WhirledServer
             bind(ColorPository.class).toInstance(ColorPository.loadColorPository(rsrcmgr));
             bind(SceneFactory.class).to(TudeySceneFactory.class);
             bind(SceneRegistry.class).to(TudeySceneRegistry.class);
+            bind(ZoneRegistry.class).to(TudeyZoneRegistry.class);
         }
 
         /**
