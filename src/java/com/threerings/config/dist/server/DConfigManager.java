@@ -28,6 +28,10 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import com.threerings.presents.annotation.EventThread;
+import com.threerings.presents.dobj.EntryAddedEvent;
+import com.threerings.presents.dobj.EntryRemovedEvent;
+import com.threerings.presents.dobj.EntryUpdatedEvent;
+import com.threerings.presents.dobj.SetListener;
 import com.threerings.presents.server.PresentsDObjectMgr;
 
 import com.threerings.config.dist.data.DConfigObject;
@@ -37,6 +41,7 @@ import com.threerings.config.dist.data.DConfigObject;
  */
 @Singleton @EventThread
 public class DConfigManager
+    implements SetListener
 {
     /**
      * Creates a new config manager.
@@ -44,6 +49,7 @@ public class DConfigManager
     @Inject public DConfigManager (PresentsDObjectMgr omgr)
     {
         omgr.registerObject(_cfgobj = new DConfigObject());
+        _cfgobj.addListener(this);
     }
 
     /**
@@ -52,6 +58,21 @@ public class DConfigManager
     public DConfigObject getConfigObject ()
     {
         return _cfgobj;
+    }
+
+    // documentation inherited from interface SetListener
+    public void entryAdded (EntryAddedEvent event)
+    {
+    }
+
+    // documentation inherited from interface SetListener
+    public void entryRemoved (EntryRemovedEvent event)
+    {
+    }
+
+    // documentation inherited from interface SetListener
+    public void entryUpdated (EntryUpdatedEvent event)
+    {
     }
 
     /** The config object. */

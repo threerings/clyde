@@ -91,6 +91,12 @@ public class ConfigKey extends SimpleStreamableObject
         return _cclass == okey._cclass && _name.equals(okey._name);
     }
 
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "[cclass=" + _cclass.getName() + ", name=" + _name + "]";
+    }
+
     /** The config class. */
     protected Class<? extends ManagedConfig> _cclass;
 

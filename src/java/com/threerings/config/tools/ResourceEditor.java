@@ -320,6 +320,7 @@ public class ResourceEditor extends BaseConfigEditor
         // retrieve the instance through the cache
         String path = _rsrcmgr.getResourcePath(file);
         if (path != null) {
+            config.setName(path);
             config = _cfgmgr.updateResourceConfig(path, config);
         }
         setConfig(config, file);
@@ -341,15 +342,18 @@ public class ResourceEditor extends BaseConfigEditor
      */
     protected void save (File file)
     {
-        ManagedConfig config;
+        ManagedConfig config = (ManagedConfig)_epanel.getObject();
+        String oname = config.getName();
+        config.setName(null);
         try {
             BinaryExporter out = new BinaryExporter(new FileOutputStream(file));
-            config = (ManagedConfig)_epanel.getObject();
             out.writeObject(config);
             out.close();
         } catch (IOException e) {
             log.warning("Failed to save config [file=" + file + "].", e);
             return;
+        } finally {
+            config.setName(oname);
         }
         // do some special handling to make sure we play nice with the cache
         String opath = (_file == null) ? null : _rsrcmgr.getResourcePath(_file);
@@ -360,6 +364,7 @@ public class ResourceEditor extends BaseConfigEditor
                 config.init(_cfgmgr);
             }
             if (npath != null) {
+                config.setName(npath);
                 config = _cfgmgr.updateResourceConfig(npath, config);
             }
         }
@@ -393,12 +398,17 @@ public class ResourceEditor extends BaseConfigEditor
     {
         if (_exportChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
             File file = _exportChooser.getSelectedFile();
+            ManagedConfig config = (ManagedConfig)_epanel.getObject();
+            String oname = config.getName();
+            config.setName(null);
             try {
                 XMLExporter out = new XMLExporter(new FileOutputStream(file));
-                out.writeObject(_epanel.getObject());
+                out.writeObject(config);
                 out.close();
             } catch (IOException e) {
                 log.warning("Failed to export config [file=" + file + "].", e);
+            } finally {
+                config.setName(oname);
             }
         }
         _prefs.put("export_dir", _exportChooser.getCurrentDirectory().toString());

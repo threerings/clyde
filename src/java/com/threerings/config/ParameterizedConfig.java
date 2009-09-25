@@ -126,6 +126,15 @@ public class ParameterizedConfig extends ManagedConfig
         }
     }
 
+    @Override // documentation inherited
+    protected void maybeFireOnConfigManager ()
+    {
+        // only fire for the base config
+        if (_base == null) {
+            super.maybeFireOnConfigManager();
+        }
+    }
+
     /**
      * Returns an instance of this config bound in the specified scope.
      */

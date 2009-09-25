@@ -217,6 +217,19 @@ public abstract class ManagedConfig extends DeepObject
                 }
             });
         }
+        maybeFireOnConfigManager();
+    }
+
+    /**
+     * Fires a configuration updated event on the config manager if appropriate.
+     */
+    protected void maybeFireOnConfigManager ()
+    {
+        if (_cfgmgr != null) {
+            // use the root config manager for resource classes
+            ConfigManager mgr = _cfgmgr.isResourceClass(getClass()) ? _cfgmgr.getRoot() : _cfgmgr;
+            mgr.fireConfigUpdated(this);
+        }
     }
 
     /**

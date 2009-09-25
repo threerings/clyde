@@ -38,6 +38,7 @@ import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
+import com.samskivert.util.ObserverList;
 import com.samskivert.util.PropertiesUtil;
 import com.samskivert.util.QuickSort;
 import com.samskivert.util.SoftCache;
@@ -309,6 +310,7 @@ public class ConfigManager
                 try {
                     BinaryImporter in = new BinaryImporter(_rsrcmgr.getResource(name));
                     _resources.put(name, config = (ManagedConfig)in.readObject());
+                    config.setName(name);
                     config.init(getRoot());
                     in.close();
                 } catch (IOException e) {
@@ -392,6 +394,32 @@ public class ConfigManager
     public Collection<ConfigGroup> getGroups ()
     {
         return _groups.values();
+    }
+
+    /**
+     * Adds a listener that will be notified on all config updates.
+     */
+    public void addUpdateListener (ConfigUpdateListener listener)
+    {
+        if (_updateListeners == null) {
+            _updateListeners = ObserverList.newFastUnsafe();
+        }
+        @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
+            (ConfigUpdateListener<ManagedConfig>)listener;
+        _updateListeners.add(mlistener);
+    }
+
+    /**
+     * Removes an update listener.
+     */
+    public void removeUpdateListener (ConfigUpdateListener listener)
+    {
+        if (_updateListeners != null) {
+            _updateListeners.remove(listener);
+            if (_updateListeners.isEmpty()) {
+                _updateListeners = null;
+            }
+        }
     }
 
     /**
@@ -519,6 +547,23 @@ public class ConfigManager
         _groups.put(clazz, group);
     }
 
+    /**
+     * Fires a configuration updated event.
+     */
+    protected void fireConfigUpdated (ManagedConfig config)
+    {
+        if (_updateListeners != null) {
+            final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
+            _updateListeners.apply(
+                new ObserverList.ObserverOp<ConfigUpdateListener<ManagedConfig>>() {
+                public boolean apply (ConfigUpdateListener<ManagedConfig> listener) {
+                    listener.configUpdated(event);
+                    return true;
+                }
+            });
+        }
+    }
+
     /** The type of this manager. */
     protected String _type;
 
@@ -539,4 +584,7 @@ public class ConfigManager
 
     /** Maps manager types to their classes (as read from the manager properties). */
     protected HashMap<String, Class[]> _classes;
+
+    /** Config update listeners. */
+    protected ObserverList<ConfigUpdateListener<ManagedConfig>> _updateListeners;
 }
