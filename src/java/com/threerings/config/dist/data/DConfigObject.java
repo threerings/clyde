@@ -24,14 +24,146 @@
 
 package com.threerings.config.dist.data;
 
+import java.io.IOException;
+
+import com.threerings.io.ObjectInputStream;
+import com.threerings.io.ObjectOutputStream;
+
 import com.threerings.presents.dobj.DObject;
 import com.threerings.presents.dobj.DSet;
+import com.threerings.presents.dobj.EntryAddedEvent;
+import com.threerings.presents.dobj.EntryRemovedEvent;
+import com.threerings.presents.dobj.EntryUpdatedEvent;
+import com.threerings.presents.net.Transport;
 
 /**
  * Contains the complete delta between the original set of configs and the current set.
  */
 public class DConfigObject extends DObject
 {
+    /**
+     * Extends {@link EntryAddedEvent} to stream the source oid.
+     */
+    public static class FwdEntryAddedEvent<T extends DSet.Entry> extends EntryAddedEvent<T>
+    {
+        /**
+         * Default constructor.
+         */
+        public FwdEntryAddedEvent (int toid, String name, T entry)
+        {
+            super(toid, name, entry, false);
+        }
+
+        /**
+         * No-arg constructor for deserialization.
+         */
+        public FwdEntryAddedEvent ()
+        {
+        }
+
+        /**
+         * Custom write method.
+         */
+        public void writeObject (ObjectOutputStream out)
+            throws IOException
+        {
+            out.defaultWriteObject();
+            out.writeInt(_soid);
+        }
+
+        /**
+         * Custom read method.
+         */
+        public void readObject (ObjectInputStream in)
+            throws IOException, ClassNotFoundException
+        {
+            in.defaultReadObject();
+            _soid = in.readInt();
+        }
+    }
+
+    /**
+     * Extends {@link EntryRemovedEvent} to stream the source oid.
+     */
+    public static class FwdEntryRemovedEvent<T extends DSet.Entry> extends EntryRemovedEvent<T>
+    {
+        /**
+         * Default constructor.
+         */
+        public FwdEntryRemovedEvent (int toid, String name, Comparable<?> key)
+        {
+            super(toid, name, key, null);
+        }
+
+        /**
+         * No-arg constructor for deserialization.
+         */
+        public FwdEntryRemovedEvent ()
+        {
+        }
+
+        /**
+         * Custom write method.
+         */
+        public void writeObject (ObjectOutputStream out)
+            throws IOException
+        {
+            out.defaultWriteObject();
+            out.writeInt(_soid);
+        }
+
+        /**
+         * Custom read method.
+         */
+        public void readObject (ObjectInputStream in)
+            throws IOException, ClassNotFoundException
+        {
+            in.defaultReadObject();
+            _soid = in.readInt();
+        }
+    }
+
+    /**
+     * Extends {@link EntryUpdatedEvent} to stream the source oid.
+     */
+    public static class FwdEntryUpdatedEvent<T extends DSet.Entry> extends EntryUpdatedEvent<T>
+    {
+        /**
+         * Default constructor.
+         */
+        public FwdEntryUpdatedEvent (int toid, String name, T entry, Transport transport)
+        {
+            super(toid, name, entry, null, transport);
+        }
+
+        /**
+         * No-arg constructor for deserialization.
+         */
+        public FwdEntryUpdatedEvent ()
+        {
+        }
+
+        /**
+         * Custom write method.
+         */
+        public void writeObject (ObjectOutputStream out)
+            throws IOException
+        {
+            out.defaultWriteObject();
+            out.writeInt(_soid);
+        }
+
+        /**
+         * Custom read method.
+         */
+        public void readObject (ObjectInputStream in)
+            throws IOException, ClassNotFoundException
+        {
+            in.defaultReadObject();
+            _soid = in.readInt();
+        }
+    }
+
     // AUTO-GENERATED: FIELDS START
     /** The field name of the <code>added</code> field. */
     public static final String ADDED = "added";
@@ -51,6 +183,26 @@ public class DConfigObject extends DObject
 
     /** The keys of all configs removed from the manager. */
     public DSet<ConfigKey> removed = DSet.newDSet();
+
+    @Override // documentation inherited
+    protected <T extends DSet.Entry> void requestEntryAdd (String name, DSet<T> set, T entry)
+    {
+        postEvent(new FwdEntryAddedEvent<T>(_oid, name, entry));
+    }
+
+    @Override // documentation inherited
+    protected <T extends DSet.Entry> void requestEntryRemove (
+        String name, DSet<T> set, Comparable<?> key)
+    {
+        postEvent(new FwdEntryRemovedEvent<T>(_oid, name, key));
+    }
+
+    @Override // documentation inherited
+    protected <T extends DSet.Entry> void requestEntryUpdate (
+        String name, DSet<T> set, T entry, Transport transport)
+    {
+        postEvent(new FwdEntryUpdatedEvent<T>(_oid, name, entry, transport));
+    }
 
     // AUTO-GENERATED: METHODS START
     /**
