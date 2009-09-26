@@ -43,8 +43,7 @@ import com.threerings.config.dist.util.ConfigUpdater;
 import static com.threerings.ClydeLog.*;
 
 /**
- * Handles the server side of the distributed config system.  The config object should be
- * customized with an access controller that allows admins to dispatch events.
+ * Handles the server side of the distributed config system.
  */
 @Singleton @EventThread
 public class DConfigManager
