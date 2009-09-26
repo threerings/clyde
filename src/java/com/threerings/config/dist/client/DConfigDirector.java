@@ -30,7 +30,6 @@ import com.threerings.presents.dobj.EntryAddedEvent;
 import com.threerings.presents.dobj.EntryRemovedEvent;
 import com.threerings.presents.dobj.EntryUpdatedEvent;
 import com.threerings.presents.dobj.ObjectAccessException;
-import com.threerings.presents.dobj.SetListener;
 import com.threerings.presents.dobj.Subscriber;
 import com.threerings.presents.util.PresentsContext;
 
@@ -117,21 +116,12 @@ public class DConfigDirector extends BasicDirector
     // documentation inherited from interface ConfigGroupListener
     public void configAdded (ConfigEvent<ManagedConfig> event)
     {
-        if (!_block.enter()) {
+        if (_cfgobj == null || !_block.enter()) {
             return;
         }
-        _cfgobj.startTransaction();
         try {
-            ManagedConfig config = event.getConfig();
-            ConfigKey key = new ConfigKey(config.getClass(), config.getName());
-            if (_cfgobj.removed.containsKey(key)) {
-                _cfgobj.removeFromRemoved(key);
-                _cfgobj.addToUpdated(new ConfigEntry(config));
-            } else {
-                _cfgobj.addToAdded(new ConfigEntry(config));
-            }
+            _cfgobj.dconfigService.addConfig(_ctx.getClient(), new ConfigEntry(event.getConfig()));
         } finally {
-            _cfgobj.commitTransaction();
             _block.leave();
         }
     }
@@ -139,23 +129,14 @@ public class DConfigDirector extends BasicDirector
     // documentation inherited from interface ConfigGroupListener
     public void configRemoved (ConfigEvent<ManagedConfig> event)
     {
-        if (!_block.enter()) {
+        if (_cfgobj == null || !_block.enter()) {
             return;
         }
-        _cfgobj.startTransaction();
         try {
             ManagedConfig config = event.getConfig();
-            ConfigKey key = new ConfigKey(config.getClass(), config.getName());
-            if (_cfgobj.added.containsKey(key)) {
-                _cfgobj.removeFromAdded(key);
-            } else {
-                if (_cfgobj.updated.containsKey(key)) {
-                    _cfgobj.removeFromUpdated(key);
-                }
-                _cfgobj.addToRemoved(key);
-            }
+            _cfgobj.dconfigService.removeConfig(
+                _ctx.getClient(), new ConfigKey(config.getClass(), config.getName()));
         } finally {
-            _cfgobj.commitTransaction();
             _block.leave();
         }
     }
@@ -163,19 +144,12 @@ public class DConfigDirector extends BasicDirector
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
-        if (!_block.enter()) {
+        if (_cfgobj == null || !_block.enter()) {
             return;
         }
         try {
-            ManagedConfig config = event.getConfig();
-            ConfigKey key = new ConfigKey(config.getClass(), config.getName());
-            if (_cfgobj.added.containsKey(key)) {
-                _cfgobj.updateAdded(new ConfigEntry(config));
-            } else if (_cfgobj.updated.containsKey(key)) {
-                _cfgobj.updateUpdated(new ConfigEntry(config));
-            } else {
-                _cfgobj.addToUpdated(new ConfigEntry(config));
-            }
+            _cfgobj.dconfigService.updateConfig(
+                _ctx.getClient(), new ConfigEntry(event.getConfig()));
         } finally {
             _block.leave();
         }

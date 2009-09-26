@@ -29,12 +29,15 @@ import java.io.IOException;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 
+import com.threerings.presents.dobj.DEvent;
 import com.threerings.presents.dobj.DObject;
 import com.threerings.presents.dobj.DSet;
 import com.threerings.presents.dobj.EntryAddedEvent;
 import com.threerings.presents.dobj.EntryRemovedEvent;
 import com.threerings.presents.dobj.EntryUpdatedEvent;
-import com.threerings.presents.net.Transport;
+import com.threerings.presents.dobj.ObjectAccessException;
+
+import static com.threerings.ClydeLog.*;
 
 /**
  * Contains the complete delta between the original set of configs and the current set.
@@ -44,20 +47,21 @@ public class DConfigObject extends DObject
     /**
      * Extends {@link EntryAddedEvent} to stream the source oid.
      */
-    public static class FwdEntryAddedEvent<T extends DSet.Entry> extends EntryAddedEvent<T>
+    public static class SourcedEntryAddedEvent<T extends DSet.Entry> extends EntryAddedEvent<T>
     {
         /**
          * Default constructor.
          */
-        public FwdEntryAddedEvent (int toid, String name, T entry)
+        public SourcedEntryAddedEvent (int toid, String name, T entry, int soid)
         {
-            super(toid, name, entry, false);
+            super(toid, name, entry);
+            setSourceOid(soid);
         }
 
         /**
          * No-arg constructor for deserialization.
          */
-        public FwdEntryAddedEvent ()
+        public SourcedEntryAddedEvent ()
         {
         }
 
@@ -80,25 +84,36 @@ public class DConfigObject extends DObject
             in.defaultReadObject();
             _soid = in.readInt();
         }
+
+        @Override // documentation inherited
+        public boolean applyToObject (DObject target)
+            throws ObjectAccessException
+        {
+            boolean result = super.applyToObject(target);
+            _alreadyApplied = true;
+            return result;
+        }
     }
 
     /**
      * Extends {@link EntryRemovedEvent} to stream the source oid.
      */
-    public static class FwdEntryRemovedEvent<T extends DSet.Entry> extends EntryRemovedEvent<T>
+    public static class SourcedEntryRemovedEvent<T extends DSet.Entry> extends EntryRemovedEvent<T>
     {
         /**
          * Default constructor.
          */
-        public FwdEntryRemovedEvent (int toid, String name, Comparable<?> key)
+        @SuppressWarnings("unchecked")
+        public SourcedEntryRemovedEvent (int toid, String name, Comparable<?> key, int soid)
         {
-            super(toid, name, key, null);
+            super(toid, name, key, (T)UNSET_OLD_ENTRY);
+            setSourceOid(soid);
         }
 
         /**
          * No-arg constructor for deserialization.
          */
-        public FwdEntryRemovedEvent ()
+        public SourcedEntryRemovedEvent ()
         {
         }
 
@@ -126,20 +141,22 @@ public class DConfigObject extends DObject
     /**
      * Extends {@link EntryUpdatedEvent} to stream the source oid.
      */
-    public static class FwdEntryUpdatedEvent<T extends DSet.Entry> extends EntryUpdatedEvent<T>
+    public static class SourcedEntryUpdatedEvent<T extends DSet.Entry> extends EntryUpdatedEvent<T>
     {
         /**
          * Default constructor.
          */
-        public FwdEntryUpdatedEvent (int toid, String name, T entry, Transport transport)
+        @SuppressWarnings("unchecked")
+        public SourcedEntryUpdatedEvent (int toid, String name, T entry, int soid)
         {
-            super(toid, name, entry, null, transport);
+            super(toid, name, entry, (T)UNSET_OLD_ENTRY);
+            setSourceOid(soid);
         }
 
         /**
          * No-arg constructor for deserialization.
          */
-        public FwdEntryUpdatedEvent ()
+        public SourcedEntryUpdatedEvent ()
         {
         }
 
@@ -165,6 +182,9 @@ public class DConfigObject extends DObject
     }
 
     // AUTO-GENERATED: FIELDS START
+    /** The field name of the <code>dconfigService</code> field. */
+    public static final String DCONFIG_SERVICE = "dconfigService";
+
     /** The field name of the <code>added</code> field. */
     public static final String ADDED = "added";
 
@@ -175,6 +195,9 @@ public class DConfigObject extends DObject
     public static final String REMOVED = "removed";
     // AUTO-GENERATED: FIELDS END
 
+    /** The config service. */
+    public DConfigMarshaller dconfigService;
+
     /** The set of configs added to the manager. */
     public DSet<ConfigEntry> added = DSet.newDSet();
 
@@ -184,27 +207,50 @@ public class DConfigObject extends DObject
     /** The keys of all configs removed from the manager. */
     public DSet<ConfigKey> removed = DSet.newDSet();
 
-    @Override // documentation inherited
-    protected <T extends DSet.Entry> void requestEntryAdd (String name, DSet<T> set, T entry)
+    /**
+     * Requests to add an entry to a set, including a source oid in the event.
+     */
+    public <T extends DSet.Entry> void requestEntryAdd (
+        String name, DSet<T> set, T entry, int soid)
     {
-        postEvent(new FwdEntryAddedEvent<T>(_oid, name, entry));
+        applyAndPostEvent(new SourcedEntryAddedEvent<T>(_oid, name, entry, soid));
     }
 
-    @Override // documentation inherited
-    protected <T extends DSet.Entry> void requestEntryRemove (
-        String name, DSet<T> set, Comparable<?> key)
+    /**
+     * Requests to remove an entry from a set, including a source oid in the event.
+     */
+    public <T extends DSet.Entry> void requestEntryRemove (
+        String name, DSet<T> set, Comparable<?> key, int soid)
     {
-        postEvent(new FwdEntryRemovedEvent<T>(_oid, name, key));
+        applyAndPostEvent(new SourcedEntryRemovedEvent<T>(_oid, name, key, soid));
     }
 
-    @Override // documentation inherited
-    protected <T extends DSet.Entry> void requestEntryUpdate (
-        String name, DSet<T> set, T entry, Transport transport)
+    /**
+     * Requests to update an entry within a set, including a source oid in the event.
+     */
+    public <T extends DSet.Entry> void requestEntryUpdate (
+        String name, DSet<T> set, T entry, int soid)
     {
-        postEvent(new FwdEntryUpdatedEvent<T>(_oid, name, entry, transport));
+        applyAndPostEvent(new SourcedEntryUpdatedEvent<T>(_oid, name, entry, soid));
     }
 
     // AUTO-GENERATED: METHODS START
+    /**
+     * Requests that the <code>dconfigService</code> field be set to the
+     * specified value. The local value will be updated immediately and an
+     * event will be propagated through the system to notify all listeners
+     * that the attribute did change. Proxied copies of this object (on
+     * clients) will apply the value change when they received the
+     * attribute changed notification.
+     */
+    public void setDconfigService (DConfigMarshaller value)
+    {
+        DConfigMarshaller ovalue = this.dconfigService;
+        requestAttributeChange(
+            DCONFIG_SERVICE, value, ovalue);
+        this.dconfigService = value;
+    }
+
     /**
      * Requests that the specified entry be added to the
      * <code>added</code> set. The set will not change until the event is
@@ -346,4 +392,17 @@ public class DConfigObject extends DObject
         this.removed = clone;
     }
     // AUTO-GENERATED: METHODS END
+
+    /**
+     * Applies the specified event to this object and posts it.
+     */
+    protected void applyAndPostEvent (DEvent event)
+    {
+        try {
+            event.applyToObject(this);
+        } catch (ObjectAccessException e) {
+            log.warning("Failed to apply event.", e);
+        }
+        postEvent(event);
+    }
 }

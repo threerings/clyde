@@ -144,7 +144,7 @@ public class ConfigUpdater
             nconfig.copy(oconfig);
             oconfig.wasUpdated();
         } else {
-            log.warning("Missing config to update.", "name", nconfig.getName());
+            addConfig(nconfig);
         }
     }
 
