@@ -24,6 +24,10 @@
 
 package com.threerings.config.dist.data;
 
+import java.io.IOException;
+
+import com.threerings.io.ObjectInputStream;
+import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.SimpleStreamableObject;
 
 import com.threerings.presents.dobj.DSet;
@@ -68,6 +72,28 @@ public class ConfigKey extends SimpleStreamableObject
         return _name;
     }
 
+    /**
+     * Custom write method for streaming.
+     */
+    public void writeObject (ObjectOutputStream out)
+        throws IOException
+    {
+        out.defaultWriteObject();
+        out.writeIntern(_cclass.getName());
+    }
+
+    /**
+     * Custom read method for streaming.
+     */
+    public void readObject (ObjectInputStream in)
+        throws IOException, ClassNotFoundException
+    {
+        in.defaultReadObject();
+        @SuppressWarnings("unchecked") Class<? extends ManagedConfig> cclass =
+            (Class<? extends ManagedConfig>)Class.forName(in.readIntern());
+        _cclass = cclass;
+    }
+
     // documentation inherited from interface Comparable
     public int compareTo (ConfigKey other)
     {
@@ -98,7 +124,7 @@ public class ConfigKey extends SimpleStreamableObject
     }
 
     /** The config class. */
-    protected Class<? extends ManagedConfig> _cclass;
+    protected transient Class<? extends ManagedConfig> _cclass;
 
     /** The config name. */
     protected String _name;

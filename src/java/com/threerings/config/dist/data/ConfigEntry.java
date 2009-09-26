@@ -44,9 +44,9 @@ public class ConfigEntry extends SimpleStreamableObject
     /**
      * Creates a new config entry.
      */
-    public <T extends ManagedConfig> ConfigEntry (Class<T> cclass, T config)
+    public ConfigEntry (ManagedConfig config)
     {
-        _key = new ConfigKey(cclass, config.getName());
+        _key = new ConfigKey(config.getClass(), config.getName());
         _bytes = ExportUtil.toBytes(_config = config);
     }
 
