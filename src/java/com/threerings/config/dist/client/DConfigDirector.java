@@ -78,7 +78,8 @@ public class DConfigDirector extends BasicDirector
         // create an update to apply events that did not originate on this client
         new ConfigUpdater(_cfgmgr) {
             @Override public void entryAdded (EntryAddedEvent event) {
-                if (event.getSourceOid() != _ctx.getClient().getClientOid() && _block.enter()) {
+                int clientOid = ((DConfigObject.ClientEntryAddedEvent)event).getClientOid();
+                if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
                     try {
                         super.entryAdded(event);
                     } finally {
@@ -87,7 +88,8 @@ public class DConfigDirector extends BasicDirector
                 }
             }
             @Override public void entryUpdated (EntryUpdatedEvent event) {
-                if (event.getSourceOid() != _ctx.getClient().getClientOid() && _block.enter()) {
+                int clientOid = ((DConfigObject.ClientEntryUpdatedEvent)event).getClientOid();
+                if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
                     try {
                         super.entryUpdated(event);
                     } finally {
@@ -96,7 +98,8 @@ public class DConfigDirector extends BasicDirector
                 }
             }
             @Override public void entryRemoved (EntryRemovedEvent event) {
-                if (event.getSourceOid() != _ctx.getClient().getClientOid() && _block.enter()) {
+                int clientOid = ((DConfigObject.ClientEntryRemovedEvent)event).getClientOid();
+                if (clientOid != _ctx.getClient().getClientOid() && _block.enter()) {
                     try {
                         super.entryRemoved(event);
                     } finally {

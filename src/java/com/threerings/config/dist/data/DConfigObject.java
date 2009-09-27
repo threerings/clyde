@@ -24,11 +24,6 @@
 
 package com.threerings.config.dist.data;
 
-import java.io.IOException;
-
-import com.threerings.io.ObjectInputStream;
-import com.threerings.io.ObjectOutputStream;
-
 import com.threerings.presents.dobj.DEvent;
 import com.threerings.presents.dobj.DObject;
 import com.threerings.presents.dobj.DSet;
@@ -45,44 +40,32 @@ import static com.threerings.ClydeLog.*;
 public class DConfigObject extends DObject
 {
     /**
-     * Extends {@link EntryAddedEvent} to stream the source oid.
+     * Extends {@link EntryAddedEvent} to include the client oid.
      */
-    public static class SourcedEntryAddedEvent<T extends DSet.Entry> extends EntryAddedEvent<T>
+    public static class ClientEntryAddedEvent<T extends DSet.Entry> extends EntryAddedEvent<T>
     {
         /**
          * Default constructor.
          */
-        public SourcedEntryAddedEvent (int toid, String name, T entry, int soid)
+        public ClientEntryAddedEvent (int toid, String name, T entry, int clientOid)
         {
             super(toid, name, entry);
-            setSourceOid(soid);
+            _clientOid = clientOid;
         }
 
         /**
          * No-arg constructor for deserialization.
          */
-        public SourcedEntryAddedEvent ()
+        public ClientEntryAddedEvent ()
         {
         }
 
         /**
-         * Custom write method.
+         * Returns the oid of the client that caused the event.
          */
-        public void writeObject (ObjectOutputStream out)
-            throws IOException
+        public int getClientOid ()
         {
-            out.defaultWriteObject();
-            out.writeInt(_soid);
-        }
-
-        /**
-         * Custom read method.
-         */
-        public void readObject (ObjectInputStream in)
-            throws IOException, ClassNotFoundException
-        {
-            in.defaultReadObject();
-            _soid = in.readInt();
+            return _clientOid;
         }
 
         @Override // documentation inherited
@@ -93,92 +76,77 @@ public class DConfigObject extends DObject
             _alreadyApplied = true;
             return result;
         }
+
+        /** The oid of the client that caused the event. */
+        protected int _clientOid;
     }
 
     /**
-     * Extends {@link EntryRemovedEvent} to stream the source oid.
+     * Extends {@link EntryRemovedEvent} to include the client oid.
      */
-    public static class SourcedEntryRemovedEvent<T extends DSet.Entry> extends EntryRemovedEvent<T>
+    public static class ClientEntryRemovedEvent<T extends DSet.Entry> extends EntryRemovedEvent<T>
     {
         /**
          * Default constructor.
          */
         @SuppressWarnings("unchecked")
-        public SourcedEntryRemovedEvent (int toid, String name, Comparable<?> key, int soid)
+        public ClientEntryRemovedEvent (int toid, String name, Comparable<?> key, int clientOid)
         {
             super(toid, name, key, (T)UNSET_OLD_ENTRY);
-            setSourceOid(soid);
+            _clientOid = clientOid;
         }
 
         /**
          * No-arg constructor for deserialization.
          */
-        public SourcedEntryRemovedEvent ()
+        public ClientEntryRemovedEvent ()
         {
         }
 
         /**
-         * Custom write method.
+         * Returns the oid of the client that caused the event.
          */
-        public void writeObject (ObjectOutputStream out)
-            throws IOException
+        public int getClientOid ()
         {
-            out.defaultWriteObject();
-            out.writeInt(_soid);
+            return _clientOid;
         }
 
-        /**
-         * Custom read method.
-         */
-        public void readObject (ObjectInputStream in)
-            throws IOException, ClassNotFoundException
-        {
-            in.defaultReadObject();
-            _soid = in.readInt();
-        }
+        /** The oid of the client that caused the event. */
+        protected int _clientOid;
     }
 
     /**
-     * Extends {@link EntryUpdatedEvent} to stream the source oid.
+     * Extends {@link EntryUpdatedEvent} to include the client oid.
      */
-    public static class SourcedEntryUpdatedEvent<T extends DSet.Entry> extends EntryUpdatedEvent<T>
+    public static class ClientEntryUpdatedEvent<T extends DSet.Entry> extends EntryUpdatedEvent<T>
     {
         /**
          * Default constructor.
          */
         @SuppressWarnings("unchecked")
-        public SourcedEntryUpdatedEvent (int toid, String name, T entry, int soid)
+        public ClientEntryUpdatedEvent (int toid, String name, T entry, int clientOid)
         {
             super(toid, name, entry, (T)UNSET_OLD_ENTRY);
-            setSourceOid(soid);
+            _clientOid = clientOid;
         }
 
         /**
          * No-arg constructor for deserialization.
          */
-        public SourcedEntryUpdatedEvent ()
+        public ClientEntryUpdatedEvent ()
         {
         }
 
         /**
-         * Custom write method.
+         * Returns the oid of the client that caused the event.
          */
-        public void writeObject (ObjectOutputStream out)
-            throws IOException
+        public int getClientOid ()
         {
-            out.defaultWriteObject();
-            out.writeInt(_soid);
+            return _clientOid;
         }
 
-        /**
-         * Custom read method.
-         */
-        public void readObject (ObjectInputStream in)
-            throws IOException, ClassNotFoundException
-        {
-            in.defaultReadObject();
-            _soid = in.readInt();
-        }
+        /** The oid of the client that caused the event. */
+        protected int _clientOid;
     }
 
     // AUTO-GENERATED: FIELDS START
@@ -211,27 +179,27 @@ public class DConfigObject extends DObject
      * Requests to add an entry to a set, including a source oid in the event.
      */
     public <T extends DSet.Entry> void requestEntryAdd (
-        String name, DSet<T> set, T entry, int soid)
+        String name, DSet<T> set, T entry, int clientOid)
     {
-        applyAndPostEvent(new SourcedEntryAddedEvent<T>(_oid, name, entry, soid));
+        applyAndPostEvent(new ClientEntryAddedEvent<T>(_oid, name, entry, clientOid));
     }
 
     /**
      * Requests to remove an entry from a set, including a source oid in the event.
      */
     public <T extends DSet.Entry> void requestEntryRemove (
-        String name, DSet<T> set, Comparable<?> key, int soid)
+        String name, DSet<T> set, Comparable<?> key, int clientOid)
     {
-        applyAndPostEvent(new SourcedEntryRemovedEvent<T>(_oid, name, key, soid));
+        applyAndPostEvent(new ClientEntryRemovedEvent<T>(_oid, name, key, clientOid));
     }
 
     /**
      * Requests to update an entry within a set, including a source oid in the event.
      */
     public <T extends DSet.Entry> void requestEntryUpdate (
-        String name, DSet<T> set, T entry, int soid)
+        String name, DSet<T> set, T entry, int clientOid)
     {
-        applyAndPostEvent(new SourcedEntryUpdatedEvent<T>(_oid, name, entry, soid));
+        applyAndPostEvent(new ClientEntryUpdatedEvent<T>(_oid, name, entry, clientOid));
     }
 
     // AUTO-GENERATED: METHODS START
