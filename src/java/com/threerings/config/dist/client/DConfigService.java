@@ -36,17 +36,8 @@ import com.threerings.config.dist.data.ConfigKey;
 public interface DConfigService extends InvocationService
 {
     /**
-     * Requests to add a new config.
+     * Requests to add, update, and remove the provided configs.
      */
-    public void addConfig (Client client, ConfigEntry entry);
-
-    /**
-     * Requests to remove an existing config.
-     */
-    public void removeConfig (Client client, ConfigKey key);
-
-    /**
-     * Requests to update an existing config.
-     */
-    public void updateConfig (Client client, ConfigEntry entry);
+    public void updateConfigs (
+        Client client, ConfigEntry[] add, ConfigEntry[] update, ConfigKey[] remove);
 }

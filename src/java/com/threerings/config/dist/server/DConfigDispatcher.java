@@ -56,21 +56,9 @@ public class DConfigDispatcher extends InvocationDispatcher<DConfigMarshaller>
         throws InvocationException
     {
         switch (methodId) {
-        case DConfigMarshaller.ADD_CONFIG:
-            ((DConfigProvider)provider).addConfig(
-                source, (ConfigEntry)args[0]
-            );
-            return;
-
-        case DConfigMarshaller.REMOVE_CONFIG:
-            ((DConfigProvider)provider).removeConfig(
-                source, (ConfigKey)args[0]
-            );
-            return;
-
-        case DConfigMarshaller.UPDATE_CONFIG:
-            ((DConfigProvider)provider).updateConfig(
-                source, (ConfigEntry)args[0]
+        case DConfigMarshaller.UPDATE_CONFIGS:
+            ((DConfigProvider)provider).updateConfigs(
+                source, (ConfigEntry[])args[0], (ConfigEntry[])args[1], (ConfigKey[])args[2]
             );
             return;
 

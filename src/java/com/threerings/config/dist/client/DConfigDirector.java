@@ -24,6 +24,14 @@
 
 package com.threerings.config.dist.client;
 
+import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import com.samskivert.util.Interval;
+
 import com.threerings.presents.client.BasicDirector;
 import com.threerings.presents.client.Client;
 import com.threerings.presents.dobj.EntryAddedEvent;
@@ -70,6 +78,13 @@ public class DConfigDirector extends BasicDirector
             mgroup.addListener(this);
         }
         _cfgmgr.addUpdateListener(this);
+
+        // create the transmit interval
+        _transmitInterval = new Interval(ctx.getClient().getRunQueue()) {
+            @Override public void expired () {
+                maybeTransmitUpdate();
+            }
+        };
     }
 
     // documentation inherited from interface Subscriber
@@ -123,7 +138,15 @@ public class DConfigDirector extends BasicDirector
             return;
         }
         try {
-            _cfgobj.dconfigService.addConfig(_ctx.getClient(), new ConfigEntry(event.getConfig()));
+            ConfigEntry entry = new ConfigEntry(event.getConfig());
+            ConfigKey key = (ConfigKey)entry.getKey();
+            if (_removed.remove(key)) {
+                _updated.put(key, entry);
+            } else {
+                _added.put(key, entry);
+            }
+            maybeTransmitUpdate();
+
         } finally {
             _block.leave();
         }
@@ -137,8 +160,13 @@ public class DConfigDirector extends BasicDirector
         }
         try {
             ManagedConfig config = event.getConfig();
-            _cfgobj.dconfigService.removeConfig(
-                _ctx.getClient(), new ConfigKey(config.getClass(), config.getName()));
+            ConfigKey key = new ConfigKey(config.getClass(), config.getName());
+            if (_added.remove(key) == null) {
+                _updated.remove(key);
+                _removed.add(key);
+            }
+            maybeTransmitUpdate();
+
         } finally {
             _block.leave();
         }
@@ -151,8 +179,15 @@ public class DConfigDirector extends BasicDirector
             return;
         }
         try {
-            _cfgobj.dconfigService.updateConfig(
-                _ctx.getClient(), new ConfigEntry(event.getConfig()));
+            ConfigEntry entry = new ConfigEntry(event.getConfig());
+            ConfigKey key = (ConfigKey)entry.getKey();
+            if (_added.containsKey(key)) {
+                _added.put(key, entry);
+            } else {
+                _updated.put(key, entry);
+            }
+            maybeTransmitUpdate();
+
         } finally {
             _block.leave();
         }
@@ -172,6 +207,31 @@ public class DConfigDirector extends BasicDirector
         _ctx.getDObjectManager().subscribeToObject(oid, this);
     }
 
+    /**
+     * Transmits all pending updates to the server if appropriate.
+     */
+    protected void maybeTransmitUpdate ()
+    {
+        if (_added.isEmpty() && _updated.isEmpty() && _removed.isEmpty()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long delay = _lastTransmit + MIN_TRANSMIT_INTERVAL - now;
+        if (delay > 0L) {
+            _transmitInterval.schedule(delay);
+            return;
+        }
+        _lastTransmit = now;
+        _cfgobj.dconfigService.updateConfigs(
+            _ctx.getClient(),
+            _added.values().toArray(new ConfigEntry[_added.size()]),
+            _updated.values().toArray(new ConfigEntry[_updated.size()]),
+            _removed.toArray(new ConfigKey[_removed.size()]));
+        _added.clear();
+        _updated.clear();
+        _removed.clear();
+    }
+
     /** The root config manager. */
     protected ConfigManager _cfgmgr;
 
@@ -180,4 +240,22 @@ public class DConfigDirector extends BasicDirector
 
     /** Indicates that we should ignore any changes, because we're the one effecting them. */
     protected ChangeBlock _block = new ChangeBlock();
+
+    /** The set of added entries pending transmission. */
+    protected Map<ConfigKey, ConfigEntry> _added = Maps.newTreeMap();
+
+    /** The set of updated entries pending transmission. */
+    protected Map<ConfigKey, ConfigEntry> _updated = Maps.newTreeMap();
+
+    /** The set of removed keys pending transmission. */
+    protected Set<ConfigKey> _removed = Sets.newTreeSet();
+
+    /** The time at which the last update was sent. */
+    protected long _lastTransmit;
+
+    /** Invokes the transmit method. */
+    protected Interval _transmitInterval;
+
+    /** The minimum amount of time between updates. */
+    protected static final long MIN_TRANSMIT_INTERVAL = 200L;
 }

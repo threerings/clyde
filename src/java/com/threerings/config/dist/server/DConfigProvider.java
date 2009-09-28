@@ -35,17 +35,7 @@ import com.threerings.presents.server.InvocationProvider;
 public interface DConfigProvider extends InvocationProvider
 {
     /**
-     * Handles a {@link DConfigService#addConfig} request.
+     * Handles a {@link DConfigService#updateConfigs} request.
      */
-    void addConfig (ClientObject caller, ConfigEntry arg1);
-
-    /**
-     * Handles a {@link DConfigService#removeConfig} request.
-     */
-    void removeConfig (ClientObject caller, ConfigKey arg1);
-
-    /**
-     * Handles a {@link DConfigService#updateConfig} request.
-     */
-    void updateConfig (ClientObject caller, ConfigEntry arg1);
+    void updateConfigs (ClientObject caller, ConfigEntry[] arg1, ConfigEntry[] arg2, ConfigKey[] arg3);
 }

@@ -37,36 +37,14 @@ import com.threerings.presents.data.InvocationMarshaller;
 public class DConfigMarshaller extends InvocationMarshaller
     implements DConfigService
 {
-    /** The method id used to dispatch {@link #addConfig} requests. */
-    public static final int ADD_CONFIG = 1;
+    /** The method id used to dispatch {@link #updateConfigs} requests. */
+    public static final int UPDATE_CONFIGS = 1;
 
     // from interface DConfigService
-    public void addConfig (Client arg1, ConfigEntry arg2)
+    public void updateConfigs (Client arg1, ConfigEntry[] arg2, ConfigEntry[] arg3, ConfigKey[] arg4)
     {
-        sendRequest(arg1, ADD_CONFIG, new Object[] {
-            arg2
-        });
-    }
-
-    /** The method id used to dispatch {@link #removeConfig} requests. */
-    public static final int REMOVE_CONFIG = 2;
-
-    // from interface DConfigService
-    public void removeConfig (Client arg1, ConfigKey arg2)
-    {
-        sendRequest(arg1, REMOVE_CONFIG, new Object[] {
-            arg2
-        });
-    }
-
-    /** The method id used to dispatch {@link #updateConfig} requests. */
-    public static final int UPDATE_CONFIG = 3;
-
-    // from interface DConfigService
-    public void updateConfig (Client arg1, ConfigEntry arg2)
-    {
-        sendRequest(arg1, UPDATE_CONFIG, new Object[] {
-            arg2
+        sendRequest(arg1, UPDATE_CONFIGS, new Object[] {
+            arg2, arg3, arg4
         });
     }
 }
