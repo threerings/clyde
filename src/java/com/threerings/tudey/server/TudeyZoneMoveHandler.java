@@ -24,54 +24,61 @@
 
 package com.threerings.tudey.server;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import com.threerings.presents.server.InvocationManager;
+import com.threerings.presents.server.InvocationException;
 
 import com.threerings.crowd.data.BodyObject;
+import com.threerings.crowd.server.LocationManager;
 
+import com.threerings.whirled.server.SceneManager;
+import com.threerings.whirled.server.SceneRegistry;
 import com.threerings.whirled.zone.client.ZoneService;
-import com.threerings.whirled.zone.data.ZonedBodyObject;
 import com.threerings.whirled.zone.server.ZoneManager;
 import com.threerings.whirled.zone.server.ZoneMoveHandler;
-import com.threerings.whirled.zone.server.ZoneRegistry;
 
 /**
- * Provides special handling for moving between Tudey zones.
+ * Provides special handling for traversing portals and client-specific resolution.
  */
-@Singleton
-public class TudeyZoneRegistry extends ZoneRegistry
+public class TudeyZoneMoveHandler extends ZoneMoveHandler
 {
     /**
-     * Creates a new zone registry.
+     * Creates a new zone move handler.
      */
-    @Inject public TudeyZoneRegistry (InvocationManager invmgr)
+    public TudeyZoneMoveHandler (
+        LocationManager locmgr, ZoneManager zmgr, SceneRegistry screg, BodyObject body,
+        int sceneId, int sceneVer, Object portalKey, ZoneService.ZoneMoveListener listener)
     {
-        super(invmgr);
-    }
-
-    /**
-     * Forcibly moves a player to a new zoned scene.
-     *
-     * @param portalKey the key of the destination portal.
-     */
-    public String moveBody (ZonedBodyObject source, int zoneId, int sceneId, Object portalKey)
-    {
-        _tscreg.addPortalMapping((BodyObject)source, sceneId, portalKey);
-        return super.moveBody(source, zoneId, sceneId);
+        super(locmgr, zmgr, screg, body, sceneId, sceneVer, listener);
+        _portalKey = portalKey;
     }
 
     @Override // documentation inherited
-    protected ZoneMoveHandler createZoneMoveHandler (
-        ZoneManager zmgr, BodyObject body, int sceneId, int sceneVer,
-        ZoneService.ZoneMoveListener listener)
+    protected void resolveScene ()
     {
-        Object portalKey = _tscreg.removePortalMapping(body, sceneId);
-        return new TudeyZoneMoveHandler(
-            _locman, zmgr, _screg, body, sceneId, sceneVer, portalKey, listener);
+        ((TudeySceneRegistry)_screg).resolveScene(_body, _sceneId, this);
     }
 
-    /** The Tudey scene registry. */
-    @Inject protected TudeySceneRegistry _tscreg;
+    @Override // documentation inherited
+    protected void effectSceneMove (SceneManager scmgr)
+        throws InvocationException
+    {
+        // if there's no portal key, just call normal implementation
+        if (_portalKey == null) {
+            super.effectSceneMove(scmgr);
+            return;
+        }
+        // let the destination scene manager know that we're coming in
+        TudeySceneManager destmgr = (TudeySceneManager)scmgr;
+        destmgr.mapEnteringBody(_body, _portalKey);
+
+        try {
+            super.effectSceneMove(destmgr);
+        } catch (InvocationException ie) {
+            // if anything goes haywire, clear out our entering status
+            destmgr.clearEnteringBody(_body);
+            throw ie;
+        }
+    }
+
+    /** Identifies the destination portal. */
+    protected Object _portalKey;
 }

@@ -97,14 +97,13 @@ public class TudeySceneRegistry extends SceneRegistry
         ClientObject caller, int sceneId, int sceneVer, SceneService.SceneMoveListener listener)
     {
         // look for a stored portal key
-        PortalMapping mapping = _portals.remove(caller.getOid());
+        BodyObject body = (BodyObject)caller;
+        Object portalKey = removePortalMapping(body, sceneId);
         SceneMoveHandler handler;
-        if (mapping != null && mapping.getSceneId() == sceneId &&
-                mapping.getExpiry() > System.currentTimeMillis()) {
-            handler = new TudeySceneMoveHandler(
-                _locman, (BodyObject)caller, sceneVer, mapping.getPortalKey(), listener);
+        if (portalKey != null) {
+            handler = new TudeySceneMoveHandler(_locman, body, sceneVer, portalKey, listener);
         } else {
-            handler = new SceneMoveHandler(_locman, (BodyObject)caller, sceneVer, listener);
+            handler = new SceneMoveHandler(_locman, body, sceneVer, listener);
         }
         resolveScene(caller, sceneId, handler);
     }
@@ -125,6 +124,17 @@ public class TudeySceneRegistry extends SceneRegistry
     protected void addPortalMapping (BodyObject source, int sceneId, Object portalKey)
     {
         _portals.put(source.getOid(), new PortalMapping(sceneId, portalKey));
+    }
+
+    /**
+     * Removes and returns the portal mapping for the specified body and scene, or returns
+     * <code>null</code> if there is none or it has expired.
+     */
+    protected Object removePortalMapping (BodyObject source, int sceneId)
+    {
+        PortalMapping mapping = _portals.remove(source.getOid());
+        return (mapping != null && mapping.getSceneId() == sceneId &&
+            mapping.getExpiry() > System.currentTimeMillis()) ? mapping.getPortalKey() : null;
     }
 
     /**
