@@ -68,6 +68,16 @@ public class TudeyZoneRegistry extends ZoneRegistry
         ZoneService.ZoneMoveListener listener)
     {
         Object portalKey = _tscreg.removePortalMapping(body, sceneId);
+        return createZoneMoveHandler(zmgr, body, sceneId, sceneVer, portalKey, listener);
+    }
+
+    /**
+     * Creates a zone move handler with a portal key.
+     */
+    protected ZoneMoveHandler createZoneMoveHandler (
+        ZoneManager zmgr, BodyObject body, int sceneId, int sceneVer,
+        Object portalKey, ZoneService.ZoneMoveListener listener)
+    {
         return new TudeyZoneMoveHandler(
             _locman, zmgr, _screg, body, sceneId, sceneVer, portalKey, listener);
     }
