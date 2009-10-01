@@ -31,6 +31,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
 /**
@@ -195,6 +196,12 @@ public class Global extends Shape
     public void draw (boolean outline)
     {
         // do nothing
+    }
+
+    @Override // documentation inherited
+    public ShapeConfig createConfig ()
+    {
+        return new ShapeConfig.Global();
     }
 
     /**

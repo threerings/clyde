@@ -34,6 +34,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
 /**
@@ -344,6 +345,19 @@ public class Compound extends Shape
         for (Shape shape : _shapes) {
             shape.draw(outline);
         }
+    }
+
+    @Override // documentation inherited
+    public ShapeConfig createConfig ()
+    {
+        ShapeConfig.Compound compound = new ShapeConfig.Compound();
+        compound.shapes = new ShapeConfig.TransformedShape[_shapes.length];
+        for (int ii = 0; ii < _shapes.length; ii++) {
+            ShapeConfig.TransformedShape tshape = compound.shapes[ii] =
+                new ShapeConfig.TransformedShape();
+            tshape.shape = _shapes[ii].createConfig();
+        }
+        return compound;
     }
 
     @Override // documentation inherited

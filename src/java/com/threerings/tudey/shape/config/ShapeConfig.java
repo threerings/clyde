@@ -28,6 +28,8 @@ import java.lang.ref.SoftReference;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -52,7 +54,7 @@ import com.threerings.tudey.shape.Shape;
     ShapeConfig.Circle.class, ShapeConfig.Capsule.class, ShapeConfig.Polygon.class,
     ShapeConfig.Compound.class, ShapeConfig.None.class, ShapeConfig.Global.class  })
 public abstract class ShapeConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * A point.
@@ -238,7 +240,7 @@ public abstract class ShapeConfig extends DeepObject
      * A single vertex in a polygon.
      */
     public static class Vertex extends DeepObject
-        implements Exportable
+        implements Exportable, Streamable
     {
         /** The vertex coordinates. */
         @Editable(column=true)
@@ -345,7 +347,7 @@ public abstract class ShapeConfig extends DeepObject
      * Combines a shape with its transform.
      */
     public static class TransformedShape extends DeepObject
-        implements Exportable
+        implements Exportable, Streamable
     {
         /** The shape. */
         @Editable

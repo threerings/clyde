@@ -34,6 +34,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
 import static com.threerings.tudey.Log.*;
@@ -497,6 +498,19 @@ public class Polygon extends Shape
             GL11.glVertex2f(vertex.x, vertex.y);
         }
         GL11.glEnd();
+    }
+
+    @Override // documentation inherited
+    public ShapeConfig createConfig ()
+    {
+        ShapeConfig.Polygon polygon = new ShapeConfig.Polygon();
+        polygon.vertices = new ShapeConfig.Vertex[_vertices.length];
+        for (int ii = 0; ii < _vertices.length; ii++) {
+            ShapeConfig.Vertex vertex = polygon.vertices[ii] = new ShapeConfig.Vertex();
+            vertex.x = _vertices[ii].x;
+            vertex.y = _vertices[ii].y;
+        }
+        return polygon;
     }
 
     @Override // documentation inherited

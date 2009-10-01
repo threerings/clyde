@@ -30,6 +30,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
 /**
@@ -277,6 +278,11 @@ public abstract class Shape
      * @param outline if true, draw the outline of the shape; otherwise, the solid form.
      */
     public abstract void draw (boolean outline);
+
+    /**
+     * Creates a config corresponding to this shape.
+     */
+    public abstract ShapeConfig createConfig ();
 
     /**
      * Updates the value of the closest point and returns a new result vector reference.

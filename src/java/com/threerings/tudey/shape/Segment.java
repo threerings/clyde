@@ -32,6 +32,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
 /**
@@ -297,6 +298,19 @@ public class Segment extends Shape
         GL11.glVertex2f(_start.x, _start.y);
         GL11.glVertex2f(_end.x, _end.y);
         GL11.glEnd();
+    }
+
+    @Override // documentation inherited
+    public ShapeConfig createConfig ()
+    {
+        ShapeConfig.Segment segment = new ShapeConfig.Segment();
+        segment.length = _start.distance(_end);
+        ShapeConfig.TransformedShape transformed = new ShapeConfig.TransformedShape();
+        transformed.shape = segment;
+        transformed.transform.set(_start.add(_end).multLocal(0.5f), _start.direction(_end));
+        ShapeConfig.Compound compound = new ShapeConfig.Compound();
+        compound.shapes = new ShapeConfig.TransformedShape[] { transformed };
+        return compound;
     }
 
     @Override // documentation inherited

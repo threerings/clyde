@@ -32,6 +32,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
 /**
@@ -277,6 +278,19 @@ public class Circle extends Shape
                 _center.y + FloatMath.sin(angle) * radius);
         }
         GL11.glEnd();
+    }
+
+    @Override // documentation inherited
+    public ShapeConfig createConfig ()
+    {
+        ShapeConfig.Circle circle = new ShapeConfig.Circle();
+        circle.radius = radius;
+        ShapeConfig.TransformedShape transformed = new ShapeConfig.TransformedShape();
+        transformed.shape = circle;
+        transformed.transform.set(_center, 0f);
+        ShapeConfig.Compound compound = new ShapeConfig.Compound();
+        compound.shapes = new ShapeConfig.TransformedShape[] { transformed };
+        return compound;
     }
 
     @Override // documentation inherited

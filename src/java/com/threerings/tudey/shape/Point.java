@@ -31,6 +31,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
 /**
@@ -228,6 +229,18 @@ public class Point extends Shape
         GL11.glBegin(GL11.GL_POINTS);
         GL11.glVertex2f(_location.x, _location.y);
         GL11.glEnd();
+    }
+
+    @Override // documentation inherited
+    public ShapeConfig createConfig ()
+    {
+        ShapeConfig.Point point = new ShapeConfig.Point();
+        ShapeConfig.TransformedShape transformed = new ShapeConfig.TransformedShape();
+        transformed.shape = point;
+        transformed.transform.set(_location, 0f);
+        ShapeConfig.Compound compound = new ShapeConfig.Compound();
+        compound.shapes = new ShapeConfig.TransformedShape[] { transformed };
+        return compound;
     }
 
     /** The location of the point. */
