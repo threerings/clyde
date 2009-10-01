@@ -64,6 +64,7 @@ import com.threerings.opengl.scene.config.SceneInfluencerConfig;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.tudey.config.ActorModelConfig;
+import com.threerings.tudey.shape.config.ShapeModelConfig;
 
 import static com.threerings.opengl.Log.*;
 
@@ -85,7 +86,8 @@ public class ModelConfig extends ParameterizedConfig
         StaticConfig.class, StaticSetConfig.class, ArticulatedConfig.class,
         ParticleSystemConfig.class, MetaParticleSystemConfig.class, SceneInfluencerConfig.class,
         ViewerAffecterConfig.class, ComponentBillboardConfig.class, ConditionalConfig.class,
-        CompoundConfig.class, ScriptedConfig.class, Derived.class, ActorModelConfig.Wrapper.class })
+        CompoundConfig.class, ScriptedConfig.class, ActorModelConfig.Wrapper.class,
+        ShapeModelConfig.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {

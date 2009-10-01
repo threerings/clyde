@@ -7,7 +7,6 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
-import com.threerings.editor.EditorTypes;
 import com.threerings.expr.Scope;
 
 import com.threerings.opengl.geometry.config.GeometryConfig;
@@ -19,7 +18,6 @@ import com.threerings.opengl.util.GlContext;
 /**
  * A model config wrapper for using an actor's model config.
  */
-@EditorTypes({ ActorModelConfig.Wrapper.class })
 public abstract class ActorModelConfig extends ModelConfig
 {
     /**
