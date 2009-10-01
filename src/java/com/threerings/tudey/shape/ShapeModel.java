@@ -31,10 +31,14 @@ import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.state.AlphaState;
 import com.threerings.opengl.renderer.state.ColorState;
+import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
 
@@ -53,7 +57,21 @@ public class ShapeModel extends Model.Implementation
     {
         super(parentScope);
         _ctx = ctx;
-        _element = new ShapeConfigElement(ctx) {
+        _element = new ShapeConfigElement(ctx) { {
+                _queue = _ctx.getCompositor().getQueue(RenderQueue.TRANSPARENT);
+                _batch.getStates()[RenderState.ALPHA_STATE] = AlphaState.PREMULTIPLIED;
+                _batch.getStates()[RenderState.DEPTH_STATE] = DepthState.TEST;
+            }
+            @Override public void enqueue () {
+                TransformState tstate =
+                    (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
+                Transform3D modelview = tstate.getModelview();
+                _parentViewTransform.compose(_localTransform, modelview);
+                tstate.setDirty(true);
+
+                _batch.depth = modelview.transformPointZ(getCenter());
+                _queue.add(_batch, _priority);
+            }
             @Override protected void boundsWillChange () {
                 ((Model)_parentScope).boundsWillChange(ShapeModel.this);
             }
