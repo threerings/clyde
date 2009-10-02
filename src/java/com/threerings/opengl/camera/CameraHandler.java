@@ -98,12 +98,18 @@ public abstract class CameraHandler
     /**
      * Returns a reference to the translation to use for the sound listener.
      */
-    public abstract Vector3f getListenerTranslation ();
+    public Vector3f getListenerTranslation ()
+    {
+        return _camera.getWorldTransform().getTranslation();
+    }
 
     /**
      * Returns a reference to the rotation to use for the sound listener.
      */
-    public abstract Quaternion getListenerRotation ();
+    public Quaternion getListenerRotation ()
+    {
+        return _camera.getWorldTransform().getRotation();
+    }
 
     /**
      * Determines whether the camera handler is currently active.
