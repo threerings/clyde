@@ -25,6 +25,8 @@
 package com.threerings.opengl.camera;
 
 import com.threerings.math.FloatMath;
+import com.threerings.math.Quaternion;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
@@ -92,6 +94,16 @@ public abstract class CameraHandler
     {
         return _far;
     }
+
+    /**
+     * Returns a reference to the translation to use for the sound listener.
+     */
+    public abstract Vector3f getListenerTranslation ();
+
+    /**
+     * Returns a reference to the rotation to use for the sound listener.
+     */
+    public abstract Quaternion getListenerRotation ();
 
     /**
      * Determines whether the camera handler is currently active.

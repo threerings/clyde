@@ -121,6 +121,18 @@ public class OrbitCameraHandler extends CameraHandler
     }
 
     @Override // documentation inherited
+    public Vector3f getListenerTranslation ()
+    {
+        return _target;
+    }
+
+    @Override // documentation inherited
+    public Quaternion getListenerRotation ()
+    {
+        return _camera.getWorldTransform().getRotation();
+    }
+
+    @Override // documentation inherited
     public void updatePosition ()
     {
         // update the camera translation and rotation
