@@ -62,7 +62,7 @@ public class SoundClipManager
         if (sound.play(null, config.loop)) {
             _sounds.add(new SoundEntry(sound, config.gain));
             count = _counts.incrementCount(path, 1);
-            sound.setGain(config.gain * GAIN_LEVEL[count] / count);
+            sound.setGain(config.gain * GAIN_LEVEL[count - 1] / count);
             log.debug("ClipManager play sound", "count", count, "path", path);
         }
     }
@@ -83,10 +83,9 @@ public class SoundClipManager
         for (int ii = _sounds.size() - 1; ii >= 0; ii--) {
             SoundEntry entry = _sounds.get(ii);
             entry.elapsed += elapsed;
-            int count = _counts.getCount(entry.sound.getBuffer().getPath()) - 1;
-            entry.sound.setGain(entry.gain * GAIN_LEVEL[count] / count);
+            int count = _counts.getCount(entry.sound.getBuffer().getPath());
+            entry.sound.setGain(entry.gain * GAIN_LEVEL[count - 1] / count);
         }
-
     }
 
     /**
