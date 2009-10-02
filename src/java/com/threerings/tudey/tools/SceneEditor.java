@@ -88,6 +88,8 @@ import com.threerings.util.KeyboardManager.KeyObserver;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.tools.ConfigEditor;
+import com.threerings.editor.Editable;
+import com.threerings.editor.EditorMessageBundle;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
@@ -962,7 +964,7 @@ public class SceneEditor extends TudeyTool
     @Override // documentation inherited
     protected ToolUtil.EditablePrefs createEditablePrefs ()
     {
-        return new CanvasToolPrefs(_prefs);
+        return new SceneEditorPrefs(_prefs);
     }
 
     @Override // documentation inherited
@@ -1491,6 +1493,39 @@ public class SceneEditor extends TudeyTool
         Rectangle region = new Rectangle();
         entry.getRegion(config, region);
         setPaint(region, null);
+    }
+
+    /**
+     * The preferences for the scene editor.
+     */
+    @EditorMessageBundle("editor.default")
+    protected class SceneEditorPrefs extends CanvasToolPrefs
+    {
+        /**
+         * Creates a new preferences object.
+         */
+        public SceneEditorPrefs (Preferences prefs)
+        {
+            super(prefs);
+        }
+
+        /**
+         * Sets the refresh interval.
+         */
+        @Editable(weight=4)
+        public void setDebugRegions (boolean debug)
+        {
+            _prefs.putBoolean("debug_regions", debug);
+        }
+
+        /**
+         * Returns the refresh interval.
+         */
+        @Editable
+        public boolean getDebugRegions ()
+        {
+            return _prefs.getBoolean("debug_regions", false);
+        }
     }
 
     /** The file to attempt to load on initialization, if any. */

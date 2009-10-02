@@ -290,6 +290,14 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Checks whether we should show region debug effects.
+     */
+    public boolean getDebugRegions ()
+    {
+        return false;
+    }
+
+    /**
      * Spawns an actor with the named configuration.
      */
     public ActorLogic spawnActor (
