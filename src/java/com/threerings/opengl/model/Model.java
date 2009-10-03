@@ -930,13 +930,6 @@ public class Model extends DynamicScope
     }
 
     @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        resetEpoch();
-    }
-
-    @Override // documentation inherited
     public void dispose ()
     {
         super.dispose();
