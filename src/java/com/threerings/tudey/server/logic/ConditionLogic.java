@@ -391,6 +391,26 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the cooldown condition.
+     */
+    public static class Cooldown extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            int timestamp = _scenemgr.getTimestamp();
+            if (_nextTimestamp < 0 || timestamp > _nextTimestamp) {
+                _nextTimestamp = timestamp + ((ConditionConfig.Cooldown)_config).time;
+                return true;
+            }
+            return false;
+        }
+
+        /** The next timestamp before we'll be satisfied. */
+        protected int _nextTimestamp = -1;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ConditionConfig config, Logic source)

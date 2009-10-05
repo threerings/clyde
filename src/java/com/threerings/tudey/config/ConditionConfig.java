@@ -37,7 +37,7 @@ import com.threerings.util.DeepObject;
     ConditionConfig.Intersecting.class, ConditionConfig.DistanceWithin.class,
     ConditionConfig.Random.class, ConditionConfig.Limit.class,
     ConditionConfig.All.class, ConditionConfig.Any.class,
-    ConditionConfig.FlagSet.class })
+    ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -286,6 +286,22 @@ public abstract class ConditionConfig extends DeepObject
         public void invalidate ()
         {
             target.invalidate();
+        }
+    }
+
+    /**
+     * Ensures a cooldown time is met between satisfied conditions.
+     */
+    public static class Cooldown extends ConditionConfig
+    {
+        /** The amount of cooldown time. */
+        @Editable
+        public int time = 0;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Cooldown";
         }
     }
 
