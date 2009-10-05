@@ -283,7 +283,7 @@ public abstract class ActorSpriteConfig extends DeepObject
 
     /** Determines which floor categories the actor walks over. */
     @Editable(editor="mask", mode="floor", hgroup="f")
-    public int floorMask = 0x01;
+    public int floorMask = 0xFF;
 
     /** The actor model. */
     @Editable(nullable=true)
