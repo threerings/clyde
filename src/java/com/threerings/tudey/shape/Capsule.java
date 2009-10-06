@@ -365,6 +365,13 @@ public class Capsule extends Shape
         return compound;
     }
 
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "[start=" + _start.toString() + ", end=" + _end.toString() + ", radius=" + radius +
+            ", bounds=" + _bounds + "]";
+    }
+
     /**
      * Helper method for {@link #getIntersectionType}.  Determines whether the capsule intersects
      * the rectangle on the left side.
