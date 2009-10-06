@@ -237,7 +237,7 @@ public class Circle extends Shape
     @Override // documentation inherited
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        return segment.getPenetration(this, result).negateLocal();
     }
 
     @Override // documentation inherited
