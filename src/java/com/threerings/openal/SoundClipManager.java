@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 
 import com.samskivert.util.CountHashMap;
 
+import com.threerings.openal.ClipBuffer;
 import com.threerings.openal.config.SounderConfig;
 
 import static com.threerings.ClydeLog.*;
@@ -20,7 +21,11 @@ public class SoundClipManager
      */
     public void playSound (Sound sound, SounderConfig.Clip config)
     {
-        String path = sound.getBuffer().getPath();
+        ClipBuffer buffer = sound.getBuffer();
+        if (buffer == null) {
+            return;
+        }
+        String path = buffer.getPath();
         int count = _counts.getCount(path);
         boolean canStop = false;
         if (sound.isPlaying() || count > 0) {
