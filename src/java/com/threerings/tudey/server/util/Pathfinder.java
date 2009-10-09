@@ -433,7 +433,7 @@ public class Pathfinder
                 } else {
                     for (int ys = 0; ys < SUBDIVISION; ys++) {
                         for (int xs = 0; xs < SUBDIVISION; xs++) {
-                            updateQuad(xx, yy, xs, ys);
+                            updateQuadSubdivision(xx, yy, xs, ys);
                             if (shape.intersects(_quad)) {
                                 _actorFlags.setBits(
                                         xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, flags);
@@ -469,7 +469,7 @@ public class Pathfinder
                 } else {
                     for (int ys = 0; ys < SUBDIVISION; ys++) {
                         for (int xs = 0; xs < SUBDIVISION; xs++) {
-                            updateQuad(xx, yy, xs, ys);
+                            updateQuadSubdivision(xx, yy, xs, ys);
                             if (shape.intersects(_quad)) {
                                 updateActorFlags(
                                         xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, skip);
