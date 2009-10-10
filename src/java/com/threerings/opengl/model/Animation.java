@@ -46,6 +46,8 @@ import com.threerings.math.Transform3D;
 import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.util.GlContext;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * An animation for an {@link Articulated} model.
  */
@@ -314,6 +316,11 @@ public class Animation extends SimpleScope
             int frames = (int)_accum;
             _accum -= frames;
             _fidx += frames;
+            if (_fidx < 0) { // sanity check
+                log.warning("Frame index went negative!", "anim",
+                    ((Animation)_parentScope)._name, "fidx", _fidx);
+                _fidx = 0;
+            }
             executeActions();
 
             // check for loop or completion
