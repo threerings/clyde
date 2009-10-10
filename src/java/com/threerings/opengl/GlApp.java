@@ -346,7 +346,7 @@ public abstract class GlApp extends DynamicScope
     protected void updateView ()
     {
         long nnow = System.currentTimeMillis();
-        float elapsed = (nnow - _now.value) / 1000f;
+        float elapsed = Math.max(0f, (nnow - _now.value) / 1000f);
         _now.value = nnow;
 
         updateView(elapsed);

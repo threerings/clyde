@@ -252,7 +252,7 @@ public class Animation extends SimpleScope
         {
             // initialize frame counter
             int offset = Math.round(_config.offset.getValue() * getFrameRate());
-            _fidx = _eidx = offset % _config.transforms.length;
+            _fidx = _eidx = Math.max(0, offset) % _config.transforms.length;
             _accum = 0f;
             _completed = false;
 
