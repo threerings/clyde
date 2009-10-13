@@ -974,7 +974,7 @@ public abstract class Root extends SimpleOverlay
                     break;
                 }
                 TransferHandler chandler = nhcomponent.getTransferHandler();
-                if (chandler != null && nhcomponent != _dsource && chandler.canImport(
+                if (chandler != null && chandler.canImport(
                         nhcomponent, _ddata.getTransferDataFlavors())) {
                     break;
                 }
