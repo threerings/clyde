@@ -189,6 +189,14 @@ public class ActorSprite extends Sprite
             // nothing by default
         }
 
+        /**
+         * Returns a scale factor for attached models.
+         */
+        public float getAttachedScale ()
+        {
+            return 1f;
+        }
+
         @Override // documentation inherited
         public String getScopeName ()
         {
@@ -331,6 +339,12 @@ public class ActorSprite extends Sprite
             if (base != null && !base.isPlaying()) {
                 base.start();
             }
+        }
+
+        @Override // documentation inherited
+        public float getAttachedScale ()
+        {
+            return ((ActorSpriteConfig.Moving)_config).attachedScale;
         }
 
         /**
@@ -763,6 +777,16 @@ public class ActorSprite extends Sprite
         if (_attachedModels.add(model) && isCreated()) {
             _view.getScene().add(model);
         }
+    }
+
+    /**
+     * Attaches a model to this sprite that is scaled by the implmentation.
+     */
+    public void attachScaledModel (Model model)
+    {
+        Transform3D transform = model.getLocalTransform();
+        transform.setScale(transform.getScale() * _impl.getAttachedScale());
+        attachModel(model);
     }
 
     /**
