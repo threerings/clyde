@@ -206,7 +206,7 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
     }
 
     /** The maximum number of lights we allow in a set. */
-    protected static final int MAX_LIGHTS = 3;
+    protected static final int MAX_LIGHTS = 4;
 
     /** Reusable empty projections array. */
     protected static final Projection[] NO_PROJECTIONS = new Projection[0];
