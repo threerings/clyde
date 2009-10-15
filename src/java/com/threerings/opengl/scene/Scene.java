@@ -286,6 +286,38 @@ public abstract class Scene extends DynamicScope
     public abstract void getEffects (Box bounds, Collection<ViewerEffect> results);
 
     /**
+     * Returns the size of the list of elements that we tick on every frame.
+     */
+    public int getAlwaysTickCount ()
+    {
+        return _alwaysTick.size();
+    }
+
+    /**
+     * Returns the size of the set of elements that we are going to tick because they're visible.
+     */
+    public int getVisibleTickCount ()
+    {
+        return _visible.size();
+    }
+
+    /**
+     * Returns the size of the set of elements whose influences must be updated.
+     */
+    public int getUpdateInfluencesCount ()
+    {
+        return _updateInfluences.size();
+    }
+
+    /**
+     * Returns the number of effects acting upon the viewer.
+     */
+    public int getViewerEffectCount ()
+    {
+        return _effects.size();
+    }
+
+    /**
      * Notes that the specified scene element's tick policy is about to change.  Will be followed
      * by a call to {@link #tickPolicyDidChange} when the change has been effected.
      */
