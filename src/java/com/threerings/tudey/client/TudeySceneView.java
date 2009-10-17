@@ -715,7 +715,7 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface ChatDisplay
     public boolean displayMessage (ChatMessage msg, boolean alreadyDisplayed)
     {
-        if (!(msg instanceof UserMessage && ChatCodes.PLACE_CHAT_TYPE.equals(msg.localtype)) ||
+        if (!(msg instanceof UserMessage && chatType().equals(msg.localtype)) ||
                 msg instanceof TellFeedbackMessage) {
             return false;
         }
@@ -867,6 +867,14 @@ public class TudeySceneView extends SimpleScope
             }
         }
         return false;
+    }
+
+    /**
+     * The valid chat type for this view.
+     */
+    protected String chatType ()
+    {
+        return ChatCodes.PLACE_CHAT_TYPE;
     }
 
     /**
