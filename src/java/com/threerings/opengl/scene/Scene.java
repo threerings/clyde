@@ -97,6 +97,7 @@ public abstract class Scene extends DynamicScope
     /**
      * Returns an instance of the referenced model from the transient pool.
      */
+    @Scoped
     public Model getFromTransientPool (ConfigReference<ModelConfig> ref)
     {
         ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
@@ -115,6 +116,20 @@ public abstract class Scene extends DynamicScope
         model.setUserObject(ref);
         model.addObserver(_transientObserver);
         return model;
+    }
+
+    /**
+     * Returns a model to the transient pool.
+     */
+    @Scoped
+    public void returnToTransientPool (Model model)
+    {
+        ConfigReference ref = (ConfigReference)model.getUserObject();
+        ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
+        if (list == null) {
+            _transientPool.put(ref, list = new ArrayList<SoftReference<Model>>());
+        }
+        list.add(new SoftReference<Model>(model));
     }
 
     /**
@@ -561,19 +576,6 @@ public abstract class Scene extends DynamicScope
             }
         }
         return closest;
-    }
-
-    /**
-     * Returns a model to the transient pool.
-     */
-    protected void returnToTransientPool (Model model)
-    {
-        ConfigReference ref = (ConfigReference)model.getUserObject();
-        ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
-        if (list == null) {
-            _transientPool.put(ref, list = new ArrayList<SoftReference<Model>>());
-        }
-        list.add(new SoftReference<Model>(model));
     }
 
     /**

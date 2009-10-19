@@ -38,6 +38,7 @@ import com.threerings.util.DeepObject;
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.opengl.model.Articulated;
+import com.threerings.opengl.model.Model;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -91,6 +92,12 @@ public abstract class ActionConfig extends DeepObject
         @Override // documentation inherited
         public Executor createExecutor (GlContext ctx, Scope scope)
         {
+            // get an instance from the transient pool and immediately return it, but retain a
+            // hard reference to prevent it from being garbage collected.  hopefully this will
+            // prevent the system's having to (re)load the model from disk at a crucial moment
+            final Model instance = (Model)ScopeUtil.call(scope, "getFromTransientPool", model);
+            ScopeUtil.call(scope, "returnToTransientPool", instance);
+
             final Function spawnTransient = ScopeUtil.resolve(
                 scope, "spawnTransient", Function.NULL);
             Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
@@ -102,6 +109,7 @@ public abstract class ActionConfig extends DeepObject
                     spawnTransient.call(model, parent.compose(transform, _world));
                 }
                 protected Transform3D _world = new Transform3D();
+                protected Model _instance = instance;
             };
         }
     }
