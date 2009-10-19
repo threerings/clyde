@@ -37,7 +37,8 @@ import com.threerings.util.DeepObject;
     ConditionConfig.Intersecting.class, ConditionConfig.DistanceWithin.class,
     ConditionConfig.Random.class, ConditionConfig.Limit.class,
     ConditionConfig.All.class, ConditionConfig.Any.class,
-    ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class })
+    ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class,
+    ConditionConfig.Not.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -302,6 +303,28 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Cooldown";
+        }
+    }
+
+    /**
+     * Satisfied if the component condition is not satisfied.
+     */
+    public static class Not extends ConditionConfig
+    {
+        /** The component condition. */
+        @Editable
+        public ConditionConfig condition = new ConditionConfig.Tagged();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Not";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            condition.invalidate();
         }
     }
 

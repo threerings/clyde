@@ -411,6 +411,27 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the not condition.
+     */
+    public static class Not extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            return !_condition.isSatisfied(activator);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _condition = createCondition(((ConditionConfig.Not)_config).condition, _source);
+        }
+
+        /** The component condition. */
+        protected ConditionLogic _condition;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ConditionConfig config, Logic source)
