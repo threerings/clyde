@@ -58,11 +58,6 @@ public class DisplayRoot extends Root
      */
     public void poll ()
     {
-        // poll the mouse, keyboard, and controllers
-        Mouse.poll();
-        Keyboard.poll();
-        Controllers.poll();
-
         // update the modifiers
         _modifiers = 0;
         int bcount = Mouse.getButtonCount();
