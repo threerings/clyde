@@ -80,6 +80,15 @@ public class ActiveAdvancer extends MobileAdvancer
         super.step(elapsed);
     }
 
+    @Override // documentation inherited
+    protected void mobileStep (float elapsed)
+    {
+        if (!canMove()) {
+            _active.clear(Mobile.MOVING);
+        }
+        super.mobileStep(elapsed);
+    }
+
     /**
      * Returns a reference to the mapping for the current activity, or <code>null</code> for none.
      */
@@ -152,7 +161,7 @@ public class ActiveAdvancer extends MobileAdvancer
             int started = _active.getActivityStarted();
             if (_timestamp - started >= _clear) {
                 _active.setActivity(Active.NONE, started + _clear);
-            } else if (!_movement) {
+            } else if (!canMove()) {
                 _active.clear(Mobile.MOVING);
             }
         }
