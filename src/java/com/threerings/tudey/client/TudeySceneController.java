@@ -535,6 +535,11 @@ public class TudeySceneController extends SceneController
             if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
                 direction = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
             }
+        } else {
+            // clear all input flags
+            int mask = ~getInputMask();
+            _frameFlags &= mask;
+            _flags &= mask;
         }
 
         // update the hover sprite
@@ -570,6 +575,15 @@ public class TudeySceneController extends SceneController
 
         // reset the frame flags
         _frameFlags = _flags;
+    }
+
+    /**
+     * Returns the set of all flags corresponding to input controls (i.e., the flags that should
+     * be cleared when input is disabled).
+     */
+    protected int getInputMask ()
+    {
+        return InputFrame.MOVE | InputFrame.STRAFE;
     }
 
     /**
