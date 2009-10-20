@@ -11,11 +11,20 @@ import com.samskivert.util.CountHashMap;
 
 import com.threerings.openal.ClipBuffer;
 import com.threerings.openal.config.SounderConfig;
+import com.threerings.openal.util.AlContext;
 
 import static com.threerings.ClydeLog.*;
 
 public class SoundClipManager
 {
+    /**
+     * Creates a sound clip manager.
+     */
+    public SoundClipManager (AlContext ctx)
+    {
+        _ctx = ctx;
+    }
+
     /**
      * Registers and plays a sound using the clip manager.
      */
@@ -67,7 +76,7 @@ public class SoundClipManager
         if (sound.play(null, config.loop)) {
             _sounds.add(new SoundEntry(sound, config.gain));
             count = _counts.incrementCount(path, 1);
-            sound.setGain(config.gain * GAIN_LEVEL[count - 1] / count);
+            sound.setGain(config.gain * getGainModifier(count));
             log.debug("ClipManager play sound", "count", count, "path", path);
         }
     }
@@ -89,8 +98,16 @@ public class SoundClipManager
             SoundEntry entry = _sounds.get(ii);
             entry.elapsed += elapsed;
             int count = _counts.getCount(entry.sound.getBuffer().getPath());
-            entry.sound.setGain(entry.gain * GAIN_LEVEL[count - 1] / count);
+            entry.sound.setGain(entry.gain * getGainModifier(count));
         }
+    }
+
+    /**
+     * Returns the gain modifier
+     */
+    protected float getGainModifier (int count)
+    {
+        return _ctx.getSoundManager().getBaseGain() * GAIN_LEVEL[count - 1] / count;
     }
 
     /**
@@ -113,6 +130,9 @@ public class SoundClipManager
             this.gain = gain;
         }
     }
+
+    /** The application context. */
+    protected AlContext _ctx;
 
     /** The sound clips we're managing. */
     protected ArrayList<SoundEntry> _sounds = Lists.newArrayList();

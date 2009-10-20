@@ -80,7 +80,7 @@ public abstract class Scene extends DynamicScope
         super("scene");
         _ctx = ctx;
         _soundGroup = ctx.getSoundManager().createGroup(ctx.getClipProvider(), sources);
-        _clipmgr = new SoundClipManager();
+        _clipmgr = new SoundClipManager(ctx);
     }
 
     /**
