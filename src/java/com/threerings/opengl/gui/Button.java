@@ -166,7 +166,11 @@ public class Button extends Label
                 int mx = mev.getX(), my = mev.getY();
                 int ax = getAbsoluteX(), ay = getAbsoluteY();
                 if ((mx >= ax) && (my >= ay) && (mx < ax + _width) && (my < ay + _height)) {
+                    boolean wasPressed = _pressed;
                     _pressed = (mev.getModifiers() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
+                    if (!_pressed && wasPressed) {
+                        _releasedWhen = mev.getWhen();
+                    }
                 } else {
                     _pressed = false;
                 }
@@ -189,11 +193,12 @@ public class Button extends Label
                 break;
 
             case MouseEvent.MOUSE_RELEASED:
-                if (_pressed) {
+                if (_pressed || _releasedWhen == mev.getWhen()) {
                     // create and dispatch an action event
                     fireAction(mev.getWhen(), mev.getModifiers());
                     _pressed = false;
                 }
+                _releasedWhen = 0;
                 break;
 
             default:
@@ -280,6 +285,7 @@ public class Button extends Label
     }
 
     protected boolean _pressed;
+    protected long _releasedWhen;
     protected String _action;
 
     protected String[] _feedbackSounds = new String[getStateCount()];
