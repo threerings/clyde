@@ -907,22 +907,6 @@ public class TudeySceneManager extends SceneManager
 
         // register and fill in our tudey scene service
         _tsobj.setTudeySceneService(addDispatcher(new TudeySceneDispatcher(this)));
-
-        // initialize the last tick timestamp
-        _lastTick = RunAnywhere.currentTimeMillis();
-
-        // start the ticker
-        _ticker = new Interval(_omgr) {
-            public void expired () {
-                tick();
-
-                // we reschedule here, rather than using a recurring interval, because recurring
-                // intervals on RunQueues use fixed rates rather than fixed delays, which could
-                // cause expirations to "batch up" if they take too long
-                _ticker.schedule(getTickInterval());
-            }
-        };
-        _ticker.schedule(getTickInterval());
     }
 
     @Override // documentation inherited
@@ -944,9 +928,8 @@ public class TudeySceneManager extends SceneManager
             logic.removed();
         }
 
-        // stop the ticker
-        _ticker.cancel();
-        _ticker = null;
+        // stop the ticker if it's still running
+        cancelTicker();
 
         // shut down the pathfinder
         _pathfinder.shutdown();
@@ -962,6 +945,28 @@ public class TudeySceneManager extends SceneManager
         BodyObject bodyobj = (BodyObject)_omgr.getObject(bodyOid);
         CrowdSession session = (CrowdSession)_clmgr.getClient(bodyobj.username);
         _clients.put(bodyOid, createClientLiaison(bodyobj, session));
+
+        // create the ticker when the first occupant enters
+        if (_ticker != null) {
+            return;
+        }
+        // record the time of the last tick
+        _lastTick = RunAnywhere.currentTimeMillis();
+
+        // start the ticker
+        _ticker = new Interval(_omgr) {
+            public void expired () {
+                tick();
+
+                // we reschedule here, rather than using a recurring interval, because recurring
+                // intervals on RunQueues use fixed rates rather than fixed delays, which could
+                // cause expirations to "batch up" if they take too long
+                if (_ticker != null) {
+                    _ticker.schedule(getTickInterval());
+                }
+            }
+        };
+        _ticker.schedule(getTickInterval());
     }
 
     @Override // documentation inherited
@@ -971,6 +976,15 @@ public class TudeySceneManager extends SceneManager
 
         // remove the client liaison
         _clients.remove(bodyOid);
+    }
+
+    @Override // documentation inherited
+    protected void placeBecameEmpty ()
+    {
+        super.placeBecameEmpty();
+
+        // record the time
+        _emptyTime = RunAnywhere.currentTimeMillis();
     }
 
     @Override // documentation inherited
@@ -1091,8 +1105,14 @@ public class TudeySceneManager extends SceneManager
      */
     protected void tick ()
     {
-        // update the scene timestamp
+        // cancel the ticker if enough time has elapsed with no occupants
         long now = RunAnywhere.currentTimeMillis();
+        if (_plobj.occupants.size() == 0 && (now - _emptyTime) >= idleTickPeriod()) {
+            cancelTicker();
+            return;
+        }
+
+        // update the scene timestamp
         _previousTimestamp = _timestamp;
         _timestamp += (int)(now - _lastTick);
         _lastTick = now;
@@ -1123,6 +1143,26 @@ public class TudeySceneManager extends SceneManager
     protected ConfigReference<ActorConfig> getPawnConfig (BodyObject body)
     {
         return null;
+    }
+
+    /**
+     * Returns the number of milliseconds to continue ticking when there are no occupants in
+     * the scene.
+     */
+    protected long idleTickPeriod ()
+    {
+        return 5 * 1000L;
+    }
+
+    /**
+     * Cancels the ticker if it's running.
+     */
+    protected void cancelTicker ()
+    {
+        if (_ticker != null) {
+            _ticker.cancel();
+            _ticker = null;
+        }
     }
 
     /**
@@ -1190,6 +1230,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The timestamp of the current and previous ticks. */
     protected int _timestamp, _previousTimestamp;
+
+    /** The time at which the last occupant left. */
+    protected long _emptyTime;
 
     /** The last actor id assigned. */
     protected int _lastActorId;
