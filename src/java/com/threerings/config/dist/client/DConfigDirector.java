@@ -41,6 +41,8 @@ import com.threerings.presents.dobj.ObjectAccessException;
 import com.threerings.presents.dobj.Subscriber;
 import com.threerings.presents.util.PresentsContext;
 
+import com.threerings.crowd.data.BodyObject;
+
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigGroupListener;
@@ -134,7 +136,7 @@ public class DConfigDirector extends BasicDirector
     // documentation inherited from interface ConfigGroupListener
     public void configAdded (ConfigEvent<ManagedConfig> event)
     {
-        if (_cfgobj == null || !_block.enter()) {
+        if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
             return;
         }
         try {
@@ -155,7 +157,7 @@ public class DConfigDirector extends BasicDirector
     // documentation inherited from interface ConfigGroupListener
     public void configRemoved (ConfigEvent<ManagedConfig> event)
     {
-        if (_cfgobj == null || !_block.enter()) {
+        if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
             return;
         }
         try {
@@ -175,7 +177,7 @@ public class DConfigDirector extends BasicDirector
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
-        if (_cfgobj == null || !_block.enter()) {
+        if (_cfgobj == null || !clientIsAdmin() || !_block.enter()) {
             return;
         }
         try {
@@ -230,6 +232,15 @@ public class DConfigDirector extends BasicDirector
         _added.clear();
         _updated.clear();
         _removed.clear();
+    }
+
+    /**
+     * Determines whether the local client is logged in as an admin.
+     */
+    protected boolean clientIsAdmin ()
+    {
+        Object clobj = _ctx.getClient().getClientObject();
+        return clobj instanceof BodyObject && ((BodyObject)clobj).getTokens().isAdmin();
     }
 
     /** The root config manager. */
