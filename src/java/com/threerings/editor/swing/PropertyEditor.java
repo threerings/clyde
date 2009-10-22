@@ -62,6 +62,7 @@ import com.threerings.editor.swing.editors.MaskEditor;
 import com.threerings.editor.swing.editors.NumberEditor;
 import com.threerings.editor.swing.editors.ObjectEditor;
 import com.threerings.editor.swing.editors.PanelArrayListEditor;
+import com.threerings.editor.swing.editors.PathTableArrayListEditor;
 import com.threerings.editor.swing.editors.QuaternionEditor;
 import com.threerings.editor.swing.editors.ResourceEditor;
 import com.threerings.editor.swing.editors.StringEditor;
@@ -343,6 +344,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass("resource", ResourceEditor.class);
         registerEditorClass("table", TableArrayListEditor.class);
         registerEditorClass("mask", MaskEditor.class);
+        registerEditorClass("paths", PathTableArrayListEditor.class);
 
         registerEditorClass(Boolean.class, BooleanEditor.class);
         registerEditorClass(Boolean.TYPE, BooleanEditor.class);

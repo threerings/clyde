@@ -59,7 +59,7 @@ public abstract class Parameter extends DeepObject
     {
         /** The reference paths of the properties that this parameter adjusts.  The first valid
          * path determines the type and default value. */
-        @Editable(width=40)
+        @Editable(width=40, editor="paths")
         public String[] paths = new String[0];
 
         @Override // documentation inherited
