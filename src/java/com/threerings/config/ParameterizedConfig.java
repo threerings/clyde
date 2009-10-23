@@ -36,7 +36,6 @@ import com.threerings.editor.Property;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.DeepUtil;
-import com.threerings.util.ReflectionUtil;
 
 /**
  * A configuration that may include a number of parameters to be configured when the configuration
@@ -125,18 +124,6 @@ public class ParameterizedConfig extends ManagedConfig
         if (_derived.getMap().isEmpty()) {
             _derived = null;
         }
-    }
-
-    @Override // documentation inherited
-    public Object copy (Object dest)
-    {
-        // update the outer class references of the parameters (otherwise
-        // they will be pointing at the original)
-        ParameterizedConfig result = (ParameterizedConfig)super.copy(dest);
-        for (Parameter parameter : result.parameters) {
-            ReflectionUtil.setOuter(parameter, result);
-        }
-        return result;
     }
 
     @Override // documentation inherited

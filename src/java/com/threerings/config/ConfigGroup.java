@@ -291,6 +291,12 @@ public class ConfigGroup<T extends ManagedConfig>
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
     {
+        return copy(dest, null);
+    }
+
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest, Object outer)
+    {
         @SuppressWarnings("unchecked") ConfigGroup<T> other =
             (dest instanceof ConfigGroup) ? (ConfigGroup<T>)dest : new ConfigGroup<T>(_cclass);
         other.load(_configsByName.values(), false, true);

@@ -499,6 +499,12 @@ public class ConfigManager
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
     {
+        return copy(dest, null);
+    }
+
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest, Object outer)
+    {
         ConfigManager other = (dest instanceof ConfigManager) ?
             (ConfigManager)dest : new ConfigManager();
         for (ConfigGroup group : _groups.values()) {

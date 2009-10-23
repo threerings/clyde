@@ -33,16 +33,22 @@ import com.samskivert.util.StringUtil;
 public abstract class DeepObject
     implements Cloneable, Copyable
 {
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest)
+    {
+        return copy(dest, null);
+    }
+
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest, Object outer)
+    {
+        return DeepUtil.copy(this, dest, outer);
+    }
+
     @Override // documentation inherited
     public Object clone ()
     {
         return copy(null);
-    }
-
-    // documentation inherited from interface Copyable
-    public Object copy (Object dest)
-    {
-        return DeepUtil.copy(this, dest);
     }
 
     @Override // documentation inherited

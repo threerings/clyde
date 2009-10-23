@@ -98,6 +98,12 @@ public class ArgumentMap extends AbstractMap<String, Object>
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
     {
+        return copy(dest, null);
+    }
+
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest, Object outer)
+    {
         ArgumentMap cmap;
         if (dest instanceof ArgumentMap) {
             cmap = (ArgumentMap)dest;

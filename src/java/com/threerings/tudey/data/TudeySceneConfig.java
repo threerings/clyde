@@ -72,7 +72,13 @@ public class TudeySceneConfig extends PlaceConfig
     // documentation inherited from interface Copyable
     public Object copy (Object dest)
     {
-        return DeepUtil.copy(this, dest);
+        return copy(dest, null);
+    }
+
+    // documentation inherited from interface Copyable
+    public Object copy (Object dest, Object outer)
+    {
+        return DeepUtil.copy(this, dest, outer);
     }
 
     @Override // documentation inherited
@@ -90,7 +96,7 @@ public class TudeySceneConfig extends PlaceConfig
     @Override // documentation inherited
     public Object clone ()
     {
-        return copy(null);
+        return copy(null, null);
     }
 
     @Override // documentation inherited

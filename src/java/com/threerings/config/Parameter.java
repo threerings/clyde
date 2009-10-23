@@ -42,7 +42,6 @@ import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Inner;
-import com.threerings.util.ReflectionUtil;
 
 import static com.threerings.ClydeLog.*;
 
@@ -154,11 +153,7 @@ public abstract class Parameter extends DeepObject
         // documentation inherited from interface Inner
         public void setOuter (Object outer)
         {
-            // update the options' outer references as well
             _outer = (ParameterizedConfig)outer;
-            for (Option option : options) {
-                ReflectionUtil.setOuter(option, this);
-            }
         }
 
         // documentation inherited from interface Inner

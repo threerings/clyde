@@ -63,6 +63,18 @@ public class DeepUtil
      */
     public static <T> T copy (T source, T dest)
     {
+        return copy(source, dest, null);
+    }
+
+    /**
+     * Creates a deep copy of an object using reflection, storing the result in the object
+     * provided if possible.
+     *
+     * @param outer the outer object reference to use for inner object creation, if any.
+     * @return the copied object.
+     */
+    public static <T> T copy (T source, T dest, Object outer)
+    {
         if (source == null) {
             return null;
         }
@@ -73,7 +85,7 @@ public class DeepUtil
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
             (ObjectHandler<T>)getObjectHandler(clazz);
         try {
-            return handler.copy(source, dest);
+            return handler.copy(source, dest, outer);
         } catch (IllegalAccessException e) {
             log.warning("Couldn't access fields for deep copy.", e);
             return null;
@@ -89,6 +101,19 @@ public class DeepUtil
      */
     public static <T> T transfer (T source, T dest)
     {
+        return transfer(source, dest, null);
+    }
+
+    /**
+     * Transfers the state in the shared ancestry of the two arguments from the source
+     * to the destination.  If the two objects are instances of the same class, then
+     * this is equivalent to {@link #copy}.
+     *
+     * @param outer the outer object reference to use for inner object creation, if any.
+     * @return a reference to the destination object.
+     */
+    public static <T> T transfer (T source, T dest, Object outer)
+    {
         Class clazz = source.getClass();
         while (clazz != null && !clazz.isInstance(dest)) {
             clazz = clazz.getSuperclass();
@@ -96,7 +121,7 @@ public class DeepUtil
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
             (ObjectHandler<T>)getObjectHandler(clazz);
         try {
-            return handler.copy(source, dest);
+            return handler.copy(source, dest, outer);
         } catch (IllegalAccessException e) {
             log.warning("Couldn't access fields for deep copy.", e);
         }
@@ -191,7 +216,7 @@ public class DeepUtil
         /**
          * Performs a deep copy from source to dest.
          */
-        public abstract T copy (T source, T dest)
+        public abstract T copy (T source, T dest, Object outer)
             throws IllegalAccessException;
 
         /**
@@ -234,13 +259,14 @@ public class DeepUtil
         }
 
         @Override // documentation inherited
-        public Object copy (Object source, Object dest)
+        public Object copy (Object source, Object dest, Object outer)
             throws IllegalAccessException
         {
             // create the destination object if it doesn't exist yet
             if (dest == null) {
-                if ((dest = ReflectionUtil.newInstance(
-                       source.getClass(), ReflectionUtil.getOuter(source))) == null) {
+                Object souter = ReflectionUtil.getOuter(source);
+                Object douter = (souter == null) ? null : (outer == null ? souter : outer);
+                if ((dest = ReflectionUtil.newInstance(source.getClass(), douter)) == null) {
                     return null; // an error will have been logged
                 }
             }
@@ -311,7 +337,7 @@ public class DeepUtil
 
     /** Field handler for immutable fields, which can be handled by reference. */
     protected static final ObjectHandler IMMUTABLE_OBJECT_HANDLER = new ObjectHandler<Object>() {
-        public Object copy (Object source, Object dest)
+        public Object copy (Object source, Object dest, Object outer)
             throws IllegalAccessException {
             return source;
         }
@@ -329,7 +355,7 @@ public class DeepUtil
     protected static final HashMap<Class, ObjectHandler> _objectHandlers = Maps.newHashMap();
     static {
         _objectHandlers.put(boolean[].class, new ObjectHandler<boolean[]>() {
-            public boolean[] copy (boolean[] source, boolean[] dest)
+            public boolean[] copy (boolean[] source, boolean[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -349,7 +375,7 @@ public class DeepUtil
         });
 
         _objectHandlers.put(byte[].class, new ObjectHandler<byte[]>() {
-            public byte[] copy (byte[] source, byte[] dest)
+            public byte[] copy (byte[] source, byte[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -369,7 +395,7 @@ public class DeepUtil
         });
 
         _objectHandlers.put(char[].class, new ObjectHandler<char[]>() {
-            public char[] copy (char[] source, char[] dest)
+            public char[] copy (char[] source, char[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -389,7 +415,7 @@ public class DeepUtil
         });
 
         _objectHandlers.put(double[].class, new ObjectHandler<double[]>() {
-            public double[] copy (double[] source, double[] dest)
+            public double[] copy (double[] source, double[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -409,7 +435,7 @@ public class DeepUtil
         });
 
         _objectHandlers.put(float[].class, new ObjectHandler<float[]>() {
-            public float[] copy (float[] source, float[] dest)
+            public float[] copy (float[] source, float[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -429,7 +455,7 @@ public class DeepUtil
         });
 
         _objectHandlers.put(int[].class, new ObjectHandler<int[]>() {
-            public int[] copy (int[] source, int[] dest)
+            public int[] copy (int[] source, int[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -449,7 +475,7 @@ public class DeepUtil
         });
 
         _objectHandlers.put(long[].class, new ObjectHandler<long[]>() {
-            public long[] copy (long[] source, long[] dest)
+            public long[] copy (long[] source, long[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -469,7 +495,7 @@ public class DeepUtil
         });
 
         _objectHandlers.put(short[].class, new ObjectHandler<short[]>() {
-            public short[] copy (short[] source, short[] dest)
+            public short[] copy (short[] source, short[] dest, Object outer)
                     throws IllegalAccessException {
                 if (dest != null && dest.length == source.length) {
                     System.arraycopy(source, 0, dest, 0, source.length);
@@ -503,14 +529,14 @@ public class DeepUtil
 
     /** Field handler for object arrays. */
     protected static final ObjectHandler ARRAY_OBJECT_HANDLER = new ObjectHandler<Object[]>() {
-        public Object[] copy (Object[] source, Object[] dest)
+        public Object[] copy (Object[] source, Object[] dest, Object outer)
             throws IllegalAccessException {
             if (dest == null || dest.length != source.length) {
                 dest = (Object[])Array.newInstance(
                     source.getClass().getComponentType(), source.length);
             }
             for (int ii = 0; ii < source.length; ii++) {
-                dest[ii] = DeepUtil.copy(source[ii], dest[ii]);
+                dest[ii] = DeepUtil.copy(source[ii], dest[ii], outer);
             }
             return dest;
         }
@@ -671,9 +697,9 @@ public class DeepUtil
             if (v1 == null) {
                 field.set(dest, null);
             } else if (v1 instanceof Copyable) {
-                field.set(dest, ((Copyable)v1).copy(v2));
+                field.set(dest, ((Copyable)v1).copy(v2, dest));
             } else {
-                field.set(dest, DeepUtil.copy(v1, v2));
+                field.set(dest, DeepUtil.copy(v1, v2, dest));
             }
         }
         public boolean equals (Field field, Object o1, Object o2)
@@ -704,7 +730,7 @@ public class DeepUtil
     protected static FieldHandler DEEP_OBJECT_FIELD_HANDLER = new FieldHandler() {
         public void copy (Field field, Object source, Object dest)
                 throws IllegalAccessException {
-            field.set(dest, DeepUtil.copy(field.get(source), field.get(dest)));
+            field.set(dest, DeepUtil.copy(field.get(source), field.get(dest), dest));
         }
         public boolean equals (Field field, Object o1, Object o2)
                 throws IllegalAccessException {
