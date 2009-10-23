@@ -113,6 +113,26 @@ public class ReflectionUtil
     }
 
     /**
+     * Sets an inner object's outer class reference if it has one.
+     */
+    public static void setOuter (Object object, Object outer)
+    {
+        Class clazz = object.getClass();
+        if (!isInner(clazz)) {
+            return;
+        }
+        if (object instanceof Inner) {
+            ((Inner)object).setOuter(outer);
+            return;
+        }
+        try {
+            getOuterField(clazz).set(object, outer);
+        } catch (IllegalAccessException e) {
+            // shouldn't happen
+        }
+    }
+
+    /**
      * Returns a reference to an inner object's outer class reference, or <code>null</code> if
      * the object represents an instance of a static class.
      */
@@ -125,21 +145,8 @@ public class ReflectionUtil
         if (object instanceof Inner) {
             return ((Inner)object).getOuter();
         }
-        Field field = _outers.get(clazz);
-        if (field == null) {
-            Class dclazz = clazz.getDeclaringClass();
-            for (Field ofield : clazz.getDeclaredFields()) {
-                if (ofield.isSynthetic() && ofield.getType() == dclazz &&
-                        ofield.getName().startsWith("this")) {
-                    field = ofield;
-                    break;
-                }
-            }
-            field.setAccessible(true);
-            _outers.put(clazz, field);
-        }
         try {
-            return field.get(object);
+            return getOuterField(clazz).get(object);
         } catch (IllegalAccessException e) {
             return null; // shouldn't happen
         }
@@ -177,6 +184,27 @@ public class ReflectionUtil
     {
         return (clazz.getDeclaringClass() != null && !Modifier.isStatic(clazz.getModifiers())) ||
             Inner.class.isAssignableFrom(clazz);
+    }
+
+    /**
+     * Returns a reference to the outer class reference field.
+     */
+    protected static Field getOuterField (Class clazz)
+    {
+        Field field = _outers.get(clazz);
+        if (field == null) {
+            Class dclazz = clazz.getDeclaringClass();
+            for (Field ofield : clazz.getDeclaredFields()) {
+                if (ofield.isSynthetic() && ofield.getType() == dclazz &&
+                        ofield.getName().startsWith("this")) {
+                    field = ofield;
+                    break;
+                }
+            }
+            field.setAccessible(true);
+            _outers.put(clazz, field);
+        }
+        return field;
     }
 
     /** Maps inner classes to their outer class reference fields. */
