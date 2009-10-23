@@ -336,7 +336,7 @@ public class ModelDef
         public float[] offsetScale;
 
         /** The texture of the mesh, if any. */
-        public String texture;
+        public String texture = "";
 
         /** The mesh's tag, if any. */
         public String tag;
