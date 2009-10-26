@@ -24,6 +24,7 @@
 
 package com.threerings.config.tools;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -45,6 +46,7 @@ import com.threerings.util.ToolUtil;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.swing.LogPanel;
 
 import com.threerings.config.ConfigManager;
 
@@ -95,6 +97,9 @@ public abstract class BaseConfigEditor extends JFrame
         // create and init the editable prefs, which also (re)sets the resource directory
         _eprefs = new ToolUtil.EditablePrefs(_prefs);
         _eprefs.init(_rsrcmgr);
+
+        // add the log status panel
+        add(new LogPanel(_msgmgr), BorderLayout.SOUTH);
 
         // initialize the configuration manager if not yet initialized
         if (!cfgmgr.isInitialized()) {

@@ -24,6 +24,7 @@
 
 package com.threerings.opengl;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -46,6 +47,7 @@ import com.threerings.config.tools.ResourceEditor;
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.util.EditorContext;
+import com.threerings.swing.LogPanel;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.ToolUtil;
 
@@ -83,6 +85,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
 
         // initialize the configuration manager now that we have configured the resource dir
         _cfgmgr.init();
+
+        // add the log status panel
+        _frame.add(new LogPanel(_msgmgr), BorderLayout.SOUTH);
     }
 
     // documentation inherited from interface ActionListener

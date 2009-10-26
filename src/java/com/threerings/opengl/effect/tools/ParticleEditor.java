@@ -24,7 +24,6 @@
 
 package com.threerings.opengl.effect.tools;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
