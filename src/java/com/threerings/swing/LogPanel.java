@@ -26,7 +26,9 @@ package com.threerings.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.awt.EventQueue;
 import java.awt.Frame;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -43,6 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.text.BadLocationException;
 
 import com.google.common.collect.Lists;
 
@@ -173,11 +176,26 @@ public class LogPanel extends JPanel
             _text.setText("");
 
             // add the formatted log messages
+            int lines = 0;
             for (int ii = 0, nn = _records.size(); ii < nn; ii++) {
+                lines = _text.getLineCount();
                 _text.append(_formatter.format(_records.get(ii)));
             }
 
             super.setVisible(true);
+
+            // scroll to the appropriate line once we're laid out
+            final int line = lines - 1;
+            EventQueue.invokeLater(new Runnable() {
+                public void run () {
+                    try {
+                        Rectangle view = _text.modelToView(_text.getLineStartOffset(line));
+                        _pane.getVerticalScrollBar().setValue(view.y);
+                    } catch (BadLocationException e) {
+                        // shouldn't happen
+                    }
+                }
+            });
         }
 
         /**
