@@ -640,6 +640,11 @@ public class TudeySceneView extends SimpleScope
         }
         _ctx.getRoot().addWindow(_loadingWindow);
         updateLoadingWindow(0f);
+
+        // suggest garbage collection/finalization here, with the idea that we'll note unused soft
+        // references here and dispose of them in setSceneModel's gc call
+        System.gc();
+        System.runFinalization();
     }
 
     // documentation inherited from interface PlaceView
