@@ -124,7 +124,9 @@ public class LogPanel extends JPanel
     public void addNotify ()
     {
         super.addNotify();
-        LogManager.getLogManager().getLogger("").addHandler(_handler);
+        if (!Boolean.getBoolean("no_log_redir")) {
+            LogManager.getLogManager().getLogger("").addHandler(_handler);
+        }
     }
 
     @Override // documentation inherited
