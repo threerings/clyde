@@ -136,7 +136,7 @@ public class LogPanel extends JPanel
         super.removeNotify();
         LogManager.getLogManager().getLogger("").removeHandler(_handler);
         _panels.remove(this);
-        _records.clear();
+        clear();
     }
 
     /**
