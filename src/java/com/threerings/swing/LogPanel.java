@@ -114,10 +114,10 @@ public class LogPanel extends JPanel
             }
             _dialog.setVisible(true);
         }
-        _warning.setText("");
-        _show.setVisible(false);
-        _clear.setVisible(false);
-        _records.clear();
+        // clear all open panels
+        for (int ii = 0, nn = _panels.size(); ii < nn; ii++) {
+            _panels.get(ii).clear();
+        }
     }
 
     @Override // documentation inherited
@@ -126,6 +126,7 @@ public class LogPanel extends JPanel
         super.addNotify();
         if (!Boolean.getBoolean("no_log_redir")) {
             LogManager.getLogManager().getLogger("").addHandler(_handler);
+            _panels.add(this);
         }
     }
 
@@ -134,6 +135,19 @@ public class LogPanel extends JPanel
     {
         super.removeNotify();
         LogManager.getLogManager().getLogger("").removeHandler(_handler);
+        _panels.remove(this);
+        _records.clear();
+    }
+
+    /**
+     * Clears out the panel.
+     */
+    protected void clear ()
+    {
+        _warning.setText("");
+        _show.setVisible(false);
+        _clear.setVisible(false);
+        _records.clear();
     }
 
     /**
@@ -253,4 +267,7 @@ public class LogPanel extends JPanel
 
     /** The dialog window. */
     protected LogDialog _dialog;
+
+    /** The list of all open panels. */
+    protected static List<LogPanel> _panels = Lists.newArrayList();
 }
