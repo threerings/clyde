@@ -424,7 +424,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tags;
+            return getConfig(cfgmgr).tags.getTags();
         }
 
         @Override // documentation inherited
@@ -603,7 +603,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tags;
+            return getConfig(cfgmgr).tags.getTags();
         }
 
         @Override // documentation inherited
@@ -702,7 +702,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tags;
+            return getConfig(cfgmgr).tags.getTags();
         }
 
         @Override // documentation inherited
@@ -845,7 +845,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tags;
+            return getConfig(cfgmgr).tags.getTags();
         }
 
         @Override // documentation inherited
@@ -1010,7 +1010,7 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public String[] getTags (ConfigManager cfgmgr)
         {
-            return getConfig(cfgmgr).tags;
+            return getConfig(cfgmgr).tags.getTags();
         }
 
         @Override // documentation inherited

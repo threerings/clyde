@@ -30,6 +30,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 
 import java.io.IOException;
@@ -317,6 +318,20 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         int g = Math.max(0, ((color & 0xFF00) >> 8) - darken);
         int b = Math.max(0, ((color & 0xFF)) - darken);
         return new Color(r, g, b);
+    }
+
+    /**
+     * Copies the path of the property under the mouse cursor to the clipboard.
+     */
+    protected void copyPropertyPath (String path)
+    {
+        if (path.startsWith(".")) {
+            path = path.substring(1);
+        }
+        if (path.length() > 0) {
+            StringSelection contents = new StringSelection(path);
+            getToolkit().getSystemClipboard().setContents(contents, contents);
+        }
     }
 
     /** Provides access to common services. */

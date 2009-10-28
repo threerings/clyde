@@ -423,6 +423,46 @@ public class ModelConfig extends ParameterizedConfig
     }
 
     /**
+     * Base wrapper implementation.
+     */
+    public abstract static class BaseWrapper extends Implementation
+    {
+        @Override // documentation inherited
+        public ConfigManager getConfigManager (ConfigManager cfgmgr)
+        {
+            ModelConfig config = getModelConfig(cfgmgr);
+            return (config == null) ? cfgmgr : config.getConfigManager();
+        }
+
+        @Override // documentation inherited
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            ModelConfig config = getModelConfig(ctx.getConfigManager());
+            return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
+        }
+
+        @Override // documentation inherited
+        public GeometryConfig getParticleGeometry (GlContext ctx)
+        {
+            ModelConfig config = getModelConfig(ctx.getConfigManager());
+            return (config == null) ? null : config.getParticleGeometry(ctx);
+        }
+
+        @Override // documentation inherited
+        public ConfigReference<MaterialConfig> getParticleMaterial (GlContext ctx)
+        {
+            ModelConfig config = getModelConfig(ctx.getConfigManager());
+            return (config == null) ? null : config.getParticleMaterial(ctx);
+        }
+
+        /**
+         * Get the model config.
+         */
+        protected abstract ModelConfig getModelConfig (ConfigManager cfgmgr);
+    }
+
+    /**
      * Contains a set of meshes.
      */
     public static class MeshSet extends DeepObject

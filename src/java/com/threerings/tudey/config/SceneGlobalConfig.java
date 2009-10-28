@@ -101,7 +101,8 @@ public class SceneGlobalConfig extends ParameterizedConfig
     {
         /** Tags used to identify the global within the scene. */
         @Editable
-        public String[] tags = new String[0];
+        //public String[] tags = new String[0];
+        public TagConfig tags = new TagConfig();
 
         /** The global's event handlers. */
         @Editable
@@ -113,7 +114,7 @@ public class SceneGlobalConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return (tags.length == 0 && handlers.length == 0) ? null :
+            return (tags.getLength() == 0 && handlers.length == 0) ? null :
                 "com.threerings.tudey.server.logic.EntryLogic";
         }
 

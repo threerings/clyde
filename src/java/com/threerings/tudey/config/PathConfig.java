@@ -119,7 +119,7 @@ public class PathConfig extends ParameterizedConfig
 
         /** Tags used to identify the path within the scene. */
         @Editable
-        public String[] tags = new String[0];
+        public TagConfig tags = new TagConfig();
 
         /** The path's event handlers. */
         @Editable
@@ -146,7 +146,7 @@ public class PathConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return (tags.length == 0 && handlers.length == 0 && !defaultEntrance) ? null :
+            return (tags.getLength() == 0 && handlers.length == 0 && !defaultEntrance) ? null :
                 "com.threerings.tudey.server.logic.EntryLogic";
         }
 

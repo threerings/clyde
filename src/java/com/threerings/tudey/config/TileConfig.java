@@ -137,7 +137,7 @@ public class TileConfig extends ParameterizedConfig
 
         /** Tags used to identify the tile within the scene. */
         @Editable
-        public String[] tags = new String[0];
+        public TagConfig tags = new TagConfig();
 
         /** The tile's event handlers. */
         @Editable
@@ -229,7 +229,7 @@ public class TileConfig extends ParameterizedConfig
          */
         public String getLogicClassName ()
         {
-            return (tags.length == 0 && handlers.length == 0 && !defaultEntrance) ? null :
+            return (tags.getLength() == 0 && handlers.length == 0 && !defaultEntrance) ? null :
                 "com.threerings.tudey.server.logic.EntryLogic";
         }
 

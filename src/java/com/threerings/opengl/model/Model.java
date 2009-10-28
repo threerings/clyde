@@ -239,6 +239,14 @@ public class Model extends DynamicScope
             // nothing by default
         }
 
+        /**
+         * Returns true if this is the implementation.
+         */
+        public boolean isImplementation (Model.Implementation impl)
+        {
+            return this == impl;
+        }
+
         // documentation inherited from interface Tickable
         public void tick (float elapsed)
         {
@@ -945,7 +953,7 @@ public class Model extends DynamicScope
      */
     public Scene getScene (Implementation impl)
     {
-        return (_impl == impl) ? _scene : null;
+        return (_impl.isImplementation(impl)) ? _scene : null;
     }
 
     /**
@@ -953,7 +961,7 @@ public class Model extends DynamicScope
      */
     public void completed (Implementation impl)
     {
-        if (_observers != null && _impl == impl) {
+        if (_observers != null && _impl.isImplementation(impl)) {
             _completedOp.init(this);
             _observers.apply(_completedOp);
             _completedOp.clear();
@@ -965,7 +973,7 @@ public class Model extends DynamicScope
      */
     public void tickPolicyWillChange (Implementation impl)
     {
-        if (_scene != null && _parentScope == _scene && _impl == impl) {
+        if (_scene != null && _parentScope == _scene && _impl.isImplementation(impl)) {
             _scene.tickPolicyWillChange(this);
         }
     }
@@ -975,7 +983,7 @@ public class Model extends DynamicScope
      */
     public void tickPolicyDidChange (Implementation impl)
     {
-        if (_scene != null && _parentScope == _scene && _impl == impl) {
+        if (_scene != null && _parentScope == _scene && _impl.isImplementation(impl)) {
             _scene.tickPolicyDidChange(this);
         }
     }
@@ -985,7 +993,7 @@ public class Model extends DynamicScope
      */
     public void boundsWillChange (Implementation impl)
     {
-        if (_scene != null && _parentScope == _scene && _impl == impl) {
+        if (_scene != null && _parentScope == _scene && _impl.isImplementation(impl)) {
             _scene.boundsWillChange(this);
         }
     }
@@ -995,7 +1003,7 @@ public class Model extends DynamicScope
      */
     public void boundsDidChange (Implementation impl)
     {
-        if (_scene != null && _parentScope == _scene && _impl == impl) {
+        if (_scene != null && _parentScope == _scene && _impl.isImplementation(impl)) {
             _scene.boundsDidChange(this);
         }
     }

@@ -269,7 +269,7 @@ public class ActorLogic extends Logic
     @Override // documentation inherited
     public String[] getTags ()
     {
-        return _config.tags;
+        return _config.tags.getTags();
     }
 
     @Override // documentation inherited

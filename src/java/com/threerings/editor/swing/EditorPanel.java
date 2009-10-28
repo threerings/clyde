@@ -31,7 +31,6 @@ import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Point;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -178,7 +177,7 @@ public class EditorPanel extends BasePropertyEditor
                 "copy_path");
             getActionMap().put("copy_path", new AbstractAction() {
                 public void actionPerformed (ActionEvent event) {
-                    copyPropertyPath();
+                    copyPropertyPath(getMousePath());
                 }
             });
         }
@@ -362,21 +361,6 @@ public class EditorPanel extends BasePropertyEditor
             pt = cont.getMousePosition();
         }
         return "";
-    }
-
-    /**
-     * Copies the path of the property under the mouse cursor to the clipboard.
-     */
-    protected void copyPropertyPath ()
-    {
-        String path = getMousePath();
-        if (path.startsWith(".")) {
-            path = path.substring(1);
-        }
-        if (path.length() > 0) {
-            StringSelection contents = new StringSelection(path);
-            getToolkit().getSystemClipboard().setContents(contents, contents);
-        }
     }
 
     /**
