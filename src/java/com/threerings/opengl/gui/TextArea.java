@@ -370,7 +370,7 @@ public class TextArea extends Container
             Color4f color = (run.color == null) ? getColor() : run.color;
             while ((offset = current.addRun(
                         getTextFactory(), run, color, getTextEffect(),
-                        getEffectSize(), getEffectColor(), maxWidth, offset)) > 0) {
+                        getEffectSize(), getEffectColor(), maxWidth, offset)) >= 0) {
                 _lines.add(current = new Line());
             }
             if (run.endsLine) {
@@ -457,6 +457,9 @@ public class TextArea extends Container
             // things down into multiple lines for us
             Text[] text = tfact.wrapText(
                 rtext, color, effect, effectSize, effectColor, maxWidth-dx);
+            if (text[0].getLength() == 0) {
+                return offset;
+            }
             segments.add(text[0]);
             // we only ever add runs when we're added
             int remainder = rtext.length() - text[0].getLength();

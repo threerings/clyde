@@ -44,6 +44,7 @@ import org.lwjgl.opengl.GL11;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntTuple;
 import com.samskivert.util.Tuple;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -220,10 +221,13 @@ public class CharacterTextFactory extends TextFactory
                 if (c != '\n') {
                     // scan backwards, see if we can break on a space
                     line.append(c);
-                    int widx = lastIndexOfWhitespace(line);
-                    if (widx != -1) {
-                        extra = line.substring(widx + 1, line.length());
-                        line.delete(widx, line.length());
+                    IntTuple bspan = getBreakSpan(line);
+                    if (bspan != null) {
+                        extra = line.substring(bspan.right + 1, line.length());
+                        line.delete(bspan.left, line.length());
+                    } else {
+                        extra = String.valueOf(c);
+                        line.deleteCharAt(line.length() - 1);
                     }
                 }
                 lines.add(createText(
@@ -267,17 +271,25 @@ public class CharacterTextFactory extends TextFactory
     }
 
     /**
-     * Returns the index of the last whitespace character in the given buffer, or -1 if there
-     * is no whitespace.
+     * Searches for an appropriate break span: the last region of whitespace preceeded by a
+     * non-whitespace character.
+     *
+     * @return the start and end indices of the span (inclusive), or <code>null</code> if no span
+     * was found.
      */
-    protected int lastIndexOfWhitespace (StringBuffer buf)
+    protected IntTuple getBreakSpan (StringBuffer buf)
     {
-        for (int ii = buf.length() - 1; ii >= 0; ii--) {
+        for (int ii = buf.length() - 1; ii > 0; ii--) {
             if (Character.isWhitespace(buf.charAt(ii))) {
-                return ii;
+                for (int jj = ii - 1; jj >= 0; jj--) {
+                    if (!Character.isWhitespace(buf.charAt(jj))) {
+                        return new IntTuple(jj + 1, ii);
+                    }
+                }
+                return null; // no non-whitespace before whitespace
             }
         }
-        return -1;
+        return null; // no whitespace
     }
 
     /**
