@@ -101,7 +101,6 @@ public class SceneGlobalConfig extends ParameterizedConfig
     {
         /** Tags used to identify the global within the scene. */
         @Editable
-        //public String[] tags = new String[0];
         public TagConfig tags = new TagConfig();
 
         /** The global's event handlers. */
