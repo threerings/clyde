@@ -489,11 +489,12 @@ public class ActorSprite extends Sprite
         {
             // update the activity
             Active active = (Active)actor;
+            int activity = active.getActivity();
             int started = active.getActivityStarted();
-            if (started > _lastActivityStarted) {
-                _lastActivityStarted = started;
+            if (activity != _lastActivity || started > _lastActivityStarted) {
                 Activity previous = _activity;
-                Activity next = _activities.get(active.getActivity());
+                Activity next = _activities.get(_lastActivity = activity);
+                _lastActivityStarted = started;
                 if (_activity != null) {
                     _activity.stop(next);
                 }
@@ -619,6 +620,9 @@ public class ActorSprite extends Sprite
             /** The index of the current animation. */
             protected int _idx;
         }
+
+        /** The last activity applied. */
+        protected int _lastActivity;
 
         /** The time at which the last activity was started. */
         protected int _lastActivityStarted;
