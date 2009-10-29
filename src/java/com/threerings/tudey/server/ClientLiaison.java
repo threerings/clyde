@@ -174,16 +174,19 @@ public class ClientLiaison
 
         // enqueue input frames
         int timestamp = _scenemgr.getTimestamp();
-        for (InputFrame frame : frames) {
+        for (int ii = 0; ii < frames.length; ii++) {
+            InputFrame frame = frames[ii];
             int input = frame.getTimestamp();
             if (input <= _lastInput) {
                 continue; // already processed
             }
             _lastInput = input;
-            if (input <= timestamp) {
-                continue; // out of date
+
+            // discard any out of date frames except for the last one,
+            // which we will interpret as the most recent
+            if (input > timestamp || ii == frames.length - 1) {
+                _target.enqueueInput(frame);
             }
-            _target.enqueueInput(frame);
         }
     }
 
