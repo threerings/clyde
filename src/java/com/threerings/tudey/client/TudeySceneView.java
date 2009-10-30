@@ -25,8 +25,12 @@
 package com.threerings.tudey.client;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap.IntEntry;
@@ -460,38 +464,39 @@ public class TudeySceneView extends SimpleScope
         _records.add(new UpdateRecord(timestamp, actors));
 
         // at this point, if we are to preload, we have enough information to begin
-        if (_loadingWindow != null) {
-            if (_preloads == null) {
-                ((TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel()).getPreloads(
-                    _preloads = new PreloadableSet());
-                ConfigManager cfgmgr = _ctx.getConfigManager();
-                for (Actor actor : actors.values()) {
-                    actor.getPreloads(cfgmgr, _preloads);
-                }
+        if (_loadingWindow != null && _preloads == null) {
+            ((TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel()).getPreloads(
+                _preloads = new PreloadableSet(_ctx));
+            ConfigManager cfgmgr = _ctx.getConfigManager();
+            for (Actor actor : actors.values()) {
+                actor.getPreloads(cfgmgr, _preloads);
             }
+            _loadingActors = Lists.newArrayList(actors.values());
             return true;
         }
 
-        // create/update the sprites for actors in the set
+        // update loading actors, create/update the sprites for actors in the set
+    OUTER:
         for (Actor actor : actors.values()) {
             int id = actor.getId();
-            ActorSprite sprite = _actorSprites.get(id);
-            if (sprite == null) {
-                addPreloads(actor);
-                _actorSprites.put(id, sprite = new ActorSprite(_ctx, this, timestamp, actor));
-                if (id == _ctrl.getTargetId()) {
-                    _targetSprite = sprite;
-                    if (_ctrl.isTargetControlled()) {
-                        _ctrl.controlledTargetAdded(timestamp, actor);
+            if (_loadingActors != null) {
+                for (int ii = 0, nn = _loadingActors.size(); ii < nn; ii++) {
+                    if (_loadingActors.get(ii).getId() == id) {
+                        _loadingActors.set(ii, actor);
+                        continue OUTER;
                     }
                 }
-            } else {
+            }
+            ActorSprite sprite = _actorSprites.get(id);
+            if (sprite != null) {
                 if (_ctrl.isControlledTargetId(id)) {
                     _ctrl.controlledTargetUpdated(timestamp, actor);
                 } else {
                     sprite.update(timestamp, actor);
                 }
+                continue;
             }
+            addActorSprite(actor);
         }
 
         // remove sprites for actors no longer in the set
@@ -508,6 +513,15 @@ public class TudeySceneView extends SimpleScope
                     }
                 }
                 it.remove();
+            }
+        }
+
+        // same deal with loading actors
+        if (_loadingActors != null) {
+            for (int ii = _loadingActors.size() - 1; ii >= 0; ii--) {
+                if (!actors.containsKey(_loadingActors.get(ii).getId())) {
+                    _loadingActors.remove(ii);
+                }
             }
         }
 
@@ -577,13 +591,25 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
-        // if we are preloading, load up the next batch of resources
+        // if we are loading, preload the next batch of resources or
+        // create the next batch of sprites
         if (_loadingWindow != null && _preloads != null) {
-            float pct = _preloads.preloadBatch(_ctx);
-            updateLoadingWindow(pct);
-            if (pct == 1f) {
+            float ppct, epct, apct;
+            if ((ppct = _preloads.preloadBatch()) == 1f) {
+                if ((epct = createEntrySpriteBatch()) == 1f) {
+                    apct = createActorSpriteBatch();
+                } else {
+                    apct = 0f;
+                }
+            } else {
+                epct = apct = 0f;
+            }
+            updateLoadingWindow(
+                ppct*PRELOAD_PERCENT + epct*ENTRY_LOAD_PERCENT + apct*ACTOR_LOAD_PERCENT);
+            if (apct == 1f) {
                 _loadingWindow = null;
-                setSceneModel((TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel());
+                _loadingEntries = null;
+                _loadingActors = null;
             }
         }
 
@@ -614,7 +640,7 @@ public class TudeySceneView extends SimpleScope
         }
 
         // tick the scene
-        _scene.tick(elapsed);
+        _scene.tick(_loadingWindow == null ? elapsed : 0f);
     }
 
     // documentation inherited from interface Renderable
@@ -660,7 +686,6 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryAdded (Entry entry)
     {
-        addPreloads(entry);
         addEntrySprite(entry);
     }
 
@@ -668,23 +693,45 @@ public class TudeySceneView extends SimpleScope
     public void entryUpdated (Entry oentry, Entry nentry)
     {
         addPreloads(nentry);
-        EntrySprite sprite = _entrySprites.get(nentry.getKey());
+        Object key = nentry.getKey();
+        EntrySprite sprite = _entrySprites.get(key);
         if (sprite != null) {
             sprite.update(nentry);
-        } else {
-            log.warning("Missing sprite to update.", "entry", nentry);
+            return;
         }
+        if (_loadingEntries != null) {
+            // search the entries we have yet to load
+            for (int ii = 0, nn = _loadingEntries.size(); ii < nn; ii++) {
+                Entry entry = _loadingEntries.get(ii);
+                if (entry.getKey().equals(key)) {
+                    _loadingEntries.set(ii, nentry);
+                    return;
+                }
+            }
+        }
+        log.warning("Missing sprite to update.", "entry", nentry);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryRemoved (Entry oentry)
     {
-        EntrySprite sprite = _entrySprites.remove(oentry.getKey());
+        Object key = oentry.getKey();
+        EntrySprite sprite = _entrySprites.remove(key);
         if (sprite != null) {
             sprite.dispose();
-        } else {
-            log.warning("Missing entry sprite to remove.", "entry", oentry);
+            return;
         }
+        if (_loadingEntries != null) {
+            // search the entries we have yet to load
+            for (int ii = 0, nn = _loadingEntries.size(); ii < nn; ii++) {
+                Entry entry = _loadingEntries.get(ii);
+                if (entry.getKey().equals(key)) {
+                    _loadingEntries.remove(ii);
+                    return;
+                }
+            }
+        }
+        log.warning("Missing entry sprite to remove.", "entry", oentry);
     }
 
     // documentation inherited from interface OccupantObserver
@@ -792,6 +839,59 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Creates a batch of entry sprites as part of the loading process.
+     *
+     * @return the completion percentage.
+     */
+    protected float createEntrySpriteBatch ()
+    {
+        if (_loadingEntries != null && _loadingEntries.isEmpty()) {
+            return 1f;
+        }
+        TudeySceneModel model =
+            (TudeySceneModel)_ctx.getSceneDirector().getScene().getSceneModel();
+        Collection<Entry> entries = model.getEntries();
+        if (_loadingEntries == null) {
+            _loadingEntries = Lists.newArrayList(entries);
+            (_sceneModel = model).addObserver(this);
+        }
+        for (int ii = _loadingEntries.size() - 1, ll = Math.max(_loadingEntries.size() - 50, 0);
+                ii >= ll; ii--) {
+            addEntrySprite(_loadingEntries.remove(ii));
+        }
+        if (_loadingEntries.isEmpty()) {
+            return 1f;
+        }
+        return (float)_entrySprites.size() / entries.size();
+    }
+
+    /**
+     * Creates a batch of actor sprites as part of the loading process.
+     *
+     * @return the completion percentage.
+     */
+    protected float createActorSpriteBatch ()
+    {
+        if (_loadingActors != null && _loadingActors.isEmpty()) {
+            return 1f;
+        }
+        HashIntMap<Actor> actors = _records.get(_records.size() - 1).getActors();
+        if (_loadingActors == null) {
+            _loadingActors = Lists.newArrayList(actors.values());
+        }
+        for (int ii = _loadingActors.size() - 1, ll = Math.max(_loadingActors.size() - 5, 0);
+                ii >= ll; ii--) {
+            addActorSprite(_loadingActors.remove(ii));
+        }
+        if (_loadingActors.isEmpty()) {
+            System.gc();
+            System.runFinalization();
+            return 1f;
+        }
+        return (float)_actorSprites.size() / actors.size();
+    }
+
+    /**
      * Updates the loading window with the current percentage of resources loaded.  If
      * <code>pct</code> is equal to 1.0, this method should remove the loading window (or start
      * fading it out).
@@ -808,7 +908,26 @@ public class TudeySceneView extends SimpleScope
      */
     protected void addEntrySprite (Entry entry)
     {
+        addPreloads(entry);
         _entrySprites.put(entry.getKey(), entry.createSprite(_ctx, this));
+    }
+
+    /**
+     * Adds a sprite for the specified actor.
+     */
+    protected void addActorSprite (Actor actor)
+    {
+        addPreloads(actor);
+        int id = actor.getId();
+        int timestamp = _records.get(_records.size() - 1).getTimestamp();
+        ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
+        _actorSprites.put(id, sprite);
+        if (id == _ctrl.getTargetId()) {
+            _targetSprite = sprite;
+            if (_ctrl.isTargetControlled()) {
+                _ctrl.controlledTargetAdded(timestamp, actor);
+            }
+        }
     }
 
     /**
@@ -817,8 +936,7 @@ public class TudeySceneView extends SimpleScope
     protected void addPreloads (Entry entry)
     {
         if (_preloads != null) {
-            entry.getPreloads(_ctx.getConfigManager(), _npreloads);
-            addNewPreloads();
+            entry.getPreloads(_ctx.getConfigManager(), _preloads);
         }
     }
 
@@ -828,8 +946,7 @@ public class TudeySceneView extends SimpleScope
     protected void addPreloads (Actor actor)
     {
         if (_preloads != null) {
-            actor.getPreloads(_ctx.getConfigManager(), _npreloads);
-            addNewPreloads();
+            actor.getPreloads(_ctx.getConfigManager(), _preloads);
         }
     }
 
@@ -839,23 +956,8 @@ public class TudeySceneView extends SimpleScope
     protected void addPreloads (Effect effect)
     {
         if (_preloads != null) {
-            effect.getPreloads(_ctx.getConfigManager(), _npreloads);
-            addNewPreloads();
+            effect.getPreloads(_ctx.getConfigManager(), _preloads);
         }
-    }
-
-    /**
-     * Adds any preloads in the new set that are not yet in the actual set.
-     */
-    protected void addNewPreloads ()
-    {
-        int osize = _preloads.size();
-        for (Preloadable preloadable : _npreloads) {
-            if (_preloads.add(preloadable)) {
-                preloadable.preload(_ctx);
-            }
-        }
-        _npreloads.clear();
     }
 
     /**
@@ -967,6 +1069,12 @@ public class TudeySceneView extends SimpleScope
     /** The set of resources to preload. */
     protected PreloadableSet _preloads;
 
+    /** The remaining entries to add during loading. */
+    protected List<Entry> _loadingEntries;
+
+    /** The remaining actors to add during loading. */
+    protected List<Actor> _loadingActors;
+
     /** The OpenGL scene. */
     @Scoped
     protected HashScene _scene;
@@ -993,7 +1101,7 @@ public class TudeySceneView extends SimpleScope
     protected TrailingAverage _pingAverage = new TrailingAverage();
 
     /** Records of each update received from the server. */
-    protected ArrayList<UpdateRecord> _records = new ArrayList<UpdateRecord>();
+    protected List<UpdateRecord> _records = Lists.newArrayList();
 
     /** Sprites corresponding to the scene entries. */
     protected HashMap<Object, EntrySprite> _entrySprites = new HashMap<Object, EntrySprite>();
@@ -1005,7 +1113,7 @@ public class TudeySceneView extends SimpleScope
     protected HashSpace _actorSpace = new HashSpace(64f, 6);
 
     /** The list of participants in the tick. */
-    protected ArrayList<TickParticipant> _tickParticipants = new ArrayList<TickParticipant>();
+    protected List<TickParticipant> _tickParticipants = Lists.newArrayList();
 
     /** The sprite that the camera is tracking. */
     protected ActorSprite _targetSprite;
@@ -1023,11 +1131,17 @@ public class TudeySceneView extends SimpleScope
     protected FloorMaskFilter _floorMaskFilter = new FloorMaskFilter();
 
     /** Holds collected elements during queries. */
-    protected ArrayList<SpaceElement> _elements = new ArrayList<SpaceElement>();
+    protected List<SpaceElement> _elements = Lists.newArrayList();
 
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();
 
-    /** Stores "preloads" loaded after the initial load screen. */
-    protected PreloadableSet _npreloads = new PreloadableSet();
+    /** The percentage of load progress devoted to preloading. */
+    protected static final float PRELOAD_PERCENT = 0.6f;
+
+    /** The percentage of load progress devoted to loading entries. */
+    protected static final float ENTRY_LOAD_PERCENT = 0.3f;
+
+    /** The percentage of load progress devoted to loading actors. */
+    protected static final float ACTOR_LOAD_PERCENT = 0.1f;
 }

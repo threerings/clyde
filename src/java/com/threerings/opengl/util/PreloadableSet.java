@@ -26,43 +26,78 @@ package com.threerings.opengl.util;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 /**
- * Contains a set of preloadables.
+ * Contains a set of preloadables and provides a means for incrementalling preloading them.
  */
 public class PreloadableSet extends HashSet<Preloadable>
 {
+    /**
+     * Creates a new preloadable set.
+     */
+    public PreloadableSet (GlContext ctx)
+    {
+        _ctx = ctx;
+    }
+
     /**
      * Preloads a batch of the default size.
      *
      * @return the percentage of the total resources loaded, from zero to one.
      */
-    public float preloadBatch (GlContext ctx)
+    public float preloadBatch ()
     {
-        return preloadBatch(ctx, 10);
+        return preloadBatch(10);
     }
 
     /**
-     * Preloads a batch of resources in the set.
+     * Preloads a batch of resources in the set.  Any preloadables added to the set after this
+     * method is called for the first time will be preloaded immediately.
      *
      * @param count the (maximum) number of resources to preload.
      * @return the percentage of the total resources loaded, from zero to one.
      */
-    public float preloadBatch (GlContext ctx, int count)
+    public float preloadBatch (int count)
     {
-        if (_remaining == null) {
-            _remaining = iterator();
+        if (_remaining != null && _remaining.isEmpty()) {
+            return 1f;
         }
-        while (_remaining.hasNext() && count-- > 0) {
-            _remaining.next().preload(ctx);
+        if (_remaining == null) {
+            _remaining = Lists.newArrayList(this);
+        }
+        for (int ii = _remaining.size() - 1, ll = Math.max(_remaining.size() - count, 0);
+                ii >= ll; ii--) {
+            _remaining.remove(ii).preload(_ctx);
             _preloaded++;
         }
-        float size = (float)size();
-        return (size == 0f) ? 1f : (_preloaded / size);
+        if (_remaining.isEmpty()) {
+            return 1f;
+        }
+        return (float)_preloaded / size();
     }
 
-    /** The iterator over the resources remaining to be preloaded. */
-    protected Iterator<Preloadable> _remaining;
+    @Override // documentation inherited
+    public boolean add (Preloadable preloadable)
+    {
+        if (!super.add(preloadable)) {
+            return false;
+        }
+        // if already processing batches, just preload this immediately
+        if (_remaining != null) {
+            preloadable.preload(_ctx);
+            _preloaded++;
+        }
+        return true;
+    }
+
+    /** The application context. */
+    protected GlContext _ctx;
+
+    /** The list of resources remaining to be preloaded. */
+    protected List<Preloadable> _remaining;
 
     /** The number of resources preloaded so far. */
     protected int _preloaded;
