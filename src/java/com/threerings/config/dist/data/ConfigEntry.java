@@ -97,6 +97,12 @@ public class ConfigEntry extends SimpleStreamableObject
         return _key;
     }
 
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "[key=" + _key + ", config=" + _config + "]";
+    }
+
     /** The config key. */
     protected ConfigKey _key;
 
