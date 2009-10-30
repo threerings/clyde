@@ -50,7 +50,10 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig.AnimationMapping;
 import com.threerings.opengl.model.config.ArticulatedConfig.Attachment;
+import com.threerings.opengl.model.config.ArticulatedConfig.LocalTransformUpdater;
 import com.threerings.opengl.model.config.ArticulatedConfig.NodeTransform;
+import com.threerings.opengl.model.config.ArticulatedConfig.ViewTransformUpdater;
+import com.threerings.opengl.model.config.ArticulatedConfig.WorldTransformUpdater;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.renderer.Color4f;
@@ -175,8 +178,19 @@ public class Articulated extends Model.Implementation
          */
         public void update ()
         {
+            // update in local space if that's how we roll
+            if (_updater instanceof LocalTransformUpdater) {
+                _updater.update();
+            }
+
             // compose parent world transform with local transform
             _parentWorldTransform.compose(_localTransform, _worldTransform);
+
+            // if we update in world space, compute the local transform as well
+            if (_updater instanceof WorldTransformUpdater) {
+                _updater.update();
+                _parentWorldTransform.invert(_localTransform).composeLocal(_worldTransform);
+            }
         }
 
         /**
@@ -195,9 +209,10 @@ public class Articulated extends Model.Implementation
             // compose parent view transform with local transform
             _parentViewTransform.compose(_localTransform, _viewTransform);
 
-            /// apply our updater post-transform
-            if (_updater != null) {
+            // if we update in view space, compute the local transform as well
+            if (_updater instanceof ViewTransformUpdater) {
                 _updater.update();
+                _parentViewTransform.invert(_localTransform).composeLocal(_viewTransform);
             }
 
             // update bone transform if necessary
