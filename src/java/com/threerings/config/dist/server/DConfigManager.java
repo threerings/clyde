@@ -88,7 +88,12 @@ public class DConfigManager
                     _cfgobj.requestEntryRemove(DConfigObject.REMOVED, _cfgobj.removed, key, cloid);
                     _cfgobj.requestEntryAdd(DConfigObject.UPDATED, _cfgobj.updated, entry, cloid);
                 } else {
-                    _cfgobj.requestEntryAdd(DConfigObject.ADDED, _cfgobj.added, entry, cloid);
+                    if (_cfgobj.added.containsKey(key)) {
+                        _cfgobj.requestEntryUpdate(
+                            DConfigObject.ADDED, _cfgobj.added, entry, cloid);
+                    } else {
+                        _cfgobj.requestEntryAdd(DConfigObject.ADDED, _cfgobj.added, entry, cloid);
+                    }
                 }
             }
 
@@ -114,7 +119,9 @@ public class DConfigManager
                         _cfgobj.requestEntryRemove(
                             DConfigObject.UPDATED, _cfgobj.updated, key, cloid);
                     }
-                    _cfgobj.requestEntryAdd(DConfigObject.REMOVED, _cfgobj.removed, key, cloid);
+                    if (!_cfgobj.removed.containsKey(key)) {
+                        _cfgobj.requestEntryAdd(DConfigObject.REMOVED, _cfgobj.removed, key, cloid);
+                    }
                 }
             }
         } finally {
