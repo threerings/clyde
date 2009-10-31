@@ -321,7 +321,7 @@ public abstract class Scene extends DynamicScope
      */
     public int getUpdateInfluencesCount ()
     {
-        return _updateInfluences.size();
+        return _updateInfluencesCount;
     }
 
     /**
@@ -430,18 +430,18 @@ public abstract class Scene extends DynamicScope
         }
 
         // update the influences of any flagged elements
-        int size = _updateInfluences.size();
-        if (size > 0) {
+        _updateInfluencesCount = _updateInfluences.size();
+        if (_updateInfluencesCount > 0) {
             _updateArray = _updateInfluences.toArray(_updateArray);
             _updateInfluences.clear();
-            for (int ii = 0; ii < size; ii++) {
+            for (int ii = 0; ii < _updateInfluencesCount; ii++) {
                 SceneElement element = _updateArray[ii];
                 getInfluences(element.getBounds(), _influences);
                 element.setInfluences(_influences);
                 _influences.clear();
             }
             // make sure we don't retain any references
-            Arrays.fill(_updateArray, 0, size, null);
+            Arrays.fill(_updateArray, 0, _updateInfluencesCount, null);
         }
 
         _clipmgr.tick(elapsed);
@@ -604,6 +604,9 @@ public abstract class Scene extends DynamicScope
 
     /** The elements whose influence sets must be updated. */
     protected HashSet<SceneElement> _updateInfluences = new HashSet<SceneElement>();
+
+    /** The last count of the influences set. */
+    protected int _updateInfluencesCount;
 
     /** Holds the scene elements while we're updating their influences. */
     protected SceneElement[] _updateArray = new SceneElement[0];
