@@ -143,8 +143,10 @@ public class ConfigUpdater
         if (oconfig != null) {
             nconfig.copy(oconfig);
             oconfig.wasUpdated();
-        } else {
+        } else if (!_cfgmgr.isResourceClass(nconfig.getClass())) {
             addConfig(nconfig);
+        } else {
+            log.warning("Attempted to update unknown resource.", "name", nconfig.getName());
         }
     }
 
