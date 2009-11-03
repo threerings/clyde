@@ -126,6 +126,12 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
             indices = null;
             elementArrayBuffer = null;
         }
+
+        @Override // documentation inherited
+        public boolean shouldRotateOrientations ()
+        {
+            return alignment == Alignment.FIXED;
+        }
     }
 
     /**

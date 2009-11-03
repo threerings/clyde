@@ -97,6 +97,10 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
         @Editable(category="origin")
         public QuaternionVariable orientation = new QuaternionVariable.Constant();
 
+        /** Whether or not to rotate the particles' initial orientations with the emitter. */
+        @Editable(category="origin")
+        public boolean rotateOrientationsWithEmitter;
+
         /** Whether or not to move particles with the emitter. */
         @Editable(category="origin")
         public boolean moveParticlesWithEmitter;
@@ -144,6 +148,12 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
         /** Used to identify the layer after customization. */
         @Shallow
         public transient Layer identity = this;
+
+        /**
+         * Checks whether we should rotate the orientations and angular velocities (because
+         * the alignment is fixed rather than billboard, etc.)
+         */
+        public abstract boolean shouldRotateOrientations ();
     }
 
     /** The model's tick policy. */

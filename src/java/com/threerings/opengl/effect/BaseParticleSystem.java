@@ -35,6 +35,7 @@ import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.Box;
+import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -212,6 +213,11 @@ public abstract class BaseParticleSystem extends Model.Implementation
                     _shooter.shoot(particle).multLocal(_config.speed.getValue()),
                     _config.rotateVelocitiesWithEmitter);
                 _config.angularVelocity.getValue(particle.getAngularVelocity());
+                if (_config.shouldRotateOrientations()) {
+                    boolean emitter = _config.rotateOrientationsWithEmitter;
+                    rotationToLayer(particle.getOrientation(), emitter);
+                    vectorToLayer(particle.getAngularVelocity(), emitter);
+                }
                 initParticle(ii);
                 _living.value++;
                 _preliving = Math.max(_preliving - 1, 0);
@@ -260,6 +266,21 @@ public abstract class BaseParticleSystem extends Model.Implementation
             return _config.moveParticlesWithEmitter ?
                 (emitter ? vector : _worldTransformInv.transformVectorLocal(vector)) :
                 (emitter ? _worldTransform.transformVectorLocal(vector) : vector);
+        }
+
+        /**
+         * Transforms a rotation in-place from world space or emitter space into the space of
+         * the layer (either world space or emitter space, depending on the value of
+         * {@link com.threerings.opengl.effect.config.BaseParticleSystemConfig.Layer#moveParticlesWithEmitter}).
+         *
+         * @param emitter if true, transform from emitter space (else from world space).
+         * @return a reference to the transformed rotation, for chaining.
+         */
+        public Quaternion rotationToLayer (Quaternion rot, boolean emitter)
+        {
+            return _config.moveParticlesWithEmitter ?
+                (emitter ? rot : _worldTransformInv.extractRotation(_wrot).mult(rot, rot)) :
+                (emitter ? _worldTransform.extractRotation(_wrot).mult(rot, rot) : rot);
         }
 
         /**
@@ -377,6 +398,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
         /** Whether or not the layer has completed. */
         protected boolean _completed;
+
+        /** Holds the world/world inverse rotation. */
+        protected Quaternion _wrot = new Quaternion();
     }
 
     /**

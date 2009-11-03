@@ -54,6 +54,12 @@ public class MetaParticleSystemConfig extends BaseParticleSystemConfig
         /** The alignment mode to use for the particles. */
         @Editable(category="appearance", weight=-0.5)
         public Alignment alignment = Alignment.FIXED;
+
+        @Override // documentation inherited
+        public boolean shouldRotateOrientations ()
+        {
+            return alignment == Alignment.FIXED;
+        }
     }
 
     /** The layers comprising the system. */
