@@ -64,6 +64,22 @@ public abstract class Preloadable extends DeepObject
             _ref = mref;
         }
 
+        /**
+         * Returns a reference to the config class.
+         */
+        public Class<ManagedConfig> getConfigClass ()
+        {
+            return _clazz;
+        }
+
+        /**
+         * Returns a reference to the config reference.
+         */
+        public ConfigReference<ManagedConfig> getReference ()
+        {
+            return _ref;
+        }
+
         @Override // documentation inherited
         public void preload (GlContext ctx)
         {
@@ -100,6 +116,14 @@ public abstract class Preloadable extends DeepObject
             _ref = ref;
         }
 
+        /**
+         * Returns a reference to the model config reference.
+         */
+        public ConfigReference<ModelConfig> getReference ()
+        {
+            return _ref;
+        }
+
         @Override // documentation inherited
         public void preload (GlContext ctx)
         {
@@ -131,6 +155,14 @@ public abstract class Preloadable extends DeepObject
         public Animation (ConfigReference<AnimationConfig> ref)
         {
             _ref = ref;
+        }
+
+        /**
+         * Returns a reference to the animation config reference.
+         */
+        public ConfigReference<AnimationConfig> getReference ()
+        {
+            return _ref;
         }
 
         @Override // documentation inherited
