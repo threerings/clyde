@@ -144,6 +144,16 @@ public class FloatMath
     }
 
     /**
+     * Returns the cube root of the supplied value.
+     *
+     * @see Math#cbrt
+     */
+    public static float cbrt (float v)
+    {
+        return (float)Math.cbrt(v);
+    }
+
+    /**
      * Computes and returns sqrt(x*x + y*y).
      *
      * @see Math#hypot

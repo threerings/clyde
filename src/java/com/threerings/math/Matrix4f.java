@@ -946,15 +946,22 @@ public final class Matrix4f
      */
     public Quaternion extractRotation (Quaternion result)
     {
-        float rsx = 1f / FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02);
-        float rsy = 1f / FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12);
-        float rsz = 1f / FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22);
+        float sx = FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02);
+        float sy = FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12);
+        float sz = FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22);
+        if (sx < FloatMath.EPSILON || sy < FloatMath.EPSILON || sz < FloatMath.EPSILON) {
+            return result.set(Quaternion.IDENTITY); // can't extract with zero scale
+        }
+        float rsx = 1f / sx, rsy = 1f / sy, rsz = 1f / sz;
         float n00 = m00 * rsx;
         float n11 = m11 * rsy;
         float n22 = m22 * rsz;
         float x2 = (1f + n00 - n11 - n22)/4f;
         float y2 = (1f - n00 + n11 - n22)/4f;
         float z2 = (1f - n00 - n11 + n22)/4f;
+        if (x2 < 0f || y2 < 0f || z2 < 0f) {
+            return result.set(Quaternion.IDENTITY); // no negative scales allowed
+        }
         return result.set(
             FloatMath.sqrt(x2) * (m12*rsy >= m21*rsz ? +1f : -1f),
             FloatMath.sqrt(y2) * (m20*rsz >= m02*rsx ? +1f : -1f),
@@ -990,9 +997,10 @@ public final class Matrix4f
      */
     public float approximateUniformScale ()
     {
-        return (FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02) +
-            FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12) +
-            FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22)) / 3f;
+        return FloatMath.cbrt(
+            FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02) *
+            FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12) *
+            FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22));
     }
 
     // documentation inherited from interface Encodable
