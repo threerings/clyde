@@ -286,13 +286,6 @@ public class ArticulatedConfig extends ModelConfig.Imported
     }
 
     /**
-     * Marker interface for updaters that act on the local transform.
-     */
-    public interface LocalTransformUpdater extends Updater
-    {
-    }
-
-    /**
      * Marker interface for updaters that act on the world transform.
      */
     public interface WorldTransformUpdater extends Updater
@@ -588,8 +581,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
                 Quaternion rot = transform.getRotation();
                 transform.set(
                     transform.extractTranslation(trans == null ? new Vector3f() : trans),
-                    transform.extractRotation(rot == null ? new Quaternion() : rot),
-                    transform.approximateUniformScale());
+                    transform.extractRotation(rot == null ? new Quaternion() : rot), 1f);
                 break;
         }
     }

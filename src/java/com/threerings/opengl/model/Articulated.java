@@ -50,7 +50,6 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig.AnimationMapping;
 import com.threerings.opengl.model.config.ArticulatedConfig.Attachment;
-import com.threerings.opengl.model.config.ArticulatedConfig.LocalTransformUpdater;
 import com.threerings.opengl.model.config.ArticulatedConfig.NodeTransform;
 import com.threerings.opengl.model.config.ArticulatedConfig.ViewTransformUpdater;
 import com.threerings.opengl.model.config.ArticulatedConfig.WorldTransformUpdater;
@@ -178,11 +177,6 @@ public class Articulated extends Model.Implementation
          */
         public void update ()
         {
-            // update in local space if that's how we roll
-            if (_updater instanceof LocalTransformUpdater) {
-                _updater.update();
-            }
-
             // compose parent world transform with local transform
             _parentWorldTransform.compose(_localTransform, _worldTransform);
 
