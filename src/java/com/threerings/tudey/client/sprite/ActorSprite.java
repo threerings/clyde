@@ -728,6 +728,7 @@ public class ActorSprite extends Sprite
         if (isCreated()) {
             _view.getScene().add(_model);
             _view.getActorSpace().add(_shape);
+            _model.tick(0f);
             update();
         } else {
             _impl = null; // signifies that the actor has not yet been created
