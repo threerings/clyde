@@ -160,16 +160,15 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
         public abstract boolean shouldRotateOrientations ();
 
         /**
-         * Custom read method.
+         * Custom write method.
          */
         public void writeFields (Exporter out)
             throws IOException
         {
-            // existing particles expect their orientations to be rotated iff their particles
-            // move with the emitter
+            // always write the "rotate orientations" flag so that things won't break if (when) we
+            // change the default
             out.defaultWriteFields();
-            out.write("rotateOrientationsWithEmitter",
-                rotateOrientationsWithEmitter, moveParticlesWithEmitter);
+            out.write("rotateOrientationsWithEmitter", rotateOrientationsWithEmitter);
         }
 
         /**
@@ -178,6 +177,8 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
         public void readFields (Importer in)
             throws IOException
         {
+            // existing particles expect their orientations to be rotated iff their particles
+            // move with the emitter
             in.defaultReadFields();
             rotateOrientationsWithEmitter = in.read(
                 "rotateOrientationsWithEmitter", moveParticlesWithEmitter);
