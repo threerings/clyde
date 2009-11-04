@@ -24,10 +24,14 @@
 
 package com.threerings.opengl.effect.config;
 
+import java.io.IOException;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.export.Exporter;
+import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.probs.ColorFunctionVariable;
@@ -99,7 +103,7 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
 
         /** Whether or not to rotate the particles' initial orientations with the emitter. */
         @Editable(category="origin")
-        public boolean rotateOrientationsWithEmitter;
+        public transient boolean rotateOrientationsWithEmitter;
 
         /** Whether or not to move particles with the emitter. */
         @Editable(category="origin")
@@ -154,6 +158,30 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
          * the alignment is fixed rather than billboard, etc.)
          */
         public abstract boolean shouldRotateOrientations ();
+
+        /**
+         * Custom read method.
+         */
+        public void writeFields (Exporter out)
+            throws IOException
+        {
+            // existing particles expect their orientations to be rotated iff their particles
+            // move with the emitter
+            out.defaultWriteFields();
+            out.write("rotateOrientationsWithEmitter",
+                rotateOrientationsWithEmitter, moveParticlesWithEmitter);
+        }
+
+        /**
+         * Custom read method.
+         */
+        public void readFields (Importer in)
+            throws IOException
+        {
+            in.defaultReadFields();
+            rotateOrientationsWithEmitter = in.read(
+                "rotateOrientationsWithEmitter", moveParticlesWithEmitter);
+        }
     }
 
     /** The model's tick policy. */
