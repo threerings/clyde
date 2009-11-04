@@ -959,14 +959,15 @@ public final class Matrix4f
         float x2 = (1f + n00 - n11 - n22)/4f;
         float y2 = (1f - n00 + n11 - n22)/4f;
         float z2 = (1f - n00 - n11 + n22)/4f;
-        if (x2 < 0f || y2 < 0f || z2 < 0f) {
+        float w2 = (1f - x2 - y2 - z2);
+        if (x2 < 0f || y2 < 0f || z2 < 0f || w2 < 0f) {
             return result.set(Quaternion.IDENTITY); // no negative scales allowed
         }
         return result.set(
             FloatMath.sqrt(x2) * (m12*rsy >= m21*rsz ? +1f : -1f),
             FloatMath.sqrt(y2) * (m20*rsz >= m02*rsx ? +1f : -1f),
             FloatMath.sqrt(z2) * (m01*rsx >= m10*rsy ? +1f : -1f),
-            FloatMath.sqrt(1f - x2 - y2 - z2));
+            FloatMath.sqrt(w2));
     }
 
     /**
