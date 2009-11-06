@@ -305,20 +305,7 @@ public class ConfigManager
 
         // for resource-loaded configs, go through the cache
         if (isResourceClass(clazz)) {
-            ManagedConfig config = _resources.get(name);
-            if (config == null) {
-                try {
-                    BinaryImporter in = new BinaryImporter(_rsrcmgr.getResource(name));
-                    _resources.put(name, config = (ManagedConfig)in.readObject());
-                    config.setName(name);
-                    config.init(getRoot());
-                    in.close();
-                } catch (IOException e) {
-                    log.warning("Failed to load config from resource [name=" + name + "].", e);
-                    return null;
-                }
-            }
-            return clazz.cast(config);
+            return clazz.cast(getResourceConfig(name));
         }
 
         // otherwise, look for a group of the desired type
@@ -330,6 +317,27 @@ public class ConfigManager
             }
         }
         return (_parent == null) ? null : _parent.getConfig(clazz, name);
+    }
+
+    /**
+     * Attempts to fetch a resource config through the cache.
+     */
+    public ManagedConfig getResourceConfig (String name)
+    {
+        ManagedConfig config = _resources.get(name);
+        if (config == null) {
+            try {
+                BinaryImporter in = new BinaryImporter(_rsrcmgr.getResource(name));
+                _resources.put(name, config = (ManagedConfig)in.readObject());
+                config.setName(name);
+                config.init(getRoot());
+                in.close();
+            } catch (IOException e) {
+                log.warning("Failed to load config from resource.", "name", name, e);
+                return null;
+            }
+        }
+        return config;
     }
 
     /**
