@@ -186,6 +186,8 @@ public class ClientLiaison
             // which we will interpret as the most recent
             if (input > timestamp || ii == frames.length - 1) {
                 _target.enqueueInput(frame);
+            } else {
+                log.info("Discarding out-of-date frame.", "frame", frame);
             }
         }
     }
