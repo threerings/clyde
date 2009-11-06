@@ -24,7 +24,14 @@
 
 package com.threerings.editor.util;
 
+import java.util.List;
+import java.util.Set;
+
+import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
+import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 
 /**
@@ -158,6 +165,55 @@ public class PropertyUtil
             }
         }
         return +Integer.MAX_VALUE;
+    }
+
+    /**
+     * Finds all resources referenced by the specified editable object and places them in the
+     * supplied set.
+     */
+    public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
+    {
+        if (object == null) {
+            return;
+        }
+        if (object instanceof Object[]) {
+            for (Object element : (Object[])object) {
+                getResources(cfgmgr, element, paths);
+            }
+            return;
+        }
+        if (object instanceof List) {
+            List list = (List)object;
+            for (int ii = 0, nn = list.size(); ii < nn; ii++) {
+                getResources(cfgmgr, list.get(ii), paths);
+            }
+            return;
+        }
+        for (Property property : Introspector.getProperties(object.getClass())) {
+            Object value = property.get(object);
+            if (value == null) {
+                continue;
+            }
+            String editor = property.getAnnotation().editor();
+            if (editor.equals("resource")) {
+                paths.add((String)value);
+
+            } else if (property.getType().equals(ConfigReference.class)) {
+                @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+                    (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+                @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
+                    (ConfigReference<ManagedConfig>)value;
+                if (cfgmgr.isResourceClass(cclass)) {
+                    paths.add(ref.getName());
+                }
+                ManagedConfig config = cfgmgr.getConfig(cclass, ref);
+                if (config != null) {
+                    getResources(cfgmgr, config, paths);
+                }
+            } else {
+                getResources(cfgmgr, value, paths);
+            }
+        }
     }
 }
 

@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import com.google.common.collect.Lists;
@@ -53,6 +54,7 @@ import com.threerings.whirled.data.SceneModel;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
+import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
@@ -1640,6 +1642,16 @@ public class TudeySceneModel extends SceneModel
     {
         for (Entry entry : getEntries()) {
             entry.getPreloads(_cfgmgr, preloads);
+        }
+    }
+
+    /**
+     * Adds the resources referenced by this scene model to the supplied set.
+     */
+    public void getResources (Set<String> paths)
+    {
+        for (Entry entry : getEntries()) {
+            PropertyUtil.getResources(_cfgmgr, entry, paths);
         }
     }
 
