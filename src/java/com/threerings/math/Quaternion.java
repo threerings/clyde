@@ -81,6 +81,8 @@ public final class Quaternion
 
     /**
      * Sets this quaternion to the rotation of the first normalized vector onto the second.
+     *
+     * @return a reference to this quaternion, for chaining.
      */
     public Quaternion fromVectors (Vector3f v1, Vector3f v2)
     {
@@ -92,7 +94,25 @@ public final class Quaternion
             return set(IDENTITY);
         }
         float len = FloatMath.sqrt(l2), rlen = 1f / len;
-        return fromAngleAxis(FloatMath.asin(len), ax * rlen, ay * rlen, az * rlen);
+        return fromAngleAxis(FloatMath.asin(Math.min(1f, len)), ax * rlen, ay * rlen, az * rlen);
+    }
+
+    /**
+     * Sets this quaternion to one that rotates onto the given unit axes.
+     *
+     * @return a reference to this quaternion, for chaining.
+     */
+    public Quaternion fromAxes (Vector3f nx, Vector3f ny, Vector3f nz)
+    {
+        float x2 = (1f + nx.x - ny.y - nz.z)/4f;
+        float y2 = (1f - nx.x + ny.y - nz.z)/4f;
+        float z2 = (1f - nx.x - ny.y + nz.z)/4f;
+        float w2 = (1f - x2 - y2 - z2);
+        return set(
+            FloatMath.sqrt(x2) * (ny.z >= nz.y ? +1f : -1f),
+            FloatMath.sqrt(y2) * (nz.x >= nx.z ? +1f : -1f),
+            FloatMath.sqrt(z2) * (nx.y >= ny.x ? +1f : -1f),
+            FloatMath.sqrt(w2));
     }
 
     /**
@@ -224,14 +244,6 @@ public final class Quaternion
     public Vector3f toAngles ()
     {
         return toAngles(new Vector3f());
-    }
-
-    /**
-     * Sets this quaternion from a set of normalized coordinate axes.
-     */
-    public Quaternion fromAxes (Vector3f s, Vector3f t, Vector3f r)
-    {
-        return set(t.z - r.y, r.x - s.z, s.y - t.x, 1f + s.x + t.y + r.z).normalizeLocal();
     }
 
     /**

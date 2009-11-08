@@ -119,6 +119,22 @@ public class Articulated extends Model.Implementation
         }
 
         /**
+         * Returns a reference to the parent world transform.
+         */
+        public Transform3D getParentWorldTransform ()
+        {
+            return _parentWorldTransform;
+        }
+
+        /**
+         * Returns a reference to the parent view transform.
+         */
+        public Transform3D getParentViewTransform ()
+        {
+            return _parentViewTransform;
+        }
+
+        /**
          * Returns a reference to this node's local transform.
          */
         public Transform3D getLocalTransform ()
@@ -177,14 +193,13 @@ public class Articulated extends Model.Implementation
          */
         public void update ()
         {
-            // compose parent world transform with local transform
-            _parentWorldTransform.compose(_localTransform, _worldTransform);
-
-            // if we update in world space, compute the local transform as well
+            // update the local transform with the most recent parent world transform
             if (_updater instanceof WorldTransformUpdater) {
                 _updater.update();
-                _parentWorldTransform.invert(_localTransform).composeLocal(_worldTransform);
             }
+
+            // compose parent world transform with local transform
+            _parentWorldTransform.compose(_localTransform, _worldTransform);
         }
 
         /**
@@ -200,14 +215,13 @@ public class Articulated extends Model.Implementation
          */
         public void enqueue ()
         {
-            // compose parent view transform with local transform
-            _parentViewTransform.compose(_localTransform, _viewTransform);
-
-            // if we update in view space, compute the local transform as well
+            // update the local transform with the most recent parent view transform
             if (_updater instanceof ViewTransformUpdater) {
                 _updater.update();
-                _parentViewTransform.invert(_localTransform).composeLocal(_viewTransform);
             }
+
+            // compose parent view transform with local transform
+            _parentViewTransform.compose(_localTransform, _viewTransform);
 
             // update bone transform if necessary
             if (_boneTransform != null) {
