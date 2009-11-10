@@ -621,7 +621,6 @@ public class TudeySceneController extends SceneController
         // which the server will interpret as the most recent state)
         int smoothedTime = _tsview.getSmoothedTime();
         while (_input.size() > 1 && smoothedTime >= _input.get(0).getTimestamp()) {
-            log.info("Discarding expired frame.", "frame", _input.get(0));
             _input.remove(0);
         }
 

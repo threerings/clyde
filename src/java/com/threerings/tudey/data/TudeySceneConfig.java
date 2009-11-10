@@ -58,7 +58,7 @@ public class TudeySceneConfig extends PlaceConfig
      */
     public int getInputAdvance (int pingAverage)
     {
-        return getTransmitInterval() + Math.round(pingAverage * 1.25f);
+        return Math.round((getTransmitInterval() + pingAverage) * 1.25f);
     }
 
     /**
