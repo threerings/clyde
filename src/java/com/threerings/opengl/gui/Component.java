@@ -800,7 +800,7 @@ public class Component
             KeyEvent kev = (KeyEvent)event;
             if (kev.getType() == KeyEvent.KEY_PRESSED) {
                 int modifiers = kev.getModifiers(), keyCode = kev.getKeyCode();
-                if (keyCode == Keyboard.KEY_TAB) {
+                if (keyCode == Keyboard.KEY_TAB && getWindow() != null) {
                     if (modifiers == 0) {
                         getWindow().requestFocus(getNextFocus());
                         processed = true;
