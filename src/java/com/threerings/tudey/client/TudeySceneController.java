@@ -222,6 +222,7 @@ public class TudeySceneController extends SceneController
         // pass it on to the view for visualization
         if (_tsview.processSceneDelta(event)) {
             _lastDelta = timestamp;
+            _lastDeltaTime = RunAnywhere.currentTimeMillis();
         }
     }
 
@@ -617,10 +618,12 @@ public class TudeySceneController extends SceneController
      */
     protected void transmitInput ()
     {
+        // estimate the server time plus one-way latency
+        int serverTime = _lastDelta + (int)(RunAnywhere.currentTimeMillis() - _lastDeltaTime);
+
         // remove any input frames guaranteed to be expired (except for the last one,
         // which the server will interpret as the most recent state)
-        int smoothedTime = _tsview.getSmoothedTime();
-        while (_input.size() > 1 && smoothedTime >= _input.get(0).getTimestamp()) {
+        while (_input.size() > 1 && serverTime >= _input.get(0).getTimestamp()) {
             _input.remove(0);
         }
 
@@ -634,10 +637,10 @@ public class TudeySceneController extends SceneController
         // transmit as datagram if we know we can and the size is under the threshold
         if (_ctx.getClient().getTransmitDatagrams() && size <= Client.MAX_DATAGRAM_SIZE) {
             _tsobj.tudeySceneService.enqueueInputUnreliable(
-                _ctx.getClient(), _lastDelta, smoothedTime, input);
+                _ctx.getClient(), _lastDelta, serverTime, input);
         } else {
             _tsobj.tudeySceneService.enqueueInputReliable(
-                _ctx.getClient(), _lastDelta, smoothedTime, input);
+                _ctx.getClient(), _lastDelta, serverTime, input);
             _input.clear();
         }
     }
@@ -772,6 +775,9 @@ public class TudeySceneController extends SceneController
 
     /** The timestamp of the last delta received from the server. */
     protected int _lastDelta;
+
+    /** The time at which we received the last delta. */
+    protected long _lastDeltaTime;
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();
