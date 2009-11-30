@@ -78,14 +78,16 @@ public class BinaryImporter extends Importer
                 throw new IOException("Invalid magic number [magic=" +
                     Integer.toHexString(magic) + "].");
             }
-            int version = _in.readInt();
+            short version = _in.readShort();
             if (version != BinaryExporter.VERSION) {
                 throw new IOException("Invalid version [version=" +
                     Integer.toHexString(version) + "].");
             }
+            short flags = _in.readShort();
+            boolean compressed = (flags & BinaryExporter.COMPRESSED_FORMAT_FLAG) != 0;
 
-            // the rest of the stream will be compressed
-            _in = new DataInputStream(new InflaterInputStream(_base));
+            // the rest of the stream may be compressed
+            _in = new DataInputStream(compressed ? new InflaterInputStream(_base) : _base);
 
             // initialize mapping
             _objects = new HashIntMap<Object>();

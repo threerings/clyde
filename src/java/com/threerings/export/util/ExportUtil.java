@@ -83,8 +83,18 @@ public class ExportUtil
      */
     public static byte[] toBytes (Object object)
     {
+        return toBytes(object, true);
+    }
+
+    /**
+     * Converts an exportable object to a byte array containing the exported binary representation
+     * of the object.  If an error occurs, a warning will be logged and <code>null</code> will
+     * be returned.
+     */
+    public static byte[] toBytes (Object object, boolean compress)
+    {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        BinaryExporter out = new BinaryExporter(baos);
+        BinaryExporter out = new BinaryExporter(baos, compress);
         try {
             out.writeObject(object);
             out.close();

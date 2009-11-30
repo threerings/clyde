@@ -50,8 +50,11 @@ public class BinaryExporter extends Exporter
     /** Identifies the file type. */
     public static final int MAGIC_NUMBER = 0xFACEAF0E;
 
-    /** Identifies the format version. */
-    public static final int VERSION = 0x10001000;
+    /** The format version. */
+    public static final short VERSION = 0x1000;
+
+    /** The compressed format flag. */
+    public static final short COMPRESSED_FORMAT_FLAG = 0x1000;
 
     /** Indicates that a stored class is final. */
     public static final byte FINAL_CLASS_FLAG = (byte)(1 << 0);
@@ -72,11 +75,22 @@ public class BinaryExporter extends Exporter
         Float.TYPE, Integer.TYPE, Long.TYPE, Short.TYPE };
 
     /**
-     * Creates an exporter to write to the specified stream.
+     * Creates an exporter to write to the specified stream with compression.
      */
     public BinaryExporter (OutputStream out)
     {
+        this(out, true);
+    }
+
+    /**
+     * Creates an exporter to write to the specified stream.
+     *
+     * @param compress if true, compress the output.
+     */
+    public BinaryExporter (OutputStream out, boolean compress)
+    {
         _out = new DataOutputStream(_base = out);
+        _compress = compress;
 
         // populate the class map with the bootstrap classes
         for (Class clazz : BOOTSTRAP_CLASSES) {
@@ -91,10 +105,12 @@ public class BinaryExporter extends Exporter
         if (_objectIds == null) {
             // write the preamble
             _out.writeInt(MAGIC_NUMBER);
-            _out.writeInt(VERSION);
+            _out.writeShort(VERSION);
+            _out.writeShort(_compress ? COMPRESSED_FORMAT_FLAG : 0x0);
 
-            // everything thereafter will be compressed
-            _out = new DataOutputStream(_defout = new DeflaterOutputStream(_base));
+            // everything thereafter will be compressed if so requested
+            _out = new DataOutputStream(
+                _compress ? (_defout = new DeflaterOutputStream(_base)) : _base);
 
             // initialize mapping
             _objectIds = new IdentityHashMap<Object, Integer>();
@@ -448,6 +464,9 @@ public class BinaryExporter extends Exporter
 
     /** The stream that we use for writing data. */
     protected DataOutputStream _out;
+
+    /** Whether or not to compress the output. */
+    protected boolean _compress;
 
     /** The deflater stream between the data output and the underlying output. */
     protected DeflaterOutputStream _defout;

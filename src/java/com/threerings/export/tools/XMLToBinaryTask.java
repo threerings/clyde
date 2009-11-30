@@ -48,6 +48,14 @@ public class XMLToBinaryTask extends Task
     }
 
     /**
+     * Sets whether or not to compress the resulting files.
+     */
+    public void setCompress (boolean compress)
+    {
+        _compress = compress;
+    }
+
+    /**
      * Adds a fileset to the list of sets to process.
      */
     public void addFileset (FileSet set)
@@ -96,12 +104,15 @@ public class XMLToBinaryTask extends Task
         System.out.println("Converting " + source + " to " + target + "...");
 
         // perform the conversion
-        XMLToBinaryConverter.convert(source.getPath(), target.getPath());
+        XMLToBinaryConverter.convert(source.getPath(), target.getPath(), _compress);
     }
 
     /** The directory in which we will generate our output (in a directory tree mirroring the
      * source files. */
     protected File _dest;
+
+    /** Whether or not to compress the output files. */
+    protected boolean _compress = true;
 
     /** A list of filesets that contain XML exports. */
     protected ArrayList<FileSet> _filesets = new ArrayList<FileSet>();

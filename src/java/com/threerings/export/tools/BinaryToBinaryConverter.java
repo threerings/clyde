@@ -30,18 +30,22 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.List;
+
 import org.apache.tools.ant.DirectoryScanner;
+
+import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.FileUtil;
 
 import com.threerings.export.BinaryExporter;
-import com.threerings.export.XMLImporter;
+import com.threerings.export.BinaryImporter;
 
 /**
- * Converts XML export files into binary export files.
+ * Converts binary export files into binary export files.
  */
-public class XMLToBinaryConverter
+public class BinaryToBinaryConverter
 {
     /**
      * Program entry point.
@@ -73,14 +77,16 @@ public class XMLToBinaryConverter
             convert(args[0], compress);
         } else {
             System.err.println(
-                "Usage: XMLToBinaryConverter [-options] <xml input file> <binary output file>");
+                "Usage: BinaryToBinaryConverter [-options] <binary input file> " +
+                    "<binary output file>");
             System.err.println(
-                "   or  XMLToBinaryConverter [-options] <xml input file pattern>");
+                "   or  BinaryToBinaryConverter [-options] <binary input file pattern>");
             System.err.println();
             System.err.println(
                 "where options include:");
             System.err.println(
                 "    -u            do not compress output");
+            return;
         }
     }
 
@@ -95,7 +101,7 @@ public class XMLToBinaryConverter
         scanner.setIncludes(new String[] { pattern });
         scanner.scan();
         for (String source : scanner.getIncludedFiles()) {
-            convert(source, FileUtil.resuffix(new File(source), ".xml", ".dat"), compress);
+            convert(source, source, compress);
         }
     }
 
@@ -105,16 +111,26 @@ public class XMLToBinaryConverter
     public static void convert (String source, String dest, boolean compress)
         throws IOException
     {
-        XMLImporter in = new XMLImporter(new FileInputStream(source));
-        BinaryExporter out = new BinaryExporter(new FileOutputStream(dest), compress);
+        // source and dest may be the same, so we must read everything in...
+        BinaryImporter in = new BinaryImporter(new FileInputStream(source));
+        List<Object> objects = Lists.newArrayList();
         try {
             while (true) {
-                out.writeObject(in.readObject());
+                objects.add(in.readObject());
             }
         } catch (EOFException e) {
             // no problem
         } finally {
             in.close();
+        }
+
+        // ...then write it all out
+        BinaryExporter out = new BinaryExporter(new FileOutputStream(dest), compress);
+        try {
+            for (int ii = 0, nn = objects.size(); ii < nn; ii++) {
+                out.writeObject(objects.get(ii));
+            }
+        } finally {
             out.close();
         }
     }
