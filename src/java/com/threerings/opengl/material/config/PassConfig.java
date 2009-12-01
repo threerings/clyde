@@ -194,7 +194,7 @@ public class PassConfig extends DeepObject
         states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
         states[RenderState.POLYGON_STATE] = polygonState.getState();
         states[RenderState.STENCIL_STATE] = stencilState.getState();
-        states[RenderState.TEXTURE_STATE] = textureState.getState(ctx);
+        states[RenderState.TEXTURE_STATE] = textureState.getState(ctx, scope, updaters);
 
         // we create the shader state last because it may depend on the other states
         states[RenderState.SHADER_STATE] = shaderState.getState(ctx, scope, states, updaters);

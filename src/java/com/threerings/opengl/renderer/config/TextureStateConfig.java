@@ -26,9 +26,13 @@ package com.threerings.opengl.renderer.config;
 
 import java.lang.ref.SoftReference;
 
+import java.util.ArrayList;
+
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
@@ -91,17 +95,18 @@ public class TextureStateConfig extends DeepObject
     /**
      * Returns the corresponding texture state.
      */
-    public TextureState getState (GlContext ctx)
+    public TextureState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
         if (units.length == 0) {
             return TextureState.DISABLED;
         }
         if (uniqueInstance) {
-            return createInstance(ctx);
+            return createInstance(ctx, scope, updaters);
         }
         TextureState instance = (_instance == null) ? null : _instance.get();
         if (instance == null) {
-            _instance = new SoftReference<TextureState>(instance = createInstance(ctx));
+            _instance = new SoftReference<TextureState>(
+                instance = createInstance(ctx, scope, updaters));
         }
         return instance;
     }
@@ -117,11 +122,11 @@ public class TextureStateConfig extends DeepObject
     /**
      * Creates a material state instance corresponding to this config.
      */
-    protected TextureState createInstance (GlContext ctx)
+    protected TextureState createInstance (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
         TextureUnit[] sunits = new TextureUnit[units.length];
         for (int ii = 0; ii < units.length; ii++) {
-            sunits[ii] = units[ii].createUnit(ctx);
+            sunits[ii] = units[ii].createUnit(ctx, scope, updaters);
         }
         return new TextureState(sunits);
     }

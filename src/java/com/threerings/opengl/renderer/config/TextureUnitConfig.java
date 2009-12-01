@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.renderer.config;
 
+import java.util.ArrayList;
+
 import com.threerings.util.DeepObject;
 
 import com.threerings.math.Transform3D;
@@ -32,6 +34,8 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.util.GlContext;
@@ -98,7 +102,7 @@ public class TextureUnitConfig extends DeepObject
     /**
      * Creates the texture unit corresponding to this configuration.
      */
-    public TextureUnit createUnit (GlContext ctx)
+    public TextureUnit createUnit (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
         TextureUnit unit = new TextureUnit();
         TextureConfig config = getTextureConfig(ctx);
