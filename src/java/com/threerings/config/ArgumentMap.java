@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.samskivert.util.ComparableArrayList;
-import com.samskivert.util.MapEntry;
 import com.samskivert.util.ObjectUtil;
 
 import com.threerings.io.ObjectInputStream;
@@ -272,23 +271,44 @@ public class ArgumentMap extends AbstractMap<String, Object>
     /**
      * The map entry class.
      */
-    protected static class Entry extends MapEntry<String, Object>
-        implements Comparable<Entry>
+    protected static class Entry
+        implements Map.Entry<String, Object>, Comparable<Entry>
     {
         /**
          * Creates a new entry.
          */
         public Entry (String key, Object value)
         {
-            super(key, value);
+            _key = key;
+            _value = value;
         }
 
         /**
-         * Resets the entry key.
+         * Sets the entry key.
          */
         public void setKey (String key)
         {
             _key = key;
+        }
+
+        // documentation inherited from interface Map.Entry
+        public String getKey ()
+        {
+            return _key;
+        }
+
+        // documentation inherited from interface Map.Entry
+        public Object setValue (Object value)
+        {
+            Object ovalue = _value;
+            _value = value;
+            return ovalue;
+        }
+
+        // documentation inherited from interface Map.Entry
+        public Object getValue ()
+        {
+            return _value;
         }
 
         // documentation inherited from interface Comparable
@@ -296,6 +316,34 @@ public class ArgumentMap extends AbstractMap<String, Object>
         {
             return _key.compareTo(oentry._key);
         }
+
+        @Override // documentation inherited
+        public int hashCode ()
+        {
+            return ((_key == null) ? 0 : _key.hashCode()) ^
+                (_value == null ? 0 : _value.hashCode());
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object object)
+        {
+            Entry oentry;
+            return object instanceof Entry &&
+                ObjectUtil.equals(_key, (oentry = (Entry)object)._key) &&
+                ObjectUtil.equals(_value, oentry._value);
+        }
+
+        @Override // documentation inherited
+        public String toString ()
+        {
+            return _key + "=" + _value;
+        }
+
+        /** The entry key. */
+        protected String _key;
+
+        /** The entry value. */
+        protected Object _value;
     }
 
     /** The entries in the map. */
