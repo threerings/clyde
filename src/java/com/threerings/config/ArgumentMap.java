@@ -33,8 +33,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.samskivert.util.ComparableArrayList;
 import com.samskivert.util.ObjectUtil;
+import com.samskivert.util.SortableArrayList;
 
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
@@ -54,11 +54,10 @@ public class ArgumentMap extends AbstractMap<String, Object>
      */
     public ArgumentMap (String firstKey, Object firstValue, Object... otherArgs)
     {
-        _entries.add(new Entry(firstKey, firstValue));
+        put(firstKey, firstValue);
         for (int ii = 0; ii < otherArgs.length; ii += 2) {
-            _entries.add(new Entry((String)otherArgs[ii], otherArgs[ii + 1]));
+            put((String)otherArgs[ii], otherArgs[ii + 1]);
         }
-        _entries.sort();
     }
 
     /**
@@ -77,7 +76,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         int size = _entries.size();
         out.writeInt(size);
         for (int ii = 0; ii < size; ii++) {
-            Entry entry = _entries.get(ii);
+            Map.Entry<String, Object> entry = _entries.get(ii);
             out.writeIntern(entry.getKey());
             out.writeObject(entry.getValue());
         }
@@ -90,7 +89,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         throws IOException, ClassNotFoundException
     {
         for (int ii = 0, nn = in.readInt(); ii < nn; ii++) {
-            _entries.add(new Entry(in.readIntern(), in.readObject()));
+            _entries.add(new SimpleEntry<String, Object>(in.readIntern(), in.readObject()));
         }
     }
 
@@ -111,8 +110,9 @@ public class ArgumentMap extends AbstractMap<String, Object>
             cmap = new ArgumentMap();
         }
         for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-            Entry entry = _entries.get(ii);
-            cmap._entries.add(new Entry(entry.getKey(), DeepUtil.copy(entry.getValue())));
+            Map.Entry<String, Object> entry = _entries.get(ii);
+            cmap._entries.add(new SimpleEntry<String, Object>(
+                entry.getKey(), DeepUtil.copy(entry.getValue())));
         }
         return cmap;
     }
@@ -140,8 +140,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         if (!(key instanceof String)) {
             return false;
         }
-        _dummy.setKey((String)key);
-        return _entries.binarySearch(_dummy) >= 0;
+        return _entries.binarySearch(_key.as((String)key)) >= 0;
     }
 
     @Override // documentation inherited
@@ -150,20 +149,18 @@ public class ArgumentMap extends AbstractMap<String, Object>
         if (!(key instanceof String)) {
             return null;
         }
-        _dummy.setKey((String)key);
-        int idx = _entries.binarySearch(_dummy);
+        int idx = _entries.binarySearch(_key.as((String)key));
         return (idx >= 0) ? _entries.get(idx).getValue() : null;
     }
 
     @Override // documentation inherited
     public Object put (String key, Object value)
     {
-        _dummy.setKey(key);
-        int idx = _entries.binarySearch(_dummy);
+        int idx = _entries.binarySearch(_key.as(key));
         if (idx >= 0) {
             return _entries.get(idx).setValue(value);
         } else {
-            _entries.add(-idx - 1, new Entry(key, value));
+            _entries.add(-idx - 1, new SimpleEntry<String, Object>(key, value));
             return null;
         }
     }
@@ -174,8 +171,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         if (!(key instanceof String)) {
             return null;
         }
-        _dummy.setKey((String)key);
-        int idx = _entries.binarySearch(_dummy);
+        int idx = _entries.binarySearch(_key.as((String)key));
         return (idx >= 0) ? _entries.remove(idx).getValue() : null;
     }
 
@@ -193,28 +189,28 @@ public class ArgumentMap extends AbstractMap<String, Object>
                 return _entries.size();
             }
             @Override public boolean contains (Object o) {
-                if (!(o instanceof Entry)) {
+                if (!(o instanceof Map.Entry<?,?>)) {
                     return false;
                 }
-                return _entries.binarySearch((Entry)o) >= 0;
+                return containsKey((String) ((Map.Entry<?,?>)o).getKey());
             }
             @Override public Iterator<Map.Entry<String, Object>> iterator () {
-                Iterator<?> it = _entries.iterator();
-                @SuppressWarnings("unchecked") Iterator<Map.Entry<String, Object>> cit =
-                    (Iterator<Map.Entry<String, Object>>)it;
-                return cit;
+                return _entries.iterator();
             }
             @Override public boolean remove (Object o) {
-                if (!(o instanceof Entry)) {
+                if (!(o instanceof Map.Entry<?,?>)) {
                     return false;
                 }
-                int idx = _entries.binarySearch((Entry)o);
-                if (idx >= 0) {
-                    _entries.remove(idx);
-                    return true;
-                } else {
+                Object key = ((Map.Entry<?,?>)o).getKey();
+                if (!(key instanceof String)) {
                     return false;
                 }
+                int idx = _entries.binarySearch(_key.as((String)key));
+                if (idx < 0) {
+                    return false;
+                }
+                _entries.remove(idx);
+                return true;
             }
             @Override public void clear () {
                 _entries.clear();
@@ -237,7 +233,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
             return false;
         }
         for (int ii = 0; ii < size; ii++) {
-            Entry entry = _entries.get(ii), oentry = omap._entries.get(ii);
+            Map.Entry<String, Object> entry = _entries.get(ii), oentry = omap._entries.get(ii);
             if (!entry.getKey().equals(oentry.getKey())) {
                 return false;
             }
@@ -255,7 +251,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
     {
         int hash = 0;
         for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-            Entry entry = _entries.get(ii);
+            Map.Entry<String, Object> entry = _entries.get(ii);
             _a1[0] = entry.getValue();
             hash += entry.getKey().hashCode() ^ Arrays.deepHashCode(_a1);
         }
@@ -268,89 +264,32 @@ public class ArgumentMap extends AbstractMap<String, Object>
         return copy(null);
     }
 
-    /**
-     * The map entry class.
-     */
-    protected static class Entry
-        implements Map.Entry<String, Object>, Comparable<Entry>
+    protected static class Key
+        implements Comparable<Map.Entry<String, Object>>
     {
         /**
-         * Creates a new entry.
+         * Update the value of this key, and return <tt>this</tt>.
          */
-        public Entry (String key, Object value)
+        public Key as (String key)
         {
             _key = key;
-            _value = value;
+            return this;
         }
 
-        /**
-         * Sets the entry key.
-         */
-        public void setKey (String key)
+        public int compareTo (Map.Entry<String, Object> entry)
         {
-            _key = key;
+            return _key.compareTo(entry.getKey());
         }
 
-        // documentation inherited from interface Map.Entry
-        public String getKey ()
-        {
-            return _key;
-        }
-
-        // documentation inherited from interface Map.Entry
-        public Object setValue (Object value)
-        {
-            Object ovalue = _value;
-            _value = value;
-            return ovalue;
-        }
-
-        // documentation inherited from interface Map.Entry
-        public Object getValue ()
-        {
-            return _value;
-        }
-
-        // documentation inherited from interface Comparable
-        public int compareTo (Entry oentry)
-        {
-            return _key.compareTo(oentry._key);
-        }
-
-        @Override // documentation inherited
-        public int hashCode ()
-        {
-            return ((_key == null) ? 0 : _key.hashCode()) ^
-                (_value == null ? 0 : _value.hashCode());
-        }
-
-        @Override // documentation inherited
-        public boolean equals (Object object)
-        {
-            Entry oentry;
-            return object instanceof Entry &&
-                ObjectUtil.equals(_key, (oentry = (Entry)object)._key) &&
-                ObjectUtil.equals(_value, oentry._value);
-        }
-
-        @Override // documentation inherited
-        public String toString ()
-        {
-            return _key + "=" + _value;
-        }
-
-        /** The entry key. */
         protected String _key;
-
-        /** The entry value. */
-        protected Object _value;
     }
 
     /** The entries in the map. */
-    protected transient ComparableArrayList<Entry> _entries = new ComparableArrayList<Entry>();
+    protected transient SortableArrayList<Map.Entry<String, Object>> _entries =
+        new SortableArrayList<Map.Entry<String, Object>>();
 
-    /** Dummy entry used for searching. */
-    protected transient Entry _dummy = new Entry(null, null);
+    /** Dummy key used for searching. */
+    protected transient Key _key = new Key();
 
     /** Used for {@link Arrays#deepHashCode} and {@link Arrays#deepEquals}. */
     protected transient Object[] _a1 = new Object[1], _a2 = new Object[1];
