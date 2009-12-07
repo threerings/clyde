@@ -198,6 +198,14 @@ public abstract class Logic
     }
 
     /**
+     * Resolve the appropriate source target logic.
+     */
+    public Logic resolveTarget ()
+    {
+        return this;
+    }
+
+    /**
      * Creates a handler with the supplied configuration and source.
      */
     protected HandlerLogic createHandler (HandlerConfig config, Logic source)
