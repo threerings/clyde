@@ -2,7 +2,7 @@ The Clyde library
 -----------------
 
 The Clyde library provides various facilities for creating action-oriented
-networked 3D games games. Its packages include:
+networked 3D games. Its packages include:
 
   * config - configuration management and tools for config manipulation
   * delta - adds support for delta encoding objects on top of Narya streaming
