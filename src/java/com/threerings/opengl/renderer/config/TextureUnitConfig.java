@@ -38,6 +38,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 
 import com.threerings.opengl.renderer.TextureUnit;
+import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -102,12 +103,13 @@ public class TextureUnitConfig extends DeepObject
     /**
      * Creates the texture unit corresponding to this configuration.
      */
-    public TextureUnit createUnit (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+    public TextureUnit createUnit (
+        GlContext ctx, TextureState state, Scope scope, ArrayList<Updater> updaters)
     {
         TextureUnit unit = new TextureUnit();
         TextureConfig config = getTextureConfig(ctx);
         if (config != null) {
-            unit.texture = config.getTexture(ctx);
+            unit.texture = config.getTexture(ctx, state, unit, scope, updaters);
         }
         environment.configure(unit);
         if (coordGenS != null) {

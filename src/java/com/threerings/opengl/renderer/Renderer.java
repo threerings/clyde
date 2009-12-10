@@ -1438,6 +1438,9 @@ public class Renderer
         for (int ii = 0, nn = Math.max(_unitEnd, numUnits); ii < nn; ii++) {
             TextureUnitRecord urec = _units[ii];
             TextureUnit unit = (ii < numUnits) ? units[ii] : null;
+            if (unit != null && unit.texture == null) {
+                unit = null;
+            }
             boolean unitEnabled = (unit != null);
             if (urec.unit == unit && !(unitEnabled && unit.dirty)) {
                 continue;

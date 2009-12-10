@@ -30,6 +30,7 @@ import java.io.IOException;
 
 import java.lang.ref.SoftReference;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.lwjgl.opengl.ARBShadow;
@@ -49,6 +50,9 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.expr.FloatExpression;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
@@ -61,8 +65,12 @@ import com.threerings.opengl.renderer.Texture1D;
 import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.renderer.Texture3D;
 import com.threerings.opengl.renderer.TextureCubeMap;
+import com.threerings.opengl.renderer.TextureUnit;
+import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.DDSLoader;
 import com.threerings.opengl.util.GlContext;
+
+import static com.threerings.opengl.Log.*;
 
 /**
  * Texture metadata.
@@ -315,7 +323,7 @@ public class TextureConfig extends ParameterizedConfig
      */
     @EditorTypes({
         Original1D.class, Original2D.class, Original2DTarget.class, OriginalRectangle.class,
-        Original3D.class, OriginalCubeMap.class, Derived.class })
+        Original3D.class, OriginalCubeMap.class, Animated.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -343,7 +351,17 @@ public class TextureConfig extends ParameterizedConfig
         /**
          * Returns the texture corresponding to this configuration.
          */
-        public abstract Texture getTexture (GlContext ctx);
+        public Texture getTexture (GlContext ctx)
+        {
+            return getTexture(ctx, null, null, null, null);
+        }
+
+        /**
+         * Returns the (possibly dynamic) texture corresponding to this configuration.
+         */
+        public abstract Texture getTexture (
+            GlContext ctx, TextureState state, TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters);
 
         /**
          * Invalidates any cached data.
@@ -421,7 +439,9 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Texture getTexture (GlContext ctx)
+        public Texture getTexture (
+            GlContext ctx, TextureState state, TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters)
         {
             Texture texture = (_texture == null) ? null : _texture.get();
             if (texture == null) {
@@ -1095,9 +1115,68 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     /**
-     * A derived implementation.
+     * Switches between subtextures according to an expression.
      */
-    public static class Derived extends Implementation
+    public static class Animated extends Implementation
+    {
+        /** The expression that determines the frame index. */
+        @Editable
+        public FloatExpression frame = new FloatExpression.Constant(0f);
+
+        /** The list of frames. */
+        @Editable
+        public Frame[] frames = new Frame[0];
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (Frame frame : frames) {
+                frame.getUpdateReferences(refs);
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx, boolean fallback)
+        {
+            for (Frame frame : frames) {
+                if (!frame.isSupported(ctx, fallback)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override // documentation inherited
+        public Texture getTexture (
+            GlContext ctx, final TextureState state, final TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters)
+        {
+            if (updaters == null) {
+                log.warning("Tried to create animated texture in static context.");
+                return null;
+            }
+            if (frames.length == 0) {
+                return null;
+            }
+            final FloatExpression.Evaluator frame = this.frame.createEvaluator(scope);
+            final Texture[] textures = new Texture[frames.length];
+            for (int ii = 0; ii < textures.length; ii++) {
+                textures[ii] = frames[ii].getTexture(ctx);
+            }
+            updaters.add(new Updater() {
+                public void update () {
+                    unit.setTexture(textures[Math.round(frame.evaluate()) % textures.length]);
+                    state.setDirty(true);
+                }
+            });
+            return null;
+        }
+    }
+
+    /**
+     * Base class of {@link Derived} and {@link Frame}.
+     */
+    public static abstract class BaseDerived extends Implementation
     {
         /** The texture reference. */
         @Editable(nullable=true)
@@ -1117,11 +1196,27 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public Texture getTexture (GlContext ctx)
+        public Texture getTexture (
+            GlContext ctx, TextureState state, TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters)
         {
             TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
-            return (config == null) ? null : config.getTexture(ctx);
+            return (config == null) ? null : config.getTexture(ctx, state, unit, scope, updaters);
         }
+    }
+
+    /**
+     * A derived implementation.
+     */
+    public static class Derived extends BaseDerived
+    {
+    }
+
+    /**
+     * A frame within an animated texture.
+     */
+    public static class Frame extends BaseDerived
+    {
     }
 
     /**
@@ -1166,7 +1261,17 @@ public class TextureConfig extends ParameterizedConfig
      */
     public Texture getTexture (GlContext ctx)
     {
-        return implementation.getTexture(ctx);
+        return getTexture(ctx, null, null, null, null);
+    }
+
+    /**
+     * Returns the (possibly dynamic) texture corresponding to this configuration.
+     */
+    public Texture getTexture (
+        GlContext ctx, TextureState state, TextureUnit unit,
+        Scope scope, ArrayList<Updater> updaters)
+    {
+        return implementation.getTexture(ctx, state, unit, scope, updaters);
     }
 
     @Override // documentation inherited

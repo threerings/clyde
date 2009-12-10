@@ -105,8 +105,12 @@ public class TextureStateConfig extends DeepObject
         }
         TextureState instance = (_instance == null) ? null : _instance.get();
         if (instance == null) {
-            _instance = new SoftReference<TextureState>(
-                instance = createInstance(ctx, scope, updaters));
+            // if the instance adds any updaters, it must be unique; otherwise we can cache it
+            int osize = updaters.size();
+            instance = createInstance(ctx, scope, updaters);
+            if (updaters.size() == osize) {
+                _instance = new SoftReference<TextureState>(instance);
+            }
         }
         return instance;
     }
@@ -125,10 +129,11 @@ public class TextureStateConfig extends DeepObject
     protected TextureState createInstance (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
     {
         TextureUnit[] sunits = new TextureUnit[units.length];
+        TextureState state = new TextureState(sunits);
         for (int ii = 0; ii < units.length; ii++) {
-            sunits[ii] = units[ii].createUnit(ctx, scope, updaters);
+            sunits[ii] = units[ii].createUnit(ctx, state, scope, updaters);
         }
-        return new TextureState(sunits);
+        return state;
     }
 
     /** Cached state instance. */
