@@ -53,11 +53,15 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.FloatExpression;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
+import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Plane;
+import com.threerings.math.Transform3D;
 import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.Texture;
@@ -323,7 +327,8 @@ public class TextureConfig extends ParameterizedConfig
      */
     @EditorTypes({
         Original1D.class, Original2D.class, Original2DTarget.class, OriginalRectangle.class,
-        Original3D.class, OriginalCubeMap.class, Animated.class, Derived.class })
+        Original3D.class, OriginalCubeMap.class, Reflection.class, Refraction.class,
+        CubeRender.class, Animated.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -373,10 +378,9 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     /**
-     * The superclass of the implementations describing an original texture, as opposed to one
-     * derived from another configuration.
+     * Base class for {@link Original} and the dynamic textures that rely on texture configs.
      */
-    public static abstract class Original extends Implementation
+    public static abstract class BaseOriginal extends Implementation
     {
         /** The texture format. */
         @Editable(category="data")
@@ -438,6 +442,26 @@ public class TextureConfig extends ParameterizedConfig
                 compareMode.isSupported(fallback);
         }
 
+        /**
+         * Configures the supplied texture with this config's parameters.
+         */
+        protected void configureTexture (Texture texture)
+        {
+            texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
+            texture.setMaxAnisotropy(maxAnisotropy);
+            texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
+            texture.setBorderColor(borderColor);
+            texture.setCompare(compareMode.getConstant(), compareFunc.getConstant());
+            texture.setDepthMode(depthMode.getConstant());
+        }
+    }
+
+    /**
+     * The superclass of the implementations describing an original texture, as opposed to one
+     * derived from another configuration.
+     */
+    public static abstract class Original extends BaseOriginal
+    {
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
@@ -446,12 +470,7 @@ public class TextureConfig extends ParameterizedConfig
             Texture texture = (_texture == null) ? null : _texture.get();
             if (texture == null) {
                 _texture = new SoftReference<Texture>(texture = createTexture(ctx));
-                texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
-                texture.setMaxAnisotropy(maxAnisotropy);
-                texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
-                texture.setBorderColor(borderColor);
-                texture.setCompare(compareMode.getConstant(), compareFunc.getConstant());
-                texture.setDepthMode(depthMode.getConstant());
+                configureTexture(texture);
             }
             return texture;
         }
@@ -1111,6 +1130,112 @@ public class TextureConfig extends ParameterizedConfig
             TextureCubeMap texture = new TextureCubeMap(ctx.getRenderer());
             contents.load(ctx, texture, format, border, minFilter.isMipmapped());
             return texture;
+        }
+    }
+
+    /**
+     * A planar reflection texture.
+     */
+    public static class Reflection extends BaseOriginal
+    {
+        @Override // documentation inherited
+        public Texture getTexture (
+            final GlContext ctx, final TextureState state, final TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters)
+        {
+            if (updaters == null) {
+                log.warning("Tried to create reflection texture in static context.");
+                return null;
+            }
+            final Dependency.ReflectionTexture dependency = new Dependency.ReflectionTexture();
+            final Transform3D transform = ScopeUtil.resolve(
+                scope, "viewTransform", new Transform3D());
+            updaters.add(new Updater() {
+                public void update () {
+                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                    ctx.getCompositor().addDependency(dependency);
+                    if (dependency.texture == null) {
+
+                    }
+                    unit.setTexture(dependency.texture);
+                    state.setDirty(true);
+                }
+            });
+            return null;
+        }
+    }
+
+    /**
+     * A planar refraction texture.
+     */
+    public static class Refraction extends BaseOriginal
+    {
+        /** The refraction ratio (index of refraction below the surface
+         * over index of refraction above the surface). */
+        @Editable(min=0.0, step=0.01, weight=-1)
+        public float ratio = 1f;
+
+        @Override // documentation inherited
+        public Texture getTexture (
+            final GlContext ctx, final TextureState state, final TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters)
+        {
+            if (updaters == null) {
+                log.warning("Tried to create refraction texture in static context.");
+                return null;
+            }
+            final Dependency.RefractionTexture dependency = new Dependency.RefractionTexture();
+            dependency.ratio = ratio;
+            final Transform3D transform = ScopeUtil.resolve(
+                scope, "viewTransform", new Transform3D());
+            updaters.add(new Updater() {
+                public void update () {
+                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                    ctx.getCompositor().addDependency(dependency);
+                    if (dependency.texture == null) {
+
+                    }
+                    unit.setTexture(dependency.texture);
+                    state.setDirty(true);
+                }
+            });
+            return null;
+        }
+    }
+
+    /**
+     * A dynamically rendered cube map.
+     */
+    public static class CubeRender extends BaseOriginal
+    {
+        /** The size of the faces. */
+        @Editable(min=1, weight=-1)
+        public int size = 1;
+
+        @Override // documentation inherited
+        public Texture getTexture (
+            final GlContext ctx, final TextureState state, final TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters)
+        {
+            if (updaters == null) {
+                log.warning("Tried to create cube render texture in static context.");
+                return null;
+            }
+            final Dependency.CubeTexture dependency = new Dependency.CubeTexture();
+            final Transform3D transform = ScopeUtil.resolve(
+                scope, "viewTransform", new Transform3D());
+            updaters.add(new Updater() {
+                public void update () {
+                    transform.extractTranslation(dependency.origin);
+                    ctx.getCompositor().addDependency(dependency);
+                    if (dependency.texture == null) {
+
+                    }
+                    unit.setTexture(dependency.texture);
+                    state.setDirty(true);
+                }
+            });
+            return null;
         }
     }
 

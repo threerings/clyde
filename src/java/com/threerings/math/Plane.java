@@ -121,6 +121,16 @@ public class Plane
     }
 
     /**
+     * Sets this plane based on a point on the plane and the plane normal.
+     *
+     * @return a reference to the plane (for chaining).
+     */
+    public Plane fromPointNormal (Vector3f pt, Vector3f normal)
+    {
+        return set(normal, -normal.dot(pt));
+    }
+
+    /**
      * Copies the parameters of another plane.
      *
      * @return a reference to this plane (for chaining).
@@ -160,6 +170,39 @@ public class Plane
         _normal.set(a, b, c);
         constant = d;
         return this;
+    }
+
+    /**
+     * Transforms this plane in-place by the specified transformation.
+     *
+     * @return a reference to this plane, for chaining.
+     */
+    public Plane transformLocal (Transform3D transform)
+    {
+        return transform(transform, this);
+    }
+
+    /**
+     * Transforms this plane by the specified transformation.
+     *
+     * @return a new plane containing the result.
+     */
+    public Plane transform (Transform3D transform)
+    {
+        return transform(transform, new Plane());
+    }
+
+    /**
+     * Transforms this plane by the specified transformation, placing the result in the object
+     * provided.
+     *
+     * @return a reference to the result plane, for chaining.
+     */
+    public Plane transform (Transform3D transform, Plane result)
+    {
+        transform.transformPointLocal(_normal.mult(-constant, _v1));
+        transform.transformVector(_normal, _v2).normalizeLocal();
+        return result.fromPointNormal(_v1, _v2);
     }
 
     /**

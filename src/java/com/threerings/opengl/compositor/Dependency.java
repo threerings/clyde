@@ -27,6 +27,7 @@ package com.threerings.opengl.compositor;
 import com.threerings.math.Plane;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.renderer.Light;
@@ -101,9 +102,9 @@ public abstract class Dependency
         public Texture texture;
 
         @Override // documentation inherited
-        public boolean equals (Object other)
+        public void merge (Dependency dependency)
         {
-            return super.equals(other) && ((PlanarTexture)other).texture == texture;
+            texture = ((PlanarTexture)dependency).texture;
         }
     }
 
@@ -127,6 +128,36 @@ public abstract class Dependency
         public boolean equals (Object other)
         {
             return super.equals(other) && ((RefractionTexture)other).ratio == ratio;
+        }
+    }
+
+    /**
+     * A cube map texture.
+     */
+    public static class CubeTexture extends Dependency
+    {
+        /** The render origin in eye space. */
+        public Vector3f origin = new Vector3f();
+
+        /** The texture to which we render. */
+        public Texture texture;
+
+        @Override // documentation inherited
+        public void merge (Dependency dependency)
+        {
+            texture = ((CubeTexture)dependency).texture;
+        }
+
+        @Override // documentation inherited
+        public int hashCode ()
+        {
+            return origin.hashCode();
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            return getClass() == other.getClass() && ((CubeTexture)other).origin.equals(origin);
         }
     }
 
@@ -167,45 +198,9 @@ public abstract class Dependency
         public Texture texture;
 
         @Override // documentation inherited
-        public boolean equals (Object other)
+        public void merge (Dependency dependency)
         {
-            return super.equals(other) && ((ShadowTexture)other).texture == texture;
-        }
-    }
-
-    /**
-     * A texture projection.
-     */
-    public static class TextureProjection extends Dependency
-    {
-        /** The texture to project. */
-        public Texture texture;
-
-        /** The projection frustum parameters. */
-        public float left = -1f, right = +1f, bottom = -1f, top = +1f, near = +1f, far = -1f;
-
-        /** Whether or not to use an orthographic projection. */
-        public boolean ortho = true;
-
-        /** The eye space frustum transform. */
-        public Transform3D transform = new Transform3D();
-
-        @Override // documentation inherited
-        public int hashCode ()
-        {
-            return texture.hashCode() + 31*transform.hashCode();
-        }
-
-        @Override // documentation inherited
-        public boolean equals (Object other)
-        {
-            if (!(other instanceof TextureProjection)) {
-                return false;
-            }
-            TextureProjection oproj = (TextureProjection)other;
-            return texture == oproj.texture && left == oproj.left && right == oproj.right &&
-                bottom == oproj.bottom && top == oproj.top && near == oproj.near &&
-                far == oproj.far && transform.equals(oproj.transform);
+            texture = ((ShadowTexture)dependency).texture;
         }
     }
 
