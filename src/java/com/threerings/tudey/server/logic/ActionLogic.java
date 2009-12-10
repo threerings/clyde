@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 
 import com.google.inject.Inject;
 
+import com.samskivert.util.Interval;
 import com.samskivert.util.RandomUtil;
 
 import com.threerings.crowd.data.BodyObject;
@@ -455,6 +456,44 @@ public abstract class ActionLogic extends Logic
 
         /** Logic objects for the actions. */
         protected ActionLogic[] _actions;
+    }
+
+    /**
+     * Handles a delayed action.
+     */
+    public static class Delayed extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, final Logic activator)
+        {
+            (_interval = new Interval(_scenemgr) {
+                public void expired () {
+                    _action.execute(_scenemgr.getTimestamp(), activator);
+                }
+            }).schedule((long)((ActionConfig.Delayed)_config).delay);
+            return true;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _action = createAction(((ActionConfig.Delayed)_config).action, _source);
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            _action.removed();
+            if (_interval != null) {
+                _interval.cancel();
+            }
+        }
+
+        /** The action. */
+        protected ActionLogic _action;
+
+        /** The time interval. */
+        protected Interval _interval;
     }
 
     /**

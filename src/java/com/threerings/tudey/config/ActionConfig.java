@@ -48,7 +48,7 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.FireEffect.class, ActionConfig.Signal.class,
     ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
     ActionConfig.Conditional.class, ActionConfig.Compound.class,
-    ActionConfig.Random.class })
+    ActionConfig.Random.class, ActionConfig.Delayed.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -483,6 +483,46 @@ public abstract class ActionConfig extends DeepObject
         /** The action itself. */
         @Editable
         public ActionConfig action = new SpawnActor();
+    }
+
+    /**
+     * Executes an action after some delay.
+     */
+    public static class Delayed extends ActionConfig
+    {
+        /** The delay. */
+        @Editable(min=0)
+        public int delay;
+
+        /** The action to perform. */
+        @Editable
+        public ActionConfig action = new SpawnActor();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$Delayed";
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            action.getPreloads(cfgmgr, preloads);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            action.invalidate();
+        }
+
+        @Override // documentation inherited
+        public ActionConfig[] getSubActions ()
+        {
+            ActionConfig[] subActions = new ActionConfig[1];
+            subActions[0] = action;
+            return subActions;
+        }
     }
 
     /**
