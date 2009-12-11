@@ -65,6 +65,7 @@ import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -1249,12 +1250,15 @@ public class TextureConfig extends ParameterizedConfig
             updaters.add(new Updater() {
                 public void update () {
                     Plane.XY_PLANE.transform(transform, dependency.plane);
-                    ctx.getCompositor().addDependency(dependency);
+                    Compositor compositor = ctx.getCompositor();
+                    compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);
                         dependency.config = config;
                     }
                     unit.setTexture(dependency.texture);
+                    compositor.getCamera().getTexGenPlanes(
+                        unit.genPlaneS, unit.genPlaneT, unit.genPlaneQ);
                     state.setDirty(true);
                 }
             });
@@ -1292,12 +1296,15 @@ public class TextureConfig extends ParameterizedConfig
             updaters.add(new Updater() {
                 public void update () {
                     Plane.XY_PLANE.transform(transform, dependency.plane);
-                    ctx.getCompositor().addDependency(dependency);
+                    Compositor compositor = ctx.getCompositor();
+                    compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);
                         dependency.config = config;
                     }
                     unit.setTexture(dependency.texture);
+                    compositor.getCamera().getTexGenPlanes(
+                        unit.genPlaneS, unit.genPlaneT, unit.genPlaneQ);
                     state.setDirty(true);
                 }
             });

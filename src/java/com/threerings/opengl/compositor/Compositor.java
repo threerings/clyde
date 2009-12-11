@@ -29,9 +29,12 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.QuickSort;
@@ -53,6 +56,56 @@ import com.threerings.opengl.util.Renderable;
  */
 public class Compositor
 {
+    /**
+     * Represents the saved state of the compositor.
+     */
+    public static class State
+    {
+        /**
+         * Swaps this state with that of the specified compositor.
+         */
+        public void swap (Compositor compositor)
+        {
+            // swap the camera
+            Camera ocamera = _camera;
+            _camera = compositor._camera;
+            compositor._camera = ocamera;
+
+            // the dependencies
+            Map<Dependency, Dependency> odeps = _dependencies;
+            _dependencies = compositor._dependencies;
+            compositor._dependencies = odeps;
+
+            // the effects
+            List<RenderEffect> oeffects = _combinedEffects;
+            _combinedEffects = compositor._combinedEffects;
+            compositor._combinedEffects = oeffects;
+
+            // the color clear skip state
+            boolean oskip = _skipColorClear;
+            _skipColorClear = compositor._skipColorClear;
+            compositor._skipColorClear = oskip;
+
+            // and the group state
+            _groupState.swap(compositor._group);
+        }
+
+        /** The stored camera. */
+        protected Camera _camera = new Camera();
+
+        /** The stored dependencies. */
+        protected Map<Dependency, Dependency> _dependencies = Maps.newHashMap();
+
+        /** The stored combined effects. */
+        protected List<RenderEffect> _combinedEffects = Lists.newArrayList();
+
+        /** The stored color clear skip state. */
+        protected boolean _skipColorClear;
+
+        /** The stored render queue group state. */
+        protected RenderQueue.Group.State _groupState = new RenderQueue.Group.State();
+    }
+
     /**
      * Creates a new compositor.
      */
@@ -179,6 +232,43 @@ public class Compositor
     }
 
     /**
+     * Starts a subrender operation.
+     *
+     * @return the stored compositor state.
+     */
+    public State startSubrender ()
+    {
+        _subrenderDepth++;
+
+        // get a state from the pool and swap it for the compositor state
+        State state = getStateFromPool();
+        state.swap(this);
+        return state;
+    }
+
+    /**
+     * Finishes a subrender operation.
+     *
+     * @param ostate the state to restore.
+     */
+    public void endSubrender (State ostate)
+    {
+        _subrenderDepth--;
+
+        // swap out the state and return it to the pool
+        ostate.swap(this);
+        _statePool.add(new SoftReference<State>(ostate));
+    }
+
+    /**
+     * Returns the currently number of subrender levels.
+     */
+    public int getSubrenderDepth ()
+    {
+        return _subrenderDepth;
+    }
+
+    /**
      * Adds an element to the list of render dependencies.
      */
     public void addDependency (Dependency dependency)
@@ -280,6 +370,20 @@ public class Compositor
         _group.renderQueues(RenderQueue.NORMAL_TYPE, minPriority, maxPriority);
     }
 
+    /**
+     * Retrieves a state object from the shared pool.
+     */
+    protected State getStateFromPool ()
+    {
+        for (int ii = _statePool.size() - 1; ii >= 0; ii--) {
+            State state = _statePool.remove(ii).get();
+            if (state != null) {
+                return state;
+            }
+        }
+        return new State();
+    }
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -293,16 +397,16 @@ public class Compositor
     protected Color4f _backgroundColor;
 
     /** The roots of the view. */
-    protected ArrayList<Renderable> _roots = new ArrayList<Renderable>();
+    protected List<Renderable> _roots = Lists.newArrayList();
 
     /** The non-dependency render effects. */
-    protected ArrayList<RenderEffect> _effects = new ArrayList<RenderEffect>();
+    protected List<RenderEffect> _effects = Lists.newArrayList();
 
     /** The current set of dependencies. */
-    protected HashMap<Dependency, Dependency> _dependencies = Maps.newHashMap();
+    protected Map<Dependency, Dependency> _dependencies = Maps.newHashMap();
 
     /** The combined list of render effects. */
-    protected ArrayList<RenderEffect> _combinedEffects = new ArrayList<RenderEffect>();
+    protected List<RenderEffect> _combinedEffects = Lists.newArrayList();
 
     /** When set, indicates that we need not clear the color buffer. */
     protected boolean _skipColorClear;
@@ -310,7 +414,13 @@ public class Compositor
     /** The base render queue group. */
     protected RenderQueue.Group _group;
 
+    /** The current subrender depth. */
+    protected int _subrenderDepth;
+
     /** Cached render effects. */
-    protected IdentityHashMap<RenderEffectConfig, SoftReference<RenderEffect>> _cachedEffects =
+    protected Map<RenderEffectConfig, SoftReference<RenderEffect>> _cachedEffects =
         Maps.newIdentityHashMap();
+
+    /** A pool of state objects to reuse. */
+    protected List<SoftReference<State>> _statePool = Lists.newArrayList();
 }

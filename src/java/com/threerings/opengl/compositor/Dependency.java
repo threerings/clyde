@@ -221,6 +221,12 @@ public abstract class Dependency
         }
 
         @Override // documentation inherited
+        public void resolve ()
+        {
+
+        }
+
+        @Override // documentation inherited
         public void cleanup ()
         {
             config.returnToPool(_ctx, texture);

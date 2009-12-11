@@ -31,6 +31,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
+import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.gui.util.Rectangle;
@@ -234,6 +235,25 @@ public class Camera
     public Vector3f transform (Vector3f point, Vector3f result)
     {
         return _projection.projectPointLocal(_viewTransform.transformPoint(point, result));
+    }
+
+    /**
+     * Populates the supplied vectors with texture coordinate generation planes corresponding
+     * to the camera projection state.
+     */
+    public void getTexGenPlanes (Vector4f s, Vector4f t, Vector4f q)
+    {
+        float rwidth = 1f / (_right - _left);
+        float rheight = 1f / (_top - _bottom);
+        if (_ortho) {
+            s.set(rwidth, 0f, 0f, -_left * rwidth);
+            t.set(0f, rheight, 0f, -_bottom * rheight);
+            q.set(0f, 0f, 0f, 1f);
+        } else {
+            s.set(rwidth, 0f, -0.5f / _near, -0.5f - _left * rwidth);
+            t.set(0f, rheight, -0.5f / _near, -0.5f - _bottom * rheight);
+            q.set(0f, 0f, -1f / _near, 0f);
+        }
     }
 
     /**
