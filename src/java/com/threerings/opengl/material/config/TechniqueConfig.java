@@ -106,7 +106,7 @@ public class TechniqueConfig extends DeepObject
         @Override // documentation inherited
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
-            final Dependency.StencilReflection dependency = new Dependency.StencilReflection();
+            final Dependency.StencilReflection dependency = new Dependency.StencilReflection(ctx);
             return new Executor() {
                 public void execute () {
                     ctx.getCompositor().addDependency(dependency);
@@ -134,7 +134,7 @@ public class TechniqueConfig extends DeepObject
         @Override // documentation inherited
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
-            final Dependency.StencilRefraction dependency = new Dependency.StencilRefraction();
+            final Dependency.StencilRefraction dependency = new Dependency.StencilRefraction(ctx);
             dependency.ratio = ratio;
             return new Executor() {
                 public void execute () {
@@ -164,7 +164,7 @@ public class TechniqueConfig extends DeepObject
         @Override // documentation inherited
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
-            final Dependency.RenderEffect dependency = new Dependency.RenderEffect();
+            final Dependency.RenderEffect dependency = new Dependency.RenderEffect(ctx);
             dependency.config = ctx.getConfigManager().getConfig(
                 RenderEffectConfig.class, renderEffect);
             return new Executor() {

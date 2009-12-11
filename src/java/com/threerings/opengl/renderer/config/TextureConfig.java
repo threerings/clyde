@@ -32,6 +32,7 @@ import java.lang.ref.SoftReference;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 import org.lwjgl.opengl.ARBShadow;
 import org.lwjgl.opengl.ARBTextureBorderClamp;
@@ -40,6 +41,8 @@ import org.lwjgl.opengl.ARBTextureMirroredRepeat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.GLContext;
+
+import com.google.common.collect.Lists;
 
 import com.threerings.io.Streamable;
 
@@ -54,6 +57,7 @@ import com.threerings.expr.FloatExpression;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
 import com.threerings.math.Transform3D;
 import com.threerings.media.image.Colorization;
@@ -369,6 +373,23 @@ public class TextureConfig extends ParameterizedConfig
             Scope scope, ArrayList<Updater> updaters);
 
         /**
+         * Fetches a texture from the shared pool, or returns <code>null</code> if the
+         * implementation doesn't contain a pool.
+         */
+        public Texture getFromPool (GlContext ctx)
+        {
+            return null;
+        }
+
+        /**
+         * Returns a texture to the shared pool.
+         */
+        public void returnToPool (GlContext ctx, Texture texture)
+        {
+            // no-op
+        }
+
+        /**
          * Invalidates any cached data.
          */
         public void invalidate ()
@@ -378,9 +399,10 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     /**
-     * Base class for {@link Original} and the dynamic textures that rely on texture configs.
+     * The superclass of the implementations describing an original texture, as opposed to one
+     * derived from another configuration.
      */
-    public static abstract class BaseOriginal extends Implementation
+    public static abstract class Original extends Implementation
     {
         /** The texture format. */
         @Editable(category="data")
@@ -442,26 +464,6 @@ public class TextureConfig extends ParameterizedConfig
                 compareMode.isSupported(fallback);
         }
 
-        /**
-         * Configures the supplied texture with this config's parameters.
-         */
-        protected void configureTexture (Texture texture)
-        {
-            texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
-            texture.setMaxAnisotropy(maxAnisotropy);
-            texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
-            texture.setBorderColor(borderColor);
-            texture.setCompare(compareMode.getConstant(), compareFunc.getConstant());
-            texture.setDepthMode(depthMode.getConstant());
-        }
-    }
-
-    /**
-     * The superclass of the implementations describing an original texture, as opposed to one
-     * derived from another configuration.
-     */
-    public static abstract class Original extends BaseOriginal
-    {
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
@@ -476,9 +478,31 @@ public class TextureConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public Texture getFromPool (GlContext ctx)
+        {
+            List<SoftReference<Texture>> pool = getPool();
+            for (int ii = pool.size() - 1; ii >= 0; ii--) {
+                Texture texture = pool.remove(ii).get();
+                if (texture != null) {
+                    return texture;
+                }
+            }
+            Texture texture = createTexture(ctx);
+            configureTexture(texture);
+            return texture;
+        }
+
+        @Override // documentation inherited
+        public void returnToPool (GlContext ctx, Texture texture)
+        {
+            getPool().add(new SoftReference<Texture>(texture));
+        }
+
+        @Override // documentation inherited
         public void invalidate ()
         {
             _texture = null;
+            _pool = null;
         }
 
         /**
@@ -486,9 +510,37 @@ public class TextureConfig extends ParameterizedConfig
          */
         protected abstract Texture createTexture (GlContext ctx);
 
+        /**
+         * Configures the supplied texture with this config's parameters.
+         */
+        protected void configureTexture (Texture texture)
+        {
+            texture.setFilters(minFilter.getConstant(), magFilter.getConstant());
+            texture.setMaxAnisotropy(maxAnisotropy);
+            texture.setWrap(wrapS.getConstant(), wrapT.getConstant(), wrapR.getConstant());
+            texture.setBorderColor(borderColor);
+            texture.setCompare(compareMode.getConstant(), compareFunc.getConstant());
+            texture.setDepthMode(depthMode.getConstant());
+        }
+
+        /**
+         * Returns a reference to the (lazily created) texture pool.
+         */
+        protected List<SoftReference<Texture>> getPool ()
+        {
+            if (_pool == null) {
+                _pool = Lists.newArrayList();
+            }
+            return _pool;
+        }
+
         /** The texture corresponding to this configuration. */
         @DeepOmit
         protected transient SoftReference<Texture> _texture;
+
+        /** The pool of unique texture instances. */
+        @DeepOmit
+        protected transient List<SoftReference<Texture>> _pool;
     }
 
     /**
@@ -1134,9 +1186,49 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     /**
+     * Base class of {@link Derived} and related implementations.
+     */
+    public static abstract class BaseDerived extends Implementation
+    {
+        /** The texture reference. */
+        @Editable(nullable=true)
+        public ConfigReference<TextureConfig> texture;
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(TextureConfig.class, texture);
+        }
+
+        @Override // documentation inherited
+        public boolean isSupported (GlContext ctx, boolean fallback)
+        {
+            TextureConfig config = getConfig(ctx);
+            return config == null || config.isSupported(ctx, fallback);
+        }
+
+        @Override // documentation inherited
+        public Texture getTexture (
+            GlContext ctx, TextureState state, TextureUnit unit,
+            Scope scope, ArrayList<Updater> updaters)
+        {
+            TextureConfig config = getConfig(ctx);
+            return (config == null) ? null : config.getTexture(ctx, state, unit, scope, updaters);
+        }
+
+        /**
+         * Attempts to resolve the texture config.
+         */
+        protected TextureConfig getConfig (GlContext ctx)
+        {
+            return ctx.getConfigManager().getConfig(TextureConfig.class, texture);
+        }
+    }
+
+    /**
      * A planar reflection texture.
      */
-    public static class Reflection extends BaseOriginal
+    public static class Reflection extends BaseDerived
     {
         @Override // documentation inherited
         public Texture getTexture (
@@ -1147,7 +1239,11 @@ public class TextureConfig extends ParameterizedConfig
                 log.warning("Tried to create reflection texture in static context.");
                 return null;
             }
-            final Dependency.ReflectionTexture dependency = new Dependency.ReflectionTexture();
+            final TextureConfig config = getConfig(ctx);
+            if (config == null) {
+                return null;
+            }
+            final Dependency.ReflectionTexture dependency = new Dependency.ReflectionTexture(ctx);
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "viewTransform", new Transform3D());
             updaters.add(new Updater() {
@@ -1155,7 +1251,8 @@ public class TextureConfig extends ParameterizedConfig
                     Plane.XY_PLANE.transform(transform, dependency.plane);
                     ctx.getCompositor().addDependency(dependency);
                     if (dependency.texture == null) {
-
+                        dependency.texture = config.getFromPool(ctx);
+                        dependency.config = config;
                     }
                     unit.setTexture(dependency.texture);
                     state.setDirty(true);
@@ -1168,11 +1265,11 @@ public class TextureConfig extends ParameterizedConfig
     /**
      * A planar refraction texture.
      */
-    public static class Refraction extends BaseOriginal
+    public static class Refraction extends BaseDerived
     {
         /** The refraction ratio (index of refraction below the surface
          * over index of refraction above the surface). */
-        @Editable(min=0.0, step=0.01, weight=-1)
+        @Editable(min=0.0, step=0.01)
         public float ratio = 1f;
 
         @Override // documentation inherited
@@ -1184,7 +1281,11 @@ public class TextureConfig extends ParameterizedConfig
                 log.warning("Tried to create refraction texture in static context.");
                 return null;
             }
-            final Dependency.RefractionTexture dependency = new Dependency.RefractionTexture();
+            final TextureConfig config = getConfig(ctx);
+            if (config == null) {
+                return null;
+            }
+            final Dependency.RefractionTexture dependency = new Dependency.RefractionTexture(ctx);
             dependency.ratio = ratio;
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "viewTransform", new Transform3D());
@@ -1193,7 +1294,8 @@ public class TextureConfig extends ParameterizedConfig
                     Plane.XY_PLANE.transform(transform, dependency.plane);
                     ctx.getCompositor().addDependency(dependency);
                     if (dependency.texture == null) {
-
+                        dependency.texture = config.getFromPool(ctx);
+                        dependency.config = config;
                     }
                     unit.setTexture(dependency.texture);
                     state.setDirty(true);
@@ -1206,12 +1308,8 @@ public class TextureConfig extends ParameterizedConfig
     /**
      * A dynamically rendered cube map.
      */
-    public static class CubeRender extends BaseOriginal
+    public static class CubeRender extends BaseDerived
     {
-        /** The size of the faces. */
-        @Editable(min=1, weight=-1)
-        public int size = 1;
-
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
@@ -1221,7 +1319,11 @@ public class TextureConfig extends ParameterizedConfig
                 log.warning("Tried to create cube render texture in static context.");
                 return null;
             }
-            final Dependency.CubeTexture dependency = new Dependency.CubeTexture();
+            final TextureConfig config = getConfig(ctx);
+            if (config == null) {
+                return null;
+            }
+            final Dependency.CubeTexture dependency = new Dependency.CubeTexture(ctx);
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "viewTransform", new Transform3D());
             updaters.add(new Updater() {
@@ -1229,7 +1331,8 @@ public class TextureConfig extends ParameterizedConfig
                     transform.extractTranslation(dependency.origin);
                     ctx.getCompositor().addDependency(dependency);
                     if (dependency.texture == null) {
-
+                        dependency.texture = config.getFromPool(ctx);
+                        dependency.config = config;
                     }
                     unit.setTexture(dependency.texture);
                     state.setDirty(true);
@@ -1290,7 +1393,8 @@ public class TextureConfig extends ParameterizedConfig
             }
             updaters.add(new Updater() {
                 public void update () {
-                    unit.setTexture(textures[Math.round(frame.evaluate()) % textures.length]);
+                    int idx = FloatMath.ifloor(frame.evaluate()) % textures.length;
+                    unit.setTexture(textures[idx < 0 ? (idx + textures.length) : idx]);
                     state.setDirty(true);
                 }
             });
@@ -1299,42 +1403,25 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     /**
-     * Base class of {@link Derived} and {@link Frame}.
-     */
-    public static abstract class BaseDerived extends Implementation
-    {
-        /** The texture reference. */
-        @Editable(nullable=true)
-        public ConfigReference<TextureConfig> texture;
-
-        @Override // documentation inherited
-        public void getUpdateReferences (ConfigReferenceSet refs)
-        {
-            refs.add(TextureConfig.class, texture);
-        }
-
-        @Override // documentation inherited
-        public boolean isSupported (GlContext ctx, boolean fallback)
-        {
-            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
-            return config == null || config.isSupported(ctx, fallback);
-        }
-
-        @Override // documentation inherited
-        public Texture getTexture (
-            GlContext ctx, TextureState state, TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters)
-        {
-            TextureConfig config = ctx.getConfigManager().getConfig(TextureConfig.class, texture);
-            return (config == null) ? null : config.getTexture(ctx, state, unit, scope, updaters);
-        }
-    }
-
-    /**
      * A derived implementation.
      */
     public static class Derived extends BaseDerived
     {
+        @Override // documentation inherited
+        public Texture getFromPool (GlContext ctx)
+        {
+            TextureConfig config = getConfig(ctx);
+            return (config == null) ? null : config.getFromPool(ctx);
+        }
+
+        @Override // documentation inherited
+        public void returnToPool (GlContext ctx, Texture texture)
+        {
+            TextureConfig config = getConfig(ctx);
+            if (config != null) {
+                config.returnToPool(ctx, texture);
+            }
+        }
     }
 
     /**
@@ -1397,6 +1484,22 @@ public class TextureConfig extends ParameterizedConfig
         Scope scope, ArrayList<Updater> updaters)
     {
         return implementation.getTexture(ctx, state, unit, scope, updaters);
+    }
+
+    /**
+     * Returns an instance of this texture from the shared pool.
+     */
+    public Texture getFromPool (GlContext ctx)
+    {
+        return implementation.getFromPool(ctx);
+    }
+
+    /**
+     * Returns an instance of this texture to the shared pool.
+     */
+    public void returnToPool (GlContext ctx, Texture texture)
+    {
+        implementation.returnToPool(ctx, texture);
     }
 
     @Override // documentation inherited

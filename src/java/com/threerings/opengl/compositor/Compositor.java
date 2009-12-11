@@ -152,11 +152,10 @@ public class Compositor
         // add the in-built effects
         _combinedEffects.addAll(_effects);
 
-        // resolve and clear the set of dependencies
+        // resolve the set of dependencies
         for (Dependency dependency : _dependencies.values()) {
-            dependency.resolve(this);
+            dependency.resolve();
         }
-        _dependencies.clear();
 
         // sort the queues in preparation for rendering
         _group.sortQueues();
@@ -169,6 +168,10 @@ public class Compositor
         renderPrevious(_combinedEffects.size());
 
         // clean up
+        for (Dependency dependency : _dependencies.values()) {
+            dependency.cleanup();
+        }
+        _dependencies.clear();
         _skipColorClear = false;
         _group.clearQueues();
         _combinedEffects.clear();

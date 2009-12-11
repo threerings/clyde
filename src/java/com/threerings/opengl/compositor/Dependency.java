@@ -32,6 +32,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Texture;
+import com.threerings.opengl.renderer.config.TextureConfig;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -50,6 +51,14 @@ public abstract class Dependency
 
         /** The bounds of the affected region in normalized device coordinates. */
         public Rect bounds = new Rect();
+
+        /**
+         * Creates a new planar dependency.
+         */
+        public Planar (GlContext ctx)
+        {
+            super(ctx);
+        }
 
         @Override // documentation inherited
         public void merge (Dependency dependency)
@@ -75,6 +84,13 @@ public abstract class Dependency
      */
     public static class StencilReflection extends Planar
     {
+        /**
+         * Creates a new stencil reflection dependency.
+         */
+        public StencilReflection (GlContext ctx)
+        {
+            super(ctx);
+        }
     }
 
     /**
@@ -85,6 +101,14 @@ public abstract class Dependency
         /** The refraction ratio (index of refraction below the surface over index of refraction
          * above the surface). */
         public float ratio = 1f;
+
+        /**
+         * Creates a new stencil refraction dependency.
+         */
+        public StencilRefraction (GlContext ctx)
+        {
+            super(ctx);
+        }
 
         @Override // documentation inherited
         public boolean equals (Object other)
@@ -101,10 +125,30 @@ public abstract class Dependency
         /** The texture to which we render. */
         public Texture texture;
 
+        /** The config from whose pool the texture was created. */
+        public TextureConfig config;
+
+        /**
+         * Creates a new planar texture dependency.
+         */
+        public PlanarTexture (GlContext ctx)
+        {
+            super(ctx);
+        }
+
         @Override // documentation inherited
         public void merge (Dependency dependency)
         {
-            texture = ((PlanarTexture)dependency).texture;
+            super.merge(dependency);
+            PlanarTexture odep = (PlanarTexture)dependency;
+            texture = odep.texture;
+            config = odep.config;
+        }
+
+        @Override // documentation inherited
+        public void cleanup ()
+        {
+            config.returnToPool(_ctx, texture);
         }
     }
 
@@ -113,6 +157,13 @@ public abstract class Dependency
      */
     public static class ReflectionTexture extends PlanarTexture
     {
+        /**
+         * Creates a new reflection texture dependency.
+         */
+        public ReflectionTexture (GlContext ctx)
+        {
+            super(ctx);
+        }
     }
 
     /**
@@ -123,6 +174,14 @@ public abstract class Dependency
         /** The refraction ratio (index of refraction below the surface over index of refraction
          * above the surface). */
         public float ratio = 1f;
+
+        /**
+         * Creates a new refraction texture dependency.
+         */
+        public RefractionTexture (GlContext ctx)
+        {
+            super(ctx);
+        }
 
         @Override // documentation inherited
         public boolean equals (Object other)
@@ -142,10 +201,29 @@ public abstract class Dependency
         /** The texture to which we render. */
         public Texture texture;
 
+        /** The config from whose pool the texture was created. */
+        public TextureConfig config;
+
+        /**
+         * Creates a new cube texture dependency.
+         */
+        public CubeTexture (GlContext ctx)
+        {
+            super(ctx);
+        }
+
         @Override // documentation inherited
         public void merge (Dependency dependency)
         {
-            texture = ((CubeTexture)dependency).texture;
+            CubeTexture odep = (CubeTexture)dependency;
+            texture = odep.texture;
+            config = odep.config;
+        }
+
+        @Override // documentation inherited
+        public void cleanup ()
+        {
+            config.returnToPool(_ctx, texture);
         }
 
         @Override // documentation inherited
@@ -169,6 +247,14 @@ public abstract class Dependency
         /** The light casting the shadows. */
         public Light light;
 
+        /**
+         * Creates a new shadow dependency.
+         */
+        public Shadows (GlContext ctx)
+        {
+            super(ctx);
+        }
+
         @Override // documentation inherited
         public int hashCode ()
         {
@@ -187,6 +273,13 @@ public abstract class Dependency
      */
     public static class ShadowVolumes extends Shadows
     {
+        /**
+         * Creates a new shadow volume dependency.
+         */
+        public ShadowVolumes (GlContext ctx)
+        {
+            super(ctx);
+        }
     }
 
     /**
@@ -197,10 +290,29 @@ public abstract class Dependency
         /** The shadow texture. */
         public Texture texture;
 
+        /** The config from whose pool the texture was created. */
+        public TextureConfig config;
+
+        /**
+         * Creates a new shadow texture dependency.
+         */
+        public ShadowTexture (GlContext ctx)
+        {
+            super(ctx);
+        }
+
         @Override // documentation inherited
         public void merge (Dependency dependency)
         {
-            texture = ((ShadowTexture)dependency).texture;
+            ShadowTexture odep = (ShadowTexture)dependency;
+            texture = odep.texture;
+            config = odep.config;
+        }
+
+        @Override // documentation inherited
+        public void cleanup ()
+        {
+            config.returnToPool(_ctx, texture);
         }
     }
 
@@ -212,10 +324,18 @@ public abstract class Dependency
         /** The configuration of the effect. */
         public RenderEffectConfig config;
 
-        @Override // documentation inherited
-        public void resolve (Compositor compositor)
+        /**
+         * Creates a new render effect dependency.
+         */
+        public RenderEffect (GlContext ctx)
         {
-            compositor.addDependencyEffect(config);
+            super(ctx);
+        }
+
+        @Override // documentation inherited
+        public void resolve ()
+        {
+            _ctx.getCompositor().addDependencyEffect(config);
         }
 
         @Override // documentation inherited
@@ -232,6 +352,14 @@ public abstract class Dependency
     }
 
     /**
+     * Creates a new dependency.
+     */
+    public Dependency (GlContext ctx)
+    {
+        _ctx = ctx;
+    }
+
+    /**
      * Merges another dependency (for which {@link #equals} returns true) into this one.
      */
     public void merge (Dependency dependency)
@@ -242,7 +370,19 @@ public abstract class Dependency
     /**
      * Resolves this dependency.
      */
-    public void resolve (Compositor compositor)
+    public void resolve ()
     {
+        // ...
     }
+
+    /**
+     * Performs any necessary cleanup.
+     */
+    public void cleanup ()
+    {
+        // nothing by default
+    }
+
+    /** The render context. */
+    protected GlContext _ctx;
 }
