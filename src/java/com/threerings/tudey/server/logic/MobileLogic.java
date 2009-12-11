@@ -30,6 +30,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
+import com.threerings.tudey.data.actor.StepLimiter;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActorAdvancer;
@@ -41,6 +42,20 @@ import com.threerings.tudey.util.MobileAdvancer;
 public class MobileLogic extends ActorLogic
     implements TudeySceneManager.TickParticipant, ActorAdvancer.Environment
 {
+    /**
+     * Adds or removes a step limiter.
+     */
+    public void stepLimit (float minDirection, float maxDirection, boolean remove)
+    {
+        StepLimiter limiter = new StepLimiter(minDirection, maxDirection);
+        Mobile mobile = (Mobile)getActor();
+        if (remove) {
+            mobile.removeStepLimiter(limiter);
+        } else {
+            mobile.addStepLimiter(limiter);
+        }
+    }
+
     // documentation inherited from interface TudeySceneManager.TickParticipant
     public boolean tick (int timestamp)
     {

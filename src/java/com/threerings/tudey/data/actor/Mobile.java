@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.data.actor;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
@@ -76,6 +78,34 @@ public class Mobile extends Actor
     }
 
     /**
+     * Adds a step limiter.
+     */
+    public void addStepLimiter (StepLimiter limiter)
+    {
+        if (_limiters == null) {
+            _limiters = new StepLimiter[1];
+            _limiters[0] = limiter;
+        } else {
+            _limiters = ArrayUtil.append(_limiters, limiter);
+        }
+    }
+
+    /**
+     * Removes a step limiter.
+     */
+    public void removeStepLimiter (StepLimiter limiter)
+    {
+        if (_limiters != null) {
+            int idx = ArrayUtil.indexOf(_limiters, limiter);
+            if (idx == 0 && _limiters.length == 1) {
+                _limiters = null;
+            } else if (idx > -1) {
+                _limiters = ArrayUtil.splice(_limiters, idx, 1);
+            }
+        }
+    }
+
+    /**
      * Returns the (base) speed of the actor.
      */
     public float getSpeed ()
@@ -89,6 +119,9 @@ public class Mobile extends Actor
     public void step (float elapsed)
     {
         if (isSet(MOVING)) {
+            if (isLimited(_direction)) {
+                return;
+            }
             float length = getSpeed() * elapsed;
             _translation.addLocal(
                 length * FloatMath.cos(_direction),
@@ -132,6 +165,24 @@ public class Mobile extends Actor
         hash = 31*hash + Float.floatToIntBits(_direction);
         return hash;
     }
+
+    /**
+     * Returns true if a limited stops movement in the direction.
+     */
+    protected boolean isLimited (float direction)
+    {
+        if (_limiters != null) {
+            for (StepLimiter limiter : _limiters) {
+                if (!limiter.canStep(direction)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** The step limiters. */
+    protected StepLimiter[] _limiters;
 
     /** The direction of motion. */
     @DeepOmit

@@ -48,7 +48,8 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.FireEffect.class, ActionConfig.Signal.class,
     ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
     ActionConfig.Conditional.class, ActionConfig.Compound.class,
-    ActionConfig.Random.class, ActionConfig.Delayed.class })
+    ActionConfig.Random.class, ActionConfig.Delayed.class,
+    ActionConfig.StepLimitMobile.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -522,6 +523,40 @@ public abstract class ActionConfig extends DeepObject
             ActionConfig[] subActions = new ActionConfig[1];
             subActions[0] = action;
             return subActions;
+        }
+    }
+
+    /**
+     * Sets a step limiter on mobile.
+     */
+    public static class StepLimitMobile extends ActionConfig
+    {
+        /** If we're setting or removing the limit. */
+        @Editable
+        public boolean remove = false;
+
+        /** The minimum direction. */
+        @Editable(min=-180.0, max=+180.0, scale=Math.PI/180.0, hgroup="m")
+        public float minDirection;
+
+        /** The maximum direction. */
+        @Editable(min=-180.0, max=+180.0, scale=Math.PI/180.0, hgroup="m")
+        public float maxDirection;
+
+        /** The mobile to step limit. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$StepLimitMobile";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
