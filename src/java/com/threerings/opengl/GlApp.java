@@ -90,7 +90,7 @@ public abstract class GlApp extends DynamicScope
         _shadcache = new ShaderCache(this, shouldCheckTimestamps());
 
         // initialize our scoped fields
-        _viewTransform = _compositor.getCamera().getViewTransform();
+        _viewTransform = _viewTransformState.getModelview();
     }
 
     /**
@@ -392,7 +392,7 @@ public abstract class GlApp extends DynamicScope
     protected void enqueueView ()
     {
         // update the view transform state
-        _viewTransformState.getModelview().set(_viewTransform);
+        _viewTransform.set(_compositor.getCamera().getViewTransform());
         _viewTransformState.setDirty(true);
 
         // update the shared axial billboard rotation (this assumes that the camera doesn't
@@ -447,7 +447,7 @@ public abstract class GlApp extends DynamicScope
     @Scoped
     protected String _renderScheme;
 
-    /** A scoped reference to the camera's view transform. */
+    /** A scoped reference to the root view transform. */
     @Scoped
     protected Transform3D _viewTransform;
 

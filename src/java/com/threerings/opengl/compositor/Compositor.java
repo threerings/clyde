@@ -247,6 +247,34 @@ public class Compositor
     }
 
     /**
+     * Performs the actual render operation.
+     */
+    public void performSubrender ()
+    {
+        // enqueue the roots
+        for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
+            _roots.get(ii).enqueue();
+        }
+
+        // sort the queues in preparation for rendering
+        _group.sortQueues();
+
+        // apply the camera state
+        _camera.apply(_ctx.getRenderer());
+
+        // render the queues
+        renderPrevious(0);
+
+        // clean up
+        for (Dependency dependency : _dependencies.values()) {
+            dependency.cleanup();
+        }
+        _dependencies.clear();
+        _skipColorClear = false;
+        _group.clearQueues();
+    }
+
+    /**
      * Finishes a subrender operation.
      *
      * @param ostate the state to restore.

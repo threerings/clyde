@@ -102,6 +102,16 @@ public class Camera
     }
 
     /**
+     * Copies the projection parameters of another camera.
+     */
+    public void setProjection (Camera ocamera)
+    {
+        setProjection(
+            ocamera.getLeft(), ocamera.getRight(), ocamera.getBottom(), ocamera.getTop(),
+            ocamera.getNear(), ocamera.getFar(), ocamera.isOrtho());
+    }
+
+    /**
      * Sets the camera projection parameters.
      */
     public void setProjection (

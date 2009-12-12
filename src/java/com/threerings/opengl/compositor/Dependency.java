@@ -24,14 +24,18 @@
 
 package com.threerings.opengl.compositor;
 
+import org.lwjgl.opengl.PixelFormat;
+
 import com.threerings.math.Plane;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Texture;
+import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.renderer.config.TextureConfig;
 import com.threerings.opengl.util.GlContext;
 
@@ -163,6 +167,27 @@ public abstract class Dependency
         public ReflectionTexture (GlContext ctx)
         {
             super(ctx);
+        }
+
+        @Override // documentation inherited
+        public void resolve ()
+        {
+            Compositor compositor = _ctx.getCompositor();
+            Camera ocamera = compositor.getCamera();
+            Compositor.State cstate = compositor.startSubrender();
+            Camera ncamera = compositor.getCamera();
+            ncamera.setProjection(ocamera);
+            ncamera.getWorldTransform().set(ocamera.getWorldTransform());
+            ncamera.updateTransform();
+            TextureRenderer renderer = TextureRenderer.getInstance(
+                _ctx, texture, null, new PixelFormat(8, 16, 8));
+            renderer.startRender();
+            try {
+                compositor.performSubrender();
+            } finally {
+                renderer.commitRender();
+                compositor.endSubrender(cstate);
+            }
         }
     }
 
