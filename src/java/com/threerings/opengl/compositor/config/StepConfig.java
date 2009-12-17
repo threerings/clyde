@@ -24,7 +24,12 @@
 
 package com.threerings.opengl.compositor.config;
 
+import java.util.List;
+import java.util.Map;
+
 import org.lwjgl.opengl.GL11;
+
+import com.google.common.collect.Maps;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -34,6 +39,9 @@ import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.compositor.Compositor;
+import com.threerings.opengl.compositor.Dependency;
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.material.Surface;
@@ -44,7 +52,6 @@ import com.threerings.opengl.renderer.state.ColorMaskState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.StencilState;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.Renderable;
 
 /**
  * Represents a single step in the process of updating a target.
@@ -207,6 +214,7 @@ public abstract class StepConfig extends DeepObject
         {
             MaterialConfig config = ctx.getConfigManager().getConfig(
                 MaterialConfig.class, material);
+            final Map<Dependency, Dependency> dependencies = Maps.newHashMap();
             final RenderQueue.Group group = new RenderQueue.Group(ctx);
             final Surface surface = new Surface(
                 ctx, scope, GeometryConfig.getQuad(divisionsX, divisionsY), config, group);
@@ -218,11 +226,21 @@ public abstract class StepConfig extends DeepObject
                     GL11.glPushMatrix();
                     GL11.glLoadIdentity();
 
-                    // enqueue, sort, render, clear
-                    surface.enqueue();
+                    // save and replace the dependency map
+                    Compositor compositor = ctx.getCompositor();
+                    Map<Dependency, Dependency> odeps = compositor.getDependencies();
+                    compositor.setDependencies(dependencies);
+
+                    // composite, enqueue, sort, render, clear
+                    surface.composite();
+                    compositor.enqueueEnqueueables();
                     group.sortQueues();
                     group.renderQueues();
                     group.clearQueues();
+
+                    // clear and restore the dependencies
+                    compositor.clearDependencies();
+                    compositor.setDependencies(odeps);
 
                     // restore the projection matrix
                     renderer.setMatrixMode(GL11.GL_PROJECTION);

@@ -40,6 +40,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.camera.Camera;
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.effect.config.BaseParticleSystemConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
@@ -52,6 +53,7 @@ import com.threerings.opengl.util.GlContext;
  * Base class for {@link ParticleSystem} and {@link MetaParticleSystem}.
  */
 public abstract class BaseParticleSystem extends Model.Implementation
+    implements Enqueueable
 {
     /**
      * A single layer of the system.
@@ -292,9 +294,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
         }
 
         /**
-         * Enqueues the layer for rendering.
+         * Composites the layer for rendering.
          */
-        public abstract void enqueue ();
+        public abstract void composite ();
 
         @Override // documentation inherited
         public String getScopeName ()
@@ -421,6 +423,13 @@ public abstract class BaseParticleSystem extends Model.Implementation
         updateFromConfig();
     }
 
+    // documentation inherited from interface Enqueueable
+    public void enqueue ()
+    {
+        // update the view transform
+        _parentViewTransform.compose(_localTransform, _viewTransform);
+    }
+
     @Override // documentation inherited
     public boolean hasCompleted ()
     {
@@ -520,14 +529,14 @@ public abstract class BaseParticleSystem extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
+        // add an enqueueable to initialize the shared state
+        _ctx.getCompositor().addEnqueueable(this);
 
-        // enqueue the layers
+        // composite the layers
         for (Layer layer : _layers) {
-            layer.enqueue();
+            layer.composite();
         }
     }
 

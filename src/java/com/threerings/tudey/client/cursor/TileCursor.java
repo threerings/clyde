@@ -32,11 +32,11 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -58,7 +58,7 @@ public class TileCursor extends EntryCursor
      * The actual cursor implementation.
      */
     public static abstract class Implementation extends SimpleScope
-        implements Tickable, Renderable
+        implements Tickable, Compositable
     {
         /**
          * Creates a new implementation.
@@ -90,8 +90,8 @@ public class TileCursor extends EntryCursor
             // nothing by default
         }
 
-        // documentation inherited from interface Renderable
-        public void enqueue ()
+        // documentation inherited from interface Compositable
+        public void composite ()
         {
             // nothing by default
         }
@@ -164,10 +164,10 @@ public class TileCursor extends EntryCursor
         }
 
         @Override // documentation inherited
-        public void enqueue ()
+        public void composite ()
         {
-            _model.enqueue();
-            _footprint.enqueue();
+            _model.composite();
+            _footprint.composite();
         }
 
         /** The tile configuration. */
@@ -225,9 +225,9 @@ public class TileCursor extends EntryCursor
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        _impl.enqueue();
+        _impl.composite();
     }
 
     @Override // documentation inherited

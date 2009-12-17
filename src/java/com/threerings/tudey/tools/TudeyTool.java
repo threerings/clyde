@@ -194,13 +194,13 @@ public abstract class TudeyTool extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void enqueueView ()
+    protected void compositeView ()
     {
-        super.enqueueView();
+        super.compositeView();
         if (_view != null) {
-            _view.enqueue();
+            _view.composite();
         }
-        _root.enqueue();
+        _root.composite();
     }
 
     /**

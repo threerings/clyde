@@ -33,6 +33,7 @@ import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.effect.config.BaseParticleSystemConfig;
 import com.threerings.opengl.effect.config.MetaParticleSystemConfig;
 import com.threerings.opengl.effect.config.MetaParticleSystemConfig.Alignment;
@@ -51,6 +52,7 @@ public class MetaParticleSystem extends BaseParticleSystem
      * A single layer of the system.
      */
     public static class Layer extends BaseParticleSystem.Layer
+        implements Enqueueable
     {
         /**
          * Creates a new layer.
@@ -59,6 +61,48 @@ public class MetaParticleSystem extends BaseParticleSystem
         {
             super(ctx, parentScope);
             setConfig(config);
+        }
+
+        // documentation inherited from interface Enqueueable
+        public void enqueue ()
+        {
+            // update the view transform
+            if (_config.moveParticlesWithEmitter) {
+                _parentViewTransform.compose(_config.transform, _viewTransform);
+            } else {
+                _viewTransform.set(_ctx.getCompositor().getCamera().getViewTransform());
+            }
+
+            // get the inverse of the view rotation and the view vector
+            Alignment alignment = ((MetaParticleSystemConfig.Layer)_config).alignment;
+            if (alignment != Alignment.FIXED) {
+                _viewTransform.getRotation().invert(_vrot);
+                if (alignment == Alignment.VELOCITY) {
+                    _vrot.transformUnitZ(_view);
+                }
+            }
+
+            // update the model transforms
+            for (int ii = 0; ii < _living.value; ii++) {
+                Model model = _models[ii];
+                if (alignment != Alignment.FIXED) {
+                    Particle particle = _particles[ii];
+                    if (alignment == Alignment.VELOCITY) {
+                        Vector3f velocity = particle.getVelocity();
+                        _view.cross(velocity, _t);
+                        float length = _t.length();
+                        if (length > FloatMath.EPSILON) {
+                            _t.multLocal(1f / length);
+                            velocity.normalize(_s);
+                            _s.cross(_t, _r);
+                            _vrot.fromAxes(_s, _t, _r);
+                        } else {
+                            _vrot.set(Quaternion.IDENTITY);
+                        }
+                    }
+                    _vrot.mult(particle.getOrientation(), model.getLocalTransform().getRotation());
+                }
+            }
         }
 
         @Override // documentation inherited
@@ -117,48 +161,17 @@ public class MetaParticleSystem extends BaseParticleSystem
         }
 
         @Override // documentation inherited
-        public void enqueue ()
+        public void composite ()
         {
             if (!_config.visible || _living.value == 0) {
                 return;
             }
-            // update the view transform
-            if (_config.moveParticlesWithEmitter) {
-                _parentViewTransform.compose(_config.transform, _viewTransform);
-            } else {
-                _viewTransform.set(_ctx.getCompositor().getCamera().getViewTransform());
-            }
+            // add an enqueueable to initialize the shared state
+            _ctx.getCompositor().addEnqueueable(this);
 
-            // get the inverse of the view rotation and the view vector
-            Alignment alignment = ((MetaParticleSystemConfig.Layer)_config).alignment;
-            if (alignment != Alignment.FIXED) {
-                _viewTransform.getRotation().invert(_vrot);
-                if (alignment == Alignment.VELOCITY) {
-                    _vrot.transformUnitZ(_view);
-                }
-            }
-
-            // enqueue the models
+            // composite the models
             for (int ii = 0; ii < _living.value; ii++) {
-                Model model = _models[ii];
-                if (alignment != Alignment.FIXED) {
-                    Particle particle = _particles[ii];
-                    if (alignment == Alignment.VELOCITY) {
-                        Vector3f velocity = particle.getVelocity();
-                        _view.cross(velocity, _t);
-                        float length = _t.length();
-                        if (length > FloatMath.EPSILON) {
-                            _t.multLocal(1f / length);
-                            velocity.normalize(_s);
-                            _s.cross(_t, _r);
-                            _vrot.fromAxes(_s, _t, _r);
-                        } else {
-                            _vrot.set(Quaternion.IDENTITY);
-                        }
-                    }
-                    _vrot.mult(particle.getOrientation(), model.getLocalTransform().getRotation());
-                }
-                model.enqueue();
+                _models[ii].composite();
             }
         }
 

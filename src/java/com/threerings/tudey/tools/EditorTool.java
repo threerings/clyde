@@ -45,7 +45,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.MessageBundle;
 
-import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.data.TudeySceneModel;
@@ -61,7 +61,7 @@ import static com.threerings.tudey.Log.*;
  * A tool to use in the scene editor.
  */
 public abstract class EditorTool extends JPanel
-    implements Tickable, Renderable, TudeySceneModel.Observer,
+    implements Tickable, Compositable, TudeySceneModel.Observer,
         MouseListener, MouseMotionListener, MouseWheelListener
 {
     /**
@@ -140,8 +140,8 @@ public abstract class EditorTool extends JPanel
         // nothing by default
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    // documentation inherited from interface Compositable
+    public void composite ()
     {
         // nothing by default
     }

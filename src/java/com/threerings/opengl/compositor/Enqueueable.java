@@ -22,23 +22,15 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.opengl;
-
-import com.threerings.opengl.compositor.Compositable;
-import com.threerings.opengl.util.Tickable;
+package com.threerings.opengl.compositor;
 
 /**
- * A simple interface for OpenGL views.
+ * An interface for objects that can enqueue themselves in one or more {@link RenderQueue}s.
  */
-public interface GlView extends Tickable, Compositable
+public interface Enqueueable
 {
     /**
-     * Notifies the view that it is going to be rendered.
+     * Enqueues this object for rendering.
      */
-    public void wasAdded ();
-
-    /**
-     * Notifies the view that it will no longer be rendered.
-     */
-    public void wasRemoved ();
+    public void enqueue ();
 }

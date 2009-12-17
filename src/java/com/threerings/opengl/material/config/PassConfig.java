@@ -24,13 +24,14 @@
 
 package com.threerings.opengl.material.config;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Executor;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
@@ -171,8 +172,12 @@ public class PassConfig extends DeepObject
 
     /**
      * Creates the set of states for this pass.
+     *
+     * @param executors holds executors to run on composite.
+     * @param updaters holds updaters to run on enqueue.
      */
-    public RenderState[] createStates (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+    public RenderState[] createStates (
+        GlContext ctx, Scope scope, List<Executor> executors, List<Updater> updaters)
     {
         RenderState[] states = RenderState.createEmptySet();
         states[RenderState.ALPHA_STATE] = alphaState.getState();
@@ -194,7 +199,7 @@ public class PassConfig extends DeepObject
         states[RenderState.POINT_STATE] = (pointState == null) ? null : pointState.getState();
         states[RenderState.POLYGON_STATE] = polygonState.getState();
         states[RenderState.STENCIL_STATE] = stencilState.getState();
-        states[RenderState.TEXTURE_STATE] = textureState.getState(ctx, scope, updaters);
+        states[RenderState.TEXTURE_STATE] = textureState.getState(ctx, scope, executors, updaters);
 
         // we create the shader state last because it may depend on the other states
         states[RenderState.SHADER_STATE] = shaderState.getState(ctx, scope, states, updaters);

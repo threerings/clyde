@@ -33,6 +33,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.model.config.CompoundConfig;
 import com.threerings.opengl.model.config.CompoundConfig.ComponentModel;
 import com.threerings.opengl.renderer.Color4f;
@@ -45,6 +46,7 @@ import com.threerings.opengl.util.GlContext;
  * A compound model implementation.
  */
 public class Compound extends Model.Implementation
+    implements Enqueueable
 {
     /**
      * Creates a new compound implementation.
@@ -63,6 +65,13 @@ public class Compound extends Model.Implementation
     {
         _config = config;
         updateFromConfig();
+    }
+
+    // documentation inherited from interface Enqueueable
+    public void enqueue ()
+    {
+        // update the view transform
+        _parentViewTransform.compose(_localTransform, _viewTransform);
     }
 
     @Override // documentation inherited
@@ -188,14 +197,14 @@ public class Compound extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
+        // add an enqueueable to initialize the shared state
+        _ctx.getCompositor().addEnqueueable(this);
 
-        // enqueue the component models
+        // composite the component models
         for (Model model : _models) {
-            model.enqueue();
+            model.composite();
         }
     }
 

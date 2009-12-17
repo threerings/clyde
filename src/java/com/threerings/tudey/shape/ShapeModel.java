@@ -118,9 +118,9 @@ public class ShapeModel extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        _element.enqueue();
+        _element.composite();
     }
 
     @Override // documentation inherited

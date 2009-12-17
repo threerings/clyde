@@ -59,10 +59,10 @@ public class SimpleScene extends Scene
         super(ctx, sources);
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    // documentation inherited from interface Compositable
+    public void composite ()
     {
-        enqueue(_elements, _ctx.getCompositor().getCamera().getWorldVolume());
+        composite(_elements, _ctx.getCompositor().getCamera().getWorldVolume());
     }
 
     @Override // documentation inherited

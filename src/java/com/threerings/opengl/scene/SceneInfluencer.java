@@ -34,6 +34,7 @@ import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.config.SceneInfluencerConfig;
@@ -44,6 +45,7 @@ import com.threerings.opengl.util.GlContext;
  * A model implementation that exerts an influence over scene elements.
  */
 public class SceneInfluencer extends Model.Implementation
+    implements Enqueueable
 {
     /**
      * Creates a new influencer implementation.
@@ -62,6 +64,18 @@ public class SceneInfluencer extends Model.Implementation
     {
         _config = config;
         updateFromConfig();
+    }
+
+    // documentation inherited from interface Enqueueable
+    public void enqueue ()
+    {
+        // update the view transform
+        _parentViewTransform.compose(_localTransform, _viewTransform);
+
+        // update the updaters
+        for (Updater updater : _updaters) {
+            updater.update();
+        }
     }
 
     @Override // documentation inherited
@@ -124,15 +138,9 @@ public class SceneInfluencer extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
-
-        // update the updaters
-        for (Updater updater : _updaters) {
-            updater.update();
-        }
+        _ctx.getCompositor().addEnqueueable(this);
     }
 
     @Override // documentation inherited

@@ -22,15 +22,18 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.opengl.util;
+package com.threerings.opengl.compositor;
 
 /**
- * A generic interface for objects that can enqueue themselves for rendering.
+ * An interface for objects that interact with the {@link Compositor} to form a list of
+ * {@link Dependency}s to resolve before rendering and {@link Enqueueable}s to enqueue for
+ * rendering.
  */
-public interface Renderable
+public interface Compositable
 {
     /**
-     * Enqueues this object for rendering.
+     * Adds this object's {@link Dependency}s and {@link Enqueueable}s to the compositor in
+     * preparation for rendering.
      */
-    public void enqueue ();
+    public void composite ();
 }

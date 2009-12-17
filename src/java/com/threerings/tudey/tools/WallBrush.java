@@ -69,11 +69,11 @@ public class WallBrush extends ConfigTool<WallConfig>
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
         if (_cursorVisible) {
-            _inner.enqueue();
-            _outer.enqueue();
+            _inner.composite();
+            _outer.composite();
         }
     }
 

@@ -388,11 +388,11 @@ public class ParticleEditor extends ModelTool
     }
 
     @Override // documentation inherited
-    protected void enqueueView ()
+    protected void compositeView ()
     {
-        super.enqueueView();
+        super.compositeView();
         if (_showGround.isSelected()) {
-            _ground.enqueue();
+            _ground.composite();
         }
     }
 

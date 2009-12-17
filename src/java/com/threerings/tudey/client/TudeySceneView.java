@@ -59,6 +59,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
 import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.gui.StretchWindow;
 import com.threerings.opengl.gui.Window;
 import com.threerings.opengl.model.Model;
@@ -67,7 +68,6 @@ import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.samskivert.util.Predicate;
@@ -643,10 +643,10 @@ public class TudeySceneView extends SimpleScope
         _scene.tick(_loadingWindow == null ? elapsed : 0f);
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    // documentation inherited from interface Compositable
+    public void composite ()
     {
-        _scene.enqueue();
+        _scene.composite();
     }
 
     // documentation inherited from interface PlaceView

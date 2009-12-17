@@ -105,10 +105,10 @@ public class SelectionCursor extends Cursor
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
         for (int ii = 0, nn = _cursors.size(); ii < nn; ii++) {
-            _cursors.get(ii).enqueue();
+            _cursors.get(ii).composite();
         }
     }
 

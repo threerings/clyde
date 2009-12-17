@@ -35,6 +35,7 @@ import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.effect.config.BaseParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig.GroupPriority;
@@ -52,6 +53,7 @@ public class ParticleSystem extends BaseParticleSystem
      * A single layer of the system.
      */
     public static class Layer extends BaseParticleSystem.Layer
+        implements Enqueueable
     {
         /**
          * Creates a new layer.
@@ -62,36 +64,9 @@ public class ParticleSystem extends BaseParticleSystem
             setConfig(config);
         }
 
-        @Override // documentation inherited
-        public void setConfig (BaseParticleSystemConfig.Layer config)
-        {
-            super.setConfig(config);
-
-            // transform state depends on whether we use local or world coordinates
-            _transformState = config.moveParticlesWithEmitter ? new TransformState() :
-                ScopeUtil.resolve(
-                    _parentScope, "viewTransformState",
-                    TransformState.IDENTITY, TransformState.class);
-
-            // recreate the surface
-            if (_surface != null) {
-                _surface.dispose();
-            }
-            ParticleSystemConfig.Layer psconfig = (ParticleSystemConfig.Layer)config;
-            _surface = new Surface(
-                _ctx, this, psconfig.geometry,
-                _ctx.getConfigManager().getConfig(MaterialConfig.class, psconfig.material));
-
-            // get the geometry radius
-            _geometryRadius = psconfig.geometry.getRadius(_ctx);
-        }
-
-        @Override // documentation inherited
+        // documentation inherited from interface Enqueueable
         public void enqueue ()
         {
-            if (!_config.visible || _living.value == 0) {
-                return;
-            }
             // update the transform state if necessary
             if (_config.moveParticlesWithEmitter) {
                 _parentViewTransform.compose(_config.transform, _transformState.getModelview());
@@ -119,9 +94,43 @@ public class ParticleSystem extends BaseParticleSystem
                     priorityMode.priority * 0.0001f);
                 pointToLayer(_center.addLocal(_vector), false);
             }
+        }
 
-            // enqueue the surface
-            _surface.enqueue();
+        @Override // documentation inherited
+        public void setConfig (BaseParticleSystemConfig.Layer config)
+        {
+            super.setConfig(config);
+
+            // transform state depends on whether we use local or world coordinates
+            _transformState = config.moveParticlesWithEmitter ? new TransformState() :
+                ScopeUtil.resolve(
+                    _parentScope, "viewTransformState",
+                    TransformState.IDENTITY, TransformState.class);
+
+            // recreate the surface
+            if (_surface != null) {
+                _surface.dispose();
+            }
+            ParticleSystemConfig.Layer psconfig = (ParticleSystemConfig.Layer)config;
+            _surface = new Surface(
+                _ctx, this, psconfig.geometry,
+                _ctx.getConfigManager().getConfig(MaterialConfig.class, psconfig.material));
+
+            // get the geometry radius
+            _geometryRadius = psconfig.geometry.getRadius(_ctx);
+        }
+
+        @Override // documentation inherited
+        public void composite ()
+        {
+            if (!_config.visible || _living.value == 0) {
+                return;
+            }
+            // add an enqueueable to initialize the shared state
+            _ctx.getCompositor().addEnqueueable(this);
+
+            // composite the surface
+            _surface.composite();
         }
 
         @Override // documentation inherited

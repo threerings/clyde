@@ -28,6 +28,7 @@ import java.awt.Font;
 
 import com.threerings.math.Box;
 
+import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.UIConstants;
 import com.threerings.opengl.gui.text.CharacterTextFactory;
@@ -134,9 +135,13 @@ public class TextBillboard extends SimpleSceneElement
     @Override // documentation inherited
     public void enqueue ()
     {
+        Compositor compositor = _ctx.getCompositor();
+        if (compositor.getSubrenderDepth() > 0) {
+            return; // don't show up in reflections, etc.
+        }
+
         // rotate to face the camera
-        _transform.getRotation().set(
-            _ctx.getCompositor().getCamera().getWorldTransform().getRotation());
+        _transform.getRotation().set(compositor.getCamera().getWorldTransform().getRotation());
 
         super.enqueue();
     }

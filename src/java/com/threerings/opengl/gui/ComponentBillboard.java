@@ -34,6 +34,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.util.MessageManager;
 
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.config.ComponentBillboardConfig;
 import com.threerings.opengl.gui.util.Dimension;
@@ -52,6 +53,7 @@ import com.threerings.opengl.util.SimpleRenderable;
  * A component billboard model implementation.
  */
 public class ComponentBillboard extends Model.Implementation
+    implements Enqueueable
 {
     /**
      * Creates a new billboard implementation.
@@ -91,6 +93,24 @@ public class ComponentBillboard extends Model.Implementation
     {
         _config = config;
         updateFromConfig();
+    }
+
+    // documentation inherited from interface Enqueueable
+    public void enqueue ()
+    {
+        // update the view transform
+        TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
+        Transform3D modelview = tstate.getModelview();
+        _parentViewTransform.compose(_localTransform, modelview);
+        modelview.getRotation().set(Quaternion.IDENTITY);
+        modelview.setScale(modelview.getScale() * _config.scale);
+        tstate.setDirty(true);
+
+        // update the depth
+        _batch.depth = modelview.transformPointZ(Vector3f.ZERO);
+
+        // enqueue our batch
+        _queue.add(_batch);
     }
 
     @Override // documentation inherited
@@ -133,21 +153,9 @@ public class ComponentBillboard extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        // update the view transform
-        TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
-        Transform3D modelview = tstate.getModelview();
-        _parentViewTransform.compose(_localTransform, modelview);
-        modelview.getRotation().set(Quaternion.IDENTITY);
-        modelview.setScale(modelview.getScale() * _config.scale);
-        tstate.setDirty(true);
-
-        // update the depth
-        _batch.depth = modelview.transformPointZ(Vector3f.ZERO);
-
-        // enqueue our batch
-        _queue.add(_batch);
+        _ctx.getCompositor().addEnqueueable(this);
     }
 
     /**

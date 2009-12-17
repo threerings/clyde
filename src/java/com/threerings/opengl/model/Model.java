@@ -50,6 +50,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
@@ -71,7 +72,6 @@ import com.threerings.opengl.scene.SceneInfluenceSet;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;
 import com.threerings.opengl.util.Intersectable;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import static com.threerings.opengl.Log.*;
@@ -86,8 +86,11 @@ public class Model extends DynamicScope
      * The actual model implementation.
      */
     public static abstract class Implementation extends SimpleScope
-        implements Tickable, Intersectable, Renderable
+        implements Tickable, Intersectable, Compositable
     {
+        /**
+         * Creates a new implementation.
+         */
         public Implementation (Scope parentScope)
         {
             super(parentScope);
@@ -259,8 +262,8 @@ public class Model extends DynamicScope
             return false;
         }
 
-        // documentation inherited from interface Renderable
-        public void enqueue ()
+        // documentation inherited from interface Compositable
+        public void composite ()
         {
             // nothing by default
         }
@@ -911,11 +914,11 @@ public class Model extends DynamicScope
         return _impl.getIntersection(ray, result);
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    // documentation inherited from interface Compositable
+    public void composite ()
     {
         if (_visible) {
-            _impl.enqueue();
+            _impl.composite();
         }
     }
 
@@ -1164,7 +1167,5 @@ public class Model extends DynamicScope
     protected static CompletedOp _completedOp = new CompletedOp();
 
     /** An implementation that does nothing. */
-    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
-        public void enqueue () { }
-    };
+    protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) { };
 }

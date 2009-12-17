@@ -87,10 +87,10 @@ public class Eraser extends EditorTool
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
         if (_cursorVisible) {
-            _cursor.enqueue();
+            _cursor.composite();
         }
     }
 

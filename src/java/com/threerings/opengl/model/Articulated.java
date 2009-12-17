@@ -45,6 +45,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ArticulatedConfig;
@@ -68,11 +69,13 @@ import static com.threerings.opengl.Log.*;
  * An articulated model implementation.
  */
 public class Articulated extends Model.Implementation
+    implements Enqueueable
 {
     /**
      * A node in the model.
      */
     public static class Node extends SimpleScope
+        implements Enqueueable
     {
         /** The value of the update counter at the last update (used when applying animation
          * transforms to determine which transform is being applied first). */
@@ -85,10 +88,10 @@ public class Articulated extends Model.Implementation
          * Creates a new node.
          */
         public Node (
-            Scope parentScope, ArticulatedConfig.Node config,
+            GlContext ctx, Scope parentScope, ArticulatedConfig.Node config,
             Transform3D parentWorldTransform, Transform3D parentViewTransform)
         {
-            super(parentScope);
+            this(ctx, parentScope);
             _viewTransform = new Transform3D(Transform3D.UNIFORM);
             setConfig(config, parentWorldTransform, parentViewTransform);
         }
@@ -211,8 +214,15 @@ public class Articulated extends Model.Implementation
         }
 
         /**
-         * Enqueues this node for rendering.
+         * Composites this node.
          */
+        public void composite ()
+        {
+            // add an enqueueable to initialize the shared state
+            _ctx.getCompositor().addEnqueueable(this);
+        }
+
+        // documentation inherited from interface Enqueueable
         public void enqueue ()
         {
             // update the local transform with the most recent parent view transform
@@ -239,10 +249,14 @@ public class Articulated extends Model.Implementation
         /**
          * Constructor for subclasses.
          */
-        protected Node (Scope parentScope)
+        protected Node (GlContext ctx, Scope parentScope)
         {
             super(parentScope);
+            _ctx = ctx;
         }
+
+        /** The renderer context. */
+        protected GlContext _ctx;
 
         /** The node configuration. */
         protected ArticulatedConfig.Node _config;
@@ -280,10 +294,10 @@ public class Articulated extends Model.Implementation
          * Creates a new mesh node.
          */
         public MeshNode (
-            Scope parentScope, ArticulatedConfig.MeshNode config,
+            GlContext ctx, Scope parentScope, ArticulatedConfig.MeshNode config,
             Transform3D parentWorldTransform, Transform3D parentViewTransform)
         {
-            super(parentScope);
+            super(ctx, parentScope);
             _viewTransform = _transformState.getModelview();
             setConfig(config, parentWorldTransform, parentViewTransform);
         }
@@ -326,13 +340,19 @@ public class Articulated extends Model.Implementation
         }
 
         @Override // documentation inherited
+        public void composite ()
+        {
+            super.composite();
+            if (_surface != null) {
+                _surface.composite();
+            }
+        }
+
+        @Override // documentation inherited
         public void enqueue ()
         {
             super.enqueue();
-            if (_surface != null) {
-                _transformState.setDirty(true);
-                _surface.enqueue();
-            }
+            _transformState.setDirty(true);
         }
 
         @Override // documentation inherited
@@ -396,6 +416,13 @@ public class Articulated extends Model.Implementation
     public Node getNode (String name)
     {
         return _nodesByName.get(name);
+    }
+
+    // documentation inherited from interface Enqueueable
+    public void enqueue ()
+    {
+        // update the view transform
+        _parentViewTransform.compose(_localTransform, _viewTransform);
     }
 
     @Override // documentation inherited
@@ -674,29 +701,29 @@ public class Articulated extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        // update the view transform
-        _parentViewTransform.compose(_localTransform, _viewTransform);
+        // add an enqueueable to initialize the shared state
+        _ctx.getCompositor().addEnqueueable(this);
 
-        // update/enqueue the nodes
+        // composite the nodes
         for (Node node : _nodes) {
-            node.enqueue();
+            node.composite();
         }
 
-        // enqueue the surfaces
+        // composite the surfaces
         for (Surface surface : _surfaces) {
-            surface.enqueue();
+            surface.composite();
         }
 
-        // enqueue the configured attachments
+        // composite the configured attachments
         for (Model model : _configAttachments) {
-            model.enqueue();
+            model.composite();
         }
 
         // and the user attachments
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
-            _userAttachments.get(ii).enqueue();
+            _userAttachments.get(ii).composite();
         }
     }
 
@@ -732,7 +759,8 @@ public class Articulated extends Model.Implementation
 
         // create the node list
         ArrayList<Node> nnodes = new ArrayList<Node>(8);
-        _config.root.getArticulatedNodes(this, onodes, nnodes, _worldTransform, _viewTransform);
+        _config.root.getArticulatedNodes(
+            _ctx, this, onodes, nnodes, _worldTransform, _viewTransform);
         _nodes = nnodes.toArray(new Node[nnodes.size()]);
         for (Node node : onodes.values()) {
             node.dispose(); // dispose of the unrecycled old nodes

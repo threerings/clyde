@@ -24,7 +24,7 @@
 
 package com.threerings.opengl.renderer.util;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
@@ -49,8 +49,7 @@ public class SnippetUtil
      * Creates a fog parameter snippet.
      */
     public static void getFogParam (
-        String name, String eyeVertex, String fogParam, RenderState[] states,
-        ArrayList<String> defs)
+        String name, String eyeVertex, String fogParam, RenderState[] states, List<String> defs)
     {
         FogState state = (FogState)states[RenderState.FOG_STATE];
         int mode = (state == null) ? -1 : state.getFogMode();
@@ -72,7 +71,7 @@ public class SnippetUtil
      * Creates a fog blend snippet.
      */
     public static void getFogBlend (
-        String name, String fogParam, RenderState[] states, ArrayList<String> defs)
+        String name, String fogParam, RenderState[] states, List<String> defs)
     {
         FogState state = (FogState)states[RenderState.FOG_STATE];
         int mode = (state == null) ? -1 : state.getFogMode();
@@ -90,8 +89,7 @@ public class SnippetUtil
      * Retrieves a tex coord snippet.
      */
     public static void getTexCoord (
-        String name, String eyeVertex, String eyeNormal, RenderState[] states,
-        ArrayList<String> defs)
+        String name, String eyeVertex, String eyeNormal, RenderState[] states, List<String> defs)
     {
         TextureState state = (TextureState)states[RenderState.TEXTURE_STATE];
         TextureUnit[] units = (state == null) ? null : state.getUnits();
@@ -108,7 +106,7 @@ public class SnippetUtil
      */
     public static void getVertexLighting (
         String name, String eyeVertex, String eyeNormal, RenderState[] states,
-        boolean vertexProgramTwoSide, ArrayList<String> defs)
+        boolean vertexProgramTwoSide, List<String> defs)
     {
         CullState cstate = (CullState)states[RenderState.CULL_STATE];
         LightState lstate = (LightState)states[RenderState.LIGHT_STATE];

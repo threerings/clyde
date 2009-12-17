@@ -26,7 +26,7 @@ package com.threerings.tudey.client.cursor;
 
 import com.threerings.expr.SimpleScope;
 
-import com.threerings.opengl.util.Renderable;
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -36,7 +36,7 @@ import com.threerings.tudey.util.TudeyContext;
  * Base class for cursors (representations used when placing objects).
  */
 public abstract class Cursor extends SimpleScope
-    implements Tickable, Renderable
+    implements Tickable, Compositable
 {
     /**
      * Creates the cursor.
@@ -53,8 +53,8 @@ public abstract class Cursor extends SimpleScope
         // nothing by default
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    // documentation inherited from interface Compositable
+    public void composite ()
     {
         // nothing by default
     }

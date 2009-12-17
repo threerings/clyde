@@ -24,7 +24,7 @@
 
 package com.threerings.opengl.renderer.config;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -116,7 +116,7 @@ public abstract class LightConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Light createLight (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        public Light createLight (GlContext ctx, Scope scope, List<Updater> updaters)
         {
             Light light = super.createLight(ctx, scope, updaters);
             light.constantAttenuation = attenuation.constant;
@@ -169,7 +169,7 @@ public abstract class LightConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Light createLight (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        public Light createLight (GlContext ctx, Scope scope, List<Updater> updaters)
         {
             Light light = super.createLight(ctx, scope, updaters);
             light.spotExponent = falloff.exponent;
@@ -265,7 +265,7 @@ public abstract class LightConfig extends DeepObject
     /**
      * Creates a light object corresponding to this configuration.
      */
-    public Light createLight (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+    public Light createLight (GlContext ctx, Scope scope, List<Updater> updaters)
     {
         Light light = new Light();
         light.ambient.set(colors.ambient);

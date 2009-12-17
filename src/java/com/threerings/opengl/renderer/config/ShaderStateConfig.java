@@ -24,9 +24,11 @@
 
 package com.threerings.opengl.renderer.config;
 
+import java.util.List;
+
 import org.lwjgl.opengl.GLContext;
 
-import java.util.ArrayList;
+import com.google.common.collect.Lists;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -66,7 +68,7 @@ public abstract class ShaderStateConfig extends DeepObject
 
         @Override // documentation inherited
         public ShaderState getState (
-            GlContext ctx, Scope scope, RenderState[] states, ArrayList<Updater> updaters)
+            GlContext ctx, Scope scope, RenderState[] states, List<Updater> updaters)
         {
             return ShaderState.DISABLED;
         }
@@ -116,7 +118,7 @@ public abstract class ShaderStateConfig extends DeepObject
 
         @Override // documentation inherited
         public ShaderState getState (
-            GlContext ctx, Scope scope, RenderState[] states, ArrayList<Updater> updaters)
+            GlContext ctx, Scope scope, RenderState[] states, List<Updater> updaters)
         {
             ShaderConfig vconfig = getShaderConfig(ctx, vertex);
             ShaderConfig fconfig = getShaderConfig(ctx, fragment);
@@ -131,7 +133,7 @@ public abstract class ShaderStateConfig extends DeepObject
             if (program == null) {
                 return ShaderState.DISABLED;
             }
-            ArrayList<Uniform> uniforms = new ArrayList<Uniform>();
+            List<Uniform> uniforms = Lists.newArrayList();
             if (vshader != null) {
                 PassDescriptor desc = new PassDescriptor();
                 vconfig.populateDescriptor(ctx, desc);
@@ -198,5 +200,5 @@ public abstract class ShaderStateConfig extends DeepObject
      * Returns the corresponding shader state.
      */
     public abstract ShaderState getState (
-        GlContext ctx, Scope scope, RenderState[] states, ArrayList<Updater> updaters);
+        GlContext ctx, Scope scope, RenderState[] states, List<Updater> updaters);
 }

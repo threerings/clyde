@@ -142,22 +142,22 @@ public abstract class GlCanvasTool extends GlCanvasApp
     }
 
     @Override // documentation inherited
-    protected void enqueueView ()
+    protected void compositeView ()
     {
-        super.enqueueView();
+        super.compositeView();
 
-        // enqueue the various renderables
+        // composite the various renderables
         if (_showGrid != null && _showGrid.isSelected()) {
-            _grid.enqueue();
+            _grid.composite();
         }
         if (_bounds != null && _showBounds.isSelected()) {
-            _bounds.enqueue();
+            _bounds.composite();
         }
         if (_showCompass != null && _showCompass.isSelected()) {
-            _compass.enqueue();
+            _compass.composite();
         }
         if (_showStats.isSelected()) {
-            _stats.enqueue();
+            _stats.composite();
         }
     }
 

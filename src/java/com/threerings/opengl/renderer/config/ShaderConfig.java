@@ -26,8 +26,10 @@ package com.threerings.opengl.renderer.config;
 
 import java.text.DecimalFormat;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.HashSet;
+
+import com.google.common.collect.Lists;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -200,7 +202,7 @@ public class ShaderConfig extends ParameterizedConfig
                 if (file == null) {
                     return null;
                 }
-                ArrayList<String> defs = new ArrayList<String>();
+                List<String> defs = Lists.newArrayList();
                 for (Definition definition : definitions) {
                     definition.getDefinitions(scope, states, vertexProgramTwoSide, defs);
                 }
@@ -296,7 +298,7 @@ public class ShaderConfig extends ParameterizedConfig
                 if (file == null) {
                     return null;
                 }
-                ArrayList<String> defs = new ArrayList<String>();
+                List<String> defs = Lists.newArrayList();
                 for (Definition definition : definitions) {
                     definition.getDefinitions(scope, states, vertexProgramTwoSide, defs);
                 }
@@ -396,8 +398,7 @@ public class ShaderConfig extends ParameterizedConfig
          * Creates the uniform objects for this config and adds them to the provided list.
          */
         public abstract void createUniforms (
-            Scope scope, Program program, ArrayList<Uniform> uniforms,
-            ArrayList<Updater> updaters);
+            Scope scope, Program program, List<Uniform> uniforms, List<Updater> updaters);
     }
 
     /**
@@ -407,8 +408,7 @@ public class ShaderConfig extends ParameterizedConfig
     {
         @Override // documentation inherited
         public void createUniforms (
-            Scope scope, Program program, ArrayList<Uniform> uniforms,
-            ArrayList<Updater> updaters)
+            Scope scope, Program program, List<Uniform> uniforms, List<Updater> updaters)
         {
             int location = program.getUniformLocation(name);
             if (location != -1) {
@@ -513,15 +513,14 @@ public class ShaderConfig extends ParameterizedConfig
     {
         @Override // documentation inherited
         public void createUniforms (
-            Scope scope, Program program, ArrayList<Uniform> uniforms,
-            ArrayList<Updater> updaters)
+            Scope scope, Program program, List<Uniform> uniforms, List<Updater> updaters)
         {
             // look up the array values
             T[] values = ScopeUtil.resolve(scope, name, null, getArrayClass());
             if (values == null) {
                 return;
             }
-            ArrayList<Uniform> list = new ArrayList<Uniform>();
+            List<Uniform> list = Lists.newArrayList();
             for (int ii = 0; ii < values.length; ii++) {
                 int location = program.getUniformLocation(name + "[" + ii + "]");
                 if (location != -1) {
@@ -597,8 +596,7 @@ public class ShaderConfig extends ParameterizedConfig
          * Retrieves the definitions for this config and adds them to the provided list.
          */
         public abstract void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs);
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs);
     }
 
     /**
@@ -612,8 +610,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             if (value) {
                 defs.add(name);
@@ -632,8 +629,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             defs.add(name + " vec4(" +
                 GLSL_FLOAT.format(value.r) + ", " +
@@ -654,8 +650,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             defs.add(name + " " + GLSL_FLOAT.format(value));
         }
@@ -672,8 +667,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             defs.add(name + " " + value);
         }
@@ -690,8 +684,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             defs.add(name + " " + value);
         }
@@ -708,8 +701,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             value.update(Transform3D.GENERAL);
             Matrix4f matrix = value.getMatrix();
@@ -752,8 +744,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             SnippetUtil.getFogParam(name, eyeVertex, fogParam, states, defs);
         }
@@ -771,8 +762,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             SnippetUtil.getFogBlend(name, fogParam, states, defs);
         }
@@ -794,8 +784,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             SnippetUtil.getTexCoord(name, eyeVertex, eyeNormal, states, defs);
         }
@@ -817,8 +806,7 @@ public class ShaderConfig extends ParameterizedConfig
 
         @Override // documentation inherited
         public void getDefinitions (
-            Scope scope, RenderState[] states, boolean vertexProgramTwoSide,
-            ArrayList<String> defs)
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
             SnippetUtil.getVertexLighting(
                 name, eyeVertex, eyeNormal, states, vertexProgramTwoSide, defs);

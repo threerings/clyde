@@ -30,9 +30,9 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -55,7 +55,7 @@ public class AreaCursor extends EntryCursor
      * The actual cursor implementation.
      */
     public static abstract class Implementation extends SimpleScope
-        implements Tickable, Renderable
+        implements Tickable, Compositable
     {
         /**
          * Creates a new implementation.
@@ -87,8 +87,8 @@ public class AreaCursor extends EntryCursor
             // nothing by default
         }
 
-        // documentation inherited from interface Renderable
-        public void enqueue ()
+        // documentation inherited from interface Compositable
+        public void composite ()
         {
             // nothing by default
         }
@@ -169,16 +169,16 @@ public class AreaCursor extends EntryCursor
         }
 
         @Override // documentation inherited
-        public void enqueue ()
+        public void composite ()
         {
             for (Model model : _vertices) {
-                model.enqueue();
+                model.composite();
             }
             for (Model model : _edges) {
-                model.enqueue();
+                model.composite();
             }
-            _footprint.enqueue();
-            _area.enqueue();
+            _footprint.composite();
+            _area.composite();
         }
 
         /** The renderer context. */
@@ -242,9 +242,9 @@ public class AreaCursor extends EntryCursor
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        _impl.enqueue();
+        _impl.composite();
     }
 
     @Override // documentation inherited

@@ -26,14 +26,14 @@ package com.threerings.opengl.scene;
 
 import com.threerings.math.Box;
 
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.util.Intersectable;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 /**
  * Interface for elements that can be embedded into scenes.
  */
-public interface SceneElement extends SceneObject, Tickable, Intersectable, Renderable
+public interface SceneElement extends SceneObject, Tickable, Intersectable, Compositable
 {
     /** Determines when the {@link #tick} method must be called. */
     public enum TickPolicy { DEFAULT, NEVER, WHEN_VISIBLE, ALWAYS };

@@ -49,7 +49,6 @@ import com.threerings.opengl.renderer.state.ColorMaskState;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.StencilState;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.Renderable;
 
 /**
  * Handles the process of compositing the view from its various elements.
@@ -76,6 +75,11 @@ public class Compositor
             _dependencies = compositor._dependencies;
             compositor._dependencies = odeps;
 
+            // the enqueueables
+            List<Enqueueable> oenqs = _enqueueables;
+            _enqueueables = compositor._enqueueables;
+            compositor._enqueueables = oenqs;
+
             // the effects
             List<RenderEffect> oeffects = _combinedEffects;
             _combinedEffects = compositor._combinedEffects;
@@ -85,9 +89,6 @@ public class Compositor
             boolean oskip = _skipColorClear;
             _skipColorClear = compositor._skipColorClear;
             compositor._skipColorClear = oskip;
-
-            // and the group state
-            _groupState.swap(compositor._group);
         }
 
         /** The stored camera. */
@@ -96,14 +97,14 @@ public class Compositor
         /** The stored dependencies. */
         protected Map<Dependency, Dependency> _dependencies = Maps.newHashMap();
 
+        /** The stored enqueueables. */
+        protected List<Enqueueable> _enqueueables = Lists.newArrayList();
+
         /** The stored combined effects. */
         protected List<RenderEffect> _combinedEffects = Lists.newArrayList();
 
         /** The stored color clear skip state. */
         protected boolean _skipColorClear;
-
-        /** The stored render queue group state. */
-        protected RenderQueue.Group.State _groupState = new RenderQueue.Group.State();
     }
 
     /**
@@ -160,7 +161,7 @@ public class Compositor
     /**
      * Adds an element to the list of view roots.
      */
-    public void addRoot (Renderable root)
+    public void addRoot (Compositable root)
     {
         _roots.add(root);
     }
@@ -168,7 +169,7 @@ public class Compositor
     /**
      * Removes an element from the list of view roots.
      */
-    public void removeRoot (Renderable root)
+    public void removeRoot (Compositable root)
     {
         _roots.remove(root);
     }
@@ -194,10 +195,11 @@ public class Compositor
      */
     public void renderView ()
     {
-        // start by requesting that the roots enqueue themselves and register their dependencies
+        // request that the roots register their dependencies and enqueueables
         for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
-            _roots.get(ii).enqueue();
+            _roots.get(ii).composite();
         }
+
         // reset the renderer stats
         Renderer renderer = _ctx.getRenderer();
         renderer.resetStats();
@@ -210,6 +212,9 @@ public class Compositor
             dependency.resolve();
         }
 
+        // enqueue and clear the enqueueables
+        enqueueEnqueueables();
+
         // sort the queues in preparation for rendering
         _group.sortQueues();
 
@@ -221,10 +226,7 @@ public class Compositor
         renderPrevious(_combinedEffects.size());
 
         // clean up
-        for (Dependency dependency : _dependencies.values()) {
-            dependency.cleanup();
-        }
-        _dependencies.clear();
+        clearDependencies();
         _skipColorClear = false;
         _group.clearQueues();
         _combinedEffects.clear();
@@ -251,10 +253,13 @@ public class Compositor
      */
     public void performSubrender ()
     {
-        // enqueue the roots
+        // composite the roots
         for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
-            _roots.get(ii).enqueue();
+            _roots.get(ii).composite();
         }
+
+        // enqueue and clear the enqueueables
+        enqueueEnqueueables();
 
         // sort the queues in preparation for rendering
         _group.sortQueues();
@@ -266,10 +271,7 @@ public class Compositor
         renderPrevious(0);
 
         // clean up
-        for (Dependency dependency : _dependencies.values()) {
-            dependency.cleanup();
-        }
-        _dependencies.clear();
+        clearDependencies();
         _skipColorClear = false;
         _group.clearQueues();
     }
@@ -297,7 +299,7 @@ public class Compositor
     }
 
     /**
-     * Adds an element to the list of render dependencies.
+     * Adds an element to the set of render dependencies.
      */
     public void addDependency (Dependency dependency)
     {
@@ -306,6 +308,63 @@ public class Compositor
         if (previous != null) {
             dependency.merge(previous);
         }
+    }
+
+    /**
+     * Cleans up and clears the current set of dependencies.
+     */
+    public void clearDependencies ()
+    {
+        for (Dependency dependency : _dependencies.values()) {
+            dependency.cleanup();
+        }
+        _dependencies.clear();
+    }
+
+    /**
+     * Sets the dependency map reference.
+     */
+    public void setDependencies (Map<Dependency, Dependency> dependencies)
+    {
+        _dependencies = dependencies;
+    }
+
+    /**
+     * Returns a reference to the dependency map.
+     */
+    public Map<Dependency, Dependency> getDependencies ()
+    {
+        return _dependencies;
+    }
+
+    /**
+     * Adds an element to the list of render enqueueables.
+     */
+    public void addEnqueueable (Enqueueable enqueueable)
+    {
+        _enqueueables.add(enqueueable);
+    }
+
+    /**
+     * Adds an element to the list of render enqueueables if the subrender depth is at or
+     * below the specified value.
+     */
+    public void addEnqueueable (Enqueueable enqueueable, int maxSubrenderDepth)
+    {
+        if (_subrenderDepth <= maxSubrenderDepth) {
+            _enqueueables.add(enqueueable);
+        }
+    }
+
+    /**
+     * Enqueues and clears the current list of enqueueables.
+     */
+    public void enqueueEnqueueables ()
+    {
+        for (int ii = 0, nn = _enqueueables.size(); ii < nn; ii++) {
+            _enqueueables.get(ii).enqueue();
+        }
+        _enqueueables.clear();
     }
 
     /**
@@ -425,13 +484,16 @@ public class Compositor
     protected Color4f _backgroundColor;
 
     /** The roots of the view. */
-    protected List<Renderable> _roots = Lists.newArrayList();
+    protected List<Compositable> _roots = Lists.newArrayList();
 
     /** The non-dependency render effects. */
     protected List<RenderEffect> _effects = Lists.newArrayList();
 
     /** The current set of dependencies. */
     protected Map<Dependency, Dependency> _dependencies = Maps.newHashMap();
+
+    /** The current set of enqueueables. */
+    protected List<Enqueueable> _enqueueables = Lists.newArrayList();
 
     /** The combined list of render effects. */
     protected List<RenderEffect> _combinedEffects = Lists.newArrayList();

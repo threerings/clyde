@@ -30,7 +30,6 @@ import java.io.IOException;
 
 import java.lang.ref.SoftReference;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -53,6 +52,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.expr.Executor;
 import com.threerings.expr.FloatExpression;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
@@ -363,7 +363,7 @@ public class TextureConfig extends ParameterizedConfig
          */
         public Texture getTexture (GlContext ctx)
         {
-            return getTexture(ctx, null, null, null, null);
+            return getTexture(ctx, null, null, null, null, null);
         }
 
         /**
@@ -371,7 +371,7 @@ public class TextureConfig extends ParameterizedConfig
          */
         public abstract Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters);
+            Scope scope, List<Executor> executors, List<Updater> updaters);
 
         /**
          * Fetches a texture from the shared pool, or returns <code>null</code> if the
@@ -468,7 +468,7 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters)
+            Scope scope, List<Executor> executors, List<Updater> updaters)
         {
             Texture texture = (_texture == null) ? null : _texture.get();
             if (texture == null) {
@@ -1211,10 +1211,11 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters)
+            Scope scope, List<Executor> executors, List<Updater> updaters)
         {
             TextureConfig config = getConfig(ctx);
-            return (config == null) ? null : config.getTexture(ctx, state, unit, scope, updaters);
+            return (config == null) ? null :
+                config.getTexture(ctx, state, unit, scope, executors, updaters);
         }
 
         /**
@@ -1234,9 +1235,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters)
+            Scope scope, List<Executor> executors, List<Updater> updaters)
         {
-            if (updaters == null) {
+            if (executors == null) {
                 log.warning("Tried to create reflection texture in static context.");
                 return null;
             }
@@ -1247,8 +1248,8 @@ public class TextureConfig extends ParameterizedConfig
             final Dependency.ReflectionTexture dependency = new Dependency.ReflectionTexture(ctx);
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "viewTransform", new Transform3D());
-            updaters.add(new Updater() {
-                public void update () {
+            executors.add(new Executor() {
+                public void execute () {
                     Plane.XY_PLANE.transform(transform, dependency.plane);
                     Compositor compositor = ctx.getCompositor();
                     compositor.addDependency(dependency);
@@ -1279,9 +1280,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters)
+            Scope scope, List<Executor> executors, List<Updater> updaters)
         {
-            if (updaters == null) {
+            if (executors == null) {
                 log.warning("Tried to create refraction texture in static context.");
                 return null;
             }
@@ -1293,8 +1294,8 @@ public class TextureConfig extends ParameterizedConfig
             dependency.ratio = ratio;
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "viewTransform", new Transform3D());
-            updaters.add(new Updater() {
-                public void update () {
+            executors.add(new Executor() {
+                public void execute () {
                     Plane.XY_PLANE.transform(transform, dependency.plane);
                     Compositor compositor = ctx.getCompositor();
                     compositor.addDependency(dependency);
@@ -1320,9 +1321,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters)
+            Scope scope, List<Executor> executors, List<Updater> updaters)
         {
-            if (updaters == null) {
+            if (executors == null) {
                 log.warning("Tried to create cube render texture in static context.");
                 return null;
             }
@@ -1333,8 +1334,8 @@ public class TextureConfig extends ParameterizedConfig
             final Dependency.CubeTexture dependency = new Dependency.CubeTexture(ctx);
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "viewTransform", new Transform3D());
-            updaters.add(new Updater() {
-                public void update () {
+            executors.add(new Executor() {
+                public void execute () {
                     transform.extractTranslation(dependency.origin);
                     ctx.getCompositor().addDependency(dependency);
                     if (dependency.texture == null) {
@@ -1384,9 +1385,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, ArrayList<Updater> updaters)
+            Scope scope, List<Executor> executors, List<Updater> updaters)
         {
-            if (updaters == null) {
+            if (executors == null) {
                 log.warning("Tried to create animated texture in static context.");
                 return null;
             }
@@ -1480,7 +1481,7 @@ public class TextureConfig extends ParameterizedConfig
      */
     public Texture getTexture (GlContext ctx)
     {
-        return getTexture(ctx, null, null, null, null);
+        return getTexture(ctx, null, null, null, null, null);
     }
 
     /**
@@ -1488,9 +1489,9 @@ public class TextureConfig extends ParameterizedConfig
      */
     public Texture getTexture (
         GlContext ctx, TextureState state, TextureUnit unit,
-        Scope scope, ArrayList<Updater> updaters)
+        Scope scope, List<Executor> executors, List<Updater> updaters)
     {
-        return implementation.getTexture(ctx, state, unit, scope, updaters);
+        return implementation.getTexture(ctx, state, unit, scope, executors, updaters);
     }
 
     /**

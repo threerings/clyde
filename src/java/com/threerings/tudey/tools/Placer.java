@@ -83,10 +83,10 @@ public class Placer extends ConfigTool<PlaceableConfig>
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
         if (_cursorVisible) {
-            _cursor.enqueue();
+            _cursor.composite();
         }
     }
 

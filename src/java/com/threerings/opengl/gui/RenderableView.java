@@ -24,11 +24,15 @@
 
 package com.threerings.opengl.gui;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.opengl.PixelFormat;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.StringUtil;
 
@@ -39,7 +43,10 @@ import com.threerings.math.Transform3D;
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.compositor.Compositor;
+import com.threerings.opengl.compositor.Dependency;
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
@@ -53,7 +60,6 @@ import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlUtil;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 /**
@@ -154,27 +160,27 @@ public class RenderableView extends Component
     }
 
     /**
-     * Adds a renderable to the view.
+     * Adds a compositable to the view.
      */
-    public void add (Renderable renderable)
+    public void add (Compositable compositable)
     {
-        _renderables.add(renderable);
+        _compositables.add(compositable);
     }
 
     /**
-     * Removes a renderable from the view.
+     * Removes a compositable from the view.
      */
-    public void remove (Renderable renderable)
+    public void remove (Compositable compositable)
     {
-        _renderables.remove(renderable);
+        _compositables.remove(compositable);
     }
 
     /**
-     * Removes all renderables from the view.
+     * Removes all compositables from the view.
      */
     public void removeAll ()
     {
-        _renderables.clear();
+        _compositables.clear();
     }
 
     /**
@@ -219,11 +225,11 @@ public class RenderableView extends Component
             model.tick(elapsed);
         }
 
-        // tick the other renderables
-        for (int ii = 0, nn = _renderables.size(); ii < nn; ii++) {
-            Renderable renderable = _renderables.get(ii);
-            if (renderable instanceof Tickable) {
-                ((Tickable)renderable).tick(elapsed);
+        // tick the other compositables
+        for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
+            Compositable compositable = _compositables.get(ii);
+            if (compositable instanceof Tickable) {
+                ((Tickable)compositable).tick(elapsed);
             }
         }
     }
@@ -278,14 +284,16 @@ public class RenderableView extends Component
      */
     protected void renderView (Renderer renderer)
     {
-        // save the compositor's original camera and swap in our group state
+        // save the compositor's original camera and dependency map, swap in our group state
         Compositor compositor = _ctx.getCompositor();
         Camera ocamera = compositor.getCamera();
+        Map<Dependency, Dependency> odeps = compositor.getDependencies();
         RenderQueue.Group group = compositor.getGroup();
         _gstate.swap(group);
 
-        // install our camera
+        // install our camera, dependency map
         compositor.setCamera(_camera);
+        compositor.setDependencies(_dependencies);
 
         // update the camera viewport
         Insets insets = getInsets();
@@ -316,15 +324,18 @@ public class RenderableView extends Component
                 renderer.setState(TransformState.IDENTITY);
             }
 
-            // enqueue the config models
+            // composite the config models
             for (Model model : _configModels) {
-                model.enqueue();
+                model.composite();
             }
 
-            // enqueue the other renderables
-            for (int ii = 0, nn = _renderables.size(); ii < nn; ii++) {
-                _renderables.get(ii).enqueue();
+            // composite the other compositables
+            for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
+                _compositables.get(ii).composite();
             }
+
+            // enqueue and clear the enqueueables
+            compositor.enqueueEnqueueables();
 
             // sort the queues in preparation for rendering
             group.sortQueues();
@@ -353,11 +364,13 @@ public class RenderableView extends Component
             group.renderQueues(RenderQueue.NORMAL_TYPE);
 
         } finally {
-            // clear out the render queues
+            // clear out the dependencies, render queues
+            compositor.clearDependencies();
             group.clearQueues();
 
-            // restore the original camera and group state
+            // restore the original camera, dependency map, group state
             compositor.setCamera(ocamera);
+            compositor.setDependencies(odeps);
             _gstate.swap(group);
 
             // restore the original viewport and projection
@@ -390,10 +403,10 @@ public class RenderableView extends Component
                 return xform;
             }
         }
-        for (int ii = 0, nn = _renderables.size(); ii < nn; ii++) {
-            Renderable renderable = _renderables.get(ii);
-            if (renderable instanceof Model) {
-                Transform3D xform = ((Model)renderable).getPointWorldTransform(_viewNode);
+        for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
+            Compositable compositable = _compositables.get(ii);
+            if (compositable instanceof Model) {
+                Transform3D xform = ((Model)compositable).getPointWorldTransform(_viewNode);
                 if (xform != null) {
                     return xform;
                 }
@@ -417,6 +430,9 @@ public class RenderableView extends Component
     /** Stores the state of the render queue. */
     protected RenderQueue.Group.State _gstate = new RenderQueue.Group.State();
 
+    /** Stores the dependency set. */
+    protected Map<Dependency, Dependency> _dependencies = Maps.newHashMap();
+
     /** Whether or not the view is static. */
     protected boolean _static;
 
@@ -426,8 +442,8 @@ public class RenderableView extends Component
     /** The models loaded from the configuration. */
     protected Model[] _configModels = new Model[0];
 
-    /** The list of other renderables to include. */
-    protected ArrayList<Renderable> _renderables = new ArrayList<Renderable>();
+    /** The list of other compositables to include. */
+    protected List<Compositable> _compositables = Lists.newArrayList();
 
     /** For static views, the rendered image. */
     protected Image _image;

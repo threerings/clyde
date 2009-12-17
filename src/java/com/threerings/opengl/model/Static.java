@@ -35,6 +35,7 @@ import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.material.Surface;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
@@ -49,6 +50,7 @@ import com.threerings.opengl.util.GlContext;
  * A static model implementation.
  */
 public class Static extends Model.Implementation
+    implements Enqueueable
 {
     /**
      * Creates a new static implementation.
@@ -71,6 +73,15 @@ public class Static extends Model.Implementation
         _materialMappings = materialMappings;
         _influenceFlags = influenceFlags;
         updateFromConfig();
+    }
+
+    // documentation inherited from interface Enqueueable
+    public void enqueue ()
+    {
+        // update the shared transform state
+        Transform3D modelview = _transformState.getModelview();
+        _parentViewTransform.compose(_localTransform, modelview);
+        _transformState.setDirty(true);
     }
 
     @Override // documentation inherited
@@ -125,16 +136,14 @@ public class Static extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        // update the shared transform state
-        Transform3D modelview = _transformState.getModelview();
-        _parentViewTransform.compose(_localTransform, modelview);
-        _transformState.setDirty(true);
+        // add an enqueueable to initialize the shared state
+        _ctx.getCompositor().addEnqueueable(this);
 
-        // enqueue the surfaces
+        // composite the surfaces
         for (Surface surface : _surfaces) {
-            surface.enqueue();
+            surface.composite();
         }
     }
 

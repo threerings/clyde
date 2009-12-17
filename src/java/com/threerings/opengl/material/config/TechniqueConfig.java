@@ -24,7 +24,9 @@
 
 package com.threerings.opengl.material.config;
 
-import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -42,7 +44,9 @@ import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.compositor.Dependency;
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
@@ -60,7 +64,6 @@ import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.Renderable;
 
 /**
  * Represents a single technique for rendering a material.
@@ -219,18 +222,19 @@ public class TechniqueConfig extends DeepObject
          * Adds the descriptors for this enqueuer's passes (as encountered in a depth-first
          * traversal) to the provided list.
          */
-        public abstract void getDescriptors (GlContext ctx, ArrayList<PassDescriptor> list);
+        public abstract void getDescriptors (GlContext ctx, List<PassDescriptor> list);
 
         /**
-         * Creates the renderable for this enqueuer.
+         * Creates the enqueueable for this enqueuer.
          *
          * @param update if true, update the geometry before enqueuing it.
+         * @param executors a list to populate with executors to run before compositing.
          * @param pidx the index of the current pass in the list returned by
          * {@link #getDescriptors} (updated by callees).
          */
-        public abstract Renderable createRenderable (
-            GlContext ctx, Scope scope, Geometry geometry,
-            boolean update, RenderQueue.Group group, MutableInteger pidx);
+        public abstract Enqueueable createEnqueueable (
+            GlContext ctx, Scope scope, Geometry geometry, boolean update,
+            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx);
 
         /**
          * Invalidates any cached data.
@@ -281,7 +285,7 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public void getDescriptors (GlContext ctx, ArrayList<PassDescriptor> list)
+        public void getDescriptors (GlContext ctx, List<PassDescriptor> list)
         {
             for (PassConfig pass : passes) {
                 list.add(pass.createDescriptor(ctx));
@@ -289,22 +293,22 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Renderable createRenderable (
-            GlContext ctx, Scope scope, final Geometry geometry,
-            boolean update, RenderQueue.Group group, MutableInteger pidx)
+        public Enqueueable createEnqueueable (
+            GlContext ctx, Scope scope, final Geometry geometry, boolean update,
+            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
         {
             final RenderQueue queue = group.getQueue(this.queue);
-            ArrayList<Updater> updaters = new ArrayList<Updater>();
+            List<Updater> updaters = Lists.newArrayList();
             final Batch batch = (passes.length == 1) ?
-                createBatch(ctx, scope, geometry, passes[0], updaters, pidx) :
-                createBatch(ctx, scope, geometry, updaters, pidx);
+                createBatch(ctx, scope, geometry, passes[0], executors, updaters, pidx) :
+                createBatch(ctx, scope, geometry, executors, updaters, pidx);
             TransformState transformState = ScopeUtil.resolve(
                 scope, "transformState", TransformState.IDENTITY, TransformState.class);
             final Transform3D modelview = transformState.getModelview();
             final Vector3f center = geometry.getCenter();
             if (update) {
                 if (updaters.isEmpty()) {
-                    return new Renderable() {
+                    return new Enqueueable() {
                         public void enqueue () {
                             geometry.update();
                             batch.depth = modelview.transformPointZ(center);
@@ -313,7 +317,7 @@ public class TechniqueConfig extends DeepObject
                     };
                 } else {
                     final Updater[] updaterArray = updaters.toArray(new Updater[updaters.size()]);
-                    return new Renderable() {
+                    return new Enqueueable() {
                         public void enqueue () {
                             geometry.update();
                             for (Updater updater : updaterArray) {
@@ -326,7 +330,7 @@ public class TechniqueConfig extends DeepObject
                 }
             } else {
                 if (updaters.isEmpty()) {
-                    return new Renderable() {
+                    return new Enqueueable() {
                         public void enqueue () {
                             batch.depth = modelview.transformPointZ(center);
                             queue.add(batch, priority);
@@ -334,7 +338,7 @@ public class TechniqueConfig extends DeepObject
                     };
                 } else {
                     final Updater[] updaterArray = updaters.toArray(new Updater[updaters.size()]);
-                    return new Renderable() {
+                    return new Enqueueable() {
                         public void enqueue () {
                             for (Updater updater : updaterArray) {
                                 updater.update();
@@ -367,7 +371,7 @@ public class TechniqueConfig extends DeepObject
                     return state;
                 }
             } else if (batch instanceof CompoundBatch) {
-                ArrayList<Batch> batches = ((CompoundBatch)batch).getBatches();
+                List<Batch> batches = ((CompoundBatch)batch).getBatches();
                 if (!batches.isEmpty()) {
                     return getTransformState(batches.get(0));
                 }
@@ -379,12 +383,13 @@ public class TechniqueConfig extends DeepObject
          * Creates a batch to render all of the passes.
          */
         protected CompoundBatch createBatch (
-            GlContext ctx, Scope scope, Geometry geometry,
-            ArrayList<Updater> updaters, MutableInteger pidx)
+            GlContext ctx, Scope scope, Geometry geometry, List<Executor> executors,
+            List<Updater> updaters, MutableInteger pidx)
         {
             CompoundBatch batch = new CompoundBatch();
             for (PassConfig pass : passes) {
-                SimpleBatch simple = createBatch(ctx, scope, geometry, pass, updaters, pidx);
+                SimpleBatch simple = createBatch(
+                    ctx, scope, geometry, pass, executors, updaters, pidx);
                 batch.getBatches().add(simple);
                 if (batch.key == null) {
                     batch.key = simple.key;
@@ -398,10 +403,10 @@ public class TechniqueConfig extends DeepObject
          */
         protected SimpleBatch createBatch (
             GlContext ctx, Scope scope, Geometry geometry, PassConfig pass,
-            ArrayList<Updater> updaters, MutableInteger pidx)
+            List<Executor> executors, List<Updater> updaters, MutableInteger pidx)
         {
             // initialize the states and draw command
-            RenderState[] states = pass.createStates(ctx, scope, updaters);
+            RenderState[] states = pass.createStates(ctx, scope, executors, updaters);
             states[RenderState.ARRAY_STATE] = geometry.getArrayState(pidx.value);
             CoordSpace space = geometry.getCoordSpace(pidx.value);
             if (space == CoordSpace.EYE) {
@@ -463,7 +468,7 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public void getDescriptors (GlContext ctx, ArrayList<PassDescriptor> list)
+        public void getDescriptors (GlContext ctx, List<PassDescriptor> list)
         {
             for (Enqueuer enqueuer : enqueuers) {
                 enqueuer.getDescriptors(ctx, list);
@@ -471,29 +476,29 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Renderable createRenderable (
-            GlContext ctx, Scope scope, final Geometry geometry,
-            boolean update, RenderQueue.Group group, MutableInteger pidx)
+        public Enqueueable createEnqueueable (
+            GlContext ctx, Scope scope, final Geometry geometry, boolean update,
+            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
         {
-            final Renderable[] renderables = new Renderable[enqueuers.length];
-            for (int ii = 0; ii < renderables.length; ii++) {
-                renderables[ii] = enqueuers[ii].createRenderable(
-                    ctx, scope, geometry, false, group, pidx);
+            final Enqueueable[] enqueueables = new Enqueueable[enqueuers.length];
+            for (int ii = 0; ii < enqueueables.length; ii++) {
+                enqueueables[ii] = enqueuers[ii].createEnqueueable(
+                    ctx, scope, geometry, false, group, executors, pidx);
             }
             if (update) {
-                return new Renderable() {
+                return new Enqueueable() {
                     public void enqueue () {
                         geometry.update();
-                        for (Renderable renderable : renderables) {
-                            renderable.enqueue();
+                        for (Enqueueable enqueueable : enqueueables) {
+                            enqueueable.enqueue();
                         }
                     }
                 };
             } else {
-                return new Renderable() {
+                return new Enqueueable() {
                     public void enqueue () {
-                        for (Renderable renderable : renderables) {
-                            renderable.enqueue();
+                        for (Enqueueable enqueueable : enqueueables) {
+                            enqueueable.enqueue();
                         }
                     }
                 };
@@ -529,13 +534,12 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Renderable createRenderable (
-            GlContext ctx, Scope scope, Geometry geometry,
-            boolean update, RenderQueue.Group group, MutableInteger pidx)
+        public Enqueueable createEnqueueable (
+            GlContext ctx, Scope scope, Geometry geometry, boolean update,
+            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
         {
-            return super.createRenderable(
-                ctx, scope, geometry, update,
-                group.getQueue(this.queue).getGroup(this.group), pidx);
+            return super.createEnqueueable(ctx, scope, geometry, update,
+                group.getQueue(this.queue).getGroup(this.group), executors, pidx);
         }
     }
 
@@ -571,17 +575,18 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public void getDescriptors (GlContext ctx, ArrayList<PassDescriptor> list)
+        public void getDescriptors (GlContext ctx, List<PassDescriptor> list)
         {
             _wrapped.getDescriptors(ctx, list);
         }
 
         @Override // documentation inherited
-        public Renderable createRenderable (
+        public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, Geometry geometry,
-            boolean update, RenderQueue.Group group, MutableInteger pidx)
+            boolean update, RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
         {
-            return _wrapped.createRenderable(ctx, scope, geometry, update, group, pidx);
+            return _wrapped.createEnqueueable(
+                ctx, scope, geometry, update, group, executors, pidx);
         }
 
         @Override // documentation inherited
@@ -681,7 +686,7 @@ public class TechniqueConfig extends DeepObject
     public PassDescriptor[] getDescriptors (GlContext ctx)
     {
         if (_descriptors == null) {
-            ArrayList<PassDescriptor> list = new ArrayList<PassDescriptor>();
+            List<PassDescriptor> list = Lists.newArrayList();
             enqueuer.getDescriptors(ctx, list);
             _descriptors = list.toArray(new PassDescriptor[list.size()]);
         }
@@ -689,34 +694,40 @@ public class TechniqueConfig extends DeepObject
     }
 
     /**
-     * Creates a renderable to render the supplied geometry using this technique.
+     * Creates a compositable to render the supplied geometry using this technique.
      */
-    public Renderable createRenderable (GlContext ctx, Scope scope, Geometry geometry)
+    public Compositable createCompositable (GlContext ctx, Scope scope, Geometry geometry)
     {
-        return createRenderable(ctx, scope, geometry, ctx.getCompositor().getGroup());
+        return createCompositable(ctx, scope, geometry, ctx.getCompositor().getGroup());
     }
 
     /**
-     * Creates a renderable to render the supplied geometry using this technique.
+     * Creates a compositable to render the supplied geometry using this technique.
      */
-    public Renderable createRenderable (
-        GlContext ctx, Scope scope, Geometry geometry, RenderQueue.Group group)
+    public Compositable createCompositable (
+        final GlContext ctx, Scope scope, Geometry geometry, RenderQueue.Group group)
     {
-        final Renderable renderable = enqueuer.createRenderable(
-            ctx, scope, geometry, geometry.requiresUpdate(), group, new MutableInteger(0));
-        if (dependencies.length == 0) {
-            return renderable;
+        List<Executor> executors = Lists.newArrayList();
+        for (TechniqueDependency dependency : dependencies) {
+            executors.add(dependency.createExecutor(ctx, scope));
         }
-        final Executor[] executors = new Executor[dependencies.length];
-        for (int ii = 0; ii < dependencies.length; ii++) {
-            executors[ii] = dependencies[ii].createExecutor(ctx, scope);
+        final Enqueueable enqueueable = enqueuer.createEnqueueable(
+            ctx, scope, geometry, geometry.requiresUpdate(),
+            group, executors, new MutableInteger(0));
+        if (executors.isEmpty()) {
+            return new Compositable() {
+                public void composite () {
+                    ctx.getCompositor().addEnqueueable(enqueueable);
+                }
+            };
         }
-        return new Renderable() {
-            public void enqueue () {
-                for (Executor executor : executors) {
+        final Executor[] earray = executors.toArray(new Executor[executors.size()]);
+        return new Compositable() {
+            public void composite () {
+                for (Executor executor : earray) {
                     executor.execute();
                 }
-                renderable.enqueue();
+                ctx.getCompositor().addEnqueueable(enqueueable);
             }
         };
     }

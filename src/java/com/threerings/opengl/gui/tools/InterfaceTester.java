@@ -218,10 +218,10 @@ public class InterfaceTester extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void enqueueView ()
+    protected void compositeView ()
     {
-        super.enqueueView();
-        _root.enqueue();
+        super.compositeView();
+        _root.composite();
     }
 
     /** The panel that holds the control bits. */

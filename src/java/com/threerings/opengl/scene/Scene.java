@@ -47,20 +47,20 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.openal.SoundGroup;
 import com.threerings.openal.SoundClipManager;
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.ModelAdapter;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.Tickable;
 
 /**
  * Base class for scenes.
  */
 public abstract class Scene extends DynamicScope
-    implements Tickable, Renderable
+    implements Tickable, Compositable
 {
     /**
      * Creates a new scene.
@@ -533,25 +533,25 @@ public abstract class Scene extends DynamicScope
     protected abstract void removeFromSpatial (ViewerEffect effect);
 
     /**
-     * Enqueues a list of elements for rendering.
+     * Composites a list of elements for rendering.
      */
-    protected void enqueue (ArrayList<SceneElement> elements, Frustum frustum)
+    protected void composite (ArrayList<SceneElement> elements, Frustum frustum)
     {
         for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
             SceneElement element = elements.get(ii);
             if (frustum.getIntersectionType(element.getBounds()) !=
                     Frustum.IntersectionType.NONE) {
-                enqueue(element);
+                composite(element);
             }
         }
     }
 
     /**
-     * Enqueues an element for rendering.
+     * Composites an element for rendering.
      */
-    protected final void enqueue (SceneElement element)
+    protected final void composite (SceneElement element)
     {
-        element.enqueue();
+        element.composite();
         if (element.getTickPolicy() == TickPolicy.WHEN_VISIBLE) {
             _visible.add(element);
         }

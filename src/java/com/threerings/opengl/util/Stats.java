@@ -26,6 +26,7 @@ package com.threerings.opengl.util;
 
 import java.awt.Font;
 
+import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.gui.text.CharacterTextFactory;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.renderer.Color4f;
@@ -35,7 +36,6 @@ import com.threerings.opengl.renderer.Renderer;
  * Displays rendering statistics.
  */
 public class Stats extends SimpleOverlay
-    implements Renderable
 {
     /**
      * Creates a new stats display.
@@ -51,9 +51,13 @@ public class Stats extends SimpleOverlay
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        super.enqueue();
+        Compositor compositor = _ctx.getCompositor();
+        if (compositor.getSubrenderDepth() > 0) {
+            return;
+        }
+        compositor.addEnqueueable(this);
         _frameCount++;
 
         // update the stats if the required interval has passed

@@ -24,16 +24,18 @@
 
 package com.threerings.opengl.util;
 
+import com.threerings.opengl.compositor.Compositable;
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.RenderState;
 
 /**
- * A base class for {@link Renderable} objects based on {@link SimpleBatch}es.
+ * A base class for renderable objects based on {@link SimpleBatch}es.
  */
 public abstract class SimpleRenderable
-    implements Renderable
+    implements Compositable, Enqueueable
 {
     /**
      * Creates a new simple renderable.
@@ -90,7 +92,13 @@ public abstract class SimpleRenderable
         return _batch.getStates();
     }
 
-    // documentation inherited from interface Renderable
+    // documentation inherited from interface Compositable
+    public void composite ()
+    {
+        _ctx.getCompositor().addEnqueueable(this);
+    }
+
+    // documentation inherited from interface Enqueueable
     public void enqueue ()
     {
         _queue.add(_batch, _priority);

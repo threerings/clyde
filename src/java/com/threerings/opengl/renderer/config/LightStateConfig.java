@@ -24,7 +24,7 @@
 
 package com.threerings.opengl.renderer.config;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -51,7 +51,7 @@ public abstract class LightStateConfig extends DeepObject
     public static class Disabled extends LightStateConfig
     {
         @Override // documentation inherited
-        public LightState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
         {
             return LightState.DISABLED;
         }
@@ -71,7 +71,7 @@ public abstract class LightStateConfig extends DeepObject
         public LightConfig[] lights = new LightConfig[0];
 
         @Override // documentation inherited
-        public LightState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters)
+        public LightState getState (GlContext ctx, Scope scope, List<Updater> updaters)
         {
             Light[] slights = new Light[lights.length];
             for (int ii = 0; ii < lights.length; ii++) {
@@ -84,5 +84,5 @@ public abstract class LightStateConfig extends DeepObject
     /**
      * Returns the corresponding light state.
      */
-    public abstract LightState getState (GlContext ctx, Scope scope, ArrayList<Updater> updaters);
+    public abstract LightState getState (GlContext ctx, Scope scope, List<Updater> updaters);
 }

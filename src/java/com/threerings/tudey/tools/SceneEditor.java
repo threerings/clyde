@@ -1033,11 +1033,11 @@ public class SceneEditor extends TudeyTool
     }
 
     @Override // documentation inherited
-    protected void enqueueView ()
+    protected void compositeView ()
     {
-        super.enqueueView();
+        super.compositeView();
         if (!_testing) {
-            _activeTool.enqueue();
+            _activeTool.composite();
         }
     }
 

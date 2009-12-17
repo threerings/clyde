@@ -62,20 +62,21 @@ import com.threerings.openal.ResourceClipProvider;
 import com.threerings.openal.SoundManager;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.compositor.Compositor;
+import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.ImageCache;
-import com.threerings.opengl.util.Renderable;
 import com.threerings.opengl.util.ShaderCache;
 
 /**
  * A base class for OpenGL-based applications.
  */
 public abstract class GlApp extends DynamicScope
-    implements GlContext, EditorContext
+    implements GlContext, EditorContext, Enqueueable
 {
     public GlApp ()
     {
@@ -269,6 +270,20 @@ public abstract class GlApp extends DynamicScope
         return _shadcache;
     }
 
+    // documentation inherited from interface Enqueueable
+    public void enqueue ()
+    {
+        // update the view transform state
+        _viewTransform.set(_compositor.getCamera().getViewTransform());
+        _viewTransformState.setDirty(true);
+
+        // update the shared axial billboard rotation (this assumes that the camera doesn't
+        // "roll")
+        Quaternion viewRotation = _viewTransform.getRotation();
+        float angle = FloatMath.HALF_PI + 2f*FloatMath.atan2(viewRotation.x, viewRotation.w);
+        _billboardRotation.fromAngleAxis(angle, Vector3f.UNIT_X);
+    }
+
     /**
      * Initializes the references to the resource manager, config manager, and color pository.  By
      * default this creates new managers, but it may be overridden to copy references to existing
@@ -298,10 +313,10 @@ public abstract class GlApp extends DynamicScope
         initRenderer();
         setCameraHandler(createCameraHandler());
 
-        // add a root to call the enqueue method
-        _compositor.addRoot(new Renderable() {
-            public void enqueue () {
-                GlApp.this.enqueueView();
+        // add a root to call the composite method
+        _compositor.addRoot(new Compositable() {
+            public void composite () {
+                GlApp.this.compositeView();
             }
         });
 
@@ -387,19 +402,12 @@ public abstract class GlApp extends DynamicScope
     }
 
     /**
-     * Gives the application a chance to enqueue anything it might want rendered.
+     * Gives the application a chance to composite anything it might want rendered.
      */
-    protected void enqueueView ()
+    protected void compositeView ()
     {
-        // update the view transform state
-        _viewTransform.set(_compositor.getCamera().getViewTransform());
-        _viewTransformState.setDirty(true);
-
-        // update the shared axial billboard rotation (this assumes that the camera doesn't
-        // "roll")
-        Quaternion viewRotation = _viewTransform.getRotation();
-        float angle = FloatMath.HALF_PI + 2f*FloatMath.atan2(viewRotation.x, viewRotation.w);
-        _billboardRotation.fromAngleAxis(angle, Vector3f.UNIT_X);
+        // the app's enqueue method prepares root state
+        _compositor.addEnqueueable(this);
     }
 
     /** The OpenGL renderer. */

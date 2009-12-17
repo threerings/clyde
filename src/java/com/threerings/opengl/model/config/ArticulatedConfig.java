@@ -156,7 +156,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
          * @param nnodes the list to contain the new nodes.
          */
         public void getArticulatedNodes (
-            Scope scope, IdentityHashMap<Node, Articulated.Node> onodes,
+            GlContext ctx, Scope scope, IdentityHashMap<Node, Articulated.Node> onodes,
             ArrayList<Articulated.Node> nnodes, Transform3D parentWorldTransform,
             Transform3D parentViewTransform)
         {
@@ -164,13 +164,15 @@ public class ArticulatedConfig extends ModelConfig.Imported
             if (node != null) {
                 node.setConfig(this, parentWorldTransform, parentViewTransform);
             } else {
-                node = createArticulatedNode(scope, parentWorldTransform, parentViewTransform);
+                node = createArticulatedNode(
+                    ctx, scope, parentWorldTransform, parentViewTransform);
             }
             nnodes.add(node);
             Transform3D worldTransform = node.getWorldTransform();
             Transform3D viewTransform = node.getViewTransform();
             for (Node child : children) {
-                child.getArticulatedNodes(scope, onodes, nnodes, worldTransform, viewTransform);
+                child.getArticulatedNodes(
+                    ctx, scope, onodes, nnodes, worldTransform, viewTransform);
             }
         }
 
@@ -178,9 +180,11 @@ public class ArticulatedConfig extends ModelConfig.Imported
          * Creates a new articulated node.
          */
         protected Articulated.Node createArticulatedNode (
-            Scope scope, Transform3D parentWorldTransform, Transform3D parentViewTransform)
+            GlContext ctx, Scope scope, Transform3D parentWorldTransform,
+            Transform3D parentViewTransform)
         {
-            return new Articulated.Node(scope, this, parentWorldTransform, parentViewTransform);
+            return new Articulated.Node(
+                ctx, scope, this, parentWorldTransform, parentViewTransform);
         }
     }
 
@@ -234,10 +238,11 @@ public class ArticulatedConfig extends ModelConfig.Imported
 
         @Override // documentation inherited
         protected Articulated.Node createArticulatedNode (
-            Scope scope, Transform3D parentWorldTransform, Transform3D parentViewTransform)
+            GlContext ctx, Scope scope, Transform3D parentWorldTransform,
+            Transform3D parentViewTransform)
         {
             return new Articulated.MeshNode(
-                scope, this, parentWorldTransform, parentViewTransform);
+                ctx, scope, this, parentWorldTransform, parentViewTransform);
         }
     }
 

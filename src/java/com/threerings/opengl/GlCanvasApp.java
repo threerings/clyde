@@ -57,7 +57,6 @@ import com.threerings.math.Ray3D;
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
-import com.threerings.opengl.util.Renderable;
 
 import static com.threerings.opengl.Log.*;
 

@@ -84,10 +84,10 @@ public class TileBrush extends ConfigTool<TileConfig>
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
         if (_cursorVisible) {
-            _cursor.enqueue();
+            _cursor.composite();
         }
     }
 

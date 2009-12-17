@@ -33,6 +33,7 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
 
+import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.geometry.config.GeometryConfig;
@@ -42,7 +43,6 @@ import com.threerings.opengl.material.config.PassConfig;
 import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.material.config.TechniqueConfig.NormalEnqueuer;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.Renderable;
 
 import static com.threerings.opengl.Log.*;
 
@@ -50,7 +50,7 @@ import static com.threerings.opengl.Log.*;
  * A renderable surface.
  */
 public class Surface extends SimpleScope
-    implements Renderable, ConfigUpdateListener<MaterialConfig>
+    implements Compositable, ConfigUpdateListener<MaterialConfig>
 {
     /**
      * Creates a new surface.
@@ -113,10 +113,10 @@ public class Surface extends SimpleScope
         return _materialConfig;
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    // documentation inherited from interface Compositable
+    public void composite ()
     {
-        _renderable.enqueue();
+        _compositable.composite();
     }
 
     // documentation inherited from interface ConfigUpdateListener
@@ -188,7 +188,7 @@ public class Surface extends SimpleScope
             _geometry = _geometryConfig.createGeometry(_ctx, this, technique.deformer, passes);
         }
         _boneMatrices = _geometry.getBoneMatrices();
-        _renderable = technique.createRenderable(_ctx, this, _geometry, _group);
+        _compositable = technique.createCompositable(_ctx, this, _geometry, _group);
     }
 
     /** The application context. */
@@ -211,8 +211,8 @@ public class Surface extends SimpleScope
     /** The group into which we enqueue our batches. */
     protected RenderQueue.Group _group;
 
-    /** The renderable created from the configs. */
-    protected Renderable _renderable;
+    /** The compositable created from the configs. */
+    protected Compositable _compositable;
 
     /** A technique that renders the material as blank. */
     protected static final TechniqueConfig BLANK_TECHNIQUE = new TechniqueConfig();

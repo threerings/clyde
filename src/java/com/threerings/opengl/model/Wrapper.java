@@ -179,9 +179,9 @@ public class Wrapper extends Model.Implementation
     }
 
     @Override // documentation inherited
-    public void enqueue ()
+    public void composite ()
     {
-        _impl.enqueue();
+        _impl.composite();
     }
 
     @Override // documentation inherited

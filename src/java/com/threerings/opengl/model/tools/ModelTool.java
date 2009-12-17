@@ -123,10 +123,10 @@ public abstract class ModelTool extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected void enqueueView ()
+    protected void compositeView ()
     {
-        super.enqueueView();
-        _scene.enqueue();
+        super.compositeView();
+        _scene.composite();
     }
 
     /**

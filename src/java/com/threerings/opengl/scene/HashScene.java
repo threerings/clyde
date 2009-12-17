@@ -72,12 +72,12 @@ public class HashScene extends Scene
         _levels = levels;
     }
 
-    // documentation inherited from interface Renderable
-    public void enqueue ()
+    // documentation inherited from interface Compositable
+    public void composite ()
     {
-        // enqueue the oversized elements
+        // composite the oversized elements
         Frustum frustum = _ctx.getCompositor().getCamera().getWorldVolume();
-        enqueue(_oversizedElements, frustum);
+        composite(_oversizedElements, frustum);
 
         // make sure the frustum intersects the top-level bounds
         if (frustum.getIntersectionType(_bounds) == Frustum.IntersectionType.NONE) {
@@ -102,7 +102,7 @@ public class HashScene extends Scene
                 for (int xx = minx; xx <= maxx; xx++) {
                     Node<SceneElement> root = _elements.get(_coord.set(xx, yy, zz));
                     if (root != null) {
-                        root.enqueue(frustum);
+                        root.composite(frustum);
                     }
                 }
             }
@@ -500,15 +500,15 @@ public class HashScene extends Scene
         }
 
         /**
-         * Enqueues the elements in this node.
+         * Composites the elements in this node.
          */
-        public void enqueue (Frustum frustum)
+        public void composite (Frustum frustum)
         {
             Frustum.IntersectionType type = frustum.getIntersectionType(_bounds);
             if (type == Frustum.IntersectionType.CONTAINS) {
-                enqueueAll();
+                compositeAll();
             } else if (type == Frustum.IntersectionType.INTERSECTS) {
-                enqueueIntersecting(frustum);
+                compositeIntersecting(frustum);
             }
         }
 
@@ -545,29 +545,29 @@ public class HashScene extends Scene
         }
 
         /**
-         * Enqueues all elements in this node.
+         * Composites all elements in this node.
          */
-        protected void enqueueAll ()
+        protected void compositeAll ()
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
                 if (object.updateLastVisit(_visit)) {
-                    HashScene.this.enqueue((SceneElement)object);
+                    HashScene.this.composite((SceneElement)object);
                 }
             }
         }
 
         /**
-         * Enqueues the elements intersecting the given frustum.
+         * Composites the elements intersecting the given frustum.
          */
-        protected void enqueueIntersecting (Frustum frustum)
+        protected void compositeIntersecting (Frustum frustum)
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
                 if (object.updateLastVisit(_visit) &&
                         frustum.getIntersectionType(object.getBounds()) !=
                             Frustum.IntersectionType.NONE) {
-                    HashScene.this.enqueue((SceneElement)object);
+                    HashScene.this.composite((SceneElement)object);
                 }
             }
         }
@@ -695,23 +695,23 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        protected void enqueueAll ()
+        protected void compositeAll ()
         {
-            super.enqueueAll();
+            super.compositeAll();
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.enqueueAll();
+                    child.compositeAll();
                 }
             }
         }
 
         @Override // documentation inherited
-        protected void enqueueIntersecting (Frustum frustum)
+        protected void compositeIntersecting (Frustum frustum)
         {
-            super.enqueueIntersecting(frustum);
+            super.compositeIntersecting(frustum);
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.enqueue(frustum);
+                    child.composite(frustum);
                 }
             }
         }
