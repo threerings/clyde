@@ -231,6 +231,9 @@ public abstract class Dependency
         /** The texture to which we render. */
         public Texture texture;
 
+        /** A bitmask of the faces to include. */
+        public int faces;
+
         /** The config from whose pool the texture was created. */
         public TextureConfig config;
 
@@ -248,6 +251,9 @@ public abstract class Dependency
             CubeTexture odep = (CubeTexture)dependency;
             texture = odep.texture;
             config = odep.config;
+            near = Math.min(near, odep.near);
+            far = Math.max(far, odep.far);
+            faces |= odep.faces;
         }
 
         @Override // documentation inherited
@@ -265,6 +271,9 @@ public abstract class Dependency
                 _ctx, texture, null, new PixelFormat(8, 16, 8));
             try {
                 for (int ii = 0; ii < 6; ii++) {
+                    if ((faces & (1 << ii)) == 0) {
+                        continue;
+                    }
                     rot.mult(CUBE_FACE_ROTATIONS[ii], ncamera.getWorldTransform().getRotation());
                     ncamera.updateTransform();
                     renderer.startRender(0, ii);
@@ -452,5 +461,5 @@ public abstract class Dependency
         new Quaternion().fromAnglesXY(+FloatMath.HALF_PI, 0f),
         new Quaternion().fromAnglesXY(-FloatMath.HALF_PI, 0f),
         new Quaternion().fromAnglesXY(FloatMath.PI, 0f),
-        new Quaternion().fromAnglesXY(FloatMath.PI, FloatMath.PI) };
+        new Quaternion().fromAnglesXZ(0f, FloatMath.PI) };
 }

@@ -1329,6 +1329,10 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(min=0.0, step=0.01, hgroup="f")
         public float far = 100f;
 
+        /** Toggles for the faces. */
+        @Editable(editor="mask", mode="cube_map_face", hgroup="f")
+        public int faces = 63;
+
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
@@ -1352,10 +1356,11 @@ public class TextureConfig extends ParameterizedConfig
                     Dependency.CubeTexture dependency = dependencies.get(depth);
                     if (dependency == null) {
                         dependencies.put(depth, dependency = new Dependency.CubeTexture(ctx));
-                        dependency.near = near;
-                        dependency.far = far;
                     }
                     transform.extractTranslation(dependency.origin);
+                    dependency.near = near;
+                    dependency.far = far;
+                    dependency.faces = faces;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);
