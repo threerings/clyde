@@ -26,7 +26,9 @@ package com.threerings.opengl.compositor;
 
 import org.lwjgl.opengl.PixelFormat;
 
+import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
+import com.threerings.math.Quaternion;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
@@ -220,8 +222,11 @@ public abstract class Dependency
      */
     public static class CubeTexture extends Dependency
     {
-        /** The render origin in eye space. */
+        /** The render origin in world space. */
         public Vector3f origin = new Vector3f();
+
+        /** Distances to the near and far clip planes. */
+        public float near, far;
 
         /** The texture to which we render. */
         public Texture texture;
@@ -248,7 +253,30 @@ public abstract class Dependency
         @Override // documentation inherited
         public void resolve ()
         {
-
+            Compositor compositor = _ctx.getCompositor();
+            Camera ocamera = compositor.getCamera();
+            Compositor.State cstate = compositor.startSubrender();
+            Camera ncamera = compositor.getCamera();
+            ncamera.setFrustum(-near, +near, -near, +near, near, far);
+            Quaternion rot = new Quaternion();
+            ocamera.getWorldTransform().extractRotation(rot);
+            ncamera.getWorldTransform().set(origin, rot, 1f);
+            TextureRenderer renderer = TextureRenderer.getInstance(
+                _ctx, texture, null, new PixelFormat(8, 16, 8));
+            try {
+                for (int ii = 0; ii < 6; ii++) {
+                    rot.mult(CUBE_FACE_ROTATIONS[ii], ncamera.getWorldTransform().getRotation());
+                    ncamera.updateTransform();
+                    renderer.startRender(0, ii);
+                    try {
+                        compositor.performSubrender();
+                    } finally {
+                        renderer.commitRender();
+                    }
+                }
+            } finally {
+                compositor.endSubrender(cstate);
+            }
         }
 
         @Override // documentation inherited
@@ -416,4 +444,13 @@ public abstract class Dependency
 
     /** The render context. */
     protected GlContext _ctx;
+
+    /** Rotations for each of the six cube faces. */
+    protected static final Quaternion[] CUBE_FACE_ROTATIONS = {
+        new Quaternion().fromAnglesXY(FloatMath.PI, +FloatMath.HALF_PI),
+        new Quaternion().fromAnglesXY(FloatMath.PI, -FloatMath.HALF_PI),
+        new Quaternion().fromAnglesXY(+FloatMath.HALF_PI, 0f),
+        new Quaternion().fromAnglesXY(-FloatMath.HALF_PI, 0f),
+        new Quaternion().fromAnglesXY(FloatMath.PI, 0f),
+        new Quaternion().fromAnglesXY(FloatMath.PI, FloatMath.PI) };
 }

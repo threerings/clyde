@@ -43,6 +43,9 @@ import org.lwjgl.opengl.GLContext;
 
 import com.google.common.collect.Lists;
 
+import com.samskivert.util.IntMap;
+import com.samskivert.util.IntMaps;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.config.ConfigReference;
@@ -1318,6 +1321,14 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class CubeRender extends BaseDerived
     {
+        /** The distance to the near clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float near = 1f;
+
+        /** The distance to the far clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float far = 100f;
+
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
@@ -1331,17 +1342,31 @@ public class TextureConfig extends ParameterizedConfig
             if (config == null) {
                 return null;
             }
-            final Dependency.CubeTexture dependency = new Dependency.CubeTexture(ctx);
+            final IntMap<Dependency.CubeTexture> dependencies = IntMaps.newHashIntMap();
             final Transform3D transform = ScopeUtil.resolve(
-                scope, "viewTransform", new Transform3D());
+                scope, "worldTransform", new Transform3D());
             executors.add(new Executor() {
                 public void execute () {
+                    Compositor compositor = ctx.getCompositor();
+                    int depth = compositor.getSubrenderDepth();
+                    Dependency.CubeTexture dependency = dependencies.get(depth);
+                    if (dependency == null) {
+                        dependencies.put(depth, dependency = new Dependency.CubeTexture(ctx));
+                        dependency.near = near;
+                        dependency.far = far;
+                    }
                     transform.extractTranslation(dependency.origin);
-                    ctx.getCompositor().addDependency(dependency);
+                    compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);
                         dependency.config = config;
                     }
+                }
+            });
+            updaters.add(new Updater() {
+                public void update () {
+                    Dependency.CubeTexture dependency = dependencies.get(
+                        ctx.getCompositor().getSubrenderDepth());
                     unit.setTexture(dependency.texture);
                     state.setDirty(true);
                 }

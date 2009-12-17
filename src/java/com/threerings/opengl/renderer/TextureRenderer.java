@@ -222,6 +222,17 @@ public class TextureRenderer
      */
     public void startRender ()
     {
+        startRender(0, 0);
+    }
+
+    /**
+     * Starts rendering to the texture.
+     *
+     * @param level the mipmap level.
+     * @param param the cube map face index or z offset, as appropriate.
+     */
+    public void startRender (int level, int param)
+    {
         if (_matchTextureDimensions) {
             Texture tex = (_color == null) ? _depth : _color;
             int twidth = tex.getWidth(), theight = tex.getHeight();
@@ -229,6 +240,8 @@ public class TextureRenderer
                 resize(twidth, theight);
             }
         }
+        _level = level;
+        _param = param;
         if (_framebuffer != null) {
             _obuffer = _renderer.getFramebuffer();
             _renderer.setFramebuffer(_framebuffer);
@@ -411,10 +424,16 @@ public class TextureRenderer
      */
     protected void copyTexture (Texture texture)
     {
-        _renderer.setTexture(texture);
+        int target;
         if (texture instanceof Texture2D) {
-            GL11.glCopyTexSubImage2D(texture.getTarget(), 0, 0, 0, 0, 0, _width, _height);
+            target = texture.getTarget();
+        } else if (texture instanceof TextureCubeMap) {
+            target = TextureCubeMap.FACE_TARGETS[_param];
+        } else {
+            return;
         }
+        _renderer.setTexture(texture);
+        GL11.glCopyTexSubImage2D(target, _level, 0, 0, 0, 0, _width, _height);
     }
 
     /**
@@ -538,6 +557,12 @@ public class TextureRenderer
 
     /** The pbuffer object, if supported. */
     protected Pbuffer _pbuffer;
+
+    /** The mipmap level. */
+    protected int _level;
+
+    /** The cube map face index or z offset, as appropriate. */
+    protected int _param;
 
     /** The original viewport. */
     protected Rectangle _oviewport = new Rectangle();
