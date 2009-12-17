@@ -234,14 +234,12 @@ public class Compositor
     }
 
     /**
-     * Starts a subrender operation.
+     * Prepates for one or more subrender operations.
      *
      * @return the stored compositor state.
      */
-    public State startSubrender ()
+    public State prepareSubrender ()
     {
-        _subrenderDepth++;
-
         // get a state from the pool and swap it for the compositor state
         State state = getStateFromPool();
         state.swap(this);
@@ -249,10 +247,17 @@ public class Compositor
     }
 
     /**
-     * Performs the actual render operation.
+     * Performs a subrender operation.
+     *
+     * @param source the source of the subrender operation.
      */
-    public void performSubrender ()
+    public void performSubrender (Object source)
     {
+        // save the source
+        Object osource = _subrenderSource;
+        _subrenderSource = source;
+        _subrenderDepth++;
+
         // composite the roots
         for (int ii = 0, nn = _roots.size(); ii < nn; ii++) {
             _roots.get(ii).composite();
@@ -274,17 +279,19 @@ public class Compositor
         clearDependencies();
         _skipColorClear = false;
         _group.clearQueues();
+
+        // restore the original source
+        _subrenderSource = osource;
+        _subrenderDepth--;
     }
 
     /**
-     * Finishes a subrender operation.
+     * Cleans up after the subrender operations.
      *
      * @param ostate the state to restore.
      */
-    public void endSubrender (State ostate)
+    public void cleanupSubrender (State ostate)
     {
-        _subrenderDepth--;
-
         // swap out the state and return it to the pool
         ostate.swap(this);
         _statePool.add(new SoftReference<State>(ostate));
@@ -296,6 +303,14 @@ public class Compositor
     public int getSubrenderDepth ()
     {
         return _subrenderDepth;
+    }
+
+    /**
+     * Returns a reference to the source of the current subrender operation.
+     */
+    public Object getSubrenderSource ()
+    {
+        return _subrenderSource;
     }
 
     /**
@@ -506,6 +521,9 @@ public class Compositor
 
     /** The current subrender depth. */
     protected int _subrenderDepth;
+
+    /** The source of the current subrender operation. */
+    protected Object _subrenderSource;
 
     /** Cached render effects. */
     protected Map<RenderEffectConfig, SoftReference<RenderEffect>> _cachedEffects =

@@ -38,12 +38,13 @@ import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.compositor.Dependency;
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.renderer.Batch;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.DepthState;
-
-import com.threerings.opengl.compositor.RenderQueue;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * The configuration of a render queue.
@@ -109,9 +110,9 @@ public class RenderQueueConfig extends ManagedConfig
         /**
          * Renders the batches.
          */
-        public void render (Renderer renderer, RenderQueue queue)
+        public void render (GlContext ctx, RenderQueue queue)
         {
-            queue.renderLists(renderer);
+            queue.renderLists(ctx.getRenderer());
         }
     }
 
@@ -128,13 +129,14 @@ public class RenderQueueConfig extends ManagedConfig
     public static class Ortho extends RenderMode
     {
         @Override // documentation inherited
-        public void render (Renderer renderer, RenderQueue queue) {
+        public void render (GlContext ctx, RenderQueue queue) {
             // make sure we have something to render
             if (queue.isEmpty()) {
                 return;
             }
 
             // save the projection parameters
+            Renderer renderer = ctx.getRenderer();
             float oleft = renderer.getLeft(), oright = renderer.getRight();
             float obottom = renderer.getBottom(), otop = renderer.getTop();
             float onear = renderer.getNear(), ofar = renderer.getFar();
@@ -145,7 +147,7 @@ public class RenderQueueConfig extends ManagedConfig
             renderer.setProjection(0f, viewport.width, 0f, viewport.height, -1f, +1f, true);
 
             // render
-            super.render(renderer, queue);
+            super.render(ctx, queue);
 
             // restore the original projection
             renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, oortho);
@@ -163,13 +165,20 @@ public class RenderQueueConfig extends ManagedConfig
         public float fovScale = 1f;
 
         @Override // documentation inherited
-        public void render (Renderer renderer, RenderQueue queue) {
+        public void render (GlContext ctx, RenderQueue queue) {
             // make sure we have something to render
             if (queue.isEmpty()) {
                 return;
             }
 
+            // as a hack, don't scale the fov if we're rendering a cube map
+            float fscale = fovScale;
+            if (ctx.getCompositor().getSubrenderSource() instanceof Dependency.CubeTexture) {
+                fscale = 1f;
+            }
+
             // save the projection parameters
+            Renderer renderer = ctx.getRenderer();
             float oleft = renderer.getLeft(), oright = renderer.getRight();
             float obottom = renderer.getBottom(), otop = renderer.getTop();
             float onear = renderer.getNear(), ofar = renderer.getFar();
@@ -177,12 +186,12 @@ public class RenderQueueConfig extends ManagedConfig
 
             // apply field of view scale (assumes we're using on-axis perspective projection)
             float tfov = otop / onear;
-            float scale = FloatMath.tan(fovScale * FloatMath.atan(tfov)) / tfov;
+            float scale = FloatMath.tan(fscale * FloatMath.atan(tfov)) / tfov;
             renderer.setProjection(
                 oleft * scale, oright * scale, obottom * scale, otop * scale, onear, ofar, false);
 
             // render
-            super.render(renderer, queue);
+            super.render(ctx, queue);
 
             // restore the original projection
             renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, oortho);

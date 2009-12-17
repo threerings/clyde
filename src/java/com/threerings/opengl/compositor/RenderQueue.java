@@ -260,7 +260,7 @@ public class RenderQueue
      */
     public void render ()
     {
-        _config.renderMode.render(_ctx.getRenderer(), this);
+        _config.renderMode.render(_ctx, this);
     }
 
     /**

@@ -176,7 +176,7 @@ public abstract class Dependency
         {
             Compositor compositor = _ctx.getCompositor();
             Camera ocamera = compositor.getCamera();
-            Compositor.State cstate = compositor.startSubrender();
+            Compositor.State cstate = compositor.prepareSubrender();
             Camera ncamera = compositor.getCamera();
             ncamera.setProjection(ocamera);
             ncamera.getWorldTransform().set(ocamera.getWorldTransform());
@@ -185,10 +185,10 @@ public abstract class Dependency
                 _ctx, texture, null, new PixelFormat(8, 16, 8));
             renderer.startRender();
             try {
-                compositor.performSubrender();
+                compositor.performSubrender(this);
             } finally {
                 renderer.commitRender();
-                compositor.endSubrender(cstate);
+                compositor.cleanupSubrender(cstate);
             }
         }
     }
@@ -261,7 +261,7 @@ public abstract class Dependency
         {
             Compositor compositor = _ctx.getCompositor();
             Camera ocamera = compositor.getCamera();
-            Compositor.State cstate = compositor.startSubrender();
+            Compositor.State cstate = compositor.prepareSubrender();
             Camera ncamera = compositor.getCamera();
             ncamera.setFrustum(-near, +near, -near, +near, near, far);
             Quaternion rot = new Quaternion();
@@ -278,13 +278,13 @@ public abstract class Dependency
                     ncamera.updateTransform();
                     renderer.startRender(0, ii);
                     try {
-                        compositor.performSubrender();
+                        compositor.performSubrender(this);
                     } finally {
                         renderer.commitRender();
                     }
                 }
             } finally {
-                compositor.endSubrender(cstate);
+                compositor.cleanupSubrender(cstate);
             }
         }
 
