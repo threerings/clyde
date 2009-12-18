@@ -28,7 +28,6 @@ import java.util.List;
 
 import com.samskivert.util.ArrayUtil;
 
-import com.threerings.expr.Executor;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
@@ -36,6 +35,7 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Vector4f;
 
+import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.geometry.Geometry;
@@ -86,14 +86,14 @@ public class Projection
         _technique.enqueuer = new EnqueuerWrapper(technique.enqueuer) {
             public Enqueueable createEnqueueable (
                 GlContext ctx, Scope scope, Geometry geometry, boolean update,
-                RenderQueue.Group group, List<Executor> executors, MutableInteger pidx) {
+                RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx) {
                 SimpleScope wscope = new SimpleScope(scope) {
                     public <T> T get (String name, Class<T> clazz) {
                         return ScopeUtil.get(Projection.this, name, clazz);
                     }
                 };
                 return super.createEnqueueable(
-                    ctx, wscope, geometry, update, group, executors, pidx);
+                    ctx, wscope, geometry, update, group, adders, pidx);
             }
         };
         _colorState = colorState;

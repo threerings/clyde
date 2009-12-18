@@ -36,7 +36,6 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionBinding;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
-import com.threerings.expr.Executor;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
@@ -89,10 +88,9 @@ public class TechniqueConfig extends DeepObject
         }
 
         /**
-         * Creates the executor for this dependency.  The updater will register the dependency with
-         * the compositor.
+         * Creates the adder for this dependency.
          */
-        public abstract Executor createExecutor (GlContext ctx, Scope scope);
+        public abstract Dependency.Adder createAdder (GlContext ctx, Scope scope);
     }
 
     /**
@@ -107,12 +105,13 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Executor createExecutor (final GlContext ctx, Scope scope)
+        public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
             final Dependency.StencilReflection dependency = new Dependency.StencilReflection(ctx);
-            return new Executor() {
-                public void execute () {
+            return new Dependency.Adder() {
+                public boolean add () {
                     ctx.getCompositor().addDependency(dependency);
+                    return true;
                 }
             };
         }
@@ -135,13 +134,14 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Executor createExecutor (final GlContext ctx, Scope scope)
+        public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
             final Dependency.StencilRefraction dependency = new Dependency.StencilRefraction(ctx);
             dependency.ratio = ratio;
-            return new Executor() {
-                public void execute () {
+            return new Dependency.Adder() {
+                public boolean add () {
                     ctx.getCompositor().addDependency(dependency);
+                    return true;
                 }
             };
         }
@@ -165,14 +165,15 @@ public class TechniqueConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public Executor createExecutor (final GlContext ctx, Scope scope)
+        public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
             final Dependency.RenderEffect dependency = new Dependency.RenderEffect(ctx);
             dependency.config = ctx.getConfigManager().getConfig(
                 RenderEffectConfig.class, renderEffect);
-            return new Executor() {
-                public void execute () {
+            return new Dependency.Adder() {
+                public boolean add () {
                     ctx.getCompositor().addDependency(dependency);
+                    return true;
                 }
             };
         }
@@ -186,11 +187,12 @@ public class TechniqueConfig extends DeepObject
     public static class SkipColorClearDependency extends TechniqueDependency
     {
         @Override // documentation inherited
-        public Executor createExecutor (final GlContext ctx, Scope scope)
+        public Dependency.Adder createAdder (final GlContext ctx, Scope scope)
         {
-            return new Executor() {
-                public void execute () {
+            return new Dependency.Adder() {
+                public boolean add () {
                     ctx.getCompositor().setSkipColorClear();
+                    return true;
                 }
             };
         }
@@ -228,13 +230,13 @@ public class TechniqueConfig extends DeepObject
          * Creates the enqueueable for this enqueuer.
          *
          * @param update if true, update the geometry before enqueuing it.
-         * @param executors a list to populate with executors to run before compositing.
+         * @param adders a list to populate with adders to run before compositing.
          * @param pidx the index of the current pass in the list returned by
          * {@link #getDescriptors} (updated by callees).
          */
         public abstract Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, Geometry geometry, boolean update,
-            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx);
+            RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx);
 
         /**
          * Invalidates any cached data.
@@ -295,13 +297,13 @@ public class TechniqueConfig extends DeepObject
         @Override // documentation inherited
         public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, final Geometry geometry, boolean update,
-            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
+            RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx)
         {
             final RenderQueue queue = group.getQueue(this.queue);
             List<Updater> updaters = Lists.newArrayList();
             final Batch batch = (passes.length == 1) ?
-                createBatch(ctx, scope, geometry, passes[0], executors, updaters, pidx) :
-                createBatch(ctx, scope, geometry, executors, updaters, pidx);
+                createBatch(ctx, scope, geometry, passes[0], adders, updaters, pidx) :
+                createBatch(ctx, scope, geometry, adders, updaters, pidx);
             TransformState transformState = ScopeUtil.resolve(
                 scope, "transformState", TransformState.IDENTITY, TransformState.class);
             final Transform3D modelview = transformState.getModelview();
@@ -383,13 +385,13 @@ public class TechniqueConfig extends DeepObject
          * Creates a batch to render all of the passes.
          */
         protected CompoundBatch createBatch (
-            GlContext ctx, Scope scope, Geometry geometry, List<Executor> executors,
+            GlContext ctx, Scope scope, Geometry geometry, List<Dependency.Adder> adders,
             List<Updater> updaters, MutableInteger pidx)
         {
             CompoundBatch batch = new CompoundBatch();
             for (PassConfig pass : passes) {
                 SimpleBatch simple = createBatch(
-                    ctx, scope, geometry, pass, executors, updaters, pidx);
+                    ctx, scope, geometry, pass, adders, updaters, pidx);
                 batch.getBatches().add(simple);
                 if (batch.key == null) {
                     batch.key = simple.key;
@@ -403,10 +405,10 @@ public class TechniqueConfig extends DeepObject
          */
         protected SimpleBatch createBatch (
             GlContext ctx, Scope scope, Geometry geometry, PassConfig pass,
-            List<Executor> executors, List<Updater> updaters, MutableInteger pidx)
+            List<Dependency.Adder> adders, List<Updater> updaters, MutableInteger pidx)
         {
             // initialize the states and draw command
-            RenderState[] states = pass.createStates(ctx, scope, executors, updaters);
+            RenderState[] states = pass.createStates(ctx, scope, adders, updaters);
             states[RenderState.ARRAY_STATE] = geometry.getArrayState(pidx.value);
             CoordSpace space = geometry.getCoordSpace(pidx.value);
             if (space == CoordSpace.EYE) {
@@ -478,12 +480,12 @@ public class TechniqueConfig extends DeepObject
         @Override // documentation inherited
         public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, final Geometry geometry, boolean update,
-            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
+            RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx)
         {
             final Enqueueable[] enqueueables = new Enqueueable[enqueuers.length];
             for (int ii = 0; ii < enqueueables.length; ii++) {
                 enqueueables[ii] = enqueuers[ii].createEnqueueable(
-                    ctx, scope, geometry, false, group, executors, pidx);
+                    ctx, scope, geometry, false, group, adders, pidx);
             }
             if (update) {
                 return new Enqueueable() {
@@ -536,10 +538,10 @@ public class TechniqueConfig extends DeepObject
         @Override // documentation inherited
         public Enqueueable createEnqueueable (
             GlContext ctx, Scope scope, Geometry geometry, boolean update,
-            RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
+            RenderQueue.Group group, List<Dependency.Adder> adders, MutableInteger pidx)
         {
             return super.createEnqueueable(ctx, scope, geometry, update,
-                group.getQueue(this.queue).getGroup(this.group), executors, pidx);
+                group.getQueue(this.queue).getGroup(this.group), adders, pidx);
         }
     }
 
@@ -582,11 +584,11 @@ public class TechniqueConfig extends DeepObject
 
         @Override // documentation inherited
         public Enqueueable createEnqueueable (
-            GlContext ctx, Scope scope, Geometry geometry,
-            boolean update, RenderQueue.Group group, List<Executor> executors, MutableInteger pidx)
+            GlContext ctx, Scope scope, Geometry geometry, boolean update, RenderQueue.Group group,
+            List<Dependency.Adder> adders, MutableInteger pidx)
         {
             return _wrapped.createEnqueueable(
-                ctx, scope, geometry, update, group, executors, pidx);
+                ctx, scope, geometry, update, group, adders, pidx);
         }
 
         @Override // documentation inherited
@@ -707,25 +709,27 @@ public class TechniqueConfig extends DeepObject
     public Compositable createCompositable (
         final GlContext ctx, Scope scope, Geometry geometry, RenderQueue.Group group)
     {
-        List<Executor> executors = Lists.newArrayList();
+        List<Dependency.Adder> adders = Lists.newArrayList();
         for (TechniqueDependency dependency : dependencies) {
-            executors.add(dependency.createExecutor(ctx, scope));
+            adders.add(dependency.createAdder(ctx, scope));
         }
         final Enqueueable enqueueable = enqueuer.createEnqueueable(
             ctx, scope, geometry, geometry.requiresUpdate(),
-            group, executors, new MutableInteger(0));
-        if (executors.isEmpty()) {
+            group, adders, new MutableInteger(0));
+        if (adders.isEmpty()) {
             return new Compositable() {
                 public void composite () {
                     ctx.getCompositor().addEnqueueable(enqueueable);
                 }
             };
         }
-        final Executor[] earray = executors.toArray(new Executor[executors.size()]);
+        final Dependency.Adder[] aarray = adders.toArray(new Dependency.Adder[adders.size()]);
         return new Compositable() {
             public void composite () {
-                for (Executor executor : earray) {
-                    executor.execute();
+                for (Dependency.Adder adder : aarray) {
+                    if (!adder.add()) {
+                        return;
+                    }
                 }
                 ctx.getCompositor().addEnqueueable(enqueueable);
             }

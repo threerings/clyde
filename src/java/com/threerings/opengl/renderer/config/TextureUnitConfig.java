@@ -34,10 +34,10 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 
+import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.TextureState;
 import com.threerings.opengl.util.GlContext;
@@ -106,12 +106,12 @@ public class TextureUnitConfig extends DeepObject
      */
     public TextureUnit createUnit (
         GlContext ctx, TextureState state, Scope scope,
-        List<Executor> executors, List<Updater> updaters)
+        List<Dependency.Adder> adders, List<Updater> updaters)
     {
         TextureUnit unit = new TextureUnit();
         TextureConfig config = getTextureConfig(ctx);
         if (config != null) {
-            unit.texture = config.getTexture(ctx, state, unit, scope, executors, updaters);
+            unit.texture = config.getTexture(ctx, state, unit, scope, adders, updaters);
         }
         environment.configure(unit);
         if (coordGenS != null) {

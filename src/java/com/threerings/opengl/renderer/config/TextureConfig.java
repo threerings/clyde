@@ -55,7 +55,6 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
-import com.threerings.expr.Executor;
 import com.threerings.expr.FloatExpression;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
@@ -374,7 +373,7 @@ public class TextureConfig extends ParameterizedConfig
          */
         public abstract Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
-            Scope scope, List<Executor> executors, List<Updater> updaters);
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters);
 
         /**
          * Fetches a texture from the shared pool, or returns <code>null</code> if the
@@ -471,7 +470,7 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
-            Scope scope, List<Executor> executors, List<Updater> updaters)
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
         {
             Texture texture = (_texture == null) ? null : _texture.get();
             if (texture == null) {
@@ -1214,11 +1213,11 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, TextureState state, TextureUnit unit,
-            Scope scope, List<Executor> executors, List<Updater> updaters)
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
         {
             TextureConfig config = getConfig(ctx);
             return (config == null) ? null :
-                config.getTexture(ctx, state, unit, scope, executors, updaters);
+                config.getTexture(ctx, state, unit, scope, adders, updaters);
         }
 
         /**
@@ -1238,9 +1237,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, List<Executor> executors, List<Updater> updaters)
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
         {
-            if (executors == null) {
+            if (adders == null) {
                 log.warning("Tried to create reflection texture in static context.");
                 return null;
             }
@@ -1248,18 +1247,33 @@ public class TextureConfig extends ParameterizedConfig
             if (config == null) {
                 return null;
             }
-            final Dependency.ReflectionTexture dependency = new Dependency.ReflectionTexture(ctx);
+            final IntMap<Dependency.ReflectionTexture> dependencies = IntMaps.newHashIntMap();
             final Transform3D transform = ScopeUtil.resolve(
-                scope, "viewTransform", new Transform3D());
-            executors.add(new Executor() {
-                public void execute () {
-                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                scope, "worldTransform", new Transform3D());
+            adders.add(new Dependency.Adder() {
+                public boolean add () {
                     Compositor compositor = ctx.getCompositor();
+                    int depth = compositor.getSubrenderDepth();
+                    Dependency.ReflectionTexture dependency = dependencies.get(depth);
+                    if (dependency == null) {
+                        dependencies.put(depth,
+                            dependency = new Dependency.ReflectionTexture(ctx));
+                    }
+                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                    dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);
                         dependency.config = config;
                     }
+                    return true;
+                }
+            });
+            updaters.add(new Updater() {
+                public void update () {
+                    Compositor compositor = ctx.getCompositor();
+                    Dependency.ReflectionTexture dependency = dependencies.get(
+                        compositor.getSubrenderDepth());
                     unit.setTexture(dependency.texture);
                     compositor.getCamera().getTexGenPlanes(
                         unit.genPlaneS, unit.genPlaneT, unit.genPlaneQ);
@@ -1275,17 +1289,20 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Refraction extends BaseDerived
     {
-        /** The refraction ratio (index of refraction below the surface
-         * over index of refraction above the surface). */
-        @Editable(min=0.0, step=0.01)
-        public float ratio = 1f;
+        /** The index of refraction of the source material. */
+        @Editable(min=0.0, step=0.01, hgroup="n")
+        public float sourceIndex = 1f;
+
+        /** The index of refraction of the destination material. */
+        @Editable(min=0.0, step=0.01, hgroup="n")
+        public float destIndex = 1.5f;
 
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, List<Executor> executors, List<Updater> updaters)
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
         {
-            if (executors == null) {
+            if (adders == null) {
                 log.warning("Tried to create refraction texture in static context.");
                 return null;
             }
@@ -1293,19 +1310,33 @@ public class TextureConfig extends ParameterizedConfig
             if (config == null) {
                 return null;
             }
-            final Dependency.RefractionTexture dependency = new Dependency.RefractionTexture(ctx);
-            dependency.ratio = ratio;
+            final IntMap<Dependency.RefractionTexture> dependencies = IntMaps.newHashIntMap();
             final Transform3D transform = ScopeUtil.resolve(
-                scope, "viewTransform", new Transform3D());
-            executors.add(new Executor() {
-                public void execute () {
-                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                scope, "worldTransform", new Transform3D());
+            adders.add(new Dependency.Adder() {
+                public boolean add () {
                     Compositor compositor = ctx.getCompositor();
+                    int depth = compositor.getSubrenderDepth();
+                    Dependency.RefractionTexture dependency = dependencies.get(depth);
+                    if (dependency == null) {
+                        dependencies.put(depth,
+                            dependency = new Dependency.RefractionTexture(ctx));
+                    }
+                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                    dependency.ratio = sourceIndex / destIndex;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);
                         dependency.config = config;
                     }
+                    return true;
+                }
+            });
+            updaters.add(new Updater() {
+                public void update () {
+                    Compositor compositor = ctx.getCompositor();
+                    Dependency.RefractionTexture dependency = dependencies.get(
+                        compositor.getSubrenderDepth());
                     unit.setTexture(dependency.texture);
                     compositor.getCamera().getTexGenPlanes(
                         unit.genPlaneS, unit.genPlaneT, unit.genPlaneQ);
@@ -1330,15 +1361,19 @@ public class TextureConfig extends ParameterizedConfig
         public float far = 100f;
 
         /** Toggles for the faces. */
-        @Editable(editor="mask", mode="cube_map_face", hgroup="f")
+        @Editable(editor="mask", mode="cube_map_face", hgroup="m")
         public int faces = 63;
+
+        /** The maximum allowable depth. */
+        @Editable(min=0, hgroup="m")
+        public int maxDepth;
 
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, List<Executor> executors, List<Updater> updaters)
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
         {
-            if (executors == null) {
+            if (adders == null) {
                 log.warning("Tried to create cube render texture in static context.");
                 return null;
             }
@@ -1349,10 +1384,15 @@ public class TextureConfig extends ParameterizedConfig
             final IntMap<Dependency.CubeTexture> dependencies = IntMaps.newHashIntMap();
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "worldTransform", new Transform3D());
-            executors.add(new Executor() {
-                public void execute () {
+            adders.add(new Dependency.Adder() {
+                public boolean add () {
                     Compositor compositor = ctx.getCompositor();
                     int depth = compositor.getSubrenderDepth();
+                    Object source = compositor.getSubrenderSource();
+                    if (depth > maxDepth ||
+                            (source != null && source == dependencies.get(depth - 1))) {
+                        return false;
+                    }
                     Dependency.CubeTexture dependency = dependencies.get(depth);
                     if (dependency == null) {
                         dependencies.put(depth, dependency = new Dependency.CubeTexture(ctx));
@@ -1361,11 +1401,13 @@ public class TextureConfig extends ParameterizedConfig
                     dependency.near = near;
                     dependency.far = far;
                     dependency.faces = faces;
+                    dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);
                         dependency.config = config;
                     }
+                    return true;
                 }
             });
             updaters.add(new Updater() {
@@ -1415,9 +1457,9 @@ public class TextureConfig extends ParameterizedConfig
         @Override // documentation inherited
         public Texture getTexture (
             GlContext ctx, final TextureState state, final TextureUnit unit,
-            Scope scope, List<Executor> executors, List<Updater> updaters)
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
         {
-            if (executors == null) {
+            if (adders == null) {
                 log.warning("Tried to create animated texture in static context.");
                 return null;
             }
@@ -1519,9 +1561,9 @@ public class TextureConfig extends ParameterizedConfig
      */
     public Texture getTexture (
         GlContext ctx, TextureState state, TextureUnit unit,
-        Scope scope, List<Executor> executors, List<Updater> updaters)
+        Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
     {
-        return implementation.getTexture(ctx, state, unit, scope, executors, updaters);
+        return implementation.getTexture(ctx, state, unit, scope, adders, updaters);
     }
 
     /**

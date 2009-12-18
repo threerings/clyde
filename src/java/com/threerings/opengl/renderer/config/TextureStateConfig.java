@@ -32,11 +32,11 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
-import com.threerings.expr.Executor;
 import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.TextureState;
@@ -97,21 +97,21 @@ public class TextureStateConfig extends DeepObject
      * Returns the corresponding texture state.
      */
     public TextureState getState (
-        GlContext ctx, Scope scope, List<Executor> executors, List<Updater> updaters)
+        GlContext ctx, Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
     {
         if (units.length == 0) {
             return TextureState.DISABLED;
         }
         if (uniqueInstance) {
-            return createInstance(ctx, scope, executors, updaters);
+            return createInstance(ctx, scope, adders, updaters);
         }
         TextureState instance = (_instance == null) ? null : _instance.get();
         if (instance == null) {
-            // if the instance adds any executors/updaters, it must be unique;
+            // if the instance adds any adders/updaters, it must be unique;
             // otherwise we can cache it
-            int esize = executors.size(), usize = updaters.size();
-            instance = createInstance(ctx, scope, executors, updaters);
-            if (executors.size() == esize && updaters.size() == usize) {
+            int esize = adders.size(), usize = updaters.size();
+            instance = createInstance(ctx, scope, adders, updaters);
+            if (adders.size() == esize && updaters.size() == usize) {
                 _instance = new SoftReference<TextureState>(instance);
             }
         }
@@ -130,12 +130,12 @@ public class TextureStateConfig extends DeepObject
      * Creates a material state instance corresponding to this config.
      */
     protected TextureState createInstance (
-        GlContext ctx, Scope scope, List<Executor> executors, List<Updater> updaters)
+        GlContext ctx, Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
     {
         TextureUnit[] sunits = new TextureUnit[units.length];
         TextureState state = new TextureState(sunits);
         for (int ii = 0; ii < units.length; ii++) {
-            sunits[ii] = units[ii].createUnit(ctx, state, scope, executors, updaters);
+            sunits[ii] = units[ii].createUnit(ctx, state, scope, adders, updaters);
         }
         return state;
     }

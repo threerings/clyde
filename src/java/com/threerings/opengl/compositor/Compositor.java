@@ -263,6 +263,11 @@ public class Compositor
             _roots.get(ii).composite();
         }
 
+        // resolve the set of dependencies
+        for (Dependency dependency : _dependencies.values()) {
+            dependency.resolve();
+        }
+
         // enqueue and clear the enqueueables
         enqueueEnqueueables();
 

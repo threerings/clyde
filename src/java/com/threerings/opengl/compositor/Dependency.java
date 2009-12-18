@@ -48,11 +48,25 @@ import com.threerings.opengl.util.GlContext;
 public abstract class Dependency
 {
     /**
+     * An interface for objects that add dependendencies to the compositor.
+     */
+    public interface Adder
+    {
+        /**
+         * Adds the dependency.
+         *
+         * @return true if the dependency was added, false if the dependency cannot be added
+         * and the current {@link Compositable} should not be rendered.
+         */
+        public boolean add ();
+    }
+
+    /**
      * The base class of the various planar reflection/refraction dependencies.
      */
     public static abstract class Planar extends Dependency
     {
-        /** The eye space plane of reflection or refraction. */
+        /** The world space plane of reflection or refraction. */
         public Plane plane = new Plane();
 
         /** The bounds of the affected region in normalized device coordinates. */
