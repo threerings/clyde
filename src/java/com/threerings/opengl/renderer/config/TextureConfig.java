@@ -1234,6 +1234,10 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Reflection extends BaseDerived
     {
+        /** The maximum allowable depth. */
+        @Editable(min=0)
+        public int maxDepth;
+
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
@@ -1254,6 +1258,11 @@ public class TextureConfig extends ParameterizedConfig
                 public boolean add () {
                     Compositor compositor = ctx.getCompositor();
                     int depth = compositor.getSubrenderDepth();
+                    Object source = compositor.getSubrenderSource();
+                    if (depth > maxDepth ||
+                            (source != null && source == dependencies.get(depth - 1))) {
+                        return false;
+                    }
                     Dependency.ReflectionTexture dependency = dependencies.get(depth);
                     if (dependency == null) {
                         dependencies.put(depth,
@@ -1297,6 +1306,10 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(min=0.0, step=0.01, hgroup="n")
         public float destIndex = 1.5f;
 
+        /** The maximum allowable depth. */
+        @Editable(min=0, hgroup="n")
+        public int maxDepth;
+
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
@@ -1317,6 +1330,11 @@ public class TextureConfig extends ParameterizedConfig
                 public boolean add () {
                     Compositor compositor = ctx.getCompositor();
                     int depth = compositor.getSubrenderDepth();
+                    Object source = compositor.getSubrenderSource();
+                    if (depth > maxDepth ||
+                            (source != null && source == dependencies.get(depth - 1))) {
+                        return false;
+                    }
                     Dependency.RefractionTexture dependency = dependencies.get(depth);
                     if (dependency == null) {
                         dependencies.put(depth,
@@ -1324,6 +1342,7 @@ public class TextureConfig extends ParameterizedConfig
                     }
                     Plane.XY_PLANE.transform(transform, dependency.plane);
                     dependency.ratio = sourceIndex / destIndex;
+                    dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
                         dependency.texture = config.getFromPool(ctx);

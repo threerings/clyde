@@ -225,6 +225,27 @@ public abstract class Dependency
         }
 
         @Override // documentation inherited
+        public void resolve ()
+        {
+            Compositor compositor = _ctx.getCompositor();
+            Camera ocamera = compositor.getCamera();
+            Compositor.State cstate = compositor.prepareSubrender();
+            Camera ncamera = compositor.getCamera();
+            ncamera.setProjection(ocamera);
+            ncamera.getWorldTransform().set(ocamera.getWorldTransform());
+            ncamera.updateTransform();
+            TextureRenderer renderer = TextureRenderer.getInstance(
+                _ctx, texture, null, new PixelFormat(8, 16, 8));
+            renderer.startRender();
+            try {
+                compositor.performSubrender(this);
+            } finally {
+                renderer.commitRender();
+                compositor.cleanupSubrender(cstate);
+            }
+        }
+
+        @Override // documentation inherited
         public boolean equals (Object other)
         {
             return super.equals(other) && ((RefractionTexture)other).ratio == ratio;
