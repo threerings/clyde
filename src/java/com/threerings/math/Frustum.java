@@ -90,7 +90,7 @@ public class Frustum
     public Frustum setToFrustum (
         float left, float right, float bottom, float top, float near, float far)
     {
-        return setToProjection(left, right, bottom, top, near, far, false);
+        return setToProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, false);
     }
 
     /**
@@ -102,7 +102,7 @@ public class Frustum
     public Frustum setToOrtho (
         float left, float right, float bottom, float top, float near, float far)
     {
-        return setToProjection(left, right, bottom, top, near, far, true);
+        return setToProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, true);
     }
 
     /**
@@ -112,7 +112,8 @@ public class Frustum
      * @return a reference to this frustum, for chaining.
      */
     public Frustum setToProjection (
-        float left, float right, float bottom, float top, float near, float far, boolean ortho)
+        float left, float right, float bottom, float top, float near,
+        float far, Vector3f nearFarNormal, boolean ortho)
     {
         _vertices[0].set(left, bottom, -near);
         _vertices[1].set(right, bottom, -near);

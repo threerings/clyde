@@ -39,6 +39,7 @@ import com.samskivert.util.StringUtil;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.camera.CameraHandler;
@@ -377,7 +378,8 @@ public class RenderableView extends Component
             if (!_static) {
                 Rectangle viewport = ocamera.getViewport();
                 renderer.setViewport(viewport);
-                renderer.setProjection(0f, viewport.width, 0f, viewport.height, -1f, +1f, true);
+                renderer.setProjection(
+                    0f, viewport.width, 0f, viewport.height, -1f, +1f, Vector3f.UNIT_Z, true);
 
                 // reapply the overlay states
                 renderer.setStates(_root.getStates());

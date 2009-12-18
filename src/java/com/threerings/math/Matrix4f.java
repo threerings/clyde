@@ -371,6 +371,18 @@ public final class Matrix4f
     public Matrix4f setToFrustum (
         float left, float right, float bottom, float top, float near, float far)
     {
+        return setToFrustum(left, right, bottom, top, near, far, Vector3f.UNIT_Z);
+    }
+
+    /**
+     * Sets this to a perspective projection matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f setToFrustum (
+        float left, float right, float bottom, float top,
+        float near, float far, Vector3f nearFarNormal)
+    {
         float rrl = 1f / (right - left);
         float rtb = 1f / (top - bottom);
         float rfn = 1f / (far - near);
@@ -390,6 +402,18 @@ public final class Matrix4f
      */
     public Matrix4f setToOrtho (
         float left, float right, float bottom, float top, float near, float far)
+    {
+        return setToOrtho(left, right, bottom, top, near, far, Vector3f.UNIT_Z);
+    }
+
+    /**
+     * Sets this to an orthographic projection matrix.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f setToOrtho (
+        float left, float right, float bottom, float top,
+        float near, float far, Vector3f nearFarNormal)
     {
         float rrl = 1f / (right - left);
         float rtb = 1f / (top - bottom);

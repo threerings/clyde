@@ -89,7 +89,7 @@ public class Camera
     public void setFrustum (
         float left, float right, float bottom, float top, float near, float far)
     {
-        setProjection(left, right, bottom, top, near, far, false);
+        setProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, false);
     }
 
     /**
@@ -98,7 +98,7 @@ public class Camera
     public void setOrtho (
         float left, float right, float bottom, float top, float near, float far)
     {
-        setProjection(left, right, bottom, top, near, far, true);
+        setProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, true);
     }
 
     /**
@@ -108,22 +108,23 @@ public class Camera
     {
         setProjection(
             ocamera.getLeft(), ocamera.getRight(), ocamera.getBottom(), ocamera.getTop(),
-            ocamera.getNear(), ocamera.getFar(), ocamera.isOrtho());
+            ocamera.getNear(), ocamera.getFar(), ocamera.getNearFarNormal(), ocamera.isOrtho());
     }
 
     /**
      * Sets the camera projection parameters.
      */
     public void setProjection (
-        float left, float right, float bottom, float top, float near, float far, boolean ortho)
+        float left, float right, float bottom, float top, float near,
+        float far, Vector3f nearFarNormal, boolean ortho)
     {
         _localVolume.setToProjection(
-            _left = left, _right = right, _bottom = bottom, _top = top,
-            _near = near, _far = far, _ortho = ortho);
+            _left = left, _right = right, _bottom = bottom, _top = top, _near = near,
+            _far = far, _nearFarNormal.set(nearFarNormal), _ortho = ortho);
         if (ortho) {
-            _projection.setToOrtho(left, right, bottom, top, near, far);
+            _projection.setToOrtho(left, right, bottom, top, near, far, nearFarNormal);
         } else {
-            _projection.setToFrustum(left, right, bottom, top, near, far);
+            _projection.setToFrustum(left, right, bottom, top, near, far, nearFarNormal);
         }
     }
 
@@ -184,6 +185,14 @@ public class Camera
     }
 
     /**
+     * Returns a reference to the normal of the near/far clip planes.
+     */
+    public Vector3f getNearFarNormal ()
+    {
+        return _nearFarNormal;
+    }
+
+    /**
      * Determines whether or not the camera is set to an orthographic projection.
      */
     public boolean isOrtho ()
@@ -213,7 +222,7 @@ public class Camera
     public void apply (Renderer renderer)
     {
         renderer.setViewport(_viewport);
-        renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _ortho);
+        renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _nearFarNormal, _ortho);
     }
 
     /**
@@ -308,6 +317,9 @@ public class Camera
 
     /** The camera frustum parameters. */
     protected float _left = -1f, _right = +1f, _bottom = -1f, _top = +1f, _near = +1f, _far = -1f;
+
+    /** The normal of the near/far clip planes. */
+    protected Vector3f _nearFarNormal = new Vector3f(Vector3f.UNIT_Z);
 
     /** Whether or not the camera is set to an orthographic projection. */
     protected boolean _ortho = true;

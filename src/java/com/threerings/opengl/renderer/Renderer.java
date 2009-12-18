@@ -480,11 +480,16 @@ public class Renderer
      * Sets the projection matrix.
      */
     public void setProjection (
-        float left, float right, float bottom, float top, float near, float far, boolean ortho)
+        float left, float right, float bottom, float top, float near,
+        float far, Vector3f nearFarNormal, boolean ortho)
     {
-        if (_left != left || _right != _right || _bottom != bottom ||
-            _top != top || _near != near || _far != far || _ortho != ortho) {
-            setMatrixMode(GL11.GL_PROJECTION);
+        if (_left == left && _right == right && _bottom == bottom &&
+            _top == top && _near == near && _far == far &&
+            _nearFarNormal.equals(nearFarNormal) && _ortho == ortho) {
+            return;
+        }
+        setMatrixMode(GL11.GL_PROJECTION);
+        if (_nearFarNormal.set(nearFarNormal).equals(Vector3f.UNIT_Z)) {
             GL11.glLoadIdentity();
             if (_ortho = ortho) {
                 GL11.glOrtho(
@@ -495,7 +500,19 @@ public class Renderer
                     _left = left, _right = right, _bottom = bottom,
                     _top = top, _near = near, _far = far);
             }
+            return;
         }
+        if (_ortho = ortho) {
+            _mat.setToOrtho(
+                _left = left, _right = right, _bottom = bottom,
+                _top = top, _near = near, _far = far, _nearFarNormal);
+        } else {
+            _mat.setToFrustum(
+                _left = left, _right = right, _bottom = bottom,
+                _top = top, _near = near, _far = far, _nearFarNormal);
+        }
+        _mat.get(_vbuf).rewind();
+        GL11.glLoadMatrix(_vbuf);
     }
 
     /**
@@ -544,6 +561,14 @@ public class Renderer
     public float getFar ()
     {
         return _far;
+    }
+
+    /**
+     * Returns a reference to the near/far normal projection parameter.
+     */
+    public Vector3f getNearFarNormal ()
+    {
+        return _nearFarNormal;
     }
 
     /**
@@ -2617,6 +2642,9 @@ public class Renderer
     /** The projection parameters. */
     protected float _left = -1f, _right = +1f, _bottom = -1f, _top = +1f, _near = +1f, _far = -1f;
 
+    /** The normal of the near/far clip planes.  */
+    protected Vector3f _nearFarNormal = new Vector3f(Vector3f.UNIT_Z);
+
     /** Whether or not we're using orthographic projection. */
     protected boolean _ortho = true;
 
@@ -2922,6 +2950,9 @@ public class Renderer
 
     /** The total number of bytes in the textures to be deleted. */
     protected int _finalizedTextureBytes;
+
+    /** Temporary matrix. */
+    protected Matrix4f _mat = new Matrix4f();
 
     /** A buffer for floating point values. */
     protected FloatBuffer _vbuf = BufferUtils.createFloatBuffer(16);

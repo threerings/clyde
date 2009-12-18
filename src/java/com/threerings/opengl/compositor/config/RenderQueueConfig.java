@@ -36,6 +36,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.Dependency;
@@ -140,18 +141,23 @@ public class RenderQueueConfig extends ManagedConfig
             float oleft = renderer.getLeft(), oright = renderer.getRight();
             float obottom = renderer.getBottom(), otop = renderer.getTop();
             float onear = renderer.getNear(), ofar = renderer.getFar();
+            _onormal.set(renderer.getNearFarNormal());
             boolean oortho = renderer.isOrtho();
 
             // set the orthographic projection
             Rectangle viewport = renderer.getViewport();
-            renderer.setProjection(0f, viewport.width, 0f, viewport.height, -1f, +1f, true);
+            renderer.setProjection(
+                0f, viewport.width, 0f, viewport.height, -1f, +1f, Vector3f.UNIT_Z, true);
 
             // render
             super.render(ctx, queue);
 
             // restore the original projection
-            renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, oortho);
+            renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, _onormal, oortho);
         }
+
+        /** Stores the near/far clip plane normal. */
+        protected Vector3f _onormal = new Vector3f();
     }
 
     /**
@@ -182,25 +188,30 @@ public class RenderQueueConfig extends ManagedConfig
             float oleft = renderer.getLeft(), oright = renderer.getRight();
             float obottom = renderer.getBottom(), otop = renderer.getTop();
             float onear = renderer.getNear(), ofar = renderer.getFar();
+            _onormal.set(renderer.getNearFarNormal());
             boolean oortho = renderer.isOrtho();
 
             // apply field of view scale (assumes we're using on-axis perspective projection)
             float tfov = otop / onear;
             float scale = FloatMath.tan(fscale * FloatMath.atan(tfov)) / tfov;
             renderer.setProjection(
-                oleft * scale, oright * scale, obottom * scale, otop * scale, onear, ofar, false);
+                oleft * scale, oright * scale, obottom * scale,
+                otop * scale, onear, ofar, _onormal, false);
 
             // render
             super.render(ctx, queue);
 
             // restore the original projection
-            renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, oortho);
+            renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, _onormal, oortho);
 
             // clear the z buffer
             renderer.setClearDepth(1f);
             renderer.setState(DepthState.TEST_WRITE);
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
         }
+
+        /** Stores the near/far clip plane normal. */
+        protected Vector3f _onormal = new Vector3f();
     }
 
     /** The type of the queue. */
