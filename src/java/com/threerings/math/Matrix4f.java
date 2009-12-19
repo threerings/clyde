@@ -385,12 +385,13 @@ public final class Matrix4f
     {
         float rrl = 1f / (right - left);
         float rtb = 1f / (top - bottom);
-        float rfn = 1f / (far - near);
+        float rnf = 1f / (near - far);
         float n2 = 2f * near;
+        float s = (far + near) / (near*nearFarNormal.z - far*nearFarNormal.z);
         return set(
             n2 * rrl, 0f, (right + left) * rrl, 0f,
             0f, n2 * rtb, (top + bottom) * rtb, 0f,
-            0f, 0f, (far + near) * rfn, n2 * far * rfn,
+            s * nearFarNormal.x, s * nearFarNormal.y, (far + near) * rnf, n2 * far * rnf,
             0f, 0f, -1f, 0f);
     }
 
@@ -415,13 +416,14 @@ public final class Matrix4f
         float left, float right, float bottom, float top,
         float near, float far, Vector3f nearFarNormal)
     {
-        float rrl = 1f / (right - left);
-        float rtb = 1f / (top - bottom);
-        float rfn = 1f / (far - near);
+        float rlr = 1f / (left - right);
+        float rbt = 1f / (bottom - top);
+        float rnf = 1f / (near - far);
+        float s = 2f / (near*nearFarNormal.z - far*nearFarNormal.z);
         return set(
-            2f * rrl, 0f, 0f, (right + left) * rrl,
-            0f, 2f * rtb, 0f, (top + bottom) * rtb,
-            0f, 0f, -2f * rfn, (far + near) * rfn,
+            -2f * rlr, 0f, 0f, (right + left) * rlr,
+            0f, -2f * rbt, 0f, (top + bottom) * rbt,
+            s * nearFarNormal.x, s * nearFarNormal.y, 2f * rnf, (far + near) * rnf,
             0f, 0f, 0f, 1f);
     }
 

@@ -177,14 +177,15 @@ public class RenderQueueConfig extends ManagedConfig
                 return;
             }
 
-            // as a hack, don't scale the fov if we're rendering a cube map
-            float fscale = fovScale;
-            if (ctx.getCompositor().getSubrenderSource() instanceof Dependency.CubeTexture) {
-                fscale = 1f;
+            // as a hack, don't scale the fov if we're subrendering
+            Renderer renderer = ctx.getRenderer();
+            if (ctx.getCompositor().getSubrenderDepth() > 0) {
+                super.render(ctx, queue);
+                clearDepth(renderer);
+                return;
             }
 
             // save the projection parameters
-            Renderer renderer = ctx.getRenderer();
             float oleft = renderer.getLeft(), oright = renderer.getRight();
             float obottom = renderer.getBottom(), otop = renderer.getTop();
             float onear = renderer.getNear(), ofar = renderer.getFar();
@@ -193,7 +194,7 @@ public class RenderQueueConfig extends ManagedConfig
 
             // apply field of view scale (assumes we're using on-axis perspective projection)
             float tfov = otop / onear;
-            float scale = FloatMath.tan(fscale * FloatMath.atan(tfov)) / tfov;
+            float scale = FloatMath.tan(fovScale * FloatMath.atan(tfov)) / tfov;
             renderer.setProjection(
                 oleft * scale, oright * scale, obottom * scale,
                 otop * scale, onear, ofar, _onormal, false);
@@ -205,6 +206,14 @@ public class RenderQueueConfig extends ManagedConfig
             renderer.setProjection(oleft, oright, obottom, otop, onear, ofar, _onormal, oortho);
 
             // clear the z buffer
+            clearDepth(renderer);
+        }
+
+        /**
+         * Clears the depth buffer.
+         */
+        protected void clearDepth (Renderer renderer)
+        {
             renderer.setClearDepth(1f);
             renderer.setState(DepthState.TEST_WRITE);
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);

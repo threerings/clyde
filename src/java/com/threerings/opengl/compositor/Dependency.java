@@ -67,7 +67,10 @@ public abstract class Dependency
     public static abstract class Planar extends Dependency
     {
         /** The world space plane of reflection or refraction. */
-        public Plane plane = new Plane();
+        public Plane worldPlane = new Plane();
+
+        /** The eye space plane. */
+        public Plane eyePlane = new Plane();
 
         /** The bounds of the affected region in normalized device coordinates. */
         public Rect bounds = new Rect();
@@ -89,13 +92,13 @@ public abstract class Dependency
         @Override // documentation inherited
         public int hashCode ()
         {
-            return plane.hashCode();
+            return worldPlane.hashCode();
         }
 
         @Override // documentation inherited
         public boolean equals (Object other)
         {
-            return getClass() == other.getClass() && ((Planar)other).plane.equals(plane);
+            return getClass() == other.getClass() && ((Planar)other).worldPlane.equals(worldPlane);
         }
     }
 
@@ -231,7 +234,13 @@ public abstract class Dependency
             Camera ocamera = compositor.getCamera();
             Compositor.State cstate = compositor.prepareSubrender();
             Camera ncamera = compositor.getCamera();
-            ncamera.setProjection(ocamera);
+            Vector3f normal = eyePlane.getNormal();
+            float near = eyePlane.constant / normal.z;
+            float scale = ocamera.isOrtho() ? 1f : (near / ocamera.getNear());
+            ncamera.setProjection(
+                ocamera.getLeft() * scale, ocamera.getRight() * scale,
+                ocamera.getBottom() * scale, ocamera.getTop() * scale,
+                near, near + ocamera.getFar() - ocamera.getNear(), normal, ocamera.isOrtho());
             ncamera.getWorldTransform().set(ocamera.getWorldTransform());
             ncamera.updateTransform();
             TextureRenderer renderer = TextureRenderer.getInstance(

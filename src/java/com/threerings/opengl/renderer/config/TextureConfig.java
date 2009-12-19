@@ -62,11 +62,13 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
+import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.renderer.Color4f;
@@ -1268,7 +1270,7 @@ public class TextureConfig extends ParameterizedConfig
                         dependencies.put(depth,
                             dependency = new Dependency.ReflectionTexture(ctx));
                     }
-                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                    Plane.XY_PLANE.transform(transform, dependency.worldPlane);
                     dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
@@ -1310,6 +1312,10 @@ public class TextureConfig extends ParameterizedConfig
         @Editable(min=0, hgroup="n")
         public int maxDepth;
 
+        /** Whether to enable rendering to the front and back. */
+        @Editable(hgroup="f")
+        public boolean front = true, back;
+
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
@@ -1340,7 +1346,20 @@ public class TextureConfig extends ParameterizedConfig
                         dependencies.put(depth,
                             dependency = new Dependency.RefractionTexture(ctx));
                     }
-                    Plane.XY_PLANE.transform(transform, dependency.plane);
+                    Plane.XY_PLANE.transform(transform, dependency.worldPlane);
+                    Plane eyePlane = dependency.eyePlane;
+                    Camera camera = compositor.getCamera();
+                    dependency.worldPlane.transform(camera.getViewTransform(), eyePlane);
+                    Vector3f normal = eyePlane.getNormal();
+                    boolean away = (normal.z < 0f);
+                    if (Math.abs(normal.z) < FloatMath.EPSILON || !(away ? back : front) ||
+                            eyePlane.constant / normal.z < camera.getNear()) {
+                        return false;
+                    }
+                    if (away) {
+                        dependency.worldPlane.negateLocal();
+                        eyePlane.negateLocal();
+                    }
                     dependency.ratio = sourceIndex / destIndex;
                     dependency.texture = null;
                     compositor.addDependency(dependency);

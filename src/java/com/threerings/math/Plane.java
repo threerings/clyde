@@ -206,6 +206,38 @@ public class Plane
     }
 
     /**
+     * Negates this plane in-place.
+     *
+     * @return a reference to this plane, for chaining.
+     */
+    public Plane negateLocal ()
+    {
+        return negate(this);
+    }
+
+    /**
+     * Negates this plane.
+     *
+     * @return a new plane containing the result.
+     */
+    public Plane negate ()
+    {
+        return negate(new Plane());
+    }
+
+    /**
+     * Negates this plane, placing the result in the object provided.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public Plane negate (Plane result)
+    {
+        _normal.negate(result.getNormal());
+        result.constant = -constant;
+        return result;
+    }
+
+    /**
      * Computes the intersection of the supplied ray with this plane, placing the result
      * in the given vector (if the ray intersects).
      *
