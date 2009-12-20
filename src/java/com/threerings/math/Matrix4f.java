@@ -347,6 +347,40 @@ public final class Matrix4f
     }
 
     /**
+     * Sets this to a skew by the specified amount relative to the given plane.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f setToSkew (Plane plane, Vector3f amount)
+    {
+        return setToSkew(plane.getNormal(), plane.constant, amount);
+    }
+
+    /**
+     * Sets this to a skew by the specified amount relative to the given plane.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f setToSkew (Vector3f normal, float constant, Vector3f amount)
+    {
+        return setToSkew(normal.x, normal.y, normal.z, constant, amount.x, amount.y, amount.z);
+    }
+
+    /**
+     * Sets this to a skew by the specified amount relative to the given plane.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f setToSkew (float a, float b, float c, float d, float x, float y, float z)
+    {
+        return set(
+            1f + a*x, b*x, c*x, d*x,
+            a*y, 1f + b*y, c*y, d*y,
+            a*z, b*z, 1f + c*z, d*z,
+            0f, 0f, 0f, 1f);
+    }
+
+    /**
      * Sets this to a perspective projection matrix.  The formula comes from the OpenGL
      * documentation for the gluPerspective function.
      *

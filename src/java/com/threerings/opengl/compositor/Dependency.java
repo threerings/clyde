@@ -241,7 +241,12 @@ public abstract class Dependency
                 ocamera.getLeft() * scale, ocamera.getRight() * scale,
                 ocamera.getBottom() * scale, ocamera.getTop() * scale,
                 near, near + ocamera.getFar() - ocamera.getNear(), normal, ocamera.isOrtho());
-            ncamera.getWorldTransform().set(ocamera.getWorldTransform());
+            FloatMath.refract(_v0.set(0f, 0f, -1f), normal, ratio, _v1);
+            _v1.multLocal(normal.dot(_v1));
+            Transform3D transform = ncamera.getWorldTransform();
+            transform.setType(Transform3D.AFFINE);
+            transform.getMatrix().setToSkew(eyePlane, _v0.set(_v1.x, _v1.y, _v1.z - normal.z));
+            ocamera.getWorldTransform().compose(transform, transform);
             ncamera.updateTransform();
             TextureRenderer renderer = TextureRenderer.getInstance(
                 _ctx, texture, null, new PixelFormat(8, 16, 8));
@@ -259,6 +264,9 @@ public abstract class Dependency
         {
             return super.equals(other) && ((RefractionTexture)other).ratio == ratio;
         }
+
+        /** Temporary vectors. */
+        protected Vector3f _v0 = new Vector3f(), _v1 = new Vector3f();
     }
 
     /**

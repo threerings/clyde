@@ -279,8 +279,9 @@ public abstract class GlApp extends DynamicScope
 
         // update the shared axial billboard rotation (this assumes that the camera doesn't
         // "roll")
-        Quaternion viewRotation = _viewTransform.getRotation();
-        float angle = FloatMath.HALF_PI + 2f*FloatMath.atan2(viewRotation.x, viewRotation.w);
+        _viewTransform.extractRotation(_billboardRotation);
+        float angle = FloatMath.HALF_PI +
+            2f*FloatMath.atan2(_billboardRotation.x, _billboardRotation.w);
         _billboardRotation.fromAngleAxis(angle, Vector3f.UNIT_X);
     }
 

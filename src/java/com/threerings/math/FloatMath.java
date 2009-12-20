@@ -414,4 +414,47 @@ public class FloatMath
     {
         return (a > 0f ? PI : -PI) - a;
     }
+
+    /**
+     * Computes the reflection of a vector.  The formula comes from the GLSL specification.
+     *
+     * @return a new vector containing the result.
+     */
+    public static Vector3f reflect (Vector3f i, Vector3f n)
+    {
+        return reflect(i, n, new Vector3f());
+    }
+
+    /**
+     * Computes the reflection of a vector and stores it in the provided vector.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public static Vector3f reflect (Vector3f i, Vector3f n, Vector3f result)
+    {
+        return result.set(n).multLocal(-2f * n.dot(i)).addLocal(i);
+    }
+
+    /**
+     * Computes the refraction of a vector.  The formula comes from the GLSL specification.
+     *
+     * @return a new vector containing the result.
+     */
+    public static Vector3f refract (Vector3f i, Vector3f n, float eta)
+    {
+        return refract(i, n, eta, new Vector3f());
+    }
+
+    /**
+     * Computes the refraction of a vector, placing the result in the provided vector.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public static Vector3f refract (Vector3f i, Vector3f n, float eta, Vector3f result)
+    {
+        float ndoti = n.dot(i);
+        float k = 1f - eta * eta * (1f - ndoti * ndoti);
+        return (k < 0f) ? result.set(Vector3f.ZERO) :
+            result.set(n).multLocal(-eta * ndoti - sqrt(k)).addScaledLocal(i, eta);
+    }
 }
