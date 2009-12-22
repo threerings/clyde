@@ -90,7 +90,7 @@ public class Frustum
     public Frustum setToFrustum (
         float left, float right, float bottom, float top, float near, float far)
     {
-        return setToProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, false);
+        return setToProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, false, false);
     }
 
     /**
@@ -102,7 +102,7 @@ public class Frustum
     public Frustum setToOrtho (
         float left, float right, float bottom, float top, float near, float far)
     {
-        return setToProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, true);
+        return setToProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, true, false);
     }
 
     /**
@@ -113,20 +113,20 @@ public class Frustum
      */
     public Frustum setToProjection (
         float left, float right, float bottom, float top, float near,
-        float far, Vector3f nearFarNormal, boolean ortho)
+        float far, Vector3f nearFarNormal, boolean ortho, boolean mirrored)
     {
         if (ortho) {
             float nrz = -1f / nearFarNormal.z;
             float xl = nearFarNormal.x*left*nrz, xr = nearFarNormal.x*right*nrz;
             float yb = nearFarNormal.y*bottom*nrz, yt = nearFarNormal.y*top*nrz;
             _vertices[0].set(left, bottom, xl + yb - near);
-            _vertices[1].set(right, bottom, xr + yb - near);
+            _vertices[mirrored ? 3 : 1].set(right, bottom, xr + yb - near);
             _vertices[2].set(right, top, xr + yt - near);
-            _vertices[3].set(left, top, xl + yt - near);
+            _vertices[mirrored ? 1 : 3].set(left, top, xl + yt - near);
             _vertices[4].set(left, bottom, xl + yb - far);
-            _vertices[5].set(right, bottom, xr + yb - far);
+            _vertices[mirrored ? 7 : 5].set(right, bottom, xr + yb - far);
             _vertices[6].set(right, top, xr + yt - far);
-            _vertices[7].set(left, top, xl + yt - far);
+            _vertices[mirrored ? 5 : 7].set(left, top, xl + yt - far);
 
         } else {
             float rn = 1f / near;
@@ -137,21 +137,21 @@ public class Frustum
             float z0 = nz / (nearFarNormal.x*lrn + nearFarNormal.y*brn - nearFarNormal.z);
             _vertices[0].set(-z0*lrn, -z0*brn, z0);
             float z1 = nz / (nearFarNormal.x*rrn + nearFarNormal.y*brn - nearFarNormal.z);
-            _vertices[1].set(-z1*rrn, -z1*brn, z1);
+            _vertices[mirrored ? 3 : 1].set(-z1*rrn, -z1*brn, z1);
             float z2 = nz / (nearFarNormal.x*rrn + nearFarNormal.y*trn - nearFarNormal.z);
             _vertices[2].set(-z2*rrn, -z2*trn, z2);
             float z3 = nz / (nearFarNormal.x*lrn + nearFarNormal.y*trn - nearFarNormal.z);
-            _vertices[3].set(-z3*lrn, -z3*trn, z3);
+            _vertices[mirrored ? 1 : 3].set(-z3*lrn, -z3*trn, z3);
 
             float fz = far * nearFarNormal.z;
             float z4 = fz / (nearFarNormal.x*lrn + nearFarNormal.y*brn - nearFarNormal.z);
             _vertices[4].set(-z4*lrn, -z4*brn, z4);
             float z5 = fz / (nearFarNormal.x*rrn + nearFarNormal.y*brn - nearFarNormal.z);
-            _vertices[5].set(-z5*rrn, -z5*brn, z5);
+            _vertices[mirrored ? 7 : 5].set(-z5*rrn, -z5*brn, z5);
             float z6 = fz / (nearFarNormal.x*rrn + nearFarNormal.y*trn - nearFarNormal.z);
             _vertices[6].set(-z6*rrn, -z6*trn, z6);
             float z7 = fz / (nearFarNormal.x*lrn + nearFarNormal.y*trn - nearFarNormal.z);
-            _vertices[7].set(-z7*lrn, -z7*trn, z7);
+            _vertices[mirrored ? 5 : 7].set(-z7*lrn, -z7*trn, z7);
         }
 
         updateDerivedState();

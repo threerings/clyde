@@ -553,6 +553,14 @@ public final class Matrix4f
     }
 
     /**
+     * Determines whether the matrix is mirrored.
+     */
+    public boolean isMirrored ()
+    {
+        return (m01*m12 - m02*m11)*m20 + (m02*m10 - m00*m12)*m21 + (m00*m11 - m01*m10)*m22 < 0f;
+    }
+
+    /**
      * Multiplies this matrix in-place by another, treating the matricees as affine.
      *
      * @return a reference to this matrix, for chaining.

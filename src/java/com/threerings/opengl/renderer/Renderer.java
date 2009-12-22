@@ -642,6 +642,24 @@ public class Renderer
     }
 
     /**
+     * Sets the front face.
+     */
+    public void setFrontFace (int face)
+    {
+        if (_frontFace != face) {
+            GL11.glFrontFace(_frontFace = face);
+        }
+    }
+
+    /**
+     * Returns the current front face.
+     */
+    public int getFrontFace ()
+    {
+        return _frontFace;
+    }
+
+    /**
      * Starts a query.
      */
     public void startQuery (Query query)
@@ -2725,6 +2743,9 @@ public class Renderer
 
     /** The cull face. */
     protected int _cullFace = GL11.GL_BACK;
+
+    /** The front face. */
+    protected int _frontFace = GL11.GL_CCW;
 
     /** Whether or not depth testing is enabled. */
     protected Boolean _depthTestEnabled = false;

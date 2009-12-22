@@ -773,6 +773,14 @@ public final class Transform3D
     }
 
     /**
+     * Checks whether the transform is mirrored.
+     */
+    public boolean isMirrored ()
+    {
+        return (_type == AFFINE || _type == GENERAL) && _matrix.isMirrored();
+    }
+
+    /**
      * Custom field write method.
      */
     public void writeFields (Exporter out)

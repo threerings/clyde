@@ -1236,8 +1236,12 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Reflection extends BaseDerived
     {
+        /** Whether to enable rendering to the front and back. */
+        @Editable(hgroup="f")
+        public boolean front = true, back;
+
         /** The maximum allowable depth. */
-        @Editable(min=0)
+        @Editable(min=0, hgroup="f")
         public int maxDepth;
 
         @Override // documentation inherited
@@ -1271,6 +1275,19 @@ public class TextureConfig extends ParameterizedConfig
                             dependency = new Dependency.ReflectionTexture(ctx));
                     }
                     Plane.XY_PLANE.transform(transform, dependency.worldPlane);
+                    Plane eyePlane = dependency.eyePlane;
+                    Camera camera = compositor.getCamera();
+                    dependency.worldPlane.transform(camera.getViewTransform(), eyePlane);
+                    Vector3f normal = eyePlane.getNormal();
+                    boolean away = (normal.z < 0f);
+                    if (Math.abs(normal.z) < FloatMath.EPSILON || !(away ? back : front) ||
+                            eyePlane.constant / normal.z < camera.getNear()) {
+                        return false;
+                    }
+                    if (away) {
+                        dependency.worldPlane.negateLocal();
+                        eyePlane.negateLocal();
+                    }
                     dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
@@ -1300,6 +1317,14 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Refraction extends BaseDerived
     {
+        /** Whether to enable rendering to the front and back. */
+        @Editable(hgroup="f")
+        public boolean front = true, back;
+
+        /** The maximum allowable depth. */
+        @Editable(min=0, hgroup="f")
+        public int maxDepth;
+
         /** The index of refraction of the source material. */
         @Editable(min=0.0, step=0.01, hgroup="n")
         public float sourceIndex = 1f;
@@ -1307,14 +1332,6 @@ public class TextureConfig extends ParameterizedConfig
         /** The index of refraction of the destination material. */
         @Editable(min=0.0, step=0.01, hgroup="n")
         public float destIndex = 1.5f;
-
-        /** The maximum allowable depth. */
-        @Editable(min=0, hgroup="n")
-        public int maxDepth;
-
-        /** Whether to enable rendering to the front and back. */
-        @Editable(hgroup="f")
-        public boolean front = true, back;
 
         @Override // documentation inherited
         public Texture getTexture (

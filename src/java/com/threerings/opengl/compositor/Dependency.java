@@ -195,8 +195,18 @@ public abstract class Dependency
             Camera ocamera = compositor.getCamera();
             Compositor.State cstate = compositor.prepareSubrender();
             Camera ncamera = compositor.getCamera();
-            ncamera.setProjection(ocamera);
-            ncamera.getWorldTransform().set(ocamera.getWorldTransform());
+            Vector3f normal = eyePlane.getNormal();
+            float near = eyePlane.constant / normal.z;
+            float scale = ocamera.isOrtho() ? 1f : (near / ocamera.getNear());
+            ncamera.setProjection(
+                ocamera.getLeft() * scale, ocamera.getRight() * scale,
+                ocamera.getBottom() * scale, ocamera.getTop() * scale,
+                near, near + ocamera.getFar() - ocamera.getNear(), normal, ocamera.isOrtho(),
+                !ocamera.isMirrored());
+            Transform3D transform = ncamera.getWorldTransform();
+            transform.setType(Transform3D.AFFINE);
+            transform.getMatrix().setToReflection(eyePlane);
+            ocamera.getWorldTransform().compose(transform, transform);
             ncamera.updateTransform();
             TextureRenderer renderer = TextureRenderer.getInstance(
                 _ctx, texture, null, new PixelFormat(8, 16, 8));
@@ -240,7 +250,8 @@ public abstract class Dependency
             ncamera.setProjection(
                 ocamera.getLeft() * scale, ocamera.getRight() * scale,
                 ocamera.getBottom() * scale, ocamera.getTop() * scale,
-                near, near + ocamera.getFar() - ocamera.getNear(), normal, ocamera.isOrtho());
+                near, near + ocamera.getFar() - ocamera.getNear(), normal, ocamera.isOrtho(),
+                ocamera.isMirrored());
             FloatMath.refract(_v0.set(0f, 0f, -1f), normal, ratio, _v1);
             _v1.multLocal(normal.dot(_v1));
             Transform3D transform = ncamera.getWorldTransform();

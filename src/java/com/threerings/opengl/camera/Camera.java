@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.camera;
 
+import org.lwjgl.opengl.GL11;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
 import com.threerings.math.Matrix4f;
@@ -89,7 +91,7 @@ public class Camera
     public void setFrustum (
         float left, float right, float bottom, float top, float near, float far)
     {
-        setProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, false);
+        setProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, false, false);
     }
 
     /**
@@ -98,7 +100,7 @@ public class Camera
     public void setOrtho (
         float left, float right, float bottom, float top, float near, float far)
     {
-        setProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, true);
+        setProjection(left, right, bottom, top, near, far, Vector3f.UNIT_Z, true, false);
     }
 
     /**
@@ -108,7 +110,8 @@ public class Camera
     {
         setProjection(
             ocamera.getLeft(), ocamera.getRight(), ocamera.getBottom(), ocamera.getTop(),
-            ocamera.getNear(), ocamera.getFar(), ocamera.getNearFarNormal(), ocamera.isOrtho());
+            ocamera.getNear(), ocamera.getFar(), ocamera.getNearFarNormal(), ocamera.isOrtho(),
+            ocamera.isMirrored());
     }
 
     /**
@@ -116,11 +119,11 @@ public class Camera
      */
     public void setProjection (
         float left, float right, float bottom, float top, float near,
-        float far, Vector3f nearFarNormal, boolean ortho)
+        float far, Vector3f nearFarNormal, boolean ortho, boolean mirrored)
     {
         _localVolume.setToProjection(
             _left = left, _right = right, _bottom = bottom, _top = top, _near = near,
-            _far = far, _nearFarNormal.set(nearFarNormal), _ortho = ortho);
+            _far = far, _nearFarNormal.set(nearFarNormal), _ortho = ortho, _mirrored = mirrored);
         if (ortho) {
             _projection.setToOrtho(left, right, bottom, top, near, far, nearFarNormal);
         } else {
@@ -201,6 +204,14 @@ public class Camera
     }
 
     /**
+     * Determines whether or not the camera is mirrored.
+     */
+    public boolean isMirrored ()
+    {
+        return _mirrored;
+    }
+
+    /**
      * Updates the camera transform.
      */
     public void updateTransform ()
@@ -223,6 +234,7 @@ public class Camera
     {
         renderer.setViewport(_viewport);
         renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _nearFarNormal, _ortho);
+        renderer.setFrontFace(_mirrored ? GL11.GL_CW : GL11.GL_CCW);
     }
 
     /**
@@ -323,6 +335,9 @@ public class Camera
 
     /** Whether or not the camera is set to an orthographic projection. */
     protected boolean _ortho = true;
+
+    /** Whether or not the camera is mirrored. */
+    protected boolean _mirrored;
 
     /** The cached projection matrix. */
     protected Matrix4f _projection = new Matrix4f();
