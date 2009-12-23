@@ -140,7 +140,7 @@ public class Component
                     nconfig = _ctx.getConfigManager().getConfig(
                         StyleConfig.class, getDefaultStyleConfig());
                 } else {
-                    nconfig = _styleConfigs[DEFAULT];
+                    nconfig = _styleConfigs[getFallbackState(ii)];
                 }
             }
             if ((_styleConfigs[ii] = nconfig) != null) {
@@ -1022,6 +1022,14 @@ public class Component
     protected String getStatePseudoClass (int state)
     {
         return STATE_PCLASSES[state];
+    }
+
+    /**
+     * Returns the fallback to use for the specified state if no explicit style was given.
+     */
+    protected int getFallbackState (int state)
+    {
+        return DEFAULT;
     }
 
     /**
