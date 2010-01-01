@@ -44,6 +44,7 @@ import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.ContextCapabilities;
 import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.EXTRescaleNormal;
 import org.lwjgl.opengl.EXTTextureLODBias;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -657,6 +658,19 @@ public class Renderer
     public int getFrontFace ()
     {
         return _frontFace;
+    }
+
+    /**
+     * Sets the normalization parameters.
+     */
+    public void setNormalize (boolean normalize, boolean rescaleNormal)
+    {
+        if (_normalize != Boolean.valueOf(normalize)) {
+            setCapability(GL11.GL_NORMALIZE, _normalize = normalize);
+        }
+        if (_rescaleNormal != Boolean.valueOf(rescaleNormal)) {
+            setCapability(EXTRescaleNormal.GL_RESCALE_NORMAL_EXT, _rescaleNormal = rescaleNormal);
+        }
     }
 
     /**
@@ -1817,6 +1831,19 @@ public class Renderer
         if (!_modelview.equals(modelview)) {
             setMatrixMode(GL11.GL_MODELVIEW);
             loadTransformMatrix(_modelview.set(modelview));
+
+            // set the normalization based on the transform type
+            int type = modelview.getType();
+            if (type == Transform3D.IDENTITY || type == Transform3D.RIGID) {
+                setNormalize(false, false);
+            } else if (type == Transform3D.UNIFORM &&
+                    GLContext.getCapabilities().GL_EXT_rescale_normal) {
+                setNormalize(false, true);
+            } else {
+                setNormalize(true, false);
+            }
+
+            // invalidate associated state
             _states[RenderState.TRANSFORM_STATE] = null;
             _modelviewMatrixValid = false;
             _modelviewInverse.setType(-1);
@@ -2746,6 +2773,12 @@ public class Renderer
 
     /** The front face. */
     protected int _frontFace = GL11.GL_CCW;
+
+    /** Whether or not to normalize normals after transformation. */
+    protected Boolean _normalize = false;
+
+    /** Whether or not to rescale normals according to the modelview matrix scale. */
+    protected Boolean _rescaleNormal = false;
 
     /** Whether or not depth testing is enabled. */
     protected Boolean _depthTestEnabled = false;
