@@ -59,6 +59,7 @@ import com.threerings.expr.FloatExpression;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
 import com.threerings.math.Transform3D;
@@ -1260,6 +1261,7 @@ public class TextureConfig extends ParameterizedConfig
             final IntMap<Dependency.ReflectionTexture> dependencies = IntMaps.newHashIntMap();
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "worldTransform", new Transform3D());
+            final Box bounds = ScopeUtil.resolve(scope, "bounds", new Box(), Box.class);
             adders.add(new Dependency.Adder() {
                 public boolean add () {
                     Compositor compositor = ctx.getCompositor();
@@ -1288,6 +1290,7 @@ public class TextureConfig extends ParameterizedConfig
                         dependency.worldPlane.negateLocal();
                         eyePlane.negateLocal();
                     }
+                    dependency.bounds.set(bounds);
                     dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {
@@ -1349,6 +1352,7 @@ public class TextureConfig extends ParameterizedConfig
             final IntMap<Dependency.RefractionTexture> dependencies = IntMaps.newHashIntMap();
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "worldTransform", new Transform3D());
+            final Box bounds = ScopeUtil.resolve(scope, "bounds", new Box(), Box.class);
             adders.add(new Dependency.Adder() {
                 public boolean add () {
                     Compositor compositor = ctx.getCompositor();
@@ -1377,6 +1381,7 @@ public class TextureConfig extends ParameterizedConfig
                         dependency.worldPlane.negateLocal();
                         eyePlane.negateLocal();
                     }
+                    dependency.bounds.set(bounds);
                     dependency.ratio = sourceIndex / destIndex;
                     dependency.texture = null;
                     compositor.addDependency(dependency);

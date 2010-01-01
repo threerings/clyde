@@ -32,6 +32,9 @@ import com.threerings.export.Exportable;
 public final class Box
     implements Exportable
 {
+    /** The unit box. */
+    public static final Box UNIT = new Box(Vector3f.UNIT_XYZ.negate(), Vector3f.UNIT_XYZ);
+
     /** The zero box. */
     public static final Box ZERO = new Box(Vector3f.ZERO, Vector3f.ZERO);
 

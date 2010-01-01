@@ -26,10 +26,10 @@ package com.threerings.opengl.compositor;
 
 import org.lwjgl.opengl.PixelFormat;
 
+import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Plane;
 import com.threerings.math.Quaternion;
-import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -72,8 +72,8 @@ public abstract class Dependency
         /** The eye space plane. */
         public Plane eyePlane = new Plane();
 
-        /** The bounds of the affected region in normalized device coordinates. */
-        public Rect bounds = new Rect();
+        /** The bounds of the affected region. */
+        public Box bounds = new Box();
 
         /**
          * Creates a new planar dependency.
