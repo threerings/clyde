@@ -366,6 +366,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         protected Transform3D _worldTransformInv = new Transform3D();
 
         /** The bounds of the layer. */
+        @Scoped
         protected Box _bounds = new Box();
 
         /** The radius of the geometry (used to expand the bounds). */
@@ -642,6 +643,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
     protected int _influenceFlags;
 
     /** The bounds of the system. */
+    @Scoped
     protected Box _bounds = new Box();
 
     /** Holds the bounds of the model when updating. */

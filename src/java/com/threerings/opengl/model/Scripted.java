@@ -231,6 +231,7 @@ public class Scripted extends Model.Implementation
     protected int _influenceFlags;
 
     /** The bounds of the model. */
+    @Scoped
     protected Box _bounds = new Box();
 
     /** Holds the bounds of the model when updating. */

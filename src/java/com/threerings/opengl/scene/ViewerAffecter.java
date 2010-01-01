@@ -179,6 +179,7 @@ public class ViewerAffecter extends Model.Implementation
     protected int _influenceFlags;
 
     /** The bounds of the system. */
+    @Scoped
     protected Box _bounds = new Box();
 
     /** Holds the bounds of the model when updating. */

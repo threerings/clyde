@@ -26,11 +26,11 @@ package com.threerings.opengl.camera;
 
 import org.lwjgl.opengl.GL11;
 
+import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Frustum;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray3D;
-import com.threerings.math.Rect;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
@@ -235,6 +235,37 @@ public class Camera
         renderer.setViewport(_viewport);
         renderer.setProjection(_left, _right, _bottom, _top, _near, _far, _nearFarNormal, _ortho);
         renderer.setFrontFace(_mirrored ? GL11.GL_CW : GL11.GL_CCW);
+    }
+
+    /**
+     * Transforms and projects a box in world space into window space.
+     *
+     * @return a reference to the box, for chaining.
+     */
+    public Box transformLocal (Box box)
+    {
+        return transform(box, box);
+    }
+
+    /**
+     * Transforms and projects a box in world space into window space.
+     *
+     * @return a new box containing the result.
+     */
+    public Box transform (Box box)
+    {
+        return transform(box, new Box());
+    }
+
+    /**
+     * Transforms and projects a box in world space into window space, placing the result in the
+     * object provided.
+     *
+     * @return a reference to the result box, for chaining.
+     */
+    public Box transform (Box box, Box result)
+    {
+        return box.transform(_viewTransform, result).projectLocal(_projection);
     }
 
     /**

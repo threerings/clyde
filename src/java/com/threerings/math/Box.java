@@ -324,6 +324,55 @@ public final class Box
     }
 
     /**
+     * Projects this box in-place.
+     *
+     * @return a reference to this box, for chaining.
+     */
+    public Box projectLocal (Matrix4f matrix)
+    {
+        return project(matrix, this);
+    }
+
+    /**
+     * Projects this box.
+     *
+     * @return a new box containing the result.
+     */
+    public Box project (Matrix4f matrix)
+    {
+        return project(matrix, new Box());
+    }
+
+    /**
+     * Projects this box, placing the result in the object provided.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public Box project (Matrix4f matrix, Box result)
+    {
+        float minx = +Float.MAX_VALUE, miny = +Float.MAX_VALUE, minz = +Float.MAX_VALUE;
+        float maxx = -Float.MAX_VALUE, maxy = -Float.MAX_VALUE, maxz = -Float.MAX_VALUE;
+        for (int ii = 0; ii < 8; ii++) {
+            float x = ((ii & (1 << 2)) == 0) ? _minExtent.x : _maxExtent.x;
+            float y = ((ii & (1 << 1)) == 0) ? _minExtent.y : _maxExtent.y;
+            float z = ((ii & (1 << 0)) == 0) ? _minExtent.z : _maxExtent.z;
+            float rw = 1f / (matrix.m03*x + matrix.m13*y + matrix.m23*z + matrix.m33);
+            float px = (matrix.m00*x + matrix.m10*y + matrix.m20*z + matrix.m30) * rw;
+            float py = (matrix.m01*x + matrix.m11*y + matrix.m21*z + matrix.m31) * rw;
+            float pz = (matrix.m02*x + matrix.m12*y + matrix.m22*z + matrix.m32) * rw;
+            minx = Math.min(minx, px);
+            miny = Math.min(miny, py);
+            minz = Math.min(minz, pz);
+            maxx = Math.max(maxx, px);
+            maxy = Math.max(maxy, py);
+            maxz = Math.max(maxz, pz);
+        }
+        result.getMinimumExtent().set(minx, miny, minz);
+        result.getMaximumExtent().set(maxx, maxy, maxz);
+        return result;
+    }
+
+    /**
      * Expands the box in-place by the specified amounts.
      *
      * @return a reference to this box, for chaining.

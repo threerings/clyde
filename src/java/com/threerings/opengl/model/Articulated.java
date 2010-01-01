@@ -369,6 +369,7 @@ public class Articulated extends Model.Implementation
         protected Box _parentBounds;
 
         /** The bounds of the mesh. */
+        @Scoped
         protected Box _bounds = new Box();
 
         /** The surface transform state. */
@@ -1072,6 +1073,7 @@ public class Articulated extends Model.Implementation
     protected int _influenceFlags;
 
     /** The bounds of the model. */
+    @Scoped
     protected Box _bounds = new Box();
 
     /** Holds the bounds of the model when updating. */

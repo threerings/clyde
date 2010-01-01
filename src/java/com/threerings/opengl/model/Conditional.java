@@ -331,6 +331,7 @@ public class Conditional extends Model.Implementation
     protected int _influenceFlags;
 
     /** The bounds of the model. */
+    @Scoped
     protected Box _bounds = new Box();
 
     /** If true, the model has completed. */

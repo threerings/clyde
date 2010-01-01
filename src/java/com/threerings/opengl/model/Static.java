@@ -206,6 +206,7 @@ public class Static extends Model.Implementation
     protected int _influenceFlags;
 
     /** The bounds of the model. */
+    @Scoped
     protected Box _bounds = new Box();
 
     /** Holds the new bounds of the model when updating. */
