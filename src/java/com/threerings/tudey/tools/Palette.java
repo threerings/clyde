@@ -95,8 +95,8 @@ public class Palette extends BaseMover
         // and the export panel
         JPanel epanel = new JPanel();
         add(epanel, GroupLayout.FIXED);
-        epanel.add(ToolUtil.createButton(this, _msgs, "import_palette"));
-        epanel.add(ToolUtil.createButton(this, _msgs, "export_palette"));
+        epanel.add(ToolUtil.createButton(this, _msgs, "import_short"));
+        epanel.add(ToolUtil.createButton(this, _msgs, "export_short"));
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("palette_export_dir", null));
@@ -138,9 +138,9 @@ public class Palette extends BaseMover
             _tree.insertNewNode(_msgs.get("m.new_folder"), null);
         } else if (action.equals("delete")) {
             _tree.removeSelectedNode();
-        } else if (action.equals("import_palette")) {
+        } else if (action.equals("import_short")) {
             importPalette();
-        } else { // action.equals("export_palette")
+        } else { // action.equals("export_short")
             exportPalette();
         }
     }

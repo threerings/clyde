@@ -24,12 +24,25 @@
 
 package com.threerings.tudey.tools;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.prefs.Preferences;
 
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileFilter;
 
+import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap.IntEntry;
@@ -39,7 +52,10 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.editors.ArrayListEditor;
 import com.threerings.export.Exportable;
+import com.threerings.export.XMLExporter;
+import com.threerings.export.XMLImporter;
 import com.threerings.util.DeepObject;
+import com.threerings.util.ToolUtil;
 
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
@@ -51,7 +67,7 @@ import static com.threerings.tudey.Log.*;
  * The global editor tool.
  */
 public class GlobalEditor extends EditorTool
-    implements ChangeListener
+    implements ChangeListener, ActionListener
 {
     /**
      * Creates the global editor tool.
@@ -63,6 +79,23 @@ public class GlobalEditor extends EditorTool
         // create and add the editor panel
         add(_epanel = new EditorPanel(editor));
         _epanel.addChangeListener(this);
+
+        // and the export panel
+        JPanel xpanel = new JPanel();
+        add(xpanel, GroupLayout.FIXED);
+        xpanel.add(ToolUtil.createButton(this, _msgs, "import_short"));
+        xpanel.add(ToolUtil.createButton(this, _msgs, "export_short"));
+
+        // create the file chooser
+        _chooser = new JFileChooser(_prefs.get("global_export_dir", null));
+        _chooser.setFileFilter(new FileFilter() {
+            public boolean accept (File file) {
+                return file.isDirectory() || file.toString().toLowerCase().endsWith(".xml");
+            }
+            public String getDescription () {
+                return _msgs.get("m.xml_files");
+            }
+        });
     }
 
     /**
@@ -121,6 +154,17 @@ public class GlobalEditor extends EditorTool
                 _globals.put(id, cglobal);
                 nglobal.setId(id);
             }
+        }
+    }
+
+    // documentation inherited from interface ActionListener
+    public void actionPerformed (ActionEvent event)
+    {
+        String action = event.getActionCommand();
+        if (action.equals("import_short")) {
+            importGlobals();
+        } else { // action.equals("export_short")
+            exportGlobals();
         }
     }
 
@@ -204,6 +248,46 @@ public class GlobalEditor extends EditorTool
     }
 
     /**
+     * Attempts to import a set of globals.
+     */
+    protected void importGlobals ()
+    {
+        if (_chooser.showOpenDialog(_editor.getFrame()) == JFileChooser.APPROVE_OPTION) {
+            File file = _chooser.getSelectedFile();
+            try {
+                XMLImporter in = new XMLImporter(new FileInputStream(file));
+                GlobalEntry[] entries = (GlobalEntry[])in.readObject();
+                _editor.incrementEditId();
+                for (GlobalEntry entry : entries) {
+                    _editor.addEntry(entry);
+                }
+                in.close();
+            } catch (Exception e) { // IOException, ClassCastException
+                log.warning("Failed to import globals.", "file", file, e);
+            }
+        }
+        _prefs.put("global_export_dir", _chooser.getCurrentDirectory().toString());
+    }
+
+    /**
+     * Attempts to export the set of globals.
+     */
+    protected void exportGlobals ()
+    {
+        if (_chooser.showSaveDialog(_editor.getFrame()) == JFileChooser.APPROVE_OPTION) {
+            File file = _chooser.getSelectedFile();
+            try {
+                XMLExporter out = new XMLExporter(new FileOutputStream(file));
+                out.writeObject(((EditableGlobals)_epanel.getObject()).globals);
+                out.close();
+            } catch (IOException e) {
+                log.warning("Failed to export globals.", "file", file, e);
+            }
+        }
+        _prefs.put("global_export_dir", _chooser.getCurrentDirectory().toString());
+    }
+
+    /**
      * Allows us to edit the scene's globals.
      */
     protected static class EditableGlobals extends DeepObject
@@ -241,9 +325,15 @@ public class GlobalEditor extends EditorTool
     /** The panel that we use to edit the scene's globals. */
     protected EditorPanel _epanel;
 
+    /** The file chooser for importing and exporting global files. */
+    protected JFileChooser _chooser;
+
     /** The current set of globals. */
     protected HashIntMap<GlobalEntry> _globals = new HashIntMap<GlobalEntry>();
 
     /** Notes that we should ignore an add/update/remove because we're the one effecting it. */
     protected boolean _ignoreAdd, _ignoreUpdate, _ignoreRemove;
+
+    /** The package preferences. */
+    protected static Preferences _prefs = Preferences.userNodeForPackage(GlobalEditor.class);
 }
