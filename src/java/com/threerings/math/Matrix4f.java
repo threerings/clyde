@@ -557,7 +557,7 @@ public final class Matrix4f
      */
     public boolean isMirrored ()
     {
-        return (m01*m12 - m02*m11)*m20 + (m02*m10 - m00*m12)*m21 + (m00*m11 - m01*m10)*m22 < 0f;
+        return m00*(m11*m22 - m12*m21) + m01*(m12*m20 - m10*m22) + m02*(m10*m21 - m11*m20) < 0f;
     }
 
     /**
@@ -1062,14 +1062,15 @@ public final class Matrix4f
     }
 
     /**
-     * Returns an approximation of the uniform scale for this matrix.
+     * Returns an approximation of the uniform scale for this matrix (the cube root of the
+     * signed volume of the parallelepiped spanned by the axis vectors).
      */
     public float approximateUniformScale ()
     {
         return FloatMath.cbrt(
-            FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02) *
-            FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12) *
-            FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22));
+            m00*(m11*m22 - m12*m21) +
+            m01*(m12*m20 - m10*m22) +
+            m02*(m10*m21 - m11*m20));
     }
 
     // documentation inherited from interface Encodable

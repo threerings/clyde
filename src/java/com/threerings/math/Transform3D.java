@@ -777,7 +777,8 @@ public final class Transform3D
      */
     public boolean isMirrored ()
     {
-        return (_type == AFFINE || _type == GENERAL) && _matrix.isMirrored();
+        return (_type == UNIFORM && _scale < 0f) ||
+            ((_type == AFFINE || _type == GENERAL) && _matrix.isMirrored());
     }
 
     /**
