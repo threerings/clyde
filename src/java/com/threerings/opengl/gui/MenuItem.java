@@ -78,7 +78,7 @@ public class MenuItem extends Label
     // documentation inherited
     public boolean dispatchEvent (Event event)
     {
-        if (event instanceof MouseEvent) {
+        if (isEnabled() && event instanceof MouseEvent) {
             MouseEvent mev = (MouseEvent)event;
             switch (mev.getType()) {
             case MouseEvent.MOUSE_ENTERED:
