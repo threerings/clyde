@@ -320,10 +320,6 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Override // documentation inherited
         public Updater createUpdater (GlContext ctx, Articulated.Node node)
         {
-            final Transform3D viewTransform = node.getViewTransform();
-            ensureRigidOrUniform(viewTransform);
-            final Quaternion rotation = viewTransform.getRotation();
-
             final Transform3D pview = node.getParentViewTransform();
             final Transform3D local = node.getLocalTransform();
             if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
@@ -346,7 +342,6 @@ public class ArticulatedConfig extends ModelConfig.Imported
                     }
                 };
             }
-            final Vector3f translation = viewTransform.getTranslation();
             if (rotationX == BillboardRotationX.FACE_VIEWER &&
                     rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
                 // pivot about the x axis
@@ -593,10 +588,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
             case Transform3D.AFFINE:
             case Transform3D.GENERAL:
                 Vector3f trans = transform.getTranslation();
-                Quaternion rot = transform.getRotation();
                 transform.set(
                     transform.extractTranslation(trans == null ? new Vector3f() : trans),
-                    transform.extractRotation(rot == null ? new Quaternion() : rot),
+                    Quaternion.IDENTITY,
                     transform.approximateUniformScale());
                 break;
         }
