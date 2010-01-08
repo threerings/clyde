@@ -1017,67 +1017,67 @@ public final class Matrix4f
 
     /**
      * Extracts the rotation component of the matrix and places it in the provided result
-     * quaternion.
+     * quaternion.  This uses the iterative polar decomposition algorithm described by
+     * <a href="http://www.cs.wisc.edu/graphics/Courses/838-s2002/Papers/polar-decomp.pdf">Ken
+     * Shoemake</a>.
      *
      * @return a reference to the result quaternion, for chaining.
      */
     public Quaternion extractRotation (Quaternion result)
     {
-        // start by computing the normalized sum of the axis vectors
-        // (whose direction we want to preserve)
-        Vector3f c = new Vector3f(m00 + m10 + m20, m01 + m11 + m21, m02 + m12 + m22);
-        float clen = c.length();
-        if (clen < FloatMath.EPSILON) {
-            return result.set(Quaternion.IDENTITY); // can't extract in this case
-        }
-        c.multLocal(1f / clen);
+        // start with the contents of the upper 3x3 portion of the matrix
+        float n00 = m00, n10 = m10, n20 = m20;
+        float n01 = m01, n11 = m11, n21 = m21;
+        float n02 = m02, n12 = m12, n22 = m22;
+        for (int ii = 0; ii < 10; ii++) {
+            // store the results of the previous iteration
+            float o00 = n00, o10 = n10, o20 = n20;
+            float o01 = n01, o11 = n11, o21 = n21;
+            float o02 = n02, o12 = n12, o22 = n22;
 
-        // start with the center rotation
-        Quaternion crot = new Quaternion();
-        crot.fromVectors(Vector3f.NORMAL_XYZ, c);
-
-        // compute the angle between the rotated x vector and the matrix x vector as projected
-        // onto the center vector plane
-        Vector3f v1 = new Vector3f(), v2 = new Vector3f();
-        crot.transformUnitX(v1);
-        v1.addScaledLocal(c, -v1.dot(c));
-        v2.set(m00, m01, m02);
-        v2.addScaledLocal(c, -v2.dot(c));
-        float a1 = v1.angle(v2) * (c.triple(v1, v2) < 0f ? -1f : +1f);
-
-        // same deal with the y vector
-        crot.transformUnitY(v1);
-        v1.addScaledLocal(c, -v1.dot(c));
-        v2.set(m10, m11, m12);
-        v2.addScaledLocal(c, -v2.dot(c));
-        float a2 = v1.angle(v2) * (c.triple(v1, v2) < 0f ? -1f : +1f);
-
-        // and the z vector
-        crot.transformUnitZ(v1);
-        v1.addScaledLocal(c, -v1.dot(c));
-        v2.set(m20, m21, m22);
-        v2.addScaledLocal(c, -v2.dot(c));
-        float a3 = v1.angle(v2) * (c.triple(v1, v2) < 0f ? -1f : +1f);
-
-        // blend the angles that ended up being valid
-        float angle;
-        if (Float.isNaN(a1)) {
-            if (Float.isNaN(a2)) {
-                angle = Float.isNaN(a3) ? 0f : a3;
-            } else {
-                angle = Float.isNaN(a3) ? a2 : FloatMath.lerpa(a2, a3, 0.5f);
+            // compute average of the matrix with its inverse transpose
+            float sd00 = o11*o22 - o21*o12;
+            float sd10 = o01*o22 - o21*o02;
+            float sd20 = o01*o12 - o11*o02;
+            float det = o00*sd00 + o20*sd20 - o10*sd10;
+            if (Math.abs(det) == 0f) {
+                // determinant is zero; matrix is not invertible
+                throw new SingularMatrixException(this.toString());
             }
-        } else {
-            if (Float.isNaN(a2)) {
-                angle = Float.isNaN(a3) ? a1 : FloatMath.lerpa(a1, a3, 0.5f);
-            } else {
-                float a1a2 = FloatMath.lerpa(a1, a2, 0.5f);
-                angle = Float.isNaN(a3) ? a1a2 : FloatMath.lerpa(a1a2, a3, 1f/3f);
+            float hrdet = 0.5f / det;
+            n00 = +sd00 * hrdet + o00*0.5f;
+            n10 = -sd10 * hrdet + o10*0.5f;
+            n20 = +sd20 * hrdet + o20*0.5f;
+
+            n01 = -(o10*o22 - o20*o12) * hrdet + o01*0.5f;
+            n11 = +(o00*o22 - o20*o02) * hrdet + o11*0.5f;
+            n21 = -(o00*o12 - o10*o02) * hrdet + o21*0.5f;
+
+            n02 = +(o10*o21 - o20*o11) * hrdet + o02*0.5f;
+            n12 = -(o00*o21 - o20*o01) * hrdet + o12*0.5f;
+            n22 = +(o00*o11 - o10*o01) * hrdet + o22*0.5f;
+
+            // compute the difference; if it's small enough, we're done
+            float d00 = n00 - o00, d10 = n10 - o10, d20 = n20 - o20;
+            float d01 = n01 - o01, d11 = n11 - o11, d21 = n21 - o21;
+            float d02 = n02 - o02, d12 = n12 - o12, d22 = n22 - o22;
+            if (d00*d00 + d10*d10 + d20*d20 + d01*d01 + d11*d11 + d21*d21 +
+                    d02*d02 + d12*d12 + d22*d22 < FloatMath.EPSILON) {
+                break;
             }
         }
-
-        // first rotate onto, then around, the center vector
-        return result.fromAngleAxis(angle, c).multLocal(crot);
+        // now that we have a nice orthogonal matrix, we can extract the rotation quaternion
+        // using the method described in http://en.wikipedia.org/wiki/Rotation_matrix#Conversions
+        float x2 = Math.abs(1f + n00 - n11 - n22);
+        float y2 = Math.abs(1f - n00 + n11 - n22);
+        float z2 = Math.abs(1f - n00 - n11 + n22);
+        float w2 = Math.abs(1f + n00 + n11 + n22);
+        result.set(
+            0.5f * FloatMath.sqrt(x2) * (n12 >= n21 ? +1f : -1f),
+            0.5f * FloatMath.sqrt(y2) * (n20 >= n02 ? +1f : -1f),
+            0.5f * FloatMath.sqrt(z2) * (n01 >= n10 ? +1f : -1f),
+            0.5f * FloatMath.sqrt(w2));
+        return result;
     }
 
     /**
