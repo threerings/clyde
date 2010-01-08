@@ -54,6 +54,9 @@ public final class Vector3f
     /** A vector containing unity for all components. */
     public static final Vector3f UNIT_XYZ = new Vector3f(1f, 1f, 1f);
 
+    /** A normalized version of UNIT_XYZ. */
+    public static final Vector3f NORMAL_XYZ = UNIT_XYZ.normalize();
+
     /** The zero vector. */
     public static final Vector3f ZERO = new Vector3f(0f, 0f, 0f);
 
@@ -141,6 +144,15 @@ public final class Vector3f
             y*other.z - z*other.y,
             z*other.x - x*other.z,
             x*other.y - y*other.x);
+    }
+
+    /**
+     * Computes the triple product of this and the specified other vectors, which is equal to
+     * <code>this.dot(b.cross(c))</code>.
+     */
+    public float triple (Vector3f b, Vector3f c)
+    {
+        return x*(b.y*c.z - b.z*c.y) + y*(b.z*c.x - b.x*c.z) + z*(b.x*c.y - b.y*c.x);
     }
 
     /**

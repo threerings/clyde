@@ -200,8 +200,17 @@ public final class Matrix4f
     public Matrix4f setToRotation (Vector3f from, Vector3f to)
     {
         float angle = from.angle(to);
-        return (angle < 0.0001f) ?
-            setToIdentity() : setToRotation(angle, from.cross(to).normalizeLocal());
+        if (angle < FloatMath.EPSILON) {
+            return setToIdentity();
+        }
+        if (angle <= FloatMath.PI - FloatMath.EPSILON) {
+            return setToRotation(angle, from.cross(to).normalizeLocal());
+        }
+        // it's a 180 degree rotation; any axis orthogonal to the from vector will do
+        Vector3f axis = new Vector3f(0f, from.z, -from.y);
+        float length = axis.length();
+        return setToRotation(FloatMath.PI, length < FloatMath.EPSILON ?
+            axis.set(-from.z, 0f, from.x).normalizeLocal() : axis.multLocal(1f / length));
     }
 
     /**
@@ -1014,28 +1023,61 @@ public final class Matrix4f
      */
     public Quaternion extractRotation (Quaternion result)
     {
-        float sx = FloatMath.sqrt(m00*m00 + m01*m01 + m02*m02);
-        float sy = FloatMath.sqrt(m10*m10 + m11*m11 + m12*m12);
-        float sz = FloatMath.sqrt(m20*m20 + m21*m21 + m22*m22);
-        if (sx < FloatMath.EPSILON || sy < FloatMath.EPSILON || sz < FloatMath.EPSILON) {
-            return result.set(Quaternion.IDENTITY); // can't extract with zero scale
+        // start by computing the normalized sum of the axis vectors
+        // (whose direction we want to preserve)
+        Vector3f c = new Vector3f(m00 + m10 + m20, m01 + m11 + m21, m02 + m12 + m22);
+        float clen = c.length();
+        if (clen < FloatMath.EPSILON) {
+            return result.set(Quaternion.IDENTITY); // can't extract in this case
         }
-        float rsx = 1f / sx, rsy = 1f / sy, rsz = 1f / sz;
-        float n00 = m00 * rsx;
-        float n11 = m11 * rsy;
-        float n22 = m22 * rsz;
-        float x2 = (1f + n00 - n11 - n22)/4f;
-        float y2 = (1f - n00 + n11 - n22)/4f;
-        float z2 = (1f - n00 - n11 + n22)/4f;
-        float w2 = (1f - x2 - y2 - z2);
-        if (x2 < 0f || y2 < 0f || z2 < 0f || w2 < 0f) {
-            return result.set(Quaternion.IDENTITY); // no negative scales allowed
+        c.multLocal(1f / clen);
+
+        // start with the center rotation
+        Quaternion crot = new Quaternion();
+        crot.fromVectors(Vector3f.NORMAL_XYZ, c);
+
+        // compute the angle between the rotated x vector and the matrix x vector as projected
+        // onto the center vector plane
+        Vector3f v1 = new Vector3f(), v2 = new Vector3f();
+        crot.transformUnitX(v1);
+        v1.addScaledLocal(c, -v1.dot(c));
+        v2.set(m00, m01, m02);
+        v2.addScaledLocal(c, -v2.dot(c));
+        float a1 = v1.angle(v2) * (c.triple(v1, v2) < 0f ? -1f : +1f);
+
+        // same deal with the y vector
+        crot.transformUnitY(v1);
+        v1.addScaledLocal(c, -v1.dot(c));
+        v2.set(m10, m11, m12);
+        v2.addScaledLocal(c, -v2.dot(c));
+        float a2 = v1.angle(v2) * (c.triple(v1, v2) < 0f ? -1f : +1f);
+
+        // and the z vector
+        crot.transformUnitZ(v1);
+        v1.addScaledLocal(c, -v1.dot(c));
+        v2.set(m20, m21, m22);
+        v2.addScaledLocal(c, -v2.dot(c));
+        float a3 = v1.angle(v2) * (c.triple(v1, v2) < 0f ? -1f : +1f);
+
+        // blend the angles that ended up being valid
+        float angle;
+        if (Float.isNaN(a1)) {
+            if (Float.isNaN(a2)) {
+                angle = Float.isNaN(a3) ? 0f : a3;
+            } else {
+                angle = Float.isNaN(a3) ? a2 : FloatMath.lerpa(a2, a3, 0.5f);
+            }
+        } else {
+            if (Float.isNaN(a2)) {
+                angle = Float.isNaN(a3) ? a1 : FloatMath.lerpa(a1, a3, 0.5f);
+            } else {
+                float a1a2 = FloatMath.lerpa(a1, a2, 0.5f);
+                angle = Float.isNaN(a3) ? a1a2 : FloatMath.lerpa(a1a2, a3, 1f/3f);
+            }
         }
-        return result.set(
-            FloatMath.sqrt(x2) * (m12*rsy >= m21*rsz ? +1f : -1f),
-            FloatMath.sqrt(y2) * (m20*rsz >= m02*rsx ? +1f : -1f),
-            FloatMath.sqrt(z2) * (m01*rsx >= m10*rsy ? +1f : -1f),
-            FloatMath.sqrt(w2));
+
+        // first rotate onto, then around, the center vector
+        return result.fromAngleAxis(angle, c).multLocal(crot);
     }
 
     /**

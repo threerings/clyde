@@ -84,17 +84,20 @@ public final class Quaternion
      *
      * @return a reference to this quaternion, for chaining.
      */
-    public Quaternion fromVectors (Vector3f v1, Vector3f v2)
+    public Quaternion fromVectors (Vector3f from, Vector3f to)
     {
-        float ax = v1.y*v2.z - v1.z*v2.y;
-        float ay = v1.z*v2.x - v1.x*v2.z;
-        float az = v1.x*v2.y - v1.y*v2.x;
-        float l2 = ax*ax + ay*ay + az*az;
-        if (l2 < FloatMath.EPSILON) {
+        float angle = from.angle(to);
+        if (angle < FloatMath.EPSILON) {
             return set(IDENTITY);
         }
-        float len = FloatMath.sqrt(l2), rlen = 1f / len;
-        return fromAngleAxis(FloatMath.asin(Math.min(1f, len)), ax * rlen, ay * rlen, az * rlen);
+        if (angle <= FloatMath.PI - FloatMath.EPSILON) {
+            return fromAngleAxis(angle, from.cross(to).normalizeLocal());
+        }
+        // it's a 180 degree rotation; any axis orthogonal to the from vector will do
+        Vector3f axis = new Vector3f(0f, from.z, -from.y);
+        float length = axis.length();
+        return fromAngleAxis(FloatMath.PI, length < FloatMath.EPSILON ?
+            axis.set(-from.z, 0f, from.x).normalizeLocal() : axis.multLocal(1f / length));
     }
 
     /**
