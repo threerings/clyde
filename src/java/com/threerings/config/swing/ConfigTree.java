@@ -347,7 +347,7 @@ public class ConfigTree extends JTree
                     return false; // can't move to self or to the same folder
                 }
                 // have to clone it in case we are going to paste it multiple times
-                node = (ConfigTreeNode)node.clone();
+                node = node.clone();
 
                 // find a unique name
                 String name = (String)node.getUserObject();
@@ -487,7 +487,7 @@ public class ConfigTree extends JTree
         public NodeTransfer (ConfigTreeNode onode, boolean clipboard)
         {
             this.onode = clipboard ? null : onode;
-            cnode = (ConfigTreeNode)onode.clone();
+            cnode = onode.clone();
         }
 
         // documentation inherited from interface Transferable

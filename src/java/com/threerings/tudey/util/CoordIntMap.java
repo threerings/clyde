@@ -179,7 +179,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         _coord.set(x >> _granularity, y >> _granularity);
         Cell cell = _cells.get(_coord);
         if (cell == null) {
-            _cells.put((Coord)_coord.clone(), cell = new Cell());
+            _cells.put(_coord.clone(), cell = new Cell());
         }
         int ovalue = cell.put(x & _mask, y & _mask, value);
         if (ovalue == _empty) {
@@ -202,7 +202,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
         _coord.set(x >> _granularity, y >> _granularity);
         Cell cell = _cells.get(_coord);
         if (cell == null) {
-            _cells.put((Coord)_coord.clone(), cell = new Cell());
+            _cells.put(_coord.clone(), cell = new Cell());
         }
         int ovalue = cell.setBits(x & _mask, y & _mask, bits);
         if (ovalue == _empty) {

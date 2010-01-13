@@ -86,7 +86,7 @@ public class ParameterizedConfig extends ManagedConfig
         }
         ParameterizedConfig instance = _derived.get(args);
         if (instance == null) {
-            _derived.put((ArgumentMap)args.clone(), instance = (ParameterizedConfig)clone());
+            _derived.put(args.clone(), instance = (ParameterizedConfig)clone());
             instance.init(_cfgmgr);
             instance._base = this;
             applyArguments(instance, args);

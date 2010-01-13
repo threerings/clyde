@@ -209,7 +209,7 @@ public class HashSpace extends Space
             for (int xx = minx; xx <= maxx; xx++) {
                 Node<T> root = roots.get(_coord.set(xx, yy));
                 if (root == null) {
-                    roots.put((Coord)_coord.clone(), root = createRoot(xx, yy));
+                    roots.put(_coord.clone(), root = createRoot(xx, yy));
                     addBounds(_coord, root);
                 }
                 root.add(object, level);
