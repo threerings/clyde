@@ -192,12 +192,12 @@ public class Coord
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public Coord clone ()
     {
         try {
-            return super.clone();
+            return (Coord) super.clone();
         } catch (CloneNotSupportedException e) {
-            return null; // won't happen
+            throw new AssertionError(e);
         }
     }
 

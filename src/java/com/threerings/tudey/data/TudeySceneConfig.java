@@ -94,9 +94,9 @@ public class TudeySceneConfig extends PlaceConfig
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public TudeySceneConfig clone ()
     {
-        return copy(null, null);
+        return (TudeySceneConfig) copy(null, null);
     }
 
     @Override // documentation inherited

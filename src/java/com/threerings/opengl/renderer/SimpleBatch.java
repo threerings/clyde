@@ -451,7 +451,7 @@ public class SimpleBatch extends Batch
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public SimpleBatch clone ()
     {
         // make a shallow clone of the states
         SimpleBatch obatch = (SimpleBatch)super.clone();

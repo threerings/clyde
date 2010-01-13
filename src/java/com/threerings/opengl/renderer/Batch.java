@@ -75,14 +75,14 @@ public abstract class Batch
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public Batch clone ()
     {
         try {
             Batch cbatch = (Batch)super.clone();
             cbatch.key = (key == null) ? null : key.clone();
             return cbatch;
         } catch (CloneNotSupportedException e) {
-            return null; // should never happen
+            throw new AssertionError(e);
         }
     }
 }

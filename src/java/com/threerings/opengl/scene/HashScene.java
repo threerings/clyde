@@ -304,7 +304,7 @@ public class HashScene extends Scene
                 for (int xx = minx; xx <= maxx; xx++) {
                     Node<T> root = roots.get(_coord.set(xx, yy, zz));
                     if (root == null) {
-                        roots.put((Coord)_coord.clone(), root = createRoot(xx, yy, zz));
+                        roots.put(_coord.clone(), root = createRoot(xx, yy, zz));
                         addBounds(_coord, root);
                     }
                     root.add(object, level);
@@ -822,12 +822,12 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        public Object clone ()
+        public Coord clone ()
         {
             try {
-                return super.clone();
+                return (Coord) super.clone();
             } catch (CloneNotSupportedException e) {
-                return null; // won't happen
+                throw new AssertionError(e);
             }
         }
 

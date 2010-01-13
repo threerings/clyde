@@ -71,12 +71,12 @@ public class Point
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public Point clone ()
     {
         try {
-            return super.clone();
+            return (Point) super.clone();
         } catch (CloneNotSupportedException e) {
-            return null; // will not happen
+            throw new AssertionError(e);
         }
     }
 

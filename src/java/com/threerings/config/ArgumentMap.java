@@ -259,9 +259,9 @@ public class ArgumentMap extends AbstractMap<String, Object>
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public ArgumentMap clone ()
     {
-        return copy(null);
+        return (ArgumentMap) copy(null);
     }
 
     protected static class Key

@@ -379,7 +379,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public ConfigTreeNode clone ()
     {
         ConfigTreeNode cnode = (ConfigTreeNode)super.clone();
         cnode.parent = null;
@@ -390,7 +390,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
             cnode.children = new Vector();
             for (int ii = 0, nn = children.size(); ii < nn; ii++) {
                 ConfigTreeNode child = (ConfigTreeNode)children.get(ii);
-                cnode.insert((ConfigTreeNode)child.clone(), ii);
+                cnode.insert(child.clone(), ii);
             }
         }
         return cnode;

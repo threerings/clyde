@@ -46,9 +46,9 @@ public abstract class DeepObject
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public DeepObject clone ()
     {
-        return copy(null);
+        return (DeepObject) copy(null);
     }
 
     @Override // documentation inherited

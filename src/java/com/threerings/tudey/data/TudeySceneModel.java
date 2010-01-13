@@ -1923,7 +1923,7 @@ public class TudeySceneModel extends SceneModel
     }
 
     @Override // documentation inherited
-    public Object clone ()
+    public TudeySceneModel clone ()
     {
         // start with a deep copy
         TudeySceneModel model = DeepUtil.copy(this, null);
