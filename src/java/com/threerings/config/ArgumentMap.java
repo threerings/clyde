@@ -89,7 +89,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         throws IOException, ClassNotFoundException
     {
         for (int ii = 0, nn = in.readInt(); ii < nn; ii++) {
-            _entries.add(new SimpleEntry<String, Object>(in.readIntern(), in.readObject()));
+            _entries.add(newEntry(in.readIntern(), in.readObject()));
         }
     }
 
@@ -111,8 +111,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         }
         for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
             Map.Entry<String, Object> entry = _entries.get(ii);
-            cmap._entries.add(new SimpleEntry<String, Object>(
-                entry.getKey(), DeepUtil.copy(entry.getValue())));
+            cmap._entries.add(newEntry(entry.getKey(), DeepUtil.copy(entry.getValue())));
         }
         return cmap;
     }
@@ -160,7 +159,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
         if (idx >= 0) {
             return _entries.get(idx).setValue(value);
         } else {
-            _entries.add(-idx - 1, new SimpleEntry<String, Object>(key, value));
+            _entries.add(-idx - 1, newEntry(key, value));
             return null;
         }
     }
@@ -262,6 +261,12 @@ public class ArgumentMap extends AbstractMap<String, Object>
     public ArgumentMap clone ()
     {
         return (ArgumentMap) copy(null);
+    }
+
+    @SuppressWarnings("deprecation")
+    protected static Map.Entry<String, Object> newEntry (String k, Object v)
+    {
+        return new com.samskivert.util.MapEntry<String, Object>(k, v);
     }
 
     protected static class Key
