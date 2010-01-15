@@ -36,6 +36,7 @@ import javax.swing.JButton;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.swing.PropertyEditor;
@@ -114,7 +115,12 @@ public abstract class ArrayListEditor extends PropertyEditor
     protected Object getValue (int idx)
     {
         Object values = _property.get(_object);
-        return values.getClass().isArray() ? Array.get(values, idx) : ((List)values).get(idx);
+        Object value = values.getClass().isArray() ?
+            Array.get(values, idx) : ((List)values).get(idx);
+        if (value instanceof String) {
+            value = StringUtil.trim((String)value);
+        }
+        return value;
     }
 
     /**
@@ -123,6 +129,9 @@ public abstract class ArrayListEditor extends PropertyEditor
     protected void setValue (int idx, Object value)
     {
         Object values = _property.get(_object);
+        if (value instanceof String) {
+            value = StringUtil.trim((String)value);
+        }
         if (values.getClass().isArray()) {
             Array.set(values, idx, value);
         } else {

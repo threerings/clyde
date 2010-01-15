@@ -29,6 +29,8 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
 
@@ -53,7 +55,7 @@ public class StringEditor extends PropertyEditor
     // documentation inherited from interface DocumentListener
     public void changedUpdate (DocumentEvent event)
     {
-        String text = _field.getText();
+        String text = StringUtil.trim(_field.getText());
         if (!_property.get(_object).equals(text)) {
             _property.set(_object, text);
             fireStateChanged();
@@ -66,7 +68,7 @@ public class StringEditor extends PropertyEditor
         // this generates two documents events: first a remove, then an add.  we don't want to
         // fire a state change, so we remove ourselves as a document listener when updating
         _field.getDocument().removeDocumentListener(this);
-        _field.setText((String)_property.get(_object));
+        _field.setText(StringUtil.trim((String)_property.get(_object)));
         _field.getDocument().addDocumentListener(this);
     }
 
