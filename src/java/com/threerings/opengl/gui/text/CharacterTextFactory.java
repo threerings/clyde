@@ -245,6 +245,10 @@ public class CharacterTextFactory extends TextFactory
         if (line.length() > 0) {
             lines.add(createText(line.toString(), color, effect, effectSize, effectColor, true));
         }
+        if (lines.isEmpty()) {
+            // never return an empty array; instead, return an array containing an empty string
+            lines.add(createText("", color, effect, effectSize, effectColor, true));
+        }
         return lines.toArray(new Text[lines.size()]);
     }
 
