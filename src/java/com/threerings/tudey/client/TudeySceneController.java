@@ -25,11 +25,15 @@
 package com.threerings.tudey.client;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.input.Keyboard;
 
+import com.google.common.collect.Lists;
+
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
+import com.samskivert.util.ObserverList;
 import com.samskivert.util.Predicate;
 import com.samskivert.util.RunAnywhere;
 
@@ -226,23 +230,33 @@ public class TudeySceneController extends SceneController
     }
 
     // documentation inherited from interface PseudoKeys.Observer
-    public void keyPressed (long when, int key, float amount)
+    public void keyPressed (final long when, final int key, final float amount)
     {
         if (inputWindowHovered()) {
-            PseudoKeys.Observer observer = _keyObservers.get(key);
-            if (observer != null) {
-                observer.keyPressed(when, key, amount);
+            ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
+            if (list != null) {
+                list.apply(new ObserverList.ObserverOp<PseudoKeys.Observer>() {
+                    public boolean apply (PseudoKeys.Observer observer) {
+                        observer.keyPressed(when, key, amount);
+                        return true;
+                    }
+                });
             }
         }
     }
 
     // documentation inherited from interface PseudoKeys.Observer
-    public void keyReleased (long when, int key)
+    public void keyReleased (final long when, final int key)
     {
         if (inputWindowHovered()) {
-            PseudoKeys.Observer observer = _keyObservers.get(key);
-            if (observer != null) {
-                observer.keyReleased(when, key);
+            ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
+            if (list != null) {
+                list.apply(new ObserverList.ObserverOp<PseudoKeys.Observer>() {
+                    public boolean apply (PseudoKeys.Observer observer) {
+                        observer.keyReleased(when, key);
+                        return true;
+                    }
+                });
             }
         }
     }
@@ -425,7 +439,7 @@ public class TudeySceneController extends SceneController
     {
         if (_targetControlled) {
             bindKeyFlag(PseudoKeys.KEY_BUTTON1, InputFrame.MOVE);
-            bindKeyFlag(Keyboard.KEY_C, InputFrame.STRAFE);
+            bindKeyStrafe(Keyboard.KEY_C);
         } else {
             bindKeyCycle(Keyboard.KEY_LEFT, false);
             bindKeyCycle(Keyboard.KEY_RIGHT, true);
@@ -437,7 +451,7 @@ public class TudeySceneController extends SceneController
      */
     protected void bindKeyFlag (int key, final int flag)
     {
-        _keyObservers.put(key, new PseudoKeys.Observer() {
+        addKeyObserver(key, new PseudoKeys.Observer() {
             public void keyPressed (long when, int key, float amount) {
                 _flags |= flag;
                 _frameFlags |= flag;
@@ -453,11 +467,38 @@ public class TudeySceneController extends SceneController
      */
     protected void bindKeyCycle (int key, final boolean forward)
     {
-        _keyObservers.put(key, new PseudoKeys.Adapter() {
+        addKeyObserver(key, new PseudoKeys.Adapter() {
             public void keyPressed (long when, int key, float amount) {
                 cycleTarget(forward);
             }
         });
+    }
+
+    /**
+     * Binds a key to the strafe flag.
+     */
+    protected void bindKeyStrafe (int key)
+    {
+        addKeyObserver(key, new PseudoKeys.Observer() {
+            public void keyPressed (long when, int key, float amount) {
+                _strafe = true;
+            }
+            public void keyReleased (long when, int key) {
+                _strafe = false;
+            }
+        });
+    }
+
+    /**
+     * Adds an observer for a single key.
+     */
+    protected void addKeyObserver (int key, PseudoKeys.Observer observer)
+    {
+        ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
+        if (list == null) {
+            _keyObservers.put(key, list = ObserverList.newFastUnsafe());
+        }
+        list.add(observer);
     }
 
     /**
@@ -508,8 +549,8 @@ public class TudeySceneController extends SceneController
             return;
         }
 
-        // if the mouse is over the input window, update the direction
-        float direction = _lastDirection;
+        // if the mouse is over the input window, update the rotation/direction
+        float rotation = _lastRotation, direction = _lastDirection;
         Sprite nhsprite = null;
 
         if (inputWindowHovered()) {
@@ -533,13 +574,12 @@ public class TudeySceneController extends SceneController
 
             // determine where they intersect and use that to calculate the requested direction
             if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
-                direction = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
+                float dir = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
+                rotation = _strafe ? _lastRotation : dir;
+                direction = computeDirection(dir);
             }
         } else {
-            // clear all input flags
-            int mask = ~getInputMask();
-            _frameFlags &= mask;
-            _flags &= mask;
+            clearInput();
         }
 
         // update the hover sprite
@@ -548,9 +588,12 @@ public class TudeySceneController extends SceneController
         }
 
         // perhaps enqueue an input frame
-        if (direction != _lastDirection || _frameFlags != _lastFlags) {
+        if (rotation != _lastRotation || direction != _lastDirection ||
+                _frameFlags != _lastFlags) {
             // create and enqueue the frame
-            InputFrame frame = createInputFrame(_tsview.getAdvancedTime(), direction, _frameFlags);
+            InputFrame frame = createInputFrame(
+                _tsview.getAdvancedTime(), rotation, direction, _frameFlags);
+            _lastRotation = rotation;
             _lastDirection = direction;
             _lastFlags = _frameFlags;
             _input.add(frame);
@@ -578,20 +621,40 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Computes the direction of movement based on the requested direction.
+     */
+    protected float computeDirection (float dir)
+    {
+        return dir;
+    }
+
+    /**
+     * Clears the input state, since the input window is not hovered.
+     */
+    protected void clearInput ()
+    {
+        int mask = ~getInputMask();
+        _frameFlags &= mask;
+        _flags &= mask;
+        _strafe = false;
+    }
+
+    /**
      * Returns the set of all flags corresponding to input controls (i.e., the flags that should
      * be cleared when input is disabled).
      */
     protected int getInputMask ()
     {
-        return InputFrame.MOVE | InputFrame.STRAFE;
+        return InputFrame.MOVE;
     }
 
     /**
      * Creates an input frame.
      */
-    protected InputFrame createInputFrame (int timestamp, float direction, int flags)
+    protected InputFrame createInputFrame (
+        int timestamp, float rotation, float direction, int flags)
     {
-        return new InputFrame(timestamp, direction, flags);
+        return new InputFrame(timestamp, rotation, direction, flags);
     }
 
     /**
@@ -648,7 +711,7 @@ public class TudeySceneController extends SceneController
     protected void cycleTarget (boolean forward)
     {
         // get all the potential targets in a list
-        ArrayList<Integer> list = new ArrayList<Integer>();
+        List<Integer> list = Lists.newArrayList();
         for (OccupantInfo info : _tsobj.occupantInfo) {
             int pawnId = ((TudeyOccupantInfo)info).pawnId;
             if (pawnId > 0) {
@@ -744,7 +807,7 @@ public class TudeySceneController extends SceneController
     protected PseudoKeys.Unifier _unifier = new PseudoKeys.Unifier(this);
 
     /** Maps pseudo-key codes to observers for individual keys. */
-    protected IntMap<PseudoKeys.Observer> _keyObservers = IntMaps.newHashIntMap();
+    protected IntMap<ObserverList<PseudoKeys.Observer>> _keyObservers = IntMaps.newHashIntMap();
 
     /** The current value of the input flags. */
     protected int _flags;
@@ -753,13 +816,16 @@ public class TudeySceneController extends SceneController
     protected int _frameFlags;
 
     /** The list of outgoing input frames. */
-    protected ArrayList<InputFrame> _input = new ArrayList<InputFrame>();
+    protected List<InputFrame> _input = Lists.newArrayList();
 
     /** States recorded for input frames. */
-    protected ArrayList<PawnState> _states = new ArrayList<PawnState>();
+    protected List<PawnState> _states = Lists.newArrayList();
 
     /** The advancer we use to update the controlled pawn state. */
     protected PawnAdvancer _advancer;
+
+    /** The last rotation we transmitted. */
+    protected float _lastRotation;
 
     /** The last direction we transmitted. */
     protected float _lastDirection;
@@ -772,6 +838,9 @@ public class TudeySceneController extends SceneController
 
     /** The timestamp of the last delta received from the server. */
     protected int _lastDelta;
+
+    /** Whether or not strafe mode is enabled. */
+    protected boolean _strafe;
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();

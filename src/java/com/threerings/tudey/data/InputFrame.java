@@ -36,18 +36,16 @@ public class InputFrame extends DeepObject
     /** Indicates that the user wants to move. */
     public static final int MOVE = (1 << 0);
 
-    /** Indicates that the user wants to strafe. */
-    public static final int STRAFE = (1 << 1);
-
     /** The value of the last flag defined in this class. */
-    public static final int LAST_FLAG = STRAFE;
+    public static final int LAST_FLAG = MOVE;
 
     /**
      * Creates a new input frame.
      */
-    public InputFrame (int timestamp, float direction, int flags)
+    public InputFrame (int timestamp, float rotation, float direction, int flags)
     {
         _timestamp = timestamp;
+        _rotation = rotation;
         _direction = direction;
         _flags = flags;
     }
@@ -68,7 +66,15 @@ public class InputFrame extends DeepObject
     }
 
     /**
-     * Returns the direction requested by the user.
+     * Returns the rotation requested by the user.
+     */
+    public float getRotation ()
+    {
+        return _rotation;
+    }
+
+    /**
+     * Returns the direction of movement requested by the user.
      */
     public float getDirection ()
     {
@@ -96,20 +102,23 @@ public class InputFrame extends DeepObject
      */
     public int getApproximateSize ()
     {
-        return 14;
+        return 16;
     }
 
     @Override // documentation inherited
     public String toString ()
     {
-        return "[timestamp=" + _timestamp + ", direction=" +
-            _direction + ", flags=" + _flags + "]";
+        return "[timestamp=" + _timestamp + ", rotation=" + _rotation +
+            ", direction=" + _direction + ", flags=" + _flags + "]";
     }
 
     /** The timestamp of the input frame. */
     protected int _timestamp;
 
-    /** The direction requested by the user. */
+    /** The rotation requested by the user. */
+    protected float _rotation;
+
+    /** The direction of movement requested by the user. */
     protected float _direction;
 
     /** The user's input flags. */

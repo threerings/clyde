@@ -52,7 +52,7 @@ public class ToolSceneController extends TudeySceneController
         super.bindKeys();
 
         // go back to editor mode if escape is pressed
-        _keyObservers.put(Keyboard.KEY_ESCAPE, new PseudoKeys.Adapter() {
+        addKeyObserver(Keyboard.KEY_ESCAPE, new PseudoKeys.Adapter() {
             public void keyPressed (long when, int key, float amount) {
                 _ctx.getLocationDirector().leavePlace();
             }

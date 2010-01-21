@@ -81,8 +81,8 @@ public class PawnAdvancer extends ActiveAdvancer
         if (activity != null) {
             activity.updateInput();
         }
-        if (!_frame.isSet(InputFrame.STRAFE) && canRotate()) {
-            _pawn.setRotation(_frame.getDirection());
+        if (canRotate()) {
+            _pawn.setRotation(_frame.getRotation());
         }
         if (_frame.isSet(InputFrame.MOVE) && canMove()) {
             _pawn.setDirection(_frame.getDirection());
