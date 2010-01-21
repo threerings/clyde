@@ -25,6 +25,7 @@
 package com.threerings.tudey.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.lwjgl.input.Keyboard;
@@ -438,7 +439,11 @@ public class TudeySceneController extends SceneController
     protected void bindKeys ()
     {
         if (_targetControlled) {
-            bindKeyFlag(PseudoKeys.KEY_BUTTON1, InputFrame.MOVE);
+            bindKeyMovement(PseudoKeys.KEY_BUTTON1, _relativeMoveAmounts, 0);
+            bindKeyMovement(Keyboard.KEY_W, _relativeMoveAmounts, 0);
+            bindKeyMovement(Keyboard.KEY_S, _relativeMoveAmounts, 1);
+            bindKeyMovement(Keyboard.KEY_A, _relativeMoveAmounts, 2);
+            bindKeyMovement(Keyboard.KEY_D, _relativeMoveAmounts, 3);
             bindKeyStrafe(Keyboard.KEY_C);
         } else {
             bindKeyCycle(Keyboard.KEY_LEFT, false);
@@ -475,6 +480,23 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Binds a key to a movement direction.
+     */
+    protected void bindKeyMovement (int key, final float[] amounts, final int idx)
+    {
+        addKeyObserver(key, new PseudoKeys.Observer() {
+            public void keyPressed (long when, int key, float amount) {
+                amounts[idx] = amount;
+                updateMovement(amounts);
+            }
+            public void keyReleased (long when, int key) {
+                amounts[idx] = 0f;
+                updateMovement(amounts);
+            }
+        });
+    }
+
+    /**
      * Binds a key to the strafe flag.
      */
     protected void bindKeyStrafe (int key)
@@ -499,6 +521,22 @@ public class TudeySceneController extends SceneController
             _keyObservers.put(key, list = ObserverList.newFastUnsafe());
         }
         list.add(observer);
+    }
+
+    /**
+     * Updates the movement in response to a relative movement command.
+     */
+    protected void updateMovement (float[] amounts)
+    {
+        float fx = amounts[3] - amounts[2];
+        float fy = amounts[0] - amounts[1];
+        float flen = FloatMath.hypot(fx, fy);
+        if (flen > 0.5f) {
+            _flags |= InputFrame.MOVE;
+            _frameFlags |= InputFrame.MOVE;
+        } else {
+            _flags &= ~InputFrame.MOVE;
+        }
     }
 
     /**
@@ -625,7 +663,10 @@ public class TudeySceneController extends SceneController
      */
     protected float computeDirection (float dir)
     {
-        return dir;
+        float fx = _relativeMoveAmounts[3] - _relativeMoveAmounts[2];
+        float fy = _relativeMoveAmounts[0] - _relativeMoveAmounts[1];
+        float flen = FloatMath.hypot(fx, fy);
+        return (flen > 0.5f) ? FloatMath.normalizeAngle(dir + FloatMath.atan2(-fx, fy)) : dir;
     }
 
     /**
@@ -637,6 +678,7 @@ public class TudeySceneController extends SceneController
         _frameFlags &= mask;
         _flags &= mask;
         _strafe = false;
+        Arrays.fill(_relativeMoveAmounts, 0f);
     }
 
     /**
@@ -814,6 +856,9 @@ public class TudeySceneController extends SceneController
 
     /** Contains all flags set during the current frame. */
     protected int _frameFlags;
+
+    /** The relative move command amounts in each direction. */
+    protected float[] _relativeMoveAmounts = new float[4];
 
     /** The list of outgoing input frames. */
     protected List<InputFrame> _input = Lists.newArrayList();
