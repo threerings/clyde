@@ -407,32 +407,34 @@ public class PseudoKeys
      */
     public static String getDesc (MessageBundle msgs, int key)
     {
-        Controller controller;
+        int idx;
         switch (getType(key)) {
             case KEY_CONTROLLER_BUTTON:
-                controller = Controllers.getController(getControllerIndex(key));
-                return msgs.get("m.controller_button", controller.getName(),
-                    controller.getButtonName(getControlIndex(key)));
+                idx = getControllerIndex(key);
+                return msgs.get("m.controller_button", String.valueOf(idx),
+                    Controllers.getController(idx).getButtonName(getControlIndex(key)));
             case KEY_CONTROLLER_AXIS_POSITIVE:
-                controller = Controllers.getController(getControllerIndex(key));
-                return msgs.get("m.controller_axis_positive", controller.getName(),
-                    controller.getAxisName(getControlIndex(key)));
+                idx = getControllerIndex(key);
+                return msgs.get("m.controller_axis_positive", String.valueOf(idx),
+                    Controllers.getController(idx).getAxisName(
+                        getControlIndex(key)).toUpperCase());
             case KEY_CONTROLLER_AXIS_NEGATIVE:
-                controller = Controllers.getController(getControllerIndex(key));
-                return msgs.get("m.controller_axis_negative", controller.getName(),
-                    controller.getAxisName(getControlIndex(key)));
+                idx = getControllerIndex(key);
+                return msgs.get("m.controller_axis_negative", String.valueOf(idx),
+                    Controllers.getController(idx).getAxisName(
+                        getControlIndex(key)).toUpperCase());
             case KEY_CONTROLLER_POV_X_POSITIVE:
                 return msgs.get("m.controller_pov_x_positive",
-                    Controllers.getController(getControllerIndex(key)).getName());
+                    String.valueOf(getControllerIndex(key)));
             case KEY_CONTROLLER_POV_X_NEGATIVE:
                 return msgs.get("m.controller_pov_x_negative",
-                    Controllers.getController(getControllerIndex(key)).getName());
+                    String.valueOf(getControllerIndex(key)));
             case KEY_CONTROLLER_POV_Y_POSITIVE:
                 return msgs.get("m.controller_pov_y_positive",
-                    Controllers.getController(getControllerIndex(key)).getName());
+                    String.valueOf(getControllerIndex(key)));
             case KEY_CONTROLLER_POV_Y_NEGATIVE:
                 return msgs.get("m.controller_pov_y_negative",
-                    Controllers.getController(getControllerIndex(key)).getName());
+                    String.valueOf(getControllerIndex(key)));
             default:
                 String name = getName(key);
                 String mkey = "m." + StringUtil.toUSLowerCase(name);
