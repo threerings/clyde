@@ -416,13 +416,11 @@ public class PseudoKeys
             case KEY_CONTROLLER_AXIS_POSITIVE:
                 idx = getControllerIndex(key);
                 return msgs.get("m.controller_axis_positive", String.valueOf(idx),
-                    Controllers.getController(idx).getAxisName(
-                        getControlIndex(key)).toUpperCase());
+                    Controllers.getController(idx).getAxisName(getControlIndex(key)));
             case KEY_CONTROLLER_AXIS_NEGATIVE:
                 idx = getControllerIndex(key);
                 return msgs.get("m.controller_axis_negative", String.valueOf(idx),
-                    Controllers.getController(idx).getAxisName(
-                        getControlIndex(key)).toUpperCase());
+                    Controllers.getController(idx).getAxisName(getControlIndex(key)));
             case KEY_CONTROLLER_POV_X_POSITIVE:
                 return msgs.get("m.controller_pov_x_positive",
                     String.valueOf(getControllerIndex(key)));
