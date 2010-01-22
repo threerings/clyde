@@ -461,6 +461,14 @@ public abstract class Root extends SimpleOverlay
     }
 
     /**
+     * Sets the mouse position.
+     */
+    public void setMousePosition (int x, int y)
+    {
+        mouseMoved(_tickStamp, x, y, false);
+    }
+
+    /**
      * Returns the x coordinate of the mouse cursor.
      */
     public int getMouseX ()

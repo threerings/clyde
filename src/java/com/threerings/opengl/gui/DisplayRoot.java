@@ -150,6 +150,13 @@ public class DisplayRoot extends Root
     }
 
     @Override // documentation inherited
+    public void setMousePosition (int x, int y)
+    {
+        Mouse.setCursorPosition(x, y);
+        super.setMousePosition(x, y);
+    }
+
+    @Override // documentation inherited
     protected void updateCursor (Cursor cursor)
     {
         if (cursor == null) {
