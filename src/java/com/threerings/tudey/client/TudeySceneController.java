@@ -58,6 +58,7 @@ import com.threerings.opengl.camera.MouseOrbiter;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Root;
+import com.threerings.opengl.gui.Window;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.event.MouseListener;
@@ -233,7 +234,7 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface PseudoKeys.Observer
     public void keyPressed (final long when, final int key, final float amount)
     {
-        if (inputWindowHovered()) {
+        if (!mouseCameraEnabled()) {
             ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
             if (list != null) {
                 list.apply(new ObserverList.ObserverOp<PseudoKeys.Observer>() {
@@ -249,7 +250,7 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface PseudoKeys.Observer
     public void keyReleased (final long when, final int key)
     {
-        if (inputWindowHovered()) {
+        if (!mouseCameraEnabled()) {
             ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
             if (list != null) {
                 list.apply(new ObserverList.ObserverOp<PseudoKeys.Observer>() {
@@ -559,6 +560,27 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Determines whether the input window is receiving/should receive keyboard/controller events.
+     */
+    protected boolean inputWindowFocused ()
+    {
+        Root root = _tctx.getRoot();
+        if (root.getFocus() != null || mouseCameraEnabled()) {
+            return false;
+        }
+        Window inputWindow = _tsview.getInputWindow();
+        for (int ii = root.getWindowCount() - 1; ii >= 0; ii--) {
+            Window window = root.getWindow(ii);
+            if (window == inputWindow) {
+                return true;
+            } else if (window.isModal()) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Determines whether the mouse camera is enabled.
      */
     protected boolean mouseCameraEnabled ()
@@ -591,6 +613,7 @@ public class TudeySceneController extends SceneController
         float rotation = _lastRotation, direction = _lastDirection;
         Sprite nhsprite = null;
 
+        // update the direction if hovered
         if (inputWindowHovered()) {
             // get the pick ray
             Root root = _tctx.getRoot();
@@ -617,6 +640,11 @@ public class TudeySceneController extends SceneController
                 direction = computeDirection(dir);
             }
         } else {
+            direction = computeDirection(_lastRotation);
+        }
+
+        // clear the input if we don't have focus
+        if (!inputWindowFocused()) {
             clearInput();
         }
 
