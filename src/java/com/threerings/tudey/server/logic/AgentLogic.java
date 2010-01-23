@@ -24,11 +24,14 @@
 
 package com.threerings.tudey.server.logic;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.BehaviorConfig;
+import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.Agent;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActiveAdvancer;
@@ -78,6 +81,7 @@ public class AgentLogic extends ActiveLogic
     public void clearTargetRotation ()
     {
         _targetRotation = _actor.getRotation();
+        ((Agent)_actor).setTurnDirection(0);
     }
 
     /**
@@ -140,11 +144,21 @@ public class AgentLogic extends ActiveLogic
                 _actor.setRotation(_targetRotation);
                 reachedTargetRotation();
             } else {
-                _actor.setRotation(FloatMath.normalizeAngle(rotation + angle * Math.signum(diff)));
+                float dir = Math.signum(diff);
+                ((Agent)_actor).setTurnDirection((int)dir);
+                _actor.setRotation(FloatMath.normalizeAngle(rotation + angle * dir));
             }
         }
 
         return true;
+    }
+
+    @Override // documentation inherited
+    protected Actor createActor (
+        ConfigReference<ActorConfig> ref, int id, int timestamp,
+        Vector2f translation, float rotation)
+    {
+        return new Agent(ref, id, timestamp, translation, rotation);
     }
 
     @Override // documentation inherited
@@ -181,6 +195,9 @@ public class AgentLogic extends ActiveLogic
      */
     protected void reachedTargetRotation ()
     {
+        // clear turn direction
+        ((Agent)_actor).setTurnDirection(0);
+
         // notify the behavior
         _behavior.reachedTargetRotation();
     }

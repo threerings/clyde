@@ -327,6 +327,7 @@ public class ActorSprite extends Sprite
             _idles = resolve(mconfig.idles);
             _idleWeights = mconfig.getIdleWeights();
             _movements = resolve(mconfig.movements);
+            _rotations = resolve(mconfig.rotations);
         }
 
         @Override // documentation inherited
@@ -380,11 +381,35 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Resolves the animations from an array of rotation sets.
+         */
+        protected Animation[][] resolve (ActorSpriteConfig.RotationSet[] sets)
+        {
+            Animation[][] anims = new Animation[sets.length][];
+            for (int ii = 0; ii < anims.length; ii++) {
+                anims[ii] = sets[ii].resolve(_model);
+            }
+            return anims;
+        }
+
+        /**
          * Returns the base animation for the actor.
          */
         protected Animation getBase (Mobile actor)
         {
-            return actor.isSet(Mobile.MOVING) ? getMovement(actor) : getIdle();
+            if (actor.isSet(Mobile.MOVING)) {
+                Animation anim = getMovement(actor);
+                if (anim != null) {
+                    return anim;
+                }
+            }
+            if (actor.getTurnDirection() != 0) {
+                Animation anim = getRotation(actor);
+                if (anim != null) {
+                    return anim;
+                }
+            }
+            return getIdle();
         }
 
         /**
@@ -403,6 +428,16 @@ public class ActorSprite extends Sprite
         {
             ActorSpriteConfig.Moving config = (ActorSpriteConfig.Moving)_config;
             return getMovement(actor, config.scale, config.movements, _movements);
+        }
+
+        /**
+         * Returns the rotation animation appropriate to the actor's turn rate and direction, or
+         * <code>null</code> for none.
+         */
+        protected Animation getRotation (Mobile actor)
+        {
+            ActorSpriteConfig.Moving config = (ActorSpriteConfig.Moving)_config;
+            return getRotation(actor, config.rotations, _rotations);
         }
 
         /**
@@ -457,6 +492,37 @@ public class ActorSprite extends Sprite
             return movement;
         }
 
+        /**
+         * Configures and returns the appropriate rotation animation for the actor.
+         *
+         * @param sets the rotation set configs.
+         * @param rotations the resolved rotation animations.
+         */
+        protected static Animation getRotation (
+            Mobile actor, ActorSpriteConfig.RotationSet[] sets, Animation[][] rotations)
+        {
+            // make sure we have rotation animations
+            int rlen = rotations.length;
+            if (rlen == 0) {
+                return null;
+            }
+            float rate = actor.getTurnRate();
+            int idx = 0;
+            if (rlen > 1) {
+                float cdiff = Math.abs(rate - sets[0].rate);
+                for (int ii = 1; ii < sets.length; ii++) {
+                    float diff = Math.abs(rate - sets[ii].rate);
+                    if (diff < cdiff) {
+                        cdiff = diff;
+                        idx = ii;
+                    }
+                }
+            }
+            Animation rotation = rotations[idx][actor.getTurnDirection() > 0 ? 0 : 1];
+            rotation.setSpeed(rate / sets[idx].rate);
+            return rotation;
+        }
+
         /** The resolved idle animations. */
         protected Animation[] _idles;
 
@@ -465,6 +531,9 @@ public class ActorSprite extends Sprite
 
         /** The movement animations. */
         protected Animation[][] _movements;
+
+        /** The rotation animations. */
+        protected Animation[][] _rotations;
 
         /** The current idle animation. */
         protected Animation _currentIdle;

@@ -78,6 +78,22 @@ public class Mobile extends Actor
     }
 
     /**
+     * Returns the direction of rotation (+1 if counterclockwise, -1 if clockwise, 0 if none).
+     */
+    public int getTurnDirection ()
+    {
+        return 0;
+    }
+
+    /**
+     * Returns the rate of turning (radians per second).
+     */
+    public float getTurnRate ()
+    {
+        return 0f;
+    }
+
+    /**
      * Adds a step limiter.
      */
     public void addStepLimiter (StepLimiter limiter)

@@ -93,6 +93,10 @@ public abstract class ActorSpriteConfig extends DeepObject
         @Editable
         public MovementSet[] movements = new MovementSet[0];
 
+        /** The sets of rotation animations for the sprite. */
+        @Editable
+        public RotationSet[] rotations = new RotationSet[0];
+
         /**
          * Returns the cached idle weight array.
          */
@@ -114,6 +118,9 @@ public abstract class ActorSpriteConfig extends DeepObject
             }
             for (MovementSet movement : movements) {
                 movement.getPreloads(cfgmgr, preloads);
+            }
+            for (RotationSet rotation : rotations) {
+                rotation.getPreloads(cfgmgr, preloads);
             }
         }
 
@@ -236,6 +243,42 @@ public abstract class ActorSpriteConfig extends DeepObject
             return new Animation[] {
                 model.createAnimation(backward), model.createAnimation(right),
                 model.createAnimation(forward), model.createAnimation(left) };
+        }
+    }
+
+    /**
+     * Represents a set of rotation animations.
+     */
+    public static class RotationSet extends DeepObject
+        implements Exportable
+    {
+        /** The rotation rate of this animation set. */
+        @Editable(min=0, scale=Math.PI/180.0)
+        public float rate;
+
+        /** The left (counterclockwise) animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> left;
+
+        /** The right (clockwise) animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> right;
+
+        /**
+         * Adds the resources to preload for this sprite into the provided set.
+         */
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            preloads.add(new Preloadable.Animation(left));
+            preloads.add(new Preloadable.Animation(right));
+        }
+
+        /**
+         * Resolves the rotation set animations for the supplied model.
+         */
+        public Animation[] resolve (Model model)
+        {
+            return new Animation[] { model.createAnimation(left), model.createAnimation(right) };
         }
     }
 
