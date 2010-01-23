@@ -441,10 +441,10 @@ public class TudeySceneController extends SceneController
     {
         if (_targetControlled) {
             bindKeyMovement(PseudoKeys.KEY_BUTTON1, _relativeMoveAmounts, 0);
-            bindKeyMovement(Keyboard.KEY_W, _relativeMoveAmounts, 0);
-            bindKeyMovement(Keyboard.KEY_S, _relativeMoveAmounts, 1);
-            bindKeyMovement(Keyboard.KEY_A, _relativeMoveAmounts, 2);
-            bindKeyMovement(Keyboard.KEY_D, _relativeMoveAmounts, 3);
+            bindKeyMovement(Keyboard.KEY_W, _absoluteMoveAmounts, 0);
+            bindKeyMovement(Keyboard.KEY_S, _absoluteMoveAmounts, 1);
+            bindKeyMovement(Keyboard.KEY_A, _absoluteMoveAmounts, 2);
+            bindKeyMovement(Keyboard.KEY_D, _absoluteMoveAmounts, 3);
             bindKeyStrafe(Keyboard.KEY_C);
         } else {
             bindKeyCycle(Keyboard.KEY_LEFT, false);
@@ -691,9 +691,16 @@ public class TudeySceneController extends SceneController
      */
     protected float computeDirection (float dir)
     {
-        float fx = _relativeMoveAmounts[3] - _relativeMoveAmounts[2];
-        float fy = _relativeMoveAmounts[0] - _relativeMoveAmounts[1];
+        // first check for an absolute direction, then for a relative one
+        float fx = _absoluteMoveAmounts[3] - _absoluteMoveAmounts[2];
+        float fy = _absoluteMoveAmounts[0] - _absoluteMoveAmounts[1];
         float flen = FloatMath.hypot(fx, fy);
+        if (flen > 0.5f) {
+            return FloatMath.atan2(fy, fx);
+        }
+        fx = _relativeMoveAmounts[3] - _relativeMoveAmounts[2];
+        fy = _relativeMoveAmounts[0] - _relativeMoveAmounts[1];
+        flen = FloatMath.hypot(fx, fy);
         return (flen > 0.5f) ? FloatMath.normalizeAngle(dir + FloatMath.atan2(-fx, fy)) : dir;
     }
 
@@ -707,6 +714,7 @@ public class TudeySceneController extends SceneController
         _flags &= mask;
         _strafe = false;
         Arrays.fill(_relativeMoveAmounts, 0f);
+        Arrays.fill(_absoluteMoveAmounts, 0f);
     }
 
     /**
@@ -884,6 +892,9 @@ public class TudeySceneController extends SceneController
 
     /** Contains all flags set during the current frame. */
     protected int _frameFlags;
+
+    /** The absolute move command amounts in each direction. */
+    protected float[] _absoluteMoveAmounts = new float[4];
 
     /** The relative move command amounts in each direction. */
     protected float[] _relativeMoveAmounts = new float[4];
