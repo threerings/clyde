@@ -49,7 +49,7 @@ public class SounderConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the sounder.
      */
-    @EditorTypes({ Clip.class, Stream.class, MetaStream.class, Derived.class })
+    @EditorTypes({ Clip.class, MetaClip.class, Stream.class, MetaStream.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -138,9 +138,19 @@ public class SounderConfig extends ParameterizedConfig
     }
 
     /**
+     * Base class for {@link Clip} and {@link MetaClip}.
+     */
+    public static abstract class BaseClip extends Original
+    {
+        /** Whether or not the sound loops. */
+        @Editable(weight=-1, hgroup="f")
+        public boolean loop;
+    }
+
+    /**
      * Plays a sound clip.
      */
-    public static class Clip extends Original
+    public static class Clip extends BaseClip
     {
         /** The sound resource from which to load the clip. */
         @Editable(editor="resource", nullable=true, weight=-1, hgroup="f")
@@ -149,10 +159,6 @@ public class SounderConfig extends ParameterizedConfig
             extensions={".ogg"},
             directory="sound_dir")
         public String file;
-
-        /** Whether or not the sound loops. */
-        @Editable(weight=-1, hgroup="f")
-        public boolean loop;
 
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)
@@ -173,6 +179,41 @@ public class SounderConfig extends ParameterizedConfig
                 ((Sounder.Clip)impl).setConfig(this);
             } else {
                 impl = new Sounder.Clip(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * Plays a randomly selected clip.
+     */
+    public static class MetaClip extends BaseClip
+    {
+        /** The files from which to choose. */
+        @Editable(weight=-1)
+        public WeightedFile[] files = new WeightedFile[0];
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            for (WeightedFile wfile : files) {
+                if (wfile.file != null) {
+                    paths.add(wfile.file);
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (files.length == 0) {
+                return null;
+            }
+            if (impl instanceof Sounder.MetaClip) {
+                ((Sounder.MetaClip)impl).setConfig(this);
+            } else {
+                impl = new Sounder.MetaClip(ctx, scope, this);
             }
             return impl;
         }

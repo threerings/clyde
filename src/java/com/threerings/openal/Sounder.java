@@ -122,61 +122,24 @@ public class Sounder extends SimpleScope
     }
 
     /**
-     * Plays a sound clip.
+     * Base class for {@link Clip} and {@link MetaClip}.
      */
-    public static class Clip extends Implementation
+    public static abstract class BaseClip extends Implementation
     {
         /**
-         * Creates a new clip implementation.
+         * Creates a new implementation.
          */
-        public Clip (AlContext ctx, Scope parentScope, SounderConfig.Clip config)
+        public BaseClip (AlContext ctx, Scope parentScope)
         {
             super(ctx, parentScope);
-            setConfig(config);
         }
 
         /**
          * (Re)configures the implementation.
          */
-        public void setConfig (SounderConfig.Clip config)
+        public void setConfig (SounderConfig.BaseClip config)
         {
             super.setConfig(_config = config);
-
-            // resolve the group and use it to obtain a sound reference
-            SoundGroup group = ScopeUtil.resolve(
-                _parentScope, "soundGroup", null, SoundGroup.class);
-            _sound = (group == null) ? null : group.getSound(config.file);
-            if (_sound == null) {
-                return;
-            }
-
-            // configure the sound
-            _sound.setGain(config.gain);
-            _sound.setSourceRelative(config.sourceRelative);
-            _sound.setMinGain(config.minGain);
-            _sound.setMaxGain(config.maxGain);
-            _sound.setReferenceDistance(config.referenceDistance);
-            _sound.setRolloffFactor(config.rolloffFactor);
-            _sound.setMaxDistance(config.maxDistance);
-            _sound.setPitch(config.pitch);
-            _sound.setConeInnerAngle(config.coneInnerAngle);
-            _sound.setConeOuterAngle(config.coneOuterAngle);
-            _sound.setConeOuterGain(config.coneOuterGain);
-        }
-
-        @Override // documentation inherited
-        public void start ()
-        {
-            if (_sound != null) {
-                updateSoundTransform();
-                SoundClipManager clipmgr = ScopeUtil.resolve(
-                    _parentScope, "clipmgr", null, SoundClipManager.class);
-                if (clipmgr != null) {
-                    clipmgr.playSound(_sound, _config);
-                } else {
-                    _sound.play(null, _config.loop);
-                }
-            }
         }
 
         @Override // documentation inherited
@@ -196,6 +159,23 @@ public class Sounder extends SimpleScope
         }
 
         /**
+         * Plays the sound.
+         */
+        protected void playSound (float gain)
+        {
+            if (_sound != null) {
+                updateSoundTransform();
+                SoundClipManager clipmgr = ScopeUtil.resolve(
+                    _parentScope, "clipmgr", null, SoundClipManager.class);
+                if (clipmgr != null) {
+                    clipmgr.playSound(_sound, _config.loop, gain);
+                } else {
+                    _sound.play(null, _config.loop);
+                }
+            }
+        }
+
+        /**
          * Updates the position and direction of the sound.
          */
         protected void updateSoundTransform ()
@@ -208,14 +188,117 @@ public class Sounder extends SimpleScope
             }
         }
 
-        /** The implementation configuration. */
-        protected SounderConfig.Clip _config;
+        /**
+         * Retrieves the sound corresponding to the specified file.
+         */
+        protected Sound getSound (String file, float gain)
+        {
+            // resolve the group and use it to obtain a sound reference
+            SoundGroup group = ScopeUtil.resolve(
+                _parentScope, "soundGroup", null, SoundGroup.class);
+            Sound sound = (file == null || group == null) ? null : group.getSound(file);
+            if (sound != null) {
+                sound.setGain(gain * _config.gain);
+                sound.setSourceRelative(_config.sourceRelative);
+                sound.setMinGain(_config.minGain);
+                sound.setMaxGain(_config.maxGain);
+                sound.setReferenceDistance(_config.referenceDistance);
+                sound.setRolloffFactor(_config.rolloffFactor);
+                sound.setMaxDistance(_config.maxDistance);
+                sound.setPitch(_config.pitch);
+                sound.setConeInnerAngle(_config.coneInnerAngle);
+                sound.setConeOuterAngle(_config.coneOuterAngle);
+                sound.setConeOuterGain(_config.coneOuterGain);
+            }
+            return sound;
+        }
 
-        /** The sound. */
+        /** The implementation configuration. */
+        protected SounderConfig.BaseClip _config;
+
+        /** The (currently playing) sound. */
         protected Sound _sound;
 
         /** A result vector for computation. */
         protected Vector3f _vector = new Vector3f();
+    }
+
+    /**
+     * Plays a sound clip.
+     */
+    public static class Clip extends BaseClip
+    {
+        /**
+         * Creates a new clip implementation.
+         */
+        public Clip (AlContext ctx, Scope parentScope, SounderConfig.Clip config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.Clip config)
+        {
+            super.setConfig(config);
+            _sound = getSound(config.file, 1f);
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            playSound(_config.gain);
+        }
+    }
+
+    /**
+     * Plays a randomly selected clip.
+     */
+    public static class MetaClip extends BaseClip
+    {
+        /**
+         * Creates a new clip implementation.
+         */
+        public MetaClip (AlContext ctx, Scope parentScope, SounderConfig.MetaClip config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.MetaClip config)
+        {
+            super.setConfig(_config = config);
+
+            _sounds = new Sound[config.files.length];
+            _weights = new float[config.files.length];
+            for (int ii = 0; ii < _weights.length; ii++) {
+                WeightedFile wfile = config.files[ii];
+                _sounds[ii] = getSound(wfile.file, wfile.gain);
+                _weights[ii] = wfile.weight;
+            }
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            int idx = RandomUtil.getWeightedIndex(_weights);
+            _sound = _sounds[idx];
+            playSound(_config.gain * _config.files[idx].gain);
+        }
+
+        /** The implementation configuration. */
+        protected SounderConfig.MetaClip _config;
+
+        /** The sounds. */
+        protected Sound[] _sounds;
+
+        /** The weights. */
+        protected float[] _weights;
     }
 
     /**

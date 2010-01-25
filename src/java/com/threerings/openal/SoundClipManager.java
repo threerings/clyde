@@ -10,7 +10,6 @@ import com.google.common.collect.Lists;
 import com.samskivert.util.CountHashMap;
 
 import com.threerings.openal.ClipBuffer;
-import com.threerings.openal.config.SounderConfig;
 import com.threerings.openal.util.AlContext;
 
 import static com.threerings.ClydeLog.*;
@@ -28,7 +27,7 @@ public class SoundClipManager
     /**
      * Registers and plays a sound using the clip manager.
      */
-    public void playSound (Sound sound, SounderConfig.Clip config)
+    public void playSound (Sound sound, boolean loop, float gain)
     {
         ClipBuffer buffer = sound.getBuffer();
         if (buffer == null) {
@@ -73,10 +72,10 @@ public class SoundClipManager
                 }
             }
         }
-        if (sound.play(null, config.loop)) {
-            _sounds.add(new SoundEntry(sound, config.gain));
+        if (sound.play(null, loop)) {
+            _sounds.add(new SoundEntry(sound, gain));
             count = _counts.incrementCount(path, 1);
-            sound.setGain(config.gain * getGainModifier(count));
+            sound.setGain(gain * getGainModifier(count));
             log.debug("ClipManager play sound", "count", count, "path", path);
         }
     }
