@@ -95,8 +95,9 @@ public class Actor extends DeepObject
      */
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
     {
-        preloads.add(new Preloadable.Config(ActorConfig.class, _config));
-        _original.getPreloads(cfgmgr, preloads);
+        if (preloads.add(new Preloadable.Config(ActorConfig.class, _config))) {
+            _original.getPreloads(cfgmgr, preloads);
+        }
     }
 
     /**

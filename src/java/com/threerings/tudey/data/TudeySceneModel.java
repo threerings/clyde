@@ -498,8 +498,9 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Config(TileConfig.class, tile));
-            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            if (preloads.add(new Preloadable.Config(TileConfig.class, tile))) {
+                getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited
@@ -617,8 +618,9 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Config(SceneGlobalConfig.class, sceneGlobal));
-            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            if (preloads.add(new Preloadable.Config(SceneGlobalConfig.class, sceneGlobal))) {
+                getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited
@@ -766,8 +768,9 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Config(PlaceableConfig.class, placeable));
-            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            if (preloads.add(new Preloadable.Config(PlaceableConfig.class, placeable))) {
+                getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited
@@ -922,8 +925,9 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Config(PathConfig.class, path));
-            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            if (preloads.add(new Preloadable.Config(PathConfig.class, path))) {
+                getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited
@@ -1082,8 +1086,9 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
-            preloads.add(new Preloadable.Config(AreaConfig.class, area));
-            getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            if (preloads.add(new Preloadable.Config(AreaConfig.class, area))) {
+                getConfig(cfgmgr).getPreloads(cfgmgr, preloads);
+            }
         }
 
         @Override // documentation inherited
