@@ -133,7 +133,7 @@ public class ActorLogic extends Logic
      */
     public void bodyWillLeave (BodyObject body)
     {
-        destroy(_scenemgr.getNextTimestamp());
+        destroy(_scenemgr.getNextTimestamp(), this);
     }
 
     @Override // documentation inherited
@@ -226,7 +226,7 @@ public class ActorLogic extends Logic
     /**
      * Destroys the actor.
      */
-    public void destroy (int timestamp)
+    public void destroy (int timestamp, Logic activator)
     {
         // make sure we're not already destroyed
         if (isDestroyed()) {
@@ -244,7 +244,7 @@ public class ActorLogic extends Logic
 
         // notify handlers
         for (HandlerLogic handler : _handlers) {
-            handler.shutdown(timestamp);
+            handler.shutdown(timestamp, activator);
         }
     }
 

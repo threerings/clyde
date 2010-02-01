@@ -94,7 +94,7 @@ public class EntryLogic extends Logic
         protected void wasRemoved ()
         {
             if (_actor != null) {
-                _actor.destroy(_scenemgr.getNextTimestamp());
+                _actor.destroy(_scenemgr.getNextTimestamp(), this);
             }
         }
 
@@ -148,7 +148,7 @@ public class EntryLogic extends Logic
         // notify the handlers
         int timestamp = _scenemgr.getNextTimestamp();
         for (HandlerLogic handler : _handlers) {
-            handler.shutdown(timestamp);
+            handler.shutdown(timestamp, this);
             handler.removed();
         }
 

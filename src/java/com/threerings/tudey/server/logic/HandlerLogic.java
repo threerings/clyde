@@ -67,9 +67,9 @@ public abstract class HandlerLogic extends Logic
     public static class Shutdown extends HandlerLogic
     {
         @Override // documentation inherited
-        public void shutdown (int timestamp)
+        public void shutdown (int timestamp, Logic activator)
         {
-            execute(timestamp);
+            execute(timestamp, activator);
         }
     }
 
@@ -93,7 +93,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp)
+        public void shutdown (int timestamp, Logic activator)
         {
             _scenemgr.removeTickParticipant(this);
         }
@@ -120,7 +120,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp)
+        public void shutdown (int timestamp, Logic activator)
         {
             _interval.cancel();
         }
@@ -188,7 +188,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp)
+        public void shutdown (int timestamp, Logic activator)
         {
             _scenemgr.removeTickParticipant(this);
         }
@@ -304,7 +304,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp)
+        public void shutdown (int timestamp, Logic activator)
         {
             if (_shape != null) {
                 _scenemgr.getSensorSpace().remove(_shape);
@@ -532,7 +532,7 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void shutdown (int timestamp)
+        public void shutdown (int timestamp, Logic activator)
         {
             _scenemgr.removeActorObserver(this);
         }
@@ -579,7 +579,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Shuts down the handler.
      */
-    public void shutdown (int timestamp)
+    public void shutdown (int timestamp, Logic activator)
     {
         // nothing by default
     }

@@ -89,9 +89,9 @@ public class MobileLogic extends ActorLogic
     }
 
     @Override // documentation inherited
-    public void destroy (int timestamp)
+    public void destroy (int timestamp, Logic activator)
     {
-        super.destroy(timestamp);
+        super.destroy(timestamp, activator);
 
         // deregister as tick participant
         _scenemgr.removeTickParticipant(this);

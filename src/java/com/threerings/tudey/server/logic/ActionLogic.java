@@ -133,7 +133,7 @@ public abstract class ActionLogic extends Logic
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
                 if (target instanceof ActorLogic) {
-                    ((ActorLogic)target).destroy(timestamp);
+                    ((ActorLogic)target).destroy(timestamp, activator);
                     success = true;
                 }
             }

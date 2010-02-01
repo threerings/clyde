@@ -70,7 +70,7 @@ public abstract class TargetLogic extends Logic
         @Override // documentation inherited
         public void resolve (Logic activator, Collection<Logic> results)
         {
-            results.add(activator);
+            results.add(activator.resolveTarget());
         }
     }
 
