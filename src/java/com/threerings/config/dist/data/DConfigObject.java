@@ -262,7 +262,7 @@ public class DConfigObject extends DObject
     public void setAdded (DSet<ConfigEntry> value)
     {
         requestAttributeChange(ADDED, value, this.added);
-        DSet<ConfigEntry> clone = (value == null) ? null : value.typedClone();
+        DSet<ConfigEntry> clone = (value == null) ? null : value.clone();
         this.added = clone;
     }
 
@@ -309,7 +309,7 @@ public class DConfigObject extends DObject
     public void setUpdated (DSet<ConfigEntry> value)
     {
         requestAttributeChange(UPDATED, value, this.updated);
-        DSet<ConfigEntry> clone = (value == null) ? null : value.typedClone();
+        DSet<ConfigEntry> clone = (value == null) ? null : value.clone();
         this.updated = clone;
     }
 
@@ -356,7 +356,7 @@ public class DConfigObject extends DObject
     public void setRemoved (DSet<ConfigKey> value)
     {
         requestAttributeChange(REMOVED, value, this.removed);
-        DSet<ConfigKey> clone = (value == null) ? null : value.typedClone();
+        DSet<ConfigKey> clone = (value == null) ? null : value.clone();
         this.removed = clone;
     }
     // AUTO-GENERATED: METHODS END
