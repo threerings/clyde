@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.util.ComparableTuple;
 import com.samskivert.util.ObjectUtil;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
@@ -172,7 +173,7 @@ public class ModelConfig extends ParameterizedConfig
         {
             /** The name of the texture. */
             @Editable(editor="choice", hgroup="t")
-            public String texture;
+            public String texture = "";
 
             /** The name of the tag. */
             @Editable(hgroup="t")
@@ -334,7 +335,7 @@ public class ModelConfig extends ParameterizedConfig
                 String texture = pair.left, tag = pair.right;
                 if (getMaterialMapping(texture, tag) == null) {
                     mappings.add(new MaterialMapping(
-                        texture, tag, (texture == null) ? null : pref + texture));
+                        texture, tag, StringUtil.isBlank(texture) ? null : pref + texture));
                 }
             }
             materialMappings = mappings.toArray(new MaterialMapping[mappings.size()]);
@@ -520,10 +521,10 @@ public class ModelConfig extends ParameterizedConfig
         implements Exportable
     {
         /** The name of the texture associated with the mesh. */
-        public String texture;
+        public String texture = "";
 
         /** The mesh tag. */
-        public String tag;
+        public String tag = DEFAULT_TAG;
 
         /** The mesh geometry. */
         public GeometryConfig geometry;

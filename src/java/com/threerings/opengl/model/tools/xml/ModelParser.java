@@ -52,14 +52,14 @@ public class ModelParser
 
         String tmesh = model + "/triMesh";
         _digester.addObjectCreate(tmesh, ModelDef.TriMeshDef.class.getName());
-        _digester.addRule(tmesh, new SetPropertyFieldsRule());
+        _digester.addRule(tmesh, new SetPropertyFieldsRule(false));
         _digester.addSetNext(tmesh, "addSpatial",
             ModelDef.SpatialDef.class.getName());
 
         String smesh = model + "/skinMesh";
         _digester.addObjectCreate(smesh,
             ModelDef.SkinMeshDef.class.getName());
-        _digester.addRule(smesh, new SetPropertyFieldsRule());
+        _digester.addRule(smesh, new SetPropertyFieldsRule(false));
         _digester.addSetNext(smesh, "addSpatial",
             ModelDef.SpatialDef.class.getName());
 
