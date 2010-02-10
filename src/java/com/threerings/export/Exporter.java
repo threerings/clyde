@@ -24,6 +24,7 @@
 
 package com.threerings.export;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -60,6 +61,7 @@ import static com.threerings.export.Log.*;
  * @see Exportable
  */
 public abstract class Exporter
+    implements Closeable
 {
     /**
      * Writes the object to the underlying stream.
