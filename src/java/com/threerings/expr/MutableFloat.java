@@ -56,7 +56,8 @@ public class MutableFloat
     @Override // documentation inherited
     public boolean equals (Object other)
     {
-        return other instanceof MutableFloat && ((MutableFloat)other).value == value;
+        return other instanceof MutableFloat &&
+            Float.floatToIntBits(((MutableFloat)other).value) == Float.floatToIntBits(value);
     }
     
     @Override // documentation inherited
