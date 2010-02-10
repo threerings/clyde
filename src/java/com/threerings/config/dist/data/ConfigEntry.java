@@ -26,6 +26,8 @@ package com.threerings.config.dist.data;
 
 import java.io.IOException;
 
+import java.util.Arrays;
+
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.SimpleStreamableObject;
@@ -101,6 +103,14 @@ public class ConfigEntry extends SimpleStreamableObject
     public String toString ()
     {
         return "[key=" + _key + ", config=" + _config + "]";
+    }
+
+    @Override // documentation inherited
+    public boolean equals (Object other)
+    {
+        ConfigEntry oentry;
+        return other instanceof ConfigEntry && (oentry = (ConfigEntry)other)._key.equals(_key) &&
+            Arrays.equals(oentry._bytes, _bytes);
     }
 
     /** The config key. */
