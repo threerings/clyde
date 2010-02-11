@@ -167,8 +167,8 @@ public class Sounder extends SimpleScope
                 updateSoundTransform();
                 SoundClipManager clipmgr = ScopeUtil.resolve(
                     _parentScope, "clipmgr", null, SoundClipManager.class);
-                if (clipmgr != null) {
-                    clipmgr.playSound(_sound, _config.loop, gain);
+                if (clipmgr != null && !_config.loop) {
+                    clipmgr.playSound(_sound, gain);
                 } else {
                     _sound.play(null, _config.loop);
                 }

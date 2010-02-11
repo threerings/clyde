@@ -27,7 +27,7 @@ public class SoundClipManager
     /**
      * Registers and plays a sound using the clip manager.
      */
-    public void playSound (Sound sound, boolean loop, float gain)
+    public void playSound (Sound sound, float gain)
     {
         ClipBuffer buffer = sound.getBuffer();
         if (buffer == null) {
@@ -72,7 +72,7 @@ public class SoundClipManager
                 }
             }
         }
-        if (sound.play(null, loop)) {
+        if (sound.play(true)) {
             _sounds.add(new SoundEntry(sound, gain));
             count = _counts.incrementCount(path, 1);
             sound.setGain(gain * getGainModifier(count));
