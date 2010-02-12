@@ -66,14 +66,16 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<SounderConfig> sounder;
 
         @Override // documentation inherited
-        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
+        public ViewerEffect getViewerEffect (
+            final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
             if (!ScopeUtil.resolve(scope, "soundEnabled", true)) {
                 return getNoopEffect(effect);
             }
-            Transform3D transform = ScopeUtil.resolve(scope, "worldTransform", new Transform3D());
-            final Sounder sounder = new Sounder(ctx, scope, transform, this.sounder);
-            return new ViewerEffect() {
+            class SoundEffect extends ViewerEffect {
+                public Sounder sounder = new Sounder(
+                    ctx, scope, ScopeUtil.resolve(scope, "worldTransform", new Transform3D()),
+                    Sound.this.sounder);
                 public void activate (Scene scene) {
                     sounder.start();
                 }
@@ -83,7 +85,13 @@ public abstract class ViewerEffectConfig extends DeepObject
                 public void update () {
                     sounder.update();
                 }
-            };
+            }
+            if (effect instanceof SoundEffect) {
+                ((SoundEffect)effect).sounder.setConfig(sounder);
+            } else {
+                effect = new SoundEffect();
+            }
+            return effect;
         }
     }
 

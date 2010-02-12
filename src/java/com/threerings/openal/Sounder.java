@@ -39,6 +39,7 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
+import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.MutableFloat;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scope;
@@ -89,6 +90,11 @@ public class Sounder extends SimpleScope
         public abstract void stop ();
 
         /**
+         * Checks whether the sound is currently playing.
+         */
+        public abstract boolean isPlaying ();
+
+        /**
          * Updates the sound.
          */
         public void update ()
@@ -100,6 +106,13 @@ public class Sounder extends SimpleScope
         public String getScopeName ()
         {
             return "impl";
+        }
+
+        @Override // documentation inherited
+        public void dispose ()
+        {
+            super.dispose();
+            stop();
         }
 
         /**
@@ -119,6 +132,10 @@ public class Sounder extends SimpleScope
         /** The sound transform. */
         @Bound
         protected Transform3D _transform;
+
+        /** Whether or not the sound has been started. */
+        @Bound
+        protected MutableBoolean _started;
     }
 
     /**
@@ -148,6 +165,12 @@ public class Sounder extends SimpleScope
             if (_sound != null) {
                 _sound.stop();
             }
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            return _sound != null && _sound.isPlaying();
         }
 
         @Override // documentation inherited
@@ -190,13 +213,21 @@ public class Sounder extends SimpleScope
 
         /**
          * Retrieves the sound corresponding to the specified file.
+         *
+         * @param sound an existing sound to reuse, if appropriate.
          */
-        protected Sound getSound (String file, float gain)
+        protected Sound getSound (String file, float gain, Sound sound)
         {
-            // resolve the group and use it to obtain a sound reference
+            // resolve the group
             SoundGroup group = ScopeUtil.resolve(
                 _parentScope, "soundGroup", null, SoundGroup.class);
-            Sound sound = (file == null || group == null) ? null : group.getSound(file);
+            if (sound == null || sound.getGroup() != group ||
+                    !sound.getBuffer().getPath().equals(file)) {
+                if (sound != null) {
+                    sound.stop();
+                }
+                sound = (file == null || group == null) ? null : group.getSound(file);
+            }
             if (sound != null) {
                 sound.setGain(gain * _config.gain);
                 sound.setSourceRelative(_config.sourceRelative);
@@ -243,7 +274,11 @@ public class Sounder extends SimpleScope
         public void setConfig (SounderConfig.Clip config)
         {
             super.setConfig(config);
-            _sound = getSound(config.file, 1f);
+            boolean wasPlaying = isPlaying();
+            _sound = getSound(config.file, 1f, _sound);
+            if ((wasPlaying || _started.value && config.loop) && !isPlaying()) {
+                start();
+            }
         }
 
         @Override // documentation inherited
@@ -274,12 +309,27 @@ public class Sounder extends SimpleScope
         {
             super.setConfig(_config = config);
 
+            boolean wasPlaying = isPlaying();
+            Sound[] osounds = _sounds;
             _sounds = new Sound[config.files.length];
             _weights = new float[config.files.length];
-            for (int ii = 0; ii < _weights.length; ii++) {
+            int ii = 0;
+            for (; ii < _sounds.length; ii++) {
                 WeightedFile wfile = config.files[ii];
-                _sounds[ii] = getSound(wfile.file, wfile.gain);
+                _sounds[ii] = getSound(wfile.file, wfile.gain,
+                    (osounds != null && ii < osounds.length) ? osounds[ii] : null);
                 _weights[ii] = wfile.weight;
+            }
+            if (osounds != null) {
+                for (; ii < osounds.length; ii++) {
+                    Sound osound = osounds[ii];
+                    if (osound != null) {
+                        osound.stop();
+                    }
+                }
+            }
+            if ((wasPlaying || _started.value && config.loop) && !isPlaying()) {
+                start();
             }
         }
 
@@ -326,6 +376,12 @@ public class Sounder extends SimpleScope
         public void stop ()
         {
             stopStream(_config.fadeOut);
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            return _stream != null && _stream.isPlaying();
         }
 
         /**
@@ -573,6 +629,9 @@ public class Sounder extends SimpleScope
         public void setConfig (SounderConfig.Stream config)
         {
             super.setConfig(_config = config);
+            if (_started.value && config.loops() && !isPlaying()) {
+                start();
+            }
         }
 
         @Override // documentation inherited
@@ -626,6 +685,9 @@ public class Sounder extends SimpleScope
             _weights = new float[config.files.length];
             for (int ii = 0; ii < _weights.length; ii++) {
                 _weights[ii] = config.files[ii].weight;
+            }
+            if (_started.value && !isPlaying()) {
+                start();
             }
         }
 
@@ -770,6 +832,7 @@ public class Sounder extends SimpleScope
     public void start ()
     {
         resetEpoch();
+        _started.value = true;
         _impl.start();
     }
 
@@ -778,7 +841,16 @@ public class Sounder extends SimpleScope
      */
     public void stop ()
     {
+        _started.value = false;
         _impl.stop();
+    }
+
+    /**
+     * Checks whether the sound is currently playing.
+     */
+    public boolean isPlaying ()
+    {
+        return _impl.isPlaying();
     }
 
     /**
@@ -815,6 +887,7 @@ public class Sounder extends SimpleScope
     public void dispose ()
     {
         super.dispose();
+        _impl.dispose();
         if (_config != null) {
             _config.removeListener(this);
         }
@@ -829,6 +902,10 @@ public class Sounder extends SimpleScope
             null : _config.getSounderImplementation(_ctx, this, _impl);
         nimpl = (nimpl == null) ? NULL_IMPLEMENTATION : nimpl;
         if (_impl != nimpl) {
+            if (_impl.isPlaying()) {
+                _impl.stop();
+                nimpl.start();
+            }
             _impl.dispose();
             _impl = nimpl;
         }
@@ -863,9 +940,14 @@ public class Sounder extends SimpleScope
     @Scoped
     protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
 
+    /** Whether or not the sound has been started. */
+    @Scoped
+    protected MutableBoolean _started = new MutableBoolean();
+
     /** An implementation that does nothing. */
     protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null, null) {
         public void start () { }
         public void stop () { }
+        public boolean isPlaying () { return false; }
     };
 }

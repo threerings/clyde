@@ -250,6 +250,19 @@ public class SounderConfig extends ParameterizedConfig
         @Editable(weight=-1)
         public QueuedFile[] queue = new QueuedFile[0];
 
+        /**
+         * Checks whether any of the files loop.
+         */
+        public boolean loops ()
+        {
+            for (QueuedFile queued : queue) {
+                if (queued.loop) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)
         {
