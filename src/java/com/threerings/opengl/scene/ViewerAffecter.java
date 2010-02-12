@@ -142,7 +142,7 @@ public class ViewerAffecter extends Model.Implementation
         _influenceFlags = _config.influences.getFlags();
 
         // create the effect
-        _effect = _config.effect.createViewerEffect(_ctx, this);
+        _effect = _config.effect.getViewerEffect(_ctx, this, _effect);
         _effect.getBounds().set(_bounds);
 
         // add to scene if we're in one

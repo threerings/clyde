@@ -66,7 +66,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<SounderConfig> sounder;
 
         @Override // documentation inherited
-        public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
+        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             if (!ScopeUtil.resolve(scope, "soundEnabled", true)) {
                 return createNoopEffect();
@@ -97,7 +97,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         public Color4f color = new Color4f(0f, 0f, 0f, 1f);
 
         @Override // documentation inherited
-        public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
+        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             return new BackgroundColorEffect(color);
         }
@@ -121,7 +121,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         public Vector3f translationOrigin = new Vector3f();
 
         @Override // documentation inherited
-        public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
+        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             final Model model = new Model(ctx, this.model);
             final Vector3f translation =
@@ -155,7 +155,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<ModelConfig> model;
 
         @Override // documentation inherited
-        public ViewerEffect createViewerEffect (GlContext ctx, Scope scope)
+        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             final Model model = new Model(ctx, this.model);
             final Transform3D transform = ctx.getCompositor().getCamera().getWorldTransform();
@@ -185,18 +185,18 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override // documentation inherited
-        public ViewerEffect createViewerEffect (final GlContext ctx, Scope scope)
+        public ViewerEffect getViewerEffect (final GlContext ctx, Scope scope, ViewerEffect effect)
         {
             RenderEffectConfig config = ctx.getConfigManager().getConfig(
                 RenderEffectConfig.class, renderEffect);
-            final com.threerings.opengl.compositor.RenderEffect effect =
+            final com.threerings.opengl.compositor.RenderEffect reffect =
                 new com.threerings.opengl.compositor.RenderEffect(ctx, scope, config);
             return new ViewerEffect() {
                 public void activate (Scene scene) {
-                    ctx.getCompositor().addEffect(effect);
+                    ctx.getCompositor().addEffect(reffect);
                 }
                 public void deactivate () {
-                    ctx.getCompositor().removeEffect(effect);
+                    ctx.getCompositor().removeEffect(reffect);
                 }
             };
         }
@@ -204,8 +204,10 @@ public abstract class ViewerEffectConfig extends DeepObject
 
     /**
      * Creates the actual effect object.
+     *
+     * @param effect an effect to reuse, if possible.
      */
-    public abstract ViewerEffect createViewerEffect (GlContext ctx, Scope scope);
+    public abstract ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect);
 
     /**
      * Creates an effect that does nothing.
