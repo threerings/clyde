@@ -69,7 +69,7 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
             if (!ScopeUtil.resolve(scope, "soundEnabled", true)) {
-                return createNoopEffect();
+                return getNoopEffect(effect);
             }
             Transform3D transform = ScopeUtil.resolve(scope, "worldTransform", new Transform3D());
             final Sounder sounder = new Sounder(ctx, scope, transform, this.sounder);
@@ -99,7 +99,12 @@ public abstract class ViewerEffectConfig extends DeepObject
         @Override // documentation inherited
         public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
         {
-            return new BackgroundColorEffect(color);
+            if (effect instanceof BackgroundColorEffect) {
+                ((BackgroundColorEffect)effect).getBackgroundColor().set(color);
+            } else {
+                effect = new BackgroundColorEffect(color);
+            }
+            return effect;
         }
     }
 
@@ -121,12 +126,10 @@ public abstract class ViewerEffectConfig extends DeepObject
         public Vector3f translationOrigin = new Vector3f();
 
         @Override // documentation inherited
-        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
+        public ViewerEffect getViewerEffect (final GlContext ctx, Scope scope, ViewerEffect effect)
         {
-            final Model model = new Model(ctx, this.model);
-            final Vector3f translation =
-                ctx.getCompositor().getCamera().getWorldTransform().getTranslation();
-            return new ViewerEffect() {
+            class SkyboxEffect extends ViewerEffect {
+                public Model model = new Model(ctx, Skybox.this.model);
                 public void activate (Scene scene) {
                     (_scene = scene).add(model);
                 }
@@ -136,12 +139,20 @@ public abstract class ViewerEffectConfig extends DeepObject
                 }
                 public void update () {
                     Vector3f trans = model.getLocalTransform().getTranslation();
-                    translationOrigin.subtract(translation, trans).multLocal(translationScale);
-                    trans.addLocal(translation);
+                    translationOrigin.subtract(_translation, trans).multLocal(translationScale);
+                    trans.addLocal(_translation);
                     model.updateBounds();
                 }
+                protected Vector3f _translation =
+                    ctx.getCompositor().getCamera().getWorldTransform().getTranslation();
                 protected Scene _scene;
-            };
+            }
+            if (effect instanceof SkyboxEffect) {
+                ((SkyboxEffect)effect).model.setConfig(model);
+            } else {
+                effect = new SkyboxEffect();
+            }
+            return effect;
         }
     }
 
@@ -155,11 +166,10 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<ModelConfig> model;
 
         @Override // documentation inherited
-        public ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect)
+        public ViewerEffect getViewerEffect (final GlContext ctx, Scope scope, ViewerEffect effect)
         {
-            final Model model = new Model(ctx, this.model);
-            final Transform3D transform = ctx.getCompositor().getCamera().getWorldTransform();
-            return new ViewerEffect() {
+            class ParticlesEffect extends ViewerEffect {
+                public Model model = new Model(ctx, Particles.this.model);
                 public void activate (Scene scene) {
                     (_scene = scene).add(model);
                 }
@@ -168,10 +178,18 @@ public abstract class ViewerEffectConfig extends DeepObject
                     _scene = null;
                 }
                 public void update () {
-                    model.setLocalTransform(transform);
+                    model.setLocalTransform(_transform);
                 }
+                protected Transform3D _transform =
+                    ctx.getCompositor().getCamera().getWorldTransform();
                 protected Scene _scene;
-            };
+            }
+            if (effect instanceof ParticlesEffect) {
+                ((ParticlesEffect)effect).model.setConfig(model);
+            } else {
+                effect = new ParticlesEffect();
+            }
+            return effect;
         }
     }
 
@@ -185,20 +203,25 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<RenderEffectConfig> renderEffect;
 
         @Override // documentation inherited
-        public ViewerEffect getViewerEffect (final GlContext ctx, Scope scope, ViewerEffect effect)
+        public ViewerEffect getViewerEffect (
+            final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
-            RenderEffectConfig config = ctx.getConfigManager().getConfig(
-                RenderEffectConfig.class, renderEffect);
-            final com.threerings.opengl.compositor.RenderEffect reffect =
-                new com.threerings.opengl.compositor.RenderEffect(ctx, scope, config);
-            return new ViewerEffect() {
+            class RenderEffectEffect extends ViewerEffect {
+                public com.threerings.opengl.compositor.RenderEffect reffect =
+                    new com.threerings.opengl.compositor.RenderEffect(ctx, scope, renderEffect);
                 public void activate (Scene scene) {
                     ctx.getCompositor().addEffect(reffect);
                 }
                 public void deactivate () {
                     ctx.getCompositor().removeEffect(reffect);
                 }
-            };
+            }
+            if (effect instanceof RenderEffectEffect) {
+                ((RenderEffectEffect)effect).reffect.setConfig(RenderEffect.this.renderEffect);
+            } else {
+                effect = new RenderEffectEffect();
+            }
+            return effect;
         }
     }
 
@@ -212,8 +235,11 @@ public abstract class ViewerEffectConfig extends DeepObject
     /**
      * Creates an effect that does nothing.
      */
-    protected static ViewerEffect createNoopEffect ()
+    protected static ViewerEffect getNoopEffect (ViewerEffect effect)
     {
-        return new ViewerEffect() { };
+        class NoopEffect extends ViewerEffect {
+            // no-op
+        }
+        return (effect instanceof NoopEffect) ? effect : new NoopEffect();
     }
 }

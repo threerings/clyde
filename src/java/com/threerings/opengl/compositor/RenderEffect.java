@@ -27,6 +27,7 @@ package com.threerings.opengl.compositor;
 import java.lang.Comparable;
 
 import com.threerings.config.ConfigEvent;
+import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
@@ -180,11 +181,27 @@ public class RenderEffect extends DynamicScope
     /**
      * Creates a new render effect.
      */
+    public RenderEffect (GlContext ctx, Scope parentScope, ConfigReference<RenderEffectConfig> ref)
+    {
+        this(ctx, parentScope, ctx.getConfigManager().getConfig(RenderEffectConfig.class, ref));
+    }
+
+    /**
+     * Creates a new render effect.
+     */
     public RenderEffect (GlContext ctx, Scope parentScope, RenderEffectConfig config)
     {
         super("effect", parentScope);
         _ctx = ctx;
         setConfig(config);
+    }
+
+    /**
+     * Sets the configuration of this render effect.
+     */
+    public void setConfig (ConfigReference<RenderEffectConfig> ref)
+    {
+        setConfig(_ctx.getConfigManager().getConfig(RenderEffectConfig.class, ref));
     }
 
     /**
