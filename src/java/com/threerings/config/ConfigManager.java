@@ -155,7 +155,7 @@ public class ConfigManager
     }
 
     /**
-     * Returns a reference to the parent of this manager, or <code>null<code> if this is the root.
+     * Returns a reference to the parent of this manager, or <code>null</code> if this is the root.
      */
     public ConfigManager getParent ()
     {
