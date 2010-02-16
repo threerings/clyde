@@ -42,6 +42,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -211,13 +212,14 @@ public class PanelArrayListEditor extends ArrayListEditor
             _delete.addActionListener(this);
 
             // initialize
+            _title = BorderFactory.createTitledBorder("");
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(8, 0, 0, 0),
-                BorderFactory.createTitledBorder("")));
+                _title));
             setBackground(null);
             setTrigger(expand, _expandIcon, _collapseIcon);
             expand.setHorizontalAlignment(JButton.CENTER);
-            add(new Spacer(1, -18));
+            add(new Spacer(1, -25));
             setTriggerContainer(tcont, opanel);
             setGap(5);
             setCollapsed(false);
@@ -241,6 +243,7 @@ public class PanelArrayListEditor extends ArrayListEditor
             _raise.setEnabled(idx > 0);
             _lower.setEnabled(idx < count - 1);
             _delete.setEnabled(count > _min);
+            _title.setTitle(PanelArrayListEditor.this.getPropertyLabel() + " (" + idx + ")");
         }
 
         // documentation inherited from interface ActionListener
@@ -276,6 +279,9 @@ public class PanelArrayListEditor extends ArrayListEditor
 
         /** The action buttons. */
         protected JButton _raise, _lower, _delete;
+
+        /** The titled border. */
+        protected TitledBorder _title;
     }
 
     /** The container holding the panels. */
