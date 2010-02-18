@@ -161,6 +161,14 @@ public class Component
     }
 
     /**
+     * Returns a reference to the component's tooltip window style config.
+     */
+    public String getTooltipWindowStyle ()
+    {
+        return "Default/TooltipWindow";
+    }
+
+    /**
      * Informs this component of its parent in the interface heirarchy.
      */
     public void setParent (Container parent)
