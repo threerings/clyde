@@ -38,7 +38,6 @@ import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
-import com.samskivert.util.Predicate;
 import com.samskivert.util.Queue;
 import com.samskivert.util.RandomUtil;
 import com.samskivert.util.RunAnywhere;

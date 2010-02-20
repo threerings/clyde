@@ -29,8 +29,6 @@ import java.awt.event.MouseWheelEvent;
 
 import java.util.ArrayList;
 
-import com.samskivert.util.Predicate;
-
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
