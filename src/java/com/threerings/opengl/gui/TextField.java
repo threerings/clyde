@@ -324,7 +324,7 @@ public class TextField extends TextComponent
 
         } else if (event instanceof MouseEvent &&
             // don't adjust the cursor/selection if we have no text
-            _text.getLength() > 0) {
+            _text.getLength() > 0 && _glyphs != null) {
             MouseEvent mev = (MouseEvent)event;
             Insets insets = getInsets();
             int mx = mev.getX() - getAbsoluteX() - insets.left + _txoff,
