@@ -191,7 +191,7 @@ public class SounderConfig extends ParameterizedConfig
     {
         /** The files from which to choose. */
         @Editable(weight=-1)
-        public WeightedFile[] files = new WeightedFile[0];
+        public PitchWeightedFile[] files = new PitchWeightedFile[0];
 
         @Override // documentation inherited
         public void getUpdateResources (HashSet<String> paths)
@@ -368,6 +368,16 @@ public class SounderConfig extends ParameterizedConfig
         /** The gain of the file. */
         @Editable(min=0.0, step=0.01)
         public float gain = 1f;
+    }
+
+    /**
+     * A weighted file with a pitch multiplier.
+     */
+    public static class PitchWeightedFile extends WeightedFile
+    {
+        /** The pitch multiplier. */
+        @Editable(min=0, step=0.01)
+        public float pitch = 1f;
     }
 
     /**

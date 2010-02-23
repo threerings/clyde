@@ -55,6 +55,7 @@ import com.threerings.openal.Source;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.openal.config.SounderConfig.QueuedFile;
 import com.threerings.openal.config.SounderConfig.WeightedFile;
+import com.threerings.openal.config.SounderConfig.PitchWeightedFile;
 import com.threerings.openal.util.AlContext;
 
 import static com.threerings.openal.Log.*;
@@ -216,7 +217,17 @@ public class Sounder extends SimpleScope
          *
          * @param sound an existing sound to reuse, if appropriate.
          */
-        protected Sound getSound (String file, float gain, Sound sound)
+        protected Sound getSound (String file, Sound sound)
+        {
+            return getSound(file, 1f, 1f, sound);
+        }
+
+        /**
+         * Retrieves the sound corresponding to the specified file.
+         *
+         * @param sound an existing sound to reuse, if appropriate.
+         */
+        protected Sound getSound (String file, float gain, float pitch, Sound sound)
         {
             // resolve the group
             SoundGroup group = ScopeUtil.resolve(
@@ -236,7 +247,7 @@ public class Sounder extends SimpleScope
                 sound.setReferenceDistance(_config.referenceDistance);
                 sound.setRolloffFactor(_config.rolloffFactor);
                 sound.setMaxDistance(_config.maxDistance);
-                sound.setPitch(_config.pitch);
+                sound.setPitch(pitch * _config.pitch);
                 sound.setConeInnerAngle(_config.coneInnerAngle);
                 sound.setConeOuterAngle(_config.coneOuterAngle);
                 sound.setConeOuterGain(_config.coneOuterGain);
@@ -275,7 +286,7 @@ public class Sounder extends SimpleScope
         {
             super.setConfig(config);
             boolean wasPlaying = isPlaying();
-            _sound = getSound(config.file, 1f, _sound);
+            _sound = getSound(config.file, _sound);
             if ((wasPlaying || _started.value && config.loop) && !isPlaying()) {
                 start();
             }
@@ -314,8 +325,8 @@ public class Sounder extends SimpleScope
             _sounds = new Sound[config.files.length];
             _weights = new float[config.files.length];
             for (int ii = 0; ii < _sounds.length; ii++) {
-                WeightedFile wfile = config.files[ii];
-                _sounds[ii] = getSound(wfile.file, wfile.gain,
+                PitchWeightedFile wfile = config.files[ii];
+                _sounds[ii] = getSound(wfile.file, wfile.gain, wfile.pitch,
                     (osounds != null && ii < osounds.length) ? osounds[ii] : null);
                 _weights[ii] = wfile.weight;
             }
