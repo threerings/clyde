@@ -182,6 +182,18 @@ public class Sounder extends SimpleScope
             }
         }
 
+        @Override // documentation inherited
+        public void scopeUpdated (ScopeEvent event)
+        {
+            super.scopeUpdated(event);
+            updateFromConfig();
+        }
+
+        /**
+         * Updates the clip from its config.
+         */
+        protected abstract void updateFromConfig ();
+
         /**
          * Plays the sound.
          */
@@ -284,12 +296,8 @@ public class Sounder extends SimpleScope
          */
         public void setConfig (SounderConfig.Clip config)
         {
-            super.setConfig(config);
-            boolean wasPlaying = isPlaying();
-            _sound = getSound(config.file, _sound);
-            if ((wasPlaying || _started.value && config.loop) && !isPlaying()) {
-                start();
-            }
+            super.setConfig(_config = config);
+            updateFromConfig();
         }
 
         @Override // documentation inherited
@@ -297,6 +305,19 @@ public class Sounder extends SimpleScope
         {
             playSound(_config.gain);
         }
+
+        @Override // documentation inherited
+        protected void updateFromConfig ()
+        {
+            boolean wasPlaying = isPlaying();
+            _sound = getSound(_config.file, _sound);
+            if ((wasPlaying || _started.value && _config.loop) && !isPlaying()) {
+                start();
+            }
+        }
+
+        /** The clip config. */
+        protected SounderConfig.Clip _config;
     }
 
     /**
@@ -319,13 +340,26 @@ public class Sounder extends SimpleScope
         public void setConfig (SounderConfig.MetaClip config)
         {
             super.setConfig(_config = config);
+            updateFromConfig();
+        }
 
+        @Override // documentation inherited
+        public void start ()
+        {
+            int idx = RandomUtil.getWeightedIndex(_weights);
+            _sound = _sounds[idx];
+            playSound(_config.gain * _config.files[idx].gain);
+        }
+
+        @Override // documentation inherited
+        protected void updateFromConfig ()
+        {
             boolean wasPlaying = isPlaying();
             Sound[] osounds = _sounds;
-            _sounds = new Sound[config.files.length];
-            _weights = new float[config.files.length];
+            _sounds = new Sound[_config.files.length];
+            _weights = new float[_config.files.length];
             for (int ii = 0; ii < _sounds.length; ii++) {
-                PitchWeightedFile wfile = config.files[ii];
+                PitchWeightedFile wfile = _config.files[ii];
                 _sounds[ii] = getSound(wfile.file, wfile.gain, wfile.pitch,
                     (osounds != null && ii < osounds.length) ? osounds[ii] : null);
                 _weights[ii] = wfile.weight;
@@ -338,17 +372,9 @@ public class Sounder extends SimpleScope
                     }
                 }
             }
-            if ((wasPlaying || _started.value && config.loop) && !isPlaying()) {
+            if ((wasPlaying || _started.value && _config.loop) && !isPlaying()) {
                 start();
             }
-        }
-
-        @Override // documentation inherited
-        public void start ()
-        {
-            int idx = RandomUtil.getWeightedIndex(_weights);
-            _sound = _sounds[idx];
-            playSound(_config.gain * _config.files[idx].gain);
         }
 
         /** The implementation configuration. */
