@@ -330,7 +330,7 @@ public abstract class ConditionLogic extends Logic
         protected void didInit ()
         {
             ArrayList<ConditionLogic> list = Lists.newArrayList();
-            for (ConditionConfig config : ((ConditionConfig.All)_config).conditions) {
+            for (ConditionConfig config : ((ConditionConfig.Any)_config).conditions) {
                 ConditionLogic condition = createCondition(config, _source);
                 if (condition != null) {
                     list.add(condition);
