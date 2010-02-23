@@ -313,15 +313,14 @@ public class Sounder extends SimpleScope
             Sound[] osounds = _sounds;
             _sounds = new Sound[config.files.length];
             _weights = new float[config.files.length];
-            int ii = 0;
-            for (; ii < _sounds.length; ii++) {
+            for (int ii = 0; ii < _sounds.length; ii++) {
                 WeightedFile wfile = config.files[ii];
                 _sounds[ii] = getSound(wfile.file, wfile.gain,
                     (osounds != null && ii < osounds.length) ? osounds[ii] : null);
                 _weights[ii] = wfile.weight;
             }
             if (osounds != null) {
-                for (; ii < osounds.length; ii++) {
+                for (int ii = _sounds.length; ii < osounds.length; ii++) {
                     Sound osound = osounds[ii];
                     if (osound != null) {
                         osound.stop();

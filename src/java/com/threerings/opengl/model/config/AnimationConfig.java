@@ -55,7 +55,7 @@ public class AnimationConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the animation.
      */
-    @EditorTypes({ Imported.class, Procedural.class, Derived.class })
+    @EditorTypes({ Imported.class, Procedural.class, Sequential.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -298,6 +298,38 @@ public class AnimationConfig extends ParameterizedConfig
     }
 
     /**
+     * Runs a series of animations in sequence.
+     */
+    public static class Sequential extends Original
+    {
+        /** Whether or not the animation loops. */
+        @Editable
+        public boolean loop;
+
+        /** A (possibly random) offset to apply when the animation starts. */
+        @Editable(min=0, step=0.01)
+        public FloatVariable offset = new FloatVariable.Constant(0f);
+
+        /** The component animations. */
+        @Editable
+        public ComponentAnimation[] animations = new ComponentAnimation[0];
+
+        @Override // documentation inherited
+        public Animation.Implementation getAnimationImplementation (
+            GlContext ctx, Scope scope, Animation.Implementation impl)
+        {
+            if (animations.length == 0) {
+                impl = null;
+            } else if (impl instanceof Animation.Sequential) {
+                ((Animation.Sequential)impl).setConfig(this);
+            } else {
+                impl = new Animation.Sequential(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
      * A derived implementation.
      */
     public static class Derived extends Implementation
@@ -350,6 +382,21 @@ public class AnimationConfig extends ParameterizedConfig
         /** The expression that determines the transform. */
         @Editable
         public Transform3DExpression expression = new Transform3DExpression.Constant();
+    }
+
+    /**
+     * Contains a component animation in a sequence.
+     */
+    public static class ComponentAnimation extends DeepObject
+        implements Exportable
+    {
+        /** The speed of the animation. */
+        @Editable(min=0, step=0.01)
+        public float speed = 1f;
+
+        /** The animation reference. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> animation;
     }
 
     /** The actual animation implementation. */

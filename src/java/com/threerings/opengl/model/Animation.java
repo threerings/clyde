@@ -627,6 +627,119 @@ public class Animation extends SimpleScope
         protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
     }
 
+    /**
+     * A sequential implementation.
+     */
+    public static class Sequential extends Implementation
+    {
+        /**
+         * Creates a new sequential implementation.
+         */
+        public Sequential (GlContext ctx, Scope parentScope, AnimationConfig.Sequential config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (AnimationConfig.Sequential config)
+        {
+            super.setConfig(_config = config);
+
+            // (re)create the component animations
+            Animation[] oanims = _animations;
+            _animations = new Animation[config.animations.length];
+            for (int ii = 0; ii < _animations.length; ii++) {
+                Animation anim = (oanims == null || oanims.length <= ii) ?
+                    new Animation(_ctx, this) : oanims[ii];
+                _animations[ii] = anim;
+                AnimationConfig.ComponentAnimation comp = config.animations[ii];
+                anim.setConfig(null, comp.animation);
+                anim.setSpeed(comp.speed);
+            }
+            if (oanims != null) {
+                for (int ii = _animations.length; ii < oanims.length; ii++) {
+                    oanims[ii].dispose();
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            // initialize animation counter, start the first animation
+            _animations[_aidx = 0].start();
+
+            // blend in
+            super.start();
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            return super.isPlaying() && !hasCompleted();
+        }
+
+        @Override // documentation inherited
+        public boolean tick (float elapsed)
+        {
+            // update the weight
+            super.tick(elapsed);
+            if (!isPlaying()) {
+                return false;
+            }
+
+            // tick the active component animation
+            if (!_animations[_aidx].tick(elapsed)) {
+                return false;
+            }
+            _aidx++;
+
+            // check for loop or completion
+            int acount = _animations.length;
+            if (_aidx >= acount) {
+                if (_config.loop) {
+                    _aidx %= acount;
+                } else {
+                    _aidx = acount - 1;
+                    ((Animation)_parentScope).stopped(true);
+                    return true;
+                }
+            }
+            _animations[_aidx].start();
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean hasCompleted ()
+        {
+            return _animations[_aidx].hasCompleted();
+        }
+
+        @Override // documentation inherited
+        public void updateTransforms ()
+        {
+            _animations[_aidx].updateTransforms();
+        }
+
+        @Override // documentation inherited
+        public void blendTransforms (int update)
+        {
+            _animations[_aidx].blendTransforms(update);
+        }
+
+        /** The implementation configuration. */
+        protected AnimationConfig.Sequential _config;
+
+        /** The component animations. */
+        protected Animation[] _animations;
+
+        /** The index of the current animation. */
+        protected int _aidx;
+    }
+
     /** An empty array of animations. */
     public static final Animation[] EMPTY_ARRAY = new Animation[0];
 
@@ -866,7 +979,9 @@ public class Animation extends SimpleScope
     protected void started (float overrideBlendOut)
     {
         // notify the containing implementation
-        ((Articulated)_parentScope).animationStarted(this, overrideBlendOut);
+        if (_parentScope instanceof Articulated) {
+            ((Articulated)_parentScope).animationStarted(this, overrideBlendOut);
+        }
 
         // notify observers
         applyStartedOp(_observers, this);
@@ -878,7 +993,9 @@ public class Animation extends SimpleScope
     protected void stopped (boolean completed)
     {
         // notify the containing implementation
-        ((Articulated)_parentScope).animationStopped(this, completed);
+        if (_parentScope instanceof Articulated) {
+            ((Articulated)_parentScope).animationStopped(this, completed);
+        }
 
         // notify observers
         applyStoppedOp(_observers, this, completed);
