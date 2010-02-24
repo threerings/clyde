@@ -77,14 +77,22 @@ public abstract class ViewerEffectConfig extends DeepObject
                     ctx, scope, ScopeUtil.resolve(scope, "worldTransform", new Transform3D()),
                     Sound.this.sounder);
                 public void activate (Scene scene) {
+                    _activated = true;
                     sounder.start();
                 }
                 public void deactivate () {
                     sounder.stop();
+                    _activated = false;
                 }
                 public void update () {
                     sounder.update();
                 }
+                public void reset () {
+                    if (_activated) {
+                        sounder.start();
+                    }
+                }
+                protected boolean _activated;
             }
             if (effect instanceof SoundEffect) {
                 ((SoundEffect)effect).sounder.setConfig(sounder);
@@ -151,6 +159,9 @@ public abstract class ViewerEffectConfig extends DeepObject
                     trans.addLocal(_translation);
                     model.updateBounds();
                 }
+                public void reset () {
+                    model.reset();
+                }
                 protected Vector3f _translation =
                     ctx.getCompositor().getCamera().getWorldTransform().getTranslation();
                 protected Scene _scene;
@@ -187,6 +198,9 @@ public abstract class ViewerEffectConfig extends DeepObject
                 }
                 public void update () {
                     model.setLocalTransform(_transform);
+                }
+                public void reset () {
+                    model.reset();
                 }
                 protected Transform3D _transform =
                     ctx.getCompositor().getCamera().getWorldTransform();

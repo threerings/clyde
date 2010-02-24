@@ -68,6 +68,14 @@ public abstract class ViewerEffect extends ShallowObject
         // nothing by default
     }
 
+    /**
+     * Resets the effect.
+     */
+    public void reset ()
+    {
+        // nothing by default
+    }
+
     // documentation inherited from interface SceneObject
     public Box getBounds ()
     {

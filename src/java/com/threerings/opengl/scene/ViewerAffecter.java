@@ -62,6 +62,12 @@ public class ViewerAffecter extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void reset ()
+    {
+        _effect.reset();
+    }
+
+    @Override // documentation inherited
     public int getInfluenceFlags ()
     {
         return _influenceFlags;

@@ -81,6 +81,14 @@ public abstract class SceneInfluence extends ShallowObject
         return null;
     }
 
+    /**
+     * Resets the influence.
+     */
+    public void reset ()
+    {
+        // nothing by default
+    }
+
     // documentation inherited from interface SceneObject
     public Box getBounds ()
     {

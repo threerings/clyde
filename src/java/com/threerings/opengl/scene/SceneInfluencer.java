@@ -79,6 +79,12 @@ public class SceneInfluencer extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void reset ()
+    {
+        _influence.reset();
+    }
+
+    @Override // documentation inherited
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
