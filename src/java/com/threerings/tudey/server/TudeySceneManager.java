@@ -64,8 +64,8 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeySceneConfig;
-import com.threerings.tudey.data.TudeySceneLocal;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -645,11 +645,7 @@ public class TudeySceneManager extends SceneManager
             final ActorLogic logic = spawnActor(getNextTimestamp(), translation, rotation, ref);
             if (logic != null) {
                 logic.bodyWillEnter(body);
-                body.setLocal(TudeySceneLocal.class, new TudeySceneLocal() {
-                    public int getPawnId () {
-                        return logic.getActor().getId();
-                    }
-                });
+                ((TudeyBodyObject)body).setPawnId(logic.getActor().getId());
             }
         }
 
@@ -661,11 +657,11 @@ public class TudeySceneManager extends SceneManager
     public void bodyWillLeave (BodyObject body)
     {
         super.bodyWillLeave(body);
-        TudeySceneLocal local = body.getLocal(TudeySceneLocal.class);
-        body.setLocal(TudeySceneLocal.class, null);
-        if (local != null) {
-            ActorLogic logic = _actors.get(local.getPawnId());
+        TudeyBodyObject tbody = (TudeyBodyObject)body;
+        if (tbody.pawnId != 0) {
+            ActorLogic logic = _actors.get(tbody.pawnId);
             logic.bodyWillLeave(body);
+            tbody.setPawnId(0);
         }
     }
 

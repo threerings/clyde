@@ -33,9 +33,35 @@ import com.threerings.crowd.data.PlaceObject;
  */
 public class TudeyBodyObject extends BodyObject
 {
+    // AUTO-GENERATED: FIELDS START
+    /** The field name of the <code>pawnId</code> field. */
+    public static final String PAWN_ID = "pawnId";
+    // AUTO-GENERATED: FIELDS END
+
+    /** The id of the player's pawn. */
+    public int pawnId;
+
     @Override // documentation inherited
     public OccupantInfo createOccupantInfo (PlaceObject plobj)
     {
         return new TudeyOccupantInfo(this);
     }
+
+    // AUTO-GENERATED: METHODS START
+    /**
+     * Requests that the <code>pawnId</code> field be set to the
+     * specified value. The local value will be updated immediately and an
+     * event will be propagated through the system to notify all listeners
+     * that the attribute did change. Proxied copies of this object (on
+     * clients) will apply the value change when they received the
+     * attribute changed notification.
+     */
+    public void setPawnId (int value)
+    {
+        int ovalue = this.pawnId;
+        requestAttributeChange(
+            PAWN_ID, Integer.valueOf(value), Integer.valueOf(ovalue));
+        this.pawnId = value;
+    }
+    // AUTO-GENERATED: METHODS END
 }

@@ -40,12 +40,7 @@ public class TudeyOccupantInfo extends OccupantInfo
     public TudeyOccupantInfo (TudeyBodyObject body)
     {
         super(body);
-
-        // obtain our pawn id indirectly from the scene manager
-        TudeySceneLocal local = body.getLocal(TudeySceneLocal.class);
-        if (local != null) {
-            pawnId = local.getPawnId();
-        }
+        pawnId = body.pawnId;
     }
 
     /**
