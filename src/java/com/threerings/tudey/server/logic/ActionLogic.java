@@ -71,7 +71,7 @@ public abstract class ActionLogic extends Logic
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
                 ActorLogic logic = _scenemgr.spawnActor(
-                    timestamp, target.getTranslation(), getRotation(target), actor);
+                    timestamp, getTranslation(target), getRotation(target), actor);
                 initLogic(logic, timestamp, activator);
             }
             _targets.clear();
@@ -103,6 +103,14 @@ public abstract class ActionLogic extends Logic
             return target.getRotation();
         }
 
+        /**
+         * Gets the translation for the spawned actor.
+         */
+        protected Vector2f getTranslation (Logic target)
+        {
+            return target.getTranslation();
+        }
+
         /** The target location. */
         protected TargetLogic _location;
     }
@@ -117,6 +125,19 @@ public abstract class ActionLogic extends Logic
         {
             ActionConfig.SpawnRotatedActor config = (ActionConfig.SpawnRotatedActor)_config;
             return (config.relative ? target.getRotation() : 0f) + config.rotation;
+        }
+    }
+
+    /**
+     * Handles a spawn transformed actor action.
+     */
+    public static class SpawnTransformedActor extends SpawnActor
+    {
+        @Override // documentation inherited
+        protected Vector2f getTranslation (Logic target)
+        {
+            return ((ActionConfig.SpawnTransformedActor)_config).translation.rotateAndAdd(
+                target.getRotation(), target.getTranslation(), new Vector2f());
         }
     }
 

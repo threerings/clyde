@@ -32,6 +32,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.util.Preloadable;
@@ -44,12 +45,12 @@ import com.threerings.tudey.util.Coord;
  */
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
-    ActionConfig.DestroyActor.class, ActionConfig.WarpActor.class,
-    ActionConfig.FireEffect.class, ActionConfig.Signal.class,
-    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
-    ActionConfig.Conditional.class, ActionConfig.Compound.class,
-    ActionConfig.Random.class, ActionConfig.Delayed.class,
-    ActionConfig.StepLimitMobile.class })
+    ActionConfig.SpawnTransformedActor.class, ActionConfig.DestroyActor.class,
+    ActionConfig.WarpActor.class, ActionConfig.FireEffect.class,
+    ActionConfig.Signal.class, ActionConfig.MoveBody.class,
+    ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
+    ActionConfig.Compound.class, ActionConfig.Random.class,
+    ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -116,6 +117,22 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnRotatedActor";
+        }
+    }
+
+    /**
+     * Spawns a new actor that can have a translation and rotation.
+     */
+    public static class SpawnTransformedActor extends SpawnRotatedActor
+    {
+        /** The translation from the target for the new actor. */
+        @Editable
+        public Vector2f translation = new Vector2f();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$SpawnTransformedActor";
         }
     }
 
