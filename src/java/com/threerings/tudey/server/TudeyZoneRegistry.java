@@ -59,7 +59,7 @@ public class TudeyZoneRegistry extends ZoneRegistry
     public String moveBody (ZonedBodyObject source, int zoneId, int sceneId, Object portalKey)
     {
         _tscreg.addPortalMapping((BodyObject)source, sceneId, portalKey);
-        return super.moveBody(source, zoneId, sceneId);
+        return moveBody(source, zoneId, sceneId);
     }
 
     @Override // documentation inherited
