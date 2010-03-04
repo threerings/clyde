@@ -324,27 +324,19 @@ public class CoordSet extends AbstractSet<Coord>
     @Override // documentation inherited
     public boolean add (Coord coord)
     {
-        return add(coord.x, coord.y);
+        return _coords.add(coord.encode());
     }
 
     @Override // documentation inherited
     public boolean remove (Object object)
     {
-        if (!(object instanceof Coord)) {
-            return false;
-        }
-        Coord coord = (Coord)object;
-        return remove(coord.x, coord.y);
+        return (object instanceof Coord) && _coords.remove(((Coord)object).encode());
     }
 
     @Override // documentation inherited
     public boolean contains (Object object)
     {
-        if (!(object instanceof Coord)) {
-            return false;
-        }
-        Coord coord = (Coord)object;
-        return contains(coord.x, coord.y);
+        return (object instanceof Coord) && _coords.contains(((Coord)object).encode());
     }
 
     @Override // documentation inherited
