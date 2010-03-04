@@ -184,6 +184,16 @@ public class FloatMath
     }
 
     /**
+     * Returns the base 10 logarithm of the supplied value.
+     *
+     * @see Math#log10
+     */
+    public static float log10 (float v)
+    {
+        return (float)Math.log10(v);
+    }
+
+    /**
      * Returns v to the power of e.
      *
      * @see Math#pow
