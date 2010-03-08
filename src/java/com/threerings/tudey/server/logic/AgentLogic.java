@@ -106,16 +106,22 @@ public class AgentLogic extends ActiveLogic
     /**
      * Creates a behavior for this agent.
      */
-    public BehaviorLogic createBehavior (BehaviorConfig config)
+    public BehaviorLogic createBehavior (ConfigReference<BehaviorConfig> ref)
     {
         // create the logic instance
-        BehaviorLogic logic = (BehaviorLogic)_scenemgr.createLogic(config.getLogicClassName());
+        BehaviorConfig config = _scenemgr.getConfigManager().getConfig(BehaviorConfig.class, ref);
+        BehaviorConfig.Original original = config == null ? null :
+            config.getOriginal(_scenemgr.getConfigManager());
+        if (original == null) {
+            original = new BehaviorConfig.Original();
+        }
+        BehaviorLogic logic = (BehaviorLogic)_scenemgr.createLogic(original.getLogicClassName());
         if (logic == null) {
             return null;
         }
 
         // initialize, return the logic
-        logic.init(_scenemgr, config, this);
+        logic.init(_scenemgr, original, this);
         return logic;
     }
 

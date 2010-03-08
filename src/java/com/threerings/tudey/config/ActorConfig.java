@@ -212,8 +212,8 @@ public class ActorConfig extends ParameterizedConfig
         public float turnRate = FloatMath.PI;
 
         /** The agent's behavior. */
-        @Editable
-        public BehaviorConfig behavior = new BehaviorConfig.Idle();
+        @Editable(nullable=true)
+        public ConfigReference<BehaviorConfig> behavior;
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -222,10 +222,9 @@ public class ActorConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
-        public void invalidate ()
+        public void getUpdateReferences (ConfigReferenceSet refs)
         {
-            super.invalidate();
-            behavior.invalidate();
+            refs.add(BehaviorConfig.class, behavior);
         }
     }
 

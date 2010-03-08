@@ -581,7 +581,7 @@ public abstract class BehaviorLogic extends Logic
     /**
      * Initializes the logic.
      */
-    public void init (TudeySceneManager scenemgr, BehaviorConfig config, AgentLogic agent)
+    public void init (TudeySceneManager scenemgr, BehaviorConfig.Original config, AgentLogic agent)
     {
         super.init(scenemgr);
         _config = config;
@@ -708,7 +708,7 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /** The behavior configuration. */
-    protected BehaviorConfig _config;
+    protected BehaviorConfig.Original _config;
 
     /** The controlled agent. */
     protected AgentLogic _agent;

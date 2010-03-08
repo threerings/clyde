@@ -24,6 +24,10 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
+import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -34,28 +38,85 @@ import com.threerings.util.DeepObject;
 /**
  * Configurations for agent behavior.
  */
-@EditorTypes({
-    BehaviorConfig.Idle.class, BehaviorConfig.Wander.class, BehaviorConfig.Patrol.class,
-    BehaviorConfig.Follow.class, BehaviorConfig.Random.class })
-public abstract class BehaviorConfig extends DeepObject
-    implements Exportable
+public class BehaviorConfig extends ParameterizedConfig
 {
     /**
-     * Stands in one place.
-     */
-    public static class Idle extends BehaviorConfig
+      * Contains the actual implementation of the behavior.
+      */
+    @EditorTypes({
+        Original.class, Wander.class, Patrol.class, Follow.class, Random.class })
+    public static abstract class Implementation extends DeepObject
+        implements Exportable
     {
-        @Override // documentation inherited
+        /**
+         * Adds the implementation's update references to the provided set.
+         */
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (ConfigManager cfgmgr);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
+    }
+
+    /**
+     * Superclass of the original implementations.
+     */
+    public static class Original extends Implementation
+    {
+        /**
+         * Returns the name of the server-side logic class to use for the actor.
+         */
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Idle";
+        }
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
+        }
+    }
+
+    /**
+     * A derived implementation.
+     */
+    public static class Derived extends Implementation
+    {
+        /** The actor reference. */
+        @Editable(nullable=true)
+        public ConfigReference<BehaviorConfig> behavior;
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(BehaviorConfig.class, behavior);
+        }
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            BehaviorConfig config = cfgmgr.getConfig(BehaviorConfig.class, behavior);
+            return (config == null) ? null : config.getOriginal(cfgmgr);
         }
     }
 
     /**
      * Base class for behaviors that require periodic (re)evaluation.
      */
-    public static abstract class Evaluating extends BehaviorConfig
+    public static abstract class Evaluating extends Original
     {
         /** The variable that determines how long we wait between evaluations. */
         @Editable(min=0.0, step=0.1)
@@ -161,14 +222,6 @@ public abstract class BehaviorConfig extends DeepObject
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Random";
         }
-
-        @Override // documentation inherited
-        public void invalidate ()
-        {
-            for (WeightedBehavior wbehavior : behaviors) {
-                wbehavior.behavior.invalidate();
-            }
-        }
     }
 
     /**
@@ -182,20 +235,33 @@ public abstract class BehaviorConfig extends DeepObject
         public float weight = 1f;
 
         /** The behavior itself. */
-        @Editable
-        public BehaviorConfig behavior = new BehaviorConfig.Idle();
+        @Editable(nullable=true)
+        public ConfigReference<BehaviorConfig> behavior;
     }
 
-    /**
-     * Returns the name of the server-side logic class for this behavior.
-     */
-    public abstract String getLogicClassName ();
+    /** The actual behavior implementation. */
+    @Editable
+    public Implementation implementation = new Original();
 
     /**
-     * Invalidates any cached data.
+     * Returns a reference to the config's underlying original implementation.
      */
-    public void invalidate ()
+    public Original getOriginal (ConfigManager cfgmgr)
     {
-        // nothing by default
+        return implementation.getOriginal(cfgmgr);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        implementation.getUpdateReferences(refs);
     }
 }
