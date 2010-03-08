@@ -204,24 +204,6 @@ public abstract class GlCanvasApp extends GlApp
      */
     protected Canvas createCanvas ()
     {
-        // at least as of Ubuntu 9.04 (Jaunty Jackalope), using the AWTCanvas on Linux results
-        // in frequent crashes.  on Windows, however, the DisplayCanvas doesn't handle mouse
-        // events as well: for example, the mouse button states aren't updated if one presses
-        // or releases the button when the pointer is outside the canvas.  so, we use AWTCanvas
-        // on Windows and DisplayCanvas on Linux (i have yet to test on OS X)
-        if (RunAnywhere.isLinux()) {
-            return new DisplayCanvas() {
-                @Override protected void didInit () {
-                    GlCanvasApp.this.init();
-                }
-                @Override protected void updateView () {
-                    GlCanvasApp.this.updateView();
-                }
-                @Override protected void renderView () {
-                    GlCanvasApp.this.renderView();
-                }
-            };
-        }
         for (PixelFormat format : PIXEL_FORMATS) {
             try {
                 return new AWTCanvas(format) {
