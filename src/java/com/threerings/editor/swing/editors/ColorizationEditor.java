@@ -54,12 +54,17 @@ public class ColorizationEditor extends PropertyEditor
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
-        if (event.getSource() == _class) {
-            populateColor(((ClassItem)_class.getSelectedItem()).record);
+        Integer value;
+        if (_color == null) {
+            value = ((ClassItem)_class.getSelectedItem()).record.classId;
+        } else {
+            if (event.getSource() == _class) {
+                populateColor(((ClassItem)_class.getSelectedItem()).record);
+            }
+            value = ((ColorItem)_color.getSelectedItem()).record.getColorPrint();
         }
-        Integer print = ((ColorItem)_color.getSelectedItem()).record.getColorPrint();
-        if (!_property.get(_object).equals(print)) {
-            _property.set(_object, print);
+        if (!_property.get(_object).equals(value)) {
+            _property.set(_object, value);
             fireStateChanged();
         }
     }
@@ -67,8 +72,17 @@ public class ColorizationEditor extends PropertyEditor
     @Override // documentation inherited
     public void update ()
     {
-        int print = (Integer)_property.get(_object);
-        ColorRecord color = _ctx.getColorPository().getColorRecord(print >> 8, print & 0xFF);
+        int value = (Integer)_property.get(_object);
+        if (_color == null) {
+            ClassRecord clazz = _ctx.getColorPository().getClassRecord(value);
+            if (clazz == null) {
+                _class.setSelectedIndex(0);
+            } else {
+                _class.setSelectedItem(new ClassItem(clazz));
+            }
+            return;
+        }
+        ColorRecord color = _ctx.getColorPository().getColorRecord(value >> 8, value & 0xFF);
         if (color == null) {
             if (_class != null) {
                 _class.setSelectedIndex(0);
@@ -87,11 +101,16 @@ public class ColorizationEditor extends PropertyEditor
     protected void didInit ()
     {
         String mode = getMode();
-        if (mode.length() > 0) {
+        if (mode.equals("class")) {
+            add(new JLabel(getPropertyLabel() + ":"));
+            add(_class = createClassBox());
+
+        } else if (mode.length() > 0) {
             add(new JLabel(getPropertyLabel() + ":"));
             add(_color = new JComboBox());
             populateColor(_ctx.getColorPository().getClassRecord(mode));
             _color.addActionListener(this);
+
         } else {
             setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
             setLayout(new HGroupLayout(
@@ -100,13 +119,7 @@ public class ColorizationEditor extends PropertyEditor
             p1.setBackground(null);
             add(p1);
             p1.add(new JLabel(_msgs.get("m.class") + ":"));
-            ArrayList<ClassItem> classes = new ArrayList<ClassItem>();
-            for (Iterator it = _ctx.getColorPository().enumerateClasses(); it.hasNext(); ) {
-                classes.add(new ClassItem((ClassRecord)it.next()));
-            }
-            QuickSort.sort(classes);
-            p1.add(_class = new JComboBox(classes.toArray(new ClassItem[classes.size()])));
-            _class.addActionListener(this);
+            p1.add(_class = createClassBox());
             JPanel p2 = new JPanel();
             p2.setBackground(null);
             add(p2);
@@ -114,6 +127,21 @@ public class ColorizationEditor extends PropertyEditor
             p2.add(_color = new JComboBox());
             _color.addActionListener(this);
         }
+    }
+
+    /**
+     * Creates and returns the class combo box.
+     */
+    protected JComboBox createClassBox ()
+    {
+        ArrayList<ClassItem> classes = new ArrayList<ClassItem>();
+        for (Iterator it = _ctx.getColorPository().enumerateClasses(); it.hasNext(); ) {
+            classes.add(new ClassItem((ClassRecord)it.next()));
+        }
+        QuickSort.sort(classes);
+        JComboBox box = new JComboBox(classes.toArray(new ClassItem[classes.size()]));
+        box.addActionListener(this);
+        return box;
     }
 
     /**
