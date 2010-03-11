@@ -34,8 +34,8 @@ import com.threerings.editor.FileConstraints;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.Cursor;
+import com.threerings.opengl.renderer.config.ColorizationConfig;
 import com.threerings.opengl.renderer.config.TextureConfig;
-import com.threerings.opengl.renderer.config.TextureConfig.ColorizationReference;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -53,7 +53,7 @@ public class CursorConfig extends ManagedConfig
 
     /** Colorizations to apply to the cursor. */
     @Editable
-    public ColorizationReference[] colorizations = new ColorizationReference[0];
+    public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
     /** The hot spot x coordinate. */
     @Editable(min=0, hgroup="h")

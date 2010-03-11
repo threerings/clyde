@@ -41,7 +41,7 @@ import com.threerings.opengl.gui.background.ImageBackground;
 import com.threerings.opengl.gui.background.TintedBackground;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.renderer.config.TextureConfig.ColorizationReference;
+import com.threerings.opengl.renderer.config.ColorizationConfig;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -175,7 +175,7 @@ public abstract class BackgroundConfig extends DeepObject
     {
         /** The colorizations to apply to the image. */
         @Editable
-        public ColorizationReference[] colorizations = new ColorizationReference[0];
+        public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
         @Override // documentation inherited
         protected com.threerings.opengl.gui.Image getImage (GlContext ctx)
