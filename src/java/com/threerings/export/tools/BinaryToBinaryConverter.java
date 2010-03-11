@@ -42,6 +42,8 @@ import com.samskivert.util.FileUtil;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 
+import static com.threerings.export.Log.*;
+
 /**
  * Converts binary export files into binary export files.
  */
@@ -101,7 +103,11 @@ public class BinaryToBinaryConverter
         scanner.setIncludes(new String[] { pattern });
         scanner.scan();
         for (String source : scanner.getIncludedFiles()) {
-            convert(source, source, compress);
+            try {
+                convert(source, source, compress);
+            } catch (IOException e) {
+                log.warning("Error converting file.", "file", source, e);
+            }
         }
     }
 

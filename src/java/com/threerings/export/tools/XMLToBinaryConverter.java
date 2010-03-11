@@ -38,6 +38,8 @@ import com.samskivert.util.FileUtil;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.XMLImporter;
 
+import static com.threerings.export.Log.*;
+
 /**
  * Converts XML export files into binary export files.
  */
@@ -95,7 +97,11 @@ public class XMLToBinaryConverter
         scanner.setIncludes(new String[] { pattern });
         scanner.scan();
         for (String source : scanner.getIncludedFiles()) {
-            convert(source, FileUtil.resuffix(new File(source), ".xml", ".dat"), compress);
+            try {
+                convert(source, FileUtil.resuffix(new File(source), ".xml", ".dat"), compress);
+            } catch (IOException e) {
+                log.warning("Error converting file.", "file", source, e);
+            }
         }
     }
 

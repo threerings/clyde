@@ -37,6 +37,8 @@ import com.samskivert.util.FileUtil;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 
+import static com.threerings.export.Log.*;
+
 /**
  * Converts binary export files into XML export files.
  */
@@ -71,7 +73,11 @@ public class BinaryToXMLConverter
         scanner.setIncludes(new String[] { pattern });
         scanner.scan();
         for (String source : scanner.getIncludedFiles()) {
-            convert(source, FileUtil.resuffix(new File(source), ".dat", ".xml"));
+            try {
+                convert(source, FileUtil.resuffix(new File(source), ".dat", ".xml"));
+            } catch (IOException e) {
+                log.warning("Error converting file.", "file", source, e);
+            }
         }
     }
 
