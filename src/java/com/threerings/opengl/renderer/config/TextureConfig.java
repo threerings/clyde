@@ -1601,6 +1601,19 @@ public class TextureConfig extends ParameterizedConfig
     }
 
     /**
+     * Gets the requested image from the cache and applies the specified colorizations.
+     */
+    public static BufferedImage getImage (
+        GlContext ctx, String file, ColorizationConfig[] colorizations)
+    {
+        Colorization[] zations = new Colorization[colorizations.length];
+        for (int ii = 0; ii < zations.length; ii++) {
+            zations[ii] = colorizations[ii].getColorization(ctx);
+        }
+        return ctx.getImageCache().getBufferedImage(file, zations);
+    }
+
+    /**
      * Checks whether the texture configuration is supported.
      */
     public boolean isSupported (GlContext ctx, boolean fallback)
