@@ -94,7 +94,7 @@ public abstract class ActionConfig extends DeepObject
         public Transform3D transform = new Transform3D();
 
         @Override // documentation inherited
-        public Executor createExecutor (GlContext ctx, Scope scope)
+        public Executor createExecutor (GlContext ctx, final Scope scope)
         {
             // get an instance from the transient pool and immediately return it, but retain a
             // hard reference to prevent it from being garbage collected.  hopefully this will
@@ -104,13 +104,19 @@ public abstract class ActionConfig extends DeepObject
 
             final Function spawnTransient = ScopeUtil.resolve(
                 scope, "spawnTransient", Function.NULL);
-            Articulated.Node node = (Articulated.Node)ScopeUtil.call(scope, "getNode", this.node);
+            final Articulated.Node node = (Articulated.Node)ScopeUtil.call(
+                scope, "getNode", this.node);
             final Transform3D parent = (node == null) ?
                 ScopeUtil.resolve(scope, "worldTransform", new Transform3D()) :
                 node.getWorldTransform();
             return new Executor() {
                 public void execute () {
-                    spawnTransient.call(model, parent.compose(transform, _world));
+                    if (moveWithOrigin) {
+                        Model spawned = (Model)spawnTransient.call(model, _world.setToIdentity());
+                        spawned.setParentScope(node == null ? scope : node);
+                    } else {
+                        spawnTransient.call(model, parent.compose(transform, _world));
+                    }
                 }
                 protected Transform3D _world = new Transform3D();
                 protected Model _instance = instance;

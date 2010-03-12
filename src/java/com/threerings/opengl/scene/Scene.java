@@ -87,11 +87,12 @@ public abstract class Scene extends DynamicScope
      * Spawns a transient model.
      */
     @Scoped
-    public void spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
+    public Model spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
     {
         Model model = getFromTransientPool(ref);
         model.setLocalTransform(transform);
         add(model);
+        return model;
     }
 
     /**
@@ -124,6 +125,9 @@ public abstract class Scene extends DynamicScope
     @Scoped
     public void returnToTransientPool (Model model)
     {
+        // reset the model's scope in case someone else changed it
+        model.setParentScope(this);
+
         ConfigReference ref = (ConfigReference)model.getUserObject();
         ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
         if (list == null) {
