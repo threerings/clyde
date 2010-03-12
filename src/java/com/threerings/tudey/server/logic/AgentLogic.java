@@ -62,7 +62,21 @@ public class AgentLogic extends ActiveLogic
      */
     public void face (Logic logic)
     {
-        setTargetRotation(_actor.getTranslation().direction(logic.getTranslation()));
+        face(logic, false);
+    }
+
+    /**
+     * Sets the target rotation to face another entity.
+     */
+    public void face (Logic logic, boolean force)
+    {
+        float rotation = _actor.getTranslation().direction(logic.getTranslation());
+        if (force) {
+            _actor.setRotation(rotation);
+            clearTargetRotation();
+        } else {
+            setTargetRotation(rotation);
+        }
     }
 
     /**
@@ -82,6 +96,22 @@ public class AgentLogic extends ActiveLogic
     {
         _targetRotation = _actor.getRotation();
         ((Agent)_actor).setTurnDirection(0);
+    }
+
+    /**
+     * Sets the turn rate.
+     */
+    public void setTurnRate (float rate)
+    {
+        _turnRate = rate;
+    }
+
+    /**
+     * Clears the turn rate.
+     */
+    public void clearTurnRate ()
+    {
+       _turnRate = ((ActorConfig.Agent)_config).turnRate;
     }
 
     /**
@@ -132,7 +162,6 @@ public class AgentLogic extends ActiveLogic
         super.tick(timestamp);
 
         // update the behavior
-        ActorConfig.Agent config = (ActorConfig.Agent)_config;
         if (canThink()) {
             _behavior.tick(timestamp);
         }
@@ -145,7 +174,7 @@ public class AgentLogic extends ActiveLogic
         float rotation = _actor.getRotation();
         if (rotation != _targetRotation && canRotate()) {
             float diff = FloatMath.getAngularDifference(_targetRotation, rotation);
-            float angle = elapsed * config.turnRate;
+            float angle = elapsed * _turnRate;
             if (Math.abs(diff) <= angle) {
                 _actor.setRotation(_targetRotation);
                 reachedTargetRotation();
@@ -179,6 +208,8 @@ public class AgentLogic extends ActiveLogic
         // initialize the behavior logic
         _behavior = createBehavior(((ActorConfig.Agent)_config).behavior);
         _behavior.startup();
+
+        clearTurnRate();
     }
 
     @Override // documentation inherited
@@ -213,6 +244,9 @@ public class AgentLogic extends ActiveLogic
 
     /** The agent's target rotation. */
     protected float _targetRotation;
+
+    /** The agent's turn rate. */
+    protected float _turnRate;
 
     /** The timestamp of the last tick. */
     protected int _timestamp;
