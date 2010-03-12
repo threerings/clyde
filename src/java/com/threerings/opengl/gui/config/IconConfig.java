@@ -41,7 +41,6 @@ import com.threerings.opengl.gui.icon.BlankIcon;
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.icon.ImageIcon;
 import com.threerings.opengl.renderer.config.ColorizationConfig;
-import com.threerings.opengl.renderer.config.TextureConfig.ColorizationReference;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -94,7 +93,7 @@ public abstract class IconConfig extends DeepObject
     {
         /** The colorizations to apply to the image. */
         @Editable
-        public ColorizationReference[] colorizations = new ColorizationReference[0];
+        public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
         @Override // documentation inherited
         public com.threerings.opengl.gui.Image getImage (GlContext ctx)
@@ -117,20 +116,6 @@ public abstract class IconConfig extends DeepObject
         {
             return new BlankIcon(width, height);
         }
-    }
-
-    /**
-     * Retrieves the specified image, applying the desired colorizations.
-     */
-    public static com.threerings.opengl.gui.Image getImage (
-        GlContext ctx, String file, ColorizationReference[] colorizations)
-    {
-        Colorization[] zations = new Colorization[colorizations.length];
-        for (int ii = 0; ii < zations.length; ii++) {
-            zations[ii] = ctx.getColorPository().getColorization(
-                colorizations[ii].colorization);
-        }
-        return ctx.getImageCache().getImage(file, zations);
     }
 
     /**

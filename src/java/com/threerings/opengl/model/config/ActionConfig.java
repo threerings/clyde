@@ -77,6 +77,10 @@ public abstract class ActionConfig extends DeepObject
      */
     public static class SpawnTransient extends ActionConfig
     {
+        /** Whether or not to move the transient with its origin. */
+        @Editable
+        public boolean moveWithOrigin;
+
         /** The model to spawn. */
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;

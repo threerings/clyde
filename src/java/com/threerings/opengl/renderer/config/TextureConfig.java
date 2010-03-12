@@ -608,7 +608,7 @@ public class TextureConfig extends ParameterizedConfig
 
             /** The colorizations to apply to the texture. */
             @Editable
-            public ColorizationReference[] colorizations = new ColorizationReference[0];
+            public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
@@ -726,7 +726,7 @@ public class TextureConfig extends ParameterizedConfig
 
             /** The colorizations to apply to the texture. */
             @Editable
-            public ColorizationReference[] colorizations = new ColorizationReference[0];
+            public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
@@ -882,7 +882,7 @@ public class TextureConfig extends ParameterizedConfig
 
             /** The colorizations to apply to the texture. */
             @Editable
-            public ColorizationReference[] colorizations = new ColorizationReference[0];
+            public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
@@ -1017,7 +1017,7 @@ public class TextureConfig extends ParameterizedConfig
 
             /** The colorizations to apply to the texture. */
             @Editable
-            public ColorizationReference[] colorizations = new ColorizationReference[0];
+            public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
@@ -1078,7 +1078,7 @@ public class TextureConfig extends ParameterizedConfig
 
             /** The colorizations to apply to the textures. */
             @Editable
-            public ColorizationReference[] colorizations = new ColorizationReference[0];
+            public ColorizationConfig[] colorizations = new ColorizationConfig[0];
 
             /** Whether or not the image alpha should be premultiplied. */
             @Editable
@@ -1571,34 +1571,9 @@ public class TextureConfig extends ParameterizedConfig
     {
     }
 
-    /**
-     * A reference to a colorization.
-     */
-    public static class ColorizationReference extends DeepObject
-        implements Exportable, Streamable
-    {
-        /** The colorization reference. */
-        @Editable(editor="colorization")
-        public int colorization;
-    }
-
     /** The actual texture implementation. */
     @Editable
     public Implementation implementation = new Original2D();
-
-    /**
-     * Gets the requested image from the cache and applies the specified colorizations.
-     */
-    public static BufferedImage getImage (
-        GlContext ctx, String file, ColorizationReference[] colorizations)
-    {
-        Colorization[] zations = new Colorization[colorizations.length];
-        for (int ii = 0; ii < zations.length; ii++) {
-            zations[ii] = ctx.getColorPository().getColorization(
-                colorizations[ii].colorization);
-        }
-        return ctx.getImageCache().getBufferedImage(file, zations);
-    }
 
     /**
      * Gets the requested image from the cache and applies the specified colorizations.
