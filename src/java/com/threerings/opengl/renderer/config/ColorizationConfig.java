@@ -28,6 +28,8 @@ import java.awt.Color;
 
 import java.util.Arrays;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.media.image.ColorPository.ClassRecord;
 import com.threerings.media.image.Colorization;
 
@@ -46,7 +48,7 @@ import com.threerings.opengl.util.GlContext;
     ColorizationConfig.Normal.class, ColorizationConfig.CustomOffsets.class,
     ColorizationConfig.FullyCustom.class })
 public abstract class ColorizationConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * A reference to a pository colorization.
