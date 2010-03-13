@@ -128,7 +128,7 @@ public class ClientLiaison
     public int getControlDelta ()
     {
         TudeySceneConfig config = (TudeySceneConfig)_scenemgr.getConfig();
-        return config.getBufferDelay() + config.getInputAdvance(_pingAverage.value());
+        return _scenemgr.getBufferDelay() + config.getInputAdvance(_pingAverage.value());
     }
 
     /**

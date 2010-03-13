@@ -65,6 +65,7 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyBodyObject;
+import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
@@ -90,7 +91,8 @@ import static com.threerings.tudey.Log.*;
  * Manager for Tudey scenes.
  */
 public class TudeySceneManager extends SceneManager
-    implements TudeySceneProvider, TudeySceneModel.Observer, ActorAdvancer.Environment, RunQueue
+    implements TudeySceneProvider, TudeySceneModel.Observer,
+        ActorAdvancer.Environment, RunQueue, TudeyCodes
 {
     /**
      * An interface for objects that take part in the server tick.
@@ -157,6 +159,15 @@ public class TudeySceneManager extends SceneManager
     public int getTickInterval ()
     {
         return 50;
+    }
+
+    /**
+     * Returns the delay with which the clients display information received from the server in
+     * order to compensate for network jitter and dropped packets.
+     */
+    public int getBufferDelay ()
+    {
+        return DEFAULT_BUFFER_DELAY;
     }
 
     /**

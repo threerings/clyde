@@ -40,15 +40,6 @@ public class TudeySceneConfig extends PlaceConfig
     implements Exportable, Cloneable, Copyable
 {
     /**
-     * Returns the delay with which clients display information received from the server in order
-     * to compensate for network jitter and dropped packets.
-     */
-    public int getBufferDelay ()
-    {
-        return 100;
-    }
-
-    /**
      * Returns the interval ahead of the smoothed server time (which estimates the server time
      * minus one-way latency) at which clients schedule input events.  This should be at least the
      * transmit interval (which represents the maximum amount of time that events may be delayed)

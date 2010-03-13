@@ -79,6 +79,7 @@ import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
+import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneModel;
@@ -101,8 +102,8 @@ import static com.threerings.tudey.Log.*;
  * Displays a view of a Tudey scene.
  */
 public class TudeySceneView extends SimpleScope
-    implements GlView, PlaceView, TudeySceneModel.Observer,
-        OccupantObserver, ChatDisplay, ActorAdvancer.Environment
+    implements GlView, PlaceView, TudeySceneModel.Observer, OccupantObserver,
+        ChatDisplay, ActorAdvancer.Environment, TudeyCodes
 {
     /**
      * An interface for objects (such as sprites and observers) that require per-tick updates.
@@ -210,7 +211,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getBufferDelay ()
     {
-        return _placeConfig.getBufferDelay();
+        return DEFAULT_BUFFER_DELAY;
     }
 
     /**
