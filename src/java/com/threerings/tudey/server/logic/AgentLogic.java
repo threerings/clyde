@@ -103,7 +103,11 @@ public class AgentLogic extends ActiveLogic
      */
     public void setTurnRate (float rate)
     {
-        _turnRate = rate;
+        if (rate > 0) {
+            _turnRate = rate;
+        } else {
+            clearTurnRate();
+        }
     }
 
     /**
