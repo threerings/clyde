@@ -7,7 +7,7 @@
     <include name="commons-collections.jar"/>
     <include name="commons-digester.jar"/>
     <include name="commons-logging.jar"/>
-    <include name="google-collect.jar"/>
+    <include name="guava.jar"/>
     <include name="guice.jar"/>
     <include name="junit4.jar"/>
     <include name="lwjgl.jar"/>
