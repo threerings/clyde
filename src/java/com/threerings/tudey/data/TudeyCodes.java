@@ -31,7 +31,10 @@ import com.threerings.presents.data.InvocationCodes;
  */
 public interface TudeyCodes extends InvocationCodes
 {
+    /** The default tick interval. */
+    public static final int DEFAULT_TICK_INTERVAL = 50;
+
     /** The default delay with which the clients display information received from the server in
      * order to compensate for network jitter and dropped packets. */
-    public static final int DEFAULT_BUFFER_DELAY = 100;
+    public static final int DEFAULT_BUFFER_DELAY = DEFAULT_TICK_INTERVAL * 2;
 }

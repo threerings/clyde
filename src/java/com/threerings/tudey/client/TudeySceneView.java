@@ -84,6 +84,7 @@ import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
@@ -211,7 +212,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getBufferDelay ()
     {
-        return DEFAULT_BUFFER_DELAY;
+        return (_tsobj == null) ? DEFAULT_BUFFER_DELAY : _tsobj.bufferDelay;
     }
 
     /**
@@ -653,6 +654,7 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface PlaceView
     public void willEnterPlace (PlaceObject plobj)
     {
+        _tsobj = (TudeySceneObject)plobj;
         _ctx.getOccupantDirector().addOccupantObserver(this);
         _ctx.getChatDirector().addChatDisplay(this);
 
@@ -682,6 +684,7 @@ public class TudeySceneView extends SimpleScope
         }
         _ctx.getOccupantDirector().removeOccupantObserver(this);
         _ctx.getChatDirector().removeChatDisplay(this);
+        _tsobj = null;
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -1057,6 +1060,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The place configuration. */
     protected TudeySceneConfig _placeConfig;
+
+    /** A casted reference to the scene object. */
+    protected TudeySceneObject _tsobj;
 
     /** The view's camera handler. */
     protected OrbitCameraHandler _camhand;

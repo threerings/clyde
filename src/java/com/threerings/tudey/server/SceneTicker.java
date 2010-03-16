@@ -24,14 +24,14 @@
 
 package com.threerings.tudey.server;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.Interval;
 import com.samskivert.util.LoopingThread;
-
-import com.threerings.presents.server.PresentsDObjectMgr;
+import com.samskivert.util.RunQueue;
 
 import com.threerings.media.util.TrailingAverage;
 
@@ -50,17 +50,16 @@ public abstract class SceneTicker
         /**
          * Creates a new event thread ticker.
          */
-        public EventThread (PresentsDObjectMgr omgr, int targetInterval)
+        public EventThread (RunQueue runQueue, int targetInterval)
         {
             super(targetInterval);
-            _omgr = omgr;
+            _runQueue = runQueue;
         }
 
         @Override // documentation inherited
-        public void start ()
+        protected void start ()
         {
-            _lastTick = System.currentTimeMillis();
-            (_interval = new Interval(_omgr) {
+            (_interval = new Interval(_runQueue) {
                 @Override public void expired () {
                     long remaining = tick();
                     if (_interval != null) {
@@ -71,7 +70,7 @@ public abstract class SceneTicker
         }
 
         @Override // documentation inherited
-        public void stop ()
+        protected void stop ()
         {
             if (_interval != null) {
                 _interval.cancel();
@@ -80,7 +79,7 @@ public abstract class SceneTicker
         }
 
         /** The object manager. */
-        protected PresentsDObjectMgr _omgr;
+        protected RunQueue _runQueue;
 
         /** The ticker interval. */
         protected Interval _interval;
@@ -100,9 +99,8 @@ public abstract class SceneTicker
         }
 
         @Override // documentation inherited
-        public void start ()
+        protected void start ()
         {
-            _lastTick = System.currentTimeMillis();
             (_thread = new LoopingThread("sceneTicker") {
                 @Override protected void iterate () {
                     try {
@@ -120,7 +118,7 @@ public abstract class SceneTicker
         }
 
         @Override // documentation inherited
-        public void stop ()
+        protected void stop ()
         {
             if (_thread != null) {
                 _thread.shutdown();
@@ -163,6 +161,10 @@ public abstract class SceneTicker
     {
         synchronized (_scenemgrs) {
             _scenemgrs.add(scenemgr);
+            if (_scenemgrs.size() == 1) {
+                _lastTick = System.currentTimeMillis();
+                start();
+            }
         }
     }
 
@@ -172,19 +174,31 @@ public abstract class SceneTicker
     public void remove (TudeySceneManager scenemgr)
     {
         synchronized (_scenemgrs) {
-            _scenemgrs.remove(scenemgr);
+            if (_scenemgrs.remove(scenemgr) && _scenemgrs.isEmpty()) {
+                stop();
+            }
+        }
+    }
+
+    /**
+     * Checks whether the specified scene manager is being ticked.
+     */
+    public boolean contains (TudeySceneManager scenemgr)
+    {
+        synchronized (_scenemgrs) {
+            return _scenemgrs.contains(scenemgr);
         }
     }
 
     /**
      * Starts ticking.
      */
-    public abstract void start ();
+    protected abstract void start ();
 
     /**
      * Stops ticking.
      */
-    public abstract void stop ();
+    protected abstract void stop ();
 
     /**
      * Ticks the scene managers.
@@ -212,6 +226,7 @@ public abstract class SceneTicker
                 log.warning("Exception thrown in scene tick.", "where", scenemgr.where(), e);
             }
         }
+        Arrays.fill(_sarray, null);
 
         // return the amount of time remaining until the next tick
         return _targetInterval - (System.currentTimeMillis() - _lastTick);

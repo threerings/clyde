@@ -158,7 +158,7 @@ public class TudeySceneManager extends SceneManager
      */
     public int getTickInterval ()
     {
-        return 50;
+        return (_ticker == null) ? DEFAULT_TICK_INTERVAL : _ticker.getActualInterval();
     }
 
     /**
@@ -167,7 +167,7 @@ public class TudeySceneManager extends SceneManager
      */
     public int getBufferDelay ()
     {
-        return DEFAULT_BUFFER_DELAY;
+        return _tsobj.bufferDelay;
     }
 
     /**
@@ -913,6 +913,17 @@ public class TudeySceneManager extends SceneManager
 
         // register and fill in our tudey scene service
         _tsobj.setTudeySceneService(addDispatcher(new TudeySceneDispatcher(this)));
+
+        // get a reference to the ticker
+        _ticker = getTicker();
+
+        // initialize the buffer delay and schedule an interval to update it periodically
+        updateBufferDelay();
+        (_bufferDelayUpdater = new Interval(_omgr) {
+            @Override public void expired () {
+                updateBufferDelay();
+            }
+        }).schedule(5000L, 30000L);
     }
 
     @Override // documentation inherited
@@ -934,8 +945,9 @@ public class TudeySceneManager extends SceneManager
             logic.removed();
         }
 
-        // stop the ticker if it's still running
-        cancelTicker();
+        // remove from the ticker, cancel the updater
+        _ticker.remove(this);
+        _bufferDelayUpdater.cancel();
 
         // shut down the pathfinder
         _pathfinder.shutdown();
@@ -952,27 +964,11 @@ public class TudeySceneManager extends SceneManager
         CrowdSession session = (CrowdSession)_clmgr.getClient(bodyobj.username);
         _clients.put(bodyOid, createClientLiaison(bodyobj, session));
 
-        // create the ticker when the first occupant enters
-        if (_ticker != null) {
-            return;
+        // register with the ticker when the first occupant enters
+        if (!_ticker.contains(this)) {
+            _lastTick = RunAnywhere.currentTimeMillis();
+            _ticker.add(this);
         }
-        // record the time of the last tick
-        _lastTick = RunAnywhere.currentTimeMillis();
-
-        // start the ticker
-        _ticker = new Interval(_omgr) {
-            public void expired () {
-                tick();
-
-                // we reschedule here, rather than using a recurring interval, because recurring
-                // intervals on RunQueues use fixed rates rather than fixed delays, which could
-                // cause expirations to "batch up" if they take too long
-                if (_ticker != null) {
-                    _ticker.schedule(getTickInterval());
-                }
-            }
-        };
-        _ticker.schedule(getTickInterval());
     }
 
     @Override // documentation inherited
@@ -1114,7 +1110,7 @@ public class TudeySceneManager extends SceneManager
         // cancel the ticker if enough time has elapsed with no occupants
         long now = RunAnywhere.currentTimeMillis();
         if (_plobj.occupants.size() == 0 && (now - _emptyTime) >= idleTickPeriod()) {
-            cancelTicker();
+            _ticker.remove(this);
             return;
         }
 
@@ -1161,14 +1157,19 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Cancels the ticker if it's running.
+     * Returns the ticker with which to tick the scene.
      */
-    protected void cancelTicker ()
+    protected SceneTicker getTicker ()
     {
-        if (_ticker != null) {
-            _ticker.cancel();
-            _ticker = null;
-        }
+        return ((TudeySceneRegistry)_screg).getDefaultTicker();
+    }
+
+    /**
+     * Updates the buffer delay in the scene object.
+     */
+    protected void updateBufferDelay ()
+    {
+        _tsobj.setBufferDelay(getTickInterval() * 2);
     }
 
     /**
@@ -1228,8 +1229,8 @@ public class TudeySceneManager extends SceneManager
     /** A reference to the scene model's configuration manager. */
     protected ConfigManager _cfgmgr;
 
-    /** The tick interval. */
-    protected Interval _ticker;
+    /** The ticker. */
+    protected SceneTicker _ticker;
 
     /** The system time of the last tick. */
     protected long _lastTick;
@@ -1239,6 +1240,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The time at which the last occupant left. */
     protected long _emptyTime;
+
+    /** An interval used to update the buffer delay. */
+    protected Interval _bufferDelayUpdater;
 
     /** The last actor id assigned. */
     protected int _lastActorId;

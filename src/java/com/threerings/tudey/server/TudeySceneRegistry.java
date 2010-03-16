@@ -48,6 +48,7 @@ import com.threerings.whirled.util.UpdateList;
 
 import com.threerings.config.ConfigManager;
 
+import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeySceneModel;
 
 /**
@@ -55,6 +56,7 @@ import com.threerings.tudey.data.TudeySceneModel;
  */
 @Singleton
 public class TudeySceneRegistry extends SceneRegistry
+    implements TudeyCodes
 {
     /**
      * Constructs a Tudey scene registry.
@@ -63,6 +65,9 @@ public class TudeySceneRegistry extends SceneRegistry
     {
         super(invmgr);
         _omgr = omgr;
+
+        // create the default scene ticker
+        _defaultTicker = createDefaultTicker();
 
         // create the interval to prune the portal mappings
         new Interval(_omgr) {
@@ -92,6 +97,14 @@ public class TudeySceneRegistry extends SceneRegistry
         resolveScene(sceneId, listener);
     }
 
+    /**
+     * Returns a reference to the default scene ticker.
+     */
+    public SceneTicker getDefaultTicker ()
+    {
+        return _defaultTicker;
+    }
+
     @Override // documentation inherited
     public void moveTo (
         ClientObject caller, int sceneId, int sceneVer, SceneService.SceneMoveListener listener)
@@ -116,6 +129,14 @@ public class TudeySceneRegistry extends SceneRegistry
         ((TudeySceneModel)model).init(_cfgmgr);
 
         super.processSuccessfulResolution(model, updates, extras);
+    }
+
+    /**
+     * Creates the default scene ticker.
+     */
+    protected SceneTicker createDefaultTicker ()
+    {
+        return new SceneTicker.EventThread(_omgr, DEFAULT_TICK_INTERVAL);
     }
 
     /**
@@ -211,6 +232,9 @@ public class TudeySceneRegistry extends SceneRegistry
 
     /** Maps body oids to the keys of their destination portals. */
     protected HashIntMap<PortalMapping> _portals = IntMaps.newHashIntMap();
+
+    /** The default scene ticker. */
+    protected SceneTicker _defaultTicker;
 
     /** The interval after which portal mappings expire. */
     protected static final long PORTAL_MAPPING_LIFESPAN = 30 * 1000L;
