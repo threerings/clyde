@@ -38,7 +38,7 @@ import com.threerings.util.DeepObject;
     ConditionConfig.Random.class, ConditionConfig.Limit.class,
     ConditionConfig.All.class, ConditionConfig.Any.class,
     ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class,
-    ConditionConfig.Not.class })
+    ConditionConfig.Not.class, ConditionConfig.Always.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -325,6 +325,18 @@ public abstract class ConditionConfig extends DeepObject
         public void invalidate ()
         {
             condition.invalidate();
+        }
+    }
+
+    /**
+     * Satisfied always.
+     */
+    public static class Always extends ConditionConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Always";
         }
     }
 

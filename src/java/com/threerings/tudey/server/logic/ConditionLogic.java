@@ -432,6 +432,18 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the always condition.
+     */
+    public static class Always extends ConditionLogic
+    {
+        @Override // documentaiton inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            return true;
+        }
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ConditionConfig config, Logic source)
