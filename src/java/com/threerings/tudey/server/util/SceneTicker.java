@@ -54,8 +54,7 @@ public abstract class SceneTicker
          */
         public EventThread (RunQueue runQueue, int targetInterval)
         {
-            super(targetInterval);
-            _runQueue = runQueue;
+            super(runQueue, targetInterval);
         }
 
         @Override // documentation inherited
@@ -80,9 +79,6 @@ public abstract class SceneTicker
             }
         }
 
-        /** The object manager. */
-        protected RunQueue _runQueue;
-
         /** The ticker interval. */
         protected Interval _interval;
     }
@@ -95,9 +91,9 @@ public abstract class SceneTicker
         /**
          * Creates a new dedicated thread ticker.
          */
-        public DedicatedThread (int targetInterval)
+        public DedicatedThread (RunQueue runQueue, int targetInterval)
         {
-            super(targetInterval);
+            super(runQueue, targetInterval);
         }
 
         @Override // documentation inherited
@@ -135,8 +131,9 @@ public abstract class SceneTicker
     /**
      * Creates a new scene ticker.
      */
-    public SceneTicker (int targetInterval)
+    public SceneTicker (RunQueue runQueue, int targetInterval)
     {
+        _runQueue = runQueue;
         _targetInterval = _actualInterval = targetInterval;
     }
 
@@ -233,6 +230,9 @@ public abstract class SceneTicker
         // return the amount of time remaining until the next tick
         return _targetInterval - (System.currentTimeMillis() - _lastTick);
     }
+
+    /** The event thread run queue. */
+    protected RunQueue _runQueue;
 
     /** The target interval. */
     protected volatile int _targetInterval;

@@ -36,7 +36,6 @@ import com.google.inject.Injector;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMaps;
-import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Queue;
 import com.samskivert.util.RandomUtil;
@@ -85,6 +84,7 @@ import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.TudeySceneMetrics;
+import com.threerings.tudey.util.TudeyUtil;
 
 import static com.threerings.tudey.Log.*;
 
@@ -147,6 +147,15 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns the delay with which the clients display information received from the server in
+     * order to compensate for network jitter and dropped packets.
+     */
+    public int getBufferDelay ()
+    {
+        return TudeyUtil.getBufferDelay(getTickInterval());
+    }
+
+    /**
      * Returns the number of ticks per second.
      */
     public int getTicksPerSecond ()
@@ -160,15 +169,6 @@ public class TudeySceneManager extends SceneManager
     public int getTickInterval ()
     {
         return (_ticker == null) ? DEFAULT_TICK_INTERVAL : _ticker.getActualInterval();
-    }
-
-    /**
-     * Returns the delay with which the clients display information received from the server in
-     * order to compensate for network jitter and dropped packets.
-     */
-    public int getBufferDelay ()
-    {
-        return _tsobj.bufferDelay;
     }
 
     /**
@@ -917,14 +917,6 @@ public class TudeySceneManager extends SceneManager
 
         // get a reference to the ticker
         _ticker = getTicker();
-
-        // initialize the buffer delay and schedule an interval to update it periodically
-        updateBufferDelay();
-        (_bufferDelayUpdater = new Interval(_omgr) {
-            @Override public void expired () {
-                updateBufferDelay();
-            }
-        }).schedule(5000L, 10000L);
     }
 
     @Override // documentation inherited
@@ -946,9 +938,8 @@ public class TudeySceneManager extends SceneManager
             logic.removed();
         }
 
-        // remove from the ticker, cancel the updater
+        // remove from the ticker
         _ticker.remove(this);
-        _bufferDelayUpdater.cancel();
 
         // shut down the pathfinder
         _pathfinder.shutdown();
@@ -1166,17 +1157,6 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Updates the buffer delay in the scene object.
-     */
-    protected void updateBufferDelay ()
-    {
-        int delay = getTickInterval() * 2;
-        if (_tsobj.bufferDelay != delay) {
-            _tsobj.setBufferDelay(delay);
-        }
-    }
-
-    /**
      * (Re)used to tick the participants.
      */
     protected static class TickOp
@@ -1244,9 +1224,6 @@ public class TudeySceneManager extends SceneManager
 
     /** The time at which the last occupant left. */
     protected long _emptyTime;
-
-    /** An interval used to update the buffer delay. */
-    protected Interval _bufferDelayUpdater;
 
     /** The last actor id assigned. */
     protected int _lastActorId;

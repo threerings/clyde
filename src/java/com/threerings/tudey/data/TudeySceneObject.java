@@ -36,17 +36,10 @@ public class TudeySceneObject extends SceneObject
     // AUTO-GENERATED: FIELDS START
     /** The field name of the <code>tudeySceneService</code> field. */
     public static final String TUDEY_SCENE_SERVICE = "tudeySceneService";
-
-    /** The field name of the <code>bufferDelay</code> field. */
-    public static final String BUFFER_DELAY = "bufferDelay";
     // AUTO-GENERATED: FIELDS END
 
     /** Provides Tudey scene services. */
     public TudeySceneMarshaller tudeySceneService;
-
-    /** The delay with which to display information received from the server in order to
-     * compensate for network jitter and dropped packets. */
-    public int bufferDelay;
 
     /**
      * Returns the id of the pawn controlled by the client with the provided oid, or 0 if none.
@@ -101,22 +94,6 @@ public class TudeySceneObject extends SceneObject
         requestAttributeChange(
             TUDEY_SCENE_SERVICE, value, ovalue);
         this.tudeySceneService = value;
-    }
-
-    /**
-     * Requests that the <code>bufferDelay</code> field be set to the
-     * specified value. The local value will be updated immediately and an
-     * event will be propagated through the system to notify all listeners
-     * that the attribute did change. Proxied copies of this object (on
-     * clients) will apply the value change when they received the
-     * attribute changed notification.
-     */
-    public void setBufferDelay (int value)
-    {
-        int ovalue = this.bufferDelay;
-        requestAttributeChange(
-            BUFFER_DELAY, Integer.valueOf(value), Integer.valueOf(ovalue));
-        this.bufferDelay = value;
     }
     // AUTO-GENERATED: METHODS END
 }

@@ -96,6 +96,7 @@ import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
+import com.threerings.tudey.util.TudeyUtil;
 
 import static com.threerings.tudey.Log.*;
 
@@ -203,7 +204,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getDelayedTime ()
     {
-        return _smoothedTime - getBufferDelay();
+        return _delayedTime;
     }
 
     /**
@@ -212,7 +213,7 @@ public class TudeySceneView extends SimpleScope
      */
     public int getBufferDelay ()
     {
-        return (_tsobj == null) ? DEFAULT_BUFFER_DELAY : _tsobj.bufferDelay;
+        return TudeyUtil.getBufferDelay(_elapsedAverage.value());
     }
 
     /**
@@ -406,13 +407,20 @@ public class TudeySceneView extends SimpleScope
         // update the ping estimate (used to compute the input advance)
         _pingAverage.record(_ping = event.getPing());
 
+        // update the interval estimate (used to compute the buffer delay)
+        _elapsedAverage.record(event.getElapsed());
+
         // create/update the time smoothers
-        int timestamp = event.getTimestamp(), advanced = timestamp + getInputAdvance();
+        int timestamp = event.getTimestamp();
+        int delayed = timestamp - getBufferDelay();
+        int advanced = timestamp + getInputAdvance();
         if (_smoother == null) {
             _smoother = new TimeSmoother(_smoothedTime = timestamp);
+            _delayedSmoother = new TimeSmoother(_delayedTime = delayed);
             _advancedSmoother = new TimeSmoother(_advancedTime = advanced);
         } else {
             _smoother.update(timestamp);
+            _delayedSmoother.update(delayed);
             _advancedSmoother.update(advanced);
         }
 
@@ -618,6 +626,7 @@ public class TudeySceneView extends SimpleScope
         // update the smoothed time, if possible
         if (_smoother != null) {
             _smoothedTime = _smoother.getTime();
+            _delayedTime = _delayedSmoother.getTime();
             _advancedTime = _advancedSmoother.getTime();
         }
 
@@ -1095,6 +1104,12 @@ public class TudeySceneView extends SimpleScope
     /** The smoothed time. */
     protected int _smoothedTime;
 
+    /** Smooths the delayed time. */
+    protected TimeSmoother _delayedSmoother;
+
+    /** The delayed time. */
+    protected int _delayedTime;
+
     /** Smooths the advanced time. */
     protected TimeSmoother _advancedSmoother;
 
@@ -1106,6 +1121,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The trailing average of the ping times. */
     protected TrailingAverage _pingAverage = new TrailingAverage();
+
+    /** The trailing average of the elapsed times. */
+    protected TrailingAverage _elapsedAverage = new TrailingAverage();
 
     /** Records of each update received from the server. */
     protected List<UpdateRecord> _records = Lists.newArrayList();

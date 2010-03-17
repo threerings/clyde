@@ -46,11 +46,11 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, int acknowledge, int ping, int reference, int timestamp,
-        Actor[] addedActors, ActorDelta[] updatedActorDeltas, int[] removedActorIds,
-        Effect[] effectsFired)
+        int targetOid, int sceneOid, int acknowledge, short ping, int reference,
+        int timestamp, short elapsed, Actor[] addedActors, ActorDelta[] updatedActorDeltas,
+        int[] removedActorIds, Effect[] effectsFired)
     {
-        this(targetOid, sceneOid, acknowledge, ping, reference, timestamp, addedActors,
+        this(targetOid, sceneOid, acknowledge, ping, reference, timestamp, elapsed, addedActors,
             updatedActorDeltas, removedActorIds, effectsFired, Transport.DEFAULT);
     }
 
@@ -58,9 +58,9 @@ public class SceneDeltaEvent extends DEvent
      * Creates a new delta event.
      */
     public SceneDeltaEvent (
-        int targetOid, int sceneOid, int acknowledge, int ping, int reference, int timestamp,
-        Actor[] addedActors, ActorDelta[] updatedActorDeltas, int[] removedActorIds,
-        Effect[] effectsFired, Transport transport)
+        int targetOid, int sceneOid, int acknowledge, short ping, int reference,
+        int timestamp, short elapsed, Actor[] addedActors, ActorDelta[] updatedActorDeltas,
+        int[] removedActorIds, Effect[] effectsFired, Transport transport)
     {
         super(targetOid, transport);
         _sceneOid = sceneOid;
@@ -68,6 +68,7 @@ public class SceneDeltaEvent extends DEvent
         _ping = ping;
         _reference = reference;
         _timestamp = timestamp;
+        _elapsed = elapsed;
         _addedActors = addedActors;
         _updatedActorDeltas = updatedActorDeltas;
         _removedActorIds = removedActorIds;
@@ -100,7 +101,7 @@ public class SceneDeltaEvent extends DEvent
     /**
      * Returns the ping time estimate.
      */
-    public int getPing ()
+    public short getPing ()
     {
         return _ping;
     }
@@ -120,6 +121,14 @@ public class SceneDeltaEvent extends DEvent
     public int getTimestamp ()
     {
         return _timestamp;
+    }
+
+    /**
+     * Returns the time elapsed since the last tick.
+     */
+    public short getElapsed ()
+    {
+        return _elapsed;
     }
 
     /**
@@ -182,6 +191,7 @@ public class SceneDeltaEvent extends DEvent
         buf.append(", ping=").append(_ping);
         buf.append(", reference=").append(_reference);
         buf.append(", timestamp=").append(_timestamp);
+        buf.append(", elapsed=").append(_elapsed);
         buf.append(", addedActors=").append(StringUtil.toString(_addedActors));
         buf.append(", updatedActorDeltas=").append(StringUtil.toString(_updatedActorDeltas));
         buf.append(", removedActorIds=").append(StringUtil.toString(_removedActorIds));
@@ -195,7 +205,7 @@ public class SceneDeltaEvent extends DEvent
     protected int _acknowledge;
 
     /** The estimated ping time. */
-    protected int _ping;
+    protected short _ping;
 
     /** The timestamp of the update that serves as a basis of comparison for this delta (either
      * the last delta known to be acknowledged by the client, or 0 for the baseline). */
@@ -203,6 +213,9 @@ public class SceneDeltaEvent extends DEvent
 
     /** The timestamp of the delta. */
     protected int _timestamp;
+
+    /** The amount of time elapsed since the previous tick. */
+    protected short _elapsed;
 
     /** The actors added to the scene since the referenced update (or <code>null</code>). */
     protected Actor[] _addedActors;

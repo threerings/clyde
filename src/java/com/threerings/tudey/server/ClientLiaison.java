@@ -266,8 +266,9 @@ public class ClientLiaison
 
         // create and post the event
         _bodyobj.postEvent(record.event = new SceneDeltaEvent(
-            _bodyobj.getOid(), _tsobj.getOid(), _lastInput, _ping,
-            reference.getTimestamp(), timestamp,
+            _bodyobj.getOid(), _tsobj.getOid(), _lastInput,
+            (short)_ping, reference.getTimestamp(), timestamp,
+            (short)(timestamp - _scenemgr.getPreviousTimestamp()),
             _added.isEmpty() ? null : _added.toArray(new Actor[_added.size()]),
             _updated.isEmpty() ? null : _updated.toArray(new ActorDelta[_updated.size()]),
             _removed.isEmpty() ? null : CollectionUtil.toIntArray(_removed),
