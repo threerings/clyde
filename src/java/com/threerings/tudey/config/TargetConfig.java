@@ -39,7 +39,8 @@ import com.threerings.util.DeepObject;
     TargetConfig.Tagged.class, TargetConfig.InstanceOf.class,
     TargetConfig.Intersecting.class, TargetConfig.RandomSubset.class,
     TargetConfig.NearestSubset.class, TargetConfig.FarthestSubset.class,
-    TargetConfig.Conditional.class, TargetConfig.Compound.class })
+    TargetConfig.Conditional.class, TargetConfig.Compound.class,
+    TargetConfig.Behavior.class })
 public abstract class TargetConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -250,6 +251,28 @@ public abstract class TargetConfig extends DeepObject
             for (TargetConfig target : targets) {
                 target.invalidate();
             }
+        }
+    }
+
+    /**
+     * Refers to the current target of an agent's behavior.
+     */
+    public static class Behavior extends TargetConfig
+    {
+        /** The target agent. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$Behavior";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 

@@ -368,6 +368,40 @@ public abstract class TargetLogic extends Logic
     }
 
     /**
+     * Handles the behavior target.
+     */
+    public static class Behavior extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            _target.resolve(activator, _targets);
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                if (target instanceof AgentLogic) {
+                    Logic result = ((AgentLogic)target).getBehaviorTarget();
+                    if (result != null) {
+                        results.add(result);
+                    }
+                }
+            }
+            _targets.clear();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((TargetConfig.Behavior)_config).target, _source);
+        }
+
+        /** The contained target. */
+        protected TargetLogic _target;
+
+        /** Holds the targets during processing. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, TargetConfig config, Logic source)

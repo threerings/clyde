@@ -345,6 +345,12 @@ public abstract class BehaviorLogic extends Logic
     public static class Patrol extends Pathing
     {
         @Override // documentation inherited
+        public Logic getCurrentTarget ()
+        {
+            return _currentTarget;
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((BehaviorConfig.Patrol)_config).target, _agent);
@@ -452,6 +458,12 @@ public abstract class BehaviorLogic extends Logic
     public static class Follow extends Pathing
     {
         @Override // documentation inherited
+        public Logic getCurrentTarget ()
+        {
+            return _currentTarget;
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((BehaviorConfig.Follow)_config).target, _agent);
@@ -465,20 +477,20 @@ public abstract class BehaviorLogic extends Logic
             // find the closest target
             _target.resolve(_agent, _targets);
             Vector2f trans = _agent.getTranslation();
-            Logic ctarget = null;
+            _currentTarget = null;
             float cdist = Float.MAX_VALUE;
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
                 float dist = target.getTranslation().distanceSquared(trans);
                 if (dist < cdist) {
-                    ctarget = target;
+                    _currentTarget = target;
                     cdist = dist;
                 }
             }
             _targets.clear();
 
             // if we're within our distance bounds, stop and face the target
-            if (ctarget == null) {
+            if (_currentTarget == null) {
                 return;
             }
             BehaviorConfig.Follow config = (BehaviorConfig.Follow)_config;
@@ -486,17 +498,17 @@ public abstract class BehaviorLogic extends Logic
             float max2 = config.maximumDistance*config.maximumDistance;
             if (FloatMath.isWithin(cdist, min2, max2)) {
                 clearPath();
-                _agent.face(ctarget);
+                _agent.face(_currentTarget);
                 return;
             }
 
             // compute a path to the target
-            Vector2f loc = ctarget.getTranslation();
+            Vector2f loc = _currentTarget.getTranslation();
             Vector2f[] path = _scenemgr.getPathfinder().getPath(
                 _agent, MAX_FOLLOW_PATH_LENGTH, loc.x, loc.y, true, true);
             if (path == null) {
                 clearPath();
-                _agent.face(ctarget);
+                _agent.face(_currentTarget);
                 return;
             }
 
@@ -509,6 +521,9 @@ public abstract class BehaviorLogic extends Logic
 
         /** Holds targets during processing. */
         protected ArrayList<Logic> _targets = Lists.newArrayList();
+
+        /** The current target. */
+        protected Logic _currentTarget;
     }
 
     /**
@@ -539,6 +554,12 @@ public abstract class BehaviorLogic extends Logic
             if (_active != null) {
                 _active.penetratedEnvironment(penetration);
             }
+        }
+
+        @Override // documentation inherited
+        public Logic getCurrentTarget ()
+        {
+            return _active == null ? null : _active.getCurrentTarget();
         }
 
         @Override // documentation inherited
@@ -623,6 +644,14 @@ public abstract class BehaviorLogic extends Logic
     public void penetratedEnvironment (Vector2f penetration)
     {
         // nothing by default
+    }
+
+    /**
+     * Returns the currently targeted logic, if any.
+     */
+    public Logic getCurrentTarget ()
+    {
+        return null;
     }
 
     @Override // documentation inherited

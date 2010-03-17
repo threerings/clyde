@@ -58,6 +58,14 @@ public class AgentLogic extends ActiveLogic
     }
 
     /**
+     * Returns the logic currently being targeted by our behavior, if any.
+     */
+    public Logic getBehaviorTarget ()
+    {
+        return _behavior == null ? null : _behavior.getCurrentTarget();
+    }
+
+    /**
      * Sets the target rotation to face another entity.
      */
     public void face (Logic logic)
