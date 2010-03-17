@@ -50,6 +50,7 @@ import com.threerings.config.ConfigManager;
 
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.server.util.SceneTicker;
 
 /**
  * Provides special handling for moving between Tudey scenes.

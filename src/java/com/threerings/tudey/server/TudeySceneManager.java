@@ -78,6 +78,7 @@ import com.threerings.tudey.server.logic.EntryLogic;
 import com.threerings.tudey.server.logic.Logic;
 import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.server.util.Pathfinder;
+import com.threerings.tudey.server.util.SceneTicker;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
@@ -923,7 +924,7 @@ public class TudeySceneManager extends SceneManager
             @Override public void expired () {
                 updateBufferDelay();
             }
-        }).schedule(5000L, 30000L);
+        }).schedule(5000L, 10000L);
     }
 
     @Override // documentation inherited
@@ -1105,7 +1106,7 @@ public class TudeySceneManager extends SceneManager
     /**
      * Updates the scene.
      */
-    protected void tick ()
+    public void tick ()
     {
         // cancel the ticker if enough time has elapsed with no occupants
         long now = RunAnywhere.currentTimeMillis();
@@ -1169,7 +1170,10 @@ public class TudeySceneManager extends SceneManager
      */
     protected void updateBufferDelay ()
     {
-        _tsobj.setBufferDelay(getTickInterval() * 2);
+        int delay = getTickInterval() * 2;
+        if (_tsobj.bufferDelay != delay) {
+            _tsobj.setBufferDelay(delay);
+        }
     }
 
     /**

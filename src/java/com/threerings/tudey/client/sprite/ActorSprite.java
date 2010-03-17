@@ -778,7 +778,7 @@ public class ActorSprite extends Sprite
         // create the advancer if the actor is client-controlled; otherwise, the history
         _actor = (Actor)actor.clone();
         if ((_advancer = _actor.maybeCreateAdvancer(ctx, view, timestamp)) == null) {
-            _history = new ActorHistory(timestamp, actor, view.getBufferDelay() * 2);
+            _history = new ActorHistory(timestamp, actor, view.getBufferDelay() * 4);
         }
 
         // create the model and the shape
