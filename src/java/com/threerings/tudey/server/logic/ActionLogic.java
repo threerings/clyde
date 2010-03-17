@@ -193,12 +193,20 @@ public abstract class ActionLogic extends Logic
                 }
                 Logic location = RandomUtil.pickRandom(_locations);
                 _locations.clear();
-                Vector2f translation = location.getTranslation();
-                ((ActorLogic)target).warp(translation.x, translation.y, location.getRotation());
+                warp((ActorLogic)target, location);
                 success = true;
             }
             _targets.clear();
             return success;
+        }
+
+        /**
+         * Warp the actor to the location.
+         */
+        protected void warp (ActorLogic target, Logic location)
+        {
+            Vector2f translation = location.getTranslation();
+            target.warp(translation.x, translation.y, location.getRotation());
         }
 
         @Override // documentation inherited
@@ -217,6 +225,26 @@ public abstract class ActionLogic extends Logic
 
         /** Temporary container for locations. */
         protected ArrayList<Logic> _locations = Lists.newArrayList();
+    }
+
+    /**
+     * Handles a warp transformed actor action.
+     */
+    public static class WarpTransformedActor extends WarpActor
+    {
+        @Override // documentation inherited
+        protected void warp (ActorLogic target, Logic location)
+        {
+            ActionConfig.WarpTransformedActor config = (ActionConfig.WarpTransformedActor)_config;
+            float rotation = config.rotation + location.getRotation();
+            Vector2f translation = new Vector2f();
+            if (config.rotatedTranslation) {
+                config.translation.rotateAndAdd(rotation, location.getTranslation(), translation);
+            } else {
+                translation.addLocal(location.getTranslation());
+            }
+            target.warp(translation.x, translation.y, rotation);
+        }
     }
 
     /**

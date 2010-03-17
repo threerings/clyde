@@ -236,7 +236,7 @@ public class AgentLogic extends ActiveLogic
      */
     protected boolean canThink ()
     {
-        return true;
+        return _behavior != null;
     }
 
     /**

@@ -46,11 +46,12 @@ import com.threerings.tudey.util.Coord;
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
     ActionConfig.SpawnTransformedActor.class, ActionConfig.DestroyActor.class,
-    ActionConfig.WarpActor.class, ActionConfig.FireEffect.class,
-    ActionConfig.Signal.class, ActionConfig.MoveBody.class,
-    ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
-    ActionConfig.Compound.class, ActionConfig.Random.class,
-    ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class })
+    ActionConfig.WarpActor.class, ActionConfig.WarpTransformedActor.class,
+    ActionConfig.FireEffect.class, ActionConfig.Signal.class,
+    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
+    ActionConfig.Conditional.class, ActionConfig.Compound.class,
+    ActionConfig.Random.class, ActionConfig.Delayed.class,
+    ActionConfig.StepLimitMobile.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -182,6 +183,30 @@ public abstract class ActionConfig extends DeepObject
         {
             target.invalidate();
             location.invalidate();
+        }
+    }
+
+    /**
+     * Warps an actor from on place to another transformed location.
+     */
+    public static class WarpTransformedActor extends WarpActor
+    {
+        /** The fixed rotation for the new actor. */
+        @Editable(min=-180, max=+180, scale=Math.PI/180.0, hgroup="t")
+        public float rotation = 0;
+
+        /** The translation from the target for the new actor. */
+        @Editable(hgroup="t")
+        public Vector2f translation = new Vector2f();
+
+        /** If the transform should be relative to the target. */
+        @Editable(hgroup="r")
+        public boolean rotatedTranslation = true;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$WarpTransformedActor";
         }
     }
 
