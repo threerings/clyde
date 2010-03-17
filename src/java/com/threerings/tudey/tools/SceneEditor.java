@@ -72,6 +72,8 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEditSupport;
 
+import org.lwjgl.opengl.GL11;
+
 import com.google.common.collect.Maps;
 
 import com.samskivert.swing.GroupLayout;
@@ -108,9 +110,14 @@ import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.camera.MouseOrbiter;
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.util.Rectangle;
+import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.state.ColorState;
+import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.Grid;
+import com.threerings.opengl.util.SimpleTransformable;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EntrySprite;
@@ -1013,6 +1020,20 @@ public class SceneEditor extends TudeyTool
             tool.init();
         }
 
+        // create the origin renderable
+        _origin = new SimpleTransformable(this, RenderQueue.OPAQUE, 0, false, 2) {
+            @Override protected void draw () {
+                float z = _grid.getZ() + 0.01f;
+                GL11.glBegin(GL11.GL_LINES);
+                GL11.glVertex3f(-1f, 0f, z);
+                GL11.glVertex3f(+1f, 0f, z);
+                GL11.glVertex3f(0f, -1f, z);
+                GL11.glVertex3f(0f, +1f, z);
+                GL11.glEnd();
+            }
+        };
+        _origin.getStates()[RenderState.COLOR_STATE] = ColorState.getInstance(Color4f.RED);
+
         // attempt to load the scene file specified on the command line if any
         // (otherwise, create an empty scene)
         if (_initScene != null) {
@@ -1036,6 +1057,9 @@ public class SceneEditor extends TudeyTool
     protected void compositeView ()
     {
         super.compositeView();
+        if (_showGrid.isSelected()) {
+            _origin.composite();
+        }
         if (!_testing) {
             _activeTool.composite();
         }
@@ -1663,6 +1687,9 @@ public class SceneEditor extends TudeyTool
 
     /** A casted reference to the editor grid. */
     protected EditorGrid _grid;
+
+    /** Draws the coordinate system origin. */
+    protected SimpleTransformable _origin;
 
     /** Whether or not the shift, control, and/or alt keys are being held down. */
     protected boolean _shiftDown, _controlDown, _altDown;
