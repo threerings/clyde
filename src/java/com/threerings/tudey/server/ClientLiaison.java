@@ -40,8 +40,6 @@ import com.threerings.math.Rect;
 import com.threerings.math.SphereCoords;
 import com.threerings.math.Vector2f;
 
-import com.threerings.media.util.TrailingAverage;
-
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
@@ -51,6 +49,7 @@ import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.server.logic.PawnLogic;
+import com.threerings.tudey.util.TruncatedAverage;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 import static com.threerings.tudey.Log.*;
@@ -376,7 +375,7 @@ public class ClientLiaison
     protected int _ping;
 
     /** The trailing average of the ping times. */
-    protected TrailingAverage _pingAverage = new TrailingAverage();
+    protected TruncatedAverage _pingAverage = new TruncatedAverage();
 
     /** The timestamp of the last input frame received from the client. */
     protected int _lastInput;

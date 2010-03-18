@@ -45,8 +45,6 @@ import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
 
-import com.threerings.media.util.TrailingAverage;
-
 import com.threerings.config.ConfigManager;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
@@ -94,6 +92,7 @@ import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.ActorAdvancer;
+import com.threerings.tudey.util.TruncatedAverage;
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
 import com.threerings.tudey.util.TudeyUtil;
@@ -1120,10 +1119,10 @@ public class TudeySceneView extends SimpleScope
     protected int _ping;
 
     /** The trailing average of the ping times. */
-    protected TrailingAverage _pingAverage = new TrailingAverage();
+    protected TruncatedAverage _pingAverage = new TruncatedAverage();
 
     /** The trailing average of the elapsed times. */
-    protected TrailingAverage _elapsedAverage = new TrailingAverage();
+    protected TruncatedAverage _elapsedAverage = new TruncatedAverage();
 
     /** Records of each update received from the server. */
     protected List<UpdateRecord> _records = Lists.newArrayList();

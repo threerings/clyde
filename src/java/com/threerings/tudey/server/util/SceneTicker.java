@@ -33,9 +33,8 @@ import com.samskivert.util.Interval;
 import com.samskivert.util.LoopingThread;
 import com.samskivert.util.RunQueue;
 
-import com.threerings.media.util.TrailingAverage;
-
 import com.threerings.tudey.server.TudeySceneManager;
+import com.threerings.tudey.util.TruncatedAverage;
 
 import static com.threerings.tudey.Log.*;
 
@@ -250,5 +249,5 @@ public abstract class SceneTicker
     protected long _lastTick;
 
     /** The trailing average of the actual intervals. */
-    protected TrailingAverage _intervalAverage = new TrailingAverage();
+    protected TruncatedAverage _intervalAverage = new TruncatedAverage();
 }
