@@ -117,7 +117,7 @@ public abstract class ColorizationConfig extends DeepObject
      * Represents a set of hue, saturation, and value values.
      */
     public static class Triplet extends DeepObject
-        implements Exportable
+        implements Exportable, Streamable
     {
         /** The hue, saturation, and value offsets. */
         @Editable(min=-1.0, max=+1.0, step=0.001, hgroup="v")
