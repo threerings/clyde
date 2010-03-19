@@ -69,6 +69,7 @@ import com.threerings.opengl.util.PreloadableSet;
 import com.threerings.opengl.util.Tickable;
 
 import com.samskivert.util.Predicate;
+import com.samskivert.util.RunAnywhere;
 
 import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EffectSprite;
@@ -154,7 +155,8 @@ public class TudeySceneView extends SimpleScope
         _inputWindow.setModal(true);
 
         // insert the baseline (empty) update record
-        _records.add(new UpdateRecord(0, new HashIntMap<Actor>()));
+        _records.add(new UpdateRecord(
+            0, RunAnywhere.currentTimeMillis(), new HashIntMap<Actor>()));
     }
 
     /**
@@ -407,10 +409,18 @@ public class TudeySceneView extends SimpleScope
         _pingAverage.record(_ping = event.getPing());
 
         // update the interval estimate (used to compute the buffer delay)
-        _elapsedAverage.record(event.getElapsed());
+        int elapsed = event.getElapsed();
+        _elapsedAverage.record(elapsed);
+
+        // look for the previous update in order to compute the jitter
+        int timestamp = event.getTimestamp();
+        long now = RunAnywhere.currentTimeMillis();
+        UpdateRecord lrecord = _records.get(_records.size() - 1);
+        if (lrecord.getTimestamp() + elapsed == timestamp) {
+            noteJitter((int)(now - lrecord.getReceived()) - elapsed);
+        }
 
         // create/update the time smoothers
-        int timestamp = event.getTimestamp();
         int delayed = timestamp - getBufferDelay();
         int advanced = timestamp + getInputAdvance();
         if (_smoother == null) {
@@ -470,7 +480,7 @@ public class TudeySceneView extends SimpleScope
         }
 
         // record the update
-        _records.add(new UpdateRecord(timestamp, actors));
+        _records.add(new UpdateRecord(timestamp, now, actors));
 
         // at this point, if we are to preload, we have enough information to begin
         if (_loadingWindow != null && _preloads == null) {
@@ -973,6 +983,15 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Notes a jitter value (difference between elapsed time on server and elapsed time on client
+     * between two successive updates).
+     */
+    protected void noteJitter (int value)
+    {
+        // nothing by default
+    }
+
+    /**
      * Prunes all records before the supplied reference time, if found.
      *
      * @return true if the reference time was found, false if not.
@@ -1004,9 +1023,10 @@ public class TudeySceneView extends SimpleScope
         /**
          * Creates a new update record.
          */
-        public UpdateRecord (int timestamp, HashIntMap<Actor> actors)
+        public UpdateRecord (int timestamp, long received, HashIntMap<Actor> actors)
         {
             _timestamp = timestamp;
+            _received = received;
             _actors = actors;
         }
 
@@ -1019,6 +1039,14 @@ public class TudeySceneView extends SimpleScope
         }
 
         /**
+         * Returns the time at which the update was received.
+         */
+        public long getReceived ()
+        {
+            return _received;
+        }
+
+        /**
          * Returns the map of actors.
          */
         public HashIntMap<Actor> getActors ()
@@ -1028,6 +1056,9 @@ public class TudeySceneView extends SimpleScope
 
         /** The timestamp of the update. */
         protected int _timestamp;
+
+        /** The wall clock time at which the update was received. */
+        protected long _received;
 
         /** The states of the actors. */
         protected HashIntMap<Actor> _actors;
