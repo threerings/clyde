@@ -156,7 +156,10 @@ public abstract class GlCanvasApp extends GlApp
     @Override // documentation inherited
     public Root createRoot ()
     {
-        return new CanvasRoot(this, _canvas);
+        if (_canvasRoot == null) {
+            _canvasRoot = new CanvasRoot(this, _canvas);
+        }
+        return _canvasRoot;
     }
 
     @Override // documentation inherited
@@ -199,11 +202,34 @@ public abstract class GlCanvasApp extends GlApp
         _keymgr.setEnabled(true);
     }
 
+    @Override // documentation inherited
+    protected void willShutdown ()
+    {
+        if (_canvasRoot != null) {
+            _canvasRoot.dispose();
+            _canvasRoot = null;
+        }
+        super.willShutdown();
+    }
+
     /**
      * Creates a canvas using one of our supported pixel formats.
      */
     protected Canvas createCanvas ()
     {
+        if (RunAnywhere.isLinux()) {
+            return new DisplayCanvas() {
+                @Override protected void didInit () {
+                    GlCanvasApp.this.init();
+                }
+                @Override protected void updateView () {
+                    GlCanvasApp.this.updateView();
+                }
+                @Override protected void renderView () {
+                    GlCanvasApp.this.renderView();
+                }
+            };
+        }
         for (PixelFormat format : PIXEL_FORMATS) {
             try {
                 return new AWTCanvas(format) {
@@ -241,6 +267,9 @@ public abstract class GlCanvasApp extends GlApp
 
     /** The render canvas. */
     protected Canvas _canvas;
+
+    /** The root. */
+    protected Root _canvasRoot;
 
     /** The keyboard manager for the canvas. */
     protected KeyboardManager _keymgr;

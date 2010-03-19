@@ -143,7 +143,10 @@ public abstract class GlDisplayApp extends GlApp
     @Override // documentation inherited
     public Root createRoot ()
     {
-        return new DisplayRoot(this);
+        if (_displayRoot == null) {
+            _displayRoot = new DisplayRoot(this);
+        }
+        return _displayRoot;
     }
 
     @Override // documentation inherited
@@ -209,6 +212,16 @@ public abstract class GlDisplayApp extends GlApp
     }
 
     @Override // documentation inherited
+    protected void willShutdown ()
+    {
+        if (_displayRoot != null) {
+            _displayRoot.dispose();
+            _displayRoot = null;
+        }
+        super.willShutdown();
+    }
+
+    @Override // documentation inherited
     protected void initRenderer ()
     {
         DisplayMode mode = Display.getDisplayMode();
@@ -263,4 +276,7 @@ public abstract class GlDisplayApp extends GlApp
             log.warning("Caught exception in frame loop.", e);
         }
     }
+
+    /** Our root. */
+    protected Root _displayRoot;
 }
