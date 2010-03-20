@@ -74,6 +74,7 @@ public class Active extends Mobile
     public void setActivity (int activity)
     {
         _activity = activity;
+        _dirty = true;
     }
 
     /**
@@ -90,6 +91,7 @@ public class Active extends Mobile
     public void setActivityStarted (int started)
     {
         _activityStarted = started;
+        _dirty = true;
     }
 
     /**

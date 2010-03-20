@@ -60,6 +60,7 @@ public class EntryState extends Actor
     public void setKey (Object key)
     {
         _key = key;
+        _dirty = true;
     }
 
     /**
@@ -77,6 +78,7 @@ public class EntryState extends Actor
     {
         _state = state;
         _stateEntered = entered;
+        _dirty = true;
     }
 
     /**
