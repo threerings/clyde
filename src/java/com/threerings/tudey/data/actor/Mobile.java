@@ -67,7 +67,7 @@ public class Mobile extends Actor
     public void setDirection (float direction)
     {
         _direction = direction;
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -105,7 +105,7 @@ public class Mobile extends Actor
         } else {
             _limiters = ArrayUtil.append(_limiters, limiter);
         }
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -117,11 +117,11 @@ public class Mobile extends Actor
             int idx = ArrayUtil.indexOf(_limiters, limiter);
             if (idx == 0 && _limiters.length == 1) {
                 _limiters = null;
-                _dirty = true;
+                setDirty(true);
 
             } else if (idx > -1) {
                 _limiters = ArrayUtil.splice(_limiters, idx, 1);
-                _dirty = true;
+                setDirty(true);
             }
         }
     }
@@ -144,7 +144,7 @@ public class Mobile extends Actor
             _translation.addLocal(
                 length * FloatMath.cos(_direction),
                 length * FloatMath.sin(_direction));
-            _dirty = true;
+            setDirty(true);
         }
     }
 

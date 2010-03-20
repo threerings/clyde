@@ -106,7 +106,7 @@ public class Actor extends DeepObject
     public void setConfig (ConfigReference<ActorConfig> config)
     {
         _config = config;
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -147,7 +147,7 @@ public class Actor extends DeepObject
     public void setDestroyed (int destroyed)
     {
         _destroyed = destroyed;
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -165,7 +165,7 @@ public class Actor extends DeepObject
     public void setTranslation (float x, float y)
     {
         _translation.set(x, y);
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -182,7 +182,7 @@ public class Actor extends DeepObject
     public void setRotation (float rotation)
     {
         _rotation = rotation;
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -199,7 +199,7 @@ public class Actor extends DeepObject
     public void setFlags (int flags)
     {
         _flags = flags;
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -216,7 +216,7 @@ public class Actor extends DeepObject
     public void set (int flag, boolean value)
     {
         _flags = value ? (_flags | flag) : (_flags & ~flag);
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -225,7 +225,7 @@ public class Actor extends DeepObject
     public void set (int flag)
     {
         _flags |= flag;
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -234,7 +234,7 @@ public class Actor extends DeepObject
     public void clear (int flag)
     {
         _flags &= ~flag;
-        _dirty = true;
+        setDirty(true);
     }
 
     /**
@@ -351,7 +351,7 @@ public class Actor extends DeepObject
         result._rotation = _rotation;
         result._flags = _flags;
         result._original = _original;
-        result._dirty = true;
+        result.setDirty(true);
         return result;
     }
 
