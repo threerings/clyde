@@ -80,7 +80,7 @@ public class AgentLogic extends ActiveLogic
     {
         float rotation = _actor.getTranslation().direction(logic.getTranslation());
         if (force) {
-            setRotation(rotation);
+            _actor.setRotation(rotation);
             clearTargetRotation();
         } else {
             setTargetRotation(rotation);
@@ -103,7 +103,7 @@ public class AgentLogic extends ActiveLogic
     public void clearTargetRotation ()
     {
         _targetRotation = _actor.getRotation();
-        setTurnDirection(0);
+        ((Agent)_actor).setTurnDirection(0);
     }
 
     /**
@@ -132,8 +132,8 @@ public class AgentLogic extends ActiveLogic
     public void startMoving ()
     {
         if (canMove()) {
-            setDirection(_actor.getRotation());
-            set(Mobile.MOVING);
+            ((Mobile)_actor).setDirection(_actor.getRotation());
+            _actor.set(Mobile.MOVING);
         }
     }
 
@@ -142,7 +142,7 @@ public class AgentLogic extends ActiveLogic
      */
     public void stopMoving ()
     {
-        clear(Mobile.MOVING);
+        _actor.clear(Mobile.MOVING);
     }
 
     /**
@@ -188,12 +188,12 @@ public class AgentLogic extends ActiveLogic
             float diff = FloatMath.getAngularDifference(_targetRotation, rotation);
             float angle = elapsed * _turnRate;
             if (Math.abs(diff) <= angle) {
-                setRotation(_targetRotation);
+                _actor.setRotation(_targetRotation);
                 reachedTargetRotation();
             } else {
                 float dir = Math.signum(diff);
-                setTurnDirection((int)dir);
-                setRotation(FloatMath.normalizeAngle(rotation + angle * dir));
+                ((Agent)_actor).setTurnDirection((int)dir);
+                _actor.setRotation(FloatMath.normalizeAngle(rotation + angle * dir));
             }
         }
 
@@ -245,19 +245,10 @@ public class AgentLogic extends ActiveLogic
     protected void reachedTargetRotation ()
     {
         // clear turn direction
-        setTurnDirection(0);
+        ((Agent)_actor).setTurnDirection(0);
 
         // notify the behavior
         _behavior.reachedTargetRotation();
-    }
-
-    /**
-     * Sets the actor's turn direction and the dirty flag.
-     */
-    protected void setTurnDirection (int dir)
-    {
-        ((Agent)_actor).setTurnDirection(dir);
-        setDirty();
     }
 
     /** The agent's behavior logic. */

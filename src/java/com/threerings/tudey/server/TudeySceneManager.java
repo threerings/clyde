@@ -870,12 +870,6 @@ public class TudeySceneManager extends SceneManager
         return !result.equals(Vector2f.ZERO);
     }
 
-    // documentation inherited from interface ActorAdvancer.Environment
-    public void setDirty (Actor actor)
-    {
-        // no-op
-    }
-
     // documentation inherited from interface RunQueue
     public void postRunnable (Runnable runnable)
     {

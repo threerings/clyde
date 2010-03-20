@@ -838,12 +838,6 @@ public class TudeySceneView extends SimpleScope
         return !result.equals(Vector2f.ZERO);
     }
 
-    // documentation inherited from interface ActorAdvancer.Environment
-    public void setDirty (Actor actor)
-    {
-        // no-op
-    }
-
     @Override // documentation inherited
     public String getScopeName ()
     {

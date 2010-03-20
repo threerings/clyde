@@ -143,21 +143,13 @@ public class ActorLogic extends Logic
     {
         int timestamp = _scenemgr.getTimestamp();
         if (timestamp > _snaptime) {
-            if (true) { // (_dirty) {
+            if (true) { // (_actor.isDirty()) {
                 _snapshot = (Actor)_actor.clone();
-                _dirty = false;
+                _actor.setDirty(false);
             }
             _snaptime = timestamp;
         }
         return _snapshot;
-    }
-
-    /**
-     * Sets the dirty flag, indicating that the actor's state has changed.
-     */
-    public void setDirty ()
-    {
-        _dirty = true;
     }
 
     /**
@@ -212,7 +204,7 @@ public class ActorLogic extends Logic
         }
         _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
             public boolean tick (int timestamp) {
-                clear(Actor.WARP);
+                _actor.clear(Actor.WARP);
                 return false;
             }
         });
@@ -225,7 +217,6 @@ public class ActorLogic extends Logic
     {
         _actor.getTranslation().set(x, y);
         _actor.setRotation(rotation);
-        setDirty();
         updateShape();
     }
 
@@ -241,7 +232,6 @@ public class ActorLogic extends Logic
 
         // set the destroyed time and remove on the next tick
         _actor.setDestroyed(timestamp);
-        setDirty();
         _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
             public boolean tick (int timestamp) {
                 remove();
@@ -400,7 +390,7 @@ public class ActorLogic extends Logic
         }
 
         // if we exhaust our search, return to the original location
-        setTranslation(ox, oy);
+        _actor.setTranslation(ox, oy);
         updateShape();
     }
 
@@ -413,7 +403,7 @@ public class ActorLogic extends Logic
     protected boolean testSpawnPoint (float ox, float oy, float nx, float ny)
     {
         // update the shape
-        setTranslation(nx, ny);
+        _actor.setTranslation(nx, ny);
         updateShape();
 
         // check for collision
@@ -458,42 +448,6 @@ public class ActorLogic extends Logic
         // nothing by default
     }
 
-    /**
-     * Sets the actor's translation and the dirty flag.
-     */
-    protected void setTranslation (float x, float y)
-    {
-        _actor.getTranslation().set(x, y);
-        setDirty();
-    }
-
-    /**
-     * Sets the actor's rotation and the dirty flag.
-     */
-    protected void setRotation (float rotation)
-    {
-        _actor.setRotation(rotation);
-        setDirty();
-    }
-
-    /**
-     * Sets one of the actor's flags and the dirty flag.
-     */
-    protected void set (int flag)
-    {
-        _actor.set(flag);
-        setDirty();
-    }
-
-    /**
-     * Clears one of the actor's flags and sets the dirty flag.
-     */
-    protected void clear (int flag)
-    {
-        _actor.clear(flag);
-        setDirty();
-    }
-
     /** The actor configuration. */
     protected ActorConfig.Original _config;
 
@@ -505,9 +459,6 @@ public class ActorLogic extends Logic
 
     /** The timestamp of the actor snapshot. */
     protected int _snaptime;
-
-    /** Whether or not the actor has been modified since the last snapshot. */
-    protected boolean _dirty = true;
 
     /** The actor's shape element. */
     protected ShapeElement _shape;

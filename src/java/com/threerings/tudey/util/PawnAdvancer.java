@@ -82,13 +82,13 @@ public class PawnAdvancer extends ActiveAdvancer
             activity.updateInput();
         }
         if (canRotate()) {
-            setRotation(_frame.getRotation());
+            _pawn.setRotation(_frame.getRotation());
         }
         if (_frame.isSet(InputFrame.MOVE) && canMove()) {
-            setDirection(_frame.getDirection());
-            set(Mobile.MOVING);
+            _pawn.setDirection(_frame.getDirection());
+            _pawn.set(Mobile.MOVING);
         } else {
-            clear(Mobile.MOVING);
+            _pawn.clear(Mobile.MOVING);
         }
     }
 

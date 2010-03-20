@@ -106,6 +106,7 @@ public class Actor extends DeepObject
     public void setConfig (ConfigReference<ActorConfig> config)
     {
         _config = config;
+        _dirty = true;
     }
 
     /**
@@ -146,6 +147,7 @@ public class Actor extends DeepObject
     public void setDestroyed (int destroyed)
     {
         _destroyed = destroyed;
+        _dirty = true;
     }
 
     /**
@@ -155,6 +157,15 @@ public class Actor extends DeepObject
     public int getDestroyed ()
     {
         return _destroyed;
+    }
+
+    /**
+     * Sets the actor's translation and its dirty flag.
+     */
+    public void setTranslation (float x, float y)
+    {
+        _translation.set(x, y);
+        _dirty = true;
     }
 
     /**
@@ -171,6 +182,7 @@ public class Actor extends DeepObject
     public void setRotation (float rotation)
     {
         _rotation = rotation;
+        _dirty = true;
     }
 
     /**
@@ -187,6 +199,7 @@ public class Actor extends DeepObject
     public void setFlags (int flags)
     {
         _flags = flags;
+        _dirty = true;
     }
 
     /**
@@ -203,6 +216,7 @@ public class Actor extends DeepObject
     public void set (int flag, boolean value)
     {
         _flags = value ? (_flags | flag) : (_flags & ~flag);
+        _dirty = true;
     }
 
     /**
@@ -211,6 +225,7 @@ public class Actor extends DeepObject
     public void set (int flag)
     {
         _flags |= flag;
+        _dirty = true;
     }
 
     /**
@@ -219,6 +234,7 @@ public class Actor extends DeepObject
     public void clear (int flag)
     {
         _flags &= ~flag;
+        _dirty = true;
     }
 
     /**
@@ -303,6 +319,22 @@ public class Actor extends DeepObject
         return _original.collisionMask;
     }
 
+    /**
+     * Sets the state of the actor's dirty flag.
+     */
+    public void setDirty (boolean dirty)
+    {
+        _dirty = dirty;
+    }
+
+    /**
+     * Returns the state of the actor's dirty flag.
+     */
+    public boolean isDirty ()
+    {
+        return _dirty;
+    }
+
     @Override // documentation inherited
     public Object copy (Object dest)
     {
@@ -319,6 +351,7 @@ public class Actor extends DeepObject
         result._rotation = _rotation;
         result._flags = _flags;
         result._original = _original;
+        result._dirty = true;
         return result;
     }
 
@@ -393,6 +426,10 @@ public class Actor extends DeepObject
     /** The cached config implementation. */
     @DeepOmit
     protected transient ActorConfig.Original _original;
+
+    /** A dirty flag set whenever we change the actor's state. */
+    @DeepOmit
+    protected transient boolean _dirty = true;
 
     /** Used when we can't resolve the actor config. */
     protected static final ActorConfig.Original NULL_ORIGINAL = new ActorConfig.Original();
