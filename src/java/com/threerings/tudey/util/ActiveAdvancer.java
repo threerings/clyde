@@ -84,7 +84,7 @@ public class ActiveAdvancer extends MobileAdvancer
     protected void mobileStep (float elapsed)
     {
         if (!canMove()) {
-            _active.clear(Mobile.MOVING);
+            clear(Mobile.MOVING);
         }
         super.mobileStep(elapsed);
     }
@@ -95,6 +95,15 @@ public class ActiveAdvancer extends MobileAdvancer
     protected Activity getActivity ()
     {
         return _activities.get(_active.getActivity());
+    }
+
+    /**
+     * Sets the actor's activity and notes that it has changed.
+     */
+    protected void setActivity (int activity, int started)
+    {
+        _active.setActivity(activity, started);
+        setDirty();
     }
 
     /**
@@ -160,9 +169,9 @@ public class ActiveAdvancer extends MobileAdvancer
         {
             int started = _active.getActivityStarted();
             if (_timestamp - started >= _clear) {
-                _active.setActivity(Active.NONE, started + _clear);
+                setActivity(Active.NONE, started + _clear);
             } else if (!canMove()) {
-                _active.clear(Mobile.MOVING);
+                clear(Mobile.MOVING);
             }
         }
 

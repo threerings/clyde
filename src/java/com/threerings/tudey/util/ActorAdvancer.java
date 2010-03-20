@@ -51,6 +51,11 @@ public class ActorAdvancer
          * populated), false otherwise.
          */
         public boolean getPenetration (Actor actor, Shape shape, Vector2f result);
+
+        /**
+         * Notes that the actor's state has changed.
+         */
+        public void setDirty (Actor actor);
     }
 
     /**
@@ -117,6 +122,41 @@ public class ActorAdvancer
     {
         _transform.set(_actor.getTranslation(), _actor.getRotation(), 1f);
         _shape = _actor.getOriginal().shape.getShape().transform(_transform, _shape);
+    }
+
+    /**
+     * Sets the actor's rotation and notes that it has changed.
+     */
+    protected void setRotation (float rotation)
+    {
+        _actor.setRotation(rotation);
+        setDirty();
+    }
+
+    /**
+     * Sets a flag on the actor and notes that it has changed.
+     */
+    protected void set (int flag)
+    {
+        _actor.set(flag);
+        setDirty();
+    }
+
+    /**
+     * Clears a flag on the actor and notes that it has changed.
+     */
+    protected void clear (int flag)
+    {
+        _actor.clear(flag);
+        setDirty();
+    }
+
+    /**
+     * Notes that the actor has changed.
+     */
+    protected void setDirty ()
+    {
+        _environment.setDirty(_actor);
     }
 
     /** The actor's environment. */

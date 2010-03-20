@@ -88,6 +88,12 @@ public class MobileLogic extends ActorLogic
         return true;
     }
 
+    // documentation inherited from ActorAdvancer.Environment
+    public void setDirty (Actor actor)
+    {
+        setDirty();
+    }
+
     @Override // documentation inherited
     public void destroy (int timestamp, Logic activator)
     {
@@ -117,7 +123,7 @@ public class MobileLogic extends ActorLogic
         // set the actor in motion if appropriate
         if (((ActorConfig.Mobile)_actor.getOriginal()).moving) {
             ((Mobile)_actor).setDirection(_actor.getRotation());
-            _actor.set(Mobile.MOVING);
+            set(Mobile.MOVING);
         }
     }
 
@@ -137,6 +143,15 @@ public class MobileLogic extends ActorLogic
     protected void penetratedEnvironment (Vector2f penetration)
     {
         // nothing by default
+    }
+
+    /**
+     * Sets the actor's direction and the dirty flag.
+     */
+    protected void setDirection (float direction)
+    {
+        ((Mobile)_actor).setDirection(direction);
+        setDirty();
     }
 
     /** Used to advance the state of the actor. */

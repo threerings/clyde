@@ -75,6 +75,7 @@ public class MobileAdvancer extends ActorAdvancer
         if (_mobile.getTranslation().equals(_otrans)) {
             return;
         }
+        setDirty();
 
         // in several attempts, compute the penetration vector and use it to separate the mobile
         // from whatever it's penetrating
@@ -98,6 +99,15 @@ public class MobileAdvancer extends ActorAdvancer
     {
         // take a step
         _mobile.step(elapsed);
+    }
+
+    /**
+     * Sets the actor's direction and notes that it has changed.
+     */
+    protected void setDirection (float direction)
+    {
+        _mobile.setDirection(direction);
+        setDirty();
     }
 
     /** A casted reference to the mobile. */

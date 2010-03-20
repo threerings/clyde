@@ -83,6 +83,14 @@ public class ReflectiveDelta extends Delta
     }
 
     /**
+     * Checks whether the delta is empty.
+     */
+    public boolean isEmpty ()
+    {
+        return (_values.length == 0);
+    }
+
+    /**
      * Custom write method.
      */
     public void writeObject (ObjectOutputStream out)

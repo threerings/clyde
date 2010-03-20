@@ -1927,6 +1927,12 @@ public class TudeySceneModel extends SceneModel
         return !result.equals(Vector2f.ZERO);
     }
 
+    // documentation inherited from interface ActorAdvancer.Environment
+    public void setDirty (Actor actor)
+    {
+        // no-op
+    }
+
     @Override // documentation inherited
     public TudeySceneModel clone ()
     {
