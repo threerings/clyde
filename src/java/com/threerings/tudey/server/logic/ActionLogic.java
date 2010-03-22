@@ -124,14 +124,19 @@ public abstract class ActionLogic extends Logic
         protected float getRotation (Logic target)
         {
             ActionConfig.SpawnRotatedActor config = (ActionConfig.SpawnRotatedActor)_config;
-            return (config.relative ? target.getRotation() : 0f) + config.rotation;
+            float rotation = config.rotation;
+            if (config.rotationVariance > 0) {
+                rotation += config.rotationVariance * 0.5f +
+                    RandomUtil.getFloat(config.rotationVariance);
+            }
+            return (config.relative ? target.getRotation() : 0f) + rotation;
         }
     }
 
     /**
      * Handles a spawn transformed actor action.
      */
-    public static class SpawnTransformedActor extends SpawnActor
+    public static class SpawnTransformedActor extends SpawnRotatedActor
     {
         @Override // documentation inherited
         protected Vector2f getTranslation (Logic target)

@@ -114,6 +114,10 @@ public abstract class ActionConfig extends DeepObject
         @Editable(hgroup="r")
         public boolean relative = false;
 
+        /** The random rotation variance. */
+        @Editable(min=0, max=360, scale=Math.PI/180.0)
+        public float rotationVariance = 0;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
