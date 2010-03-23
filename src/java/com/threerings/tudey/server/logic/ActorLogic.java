@@ -143,7 +143,7 @@ public class ActorLogic extends Logic
     {
         int timestamp = _scenemgr.getTimestamp();
         if (timestamp > _snaptime) {
-            if (true) { // (_actor.isDirty()) {
+            if (_actor.isDirty()) {
                 _snapshot = (Actor)_actor.clone();
                 _actor.setDirty(false);
             }
