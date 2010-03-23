@@ -75,6 +75,7 @@ public class MobileAdvancer extends ActorAdvancer
         if (_mobile.getTranslation().equals(_otrans)) {
             return;
         }
+        _mobile.setDirty(true);
 
         // in several attempts, compute the penetration vector and use it to separate the mobile
         // from whatever it's penetrating
