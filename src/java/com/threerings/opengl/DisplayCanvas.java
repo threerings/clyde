@@ -64,7 +64,7 @@ public class DisplayCanvas extends Canvas
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
         // do not allow the canvas to receive focus
-        // setFocusable(false);
+        setFocusable(false);
 
         // add a listener to record states.  we do this here rather than in the check methods
         // because on some platforms AWT dispatches some of the mouse events that are also
