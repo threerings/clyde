@@ -63,6 +63,9 @@ public class DisplayCanvas extends Canvas
         // make popups heavyweight so that we can see them over the canvas
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
+        // do not allow the canvas to receive focus
+        // setFocusable(false);
+
         // add a listener to record states.  we do this here rather than in the check methods
         // because on some platforms AWT dispatches some of the mouse events that are also
         // picked up by LWJGL
