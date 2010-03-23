@@ -25,6 +25,7 @@
 package com.threerings.opengl;
 
 import java.awt.AWTEvent;
+import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -36,6 +37,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.event.MouseInputAdapter;
@@ -52,7 +54,7 @@ import static com.threerings.opengl.Log.*;
 /**
  * A canvas that uses {@link Display}.
  */
-public class DisplayCanvas extends Canvas
+public class DisplayCanvas extends JPanel
     implements GlCanvas
 {
     /**
@@ -60,11 +62,42 @@ public class DisplayCanvas extends Canvas
      */
     public DisplayCanvas ()
     {
+        super(new BorderLayout());
+
+        // create and add the contained canvas
+        _canvas = new Canvas() {
+            @Override public Point getMousePosition () {
+                return _entered ? getRelativeMouseLocation() : null;
+            }
+            @Override public void paint (Graphics g) {
+                // initialize on first paint
+                if (_initialized) {
+                    return;
+                }
+                _initialized = true;
+
+                // attempt to find a valid pixel format
+                for (PixelFormat format : GlApp.PIXEL_FORMATS) {
+                    try {
+                        init(format);
+                        return;
+                    } catch (LWJGLException e) {
+                        // proceed to next format
+                    }
+                }
+                log.warning("Couldn't find valid pixel format.");
+            }
+            @Override public void update (Graphics g) {
+                // no-op
+            }
+        };
+        add(_canvas, BorderLayout.CENTER);
+
         // make popups heavyweight so that we can see them over the canvas
         JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 
         // do not allow the canvas to receive focus
-        setFocusable(false);
+        _canvas.setFocusable(false);
 
         // add a listener to record states.  we do this here rather than in the check methods
         // because on some platforms AWT dispatches some of the mouse events that are also
@@ -79,6 +112,7 @@ public class DisplayCanvas extends Canvas
                 _entered = false;
             }
             @Override public void mousePressed (MouseEvent event) {
+                requestFocusInWindow();
                 _lbuttons[getLWJGLButton(event.getButton())] = true;
             }
             @Override public void mouseReleased (MouseEvent event) {
@@ -132,46 +166,13 @@ public class DisplayCanvas extends Canvas
         Display.destroy();
     }
 
-    @Override // documentation inherited
-    public Point getMousePosition ()
-    {
-        return _entered ? getRelativeMouseLocation() : null;
-    }
-
-    @Override // documentation inherited
-    public void paint (Graphics g)
-    {
-        // initialize on first paint
-        if (_initialized) {
-            return;
-        }
-        _initialized = true;
-
-        // attempt to find a valid pixel format
-        for (PixelFormat format : GlApp.PIXEL_FORMATS) {
-            try {
-                init(format);
-                return;
-            } catch (LWJGLException e) {
-                // proceed to next format
-            }
-        }
-        log.warning("Couldn't find valid pixel format.");
-    }
-
-    @Override // documentation inherited
-    public void update (Graphics g)
-    {
-        // no-op
-    }
-
     /**
      * Attempts to create the display with this canvas as its parent.
      */
     protected void init (PixelFormat pformat)
         throws LWJGLException
     {
-        Display.setParent(this);
+        Display.setParent(_canvas);
         Display.create(pformat);
 
         // create the keyboard and mouse
@@ -595,6 +596,9 @@ public class DisplayCanvas extends Canvas
     {
         return (modifiers & ANY_BUTTONS_DOWN_MASK) != 0;
     }
+
+    /** The contained canvas. */
+    protected Canvas _canvas;
 
     /** Set on initialization. */
     protected boolean _initialized;

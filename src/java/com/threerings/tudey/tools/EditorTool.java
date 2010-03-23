@@ -24,7 +24,7 @@
 
 package com.threerings.tudey.tools;
 
-import java.awt.Canvas;
+import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -97,7 +97,7 @@ public abstract class EditorTool extends JPanel
     {
         _button.setSelected(true);
 
-        Canvas canvas = _editor.getCanvas();
+        Component canvas = _editor.getCanvas();
         canvas.addMouseListener(this);
         canvas.addMouseMotionListener(this);
         canvas.addMouseWheelListener(this);
@@ -108,7 +108,7 @@ public abstract class EditorTool extends JPanel
      */
     public void deactivate ()
     {
-        Canvas canvas = _editor.getCanvas();
+        Component canvas = _editor.getCanvas();
         canvas.removeMouseListener(this);
         canvas.removeMouseMotionListener(this);
         canvas.removeMouseWheelListener(this);

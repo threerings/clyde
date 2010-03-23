@@ -25,7 +25,7 @@
 package com.threerings.opengl;
 
 import java.awt.BorderLayout;
-import java.awt.Canvas;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.KeyboardFocusManager;
@@ -111,7 +111,7 @@ public abstract class GlCanvasApp extends GlApp
     /**
      * Returns a reference to the canvas.
      */
-    public Canvas getCanvas ()
+    public Component getCanvas ()
     {
         return _canvas;
     }
@@ -215,7 +215,7 @@ public abstract class GlCanvasApp extends GlApp
     /**
      * Creates a canvas using one of our supported pixel formats.
      */
-    protected Canvas createCanvas ()
+    protected Component createCanvas ()
     {
         // at least as of Ubuntu 9.10 (Karmic Koala), using the AWTCanvas on Linux results
         // in frequent crashes.  on Windows, however, the DisplayCanvas doesn't handle mouse
@@ -271,7 +271,7 @@ public abstract class GlCanvasApp extends GlApp
     protected JFrame _frame;
 
     /** The render canvas. */
-    protected Canvas _canvas;
+    protected Component _canvas;
 
     /** The root. */
     protected Root _canvasRoot;

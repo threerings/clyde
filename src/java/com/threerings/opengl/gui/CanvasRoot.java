@@ -24,7 +24,7 @@
 
 package com.threerings.opengl.gui;
 
-import java.awt.Canvas;
+import java.awt.Component;
 import java.awt.EventQueue;
 
 import org.lwjgl.input.Keyboard;
@@ -43,7 +43,7 @@ public class CanvasRoot extends Root
     implements java.awt.event.MouseListener, java.awt.event.MouseMotionListener,
                java.awt.event.MouseWheelListener, java.awt.event.KeyListener
 {
-    public CanvasRoot (GlContext ctx, Canvas canvas)
+    public CanvasRoot (GlContext ctx, Component canvas)
     {
         super(ctx);
         _canvas = canvas;
@@ -337,5 +337,5 @@ public class CanvasRoot extends Root
         }
     }
 
-    protected Canvas _canvas;
+    protected Component _canvas;
 }
