@@ -112,7 +112,7 @@ public abstract class ActionConfig extends DeepObject
             return new Executor() {
                 public void execute () {
                     if (moveWithOrigin) {
-                        Model spawned = (Model)spawnTransient.call(model, _world.setToIdentity());
+                        Model spawned = (Model)spawnTransient.call(model, transform);
                         spawned.setParentScope(node == null ? scope : node);
                     } else {
                         spawnTransient.call(model, parent.compose(transform, _world));
