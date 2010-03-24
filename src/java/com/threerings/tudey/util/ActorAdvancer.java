@@ -103,6 +103,14 @@ public class ActorAdvancer
     }
 
     /**
+     * Jumps to the specified timestamp without actually taking a step.
+     */
+    public void jump (int timestamp)
+    {
+        _timestamp = Math.max(_timestamp, timestamp);
+    }
+
+    /**
      * Takes an Euler step of the specified length.
      */
     protected void step (float elapsed)

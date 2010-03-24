@@ -183,6 +183,15 @@ public class ActorConfig extends ParameterizedConfig
         @Editable(hgroup="s")
         public boolean moving;
 
+        /** Whether or not the actor starts out awake. */
+        @Editable(hgroup="a")
+        public boolean awake;
+
+        /** Put the actor to sleep when it's been out of sight for this long
+         * (zero if we should never put it to sleep). */
+        @Editable(min=0, hgroup="a")
+        public int sleepInterval = 5000;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
@@ -195,6 +204,15 @@ public class ActorConfig extends ParameterizedConfig
      */
     public static class Pawn extends Mobile
     {
+        /**
+         * Customizes some of the defaults.
+         */
+        public Pawn ()
+        {
+            awake = true;
+            sleepInterval = 0;
+        }
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {

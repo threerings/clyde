@@ -59,6 +59,14 @@ public class MobileLogic extends ActorLogic
     // documentation inherited from interface TudeySceneManager.TickParticipant
     public boolean tick (int timestamp)
     {
+        // if enough time has elapsed without our being seen, go to sleep
+        int sleepInterval = ((ActorConfig.Mobile)_config).sleepInterval;
+        if (sleepInterval > 0 && timestamp - _snaptime > sleepInterval) {
+            _scenemgr.removeTickParticipant(this);
+            _awake = false;
+            wentToSleep();
+        }
+
         // advance to the current timestamp
         _advancer.advance(timestamp);
 
@@ -89,6 +97,19 @@ public class MobileLogic extends ActorLogic
     }
 
     @Override // documentation inherited
+    public Actor getSnapshot ()
+    {
+        // wake the actor up if it's asleep
+        if (!_awake) {
+            _scenemgr.addTickParticipant(this);
+            _awake = true;
+            _advancer.jump(_scenemgr.getTimestamp());
+            wokeUp();
+        }
+        return super.getSnapshot();
+    }
+
+    @Override // documentation inherited
     public void destroy (int timestamp, Logic activator)
     {
         super.destroy(timestamp, activator);
@@ -108,16 +129,20 @@ public class MobileLogic extends ActorLogic
     @Override // documentation inherited
     protected void didInit ()
     {
-        // register as tick participant
-        _scenemgr.addTickParticipant(this);
-
         // create advancer
         _advancer = createAdvancer();
 
         // set the actor in motion if appropriate
-        if (((ActorConfig.Mobile)_actor.getOriginal()).moving) {
+        ActorConfig.Mobile config = (ActorConfig.Mobile)_config;
+        if (config.moving) {
             ((Mobile)_actor).setDirection(_actor.getRotation());
             _actor.set(Mobile.MOVING);
+        }
+
+        // start ticking immediately if we start out awake
+        if (_awake = config.awake) {
+            _scenemgr.addTickParticipant(this);
+            wokeUp();
         }
     }
 
@@ -127,6 +152,22 @@ public class MobileLogic extends ActorLogic
     protected ActorAdvancer createAdvancer ()
     {
         return new MobileAdvancer(this, (Mobile)_actor, _actor.getCreated());
+    }
+
+    /**
+     * Called when the actor wakes up.
+     */
+    protected void wokeUp ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Called when the actor has gone back to sleep.
+     */
+    protected void wentToSleep ()
+    {
+        // nothing by default
     }
 
     /**
@@ -141,6 +182,9 @@ public class MobileLogic extends ActorLogic
 
     /** Used to advance the state of the actor. */
     protected ActorAdvancer _advancer;
+
+    /** Whether or not the actor is awake. */
+    protected boolean _awake;
 
     /** The number of penetrations. */
     protected int _penetrationCount;
