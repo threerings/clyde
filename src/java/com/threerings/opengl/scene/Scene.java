@@ -39,6 +39,7 @@ import com.samskivert.util.Predicate;
 import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
+import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.Frustum;
 import com.threerings.math.Ray3D;
@@ -62,6 +63,40 @@ import com.threerings.opengl.util.Tickable;
 public abstract class Scene extends DynamicScope
     implements Tickable, Compositable
 {
+    /**
+     * Extends the normal model class to include an optional pre-tick updater.
+     */
+    public static class Transient extends Model
+    {
+        /**
+         * Creates a new transient model.
+         */
+        public Transient (GlContext ctx, ConfigReference<ModelConfig> ref)
+        {
+            super(ctx, ref);
+        }
+
+        /**
+         * Installs an updater that will be called before each tick.
+         */
+        public void setUpdater (Updater updater)
+        {
+            _updater = updater;
+        }
+
+        @Override // documentation inherited
+        public void tick (float elapsed)
+        {
+            if (_updater != null) {
+                _updater.update();
+            }
+            super.tick(elapsed);
+        }
+
+        /** The updater to call before each tick. */
+        protected Updater _updater;
+    }
+
     /**
      * Creates a new scene.
      */
@@ -87,9 +122,9 @@ public abstract class Scene extends DynamicScope
      * Spawns a transient model.
      */
     @Scoped
-    public Model spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
+    public Transient spawnTransient (ConfigReference<ModelConfig> ref, Transform3D transform)
     {
-        Model model = getFromTransientPool(ref);
+        Transient model = getFromTransientPool(ref);
         model.setLocalTransform(transform);
         add(model);
         return model;
@@ -99,12 +134,12 @@ public abstract class Scene extends DynamicScope
      * Returns an instance of the referenced model from the transient pool.
      */
     @Scoped
-    public Model getFromTransientPool (ConfigReference<ModelConfig> ref)
+    public Transient getFromTransientPool (ConfigReference<ModelConfig> ref)
     {
-        ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
+        ArrayList<SoftReference<Transient>> list = _transientPool.get(ref);
         if (list != null) {
             for (int ii = list.size() - 1; ii >= 0; ii--) {
-                Model model = list.remove(ii).get();
+                Transient model = list.remove(ii).get();
                 if (model != null) {
                     model.reset();
                     return model;
@@ -112,7 +147,7 @@ public abstract class Scene extends DynamicScope
             }
             _transientPool.remove(ref);
         }
-        Model model = new Model(_ctx, ref);
+        Transient model = new Transient(_ctx, ref);
         model.setParentScope(this);
         model.setUserObject(ref);
         model.addObserver(_transientObserver);
@@ -123,17 +158,17 @@ public abstract class Scene extends DynamicScope
      * Returns a model to the transient pool.
      */
     @Scoped
-    public void returnToTransientPool (Model model)
+    public void returnToTransientPool (Transient model)
     {
-        // reset the model's scope in case someone else changed it
-        model.setParentScope(this);
+        // clear out the model's updater, if any
+        model.setUpdater(null);
 
         ConfigReference ref = (ConfigReference)model.getUserObject();
-        ArrayList<SoftReference<Model>> list = _transientPool.get(ref);
+        ArrayList<SoftReference<Transient>> list = _transientPool.get(ref);
         if (list == null) {
-            _transientPool.put(ref, list = new ArrayList<SoftReference<Model>>());
+            _transientPool.put(ref, list = new ArrayList<SoftReference<Transient>>());
         }
-        list.add(new SoftReference<Model>(model));
+        list.add(new SoftReference<Transient>(model));
     }
 
     /**
@@ -619,14 +654,14 @@ public abstract class Scene extends DynamicScope
     protected ViewerEffectSet _effects = new ViewerEffectSet();
 
     /** Pooled transient models. */
-    protected HashMap<ConfigReference, ArrayList<SoftReference<Model>>> _transientPool =
+    protected HashMap<ConfigReference, ArrayList<SoftReference<Transient>>> _transientPool =
         Maps.newHashMap();
 
     /** Removes transient models and returns them to the pool when they complete. */
     protected ModelAdapter _transientObserver = new ModelAdapter() {
         public boolean modelCompleted (Model model) {
             remove(model, false);
-            returnToTransientPool(model);
+            returnToTransientPool((Transient)model);
             return true;
         }
     };

@@ -31,6 +31,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
@@ -39,6 +40,7 @@ import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
 import com.threerings.opengl.model.Articulated;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -111,11 +113,15 @@ public abstract class ActionConfig extends DeepObject
                 node.getWorldTransform();
             return new Executor() {
                 public void execute () {
+                    final Scene.Transient spawned = (Scene.Transient)spawnTransient.call(
+                        model, parent.compose(transform, _world));
                     if (moveWithOrigin) {
-                        Model spawned = (Model)spawnTransient.call(model, transform);
-                        spawned.setParentScope(node == null ? scope : node);
-                    } else {
-                        spawnTransient.call(model, parent.compose(transform, _world));
+                        // install an updater to update the transform
+                        spawned.setUpdater(new Updater() {
+                            public void update () {
+                                spawned.setLocalTransform(parent.compose(transform, _world));
+                            }
+                        });
                     }
                 }
                 protected Transform3D _world = new Transform3D();
