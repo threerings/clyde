@@ -907,9 +907,7 @@ public class TudeySceneManager extends SceneManager
         _pathfinder = new Pathfinder(this);
 
         // create logic objects for scene entries and listen for changes
-        for (Entry entry : sceneModel.getEntries()) {
-            addLogic(entry);
-        }
+        createEntryLogics(sceneModel);
         sceneModel.addObserver(this);
 
         // register and fill in our tudey scene service
@@ -917,6 +915,16 @@ public class TudeySceneManager extends SceneManager
 
         // get a reference to the ticker
         _ticker = getTicker();
+    }
+
+    /**
+     * Creates logics for an entries that have them.
+     */
+    protected void createEntryLogics (TudeySceneModel sceneModel)
+    {
+        for (Entry entry : sceneModel.getEntries()) {
+            addLogic(entry);
+        }
     }
 
     @Override // documentation inherited
