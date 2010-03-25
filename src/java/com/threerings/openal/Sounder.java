@@ -38,6 +38,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
+import com.threerings.expr.BooleanExpression;
 import com.threerings.expr.Bound;
 import com.threerings.expr.MutableBoolean;
 import com.threerings.expr.MutableFloat;
@@ -814,6 +815,137 @@ public class Sounder extends SimpleScope
 
         /** The weights of the streams. */
         protected float[] _weights;
+    }
+
+    /**
+     * Plays the first sounder whose condition evaluates to true.
+     */
+    public static class Conditional extends Implementation
+    {
+        /**
+         * Creates a new conditional implementation.
+         */
+        public Conditional (AlContext ctx, Scope parentScope, SounderConfig.Conditional config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.Conditional config)
+        {
+            _config = config;
+            updateFromConfig();
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            for (Sounder sounder : _sounders) {
+                if (sounder.loops()) {
+                    return true;
+                }
+            }
+            return _defaultSounder.loops();
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            for (int ii = 0; ii < _evaluators.length; ii++) {
+                if (_evaluators[ii].evaluate()) {
+                    (_sounder = _sounders[ii]).start();
+                    return;
+                }
+            }
+            (_sounder = _defaultSounder).start();
+        }
+
+        @Override // documentation inherited
+        public void stop ()
+        {
+            if (_sounder != null) {
+                _sounder.stop();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            return _sounder != null && _sounder.isPlaying();
+        }
+
+        @Override // documentation inherited
+        public void update ()
+        {
+            if (_sounder != null) {
+                _sounder.update();
+            }
+        }
+
+        @Override // documentation inherited
+        public void scopeUpdated (ScopeEvent event)
+        {
+            super.scopeUpdated(event);
+            updateFromConfig();
+        }
+
+        /**
+         * Updates the sounder from its configuration.
+         */
+        protected void updateFromConfig ()
+        {
+            boolean wasPlaying = isPlaying();
+
+            // create the evaluators
+            _evaluators = new BooleanExpression.Evaluator[_config.cases.length];
+            for (int ii = 0; ii < _evaluators.length; ii++) {
+                _evaluators[ii] = _config.cases[ii].condition.createEvaluator(this);
+            }
+
+            // create the case sounders
+            Sounder[] osounders = _sounders;
+            _sounders = new Sounder[_config.cases.length];
+            for (int ii = 0; ii < _sounders.length; ii++) {
+                Sounder sounder = (osounders == null || osounders.length <= ii) ?
+                    new Sounder(_ctx, this, _transform) : osounders[ii];
+                _sounders[ii] = sounder;
+                sounder.setConfig(_config.cases[ii].sounder);
+            }
+            if (osounders != null) {
+                for (int ii = _sounders.length; ii < osounders.length; ii++) {
+                    osounders[ii].dispose();
+                }
+            }
+
+            // create the default sounder
+            if (_defaultSounder == null) {
+                _defaultSounder = new Sounder(_ctx, this, _transform);
+            }
+            _defaultSounder.setConfig(_config.defaultSounder);
+
+            // restart if appropriate
+            if ((wasPlaying || _started.value && loops()) && !isPlaying()) {
+                start();
+            }
+        }
+
+        /** The sounder configuration. */
+        protected SounderConfig.Conditional _config;
+
+        /** The case evaluators. */
+        protected BooleanExpression.Evaluator[] _evaluators;
+
+        /** The case sounders. */
+        protected Sounder[] _sounders;
+
+        /** The default sounder. */
+        protected Sounder _defaultSounder;
+
+        /** The currently playing sounder, if any. */
+        protected Sounder _sounder;
     }
 
     /**

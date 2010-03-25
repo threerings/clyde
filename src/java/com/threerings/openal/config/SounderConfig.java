@@ -33,6 +33,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.expr.BooleanExpression;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
@@ -51,7 +52,7 @@ public class SounderConfig extends ParameterizedConfig
      */
     @EditorTypes({
         Clip.class, MetaClip.class, Stream.class, MetaStream.class,
-        Compound.class, Derived.class })
+        Conditional.class, Compound.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -380,6 +381,56 @@ public class SounderConfig extends ParameterizedConfig
         /** The pitch multiplier. */
         @Editable(min=0, step=0.01)
         public float pitch = 1f;
+    }
+
+    /**
+     * Plays the first sounder whose condition evaluates to true.
+     */
+    public static class Conditional extends Implementation
+    {
+        /** The condition cases. */
+        @Editable
+        public Case[] cases = new Case[0];
+
+        /** The default sounder reference. */
+        @Editable(nullable=true)
+        public ConfigReference<SounderConfig> defaultSounder;
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (Case caze : cases) {
+                refs.add(SounderConfig.class, caze.sounder);
+            }
+            refs.add(SounderConfig.class, defaultSounder);
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (impl instanceof Sounder.Conditional) {
+                ((Sounder.Conditional)impl).setConfig(this);
+            } else {
+                impl = new Sounder.Conditional(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * A case within a conditional sounder
+     */
+    public static class Case extends DeepObject
+        implements Exportable
+    {
+        /** The condition for the case. */
+        @Editable
+        public BooleanExpression condition = new BooleanExpression.Constant(true);
+
+        /** The sound reference. */
+        @Editable(nullable=true)
+        public ConfigReference<SounderConfig> sounder;
     }
 
     /**
