@@ -211,13 +211,7 @@ public class DisplayCanvas extends JPanel
                 if (_updater != null) {
                     makeCurrent();
                     updateFrame();
-                    EventQueue.invokeLater(new Runnable() {
-                        public void run () {
-                            if (_updater != null) {
-                                EventQueue.invokeLater(_updater);
-                            }
-                        }
-                    });
+                    EventQueue.invokeLater(this);
                 }
             }
         };
