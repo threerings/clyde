@@ -140,7 +140,7 @@ public class MobileLogic extends ActorLogic
         }
 
         // start ticking immediately if we don't start out in stasis
-        if (_inStasis = config.startInStasis) {
+        if (!(_inStasis = config.startInStasis)) {
             _scenemgr.addTickParticipant(this);
             leftStasis();
         }
