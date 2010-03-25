@@ -1041,6 +1041,103 @@ public class Sounder extends SimpleScope
     }
 
     /**
+     * Plays the first sounder whose condition evaluates to true.
+     */
+    public static class Random extends Implementation
+    {
+        /**
+         * Creates a new conditional implementation.
+         */
+        public Random (AlContext ctx, Scope parentScope, SounderConfig.Random config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.Random config)
+        {
+            boolean wasPlaying = isPlaying();
+
+            // create the component sounders
+            Sounder[] osounders = _sounders;
+            _sounders = new Sounder[config.sounders.length];
+            _weights = new float[_sounders.length];
+            for (int ii = 0; ii < _sounders.length; ii++) {
+                Sounder sounder = (osounders == null || osounders.length <= ii) ?
+                    new Sounder(_ctx, this, _transform) : osounders[ii];
+                _sounders[ii] = sounder;
+                SounderConfig.WeightedSounder wsounder = config.sounders[ii];
+                sounder.setConfig(wsounder.sounder);
+                _weights[ii] = wsounder.weight;
+            }
+            if (osounders != null) {
+                for (int ii = _sounders.length; ii < osounders.length; ii++) {
+                    osounders[ii].dispose();
+                }
+            }
+
+            // restart if appropriate
+            if ((wasPlaying || _started.value && loops()) && !isPlaying()) {
+                start();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            for (Sounder sounder : _sounders) {
+                if (sounder.loops()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            (_sounder = _sounders[RandomUtil.getWeightedIndex(_weights)]).start();
+        }
+
+        @Override // documentation inherited
+        public void stop ()
+        {
+            if (_sounder != null) {
+                _sounder.stop();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            return _sounder != null && _sounder.isPlaying();
+        }
+
+        @Override // documentation inherited
+        public void update ()
+        {
+            if (_sounder != null) {
+                _sounder.update();
+            }
+        }
+
+        /** The sounder configuration. */
+        protected SounderConfig.Conditional _config;
+
+        /** The component sounders. */
+        protected Sounder[] _sounders;
+
+        /** The weights of the sounders. */
+        protected float[] _weights;
+
+        /** The currently playing sounder, if any. */
+        protected Sounder _sounder;
+    }
+
+    /**
      * Creates a new sounder with a null configuration.
      *
      * @param transform a reference to the sound transform to use.

@@ -52,7 +52,7 @@ public class SounderConfig extends ParameterizedConfig
      */
     @EditorTypes({
         Clip.class, MetaClip.class, Stream.class, MetaStream.class,
-        Conditional.class, Compound.class, Derived.class })
+        Conditional.class, Compound.class, Random.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -472,6 +472,54 @@ public class SounderConfig extends ParameterizedConfig
     public static class ComponentSounder extends DeepObject
         implements Exportable
     {
+        /** The sound reference. */
+        @Editable(nullable=true)
+        public ConfigReference<SounderConfig> sounder;
+    }
+
+    /**
+     * Plays a randomly selected sub-sounder.
+     */
+    public static class Random extends Implementation
+    {
+        /** The component sounders. */
+        @Editable
+        public WeightedSounder[] sounders = new WeightedSounder[0];
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (WeightedSounder comp : sounders) {
+                refs.add(SounderConfig.class, comp.sounder);
+            }
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (sounders.length == 0) {
+                return null;
+            }
+            if (impl instanceof Sounder.Random) {
+                ((Sounder.Random)impl).setConfig(this);
+            } else {
+                impl = new Sounder.Random(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * A component sounder within a compound.
+     */
+    public static class WeightedSounder extends DeepObject
+        implements Exportable
+    {
+        /** The weight of the sounder. */
+        @Editable(min=0.0, step=0.01)
+        public float weight = 1f;
+
         /** The sound reference. */
         @Editable(nullable=true)
         public ConfigReference<SounderConfig> sounder;
