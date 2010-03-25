@@ -430,6 +430,61 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a switch action.
+     */
+    public static class Switch extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            for (int ii = 0; ii < _conditions.length; ii++) {
+                if (_conditions[ii].isSatisfied(activator)) {
+                    return _actions[ii].execute(timestamp, activator);
+                }
+            }
+            if (_defaultAction != null) {
+                return _defaultAction.execute(timestamp, activator);
+            }
+            return true;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ActionConfig.Switch config = (ActionConfig.Switch)_config;
+            _conditions = new ConditionLogic[config.cases.length];
+            _actions = new ActionLogic[config.cases.length];
+            for (int ii = 0; ii < config.cases.length; ii++) {
+                _conditions[ii] = createCondition(config.cases[ii].condition, _source);
+                _actions[ii] = createAction(config.cases[ii].action, _source);
+            }
+            if (config.defaultAction != null) {
+                _defaultAction = createAction(config.defaultAction, _source);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            for (ActionLogic action : _actions) {
+                action.removed();
+            }
+            if (_defaultAction != null) {
+                _defaultAction.removed();
+            }
+        }
+
+        /** The condition to evaluate. */
+        protected ConditionLogic[] _conditions;
+
+        /** The action to take if the condition is satisfied. */
+        protected ActionLogic[] _actions;
+
+        /** The default action to take. */
+        protected ActionLogic _defaultAction;
+    }
+
+    /**
      * Handles a compound action.
      */
     public static class Compound extends ActionLogic

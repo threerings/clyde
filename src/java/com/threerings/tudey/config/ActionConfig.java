@@ -49,9 +49,9 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.WarpActor.class, ActionConfig.WarpTransformedActor.class,
     ActionConfig.FireEffect.class, ActionConfig.Signal.class,
     ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
-    ActionConfig.Conditional.class, ActionConfig.Compound.class,
-    ActionConfig.Random.class, ActionConfig.Delayed.class,
-    ActionConfig.StepLimitMobile.class })
+    ActionConfig.Conditional.class, ActionConfig.Switch.class,
+    ActionConfig.Compound.class, ActionConfig.Random.class,
+    ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -437,6 +437,78 @@ public abstract class ActionConfig extends DeepObject
             }
             return actions;
         }
+    }
+
+    /**
+     * Executes the first sub-action with a satisfied condition.
+     */
+    public static class Switch extends ActionConfig
+    {
+        /** The switch cases. */
+        @Editable
+        public Case[] cases = new Case[0];
+
+        /** The default action to take if no case is satisfied. */
+        @Editable(nullable=true)
+        public ActionConfig defaultAction;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$Switch";
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            for (Case c : cases) {
+                c.action.getPreloads(cfgmgr, preloads);
+            }
+            if (defaultAction != null) {
+                defaultAction.getPreloads(cfgmgr, preloads);
+            }
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Case c : cases) {
+                c.condition.invalidate();
+                c.action.invalidate();
+            }
+            if (defaultAction != null) {
+                defaultAction.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
+        public ActionConfig[] getSubActions ()
+        {
+            ActionConfig[] actions =
+                new ActionConfig[cases.length + (defaultAction == null ? 0 : 1)];
+            for (int ii = 0; ii < cases.length; ii++) {
+                actions[ii] = cases[ii].action;
+            }
+            if (defaultAction != null) {
+                actions[cases.length] = defaultAction;
+            }
+            return actions;
+        }
+    }
+
+    /**
+     * A switch case.
+     */
+    public static class Case extends DeepObject
+        implements Streamable
+    {
+        /** The case condition. */
+        @Editable
+        public ConditionConfig condition = new ConditionConfig.Tagged();
+
+        /** The case action. */
+        @Editable
+        public ActionConfig action = new ActionConfig.SpawnActor();
     }
 
     /**
