@@ -181,16 +181,16 @@ public class ActorConfig extends ParameterizedConfig
 
         /** If true, set the actor in motion after spawning. */
         @Editable(hgroup="s")
-        public boolean moving;
+        public boolean startMoving;
 
-        /** Whether or not the actor starts out awake. */
+        /** Whether or not the actor starts out in stasis. */
         @Editable(hgroup="a")
-        public boolean awake;
+        public boolean startInStasis = true;
 
-        /** Put the actor to sleep when it's been out of sight for this long
-         * (zero if we should never put it to sleep). */
+        /** Put the actor into stasis when it's been out of sight for this long
+         * (zero if we should never put it into stasis). */
         @Editable(min=0, hgroup="a")
-        public int sleepInterval = 5000;
+        public int stasisInterval = 5000;
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -209,8 +209,8 @@ public class ActorConfig extends ParameterizedConfig
          */
         public Pawn ()
         {
-            awake = true;
-            sleepInterval = 0;
+            startInStasis = false;
+            stasisInterval = 0;
         }
 
         @Override // documentation inherited

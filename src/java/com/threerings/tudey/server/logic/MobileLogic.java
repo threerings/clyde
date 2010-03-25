@@ -59,12 +59,12 @@ public class MobileLogic extends ActorLogic
     // documentation inherited from interface TudeySceneManager.TickParticipant
     public boolean tick (int timestamp)
     {
-        // if enough time has elapsed without our being seen, go to sleep
-        int sleepInterval = ((ActorConfig.Mobile)_config).sleepInterval;
-        if (sleepInterval > 0 && timestamp - _snaptime > sleepInterval) {
+        // if enough time has elapsed without our being seen, enter stasis
+        int stasisInterval = ((ActorConfig.Mobile)_config).stasisInterval;
+        if (stasisInterval > 0 && timestamp - _snaptime > stasisInterval) {
             _scenemgr.removeTickParticipant(this);
-            _awake = false;
-            wentToSleep();
+            _inStasis = true;
+            enteredStasis();
         }
 
         // advance to the current timestamp
@@ -99,12 +99,12 @@ public class MobileLogic extends ActorLogic
     @Override // documentation inherited
     public Actor getSnapshot ()
     {
-        // wake the actor up if it's asleep
-        if (!_awake) {
+        // wake the actor up if it's in stasis
+        if (_inStasis) {
             _scenemgr.addTickParticipant(this);
-            _awake = true;
+            _inStasis = false;
             _advancer.jump(_scenemgr.getTimestamp());
-            wokeUp();
+            leftStasis();
         }
         return super.getSnapshot();
     }
@@ -134,15 +134,15 @@ public class MobileLogic extends ActorLogic
 
         // set the actor in motion if appropriate
         ActorConfig.Mobile config = (ActorConfig.Mobile)_config;
-        if (config.moving) {
+        if (config.startMoving) {
             ((Mobile)_actor).setDirection(_actor.getRotation());
             _actor.set(Mobile.MOVING);
         }
 
-        // start ticking immediately if we start out awake
-        if (_awake = config.awake) {
+        // start ticking immediately if we don't start out in stasis
+        if (_inStasis = config.startInStasis) {
             _scenemgr.addTickParticipant(this);
-            wokeUp();
+            leftStasis();
         }
     }
 
@@ -155,17 +155,17 @@ public class MobileLogic extends ActorLogic
     }
 
     /**
-     * Called when the actor wakes up.
+     * Called when the actor leaves stasis.
      */
-    protected void wokeUp ()
+    protected void leftStasis ()
     {
         // nothing by default
     }
 
     /**
-     * Called when the actor has gone back to sleep.
+     * Called when the actor enters stasis.
      */
-    protected void wentToSleep ()
+    protected void enteredStasis ()
     {
         // nothing by default
     }
@@ -183,8 +183,8 @@ public class MobileLogic extends ActorLogic
     /** Used to advance the state of the actor. */
     protected ActorAdvancer _advancer;
 
-    /** Whether or not the actor is awake. */
-    protected boolean _awake;
+    /** Whether or not the actor is in stasis. */
+    protected boolean _inStasis;
 
     /** The number of penetrations. */
     protected int _penetrationCount;
