@@ -81,6 +81,14 @@ public class Sounder extends SimpleScope
         }
 
         /**
+         * Checks whether the configured sound loops.
+         */
+        public boolean loops ()
+        {
+            return false;
+        }
+
+        /**
          * Starts playing the sound.
          */
         public abstract void start ();
@@ -116,19 +124,8 @@ public class Sounder extends SimpleScope
             stop();
         }
 
-        /**
-         * (Re)configures the implementation.
-         */
-        protected void setConfig (SounderConfig.Original config)
-        {
-            _config = config;
-        }
-
         /** The application context. */
         protected AlContext _ctx;
-
-        /** The implementation configuration. */
-        protected SounderConfig.Original _config;
 
         /** The sound transform. */
         @Bound
@@ -157,7 +154,13 @@ public class Sounder extends SimpleScope
          */
         public void setConfig (SounderConfig.BaseClip config)
         {
-            super.setConfig(_config = config);
+            _config = config;
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            return _config.loop;
         }
 
         @Override // documentation inherited
@@ -405,7 +408,7 @@ public class Sounder extends SimpleScope
          */
         public void setConfig (SounderConfig.BaseStream config)
         {
-            super.setConfig(_config = config);
+            _config = config;
         }
 
         @Override // documentation inherited
@@ -671,6 +674,12 @@ public class Sounder extends SimpleScope
         }
 
         @Override // documentation inherited
+        public boolean loops ()
+        {
+            return _config.loops();
+        }
+
+        @Override // documentation inherited
         public void start ()
         {
             if (!_ctx.getSoundManager().isInitialized()) {
@@ -725,6 +734,12 @@ public class Sounder extends SimpleScope
             if (_started.value && !isPlaying()) {
                 start();
             }
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            return true;
         }
 
         @Override // documentation inherited
@@ -802,6 +817,98 @@ public class Sounder extends SimpleScope
     }
 
     /**
+     * Plays several sub-sounders at once.
+     */
+    public static class Compound extends Implementation
+    {
+        /**
+         * Creates a new compound implementation.
+         */
+        public Compound (AlContext ctx, Scope parentScope, SounderConfig.Compound config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.Compound config)
+        {
+            boolean wasPlaying = (_sounders != null && isPlaying());
+
+            // create the component sounders
+            Sounder[] osounders = _sounders;
+            _sounders = new Sounder[config.sounders.length];
+            for (int ii = 0; ii < _sounders.length; ii++) {
+                Sounder sounder = (osounders == null || osounders.length <= ii) ?
+                    new Sounder(_ctx, this, _transform) : osounders[ii];
+                _sounders[ii] = sounder;
+                sounder.setConfig(config.sounders[ii].sounder);
+            }
+            if (osounders != null) {
+                for (int ii = _sounders.length; ii < osounders.length; ii++) {
+                    osounders[ii].dispose();
+                }
+            }
+
+            // restart if appropriate
+            if ((wasPlaying || _started.value && loops()) && !isPlaying()) {
+                start();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            for (Sounder sounder : _sounders) {
+                if (sounder.loops()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            for (Sounder sounder : _sounders) {
+                sounder.start();
+            }
+        }
+
+        @Override // documentation inherited
+        public void stop ()
+        {
+            for (Sounder sounder : _sounders) {
+                sounder.stop();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            for (Sounder sounder : _sounders) {
+                if (sounder.isPlaying()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
+        public void update ()
+        {
+            for (Sounder sounder : _sounders) {
+                sounder.update();
+            }
+        }
+
+        /** The component sounders. */
+        protected Sounder[] _sounders;
+    }
+
+    /**
      * Creates a new sounder with a null configuration.
      *
      * @param transform a reference to the sound transform to use.
@@ -860,6 +967,14 @@ public class Sounder extends SimpleScope
             _config.addListener(this);
         }
         updateFromConfig();
+    }
+
+    /**
+     * Checks whether the configured sound loops.
+     */
+    public boolean loops ()
+    {
+        return _impl.loops();
     }
 
     /**

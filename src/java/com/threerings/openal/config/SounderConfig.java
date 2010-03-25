@@ -49,7 +49,9 @@ public class SounderConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the sounder.
      */
-    @EditorTypes({ Clip.class, MetaClip.class, Stream.class, MetaStream.class, Derived.class })
+    @EditorTypes({
+        Clip.class, MetaClip.class, Stream.class, MetaStream.class,
+        Compound.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -378,6 +380,50 @@ public class SounderConfig extends ParameterizedConfig
         /** The pitch multiplier. */
         @Editable(min=0, step=0.01)
         public float pitch = 1f;
+    }
+
+    /**
+     * Plays multiple sounders simultaneously.
+     */
+    public static class Compound extends Implementation
+    {
+        /** The component sounders. */
+        @Editable
+        public ComponentSounder[] sounders = new ComponentSounder[0];
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (ComponentSounder comp : sounders) {
+                refs.add(SounderConfig.class, comp.sounder);
+            }
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (sounders.length == 0) {
+                return null;
+            }
+            if (impl instanceof Sounder.Compound) {
+                ((Sounder.Compound)impl).setConfig(this);
+            } else {
+                impl = new Sounder.Compound(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * A component sounder within a compound.
+     */
+    public static class ComponentSounder extends DeepObject
+        implements Exportable
+    {
+        /** The sound reference. */
+        @Editable(nullable=true)
+        public ConfigReference<SounderConfig> sounder;
     }
 
     /**
