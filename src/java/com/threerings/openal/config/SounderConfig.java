@@ -478,7 +478,7 @@ public class SounderConfig extends ParameterizedConfig
     }
 
     /**
-     * Plays a a scripted sequence of sounders.
+     * Plays a scripted sequence of sounders.
      */
     public static class Scripted extends Implementation
     {
