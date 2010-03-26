@@ -48,6 +48,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -1038,6 +1039,145 @@ public class Sounder extends SimpleScope
 
         /** The component sounders. */
         protected Sounder[] _sounders;
+    }
+
+    /**
+     * Plays a scripted sequence of sounders.
+     */
+    public static class Scripted extends Implementation
+    {
+        /**
+         * Creates a new scripted implementation.
+         */
+        public Scripted (AlContext ctx, Scope parentScope, SounderConfig.Scripted config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.Scripted config)
+        {
+            boolean wasPlaying = (_sounders != null && isPlaying());
+            _config = config;
+
+            // create the component sounders
+            Sounder[] osounders = _sounders;
+            _sounders = new Sounder[config.sounders.length];
+            _times = new float[_sounders.length];
+            for (int ii = 0; ii < _sounders.length; ii++) {
+                Sounder sounder = (osounders == null || osounders.length <= ii) ?
+                    new Sounder(_ctx, this, _transform) : osounders[ii];
+                _sounders[ii] = sounder;
+                SounderConfig.TimedSounder tsounder = config.sounders[ii];
+                sounder.setConfig(tsounder.sounder);
+                _times[ii] = tsounder.time;
+            }
+            if (osounders != null) {
+                for (int ii = _sounders.length; ii < osounders.length; ii++) {
+                    osounders[ii].dispose();
+                }
+            }
+
+            // restart if appropriate
+            if ((wasPlaying || _started.value && loops()) && !isPlaying()) {
+                start();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            return _config.loopDuration > 0f;
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            _time = 0f;
+            _sidx = 0;
+            _last = _now.value;
+            _completed = false;
+        }
+
+        @Override // documentation inherited
+        public void stop ()
+        {
+            for (Sounder sounder : _sounders) {
+                sounder.stop();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            for (Sounder sounder : _sounders) {
+                if (sounder.isPlaying()) {
+                    return true;
+                }
+            }
+            return _started.value && !_completed;
+        }
+
+        @Override // documentation inherited
+        public void update ()
+        {
+            if (_completed) {
+                return;
+            }
+            float elapsed = (_now.value - _last) / 1000f;
+            _last = _now.value;
+            _time += elapsed;
+            startSounders();
+
+            // check for loop or completion
+            if (_config.loopDuration > 0f) {
+                if (_time >= _config.loopDuration) {
+                    _time = FloatMath.IEEEremainder(_time, _config.loopDuration);
+                    _sidx = 0;
+                    startSounders();
+                }
+            } else if (_sidx >= _sounders.length) {
+                _completed = true;
+            }
+        }
+
+        /**
+         * Starts all sounders scheduled before or at the current time.
+         */
+        protected void startSounders ()
+        {
+            for (; _sidx < _sounders.length && _times[_sidx] < _time; _sidx++) {
+                _sounders[_sidx].start();
+            }
+        }
+
+        /** The implementation config. */
+        protected SounderConfig.Scripted _config;
+
+        /** The component sounders. */
+        protected Sounder[] _sounders;
+
+        /** The times of the sounders. */
+        protected float[] _times;
+
+        /** The amount of time elapsed. */
+        protected float _time;
+
+        /** The index of the current sounder. */
+        protected int _sidx;
+
+        /** The time of the last update. */
+        protected long _last;
+
+        /** If true, the script has completed. */
+        protected boolean _completed;
+
+        /** The current time. */
+        @Bound
+        protected MutableLong _now;
     }
 
     /**

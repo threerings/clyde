@@ -51,8 +51,8 @@ public class SounderConfig extends ParameterizedConfig
      * Contains the actual implementation of the sounder.
      */
     @EditorTypes({
-        Clip.class, MetaClip.class, Stream.class, MetaStream.class,
-        Conditional.class, Compound.class, Random.class, Derived.class })
+        Clip.class, MetaClip.class, Stream.class, MetaStream.class, Conditional.class,
+        Compound.class, Scripted.class, Random.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -472,6 +472,58 @@ public class SounderConfig extends ParameterizedConfig
     public static class ComponentSounder extends DeepObject
         implements Exportable
     {
+        /** The sound reference. */
+        @Editable(nullable=true)
+        public ConfigReference<SounderConfig> sounder;
+    }
+
+    /**
+     * Plays a a scripted sequence of sounders.
+     */
+    public static class Scripted extends Implementation
+    {
+        /** The loop duration, or zero for unlooped. */
+        @Editable(min=0.0, step=0.01)
+        public float loopDuration;
+
+        /** The sounders to play. */
+        @Editable
+        public TimedSounder[] sounders = new TimedSounder[0];
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (TimedSounder comp : sounders) {
+                refs.add(SounderConfig.class, comp.sounder);
+            }
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (sounders.length == 0) {
+                return null;
+            }
+            if (impl instanceof Sounder.Scripted) {
+                ((Sounder.Scripted)impl).setConfig(this);
+            } else {
+                impl = new Sounder.Scripted(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * A sounder to play at a specific time.
+     */
+    public static class TimedSounder extends DeepObject
+        implements Exportable
+    {
+        /** The time at which to play the sound. */
+        @Editable(min=0, step=0.01)
+        public float time;
+
         /** The sound reference. */
         @Editable(nullable=true)
         public ConfigReference<SounderConfig> sounder;
