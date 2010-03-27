@@ -24,6 +24,10 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Map;
+
+import com.google.common.collect.Maps;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
@@ -32,6 +36,7 @@ import com.threerings.opengl.model.config.ModelConfig;
 
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.ConditionConfig;
+import com.threerings.tudey.config.ExpressionConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.config.RegionConfig;
 import com.threerings.tudey.config.TargetConfig;
@@ -187,6 +192,29 @@ public abstract class Logic
     }
 
     /**
+     * Sets the value of a variable.
+     *
+     * @param timestamp the set timestamp.
+     * @param source the source of the request.
+     * @return the previous value.
+     */
+    public Object setVariable (int timestamp, Logic source, String name, Object value)
+    {
+        if (_variables == null) {
+            _variables = Maps.newHashMap();
+        }
+        return _variables.put(name, value);
+    }
+
+    /**
+     * Retrieves the value of a variable (or <code>null</code> if unset).
+     */
+    public Object getVariable (String name)
+    {
+        return (_variables == null) ? null : _variables.get(name);
+    }
+
+    /**
      * Notifies the logic of a client request.
      *
      * @param timestamp the request timestamp.
@@ -270,6 +298,22 @@ public abstract class Logic
     }
 
     /**
+     * Creates and returns an expression logic object.
+     */
+    protected ExpressionLogic createExpression (ExpressionConfig config, Logic source)
+    {
+        // create the logic instance
+        ExpressionLogic logic = (ExpressionLogic)_scenemgr.createLogic(config.getLogicClassName());
+        if (logic == null) {
+            return null;
+        }
+
+        // initialize, return the logic
+        logic.init(_scenemgr, config, source);
+        return logic;
+    }
+
+    /**
      * Creates and returns a region logic object.
      */
     protected RegionLogic createRegion (RegionConfig config, Logic source)
@@ -287,6 +331,9 @@ public abstract class Logic
 
     /** The scene manager. */
     protected TudeySceneManager _scenemgr;
+
+    /** The lazily initialized variable map. */
+    protected Map<String, Object> _variables;
 
     /** An empty tag array. */
     protected static final String[] NO_TAGS = new String[0];

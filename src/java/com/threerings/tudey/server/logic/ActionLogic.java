@@ -641,6 +641,40 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a set variable action.
+     */
+    public static class SetVariable extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            String name = ((ActionConfig.SetVariable)_config).name;
+            _target.resolve(activator, _targets);
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                target.setVariable(timestamp, _source, name,
+                    _value.evaluate(activator, target.getVariable(name)));
+            }
+            _targets.clear();
+            return true;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ActionConfig.SetVariable config = (ActionConfig.SetVariable)_config;
+            _target = createTarget(config.target, _source);
+            _value = createExpression(config.value, _source);
+        }
+
+        /** The target logic. */
+        protected TargetLogic _target;
+
+        /** The value logic. */
+        protected ExpressionLogic _value;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ActionConfig config, Logic source)
