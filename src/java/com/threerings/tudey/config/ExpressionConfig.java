@@ -36,7 +36,8 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     ExpressionConfig.Constant.class, ExpressionConfig.Reference.class,
-    ExpressionConfig.Previous.class })
+    ExpressionConfig.Previous.class, ExpressionConfig.Increment.class,
+    ExpressionConfig.GreaterEquals.class })
 public abstract class ExpressionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -91,6 +92,61 @@ public abstract class ExpressionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Previous";
+        }
+    }
+
+    /**
+     * Adds one to the result of the sub-expression.
+     */
+    public static class Increment extends ExpressionConfig
+    {
+        /** The operand of the expression. */
+        @Editable
+        public ExpressionConfig operand = new ExpressionConfig.Constant();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Increment";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            operand.invalidate();
+        }
+    }
+
+    /**
+     * Base class for binary operations.
+     */
+    public static abstract class BinaryOperation extends ExpressionConfig
+    {
+        /** The first operand of the expression. */
+        @Editable
+        public ExpressionConfig firstOperand = new ExpressionConfig.Constant();
+
+        /** The second operand of the expression. */
+        @Editable
+        public ExpressionConfig secondOperand = new ExpressionConfig.Constant();
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            firstOperand.invalidate();
+            secondOperand.invalidate();
+        }
+    }
+
+    /**
+     * Finds out whether the first operand is greater than or equal to the second.
+     */
+    public static class GreaterEquals extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$GreaterEquals";
         }
     }
 

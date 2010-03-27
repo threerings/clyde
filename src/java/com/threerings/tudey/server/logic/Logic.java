@@ -356,6 +356,32 @@ public abstract class Logic
         return false;
     }
 
+    /**
+     * Coerces the specified weakly typed value to a double.
+     */
+    protected static double coerceToDouble (Object value)
+    {
+        if (value == null) {
+            return 0.0;
+        }
+        if (value instanceof Boolean) {
+            return ((Boolean)value).booleanValue() ? 1.0 : 0.0;
+        }
+        if (value instanceof Number) {
+            return ((Number)value).doubleValue();
+        }
+        if (value instanceof String) {
+            String str = (String)value;
+            try {
+                return Double.parseDouble(str);
+            } catch (NumberFormatException e) {
+                return Boolean.parseBoolean(str) ? 1.0 : 0.0;
+            }
+        }
+        log.warning("Cannot coerce value to double.", "value", value);
+        return 0.0;
+    }
+
     /** The scene manager. */
     protected TudeySceneManager _scenemgr;
 

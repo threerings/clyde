@@ -97,6 +97,57 @@ public abstract class ExpressionLogic extends Logic
     }
 
     /**
+     * Evaluates an increment expression.
+     */
+    public static class Increment extends ExpressionLogic
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_operand.evaluate(activator, previous)) + 1.0;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _operand = createExpression(((ExpressionConfig.Increment)_config).operand, _source);
+        }
+
+        /** The operand logic. */
+        protected ExpressionLogic _operand;
+    }
+
+    /**
+     * Base class for the binary operations.
+     */
+    public static abstract class BinaryOperation extends ExpressionLogic
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ExpressionConfig.BinaryOperation config = (ExpressionConfig.BinaryOperation)_config;
+            _firstOperand = createExpression(config.firstOperand, _source);
+            _secondOperand = createExpression(config.secondOperand, _source);
+        }
+
+        /** The operand logics. */
+        protected ExpressionLogic _firstOperand, _secondOperand;
+    }
+
+    /**
+     * Evaluates a greater than or equal to expression.
+     */
+    public static class GreaterEquals extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) >=
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ExpressionConfig config, Logic source)
