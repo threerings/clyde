@@ -543,7 +543,6 @@ public abstract class HandlerLogic extends Logic
             _target = createTarget(((HandlerConfig.ActorRemoved)_config).target, _source);
         }
 
-
         /** The target actors. */
         protected TargetLogic _target;
 
@@ -552,6 +551,18 @@ public abstract class HandlerLogic extends Logic
 
         /** The number of relevant actors at last count. */
         protected int _lastCount;
+    }
+
+    /**
+     * Handles variable changes.
+     */
+    public static class VariableChanged extends HandlerLogic
+    {
+        @Override // documentation inherited
+        public void variableChanged (int timestamp, Logic activator, String name)
+        {
+            execute(timestamp, activator);
+        }
     }
 
     /**
@@ -580,6 +591,14 @@ public abstract class HandlerLogic extends Logic
      * Shuts down the handler.
      */
     public void shutdown (int timestamp, Logic activator)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Notes that a variable has changed.
+     */
+    public void variableChanged (int timestamp, Logic activator, String name)
     {
         // nothing by default
     }

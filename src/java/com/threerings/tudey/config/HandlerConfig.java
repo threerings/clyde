@@ -43,7 +43,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     HandlerConfig.SignalStop.class, HandlerConfig.Intersection.class,
     HandlerConfig.IntersectionStart.class, HandlerConfig.IntersectionStop.class,
     HandlerConfig.ThresholdIntersectionCount.class, HandlerConfig.Request.class,
-    HandlerConfig.ActorRemoved.class })
+    HandlerConfig.ActorRemoved.class, HandlerConfig.VariableChanged.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -290,6 +290,18 @@ public abstract class HandlerConfig extends DeepObject
         public void invalidate ()
         {
             target.invalidate();
+        }
+    }
+
+    /**
+     * Called when any variable is modified.
+     */
+    public static class VariableChanged extends HandlerConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$VariableChanged";
         }
     }
 

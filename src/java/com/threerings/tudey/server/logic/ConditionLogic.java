@@ -444,6 +444,28 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the evaluate condition.
+     */
+    public static class Evaluate extends ConditionLogic
+    {
+        @Override // documentaiton inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            return coerceToBoolean(_expression.evaluate(activator, null));
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _expression = createExpression(
+                ((ConditionConfig.Evaluate)_config).expression, _source);
+        }
+
+        /** The expression to evaluate. */
+        protected ExpressionLogic _expression;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ConditionConfig config, Logic source)

@@ -43,6 +43,8 @@ import com.threerings.tudey.config.TargetConfig;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 
+import static com.threerings.tudey.Log.*;
+
 /**
  * Handles the server-side processing for some entity.
  */
@@ -196,14 +198,13 @@ public abstract class Logic
      *
      * @param timestamp the set timestamp.
      * @param source the source of the request.
-     * @return the previous value.
      */
-    public Object setVariable (int timestamp, Logic source, String name, Object value)
+    public void setVariable (int timestamp, Logic source, String name, Object value)
     {
         if (_variables == null) {
             _variables = Maps.newHashMap();
         }
-        return _variables.put(name, value);
+        _variables.put(name, value);
     }
 
     /**
@@ -327,6 +328,32 @@ public abstract class Logic
         // initialize, return the logic
         logic.init(_scenemgr, config, source);
         return logic;
+    }
+
+    /**
+     * Coerces the specified weakly typed value to a boolean.
+     */
+    protected static boolean coerceToBoolean (Object value)
+    {
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof Boolean) {
+            return ((Boolean)value).booleanValue();
+        }
+        if (value instanceof Number) {
+            return ((Number)value).doubleValue() != 0.0;
+        }
+        if (value instanceof String) {
+            String str = (String)value;
+            try {
+                return Double.parseDouble(str) != 0.0;
+            } catch (NumberFormatException e) {
+                return Boolean.parseBoolean(str);
+            }
+        }
+        log.warning("Cannot coerce value to boolean.", "value", value);
+        return false;
     }
 
     /** The scene manager. */

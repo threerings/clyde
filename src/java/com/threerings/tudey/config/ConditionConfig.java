@@ -38,7 +38,8 @@ import com.threerings.util.DeepObject;
     ConditionConfig.Random.class, ConditionConfig.Limit.class,
     ConditionConfig.All.class, ConditionConfig.Any.class,
     ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class,
-    ConditionConfig.Not.class, ConditionConfig.Always.class })
+    ConditionConfig.Not.class, ConditionConfig.Always.class,
+    ConditionConfig.Evaluate.class })
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
 {
@@ -337,6 +338,28 @@ public abstract class ConditionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ConditionLogic$Always";
+        }
+    }
+
+    /**
+     * Satisfied if the expression evaluates to true.
+     */
+    public static class Evaluate extends ConditionConfig
+    {
+        /** The expression to evaluate. */
+        @Editable
+        public ExpressionConfig expression = new ExpressionConfig.Constant();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Evaluate";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            expression.invalidate();
         }
     }
 
