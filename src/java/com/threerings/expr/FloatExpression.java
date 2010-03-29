@@ -327,7 +327,7 @@ public abstract class FloatExpression extends DeepObject
         {
             return new Evaluator() {
                 public float evaluate () {
-                    return FloatMath.IEEEremainder(eval1.evaluate(), eval2.evaluate());
+                    return eval1.evaluate() % eval2.evaluate();
                 }
             };
         }
