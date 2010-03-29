@@ -26,12 +26,15 @@ package com.threerings.tudey.server.logic;
 
 import java.util.List;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ExpressionConfig;
 import com.threerings.tudey.server.TudeySceneManager;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Handles the server-side expression evaluation.
@@ -46,8 +49,17 @@ public abstract class ExpressionLogic extends Logic
         @Override // documentation inherited
         public Object evaluate (Logic activator, Object previous)
         {
-            return ((ExpressionConfig.Constant)_config).value;
+            return _value;
         }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _value = parseValue(((ExpressionConfig.Constant)_config).value);
+        }
+
+        /** The parsed value. */
+        protected Object _value;
     }
 
     /**
@@ -97,24 +109,55 @@ public abstract class ExpressionLogic extends Logic
     }
 
     /**
+     * Base class for unary operations.
+     */
+    public static abstract class UnaryOperation extends ExpressionLogic
+    {
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _operand = createExpression(
+                ((ExpressionConfig.UnaryOperation)_config).operand, _source);
+        }
+
+        /** The operand logic. */
+        protected ExpressionLogic _operand;
+    }
+
+    /**
      * Evaluates an increment expression.
      */
-    public static class Increment extends ExpressionLogic
+    public static class Increment extends UnaryOperation
     {
         @Override // documentation inherited
         public Object evaluate (Logic activator, Object previous)
         {
             return coerceToDouble(_operand.evaluate(activator, previous)) + 1.0;
         }
+    }
 
+    /**
+     * Evaluates a decrement expression.
+     */
+    public static class Decrement extends UnaryOperation
+    {
         @Override // documentation inherited
-        protected void didInit ()
+        public Object evaluate (Logic activator, Object previous)
         {
-            _operand = createExpression(((ExpressionConfig.Increment)_config).operand, _source);
+            return coerceToDouble(_operand.evaluate(activator, previous)) - 1.0;
         }
+    }
 
-        /** The operand logic. */
-        protected ExpressionLogic _operand;
+    /**
+     * Evaluates a negate expression.
+     */
+    public static class Negate extends UnaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return -coerceToDouble(_operand.evaluate(activator, previous));
+        }
     }
 
     /**
@@ -132,6 +175,174 @@ public abstract class ExpressionLogic extends Logic
 
         /** The operand logics. */
         protected ExpressionLogic _firstOperand, _secondOperand;
+    }
+
+    /**
+     * Evaluates an add expression.
+     */
+    public static class Add extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) +
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates an add expression.
+     */
+    public static class Subtract extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) -
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates an add expression.
+     */
+    public static class Multiply extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) *
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates an add expression.
+     */
+    public static class Divide extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) /
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates an add expression.
+     */
+    public static class Remainder extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) %
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates a logical NOT expression.
+     */
+    public static class Not extends UnaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return !coerceToBoolean(_operand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates a logical AND expression.
+     */
+    public static class And extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToBoolean(_firstOperand.evaluate(activator, previous)) &&
+                coerceToBoolean(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates a logical OR expression.
+     */
+    public static class Or extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToBoolean(_firstOperand.evaluate(activator, previous)) ||
+                coerceToBoolean(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates a logical XOR expression.
+     */
+    public static class Xor extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToBoolean(_firstOperand.evaluate(activator, previous)) ^
+                coerceToBoolean(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates a less than expression.
+     */
+    public static class Less extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) <
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates a greater than expression.
+     */
+    public static class Greater extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) >
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates an equal to expression.
+     */
+    public static class Equals extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return Objects.equal(_firstOperand.evaluate(activator, previous),
+                _secondOperand.evaluate(activator, previous));
+        }
+    }
+
+    /**
+     * Evaluates a less than or equal to expression.
+     */
+    public static class LessEquals extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return coerceToDouble(_firstOperand.evaluate(activator, previous)) <=
+                coerceToDouble(_secondOperand.evaluate(activator, previous));
+        }
     }
 
     /**
@@ -189,6 +400,78 @@ public abstract class ExpressionLogic extends Logic
     protected void didInit ()
     {
         // nothing by default
+    }
+
+    /**
+     * Attempts to parse the supplied string into one of our known types.
+     */
+    protected static Object parseValue (String str)
+    {
+        if (str.equalsIgnoreCase("null")) {
+            return null;
+        } else if (str.equalsIgnoreCase("true")) {
+            return true;
+        } else if (str.equalsIgnoreCase("false")) {
+            return false;
+        }
+        try {
+            return Double.parseDouble(str);
+        } catch (NumberFormatException e) {
+            // fall through
+        }
+        return str;
+    }
+
+    /**
+     * Coerces the specified weakly typed value to a boolean.
+     */
+    protected static boolean coerceToBoolean (Object value)
+    {
+        if (value == null) {
+            return false;
+        }
+        if (value instanceof Boolean) {
+            return ((Boolean)value).booleanValue();
+        }
+        if (value instanceof Number) {
+            return ((Number)value).doubleValue() != 0.0;
+        }
+        if (value instanceof String) {
+            String str = (String)value;
+            try {
+                return Double.parseDouble(str) != 0.0;
+            } catch (NumberFormatException e) {
+                return Boolean.parseBoolean(str);
+            }
+        }
+        log.warning("Cannot coerce value to boolean.", "value", value);
+        return false;
+    }
+
+    /**
+     * Coerces the specified weakly typed value to a double.
+     */
+    protected static double coerceToDouble (Object value)
+    {
+        if (value == null) {
+            return 0.0;
+        }
+        if (value instanceof Boolean) {
+            return ((Boolean)value).booleanValue() ? 1.0 : 0.0;
+        }
+        if (value instanceof Number) {
+            return ((Number)value).doubleValue();
+        }
+        if (value instanceof String) {
+            String str = (String)value;
+            try {
+                return Double.parseDouble(str);
+            } catch (NumberFormatException e) {
+                return Boolean.parseBoolean(str) ? 1.0 : 0.0;
+            }
+        }
+        log.warning("Cannot coerce value to double.", "value", value);
+        return 0.0;
     }
 
     /** The expression configuration. */

@@ -451,7 +451,7 @@ public abstract class ConditionLogic extends Logic
         @Override // documentaiton inherited
         public boolean isSatisfied (Logic activator)
         {
-            return coerceToBoolean(_expression.evaluate(activator, null));
+            return ExpressionLogic.coerceToBoolean(_expression.evaluate(activator, null));
         }
 
         @Override // documentation inherited

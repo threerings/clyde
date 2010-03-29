@@ -37,7 +37,14 @@ import com.threerings.util.DeepObject;
 @EditorTypes({
     ExpressionConfig.Constant.class, ExpressionConfig.Reference.class,
     ExpressionConfig.Previous.class, ExpressionConfig.Increment.class,
-    ExpressionConfig.GreaterEquals.class })
+    ExpressionConfig.Decrement.class, ExpressionConfig.Negate.class,
+    ExpressionConfig.Add.class, ExpressionConfig.Subtract.class,
+    ExpressionConfig.Multiply.class, ExpressionConfig.Divide.class,
+    ExpressionConfig.Remainder.class, ExpressionConfig.Not.class,
+    ExpressionConfig.And.class, ExpressionConfig.Or.class,
+    ExpressionConfig.Xor.class, ExpressionConfig.Less.class,
+    ExpressionConfig.Greater.class, ExpressionConfig.Equals.class,
+    ExpressionConfig.LessEquals.class, ExpressionConfig.GreaterEquals.class })
 public abstract class ExpressionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -96,24 +103,54 @@ public abstract class ExpressionConfig extends DeepObject
     }
 
     /**
-     * Adds one to the result of the sub-expression.
+     * Base class for unary operations.
      */
-    public static class Increment extends ExpressionConfig
+    public static abstract class UnaryOperation extends ExpressionConfig
     {
         /** The operand of the expression. */
         @Editable
         public ExpressionConfig operand = new ExpressionConfig.Constant();
 
         @Override // documentation inherited
+        public void invalidate ()
+        {
+            operand.invalidate();
+        }
+    }
+
+    /**
+     * Adds one to the operand.
+     */
+    public static class Increment extends UnaryOperation
+    {
+        @Override // documentation inherited
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Increment";
         }
+    }
 
+    /**
+     * Subtracts one from the operand.
+     */
+    public static class Decrement extends UnaryOperation
+    {
         @Override // documentation inherited
-        public void invalidate ()
+        public String getLogicClassName ()
         {
-            operand.invalidate();
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Decrement";
+        }
+    }
+
+    /**
+     * Negates the operand.
+     */
+    public static class Negate extends UnaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Negate";
         }
     }
 
@@ -135,6 +172,162 @@ public abstract class ExpressionConfig extends DeepObject
         {
             firstOperand.invalidate();
             secondOperand.invalidate();
+        }
+    }
+
+    /**
+     * Computes the sum of the operands.
+     */
+    public static class Add extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Add";
+        }
+    }
+
+    /**
+     * Computes the difference of the operands.
+     */
+    public static class Subtract extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Subtract";
+        }
+    }
+
+    /**
+     * Computes the product of the operands.
+     */
+    public static class Multiply extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Multiply";
+        }
+    }
+
+    /**
+     * Computes the quotient of the operands.
+     */
+    public static class Divide extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Divide";
+        }
+    }
+
+    /**
+     * Computes the remainder of division of the operands.
+     */
+    public static class Remainder extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Remainder";
+        }
+    }
+
+    /**
+     * Computes the logical NOT of the operand.
+     */
+    public static class Not extends UnaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Not";
+        }
+    }
+
+    /**
+     * Computes the logical AND of the first and second operands.
+     */
+    public static class And extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$And";
+        }
+    }
+
+    /**
+     * Computes the logical OR of the first and second operands.
+     */
+    public static class Or extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Or";
+        }
+    }
+
+    /**
+     * Computes the logical XOR of the first and second operands.
+     */
+    public static class Xor extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Xor";
+        }
+    }
+
+    /**
+     * Finds out whether the first operand is less then the second.
+     */
+    public static class Less extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Less";
+        }
+    }
+
+    /**
+     * Finds out whether the first operand is greater than the second.
+     */
+    public static class Greater extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Greater";
+        }
+    }
+
+    /**
+     * Finds out whether the first operand is equal to the second.
+     */
+    public static class Equals extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Equals";
+        }
+    }
+
+    /**
+     * Finds out whether the first operand is less than or equal to the second.
+     */
+    public static class LessEquals extends BinaryOperation
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$LessEquals";
         }
     }
 
