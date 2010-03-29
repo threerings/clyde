@@ -1135,7 +1135,7 @@ public class Sounder extends SimpleScope
             // check for loop or completion
             if (_config.loopDuration > 0f) {
                 if (_time >= _config.loopDuration) {
-                    _time = _time % _config.loopDuration;
+                    _time %= _config.loopDuration;
                     _sidx = 0;
                     startSounders();
                 }

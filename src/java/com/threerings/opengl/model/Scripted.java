@@ -127,7 +127,7 @@ public class Scripted extends Model.Implementation
         // check for loop or completion
         if (_config.loopDuration > 0f) {
             if (_time >= _config.loopDuration) {
-                _time = _time % _config.loopDuration;
+                _time %= _config.loopDuration;
                 _eidx = 0;
                 executeActions();
             }
