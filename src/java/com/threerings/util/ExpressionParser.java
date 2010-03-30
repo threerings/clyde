@@ -40,18 +40,8 @@ import com.google.common.collect.Maps;
  * Parses simple expressions using an implementation of the
  * <a href="http://en.wikipedia.org/wiki/Shunting-yard_algorithm">shunting-yard algorithm</a>.
  */
-public class ExpressionParser
+public class ExpressionParser<T>
 {
-    public static void main (String... args)
-        throws Exception
-    {
-        java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            new ExpressionParser(new java.io.StringReader(line)).parse();
-        }
-    }
-
     /**
      * Creates a new parser to read from the specified reader.
      */
@@ -63,20 +53,20 @@ public class ExpressionParser
     /**
      * Parses the expression.
      */
-    public void parse ()
-        throws IOException
+    public T parse ()
+        throws Exception
     {
         // read in the tokens
         int token;
         while ((token = _strtok.nextToken()) != StreamTokenizer.TT_EOF) {
             switch (token) {
                 case StreamTokenizer.TT_NUMBER:
-                    _output.add(_strtok.nval);
+                    handle(_strtok.nval);
                     break;
 
                 case '\'':
                 case '\"':
-                    _output.add(_strtok.sval);
+                    handle(_strtok.sval);
                     break;
 
                 case StreamTokenizer.TT_WORD:
@@ -86,31 +76,31 @@ public class ExpressionParser
                     int ntoken = _strtok.nextToken();
                     _strtok.pushBack();
                     if (ntoken == '(') {
-                        _stack.push(new FunctionCall(sval));
+                        _operation.push(new FunctionCall(sval));
                     } else if (ntoken == '[') {
-                        _stack.push(new ArrayIndex(sval));
+                        _operation.push(new ArrayIndex(sval));
                     } else {
-                        _output.add(new Identifier(sval));
+                        handle(new Identifier(sval));
                     }
                     break;
 
                 case ',':
                     try {
-                        while (!_stack.peek().equals('(')) {
-                            _output.add(_stack.pop());
+                        while (!_operation.peek().equals('(')) {
+                            handle(_operation.pop());
                         }
                     } catch (EmptyStackException e) {
-                        throw new IOException("Misplaced separator or mismatched parentheses.");
+                        throw new Exception("Misplaced separator or mismatched parentheses.");
                     }
                     break;
 
                 case OperatorStreamTokenizer.TT_OPERATOR:
                     Operator op = OPERATORS.get(_strtok.sval);
                     if (op == null) {
-                        throw new IOException("Invalid operator " + _strtok.sval);
+                        throw new Exception("Invalid operator " + _strtok.sval);
                     }
-                    while (!_stack.isEmpty()) {
-                        Object top = _stack.peek();
+                    while (!_operation.isEmpty()) {
+                        Object top = _operation.peek();
                         if (!(top instanceof Operator)) {
                             break;
                         }
@@ -119,14 +109,14 @@ public class ExpressionParser
                                 (op.precedence < otop.precedence))) {
                             break;
                         }
-                        _output.add(_stack.pop());
+                        handle(_operation.pop());
                     }
-                    _stack.push(op);
+                    _operation.push(op);
                     break;
 
                 case '(':
                 case '[':
-                    _stack.push((char)token);
+                    _operation.push((char)token);
                     break;
 
                 case ')':
@@ -142,29 +132,101 @@ public class ExpressionParser
                     }
                     try {
                         Object top;
-                        while (!(top = _stack.pop()).equals(left)) {
-                            _output.add(top);
+                        while (!(top = _operation.pop()).equals(left)) {
+                            handle(top);
                         }
-                        if (!_stack.isEmpty() && clazz.isInstance(_stack.peek())) {
-                            _output.add(_stack.pop());
+                        if (!_operation.isEmpty() && clazz.isInstance(_operation.peek())) {
+                            handle(_operation.pop());
                         }
                     } catch (EmptyStackException e) {
-                        throw new IOException("Mismatched parentheses.");
+                        throw new Exception("Mismatched parentheses.");
                     }
                     break;
             }
         }
 
         // process the remaining operators on the stack
-        while (!_stack.isEmpty()) {
-            Object top = _stack.pop();
+        while (!_operation.isEmpty()) {
+            Object top = _operation.pop();
             if (top.equals('(') || top.equals(')')) {
-                throw new IOException("Mismatched parentheses.");
+                throw new Exception("Mismatched parentheses.");
             }
-            _output.add(top);
+            handle(top);
         }
 
-        System.out.println(_output);
+        // the result should now be on the top of the output stack
+        return _output.isEmpty() ? null : _output.peek();
+    }
+
+    /**
+     * Handles the supplied output value.
+     */
+    protected void handle (Object value)
+        throws Exception
+    {
+        T result;
+        if (value instanceof Double) {
+            result = handleNumber(((Double)value).doubleValue());
+        } else if (value instanceof String) {
+            result = handleString((String)value);
+        } else { // value instanceof Identifier
+            result = ((Identifier)value).handle(this);
+        }
+        _output.push(result);
+    }
+
+    /**
+     * Handles a number.
+     */
+    protected T handleNumber (double value)
+        throws Exception
+    {
+        throw new Exception("Unable to handle number " + value);
+    }
+
+    /**
+     * Handles a string.
+     */
+    protected T handleString (String value)
+        throws Exception
+    {
+        throw new Exception("Unable to handle string " + value);
+    }
+
+    /**
+     * Handles an operator.
+     */
+    protected T handleOperator (String operator)
+        throws Exception
+    {
+        throw new Exception("Unable to handle operator " + operator);
+    }
+
+    /**
+     * Handles a function call.
+     */
+    protected T handleFunctionCall (String function)
+        throws Exception
+    {
+        throw new Exception("Unable to handle function " + function);
+    }
+
+    /**
+     * Handles an array index.
+     */
+    protected T handleArrayIndex (String array)
+        throws Exception
+    {
+        throw new Exception("Unable to handle array index " + array);
+    }
+
+    /**
+     * Handles an identifier.
+     */
+    protected T handleIdentifier (String name)
+        throws Exception
+    {
+        throw new Exception("Unable to handle identifier " + name);
     }
 
     /**
@@ -246,6 +308,15 @@ public class ExpressionParser
             this.name = name;
         }
 
+        /**
+         * Calls the appropriate form of the handle method.
+         */
+        public <T> T handle (ExpressionParser<T> parser)
+            throws Exception
+        {
+            return parser.handleIdentifier(name);
+        }
+
         @Override // documentation inherited
         public String toString ()
         {
@@ -267,6 +338,13 @@ public class ExpressionParser
         }
 
         @Override // documentation inherited
+        public <T> T handle (ExpressionParser<T> parser)
+            throws Exception
+        {
+            return parser.handleFunctionCall(name);
+        }
+
+        @Override // documentation inherited
         public String toString ()
         {
             return "f:" + name;
@@ -284,6 +362,13 @@ public class ExpressionParser
         public ArrayIndex (String name)
         {
             super(name);
+        }
+
+        @Override // documentation inherited
+        public <T> T handle (ExpressionParser<T> parser)
+            throws Exception
+        {
+            return parser.handleArrayIndex(name);
         }
 
         @Override // documentation inherited
@@ -315,6 +400,13 @@ public class ExpressionParser
         }
 
         @Override // documentation inherited
+        public <T> T handle (ExpressionParser<T> parser)
+            throws Exception
+        {
+            return parser.handleOperator(name);
+        }
+
+        @Override // documentation inherited
         public String toString ()
         {
             return "o:" + name;
@@ -324,11 +416,11 @@ public class ExpressionParser
     /** The tokenizer from which we acquire tokens. */
     protected OperatorStreamTokenizer _strtok;
 
-    /** The output queue. */
-    protected List<Object> _output = Lists.newArrayList();
+    /** The output stack. */
+    protected Stack<T> _output = new Stack<T>();
 
     /** The operation stack. */
-    protected Stack<Object> _stack = new Stack<Object>();
+    protected Stack<Object> _operation = new Stack<Object>();
 
     /**
      * Adds an operator to the map.

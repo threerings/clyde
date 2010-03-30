@@ -24,11 +24,14 @@
 
 package com.threerings.expr;
 
+import java.io.StringReader;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
+import com.threerings.util.ExpressionParser;
 
 import com.threerings.expr.util.ScopeUtil;
 
@@ -36,16 +39,38 @@ import com.threerings.expr.util.ScopeUtil;
  * A float-valued expression.
  */
 @EditorTypes({
-    FloatExpression.Constant.class, FloatExpression.Reference.class,
-    FloatExpression.Clock.class, FloatExpression.Negate.class,
-    FloatExpression.Add.class, FloatExpression.Subtract.class,
-    FloatExpression.Multiply.class, FloatExpression.Divide.class,
-    FloatExpression.Remainder.class, FloatExpression.Pow.class,
-    FloatExpression.Sin.class, FloatExpression.Cos.class,
-    FloatExpression.Tan.class })
+    FloatExpression.Parsed.class, FloatExpression.Constant.class,
+    FloatExpression.Reference.class, FloatExpression.Clock.class,
+    FloatExpression.Negate.class, FloatExpression.Add.class,
+    FloatExpression.Subtract.class, FloatExpression.Multiply.class,
+    FloatExpression.Divide.class, FloatExpression.Remainder.class,
+    FloatExpression.Pow.class, FloatExpression.Sin.class,
+    FloatExpression.Cos.class, FloatExpression.Tan.class })
 public abstract class FloatExpression extends DeepObject
     implements Exportable
 {
+    /**
+     * An expression entered as a string to be parsed.
+     */
+    public static class Parsed extends FloatExpression
+    {
+        /** The expression to parse. */
+        @Editable
+        public String expression = "0.0";
+
+        @Override // documentation inherited
+        public Evaluator createEvaluator (Scope scope)
+        {
+            Evaluator eval = null;
+            try {
+                eval = createParsedEvaluator(expression, scope);
+            } catch (Exception e) {
+                // don't worry about it; it's probably being entered
+            }
+            return (eval == null) ? createConstantEvaluator(0f) : eval;
+        }
+    }
+
     /**
      * A constant expression.
      */
@@ -73,11 +98,7 @@ public abstract class FloatExpression extends DeepObject
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return value;
-                }
-            };
+            return createConstantEvaluator(value);
         }
     }
 
@@ -97,23 +118,7 @@ public abstract class FloatExpression extends DeepObject
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
-            // first look for a mutable reference, then for a variable
-            final MutableFloat reference = ScopeUtil.resolve(
-                scope, name, (MutableFloat)null);
-            if (reference != null) {
-                return new Evaluator() {
-                    public float evaluate () {
-                        return reference.value;
-                    }
-                };
-            }
-            final Variable variable = ScopeUtil.resolve(
-                scope, name, Variable.newInstance(defvalue));
-            return new Evaluator() {
-                public float evaluate () {
-                    return variable.getFloat();
-                }
-            };
+            return createReferenceEvaluator(name, defvalue, scope);
         }
     }
 
@@ -129,16 +134,7 @@ public abstract class FloatExpression extends DeepObject
         @Override // documentation inherited
         public Evaluator createEvaluator (Scope scope)
         {
-            String name = this.scope.trim();
-            name = (name.length() > 0) ? (name + ":" + Scope.EPOCH) : Scope.EPOCH;
-            MutableLong defvalue = new MutableLong(System.currentTimeMillis());
-            final MutableLong epoch = ScopeUtil.resolve(scope, name, defvalue);
-            final MutableLong now = ScopeUtil.resolve(scope, Scope.NOW, defvalue);
-            return new Evaluator() {
-                public float evaluate () {
-                    return (now.value - epoch.value) / 1000f;
-                }
-            };
+            return createClockEvaluator(this.scope.trim(), scope);
         }
     }
 
@@ -185,13 +181,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Sin extends UnaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval)
+        protected Evaluator createEvaluator (Evaluator eval)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return FloatMath.sin(eval.evaluate());
-                }
-            };
+            return createSinEvaluator(eval);
         }
     }
 
@@ -201,13 +193,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Cos extends UnaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval)
+        protected Evaluator createEvaluator (Evaluator eval)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return FloatMath.cos(eval.evaluate());
-                }
-            };
+            return createCosEvaluator(eval);
         }
     }
 
@@ -217,13 +205,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Tan extends UnaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval)
+        protected Evaluator createEvaluator (Evaluator eval)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return FloatMath.tan(eval.evaluate());
-                }
-            };
+            return createTanEvaluator(eval);
         }
     }
 
@@ -259,13 +243,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Add extends BinaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        protected Evaluator createEvaluator (Evaluator eval1, Evaluator eval2)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return eval1.evaluate() + eval2.evaluate();
-                }
-            };
+            return createAddEvaluator(eval1, eval2);
         }
     }
 
@@ -275,13 +255,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Subtract extends BinaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        protected Evaluator createEvaluator (Evaluator eval1, Evaluator eval2)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return eval1.evaluate() - eval2.evaluate();
-                }
-            };
+            return createSubtractEvaluator(eval1, eval2);
         }
     }
 
@@ -291,13 +267,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Multiply extends BinaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        protected Evaluator createEvaluator (Evaluator eval1, Evaluator eval2)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return eval1.evaluate() * eval2.evaluate();
-                }
-            };
+            return createMultiplyEvaluator(eval1, eval2);
         }
     }
 
@@ -307,13 +279,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Divide extends BinaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        protected Evaluator createEvaluator (Evaluator eval1, Evaluator eval2)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return eval1.evaluate() / eval2.evaluate();
-                }
-            };
+            return createDivideEvaluator(eval1, eval2);
         }
     }
 
@@ -323,13 +291,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Remainder extends BinaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        protected Evaluator createEvaluator (Evaluator eval1, Evaluator eval2)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return eval1.evaluate() % eval2.evaluate();
-                }
-            };
+            return createRemainderEvaluator(eval1, eval2);
         }
     }
 
@@ -339,13 +303,9 @@ public abstract class FloatExpression extends DeepObject
     public static class Pow extends BinaryOperation
     {
         @Override // documentation inherited
-        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        protected Evaluator createEvaluator (Evaluator eval1, Evaluator eval2)
         {
-            return new Evaluator() {
-                public float evaluate () {
-                    return FloatMath.pow(eval1.evaluate(), eval2.evaluate());
-                }
-            };
+            return createPowEvaluator(eval1, eval2);
         }
     }
 
@@ -364,4 +324,229 @@ public abstract class FloatExpression extends DeepObject
      * Creates an expression evaluator for the supplied context.
      */
     public abstract Evaluator createEvaluator (Scope scope);
+
+    /**
+     * Creates an evaluator for the supplied expression.
+     */
+    protected static Evaluator createParsedEvaluator (String expression, final Scope scope)
+        throws Exception
+    {
+        return (Evaluator)new ExpressionParser<Object>(new StringReader(expression)) {
+            @Override protected Object handleNumber (double value) {
+                return createConstantEvaluator((float)value);
+            }
+            @Override protected Object handleOperator (String operator) throws Exception {
+                if (operator.equals("+")) {
+                    Evaluator eval2 = (Evaluator)_output.pop(), eval1 = (Evaluator)_output.pop();
+                    return createAddEvaluator(eval1, eval2);
+
+                } else if (operator.equals("-")) {
+                    Evaluator eval2 = (Evaluator)_output.pop(), eval1 = (Evaluator)_output.pop();
+                    return createSubtractEvaluator(eval1, eval2);
+
+                } else if (operator.equals("*")) {
+                    Evaluator eval2 = (Evaluator)_output.pop(), eval1 = (Evaluator)_output.pop();
+                    return createMultiplyEvaluator(eval1, eval2);
+
+                } else if (operator.equals("/")) {
+                    Evaluator eval2 = (Evaluator)_output.pop(), eval1 = (Evaluator)_output.pop();
+                    return createDivideEvaluator(eval1, eval2);
+
+                } else if (operator.equals("%")) {
+                    Evaluator eval2 = (Evaluator)_output.pop(), eval1 = (Evaluator)_output.pop();
+                    return createRemainderEvaluator(eval1, eval2);
+
+                } else {
+                    return super.handleOperator(operator);
+                }
+            }
+            @Override protected Object handleFunctionCall (String function) throws Exception {
+                if (function.equals("clock")) {
+                    return createClockEvaluator("", scope);
+
+                } else if (function.equals("pow")) {
+                    Evaluator eval2 = (Evaluator)_output.pop(), eval1 = (Evaluator)_output.pop();
+                    return createPowEvaluator(eval1, eval2);
+
+                } else if (function.equals("sin")) {
+                    return createSinEvaluator((Evaluator)_output.pop());
+
+                } else if (function.equals("cos")) {
+                    return createCosEvaluator((Evaluator)_output.pop());
+
+                } else if (function.equals("tan")) {
+                    return createTanEvaluator((Evaluator)_output.pop());
+
+                } else {
+                    return super.handleFunctionCall(function);
+                }
+            }
+            @Override protected Object handleIdentifier (String name) {
+                return createReferenceEvaluator(name, 0f, scope);
+            }
+        }.parse();
+    }
+
+    /**
+     * Creates a constant "evaluator."
+     */
+    protected static Evaluator createConstantEvaluator (final float value)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return value;
+            }
+        };
+    }
+
+    /**
+     * Creates a reference evaluator.
+     */
+    protected static Evaluator createReferenceEvaluator (String name, float defvalue, Scope scope)
+    {
+        // first look for a mutable reference, then for a variable
+        final MutableFloat reference = ScopeUtil.resolve(
+            scope, name, (MutableFloat)null);
+        if (reference != null) {
+            return new Evaluator() {
+                public float evaluate () {
+                    return reference.value;
+                }
+            };
+        }
+        final Variable variable = ScopeUtil.resolve(
+            scope, name, Variable.newInstance(defvalue));
+        return new Evaluator() {
+            public float evaluate () {
+                return variable.getFloat();
+            }
+        };
+    }
+
+    /**
+     * Creates a clock evaluator.
+     */
+    protected static Evaluator createClockEvaluator (String name, Scope scope)
+    {
+        name = (name.length() > 0) ? (name + ":" + Scope.EPOCH) : Scope.EPOCH;
+        MutableLong defvalue = new MutableLong(System.currentTimeMillis());
+        final MutableLong epoch = ScopeUtil.resolve(scope, name, defvalue);
+        final MutableLong now = ScopeUtil.resolve(scope, Scope.NOW, defvalue);
+        return new Evaluator() {
+            public float evaluate () {
+                return (now.value - epoch.value) / 1000f;
+            }
+        };
+    }
+
+    /**
+     * Creates a pow evaluator.
+     */
+    protected static Evaluator createAddEvaluator (final Evaluator eval1, final Evaluator eval2)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return eval1.evaluate() + eval2.evaluate();
+            }
+        };
+    }
+
+    /**
+     * Creates a pow evaluator.
+     */
+    protected static Evaluator createSubtractEvaluator (
+        final Evaluator eval1, final Evaluator eval2)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return eval1.evaluate() - eval2.evaluate();
+            }
+        };
+    }
+
+    /**
+     * Creates a pow evaluator.
+     */
+    protected static Evaluator createMultiplyEvaluator (
+        final Evaluator eval1, final Evaluator eval2)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return eval1.evaluate() * eval2.evaluate();
+            }
+        };
+    }
+
+    /**
+     * Creates a pow evaluator.
+     */
+    protected static Evaluator createDivideEvaluator (final Evaluator eval1, final Evaluator eval2)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return eval1.evaluate() / eval2.evaluate();
+            }
+        };
+    }
+
+    /**
+     * Creates a pow evaluator.
+     */
+    protected static Evaluator createRemainderEvaluator (
+        final Evaluator eval1, final Evaluator eval2)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return eval1.evaluate() % eval2.evaluate();
+            }
+        };
+    }
+
+    /**
+     * Creates a pow evaluator.
+     */
+    protected static Evaluator createPowEvaluator (final Evaluator eval1, final Evaluator eval2)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return FloatMath.pow(eval1.evaluate(), eval2.evaluate());
+            }
+        };
+    }
+
+    /**
+     * Creates a sin evaluator.
+     */
+    protected static Evaluator createSinEvaluator (final Evaluator eval)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return FloatMath.sin(eval.evaluate());
+            }
+        };
+    }
+
+    /**
+     * Creates a cos evaluator.
+     */
+    protected static Evaluator createCosEvaluator (final Evaluator eval)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return FloatMath.cos(eval.evaluate());
+            }
+        };
+    }
+
+    /**
+     * Creates a tan evaluator.
+     */
+    protected static Evaluator createTanEvaluator (final Evaluator eval)
+    {
+        return new Evaluator() {
+            public float evaluate () {
+                return FloatMath.tan(eval.evaluate());
+            }
+        };
+    }
 }
