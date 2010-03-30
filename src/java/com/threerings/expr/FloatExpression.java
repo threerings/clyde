@@ -335,7 +335,8 @@ public abstract class FloatExpression extends DeepObject
             @Override protected Object handleNumber (double value) {
                 return createConstantEvaluator((float)value);
             }
-            @Override protected Object handleOperator (String operator) throws Exception {
+            @Override protected Object handleOperator (String operator, int arity)
+                    throws Exception {
                 if (operator.equals("+")) {
                     Evaluator eval2 = (Evaluator)_output.pop(), eval1 = (Evaluator)_output.pop();
                     return createAddEvaluator(eval1, eval2);
@@ -357,10 +358,11 @@ public abstract class FloatExpression extends DeepObject
                     return createRemainderEvaluator(eval1, eval2);
 
                 } else {
-                    return super.handleOperator(operator);
+                    return super.handleOperator(operator, arity);
                 }
             }
-            @Override protected Object handleFunctionCall (String function) throws Exception {
+            @Override protected Object handleFunctionCall (String function, int arity)
+                    throws Exception {
                 if (function.equals("clock")) {
                     return createClockEvaluator("", scope);
 
@@ -378,7 +380,7 @@ public abstract class FloatExpression extends DeepObject
                     return createTanEvaluator((Evaluator)_output.pop());
 
                 } else {
-                    return super.handleFunctionCall(function);
+                    return super.handleFunctionCall(function, arity);
                 }
             }
             @Override protected Object handleIdentifier (String name) {

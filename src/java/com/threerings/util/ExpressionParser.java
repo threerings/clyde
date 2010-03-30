@@ -62,12 +62,21 @@ public class ExpressionParser<T>
                 @Override protected String handleString (String value) {
                     return "\"" + value + "\"";
                 }
-                @Override protected String handleOperator (String operator) throws Exception {
-                    String second = _output.pop(), first = _output.pop();
-                    return first + " " + second + " " + operator;
+                @Override protected String handleOperator (String operator, int arity)
+                        throws Exception {
+                    StringBuilder buf = new StringBuilder();
+                    for (int ii = 0; ii < arity; ii++) {
+                        buf.insert(0, _output.pop() + " ");
+                    }
+                    return buf.toString() + operator;
                 }
-                @Override protected String handleFunctionCall (String function) throws Exception {
-                    return _output.pop() + " " + function + "()";
+                @Override protected String handleFunctionCall (String function, int arity)
+                        throws Exception {
+                    StringBuilder buf = new StringBuilder();
+                    for (int ii = 0; ii < arity; ii++) {
+                        buf.insert(0, _output.pop() + " ");
+                    }
+                    return buf.toString() + function + "()";
                 }
                 @Override protected String handleArrayIndex (String array) throws Exception {
                     return _output.pop() + " " + array + "[]";
@@ -97,6 +106,7 @@ public class ExpressionParser<T>
     {
         // read in the tokens
         int token;
+        int lastToken = OperatorStreamTokenizer.TT_NOTHING;
         while ((token = _strtok.nextToken()) != StreamTokenizer.TT_EOF) {
             switch (token) {
                 case StreamTokenizer.TT_NUMBER:
@@ -131,12 +141,28 @@ public class ExpressionParser<T>
                     } catch (EmptyStackException e) {
                         throw new Exception("Misplaced separator or mismatched parentheses.");
                     }
+                    // increment the function's arity
+                    int size = _operation.size();
+                    Object fn = (size < 2) ? null : _operation.get(size - 2);
+                    if (!(fn instanceof FunctionCall)) {
+                        throw new Exception("Misplaced separator.");
+                    }
+                    ((FunctionCall)fn).arity++;
                     break;
 
                 case OperatorStreamTokenizer.TT_OPERATOR:
                     Operator op = OPERATORS.get(_strtok.sval);
                     if (op == null) {
                         throw new Exception("Invalid operator " + _strtok.sval);
+                    }
+                    if (op.arity == 2 && lastToken != StreamTokenizer.TT_NUMBER &&
+                            lastToken != StreamTokenizer.TT_WORD && lastToken != '\'' &&
+                            lastToken != '\"' && lastToken != ')' && lastToken != ']') {
+                        // check for a unary alternate
+                        op = UNARY_ALTERNATES.get(_strtok.sval);
+                        if (op == null) {
+                            throw new Exception("Too few operands for " + _strtok.sval);
+                        }
                     }
                     while (!_operation.isEmpty()) {
                         Object top = _operation.peek();
@@ -175,13 +201,18 @@ public class ExpressionParser<T>
                             handle(top);
                         }
                         if (!_operation.isEmpty() && clazz.isInstance(_operation.peek())) {
-                            handle(_operation.pop());
+                            top = _operation.pop();
+                            if (top instanceof FunctionCall && lastToken != '(') {
+                                ((FunctionCall)top).arity++;
+                            }
+                            handle(top);
                         }
                     } catch (EmptyStackException e) {
                         throw new Exception("Mismatched " + (char)token);
                     }
                     break;
             }
+            lastToken = token;
         }
 
         // process the remaining operators on the stack
@@ -235,7 +266,7 @@ public class ExpressionParser<T>
     /**
      * Handles an operator.
      */
-    protected T handleOperator (String operator)
+    protected T handleOperator (String operator, int arity)
         throws Exception
     {
         throw new Exception("Unable to handle operator " + operator);
@@ -244,7 +275,7 @@ public class ExpressionParser<T>
     /**
      * Handles a function call.
      */
-    protected T handleFunctionCall (String function)
+    protected T handleFunctionCall (String function, int arity)
         throws Exception
     {
         throw new Exception("Unable to handle function " + function);
@@ -273,6 +304,10 @@ public class ExpressionParser<T>
      */
     protected static class OperatorStreamTokenizer extends StreamTokenizer
     {
+        /** A constant indicating that nothing has yet been read (defined privately in the
+         * parent class). */
+        public static final int TT_NOTHING = -4;
+
         /** A constant indicating that an operator token has been read. */
         public static final int TT_OPERATOR = -5;
 
@@ -292,11 +327,11 @@ public class ExpressionParser<T>
             throws IOException
         {
             int token;
-            if (_nttype != -4) {
+            if (_nttype != TT_NOTHING) {
                 token = ttype = _nttype;
                 sval = _nsval;
                 nval = _nnval;
-                _nttype = -4;
+                _nttype = TT_NOTHING;
             } else {
                 token = super.nextToken();
             }
@@ -341,7 +376,7 @@ public class ExpressionParser<T>
             return (ttype = TT_OPERATOR);
         }
 
-        protected int _nttype = -4; // TT_NOTHING
+        protected int _nttype = TT_NOTHING;
         protected String _nsval;
         protected double _nnval;
     }
@@ -370,12 +405,6 @@ public class ExpressionParser<T>
         {
             return parser.handleIdentifier(name);
         }
-
-        @Override // documentation inherited
-        public String toString ()
-        {
-            return "i:" + name;
-        }
     }
 
     /**
@@ -383,6 +412,9 @@ public class ExpressionParser<T>
      */
     protected static class FunctionCall extends Identifier
     {
+        /** The arity of the function. */
+        public int arity;
+
         /**
          * Creates a new function identifier.
          */
@@ -395,13 +427,7 @@ public class ExpressionParser<T>
         public <T> T handle (ExpressionParser<T> parser)
             throws Exception
         {
-            return parser.handleFunctionCall(name);
-        }
-
-        @Override // documentation inherited
-        public String toString ()
-        {
-            return "f:" + name;
+            return parser.handleFunctionCall(name, arity);
         }
     }
 
@@ -424,12 +450,6 @@ public class ExpressionParser<T>
         {
             return parser.handleArrayIndex(name);
         }
-
-        @Override // documentation inherited
-        public String toString ()
-        {
-            return "a:" + name;
-        }
     }
 
     /**
@@ -443,27 +463,25 @@ public class ExpressionParser<T>
         /** The precedence of the operator. */
         public final int precedence;
 
+        /** The arity of the operator. */
+        public final int arity;
+
         /**
          * Creates a new operator.
          */
-        public Operator (String name, boolean rightAssociative, int precedence)
+        public Operator (String name, boolean rightAssociative, int precedence, int arity)
         {
             super(name);
             this.rightAssociative = rightAssociative;
             this.precedence = precedence;
+            this.arity = arity;
         }
 
         @Override // documentation inherited
         public <T> T handle (ExpressionParser<T> parser)
             throws Exception
         {
-            return parser.handleOperator(name);
-        }
-
-        @Override // documentation inherited
-        public String toString ()
-        {
-            return "o:" + name;
+            return parser.handleOperator(name, arity);
         }
     }
 
@@ -479,34 +497,47 @@ public class ExpressionParser<T>
     /**
      * Adds an operator to the map.
      */
-    protected static void addOperator (String name, boolean rightAssociative, int precedence)
+    protected static void addOperator (
+        String name, boolean rightAssociative, int precedence, int arity)
     {
-        OPERATORS.put(name, new Operator(name, rightAssociative, precedence));
+        OPERATORS.put(name, new Operator(name, rightAssociative, precedence, arity));
+    }
+
+    /**
+     * Adds an unary alternate for operators that can be both unary and binary.
+     */
+    protected static void addUnaryAlternate (
+        String name, boolean rightAssociative, int precedence, int arity)
+    {
+        UNARY_ALTERNATES.put(name, new Operator(name, rightAssociative, precedence, arity));
     }
 
     /** The operator map. */
     protected static final Map<String, Operator> OPERATORS = Maps.newHashMap();
+    protected static final Map<String, Operator> UNARY_ALTERNATES = Maps.newHashMap();
     static {
         // follow Java's rules as closely as possible
-        addOperator(".", false, 1);
-        addOperator("++", true, 2);
-        addOperator("--", true, 2);
-        addOperator("!", true, 2);
-        addOperator("*", false, 3);
-        addOperator("/", false, 3);
-        addOperator("%", false, 3);
-        addOperator("+", false, 4);
-        addOperator("-", false, 4);
-        addOperator("<", false, 6);
-        addOperator("<=", false, 6);
-        addOperator(">", false, 6);
-        addOperator(">=", false, 6);
-        addOperator("==", false, 7);
-        addOperator("!=", false, 7);
-        addOperator("&", false, 8);
-        addOperator("^", false, 9);
-        addOperator("|", false, 10);
-        addOperator("&&", false, 11);
-        addOperator("||", false, 12);
+        addOperator(".", false, 1, 2);
+        addOperator("++", true, 2, 1);
+        addOperator("--", true, 2, 1);
+        addUnaryAlternate("+", true, 2, 1);
+        addUnaryAlternate("-", true, 2, 1);
+        addOperator("!", true, 2, 1);
+        addOperator("*", false, 3, 2);
+        addOperator("/", false, 3, 2);
+        addOperator("%", false, 3, 2);
+        addOperator("+", false, 4, 2);
+        addOperator("-", false, 4, 2);
+        addOperator("<", false, 6, 2);
+        addOperator("<=", false, 6, 2);
+        addOperator(">", false, 6, 2);
+        addOperator(">=", false, 6, 2);
+        addOperator("==", false, 7, 2);
+        addOperator("!=", false, 7, 2);
+        addOperator("&", false, 8, 2);
+        addOperator("^", false, 9, 2);
+        addOperator("|", false, 10, 2);
+        addOperator("&&", false, 11, 2);
+        addOperator("||", false, 12, 2);
     }
 }
