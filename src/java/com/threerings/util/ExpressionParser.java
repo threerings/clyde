@@ -24,9 +24,12 @@
 
 package com.threerings.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StreamTokenizer;
+import java.io.StringReader;
 
 import java.util.EmptyStackException;
 import java.util.List;
@@ -43,6 +46,41 @@ import com.google.common.collect.Maps;
 public class ExpressionParser<T>
 {
     /**
+     * Main method for testing.
+     */
+    public static void main (String... args)
+        throws Exception
+    {
+        // run in a loop, parsing the input and printing it out in RPN
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String result = new ExpressionParser<String>(new StringReader(line)) {
+                @Override protected String handleNumber (double value) {
+                    return String.valueOf(value);
+                }
+                @Override protected String handleString (String value) {
+                    return "\"" + value + "\"";
+                }
+                @Override protected String handleOperator (String operator) throws Exception {
+                    String second = _output.pop(), first = _output.pop();
+                    return first + " " + second + " " + operator;
+                }
+                @Override protected String handleFunctionCall (String function) throws Exception {
+                    return _output.pop() + " " + function + "()";
+                }
+                @Override protected String handleArrayIndex (String array) throws Exception {
+                    return _output.pop() + " " + array + "[]";
+                }
+                @Override protected String handleIdentifier (String name) {
+                    return name;
+                }
+            }.parse();
+            System.out.println(result);
+        }
+    }
+
+    /**
      * Creates a new parser to read from the specified reader.
      */
     public ExpressionParser (Reader reader)
@@ -51,7 +89,8 @@ public class ExpressionParser<T>
     }
 
     /**
-     * Parses the expression.
+     * Parses the expression and returns the object at the top of the stack (or <code>null</code>
+     * if the stack is empty).
      */
     public T parse ()
         throws Exception
@@ -139,7 +178,7 @@ public class ExpressionParser<T>
                             handle(_operation.pop());
                         }
                     } catch (EmptyStackException e) {
-                        throw new Exception("Mismatched parentheses.");
+                        throw new Exception("Mismatched " + (char)token);
                     }
                     break;
             }
@@ -148,14 +187,14 @@ public class ExpressionParser<T>
         // process the remaining operators on the stack
         while (!_operation.isEmpty()) {
             Object top = _operation.pop();
-            if (top.equals('(') || top.equals(')')) {
-                throw new Exception("Mismatched parentheses.");
+            if (top.equals('(') || top.equals('[')) {
+                throw new Exception("Mismatched " + top);
             }
             handle(top);
         }
 
         // the result should now be on the top of the output stack
-        return _output.isEmpty() ? null : _output.peek();
+        return _output.isEmpty() ? null : _output.pop();
     }
 
     /**
@@ -252,7 +291,15 @@ public class ExpressionParser<T>
         public int nextToken ()
             throws IOException
         {
-            int token = super.nextToken();
+            int token;
+            if (_nttype != -4) {
+                token = ttype = _nttype;
+                sval = _nsval;
+                nval = _nnval;
+                _nttype = -4;
+            } else {
+                token = super.nextToken();
+            }
             int paired;
             switch (token) {
                 case '.':
@@ -285,11 +332,18 @@ public class ExpressionParser<T>
             if (ntoken == paired) {
                 sval = new String(new char[] { (char)token, (char)paired });
             } else {
-                pushBack();
+                // remember the token for next time
+                _nttype = ntoken;
+                _nsval = sval;
+                _nnval = nval;
                 sval = Character.toString((char)token);
             }
             return (ttype = TT_OPERATOR);
         }
+
+        protected int _nttype = -4; // TT_NOTHING
+        protected String _nsval;
+        protected double _nnval;
     }
 
     /**
