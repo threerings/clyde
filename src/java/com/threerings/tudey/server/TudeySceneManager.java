@@ -827,14 +827,14 @@ public class TudeySceneManager extends SceneManager
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryAdded (Entry entry)
     {
-        addLogic(entry);
+        addLogic(entry, true);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
     public void entryUpdated (Entry oentry, Entry nentry)
     {
         removeLogic(oentry.getKey());
-        addLogic(nentry);
+        addLogic(nentry, true);
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -924,7 +924,7 @@ public class TudeySceneManager extends SceneManager
     {
         // add first, then notify; the entries may be looking for other tagged entries
         for (Entry entry : sceneModel.getEntries()) {
-            addLogic(entry);
+            addLogic(entry, false);
         }
         for (EntryLogic logic : _entries.values()) {
             logic.added();
@@ -1022,8 +1022,10 @@ public class TudeySceneManager extends SceneManager
 
     /**
      * Adds the logic object for the specified scene entry, if any.
+     *
+     * @param notify whether or not to notify the logic that it has been added.
      */
-    protected void addLogic (Entry entry)
+    protected void addLogic (Entry entry, boolean notify)
     {
         String cname = entry.getLogicClassName(_cfgmgr);
         if (cname == null) {
@@ -1036,7 +1038,7 @@ public class TudeySceneManager extends SceneManager
         logic.init(this, entry);
         _entries.put(entry.getKey(), logic);
         addMappings(logic);
-        if (_ticker != null) {
+        if (notify) {
             logic.added();
         }
     }
