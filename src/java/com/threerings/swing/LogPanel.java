@@ -90,6 +90,9 @@ public class LogPanel extends JPanel
                 _clear.setVisible(true);
                 _records.add(record);
             }
+            @Override public boolean isLoggable (LogRecord record) {
+                return super.isLoggable(record) && !record.getMessage().startsWith("Long dobj");
+            }
             @Override public void flush () {
                 // no-op
             }
