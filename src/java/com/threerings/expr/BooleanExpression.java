@@ -24,10 +24,13 @@
 
 package com.threerings.expr;
 
+import java.io.StringReader;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.expr.util.ScopeUtil;
 
@@ -35,15 +38,52 @@ import com.threerings.expr.util.ScopeUtil;
  * A boolean-valued expression.
  */
 @EditorTypes({
-    BooleanExpression.Constant.class, BooleanExpression.Reference.class,
-    BooleanExpression.Not.class, BooleanExpression.And.class,
-    BooleanExpression.Or.class, BooleanExpression.Xor.class,
+    BooleanExpression.Parsed.class, BooleanExpression.Constant.class,
+    BooleanExpression.Reference.class, BooleanExpression.Not.class,
+    BooleanExpression.And.class, BooleanExpression.Or.class,
+    BooleanExpression.Xor.class, BooleanExpression.BooleanEquals.class,
     BooleanExpression.FloatLess.class, BooleanExpression.FloatGreater.class,
     BooleanExpression.FloatEquals.class, BooleanExpression.FloatLessEquals.class,
     BooleanExpression.FloatGreaterEquals.class, BooleanExpression.StringEquals.class })
 public abstract class BooleanExpression extends DeepObject
     implements Exportable
 {
+    /**
+     * An expression entered as a string to be parsed.
+     */
+    public static class Parsed extends BooleanExpression
+    {
+        /** The expression to parse. */
+        @Editable
+        public String expression = "false";
+
+        @Override // documentation inherited
+        public Evaluator createEvaluator (Scope scope)
+        {
+            if (_expr == null) {
+                try {
+                    _expr = parseExpression(expression);
+                } catch (Exception e) {
+                    // don't worry about it; it's probably being entered
+                }
+                if (_expr == null) {
+                    _expr = new Constant(false);
+                }
+            }
+            return _expr.createEvaluator(scope);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            _expr = null;
+        }
+
+        /** The cached, parsed expression. */
+        @DeepOmit
+        protected transient BooleanExpression _expr;
+    }
+
     /**
      * A constant expression.
      */
@@ -224,6 +264,22 @@ public abstract class BooleanExpression extends DeepObject
     }
 
     /**
+     * Checks the equality of its operands.
+     */
+    public static class BooleanEquals extends BinaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        {
+            return new Evaluator() {
+                public boolean evaluate () {
+                    return eval1.evaluate() == eval2.evaluate();
+                }
+            };
+        }
+    }
+
+    /**
      * The superclass of the operations involving two float expressions.
      */
     public static abstract class FloatBinaryOperation extends BooleanExpression
@@ -397,5 +453,152 @@ public abstract class BooleanExpression extends DeepObject
     public void invalidate ()
     {
         // nothing by default
+    }
+
+    /**
+     * Parses the supplied string expression.
+     */
+    protected static BooleanExpression parseExpression (String expression)
+        throws Exception
+    {
+        return (BooleanExpression)new ExpressionParser<Object>(new StringReader(expression)) {
+            @Override protected Object handleNumber (double value) {
+                return new FloatExpression.Constant((float)value);
+            }
+            @Override protected Object handleString (String value) {
+                return new StringExpression.Constant(value);
+            }
+            @Override protected Object handleOperator (String operator, int arity)
+                    throws Exception {
+                if (arity == 1) {
+                    if (operator.equals("!")) {
+                        Not not = new Not();
+                        not.operand = (BooleanExpression)_output.pop();
+                        return not;
+
+                    } else {
+                        return super.handleOperator(operator, arity);
+                    }
+                } else { // arity == 2
+                    BinaryOperation result;
+                    if (operator.equals("&") || operator.equals("&&")) {
+                        result = new And();
+                    } else if (operator.equals("|") || operator.equals("||")) {
+                        result = new Or();
+                    } else if (operator.equals("^")) {
+                        result = new Xor();
+                    } else if (operator.equals("<")) {
+                        return handleFloatBinaryOperation(new FloatLess());
+                    } else if (operator.equals(">")) {
+                        return handleFloatBinaryOperation(new FloatGreater());
+                    } else if (operator.equals("=") || operator.equals("==")) {
+                        return handleEquals();
+                    } else if (operator.equals("!=")) {
+                        Not not = new Not();
+                        not.operand = handleEquals();
+                        return not;
+                    } else if (operator.equals("<=")) {
+                        return handleFloatBinaryOperation(new FloatLessEquals());
+                    } else if (operator.equals(">=")) {
+                        return handleFloatBinaryOperation(new FloatGreaterEquals());
+                    } else {
+                        return super.handleOperator(operator, arity);
+                    }
+                    result.secondOperand = (BooleanExpression)_output.pop();
+                    result.firstOperand = (BooleanExpression)_output.pop();
+                    return result;
+                }
+            }
+            @Override protected Object handleFunctionCall (String function, int arity)
+                    throws Exception {
+                if (function.equals("float")) {
+                    StringExpression.Constant expr = (StringExpression.Constant)_output.pop();
+                    return FloatExpression.parseExpression(expr.value);
+
+                } else if (function.equals("string")) {
+                    StringExpression.Constant expr = (StringExpression.Constant)_output.pop();
+                    return StringExpression.parseExpression(expr.value);
+
+                } else {
+                    return super.handleFunctionCall(function, arity);
+                }
+            }
+            @Override protected Object handleIdentifier (String name) {
+                if (name.equalsIgnoreCase("true")) {
+                    return new Constant(true);
+                } else if (name.equalsIgnoreCase("false")) {
+                    return new Constant(false);
+                }
+                Reference ref = new Reference();
+                ref.name = name;
+                return ref;
+            }
+            protected Object handleFloatBinaryOperation (FloatBinaryOperation op)
+                    throws Exception {
+                op.secondOperand = coerceToFloatExpression(_output.pop());
+                op.firstOperand = coerceToFloatExpression(_output.pop());
+                return op;
+            }
+            protected BooleanExpression handleEquals () throws Exception {
+                Object secondOperand = _output.pop();
+                Object firstOperand = _output.pop();
+                if (firstOperand instanceof FloatExpression ||
+                        secondOperand instanceof FloatExpression) {
+                    FloatEquals result = new FloatEquals();
+                    result.firstOperand = coerceToFloatExpression(firstOperand);
+                    result.secondOperand = coerceToFloatExpression(secondOperand);
+                    return result;
+
+                } else if (firstOperand instanceof StringExpression ||
+                        secondOperand instanceof StringExpression) {
+                    StringEquals result = new StringEquals();
+                    result.firstOperand = coerceToStringExpression(firstOperand);
+                    result.secondOperand = coerceToStringExpression(secondOperand);
+                    return result;
+
+                } else {
+                    BooleanEquals result = new BooleanEquals();
+                    result.firstOperand = coerceToBooleanExpression(firstOperand);
+                    result.secondOperand = coerceToBooleanExpression(secondOperand);
+                    return result;
+                }
+            }
+            protected BooleanExpression coerceToBooleanExpression (Object object)
+                    throws Exception {
+                if (object instanceof BooleanExpression) {
+                    return (BooleanExpression)object;
+                } else {
+                    throw new Exception("Cannot coerce to boolean expression " + object);
+                }
+            }
+            protected FloatExpression coerceToFloatExpression (Object object)
+                    throws Exception {
+                if (object instanceof FloatExpression) {
+                    return (FloatExpression)object;
+                } else if (object instanceof Reference) {
+                    // convert to a float reference
+                    Reference ref = (Reference)object;
+                    FloatExpression.Reference nref = new FloatExpression.Reference();
+                    nref.name = ref.name;
+                    return nref;
+                } else {
+                    throw new Exception("Cannot coerce to float expression " + object);
+                }
+            }
+            protected StringExpression coerceToStringExpression (Object object)
+                throws Exception {
+                if (object instanceof StringExpression) {
+                    return (StringExpression)object;
+                } else if (object instanceof Reference) {
+                    // convert to a string reference
+                    Reference ref = (Reference)object;
+                    StringExpression.Reference nref = new StringExpression.Reference();
+                    nref.name = ref.name;
+                    return nref;
+                } else {
+                    throw new Exception("Cannot coerce to string expression " + object);
+                }
+            }
+        }.parse();
     }
 }

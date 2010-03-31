@@ -24,8 +24,11 @@
 
 package com.threerings.expr;
 
+import java.io.StringReader;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.expr.util.ScopeUtil;
 
@@ -33,10 +36,46 @@ import com.threerings.expr.util.ScopeUtil;
  * A string-valued expression.
  */
 @EditorTypes({
-    StringExpression.Constant.class,
+    StringExpression.Parsed.class, StringExpression.Constant.class,
     StringExpression.Reference.class })
 public abstract class StringExpression extends ObjectExpression<String>
 {
+    /**
+     * An expression entered as a string to be parsed.
+     */
+    public static class Parsed extends StringExpression
+    {
+        /** The expression to parse. */
+        @Editable
+        public String expression = "";
+
+        @Override // documentation inherited
+        public Evaluator<String> createEvaluator (Scope scope)
+        {
+            if (_expr == null) {
+                try {
+                    _expr = parseExpression(expression);
+                } catch (Exception e) {
+                    // don't worry about it; it's probably being entered
+                }
+                if (_expr == null) {
+                    _expr = new Constant("");
+                }
+            }
+            return _expr.createEvaluator(scope);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            _expr = null;
+        }
+
+        /** The cached, parsed expression. */
+        @DeepOmit
+        protected transient StringExpression _expr;
+    }
+
     /**
      * A constant expression.
      */
@@ -45,6 +84,21 @@ public abstract class StringExpression extends ObjectExpression<String>
         /** The value of the constant. */
         @Editable
         public String value = "";
+
+        /**
+         * Creates a new constant expression with the supplied value.
+         */
+        public Constant (String value)
+        {
+            this.value = value;
+        }
+
+        /**
+         * Default constructor.
+         */
+        public Constant ()
+        {
+        }
 
         @Override // documentation inherited
         public Evaluator<String> createEvaluator (Scope scope)
@@ -91,5 +145,23 @@ public abstract class StringExpression extends ObjectExpression<String>
                 }
             };
         }
+    }
+
+    /**
+     * Parses the supplied string expression.
+     */
+    protected static StringExpression parseExpression (String expression)
+        throws Exception
+    {
+        return (StringExpression)new ExpressionParser<Object>(new StringReader(expression)) {
+            @Override protected Object handleString (String value) {
+                return new Constant(value);
+            }
+            @Override protected Object handleIdentifier (String name) {
+                Reference ref = new Reference();
+                ref.name = name;
+                return ref;
+            }
+        }.parse();
     }
 }
