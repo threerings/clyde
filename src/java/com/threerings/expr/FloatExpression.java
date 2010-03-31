@@ -32,7 +32,6 @@ import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
-import com.threerings.util.ExpressionParser;
 
 import com.threerings.expr.util.ScopeUtil;
 

@@ -1,4 +1,4 @@
 #!/bin/sh
 
-`dirname $0`/runjava com.threerings.util.ExpressionParser "$@"
+`dirname $0`/runjava com.threerings.expr.ExpressionParser "$@"
 
