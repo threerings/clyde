@@ -32,6 +32,7 @@ import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
+import com.threerings.util.NoiseUtil;
 
 import com.threerings.expr.util.ScopeUtil;
 
@@ -45,7 +46,8 @@ import com.threerings.expr.util.ScopeUtil;
     FloatExpression.Subtract.class, FloatExpression.Multiply.class,
     FloatExpression.Divide.class, FloatExpression.Remainder.class,
     FloatExpression.Pow.class, FloatExpression.Sin.class,
-    FloatExpression.Cos.class, FloatExpression.Tan.class })
+    FloatExpression.Cos.class, FloatExpression.Tan.class,
+    FloatExpression.Noise1.class, FloatExpression.Noise2.class })
 public abstract class FloatExpression extends DeepObject
     implements Exportable
 {
@@ -273,6 +275,22 @@ public abstract class FloatExpression extends DeepObject
     }
 
     /**
+     * Computes the one-dimensional Perlin noise value corresponding to the operand.
+     */
+    public static class Noise1 extends UnaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    return NoiseUtil.getNoise(eval.evaluate());
+                }
+            };
+        }
+    }
+
+    /**
      * The superclass of the binary operations.
      */
     public static abstract class BinaryOperation extends FloatExpression
@@ -402,6 +420,22 @@ public abstract class FloatExpression extends DeepObject
     }
 
     /**
+     * Computes the two-dimensional Perlin noise value corresponding to the operands.
+     */
+    public static class Noise2 extends BinaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval1, final Evaluator eval2)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    return NoiseUtil.getNoise(eval1.evaluate(), eval2.evaluate());
+                }
+            };
+        }
+    }
+
+    /**
      * Performs the actual evaluation of the expression.
      */
     public static abstract class Evaluator
@@ -486,12 +520,20 @@ public abstract class FloatExpression extends DeepObject
                     pow.secondOperand = (FloatExpression)_output.pop();
                     pow.firstOperand = (FloatExpression)_output.pop();
                     return pow;
+                } else if (function.equals("noise2")) {
+                    assertArity("noise2", arity, 2, 2);
+                    Noise2 noise = new Noise2();
+                    noise.secondOperand = (FloatExpression)_output.pop();
+                    noise.firstOperand = (FloatExpression)_output.pop();
+                    return noise;
                 } else if (function.equals("sin")) {
                     result = new Sin();
                 } else if (function.equals("cos")) {
                     result = new Cos();
                 } else if (function.equals("tan")) {
                     result = new Tan();
+                } else if (function.equals("noise1")) {
+                    result = new Noise1();
                 } else {
                     return super.handleFunctionCall(function, arity);
                 }
