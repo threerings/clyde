@@ -320,6 +320,7 @@ public class ExpressionParser<T>
             ordinaryChar('/');
             ordinaryChar('-');
             wordChars('_', '_');
+            wordChars(':', ':');
         }
 
         @Override // documentation inherited
@@ -342,7 +343,7 @@ public class ExpressionParser<T>
                 case '/':
                 case '%':
                 case '^':
-                    paired = -6;
+                    paired = TT_NOTHING;
                     break;
 
                 case '+':

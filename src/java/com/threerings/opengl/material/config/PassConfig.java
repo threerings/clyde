@@ -215,5 +215,11 @@ public class PassConfig extends DeepObject
             materialState.invalidate();
         }
         textureState.invalidate();
+        for (ExpressionBinding binding : staticBindings) {
+            binding.invalidate();
+        }
+        for (ExpressionBinding binding : dynamicBindings) {
+            binding.invalidate();
+        }
     }
 }

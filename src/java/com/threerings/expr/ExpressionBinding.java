@@ -84,6 +84,13 @@ public abstract class ExpressionBinding extends DeepObject
                 }
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            expression.invalidate();
+        }
     }
 
     /**
@@ -113,6 +120,13 @@ public abstract class ExpressionBinding extends DeepObject
                 }
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            expression.invalidate();
+        }
     }
 
     /**
@@ -128,6 +142,13 @@ public abstract class ExpressionBinding extends DeepObject
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             return createUpdater(cfgmgr, scope, object, expression, Color4f.class);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            expression.invalidate();
         }
     }
 
@@ -145,6 +166,13 @@ public abstract class ExpressionBinding extends DeepObject
         {
             return createUpdater(cfgmgr, scope, object, expression, String.class);
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            expression.invalidate();
+        }
     }
 
     /**
@@ -160,6 +188,13 @@ public abstract class ExpressionBinding extends DeepObject
         public Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object)
         {
             return createUpdater(cfgmgr, scope, object, expression, Transform3D.class);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            expression.invalidate();
         }
     }
 
@@ -177,9 +212,9 @@ public abstract class ExpressionBinding extends DeepObject
     public abstract Updater createUpdater (ConfigManager cfgmgr, Scope scope, Object object);
 
     /**
-     * Invalidates the paths, forcing them to be recreated.
+     * Invalidates any cached data.
      */
-    public void invalidatePaths ()
+    public void invalidate ()
     {
         _paths = _flagPaths = null;
     }

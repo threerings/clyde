@@ -80,9 +80,9 @@ public class BoundConfig extends ParameterizedConfig
     @Override // documentation inherited
     public void wasUpdated ()
     {
-        // invalidate the binding paths
+        // invalidate the bindings
         for (ExpressionBinding binding : bindings) {
-            binding.invalidatePaths();
+            binding.invalidate();
         }
 
         // update the bindings (if bound)

@@ -48,4 +48,12 @@ public abstract class ObjectExpression<T> extends DeepObject
      * Creates an expression evaluator for the supplied context.
      */
     public abstract Evaluator<T> createEvaluator (Scope scope);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

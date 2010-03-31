@@ -134,6 +134,12 @@ public abstract class BooleanExpression extends DeepObject
                 }
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            operand.invalidate();
+        }
     }
 
     /**
@@ -154,6 +160,13 @@ public abstract class BooleanExpression extends DeepObject
         {
             return createEvaluator(
                 firstOperand.createEvaluator(scope), secondOperand.createEvaluator(scope));
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            firstOperand.invalidate();
+            secondOperand.invalidate();
         }
 
         /**
@@ -228,6 +241,13 @@ public abstract class BooleanExpression extends DeepObject
         {
             return createEvaluator(
                 firstOperand.createEvaluator(scope), secondOperand.createEvaluator(scope));
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            firstOperand.invalidate();
+            secondOperand.invalidate();
         }
 
         /**
@@ -346,6 +366,13 @@ public abstract class BooleanExpression extends DeepObject
                 }
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            firstOperand.invalidate();
+            secondOperand.invalidate();
+        }
     }
 
     /**
@@ -363,4 +390,12 @@ public abstract class BooleanExpression extends DeepObject
      * Creates an expression evaluator for the supplied context.
      */
     public abstract Evaluator createEvaluator (Scope scope);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

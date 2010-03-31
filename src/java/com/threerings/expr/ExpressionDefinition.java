@@ -67,6 +67,12 @@ public abstract class ExpressionDefinition extends DeepObject
             });
             return mutable;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            expression.invalidate();
+        }
     }
 
     /**
@@ -90,6 +96,12 @@ public abstract class ExpressionDefinition extends DeepObject
             });
             return mutable;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            expression.invalidate();
+        }
     }
 
     /**
@@ -105,6 +117,12 @@ public abstract class ExpressionDefinition extends DeepObject
         public Object getValue (Scope scope, ArrayList<Updater> updaters)
         {
             return getValue(scope, updaters, expression);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            expression.invalidate();
         }
     }
 
@@ -129,6 +147,12 @@ public abstract class ExpressionDefinition extends DeepObject
             });
             return mutable;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            expression.invalidate();
+        }
     }
 
     /**
@@ -145,6 +169,12 @@ public abstract class ExpressionDefinition extends DeepObject
         {
             return getValue(scope, updaters, expression);
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            expression.invalidate();
+        }
     }
 
     /** The name of the symbol to define. */
@@ -157,6 +187,14 @@ public abstract class ExpressionDefinition extends DeepObject
      * @param updaters the list of updaters to contain the value's updater.
      */
     public abstract Object getValue (Scope scope, ArrayList<Updater> updaters);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 
     /**
      * Retrieves the value for a mutable object expression.

@@ -87,6 +87,14 @@ public class AnimationConfig extends ParameterizedConfig
          */
         public abstract Animation.Implementation getAnimationImplementation (
             GlContext ctx, Scope scope, Animation.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -295,6 +303,14 @@ public class AnimationConfig extends ParameterizedConfig
             }
             return impl;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (TargetTransform transform : transforms) {
+                transform.expression.invalidate();
+            }
+        }
     }
 
     /**
@@ -417,6 +433,14 @@ public class AnimationConfig extends ParameterizedConfig
     public void updateFromSource (EditorContext ctx, boolean force)
     {
         implementation.updateFromSource(ctx, force);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

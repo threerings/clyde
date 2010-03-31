@@ -114,5 +114,13 @@ public abstract class Color4fExpression extends ObjectExpression<Color4f>
                 protected Color4f _result = new Color4f();
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            firstColor.invalidate();
+            secondColor.invalidate();
+            blendFactor.invalidate();
+        }
     }
 }

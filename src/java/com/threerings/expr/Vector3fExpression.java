@@ -114,5 +114,13 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
                 protected Vector3f _result = new Vector3f();
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            x.invalidate();
+            y.invalidate();
+            z.invalidate();
+        }
     }
 }

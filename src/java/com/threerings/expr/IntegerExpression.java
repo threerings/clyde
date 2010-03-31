@@ -125,4 +125,12 @@ public abstract class IntegerExpression extends DeepObject
      * Creates an expression evaluator for the supplied context.
      */
     public abstract Evaluator createEvaluator (Scope scope);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

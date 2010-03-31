@@ -82,6 +82,14 @@ public class SounderConfig extends ParameterizedConfig
          */
         public abstract Sounder.Implementation getSounderImplementation (
             AlContext ctx, Scope scope, Sounder.Implementation impl);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -416,6 +424,14 @@ public class SounderConfig extends ParameterizedConfig
             }
             return impl;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Case caze : cases) {
+                caze.condition.invalidate();
+            }
+        }
     }
 
     /**
@@ -617,6 +633,14 @@ public class SounderConfig extends ParameterizedConfig
         AlContext ctx, Scope scope, Sounder.Implementation impl)
     {
         return implementation.getSounderImplementation(ctx, scope, impl);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
     }
 
     @Override // documentation inherited

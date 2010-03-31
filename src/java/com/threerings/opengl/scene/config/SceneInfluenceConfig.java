@@ -146,6 +146,15 @@ public abstract class SceneInfluenceConfig extends DeepObject
         public ExpressionDefinition[] definitions = new ExpressionDefinition[0];
 
         @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            for (ExpressionDefinition definition : definitions) {
+                definition.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
@@ -187,6 +196,19 @@ public abstract class SceneInfluenceConfig extends DeepObject
         }
 
         return influence;
+    }
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        for (ExpressionBinding binding : staticBindings) {
+            binding.invalidate();
+        }
+        for (ExpressionBinding binding : dynamicBindings) {
+            binding.invalidate();
+        }
     }
 
     /**

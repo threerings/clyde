@@ -61,4 +61,10 @@ public class SceneInfluencerConfig extends ModelConfig.Implementation
         }
         return impl;
     }
+
+    @Override // documentation inherited
+    public void invalidate ()
+    {
+        influence.invalidate();
+    }
 }

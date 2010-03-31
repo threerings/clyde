@@ -115,5 +115,13 @@ public abstract class QuaternionExpression extends ObjectExpression<Quaternion>
                 protected Quaternion _result = new Quaternion();
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            x.invalidate();
+            y.invalidate();
+            z.invalidate();
+        }
     }
 }

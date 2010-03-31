@@ -92,4 +92,12 @@ public class ConditionalConfig extends ModelConfig.Implementation
         }
         return impl;
     }
+
+    @Override // documentation inherited
+    public void invalidate ()
+    {
+        for (Case caze : cases) {
+            caze.condition.invalidate();
+        }
+    }
 }

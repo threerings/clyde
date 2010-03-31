@@ -118,6 +118,14 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
                 protected Transform3D _result = new Transform3D();
             };
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            translation.invalidate();
+            rotation.invalidate();
+            scale.invalidate();
+        }
     }
 
     /**
@@ -156,6 +164,12 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
                     return result;
                 }
             };
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            frame.invalidate();
         }
     }
 }

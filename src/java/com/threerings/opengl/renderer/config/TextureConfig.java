@@ -1540,6 +1540,12 @@ public class TextureConfig extends ParameterizedConfig
             });
             return null;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            frame.invalidate();
+        }
     }
 
     /**
