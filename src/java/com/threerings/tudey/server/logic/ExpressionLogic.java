@@ -42,6 +42,27 @@ import static com.threerings.tudey.Log.*;
 public abstract class ExpressionLogic extends Logic
 {
     /**
+     * Evaluates a parsed expression.
+     */
+    public static class Parsed extends ExpressionLogic
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            return _expr.evaluate(activator, previous);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _expr = createExpression(((ExpressionConfig.Parsed)_config).getExpression(), _source);
+        }
+
+        /** The parsed value. */
+        protected ExpressionLogic _expr;
+    }
+
+    /**
      * Evaluates a constant expression.
      */
     public static class Constant extends ExpressionLogic

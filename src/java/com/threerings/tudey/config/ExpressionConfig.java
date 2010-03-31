@@ -24,30 +24,79 @@
 
 package com.threerings.tudey.config;
 
+import java.io.StringReader;
+
 import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.ExpressionParser;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 /**
  * Configurations for (weakly typed) server-side expressions.
  */
 @EditorTypes({
-    ExpressionConfig.Constant.class, ExpressionConfig.Reference.class,
-    ExpressionConfig.Previous.class, ExpressionConfig.Increment.class,
-    ExpressionConfig.Decrement.class, ExpressionConfig.Negate.class,
-    ExpressionConfig.Add.class, ExpressionConfig.Subtract.class,
-    ExpressionConfig.Multiply.class, ExpressionConfig.Divide.class,
-    ExpressionConfig.Remainder.class, ExpressionConfig.Not.class,
-    ExpressionConfig.And.class, ExpressionConfig.Or.class,
-    ExpressionConfig.Xor.class, ExpressionConfig.Less.class,
-    ExpressionConfig.Greater.class, ExpressionConfig.Equals.class,
-    ExpressionConfig.LessEquals.class, ExpressionConfig.GreaterEquals.class })
+    ExpressionConfig.Parsed.class, ExpressionConfig.Constant.class,
+    ExpressionConfig.Reference.class, ExpressionConfig.Previous.class,
+    ExpressionConfig.Increment.class, ExpressionConfig.Decrement.class,
+    ExpressionConfig.Negate.class, ExpressionConfig.Add.class,
+    ExpressionConfig.Subtract.class, ExpressionConfig.Multiply.class,
+    ExpressionConfig.Divide.class, ExpressionConfig.Remainder.class,
+    ExpressionConfig.Not.class, ExpressionConfig.And.class,
+    ExpressionConfig.Or.class, ExpressionConfig.Xor.class,
+    ExpressionConfig.Less.class, ExpressionConfig.Greater.class,
+    ExpressionConfig.Equals.class, ExpressionConfig.LessEquals.class,
+    ExpressionConfig.GreaterEquals.class })
 public abstract class ExpressionConfig extends DeepObject
     implements Exportable, Streamable
 {
+    /**
+     * An expression entered as a string to be parsed.
+     */
+    public static class Parsed extends ExpressionConfig
+    {
+        /** The expression to parse. */
+        @Editable
+        public String expression = "";
+
+        /**
+         * Returns the cached, parsed expression.
+         */
+        public ExpressionConfig getExpression ()
+        {
+            if (_expr == null) {
+                try {
+                    _expr = parseExpression(expression);
+                } catch (Exception e) {
+                    // don't worry about it; it's probably being entered
+                }
+                if (_expr == null) {
+                    _expr = new Constant();
+                }
+            }
+            return _expr;
+        }
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$Parsed";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            _expr = null;
+        }
+
+        /** The cached, parsed expression. */
+        @DeepOmit
+        protected transient ExpressionConfig _expr;
+    }
+
     /**
      * A constant expression.
      */
@@ -56,6 +105,21 @@ public abstract class ExpressionConfig extends DeepObject
         /** The value of the constant. */
         @Editable
         public String value = "";
+
+        /**
+         * Creates a constant expression with the supplied value.
+         */
+        public Constant (String value)
+        {
+            this.value = value;
+        }
+
+        /**
+         * Default constructor.
+         */
+        public Constant ()
+        {
+        }
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -354,5 +418,89 @@ public abstract class ExpressionConfig extends DeepObject
     public void invalidate ()
     {
         // nothing by default
+    }
+
+    /**
+     * Parses the supplied string expression.
+     */
+    protected static ExpressionConfig parseExpression (String expression)
+        throws Exception
+    {
+        return new ExpressionParser<ExpressionConfig>(new StringReader(expression)) {
+            @Override protected ExpressionConfig handleNumber (double value) {
+                return new Constant(String.valueOf(value));
+            }
+            @Override protected ExpressionConfig handleString (String value) {
+                return new Constant(value);
+            }
+            @Override protected ExpressionConfig handleOperator (String operator, int arity)
+                    throws Exception {
+                if (arity == 1) {
+                    UnaryOperation result;
+                    if (operator.equals("++")) {
+                        result = new Increment();
+                    } else if (operator.equals("--")) {
+                        result = new Decrement();
+                    } else if (operator.equals("+")) {
+                        return _output.pop();
+                    } else if (operator.equals("-")) {
+                        result = new Negate();
+                    } else if (operator.equals("!")) {
+                        result = new Not();
+                    } else {
+                        return super.handleOperator(operator, arity);
+                    }
+                    result.operand = _output.pop();
+                    return result;
+
+                } else { // arity == 2
+                    BinaryOperation result;
+                    if (operator.equals("+")) {
+                        result = new Add();
+                    } else if (operator.equals("-")) {
+                        result = new Subtract();
+                    } else if (operator.equals("*")) {
+                        result = new Multiply();
+                    } else if (operator.equals("/")) {
+                        result = new Divide();
+                    } else if (operator.equals("%")) {
+                        result = new Remainder();
+                    } else if (operator.equals("&") || operator.equals("&&")) {
+                        result = new And();
+                    } else if (operator.equals("|") || operator.equals("||")) {
+                        result = new Or();
+                    } else if (operator.equals("^")) {
+                        result = new Xor();
+                    } else if (operator.equals("<")) {
+                        result = new Less();
+                    } else if (operator.equals(">")) {
+                        result = new Greater();
+                    } else if (operator.equals("=") || operator.equals("==")) {
+                        result = new Equals();
+                    } else if (operator.equals("<=")) {
+                        result = new LessEquals();
+                    } else if (operator.equals(">=")) {
+                        result = new GreaterEquals();
+                    } else {
+                        return super.handleOperator(operator, arity);
+                    }
+                    result.secondOperand = _output.pop();
+                    result.firstOperand = _output.pop();
+                    return result;
+                }
+            }
+            @Override protected ExpressionConfig handleIdentifier (String name) {
+                if (name.equalsIgnoreCase("null") || name.equalsIgnoreCase("true") ||
+                        name.equalsIgnoreCase("false")) {
+                    return new Constant(name);
+
+                } else if (name.equalsIgnoreCase("previous")) {
+                    return new Previous();
+                }
+                Reference ref = new Reference();
+                ref.name = name;
+                return ref;
+            }
+        }.parse();
     }
 }
