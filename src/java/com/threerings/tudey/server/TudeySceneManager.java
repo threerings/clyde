@@ -922,8 +922,12 @@ public class TudeySceneManager extends SceneManager
      */
     protected void createEntryLogics (TudeySceneModel sceneModel)
     {
+        // add first, then notify; the entries may be looking for other tagged entries
         for (Entry entry : sceneModel.getEntries()) {
             addLogic(entry);
+        }
+        for (EntryLogic logic : _entries.values()) {
+            logic.added();
         }
     }
 
@@ -1032,6 +1036,9 @@ public class TudeySceneManager extends SceneManager
         logic.init(this, entry);
         _entries.put(entry.getKey(), logic);
         addMappings(logic);
+        if (_ticker != null) {
+            logic.added();
+        }
     }
 
     /**

@@ -54,7 +54,7 @@ public class EntryLogic extends Logic
     public static class Camera extends EntryLogic
     {
         @Override // documentation inherited
-        protected void didInit ()
+        protected void wasAdded ()
         {
             GlobalEntry gentry = (GlobalEntry)_entry;
             SceneGlobalConfig.Camera config =
@@ -76,7 +76,7 @@ public class EntryLogic extends Logic
     public static class StatefulProp extends EntryLogic
     {
         @Override // documentation inherited
-        protected void didInit ()
+        protected void wasAdded ()
         {
             PlaceableEntry pentry = (PlaceableEntry)_entry;
             PlaceableConfig.StatefulProp config =
@@ -118,11 +118,9 @@ public class EntryLogic extends Logic
 
         // create the handler logic objects
         ArrayList<HandlerLogic> handlers = new ArrayList<HandlerLogic>();
-        int timestamp = _scenemgr.getNextTimestamp();
         for (HandlerConfig config : entry.getHandlers(cfgmgr)) {
             HandlerLogic handler = createHandler(config, this);
             if (handler != null) {
-                handler.startup(timestamp);
                 handlers.add(handler);
             }
         }
@@ -138,6 +136,21 @@ public class EntryLogic extends Logic
     public Entry getEntry ()
     {
         return _entry;
+    }
+
+    /**
+     * Notes that the entry has been added to the scene.
+     */
+    public void added ()
+    {
+        // notify the handlers
+        int timestamp = _scenemgr.getNextTimestamp();
+        for (HandlerLogic handler : _handlers) {
+            handler.startup(timestamp);
+        }
+
+        // give subclasses a chance to initialize
+        wasAdded();
     }
 
     /**
@@ -233,6 +246,14 @@ public class EntryLogic extends Logic
      * Override to perform custom initialization.
      */
     protected void didInit ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Override to perform custom startup.
+     */
+    protected void wasAdded ()
     {
         // nothing by default
     }
