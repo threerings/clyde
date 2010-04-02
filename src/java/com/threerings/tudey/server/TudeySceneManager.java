@@ -244,6 +244,14 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns a reference to the list of all static actors.
+     */
+    public List<ActorLogic> getStaticActors ()
+    {
+        return _staticActors;
+    }
+
+    /**
      * Returns the list of logic objects with the supplied tag, or <code>null</code> for none.
      */
     public ArrayList<Logic> getTagged (String tag)
@@ -354,6 +362,11 @@ public class TudeySceneManager extends SceneManager
         logic.init(this, ref, original, id, timestamp, translation, rotation);
         _actors.put(id, logic);
         addMappings(logic);
+
+        // special processing for static actors
+        if (logic.isStatic()) {
+            _staticActors.add(logic);
+        }
 
         // notify observers
         _actorObservers.apply(_actorAddedOp.init(logic));
@@ -488,6 +501,11 @@ public class TudeySceneManager extends SceneManager
         // remove mappings
         removeMappings(logic);
 
+        // special handling for static actors
+        if (logic.isStatic()) {
+            _staticActors.remove(logic);
+        }
+
         // notify observers
         _actorObservers.apply(_actorRemovedOp.init(logic));
     }
@@ -591,6 +609,14 @@ public class TudeySceneManager extends SceneManager
             _elements.clear();
         }
         return false;
+    }
+
+    /**
+     * Notes that a static actor's state has changed.
+     */
+    public void staticActorUpdated (ActorLogic logic)
+    {
+
     }
 
     /**
@@ -1262,6 +1288,9 @@ public class TudeySceneManager extends SceneManager
 
     /** Actor logic objects mapped by id. */
     protected HashIntMap<ActorLogic> _actors = IntMaps.newHashIntMap();
+
+    /** The list of all "static" actors. */
+    protected List<ActorLogic> _staticActors = Lists.newArrayList();
 
     /** Maps tags to lists of logic objects with that tag. */
     protected HashMap<String, ArrayList<Logic>> _tagged = Maps.newHashMap();

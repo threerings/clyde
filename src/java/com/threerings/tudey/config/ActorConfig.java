@@ -110,6 +110,11 @@ public class ActorConfig extends ParameterizedConfig
         @Editable
         public HandlerConfig[] handlers = new HandlerConfig[0];
 
+        /** Whether or not the actor is "static" (always in clients' area of interest, notifies
+         * the scene manager when its state changes). */
+        @Editable
+        public boolean isStatic;
+
         /** Whether or not the actor should be used as a default entrance. */
         @Editable(hgroup="d")
         public boolean defaultEntrance;

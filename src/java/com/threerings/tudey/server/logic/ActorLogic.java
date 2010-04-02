@@ -87,6 +87,15 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Checks whether this is a "static" actor.  Static actors are always in clients' areas of
+     * interest and must notify the scene manager when their state changes.
+     */
+    public boolean isStatic ()
+    {
+        return _config.isStatic;
+    }
+
+    /**
      * Sets the reference to the entity that spawned the actor.
      */
     public void setSource (Logic source)
@@ -455,6 +464,16 @@ public class ActorLogic extends Logic
     protected void wasRemoved ()
     {
         // nothing by default
+    }
+
+    /**
+     * Notes that the actor state has changed.  Only static actors need call this method.
+     */
+    protected void wasUpdated ()
+    {
+        if (isStatic()) {
+            _scenemgr.staticActorUpdated(this);
+        }
     }
 
     /** The actor configuration. */

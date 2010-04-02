@@ -219,6 +219,14 @@ public class ClientLiaison
         HashIntMap<Actor> actors = getActorSnapshots();
         Effect[] effectsFired = _scenemgr.getEffectsFired(_worldInterest);
 
+        // if this is the first recorded tick, we need to add the complete set of static
+        // actors; afterwards, just the delta
+        if (_records.get(_records.size() - 1).getTimestamp() == 0) {
+
+        } else {
+
+        }
+
         // record the tick
         int timestamp = _scenemgr.getTimestamp();
         TickRecord record = new TickRecord(timestamp, actors, effectsFired);
