@@ -40,6 +40,9 @@ public class FloatMath
     /** Pi times one half. */
     public static final float HALF_PI = PI * 0.5f;
 
+    /** The base value of the natural logarithm. */
+    public static final float E = (float)Math.E;
+
     /** A small number. */
     public static final float EPSILON = 0.000001f;
 
