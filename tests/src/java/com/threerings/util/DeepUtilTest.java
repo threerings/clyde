@@ -31,7 +31,7 @@ public class DeepUtilTest extends TestCase
         // make sure it works for some wrappers and arrays
         Integer v1 = RandomUtil.rand.nextInt();
         assertEquals(DeepUtil.copy(v1), v1);
-        float[][] v2 = new float[RandomUtil.getInRange(10, 5)][RandomUtil.getInRange(10, 5)];
+        float[][] v2 = new float[RandomUtil.getInRange(5, 11)][RandomUtil.getInRange(5, 11)];
         for (int ii = 0; ii < v2.length; ii++) {
             for (int jj = 0; jj < v2[ii].length; jj++) {
                 v2[ii][jj] = RandomUtil.rand.nextFloat();
@@ -61,7 +61,7 @@ public class DeepUtilTest extends TestCase
         assertEquals(DeepUtil.equals(v1, v2), v1.equals(v2));
         Float v3 = RandomUtil.rand.nextFloat();
         assertEquals(false, DeepUtil.equals(v1, v3));
-        byte[] v4 = new byte[RandomUtil.getInRange(10, 5)];
+        byte[] v4 = new byte[RandomUtil.getInRange(5, 11)];
         for (int ii = 0; ii < v4.length; ii++) {
             v4[ii] = (byte)RandomUtil.rand.nextInt();
         }
@@ -123,12 +123,12 @@ public class DeepUtilTest extends TestCase
         {
             v1 = (byte)RandomUtil.rand.nextInt();
             v2 = RandomUtil.rand.nextBoolean();
-            v3 = new Object[RandomUtil.getInRange(20, 10)][];
+            v3 = new Object[RandomUtil.getInRange(10, 21)][];
             for (int ii = 0; ii < v3.length; ii++) {
                 if (RandomUtil.rand.nextBoolean()) {
                     continue;
                 }
-                v3[ii] = new Object[RandomUtil.getInRange(20, 10)];
+                v3[ii] = new Object[RandomUtil.getInRange(10, 21)];
                 for (int jj = 0; jj < v3[ii].length; jj++) {
                     if (RandomUtil.rand.nextBoolean()) {
                         continue;
