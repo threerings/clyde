@@ -402,6 +402,44 @@ public abstract class TargetLogic extends Logic
     }
 
     /**
+     * Handles the excluding target.
+     */
+    public static class Excluding extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            _target.resolve(activator, _targets);
+            if (_targets.size() > 0) {
+                _excluding.resolve(activator, _excluded);
+                _targets.removeAll(_excluded);
+                results.addAll(_targets);
+                _excluded.clear();
+            }
+            _targets.clear();
+        }
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            TargetConfig.Excluding config = (TargetConfig.Excluding)_config;
+            _target = createTarget(config.target, _source);
+            _excluding = createTarget(config.excluding, _source);
+        }
+
+        /** The contained target. */
+        protected TargetLogic _target;
+
+        /** The excluding target. */
+        protected TargetLogic _excluding;
+
+        /** Holds the targets during processing. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
+
+        /** Holds the excluded targets during processing. */
+        protected ArrayList<Logic> _excluded = Lists.newArrayList();
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, TargetConfig config, Logic source)

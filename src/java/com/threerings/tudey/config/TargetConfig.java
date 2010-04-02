@@ -40,7 +40,7 @@ import com.threerings.util.DeepObject;
     TargetConfig.Intersecting.class, TargetConfig.RandomSubset.class,
     TargetConfig.NearestSubset.class, TargetConfig.FarthestSubset.class,
     TargetConfig.Conditional.class, TargetConfig.Compound.class,
-    TargetConfig.Behavior.class })
+    TargetConfig.Behavior.class, TargetConfig.Excluding.class })
 public abstract class TargetConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -273,6 +273,33 @@ public abstract class TargetConfig extends DeepObject
         public void invalidate ()
         {
             target.invalidate();
+        }
+    }
+
+    /**
+     * Removes excluded targets from the result list.
+     */
+    public static class Excluding extends TargetConfig
+    {
+        /** The primary targets. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        /** The exluding target. */
+        @Editable
+        public TargetConfig excluding = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$Excluding";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+            excluding.invalidate();
         }
     }
 
