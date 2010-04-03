@@ -24,10 +24,14 @@
 
 package com.threerings.tudey.server;
 
-import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import com.samskivert.util.CollectionUtil;
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntMap;
+import com.samskivert.util.IntMaps;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.net.Transport;
@@ -83,7 +87,7 @@ public class ClientLiaison
         _localInterest = _scenemgr.getDefaultLocalInterest();
 
         // insert the baseline (empty) tick record
-        _records.add(new TickRecord(0, new HashIntMap<Actor>(), new Effect[0]));
+        _records.add(new TickRecord());
     }
 
     /**
@@ -97,7 +101,7 @@ public class ClientLiaison
         } else {
             if (_records.isEmpty()) {
                 // start again from the zero reference time
-                _records.add(new TickRecord(0, new HashIntMap<Actor>(), new Effect[0]));
+                _records.add(new TickRecord());
             }
         }
     }
@@ -195,7 +199,8 @@ public class ClientLiaison
      * Posts the scene delta for this client, informing it any all relevant changes to the scene
      * since its last acknowledged delta.
      */
-    public void postDelta ()
+    public void postDelta (
+        Actor[] staticActorsAdded, ActorDelta[] staticActorsUpdated, int[] staticActorsRemoved)
     {
         // no need to do anything if not yet receiving
         if (!_receiving) {
@@ -216,27 +221,28 @@ public class ClientLiaison
         _localInterest.getMaximumExtent().add(translation, _worldInterest.getMaximumExtent());
 
         // retrieve the states of the actors, effects fired in the client's area of interest
-        HashIntMap<Actor> actors = getActorSnapshots();
+        IntMap<Actor> actors = getActorSnapshots();
         Effect[] effectsFired = _scenemgr.getEffectsFired(_worldInterest);
 
         // if this is the first recorded tick, we need to add the complete set of static
         // actors; afterwards, just the delta
         if (_records.get(_records.size() - 1).getTimestamp() == 0) {
-
-        } else {
-
+            staticActorsAdded = _scenemgr.getStaticActorSnapshots();
+            staticActorsUpdated = new ActorDelta[0];
+            staticActorsRemoved = new int[0];
         }
 
         // record the tick
         int timestamp = _scenemgr.getTimestamp();
-        TickRecord record = new TickRecord(timestamp, actors, effectsFired);
+        TickRecord record = new TickRecord(timestamp, actors, staticActorsAdded,
+            staticActorsUpdated, staticActorsRemoved, effectsFired);
         _records.add(record);
 
         // the last acknowledged tick is the reference
         TickRecord reference = _records.get(0);
 
         // find all actors added, updated since the reference
-        HashIntMap<Actor> oactors = reference.getActors();
+        IntMap<Actor> oactors = reference.getActors();
         for (Actor nactor : actors.values()) {
             Actor oactor = oactors.get(nactor.getId());
             if (oactor == null) {
@@ -258,14 +264,40 @@ public class ClientLiaison
             }
         }
 
-        // get all effects fired (not expired)
+        // merge static actor updates and get all effects fired (not expired)
         for (int ii = 1, nn = _records.size(); ii < nn; ii++) {
-            for (Effect effect : _records.get(ii).getEffectsFired()) {
+            TickRecord orecord = _records.get(ii);
+            for (Actor actor : orecord.getStaticActorsAdded()) {
+                _staticAdded.put(actor.getId(), actor);
+            }
+            for (ActorDelta delta : orecord.getStaticActorsUpdated()) {
+                int id = delta.getId();
+                Actor oactor = _staticAdded.get(id);
+                if (oactor != null) {
+                    _staticAdded.put(id, (Actor)delta.apply(oactor));
+                } else {
+                    ActorDelta odelta = _staticUpdated.put(id, delta);
+                    if (odelta != null) {
+                        _staticUpdated.put(id, (ActorDelta)odelta.merge(delta));
+                    }
+                }
+            }
+            for (int id : orecord.getStaticActorsRemoved()) {
+                if (_staticAdded.remove(id) == null) {
+                    _staticUpdated.remove(id);
+                    _removed.add(id);
+                }
+            }
+            for (Effect effect : orecord.getEffectsFired()) {
                 if (timestamp < effect.getExpiry()) {
                     _fired.add(effect);
                 }
             }
         }
+        _added.addAll(_staticAdded.values());
+        _updated.addAll(_staticUpdated.values());
+        _staticAdded.clear();
+        _staticUpdated.clear();
 
         // if we know that we can't transmit datagrams, we may as well send the delta as reliable
         // and immediately consider it received
@@ -296,7 +328,7 @@ public class ClientLiaison
     /**
      * Returns a map containing snapshots of all actors in the client's area of interest.
      */
-    protected HashIntMap<Actor> getActorSnapshots ()
+    protected IntMap<Actor> getActorSnapshots ()
     {
         return _scenemgr.getActorSnapshots(_target, _worldInterest);
     }
@@ -310,12 +342,26 @@ public class ClientLiaison
         public SceneDeltaEvent event;
 
         /**
+         * Creates an empty reference record.
+         */
+        public TickRecord ()
+        {
+            this(0, new HashIntMap<Actor>(), new Actor[0],
+                new ActorDelta[0], new int[0], new Effect[0]);
+        }
+
+        /**
          * Creates a new record.
          */
-        public TickRecord (int timestamp, HashIntMap<Actor> actors, Effect[] effectsFired)
+        public TickRecord (
+            int timestamp, IntMap<Actor> actors, Actor[] staticActorsAdded,
+            ActorDelta[] staticActorsUpdated, int[] staticActorsRemoved, Effect[] effectsFired)
         {
             _timestamp = timestamp;
             _actors = actors;
+            _staticActorsAdded = staticActorsAdded;
+            _staticActorsUpdated = staticActorsUpdated;
+            _staticActorsRemoved = staticActorsRemoved;
             _effectsFired = effectsFired;
         }
 
@@ -330,9 +376,33 @@ public class ClientLiaison
         /**
          * Returns the state of the actors at this tick.
          */
-        public HashIntMap<Actor> getActors ()
+        public IntMap<Actor> getActors ()
         {
             return _actors;
+        }
+
+        /**
+         * Returns the static actors added on this tick.
+         */
+        public Actor[] getStaticActorsAdded ()
+        {
+            return _staticActorsAdded;
+        }
+
+        /**
+         * Returns the deltas of static actors updated on this tick.
+         */
+        public ActorDelta[] getStaticActorsUpdated ()
+        {
+            return _staticActorsUpdated;
+        }
+
+        /**
+         * Returns the ids of the static actors removed on this tick.
+         */
+        public int[] getStaticActorsRemoved ()
+        {
+            return _staticActorsRemoved;
         }
 
         /**
@@ -346,8 +416,17 @@ public class ClientLiaison
         /** The timestamp of this record. */
         protected int _timestamp;
 
-        /** The actor states at this tick. */
-        protected HashIntMap<Actor> _actors;
+        /** The (non-static) actor states at this tick. */
+        protected IntMap<Actor> _actors;
+
+        /** The static actors added on this tick. */
+        protected Actor[] _staticActorsAdded;
+
+        /** The deltas of static actors updated on this tick. */
+        protected ActorDelta[] _staticActorsUpdated;
+
+        /** The ids of static actors removed on this tick. */
+        protected int[] _staticActorsRemoved;
 
         /** The effects fired on this tick. */
         protected Effect[] _effectsFired;
@@ -378,7 +457,7 @@ public class ClientLiaison
     protected Rect _worldInterest = new Rect();
 
     /** Records of each update transmitted to the client. */
-    protected ArrayList<TickRecord> _records = new ArrayList<TickRecord>();
+    protected List<TickRecord> _records = Lists.newArrayList();
 
     /** Set when we know that the client will be receiving on the client object. */
     protected boolean _receiving;
@@ -393,14 +472,20 @@ public class ClientLiaison
     protected int _lastInput;
 
     /** Stores added actors. */
-    protected ArrayList<Actor> _added = new ArrayList<Actor>();
+    protected List<Actor> _added = Lists.newArrayList();
 
     /** Stores updated actor deltas. */
-    protected ArrayList<ActorDelta> _updated = new ArrayList<ActorDelta>();
+    protected List<ActorDelta> _updated = Lists.newArrayList();
 
     /** Stores removed actor ids. */
-    protected ArrayList<Integer> _removed = new ArrayList<Integer>();
+    protected List<Integer> _removed = Lists.newArrayList();
 
     /** Stores effects fired. */
-    protected ArrayList<Effect> _fired = new ArrayList<Effect>();
+    protected List<Effect> _fired = Lists.newArrayList();
+
+    /** Stores static actors added. */
+    protected IntMap<Actor> _staticAdded = IntMaps.newHashIntMap();
+
+    /** Stores static actors updated. */
+    protected IntMap<ActorDelta> _staticUpdated = IntMaps.newHashIntMap();
 }

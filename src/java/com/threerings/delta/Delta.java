@@ -96,6 +96,13 @@ public abstract class Delta
      */
     public abstract Object apply (Object original);
 
+    /**
+     * Merges this delta with another.
+     *
+     * @return a new delta containing the changes included in both.
+     */
+    public abstract Delta merge (Delta other);
+
     /** Custom creator methods mapped by class. */
     protected static HashMap<Class, Method> _creators = new HashMap<Class, Method>();
 

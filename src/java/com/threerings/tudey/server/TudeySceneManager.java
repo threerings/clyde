@@ -30,11 +30,13 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Queue;
@@ -71,6 +73,7 @@ import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
+import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.EffectLogic;
 import com.threerings.tudey.server.logic.EntryLogic;
@@ -244,14 +247,6 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Returns a reference to the list of all static actors.
-     */
-    public List<ActorLogic> getStaticActors ()
-    {
-        return _staticActors;
-    }
-
-    /**
      * Returns the list of logic objects with the supplied tag, or <code>null</code> for none.
      */
     public ArrayList<Logic> getTagged (String tag)
@@ -365,7 +360,8 @@ public class TudeySceneManager extends SceneManager
 
         // special processing for static actors
         if (logic.isStatic()) {
-            _staticActors.add(logic);
+            _staticActors.put(id, logic);
+            _staticActorsAdded.put(id, logic);
         }
 
         // notify observers
@@ -453,8 +449,8 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Returns a map containing the snapshots of all actors whose influence regions intersect the
-     * provided bounds.
+     * Returns a map containing the snapshots of all (non-static) actors whose influence regions
+     * intersect the provided bounds.
      */
     public HashIntMap<Actor> getActorSnapshots (PawnLogic target, Rect bounds)
     {
@@ -462,13 +458,26 @@ public class TudeySceneManager extends SceneManager
         HashIntMap<Actor> map = new HashIntMap<Actor>();
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
             ActorLogic actor = (ActorLogic)_elements.get(ii).getUserObject();
-            if (actor.isVisible(target)) {
+            if (!actor.isStatic() && actor.isVisible(target)) {
                 Actor snapshot = actor.getSnapshot();
                 map.put(snapshot.getId(), snapshot);
             }
         }
         _elements.clear();
         return map;
+    }
+
+    /**
+     * Returns an array containing snapshots of all static actors.
+     */
+    public Actor[] getStaticActorSnapshots ()
+    {
+        Actor[] snapshots = new Actor[_staticActors.size()];
+        int idx = 0;
+        for (ActorLogic logic : _staticActors.values()) {
+            snapshots[idx++] = logic.getSnapshot();
+        }
+        return snapshots;
     }
 
     /**
@@ -503,7 +512,11 @@ public class TudeySceneManager extends SceneManager
 
         // special handling for static actors
         if (logic.isStatic()) {
-            _staticActors.remove(logic);
+            _staticActors.remove(id);
+            if (_staticActorsAdded.remove(id) == null) {
+                _staticActorsUpdated.remove(id);
+                _staticActorsRemoved.add(id);
+            }
         }
 
         // notify observers
@@ -616,7 +629,10 @@ public class TudeySceneManager extends SceneManager
      */
     public void staticActorUpdated (ActorLogic logic)
     {
-
+        int id = logic.getActor().getId();
+        if (!_staticActorsAdded.containsKey(id)) {
+            _staticActorsUpdated.put(id, logic);
+        }
     }
 
     /**
@@ -1164,9 +1180,29 @@ public class TudeySceneManager extends SceneManager
             runnable.run();
         }
 
+        // get the static actors added...
+        Actor[] staticActorsAdded = new Actor[_staticActorsAdded.size()];
+        int idx = 0;
+        for (ActorLogic logic : _staticActorsAdded.values()) {
+            staticActorsAdded[idx++] = logic.getSnapshot();
+        }
+        _staticActorsAdded.clear();
+
+        // ...updated...
+        ActorDelta[] staticActorsUpdated = new ActorDelta[_staticActorsUpdated.size()];
+        idx = 0;
+        for (ActorLogic logic : _staticActorsUpdated.values()) {
+            staticActorsUpdated[idx++] = logic.getSnapshotDelta();
+        }
+        _staticActorsUpdated.clear();
+
+        // ...and removed
+        int[] staticActorsRemoved = Ints.toArray(_staticActorsRemoved);
+        _staticActorsRemoved.clear();
+
         // post deltas for all clients
         for (ClientLiaison client : _clients.values()) {
-            client.postDelta();
+            client.postDelta(staticActorsAdded, staticActorsUpdated, staticActorsRemoved);
         }
 
         // clear the effect list
@@ -1289,8 +1325,8 @@ public class TudeySceneManager extends SceneManager
     /** Actor logic objects mapped by id. */
     protected HashIntMap<ActorLogic> _actors = IntMaps.newHashIntMap();
 
-    /** The list of all "static" actors. */
-    protected List<ActorLogic> _staticActors = Lists.newArrayList();
+    /** "Static" actors mapped by id. */
+    protected IntMap<ActorLogic> _staticActors = IntMaps.newHashIntMap();
 
     /** Maps tags to lists of logic objects with that tag. */
     protected HashMap<String, ArrayList<Logic>> _tagged = Maps.newHashMap();
@@ -1309,6 +1345,15 @@ public class TudeySceneManager extends SceneManager
 
     /** The pathfinder used for path computation. */
     protected Pathfinder _pathfinder;
+
+    /** The logic for static actors added on the current tick. */
+    protected IntMap<ActorLogic> _staticActorsAdded = IntMaps.newHashIntMap();
+
+    /** The logic for static actors updated on the current tick. */
+    protected IntMap<ActorLogic> _staticActorsUpdated = IntMaps.newHashIntMap();
+
+    /** The ids of static actors removed on the current tick. */
+    protected List<Integer> _staticActorsRemoved = Lists.newArrayList();
 
     /** The logic for effects fired on the current tick. */
     protected ArrayList<EffectLogic> _effectsFired = Lists.newArrayList();

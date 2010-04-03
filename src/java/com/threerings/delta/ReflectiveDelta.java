@@ -72,7 +72,7 @@ public class ReflectiveDelta extends Delta
                     " for delta computation", e);
             }
         }
-        _values = values.toArray(new Object[values.size()]);
+        _values = values.toArray();
     }
 
     /**
@@ -129,7 +129,7 @@ public class ReflectiveDelta extends Delta
         for (FieldHandler handler : cmap.getHandlers()) {
             handler.read(_mask, midx, values, in);
         }
-        _values = values.toArray(new Object[values.size()]);
+        _values = values.toArray();
     }
 
     @Override // documentation inherited
@@ -167,6 +167,17 @@ public class ReflectiveDelta extends Delta
     }
 
     @Override // documentation inherited
+    public Delta merge (Delta other)
+    {
+        if (!(other instanceof ReflectiveDelta)) {
+            throw new IllegalArgumentException("Cannot merge delta " + other);
+        }
+        ReflectiveDelta merged = new ReflectiveDelta();
+        populateMerged((ReflectiveDelta)other, merged);
+        return merged;
+    }
+
+    @Override // documentation inherited
     public String toString ()
     {
         StringBuilder buf = new StringBuilder();
@@ -179,6 +190,48 @@ public class ReflectiveDelta extends Delta
             handlers[ii].toString(fields[ii], _mask, midx, _values, vidx, buf);
         }
         return buf.append("]").toString();
+    }
+
+    /**
+     * Populates the merged delta.
+     */
+    protected void populateMerged (ReflectiveDelta other, ReflectiveDelta merged)
+    {
+        if (_clazz != other._clazz) {
+            throw new IllegalArgumentException("Merge class mismatch: other is " +
+                other._clazz + ", expected " + _clazz);
+        }
+        merged._clazz = _clazz;
+        int mlength = getClassMapping(_clazz).getMaskLength();
+        merged._mask = new BareArrayMask(mlength);
+        List<Object> values = Lists.newArrayList();
+        for (int ii = 0, oidx = 0, nidx = 0; ii < mlength; ii++) {
+            Object value;
+            if (_mask.isSet(ii)) {
+                Object ovalue = _values[oidx++];
+                if (other._mask.isSet(ii)) {
+                    Object nvalue = other._values[nidx++];
+                    if (nvalue instanceof Delta) {
+                        Delta ndelta = (Delta)nvalue;
+                        value = (ovalue instanceof Delta) ?
+                            ((Delta)ovalue).merge(ndelta) : ndelta.apply(ovalue);
+                    } else {
+                        value = nvalue;
+                    }
+                } else {
+                    value = ovalue;
+                }
+            } else {
+                if (other._mask.isSet(ii)) {
+                    value = other._values[nidx++];
+                } else {
+                    continue;
+                }
+            }
+            merged._mask.set(ii);
+            values.add(value);
+        }
+        merged._values = values.toArray();
     }
 
     /**

@@ -29,6 +29,7 @@ import java.io.IOException;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
 
+import com.threerings.delta.Delta;
 import com.threerings.delta.ReflectiveDelta;
 
 import com.threerings.tudey.data.actor.Actor;
@@ -61,6 +62,19 @@ public final class ActorDelta extends ReflectiveDelta
     public int getId ()
     {
         return _id;
+    }
+
+    @Override // documentation inherited
+    public Delta merge (Delta other)
+    {
+        ActorDelta odelta;
+        if (!(other instanceof ActorDelta && (odelta = (ActorDelta)other).getId() == _id)) {
+            throw new IllegalArgumentException("Cannot merge delta " + other);
+        }
+        ActorDelta merged = new ActorDelta();
+        merged._id = _id;
+        populateMerged(odelta, merged);
+        return merged;
     }
 
     @Override // documentation inherited

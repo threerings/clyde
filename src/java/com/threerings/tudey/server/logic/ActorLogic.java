@@ -40,6 +40,7 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.HasActor;
+import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
@@ -143,6 +144,15 @@ public class ActorLogic extends Logic
     public void bodyWillLeave (BodyObject body)
     {
         destroy(_scenemgr.getNextTimestamp(), this);
+    }
+
+    /**
+     * Returns the delta between the last snapshot of the actor and the current state (and
+     * updates the snapshot).
+     */
+    public ActorDelta getSnapshotDelta ()
+    {
+        return new ActorDelta(_snapshot, getSnapshot());
     }
 
     /**

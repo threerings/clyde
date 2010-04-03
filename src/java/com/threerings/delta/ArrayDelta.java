@@ -28,8 +28,10 @@ import java.io.IOException;
 
 import java.lang.reflect.Array;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
+
+import com.google.common.collect.Lists;
 
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
@@ -52,7 +54,7 @@ public class ArrayDelta extends Delta
         _clazz = original.getClass();
         _length = Array.getLength(revised);
         _mask = new BareArrayMask(_length);
-        ArrayList<Object> values = new ArrayList<Object>();
+        List<Object> values = Lists.newArrayList();
         int olen = Array.getLength(original);
         Object defvalue = Array.get(Array.newInstance(_clazz.getComponentType(), 1), 0);
         Object[] oarray = new Object[1], narray = new Object[1];
@@ -68,7 +70,7 @@ public class ArrayDelta extends Delta
             _mask.set(ii);
             values.add(nvalue);
         }
-        _values = values.toArray(new Object[values.size()]);
+        _values = values.toArray();
     }
 
     /**
@@ -127,7 +129,7 @@ public class ArrayDelta extends Delta
         // read the changed elements
         Class ctype = _clazz.getComponentType();
         Streamer streamer = ctype.isPrimitive() ? _wrapperStreamers.get(ctype) : null;
-        ArrayList<Object> values = new ArrayList<Object>();
+        List<Object> values = Lists.newArrayList();
         for (int ii = 0; ii < _length; ii++) {
             if (!_mask.isSet(ii)) {
                 continue;
@@ -138,7 +140,7 @@ public class ArrayDelta extends Delta
                 values.add(in.readObject());
             }
         }
-        _values = values.toArray(new Object[values.size()]);
+        _values = values.toArray();
     }
 
     @Override // documentation inherited
@@ -172,6 +174,49 @@ public class ArrayDelta extends Delta
             Array.set(revised, ii, value);
         }
         return revised;
+    }
+
+    @Override // documentation inherited
+    public Delta merge (Delta other)
+    {
+        ArrayDelta aother;
+        if (!(other instanceof ArrayDelta && (aother = (ArrayDelta)other)._clazz == _clazz)) {
+            throw new IllegalArgumentException("Cannot merge delta " + other);
+        }
+        ArrayDelta merged = new ArrayDelta();
+        merged._clazz = _clazz;
+        int mlength = aother._length;
+        merged._length = mlength;
+        merged._mask = new BareArrayMask(mlength);
+        List<Object> values = Lists.newArrayList();
+        for (int ii = 0, oidx = 0, nidx = 0; ii < mlength; ii++) {
+            Object value;
+            if (ii < _length && _mask.isSet(ii)) {
+                Object ovalue = _values[oidx++];
+                if (aother._mask.isSet(ii)) {
+                    Object nvalue = aother._values[nidx++];
+                    if (nvalue instanceof Delta) {
+                        Delta ndelta = (Delta)nvalue;
+                        value = (ovalue instanceof Delta) ?
+                            ((Delta)ovalue).merge(ndelta) : ndelta.apply(ovalue);
+                    } else {
+                        value = nvalue;
+                    }
+                } else {
+                    value = ovalue;
+                }
+            } else {
+                if (aother._mask.isSet(ii)) {
+                    value = aother._values[nidx++];
+                } else {
+                    continue;
+                }
+            }
+            merged._mask.set(ii);
+            values.add(value);
+        }
+        merged._values = values.toArray();
+        return merged;
     }
 
     @Override // documentation inherited
