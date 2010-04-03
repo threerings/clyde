@@ -224,6 +224,7 @@ public class ActorLogic extends Logic
         _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
             public boolean tick (int timestamp) {
                 _actor.clear(Actor.WARP);
+                wasUpdated();
                 return false;
             }
         });
@@ -237,6 +238,7 @@ public class ActorLogic extends Logic
         _actor.getTranslation().set(x, y);
         _actor.setRotation(rotation);
         updateShape();
+        wasUpdated();
     }
 
     /**
@@ -251,6 +253,7 @@ public class ActorLogic extends Logic
 
         // set the destroyed time and remove on the next tick
         _actor.setDestroyed(timestamp);
+        wasUpdated();
         _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
             public boolean tick (int timestamp) {
                 remove();
@@ -481,7 +484,7 @@ public class ActorLogic extends Logic
      */
     protected void wasUpdated ()
     {
-        if (isStatic()) {
+        if (isStatic() && !isRemoved()) {
             _scenemgr.staticActorUpdated(this);
         }
     }
