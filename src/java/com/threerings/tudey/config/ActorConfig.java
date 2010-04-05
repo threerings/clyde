@@ -51,8 +51,7 @@ public class ActorConfig extends ParameterizedConfig
     /**
      * Contains the actual implementation of the actor.
      */
-    @EditorTypes({
-        Original.class, Mobile.class, Pawn.class, Agent.class, Derived.class })
+    @EditorTypes({ Original.class, Mobile.class, Pawn.class, Agent.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -113,7 +112,7 @@ public class ActorConfig extends ParameterizedConfig
         /** Whether or not the actor is "static" (always in clients' area of interest, notifies
          * the scene manager when its state changes). */
         @Editable
-        public boolean isStatic;
+        public boolean isStatic = true;
 
         /** Whether or not the actor should be used as a default entrance. */
         @Editable(hgroup="d")
@@ -196,6 +195,14 @@ public class ActorConfig extends ParameterizedConfig
          * (zero if we should never put it into stasis). */
         @Editable(min=0, hgroup="a")
         public int stasisInterval = 5000;
+
+        /**
+         * Default constructor.
+         */
+        public Mobile ()
+        {
+            this.isStatic = false;
+        }
 
         @Override // documentation inherited
         public String getLogicClassName ()
