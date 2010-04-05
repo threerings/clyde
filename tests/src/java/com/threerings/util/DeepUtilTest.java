@@ -28,7 +28,10 @@ public class DeepUtilTest extends TestCase
 
     public void testCopy ()
     {
-        // make sure it works for some wrappers and arrays
+        // make sure it works for some wrappers and arrays.  the bounds on the lengths of the
+        // arrays (here, in testEquals, and in Child.randomize) are totally arbitrary.  i chose
+        // 5-10 and 10-20 for roundness, but used RandomUtil.getInt wrong and ended up with
+        // 6-9 and 11-19.  now i have fixed the lengths that were, again, completely arbitrary
         Integer v1 = RandomUtil.rand.nextInt();
         assertEquals(DeepUtil.copy(v1), v1);
         float[][] v2 = new float[RandomUtil.getInRange(5, 11)][RandomUtil.getInRange(5, 11)];
