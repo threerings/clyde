@@ -480,6 +480,15 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Sets (or clears) an actor flag and calls {@link #wasUpdated}.
+     */
+    protected void set (int flag, boolean value)
+    {
+        _actor.set(flag, value);
+        wasUpdated();
+    }
+
+    /**
      * Notes that the actor state has changed.  Only static actors need call this method.
      */
     protected void wasUpdated ()

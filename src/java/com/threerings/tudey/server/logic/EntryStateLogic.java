@@ -53,6 +53,15 @@ public class EntryStateLogic extends ActorLogic
         return new EntryState(ref, id, timestamp, translation, rotation);
     }
 
+    /**
+     * Sets the actor state and calls {@link #wasUpdated}.
+     */
+    protected void setState (int state, int entered)
+    {
+        ((EntryState)_actor).setState(state, entered);
+        wasUpdated();
+    }
+
     /** The logic of the corresponding entry, if known. */
     protected EntryLogic _entry;
 }
