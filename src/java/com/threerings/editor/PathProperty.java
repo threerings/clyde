@@ -315,11 +315,15 @@ public class PathProperty extends Property
             final @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
                 (Class<ManagedConfig>)base.getArgumentType(ConfigReference.class);
             if (clazz == null) {
-                log.warning("Couldn't determine config reference type [ref=" + value + "].");
+                log.warning("Couldn't determine config reference type.", "ref", value);
                 return null;
             }
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
                 (ConfigReference<ManagedConfig>)value;
+            if (cfgmgr == null) {
+                log.warning("No config manager available.", "ref", value);
+                return null;
+            }
             ManagedConfig config = cfgmgr.getConfig(clazz, ref);
             if (!(config instanceof ParameterizedConfig)) {
                 return null;
