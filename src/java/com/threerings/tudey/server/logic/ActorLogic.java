@@ -83,6 +83,9 @@ public class ActorLogic extends Logic
         }
         _handlers = handlers.toArray(new HandlerLogic[handlers.size()]);
 
+        // initialize the snapshots
+        _previousSnapshot = _snapshot = (Actor)_actor.clone();
+
         // give subclasses a chance to set up
         didInit();
     }
@@ -147,28 +150,31 @@ public class ActorLogic extends Logic
     }
 
     /**
-     * Returns the delta between the last snapshot of the actor and the current state (and
-     * updates the snapshot).
-     */
-    public ActorDelta getSnapshotDelta ()
-    {
-        return new ActorDelta(_snapshot, getSnapshot());
-    }
-
-    /**
      * Returns the current tick's snapshot of the actor.
      */
     public Actor getSnapshot ()
     {
-        int timestamp = _scenemgr.getTimestamp();
-        if (timestamp > _snaptime) {
-            if (_actor.isDirty()) {
-                _snapshot = (Actor)_actor.clone();
-                _actor.setDirty(false);
-            }
-            _snaptime = timestamp;
-        }
+        updateSnapshot();
         return _snapshot;
+    }
+
+    /**
+     * Returns the previous tick's snapshot of the actor.
+     */
+    public Actor getPreviousSnapshot ()
+    {
+        updateSnapshot();
+        return _previousSnapshot;
+    }
+
+    /**
+     * Returns the delta between the last snapshot of the actor and the current state, or
+     * <code>null</code> if the actor has not changed.
+     */
+    public ActorDelta getSnapshotDelta ()
+    {
+        updateSnapshot();
+        return _snapshotDelta;
     }
 
     /**
@@ -467,6 +473,28 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Updates the snapshot and snapshot delta.
+     */
+    protected void updateSnapshot ()
+    {
+        int timestamp = _scenemgr.getTimestamp();
+        if (timestamp > _snaptime) {
+            _previousSnapshot = _snapshot;
+            _snapshotDelta = null;
+            if (_actor.isDirty()) {
+                _snapshotDelta = new ActorDelta(_snapshot, _actor);
+                if (_snapshotDelta.isEmpty()) {
+                    _snapshotDelta = null;
+                } else {
+                    _snapshot = (Actor)_actor.clone();
+                }
+                _actor.setDirty(false);
+            }
+            _snaptime = timestamp;
+        }
+    }
+
+    /**
      * Override to perform custom initialization.
      */
     protected void didInit ()
@@ -509,6 +537,12 @@ public class ActorLogic extends Logic
 
     /** The actor snapshot, which must not be modified once created. */
     protected Actor _snapshot;
+
+    /** The actor snapshot at the previous tick. */
+    protected Actor _previousSnapshot;
+
+    /** The delta between the current and previous snapshots (if any). */
+    protected ActorDelta _snapshotDelta;
 
     /** The timestamp of the actor snapshot. */
     protected int _snaptime;

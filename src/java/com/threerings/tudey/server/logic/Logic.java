@@ -31,6 +31,7 @@ import com.google.common.collect.Maps;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
+import com.threerings.util.ShallowObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
 
@@ -46,7 +47,7 @@ import com.threerings.tudey.shape.Shape;
 /**
  * Handles the server-side processing for some entity.
  */
-public abstract class Logic
+public abstract class Logic extends ShallowObject
 {
     /**
      * An interface for objects interested in updates to the logic's shape (as returned by

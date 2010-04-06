@@ -25,14 +25,13 @@
 package com.threerings.tudey.server;
 
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
-import com.samskivert.util.CollectionUtil;
-import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
-import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.net.Transport;
 
@@ -45,13 +44,13 @@ import com.threerings.math.SphereCoords;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.data.InputFrame;
-import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
+import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.util.TruncatedAverage;
 import com.threerings.tudey.util.TudeySceneMetrics;
@@ -97,6 +96,8 @@ public class ClientLiaison
     {
         if (info.status == OccupantInfo.DISCONNECTED) {
             _records.clear();
+            _previousVisibleActors.clear();
+            _visibleActors.clear();
             _receiving = false;
         } else {
             if (_records.isEmpty()) {
@@ -199,8 +200,7 @@ public class ClientLiaison
      * Posts the scene delta for this client, informing it any all relevant changes to the scene
      * since its last acknowledged delta.
      */
-    public void postDelta (
-        Actor[] staticActorsAdded, ActorDelta[] staticActorsUpdated, int[] staticActorsRemoved)
+    public void postDelta ()
     {
         // no need to do anything if not yet receiving
         if (!_receiving) {
@@ -220,72 +220,97 @@ public class ClientLiaison
         _localInterest.getMinimumExtent().add(translation, _worldInterest.getMinimumExtent());
         _localInterest.getMaximumExtent().add(translation, _worldInterest.getMaximumExtent());
 
-        // retrieve the states of the actors, effects fired in the client's area of interest
-        IntMap<Actor> actors = getActorSnapshots();
-        Effect[] effectsFired = _scenemgr.getEffectsFired(_worldInterest);
+        // find all currently visible actors and compare to previous set
+        populateVisibleActors();
+        for (ActorLogic actor : _visibleActors) {
+            if (_previousVisibleActors.remove(actor)) {
+                ActorDelta delta = actor.getSnapshotDelta();
+                if (delta != null) {
+                    _actorsUpdated.add(delta);
+                }
+            } else {
+                _actorsAdded.add(actor.getSnapshot());
+            }
+        }
+        for (ActorLogic actor : _previousVisibleActors) {
+            _actorsRemoved.add(actor.getPreviousSnapshot());
+        }
+        _previousVisibleActors.clear();
+
+        // swap the previous and current visible sets
+        Set<ActorLogic> visibleActors = _visibleActors;
+        _visibleActors = _previousVisibleActors;
+        _previousVisibleActors = visibleActors;
 
         // if this is the first recorded tick, we need to add the complete set of static
         // actors; afterwards, just the delta
         if (_records.get(_records.size() - 1).getTimestamp() == 0) {
-            staticActorsAdded = _scenemgr.getStaticActorSnapshots();
-            staticActorsUpdated = new ActorDelta[0];
-            staticActorsRemoved = new int[0];
+            for (ActorLogic actor : _scenemgr.getStaticActors()) {
+                _actorsAdded.add(actor.getSnapshot());
+            }
+        } else {
+            for (ActorLogic actor : _scenemgr.getStaticActorsAdded()) {
+                _actorsAdded.add(actor.getSnapshot());
+            }
+            for (ActorLogic actor : _scenemgr.getStaticActorsUpdated()) {
+                ActorDelta delta = actor.getSnapshotDelta();
+                if (delta != null) {
+                    _actorsUpdated.add(delta);
+                }
+            }
+            for (ActorLogic actor : _scenemgr.getStaticActorsRemoved()) {
+                _actorsRemoved.add(actor.getPreviousSnapshot());
+            }
         }
 
         // record the tick
         int timestamp = _scenemgr.getTimestamp();
-        TickRecord record = new TickRecord(timestamp, actors, staticActorsAdded,
-            staticActorsUpdated, staticActorsRemoved, effectsFired);
+        TickRecord record = new TickRecord(
+            timestamp,
+            _actorsAdded.toArray(new Actor[_actorsAdded.size()]),
+            _actorsUpdated.toArray(new ActorDelta[_actorsUpdated.size()]),
+            _actorsRemoved.toArray(new Actor[_actorsRemoved.size()]),
+            _scenemgr.getEffectsFired(_worldInterest));
         _records.add(record);
+        _actorsAdded.clear();
+        _actorsUpdated.clear();
+        _actorsRemoved.clear();
 
         // the last acknowledged tick is the reference
         TickRecord reference = _records.get(0);
 
-        // find all actors added, updated since the reference
-        IntMap<Actor> oactors = reference.getActors();
-        for (Actor nactor : actors.values()) {
-            Actor oactor = oactors.get(nactor.getId());
-            if (oactor == null) {
-                _added.add(nactor);
-
-            } else if (oactor != nactor) {
-                ActorDelta delta = new ActorDelta(oactor, nactor);
-                if (!delta.isEmpty()) {
-                    _updated.add(delta);
-                }
-            }
-        }
-
-        // find all actors removed
-        for (Actor oactor : oactors.values()) {
-            int id = oactor.getId();
-            if (!actors.containsKey(id)) {
-                _removed.add(id);
-            }
-        }
-
-        // merge static actor updates and get all effects fired (not expired)
+        // merge actor updates and get all effects fired (not expired)
         for (int ii = 1, nn = _records.size(); ii < nn; ii++) {
             TickRecord orecord = _records.get(ii);
-            for (Actor actor : orecord.getStaticActorsAdded()) {
-                _staticAdded.put(actor.getId(), actor);
-            }
-            for (ActorDelta delta : orecord.getStaticActorsUpdated()) {
-                int id = delta.getId();
-                Actor oactor = _staticAdded.get(id);
-                if (oactor != null) {
-                    _staticAdded.put(id, (Actor)delta.apply(oactor));
+            for (Actor actor : orecord.getActorsAdded()) {
+                int id = actor.getId();
+                Actor removed = _removed.remove(id);
+                if (removed == null) {
+                    _added.put(id, actor);
                 } else {
-                    ActorDelta odelta = _staticUpdated.put(id, delta);
-                    if (odelta != null) {
-                        _staticUpdated.put(id, (ActorDelta)odelta.merge(delta));
+                    ActorDelta delta = new ActorDelta(removed, actor);
+                    if (!delta.isEmpty()) {
+                        _updated.put(id, delta);
                     }
                 }
             }
-            for (int id : orecord.getStaticActorsRemoved()) {
-                if (_staticAdded.remove(id) == null) {
-                    _staticUpdated.remove(id);
-                    _removed.add(id);
+            for (ActorDelta delta : orecord.getActorsUpdated()) {
+                int id = delta.getId();
+                Actor added = _added.get(id);
+                if (added != null) {
+                    _added.put(id, (Actor)delta.apply(added));
+                } else {
+                    ActorDelta odelta = _updated.put(id, delta);
+                    if (odelta != null) {
+                        _updated.put(id, (ActorDelta)odelta.merge(delta));
+                    }
+                }
+            }
+            for (Actor actor : orecord.getActorsRemoved()) {
+                int id = actor.getId();
+                if (_added.remove(id) == null) {
+                    _updated.remove(id);
+                    _removed.put(id, actor);
                 }
             }
             for (Effect effect : orecord.getEffectsFired()) {
@@ -294,10 +319,6 @@ public class ClientLiaison
                 }
             }
         }
-        _added.addAll(_staticAdded.values());
-        _updated.addAll(_staticUpdated.values());
-        _staticAdded.clear();
-        _staticUpdated.clear();
 
         // if we know that we can't transmit datagrams, we may as well send the delta as reliable
         // and immediately consider it received
@@ -308,14 +329,17 @@ public class ClientLiaison
         }
 
         // create and post the event
+        int nadded = _added.size();
+        int nupdated = _updated.size();
+        int nfired = _fired.size();
         _bodyobj.postEvent(record.event = new SceneDeltaEvent(
             _bodyobj.getOid(), _tsobj.getOid(), _lastInput,
             (short)_ping, reference.getTimestamp(), timestamp,
             (short)(timestamp - _scenemgr.getPreviousTimestamp()),
-            _added.isEmpty() ? null : _added.toArray(new Actor[_added.size()]),
-            _updated.isEmpty() ? null : _updated.toArray(new ActorDelta[_updated.size()]),
-            _removed.isEmpty() ? null : CollectionUtil.toIntArray(_removed),
-            _fired.isEmpty() ? null : _fired.toArray(new Effect[_fired.size()]),
+            (nadded == 0) ? null : _added.values().toArray(new Actor[nadded]),
+            (nupdated == 0) ? null : _updated.values().toArray(new ActorDelta[nupdated]),
+            _removed.isEmpty() ? null : _removed.intKeySet().toIntArray(),
+            (nfired == 0) ? null : _fired.toArray(new Effect[nfired]),
             transport));
 
         // clear the arrays
@@ -326,11 +350,11 @@ public class ClientLiaison
     }
 
     /**
-     * Returns a map containing snapshots of all actors in the client's area of interest.
+     * Populates the set of visible actors.
      */
-    protected IntMap<Actor> getActorSnapshots ()
+    protected void populateVisibleActors ()
     {
-        return _scenemgr.getActorSnapshots(_target, _worldInterest);
+        _scenemgr.getVisibleActors(_target, _worldInterest, _visibleActors);
     }
 
     /**
@@ -346,22 +370,20 @@ public class ClientLiaison
          */
         public TickRecord ()
         {
-            this(0, new HashIntMap<Actor>(), new Actor[0],
-                new ActorDelta[0], new int[0], new Effect[0]);
+            this(0, new Actor[0], new ActorDelta[0], new Actor[0], new Effect[0]);
         }
 
         /**
          * Creates a new record.
          */
         public TickRecord (
-            int timestamp, IntMap<Actor> actors, Actor[] staticActorsAdded,
-            ActorDelta[] staticActorsUpdated, int[] staticActorsRemoved, Effect[] effectsFired)
+            int timestamp, Actor[] actorsAdded, ActorDelta[] actorsUpdated,
+            Actor[] actorsRemoved, Effect[] effectsFired)
         {
             _timestamp = timestamp;
-            _actors = actors;
-            _staticActorsAdded = staticActorsAdded;
-            _staticActorsUpdated = staticActorsUpdated;
-            _staticActorsRemoved = staticActorsRemoved;
+            _actorsAdded = actorsAdded;
+            _actorsUpdated = actorsUpdated;
+            _actorsRemoved = actorsRemoved;
             _effectsFired = effectsFired;
         }
 
@@ -374,35 +396,27 @@ public class ClientLiaison
         }
 
         /**
-         * Returns the state of the actors at this tick.
+         * Returns the actors added on this tick.
          */
-        public IntMap<Actor> getActors ()
+        public Actor[] getActorsAdded ()
         {
-            return _actors;
+            return _actorsAdded;
         }
 
         /**
-         * Returns the static actors added on this tick.
+         * Returns the deltas of actors updated on this tick.
          */
-        public Actor[] getStaticActorsAdded ()
+        public ActorDelta[] getActorsUpdated ()
         {
-            return _staticActorsAdded;
+            return _actorsUpdated;
         }
 
         /**
-         * Returns the deltas of static actors updated on this tick.
+         * Returns the states on the previous tick of actors removed on this tick.
          */
-        public ActorDelta[] getStaticActorsUpdated ()
+        public Actor[] getActorsRemoved ()
         {
-            return _staticActorsUpdated;
-        }
-
-        /**
-         * Returns the ids of the static actors removed on this tick.
-         */
-        public int[] getStaticActorsRemoved ()
-        {
-            return _staticActorsRemoved;
+            return _actorsRemoved;
         }
 
         /**
@@ -416,17 +430,14 @@ public class ClientLiaison
         /** The timestamp of this record. */
         protected int _timestamp;
 
-        /** The (non-static) actor states at this tick. */
-        protected IntMap<Actor> _actors;
+        /** The actors added on this tick. */
+        protected Actor[] _actorsAdded;
 
-        /** The static actors added on this tick. */
-        protected Actor[] _staticActorsAdded;
+        /** The deltas of actors updated on this tick. */
+        protected ActorDelta[] _actorsUpdated;
 
-        /** The deltas of static actors updated on this tick. */
-        protected ActorDelta[] _staticActorsUpdated;
-
-        /** The ids of static actors removed on this tick. */
-        protected int[] _staticActorsRemoved;
+        /** The states on the previous tick of actors removed on this tick. */
+        protected Actor[] _actorsRemoved;
 
         /** The effects fired on this tick. */
         protected Effect[] _effectsFired;
@@ -471,21 +482,30 @@ public class ClientLiaison
     /** The timestamp of the last input frame received from the client. */
     protected int _lastInput;
 
+    /** The actors in the area of interest at the last update. */
+    protected Set<ActorLogic> _previousVisibleActors = Sets.newHashSet();
+
+    /** The actors in the area of interest on the current update. */
+    protected Set<ActorLogic> _visibleActors = Sets.newHashSet();
+
+    /** Holds actors added on the current tick. */
+    protected List<Actor> _actorsAdded = Lists.newArrayList();
+
+    /** Holds actors updated on the current tick. */
+    protected List<ActorDelta> _actorsUpdated = Lists.newArrayList();
+
+    /** Holds actors removed on the current tick. */
+    protected List<Actor> _actorsRemoved = Lists.newArrayList();
+
     /** Stores added actors. */
-    protected List<Actor> _added = Lists.newArrayList();
+    protected IntMap<Actor> _added = IntMaps.newHashIntMap();
 
     /** Stores updated actor deltas. */
-    protected List<ActorDelta> _updated = Lists.newArrayList();
+    protected IntMap<ActorDelta> _updated = IntMaps.newHashIntMap();
 
-    /** Stores removed actor ids. */
-    protected List<Integer> _removed = Lists.newArrayList();
+    /** Stores removed actor. */
+    protected IntMap<Actor> _removed = IntMaps.newHashIntMap();
 
     /** Stores effects fired. */
     protected List<Effect> _fired = Lists.newArrayList();
-
-    /** Stores static actors added. */
-    protected IntMap<Actor> _staticAdded = IntMaps.newHashIntMap();
-
-    /** Stores static actors updated. */
-    protected IntMap<ActorDelta> _staticUpdated = IntMaps.newHashIntMap();
 }

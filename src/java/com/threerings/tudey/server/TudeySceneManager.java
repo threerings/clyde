@@ -25,12 +25,14 @@
 package com.threerings.tudey.server;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.primitives.Ints;
+import com.google.common.collect.Sets;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -43,7 +45,6 @@ import com.samskivert.util.Queue;
 import com.samskivert.util.RandomUtil;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
-import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.server.ClientManager;
@@ -360,8 +361,8 @@ public class TudeySceneManager extends SceneManager
 
         // special processing for static actors
         if (logic.isStatic()) {
-            _staticActors.put(id, logic);
-            _staticActorsAdded.put(id, logic);
+            _staticActors.add(logic);
+            _staticActorsAdded.add(logic);
         }
 
         // notify observers
@@ -449,35 +450,51 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Returns a map containing the snapshots of all (non-static) actors whose influence regions
-     * intersect the provided bounds.
+     * Populates the supplied collection with references to all non-static actors visible to the
+     * specified target whose influence regions intersect the provided bounds.
      */
-    public HashIntMap<Actor> getActorSnapshots (PawnLogic target, Rect bounds)
+    public void getVisibleActors (PawnLogic target, Rect bounds, Collection<ActorLogic> results)
     {
         _actorSpace.getElements(bounds, _elements);
-        HashIntMap<Actor> map = new HashIntMap<Actor>();
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
             ActorLogic actor = (ActorLogic)_elements.get(ii).getUserObject();
             if (!actor.isStatic() && actor.isVisible(target)) {
-                Actor snapshot = actor.getSnapshot();
-                map.put(snapshot.getId(), snapshot);
+                results.add(actor);
             }
         }
         _elements.clear();
-        return map;
     }
 
     /**
-     * Returns an array containing snapshots of all static actors.
+     * Returns a reference to the set of static actors.
      */
-    public Actor[] getStaticActorSnapshots ()
+    public Set<ActorLogic> getStaticActors ()
     {
-        Actor[] snapshots = new Actor[_staticActors.size()];
-        int idx = 0;
-        for (ActorLogic logic : _staticActors.values()) {
-            snapshots[idx++] = logic.getSnapshot();
-        }
-        return snapshots;
+        return _staticActors;
+    }
+
+    /**
+     * Returns a reference to the set of static actors added on the current tick.
+     */
+    public Set<ActorLogic> getStaticActorsAdded ()
+    {
+        return _staticActorsAdded;
+    }
+
+    /**
+     * Returns a reference to the set of static actors updated on the current tick.
+     */
+    public Set<ActorLogic> getStaticActorsUpdated ()
+    {
+        return _staticActorsUpdated;
+    }
+
+    /**
+     * Returns a reference to the set of static actors removed on the current tick.
+     */
+    public Set<ActorLogic> getStaticActorsRemoved ()
+    {
+        return _staticActorsRemoved;
     }
 
     /**
@@ -512,10 +529,10 @@ public class TudeySceneManager extends SceneManager
 
         // special handling for static actors
         if (logic.isStatic()) {
-            _staticActors.remove(id);
-            if (_staticActorsAdded.remove(id) == null) {
-                _staticActorsUpdated.remove(id);
-                _staticActorsRemoved.add(id);
+            _staticActors.remove(logic);
+            if (!_staticActorsAdded.remove(logic)) {
+                _staticActorsUpdated.remove(logic);
+                _staticActorsRemoved.add(logic);
             }
         }
 
@@ -630,8 +647,8 @@ public class TudeySceneManager extends SceneManager
     public void staticActorUpdated (ActorLogic logic)
     {
         int id = logic.getActor().getId();
-        if (!_staticActorsAdded.containsKey(id)) {
-            _staticActorsUpdated.put(id, logic);
+        if (!_staticActorsAdded.contains(logic)) {
+            _staticActorsUpdated.add(logic);
         }
     }
 
@@ -1180,32 +1197,15 @@ public class TudeySceneManager extends SceneManager
             runnable.run();
         }
 
-        // get the static actors added...
-        Actor[] staticActorsAdded = new Actor[_staticActorsAdded.size()];
-        int idx = 0;
-        for (ActorLogic logic : _staticActorsAdded.values()) {
-            staticActorsAdded[idx++] = logic.getSnapshot();
-        }
-        _staticActorsAdded.clear();
-
-        // ...updated...
-        ActorDelta[] staticActorsUpdated = new ActorDelta[_staticActorsUpdated.size()];
-        idx = 0;
-        for (ActorLogic logic : _staticActorsUpdated.values()) {
-            staticActorsUpdated[idx++] = logic.getSnapshotDelta();
-        }
-        _staticActorsUpdated.clear();
-
-        // ...and removed
-        int[] staticActorsRemoved = Ints.toArray(_staticActorsRemoved);
-        _staticActorsRemoved.clear();
-
         // post deltas for all clients
         for (ClientLiaison client : _clients.values()) {
-            client.postDelta(staticActorsAdded, staticActorsUpdated, staticActorsRemoved);
+            client.postDelta();
         }
 
-        // clear the effect list
+        // clear the lists
+        _staticActorsAdded.clear();
+        _staticActorsUpdated.clear();
+        _staticActorsRemoved.clear();
         _effectsFired.clear();
     }
 
@@ -1325,8 +1325,8 @@ public class TudeySceneManager extends SceneManager
     /** Actor logic objects mapped by id. */
     protected HashIntMap<ActorLogic> _actors = IntMaps.newHashIntMap();
 
-    /** "Static" actors mapped by id. */
-    protected IntMap<ActorLogic> _staticActors = IntMaps.newHashIntMap();
+    /** "Static" actors. */
+    protected Set<ActorLogic> _staticActors = Sets.newHashSet();
 
     /** Maps tags to lists of logic objects with that tag. */
     protected HashMap<String, ArrayList<Logic>> _tagged = Maps.newHashMap();
@@ -1347,13 +1347,13 @@ public class TudeySceneManager extends SceneManager
     protected Pathfinder _pathfinder;
 
     /** The logic for static actors added on the current tick. */
-    protected IntMap<ActorLogic> _staticActorsAdded = IntMaps.newHashIntMap();
+    protected Set<ActorLogic> _staticActorsAdded = Sets.newHashSet();
 
     /** The logic for static actors updated on the current tick. */
-    protected IntMap<ActorLogic> _staticActorsUpdated = IntMaps.newHashIntMap();
+    protected Set<ActorLogic> _staticActorsUpdated = Sets.newHashSet();
 
-    /** The ids of static actors removed on the current tick. */
-    protected List<Integer> _staticActorsRemoved = Lists.newArrayList();
+    /** The logic for static actors removed on the current tick. */
+    protected Set<ActorLogic> _staticActorsRemoved = Sets.newHashSet();
 
     /** The logic for effects fired on the current tick. */
     protected ArrayList<EffectLogic> _effectsFired = Lists.newArrayList();
