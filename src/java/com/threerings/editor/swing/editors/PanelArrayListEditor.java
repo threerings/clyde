@@ -78,8 +78,9 @@ public class PanelArrayListEditor extends ArrayListEditor
         for (int ii = 0; ii < length; ii++) {
             Object value = getValue(ii);
             if (ii < pcount) {
-                EntryPanel panel = (EntryPanel)_panels.getComponent(ii);
-                panel.getObjectPanel().setValue(value);
+                ObjectPanel opanel = ((EntryPanel)_panels.getComponent(ii)).getObjectPanel();
+                opanel.setOuter(_object);
+                opanel.setValue(value);
             } else {
                 addPanel(value);
             }

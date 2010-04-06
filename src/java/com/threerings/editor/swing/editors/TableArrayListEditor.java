@@ -187,6 +187,9 @@ public class TableArrayListEditor extends ArrayListEditor
         if (min == TableModelEvent.HEADER_ROW) {
             updateColumnWidths();
         }
+        if (_opanel != null) {
+            _opanel.setOuter(_object);
+        }
         updateSelected();
     }
 

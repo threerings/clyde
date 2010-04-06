@@ -114,6 +114,15 @@ public class ObjectPanel extends BasePropertyEditor
     }
 
     /**
+     * Sets the outer object to use when instantiating inner classes (does not affect the current
+     * value).
+     */
+    public void setOuter (Object outer)
+    {
+        _outer = outer;
+    }
+
+    /**
      * Sets the value of the object being edited.
      */
     public void setValue (Object value)

@@ -52,6 +52,7 @@ public class ObjectEditor extends PropertyEditor
     @Override // documentation inherited
     public void update ()
     {
+        _panel.setOuter(_object);
         _panel.setValue(_property.get(_object));
     }
 
