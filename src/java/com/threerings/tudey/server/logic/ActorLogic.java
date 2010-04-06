@@ -357,8 +357,11 @@ public class ActorLogic extends Logic
     public void setVariable (int timestamp, Logic source, String name, Object value)
     {
         super.setVariable(timestamp, source, name, value);
-        for (HandlerLogic handler : _handlers) {
-            handler.variableChanged(timestamp, source, name);
+        // We could be setting variables on startup
+        if (_handlers != null) {
+            for (HandlerLogic handler : _handlers) {
+                handler.variableChanged(timestamp, source, name);
+            }
         }
     }
 
