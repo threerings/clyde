@@ -26,6 +26,7 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import com.google.inject.Inject;
@@ -476,6 +477,67 @@ public abstract class ActionLogic extends Logic
 
         /** The condition to evaluate. */
         protected ConditionLogic[] _conditions;
+
+        /** The action to take if the condition is satisfied. */
+        protected ActionLogic[] _actions;
+
+        /** The default action to take. */
+        protected ActionLogic _defaultAction;
+    }
+
+    /**
+     * Handles an expression switch action.
+     */
+    public static class ExpressionSwitch extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            for (int ii = 0; ii < _caseValues.length; ii++) {
+                if (Objects.equal(
+                            _value.evaluate(activator, null),
+                            _caseValues[ii].evaluate(activator, null))) {
+                    return _actions[ii].execute(timestamp, activator);
+                }
+            }
+            if (_defaultAction != null) {
+                return _defaultAction.execute(timestamp, activator);
+            }
+            return true;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ActionConfig.ExpressionSwitch config = (ActionConfig.ExpressionSwitch)_config;
+            _value = createExpression(config.value, _source);
+            _caseValues = new ExpressionLogic[config.cases.length];
+            _actions = new ActionLogic[config.cases.length];
+            for (int ii = 0; ii < config.cases.length; ii++) {
+                _caseValues[ii] = createExpression(config.cases[ii].value, _source);
+                _actions[ii] = createAction(config.cases[ii].action, _source);
+            }
+            if (config.defaultAction != null) {
+                _defaultAction = createAction(config.defaultAction, _source);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            for (ActionLogic action : _actions) {
+                action.removed();
+            }
+            if (_defaultAction != null) {
+                _defaultAction.removed();
+            }
+        }
+
+        /** The switch value. */
+        protected ExpressionLogic _value;
+
+        /** The values of the cases. */
+        protected ExpressionLogic[] _caseValues;
 
         /** The action to take if the condition is satisfied. */
         protected ActionLogic[] _actions;

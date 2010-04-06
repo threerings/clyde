@@ -50,9 +50,9 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.FireEffect.class, ActionConfig.Signal.class,
     ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
     ActionConfig.Conditional.class, ActionConfig.Switch.class,
-    ActionConfig.Compound.class, ActionConfig.Random.class,
-    ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
-    ActionConfig.SetVariable.class })
+    ActionConfig.ExpressionSwitch.class, ActionConfig.Compound.class,
+    ActionConfig.Random.class, ActionConfig.Delayed.class,
+    ActionConfig.StepLimitMobile.class, ActionConfig.SetVariable.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -501,11 +501,86 @@ public abstract class ActionConfig extends DeepObject
      * A switch case.
      */
     public static class Case extends DeepObject
-        implements Streamable
+        implements Streamable, Exportable
     {
         /** The case condition. */
         @Editable
         public ConditionConfig condition = new ConditionConfig.Tagged();
+
+        /** The case action. */
+        @Editable
+        public ActionConfig action = new ActionConfig.SpawnActor();
+    }
+
+    /**
+     * Executes the first case whose value equals the switch value.
+     */
+    public static class ExpressionSwitch extends ActionConfig
+    {
+        /** The switch value. */
+        @Editable
+        public ExpressionConfig value = new ExpressionConfig.Constant();
+
+        /** The switch cases. */
+        @Editable
+        public ExpressionCase[] cases = new ExpressionCase[0];
+
+        /** The default action to take if no case is satisfied. */
+        @Editable(nullable=true)
+        public ActionConfig defaultAction;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$ExpressionSwitch";
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            for (ExpressionCase c : cases) {
+                c.action.getPreloads(cfgmgr, preloads);
+            }
+            if (defaultAction != null) {
+                defaultAction.getPreloads(cfgmgr, preloads);
+            }
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (ExpressionCase c : cases) {
+                c.action.invalidate();
+            }
+            if (defaultAction != null) {
+                defaultAction.invalidate();
+            }
+        }
+
+        @Override // documentation inherited
+        public ActionConfig[] getSubActions ()
+        {
+            ActionConfig[] actions =
+                new ActionConfig[cases.length + (defaultAction == null ? 0 : 1)];
+            for (int ii = 0; ii < cases.length; ii++) {
+                actions[ii] = cases[ii].action;
+            }
+            if (defaultAction != null) {
+                actions[cases.length] = defaultAction;
+            }
+            return actions;
+        }
+    }
+
+    /**
+     * A switch case.
+     */
+    public static class ExpressionCase extends DeepObject
+        implements Streamable, Exportable
+    {
+        /** The case expression. */
+        @Editable
+        public ExpressionConfig value = new ExpressionConfig.Constant();
 
         /** The case action. */
         @Editable
