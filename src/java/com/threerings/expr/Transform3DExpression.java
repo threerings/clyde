@@ -37,9 +37,8 @@ import com.threerings.expr.util.ScopeUtil;
  * A transform-valued expression.
  */
 @EditorTypes({
-    Transform3DExpression.Constant.class,
-    Transform3DExpression.Reference.class,
-    Transform3DExpression.Uniform.class,
+    Transform3DExpression.Constant.class, Transform3DExpression.Reference.class,
+    Transform3DExpression.Uniform.class, Transform3DExpression.NonUniform.class,
     Transform3DExpression.TextureFrame.class })
 public abstract class Transform3DExpression extends ObjectExpression<Transform3D>
 {
@@ -111,6 +110,47 @@ public abstract class Transform3DExpression extends ObjectExpression<Transform3D
             final Evaluator<Vector3f> teval = translation.createEvaluator(scope);
             final Evaluator<Quaternion> reval = rotation.createEvaluator(scope);
             final FloatExpression.Evaluator seval = scale.createEvaluator(scope);
+            return new Evaluator<Transform3D>() {
+                public Transform3D evaluate () {
+                    return _result.set(teval.evaluate(), reval.evaluate(), seval.evaluate());
+                }
+                protected Transform3D _result = new Transform3D();
+            };
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            translation.invalidate();
+            rotation.invalidate();
+            scale.invalidate();
+        }
+    }
+
+    /**
+     * An expression consisting of separate expressions for translation, rotation, and
+     * (non-uniform) scale.
+     */
+    public static class NonUniform extends Transform3DExpression
+    {
+        /** The translation component. */
+        @Editable
+        public Vector3fExpression translation = new Vector3fExpression.Constant();
+
+        /** The rotation component. */
+        @Editable
+        public QuaternionExpression rotation = new QuaternionExpression.Constant();
+
+        /** The scale component. */
+        @Editable
+        public Vector3fExpression scale = new Vector3fExpression.Constant(Vector3f.UNIT_XYZ);
+
+        @Override // documentation inherited
+        public Evaluator<Transform3D> createEvaluator (Scope scope)
+        {
+            final Evaluator<Vector3f> teval = translation.createEvaluator(scope);
+            final Evaluator<Quaternion> reval = rotation.createEvaluator(scope);
+            final Evaluator<Vector3f> seval = scale.createEvaluator(scope);
             return new Evaluator<Transform3D>() {
                 public Transform3D evaluate () {
                     return _result.set(teval.evaluate(), reval.evaluate(), seval.evaluate());

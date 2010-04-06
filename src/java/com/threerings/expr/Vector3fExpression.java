@@ -48,6 +48,21 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         @Editable(step=0.01)
         public Vector3f value = new Vector3f();
 
+        /**
+         * Creates a new constant expression with the specified value.
+         */
+        public Constant (Vector3f value)
+        {
+            this.value.set(value);
+        }
+
+        /**
+         * Creates a new constant expression with a value of zero.
+         */
+        public Constant ()
+        {
+        }
+
         @Override // documentation inherited
         public Evaluator<Vector3f> createEvaluator (Scope scope)
         {
