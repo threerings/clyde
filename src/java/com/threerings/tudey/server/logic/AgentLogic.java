@@ -58,6 +58,14 @@ public class AgentLogic extends ActiveLogic
     }
 
     /**
+     * Checks whether we can evaluate our behavior.
+     */
+    public boolean canThink ()
+    {
+        return _behavior != null;
+    }
+
+    /**
      * Returns the logic currently being targeted by our behavior, if any.
      */
     public Logic getBehaviorTarget ()
@@ -174,7 +182,7 @@ public class AgentLogic extends ActiveLogic
         super.tick(timestamp);
 
         // update the behavior
-        if (canThink()) {
+        if (_behavior != null) {
             _behavior.tick(timestamp);
         }
 
@@ -229,14 +237,6 @@ public class AgentLogic extends ActiveLogic
     {
         // notify the behavior
         _behavior.penetratedEnvironment(penetration);
-    }
-
-    /**
-     * Checks whether we can think.
-     */
-    protected boolean canThink ()
-    {
-        return _behavior != null;
     }
 
     /**

@@ -76,7 +76,7 @@ public abstract class BehaviorLogic extends Logic
         public void tick (int timestamp)
         {
             // if scheduled to do so, evaluate
-            if (timestamp >= _nextEvaluation) {
+            if (_agent.canThink() && timestamp >= _nextEvaluation) {
                 evaluate();
             }
         }
@@ -137,13 +137,13 @@ public abstract class BehaviorLogic extends Logic
             super.tick(timestamp);
 
             // start rotating if the time to do so has come
-            if (timestamp >= _startRotating) {
+            if (_agent.canRotate() && timestamp >= _startRotating) {
                 _startRotating = _startMoving = Integer.MAX_VALUE;
                 _agent.setTargetRotation(_rotation);
             }
 
             // likewise with moving
-            if (timestamp >= _startMoving) {
+            if (_agent.canMove() && timestamp >= _startMoving) {
                 scheduleNextEvaluation();
                 _agent.startMoving();
                 _startMoving = Integer.MAX_VALUE;
