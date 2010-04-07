@@ -493,10 +493,9 @@ public abstract class ActionLogic extends Logic
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
         {
+            Object value = _value.evaluate(activator, null);
             for (int ii = 0; ii < _caseValues.length; ii++) {
-                if (Objects.equal(
-                            _value.evaluate(activator, null),
-                            _caseValues[ii].evaluate(activator, null))) {
+                if (Objects.equal(value, _caseValues[ii].evaluate(activator, null))) {
                     return _actions[ii].execute(timestamp, activator);
                 }
             }
