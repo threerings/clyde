@@ -136,19 +136,13 @@ public class ChatOverlay extends Container
     {
         String format = msg.getFormat();
         String text = msg.message;
-        Color4f color = null;
         if (format != null && msg instanceof UserMessage) {
             UserMessage umsg = (UserMessage)msg;
             text = _msgs.get(format, umsg.getSpeakerDisplayName(), text);
         }
-        if (msg instanceof SystemMessage) {
-            color = _systemColors[((SystemMessage)msg).attentionLevel];
-        } else if (msg instanceof TellFeedbackMessage) {
-            color = _systemColors[SystemMessage.FEEDBACK];
-        }
         BoundedRangeModel model = _area.getScrollModel();
         boolean end = (model.getValue() == model.getMaximum() - model.getExtent());
-        appendMessage(msg, text + "\n", color);
+        appendMessage(msg, text + "\n", getColor(msg));
         if (end) {
             _area.validate();
             model.setValue(model.getMaximum() - model.getExtent());
@@ -180,6 +174,20 @@ public class ChatOverlay extends Container
         super.validate();
         if (end) {
             model.setValue(model.getMaximum() - model.getExtent());
+        }
+    }
+
+    /**
+     * Returns the color to use for the supplied message, or <code>null</code> for the default.
+     */
+    protected Color4f getColor (ChatMessage msg)
+    {
+        if (msg instanceof SystemMessage) {
+            return _systemColors[((SystemMessage)msg).attentionLevel];
+        } else if (msg instanceof TellFeedbackMessage) {
+            return _systemColors[SystemMessage.FEEDBACK];
+        } else {
+            return null;
         }
     }
 
