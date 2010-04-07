@@ -354,6 +354,10 @@ public class ActorLogic extends Logic
     @Override // documentation inherited
     public void signal (int timestamp, Logic source, String name)
     {
+        // make sure we're not already destroyed
+        if (isDestroyed()) {
+            return;
+        }
         for (HandlerLogic handler : _handlers) {
             handler.signal(timestamp, source, name);
         }
