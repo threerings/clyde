@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
@@ -151,8 +152,12 @@ public class Placer extends ConfigTool<PlaceableConfig>
      */
     protected void placeEntry ()
     {
-        _editor.addEntry((PlaceableEntry)_entry.clone());
-        _lastPlacement.set(_entry.transform.getTranslation());
+        // apply the rotation offset when placing
+        PlaceableEntry entry = (PlaceableEntry)_entry.clone();
+        PlaceableConfig.Original config = entry.getConfig(_editor.getConfigManager());
+        entry.transform.getRotation().multLocal(config.rotationOffset.getValue(new Quaternion()));
+        _editor.addEntry(entry);
+        _lastPlacement.set(entry.transform.getTranslation());
     }
 
     @Override // documentation inherited

@@ -35,6 +35,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.probs.QuaternionVariable;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.AnimationConfig;
@@ -116,6 +117,10 @@ public class PlaceableConfig extends ParameterizedConfig
         /** Whether or not the placeable should be used as a default entrance. */
         @Editable
         public boolean defaultEntrance;
+
+        /** A random offset to apply when placing. */
+        @Editable
+        public QuaternionVariable rotationOffset = new QuaternionVariable.Identity();
 
         /** The model to use to represent the placeable on the client. */
         @Editable(nullable=true)

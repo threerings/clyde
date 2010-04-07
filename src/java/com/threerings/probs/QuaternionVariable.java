@@ -37,12 +37,30 @@ import com.threerings.math.Vector3f;
  * A quaternion-valued random variable.
  */
 @EditorTypes(value={
-    QuaternionVariable.Constant.class,
-    QuaternionVariable.Uniform.class,
-    QuaternionVariable.Random.class }, label="distribution")
+    QuaternionVariable.Identity.class, QuaternionVariable.Constant.class,
+    QuaternionVariable.Uniform.class, QuaternionVariable.Random.class },
+    label="distribution")
 public abstract class QuaternionVariable extends DeepObject
     implements Exportable
 {
+    /**
+     * Always return the identity value.
+     */
+    public static class Identity extends QuaternionVariable
+    {
+        @Override // documentation inherited
+        public Quaternion getValue (Quaternion result)
+        {
+            return result.set(Quaternion.IDENTITY);
+        }
+
+        @Override // documentation inherited
+        public Quaternion getMean (Quaternion result)
+        {
+            return result.set(Quaternion.IDENTITY);
+        }
+    }
+
     /**
      * Always returns the same value.
      */
