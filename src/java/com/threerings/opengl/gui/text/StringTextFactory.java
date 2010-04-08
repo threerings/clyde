@@ -50,6 +50,8 @@ import java.util.logging.Level;
 
 import org.lwjgl.opengl.GL11;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 
@@ -428,7 +430,7 @@ public class StringTextFactory extends TextFactory
         String text, Map<TextAttribute, Font> attrs, String[] bare, boolean style)
     {
         // if there are no style commands in the text, skip the complexity
-        if (!style || text.indexOf("@=") == -1) {
+        if (!style || !text.contains("@=")) {
             if (bare != null) {
                 bare[0] = text;
             }
@@ -650,9 +652,8 @@ public class StringTextFactory extends TextFactory
     protected static boolean _isMacOS;
     static {
         try {
-            String osname = System.getProperty("os.name");
-            osname = (osname == null) ? "" : osname;
-            _isMacOS = (osname.indexOf("Mac OS") != -1 || osname.indexOf("MacOS") != -1);
+            String osname = StringUtil.deNull(System.getProperty("os.name"));
+            _isMacOS = osname.contains("Mac OS") || osname.contains("MacOS");
         } catch (Exception e) {
             // oh well
         }
