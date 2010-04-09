@@ -207,16 +207,6 @@ public class FloatMath
     }
 
     /**
-     * Returns the absolute value of v.
-     *
-     * @see Math#abs
-     */
-    public static float abs (float v)
-    {
-        return Math.abs(v);
-    }
-
-    /**
      * Returns the floor of v.
      *
      * @see Math#floor
@@ -287,7 +277,7 @@ public class FloatMath
      */
     public static float roundNearest (float v, float target)
     {
-        target = abs(target);
+        target = Math.abs(target);
         if (v >= 0) {
             return target * floor((v + 0.5f * target) / target);
         } else {
