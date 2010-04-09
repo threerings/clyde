@@ -413,7 +413,9 @@ public abstract class TargetLogic extends Logic
             if (_targets.size() > 0) {
                 _excluding.resolve(activator, _excluded);
                 _targets.removeAll(_excluded);
-                results.addAll(_targets);
+                if (_targets.size() > 0) {
+                    results.addAll(_targets);
+                }
                 _excluded.clear();
             }
             _targets.clear();

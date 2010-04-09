@@ -49,7 +49,7 @@ import com.threerings.util.DeepOmit;
     ExpressionConfig.Or.class, ExpressionConfig.Xor.class,
     ExpressionConfig.Less.class, ExpressionConfig.Greater.class,
     ExpressionConfig.Equals.class, ExpressionConfig.LessEquals.class,
-    ExpressionConfig.GreaterEquals.class })
+    ExpressionConfig.GreaterEquals.class, ExpressionConfig.NumTargets.class })
 public abstract class ExpressionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -163,6 +163,28 @@ public abstract class ExpressionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ExpressionLogic$Previous";
+        }
+    }
+
+    /**
+     * The side of the target results.
+     */
+    public static class NumTargets extends ExpressionConfig
+    {
+        /** The target. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Tagged();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ExpressionLogic$NumTargets";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 

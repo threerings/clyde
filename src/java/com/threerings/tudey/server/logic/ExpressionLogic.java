@@ -118,6 +118,33 @@ public abstract class ExpressionLogic extends Logic
     }
 
     /**
+     * Evaluates a num targets expression.
+     */
+    public static class NumTargets extends ExpressionLogic
+    {
+        @Override // documentation inherited
+        public Object evaluate (Logic activator, Object previous)
+        {
+            _target.resolve(activator, _targets);
+            Integer numTargets = new Integer(_targets.size());
+            _targets.clear();
+            return numTargets;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ExpressionConfig.NumTargets)_config).target, _source);
+        }
+
+        /** The target logic. */
+        protected TargetLogic _target;
+
+        /** A container for the resolved targets. */
+        protected List<Logic> _targets = Lists.newArrayList();
+    }
+
+    /**
      * Evaluates a constant expression.
      */
     public static class Previous extends ExpressionLogic
