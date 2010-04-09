@@ -23,6 +23,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.threerings.config.dist.data;
 
+import javax.annotation.Generated;
+
 import com.threerings.config.dist.client.DConfigService;
 import com.threerings.presents.client.Client;
 import com.threerings.presents.data.InvocationMarshaller;
@@ -34,6 +36,8 @@ import com.threerings.presents.data.InvocationMarshaller;
  * interfaces that marshall the response arguments and deliver them back
  * to the requesting client.
  */
+@Generated(value={"com.threerings.presents.tools.GenServiceTask"},
+           comments="Derived from DConfigService.java.")
 public class DConfigMarshaller extends InvocationMarshaller
     implements DConfigService
 {

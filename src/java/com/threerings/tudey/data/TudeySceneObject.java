@@ -24,6 +24,7 @@
 
 package com.threerings.tudey.data;
 
+import javax.annotation.Generated;
 import com.threerings.crowd.data.OccupantInfo;
 
 import com.threerings.whirled.data.SceneObject;
@@ -35,6 +36,7 @@ public class TudeySceneObject extends SceneObject
 {
     // AUTO-GENERATED: FIELDS START
     /** The field name of the <code>tudeySceneService</code> field. */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public static final String TUDEY_SCENE_SERVICE = "tudeySceneService";
     // AUTO-GENERATED: FIELDS END
 
@@ -88,6 +90,7 @@ public class TudeySceneObject extends SceneObject
      * clients) will apply the value change when they received the
      * attribute changed notification.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void setTudeySceneService (TudeySceneMarshaller value)
     {
         TudeySceneMarshaller ovalue = this.tudeySceneService;

@@ -23,6 +23,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.threerings.config.dist.server;
 
+import javax.annotation.Generated;
+
 import com.threerings.config.dist.client.DConfigService;
 import com.threerings.config.dist.data.ConfigEntry;
 import com.threerings.config.dist.data.ConfigKey;
@@ -32,6 +34,8 @@ import com.threerings.presents.server.InvocationProvider;
 /**
  * Defines the server-side of the {@link DConfigService}.
  */
+@Generated(value={"com.threerings.presents.tools.GenServiceTask"},
+           comments="Derived from DConfigService.java.")
 public interface DConfigProvider extends InvocationProvider
 {
     /**

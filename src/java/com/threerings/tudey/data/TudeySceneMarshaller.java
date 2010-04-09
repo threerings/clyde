@@ -23,6 +23,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.threerings.tudey.data;
 
+import javax.annotation.Generated;
+
 import com.threerings.math.SphereCoords;
 import com.threerings.presents.client.Client;
 import com.threerings.presents.data.InvocationMarshaller;
@@ -36,6 +38,8 @@ import com.threerings.tudey.client.TudeySceneService;
  * interfaces that marshall the response arguments and deliver them back
  * to the requesting client.
  */
+@Generated(value={"com.threerings.presents.tools.GenServiceTask"},
+           comments="Derived from TudeySceneService.java.")
 public class TudeySceneMarshaller extends InvocationMarshaller
     implements TudeySceneService
 {

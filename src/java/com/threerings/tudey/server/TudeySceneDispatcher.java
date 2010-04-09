@@ -23,6 +23,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.threerings.tudey.server;
 
+import javax.annotation.Generated;
+
 import com.threerings.math.SphereCoords;
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.net.Transport;
@@ -34,6 +36,8 @@ import com.threerings.tudey.data.TudeySceneMarshaller;
 /**
  * Dispatches requests to the {@link TudeySceneProvider}.
  */
+@Generated(value={"com.threerings.presents.tools.GenServiceTask"},
+           comments="Derived from TudeySceneService.java.")
 public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshaller>
 {
     /**
@@ -45,13 +49,13 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
         this.provider = provider;
     }
 
-    @Override // documentation inherited
+    @Override
     public TudeySceneMarshaller createMarshaller ()
     {
         return new TudeySceneMarshaller();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispatchRequest (
         ClientObject source, int methodId, Object[] args)
         throws InvocationException

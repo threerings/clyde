@@ -24,6 +24,7 @@
 
 package com.threerings.config.dist.data;
 
+import javax.annotation.Generated;
 import com.threerings.presents.dobj.DEvent;
 import com.threerings.presents.dobj.DObject;
 import com.threerings.presents.dobj.DSet;
@@ -151,15 +152,19 @@ public class DConfigObject extends DObject
 
     // AUTO-GENERATED: FIELDS START
     /** The field name of the <code>dconfigService</code> field. */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public static final String DCONFIG_SERVICE = "dconfigService";
 
     /** The field name of the <code>added</code> field. */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public static final String ADDED = "added";
 
     /** The field name of the <code>updated</code> field. */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public static final String UPDATED = "updated";
 
     /** The field name of the <code>removed</code> field. */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public static final String REMOVED = "removed";
     // AUTO-GENERATED: FIELDS END
 
@@ -211,6 +216,7 @@ public class DConfigObject extends DObject
      * clients) will apply the value change when they received the
      * attribute changed notification.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void setDconfigService (DConfigMarshaller value)
     {
         DConfigMarshaller ovalue = this.dconfigService;
@@ -224,6 +230,7 @@ public class DConfigObject extends DObject
      * <code>added</code> set. The set will not change until the event is
      * actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void addToAdded (ConfigEntry elem)
     {
         requestEntryAdd(ADDED, added, elem);
@@ -234,6 +241,7 @@ public class DConfigObject extends DObject
      * the <code>added</code> set. The set will not change until the
      * event is actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void removeFromAdded (Comparable<?> key)
     {
         requestEntryRemove(ADDED, added, key);
@@ -244,6 +252,7 @@ public class DConfigObject extends DObject
      * <code>added</code> set. The set will not change until the event is
      * actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void updateAdded (ConfigEntry elem)
     {
         requestEntryUpdate(ADDED, added, elem);
@@ -259,6 +268,7 @@ public class DConfigObject extends DObject
      * change. Proxied copies of this object (on clients) will apply the
      * value change when they received the attribute changed notification.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void setAdded (DSet<ConfigEntry> value)
     {
         requestAttributeChange(ADDED, value, this.added);
@@ -271,6 +281,7 @@ public class DConfigObject extends DObject
      * <code>updated</code> set. The set will not change until the event is
      * actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void addToUpdated (ConfigEntry elem)
     {
         requestEntryAdd(UPDATED, updated, elem);
@@ -281,6 +292,7 @@ public class DConfigObject extends DObject
      * the <code>updated</code> set. The set will not change until the
      * event is actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void removeFromUpdated (Comparable<?> key)
     {
         requestEntryRemove(UPDATED, updated, key);
@@ -291,6 +303,7 @@ public class DConfigObject extends DObject
      * <code>updated</code> set. The set will not change until the event is
      * actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void updateUpdated (ConfigEntry elem)
     {
         requestEntryUpdate(UPDATED, updated, elem);
@@ -306,6 +319,7 @@ public class DConfigObject extends DObject
      * change. Proxied copies of this object (on clients) will apply the
      * value change when they received the attribute changed notification.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void setUpdated (DSet<ConfigEntry> value)
     {
         requestAttributeChange(UPDATED, value, this.updated);
@@ -318,6 +332,7 @@ public class DConfigObject extends DObject
      * <code>removed</code> set. The set will not change until the event is
      * actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void addToRemoved (ConfigKey elem)
     {
         requestEntryAdd(REMOVED, removed, elem);
@@ -328,6 +343,7 @@ public class DConfigObject extends DObject
      * the <code>removed</code> set. The set will not change until the
      * event is actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void removeFromRemoved (Comparable<?> key)
     {
         requestEntryRemove(REMOVED, removed, key);
@@ -338,6 +354,7 @@ public class DConfigObject extends DObject
      * <code>removed</code> set. The set will not change until the event is
      * actually propagated through the system.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void updateRemoved (ConfigKey elem)
     {
         requestEntryUpdate(REMOVED, removed, elem);
@@ -353,6 +370,7 @@ public class DConfigObject extends DObject
      * change. Proxied copies of this object (on clients) will apply the
      * value change when they received the attribute changed notification.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void setRemoved (DSet<ConfigKey> value)
     {
         requestAttributeChange(REMOVED, value, this.removed);

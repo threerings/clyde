@@ -24,6 +24,7 @@
 
 package com.threerings.tudey.data;
 
+import javax.annotation.Generated;
 import com.threerings.crowd.data.BodyObject;
 import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
@@ -35,6 +36,7 @@ public class TudeyBodyObject extends BodyObject
 {
     // AUTO-GENERATED: FIELDS START
     /** The field name of the <code>pawnId</code> field. */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public static final String PAWN_ID = "pawnId";
     // AUTO-GENERATED: FIELDS END
 
@@ -56,6 +58,7 @@ public class TudeyBodyObject extends BodyObject
      * clients) will apply the value change when they received the
      * attribute changed notification.
      */
+    @Generated(value={"com.threerings.presents.tools.GenDObjectTask"})
     public void setPawnId (int value)
     {
         int ovalue = this.pawnId;

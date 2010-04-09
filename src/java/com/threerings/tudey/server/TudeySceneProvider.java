@@ -23,6 +23,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.threerings.tudey.server;
 
+import javax.annotation.Generated;
+
 import com.threerings.math.SphereCoords;
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.net.Transport;
@@ -33,6 +35,8 @@ import com.threerings.tudey.data.InputFrame;
 /**
  * Defines the server-side of the {@link TudeySceneService}.
  */
+@Generated(value={"com.threerings.presents.tools.GenServiceTask"},
+           comments="Derived from TudeySceneService.java.")
 public interface TudeySceneProvider extends InvocationProvider
 {
     /**

@@ -23,6 +23,8 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.threerings.config.dist.server;
 
+import javax.annotation.Generated;
+
 import com.threerings.config.dist.data.ConfigEntry;
 import com.threerings.config.dist.data.ConfigKey;
 import com.threerings.config.dist.data.DConfigMarshaller;
@@ -33,6 +35,8 @@ import com.threerings.presents.server.InvocationException;
 /**
  * Dispatches requests to the {@link DConfigProvider}.
  */
+@Generated(value={"com.threerings.presents.tools.GenServiceTask"},
+           comments="Derived from DConfigService.java.")
 public class DConfigDispatcher extends InvocationDispatcher<DConfigMarshaller>
 {
     /**
@@ -44,13 +48,13 @@ public class DConfigDispatcher extends InvocationDispatcher<DConfigMarshaller>
         this.provider = provider;
     }
 
-    @Override // documentation inherited
+    @Override
     public DConfigMarshaller createMarshaller ()
     {
         return new DConfigMarshaller();
     }
 
-    @Override // documentation inherited
+    @Override
     public void dispatchRequest (
         ClientObject source, int methodId, Object[] args)
         throws InvocationException
