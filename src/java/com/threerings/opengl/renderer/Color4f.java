@@ -227,6 +227,39 @@ public final class Color4f
     }
 
     /**
+     * Adds another color to this one in-place, clamping the elements of the result to one.
+     *
+     * @return a reference to this color, for chaining.
+     */
+    public Color4f clampedAddLocal (Color4f other)
+    {
+        return clampedAdd(other, this);
+    }
+
+    /**
+     * Adds another color to this one, clamping the elements of the result to one.
+     *
+     * @return a new color containing the result.
+     */
+    public Color4f clampedAdd (Color4f other)
+    {
+        return clampedAdd(other, new Color4f());
+    }
+
+    /**
+     * Adds another color to this one, clamping the elements of the result to one, and storing
+     * the result in the object provided.
+     *
+     * @return a reference to the result, for chaining.
+     */
+    public Color4f clampedAdd (Color4f other, Color4f result)
+    {
+        return result.set(
+            Math.min(r + other.r, 1f), Math.min(g + other.g, 1f),
+            Math.min(b + other.b, 1f), Math.min(a + other.a, 1f));
+    }
+
+    /**
      * Linearly interpolates between this and the specified other color in-place by the supplied
      * amount.
      *
