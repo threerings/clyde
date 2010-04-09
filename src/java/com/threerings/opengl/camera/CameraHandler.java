@@ -96,17 +96,17 @@ public abstract class CameraHandler
     }
 
     /**
-     * Returns a reference to the translation to use for the sound listener.
+     * Returns a reference to the translation to use for the notional "viewer."
      */
-    public Vector3f getListenerTranslation ()
+    public Vector3f getViewerTranslation ()
     {
         return _camera.getWorldTransform().getTranslation();
     }
 
     /**
-     * Returns a reference to the rotation to use for the sound listener.
+     * Returns a reference to the rotation to use for the viewer.
      */
-    public Quaternion getListenerRotation ()
+    public Quaternion getViewerRotation ()
     {
         return _camera.getWorldTransform().getRotation();
     }

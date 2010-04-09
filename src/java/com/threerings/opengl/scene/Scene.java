@@ -458,7 +458,7 @@ public abstract class Scene extends DynamicScope
         }
 
         // find the effects acting on the viewer
-        Vector3f location = _ctx.getCompositor().getCamera().getWorldTransform().getTranslation();
+        Vector3f location = _ctx.getCameraHandler().getViewerTranslation();
         getEffects(_viewer.set(location, location), _neffects);
         setEffects(_neffects);
         _neffects.clear();

@@ -121,7 +121,7 @@ public class OrbitCameraHandler extends CameraHandler
     }
 
     @Override // documentation inherited
-    public Vector3f getListenerTranslation ()
+    public Vector3f getViewerTranslation ()
     {
         return _target;
     }

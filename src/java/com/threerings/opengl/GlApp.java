@@ -382,8 +382,8 @@ public abstract class GlApp extends DynamicScope
         if (!_soundmgr.isInitialized()) {
             return;
         }
-        Vector3f translation = _camhand.getListenerTranslation();
-        Quaternion rotation = _camhand.getListenerRotation();
+        Vector3f translation = _camhand.getViewerTranslation();
+        Quaternion rotation = _camhand.getViewerRotation();
         rotation.transformUnitY(_up);
         rotation.transformUnitZ(_at).negateLocal();
         Listener listener = _soundmgr.getListener();
