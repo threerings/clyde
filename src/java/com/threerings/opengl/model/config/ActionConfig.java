@@ -184,6 +184,14 @@ public abstract class ActionConfig extends DeepObject
         @Editable(min=0.0, step=0.01, hgroup="f")
         public float duration = 1f;
 
+        /** The inner radius of the effect (within which the shake will be at full amplitude). */
+        @Editable(min=0.0, step=0.01, hgroup="r")
+        public float innerRadius = 10f;
+
+        /** The outer radius of the effect (outside of which the shake will not be felt). */
+        @Editable(min=0.0, step=0.01, hgroup="r")
+        public float outerRadius = 100f;
+
         /** The amplitude of the shake. */
         @Editable(step=0.01)
         public Vector3f amplitude = new Vector3f(Vector3f.UNIT_Z);
@@ -191,23 +199,33 @@ public abstract class ActionConfig extends DeepObject
         @Override // documentation inherited
         public Executor createExecutor (final GlContext ctx, Scope scope)
         {
+            final Transform3D transform = ScopeUtil.resolve(
+                scope, "worldTransform", new Transform3D());
             return new Executor() {
                 public void execute () {
-                    ctx.getCameraHandler().addOffset(createOffset());
+                    transform.extractTranslation(_translation);
+                    CameraHandler camhand = ctx.getCameraHandler();
+                    float dist = camhand.getViewerTranslation().distance(_translation);
+                    if (dist <= outerRadius) {
+                        float scale = (dist <= innerRadius) ? 1f :
+                            1f - (dist - innerRadius) / (outerRadius - innerRadius);
+                        camhand.addOffset(createOffset(scale));
+                    }
                 }
+                protected Vector3f _translation = new Vector3f();
             };
         }
 
         /**
          * Creates the actual handler offset.
          */
-        protected CameraHandler.Offset createOffset ()
+        protected CameraHandler.Offset createOffset (final float scale)
         {
             return new CameraHandler.Offset() {
                 public boolean apply (Transform3D transform) {
                     float elapsed = (System.currentTimeMillis() - _start) / 1000f;
                     transform.getTranslation().addScaledLocal(amplitude,
-                        FloatMath.exp(-falloff*elapsed) * FloatMath.sin(frequency*elapsed));
+                        scale * FloatMath.exp(-falloff*elapsed)*FloatMath.sin(frequency*elapsed));
                     return elapsed < duration;
                 }
                 protected long _start = System.currentTimeMillis();
