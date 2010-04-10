@@ -33,11 +33,14 @@ import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
+import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.model.Articulated;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
@@ -48,7 +51,7 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({
     ActionConfig.CallFunction.class, ActionConfig.SpawnTransient.class,
-    ActionConfig.PlaySound.class })
+    ActionConfig.PlaySound.class, ActionConfig.ShakeCamera.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -161,6 +164,53 @@ public abstract class ActionConfig extends DeepObject
                     parent.compose(transform, world);
                     sounder.start();
                 }
+            };
+        }
+    }
+
+    /**
+     * Shakes the camera briefly using a damped oscillation.
+     */
+    public static class ShakeCamera extends ActionConfig
+    {
+        /** The oscillation frequency. */
+        @Editable(min=0, step=0.01, hgroup="f")
+        public float frequency = 50f;
+
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float falloff = 30f;
+
+        /** The total duration of the shake. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float duration = 1f;
+
+        /** The amplitude of the shake. */
+        @Editable(step=0.01)
+        public Vector3f amplitude = new Vector3f(Vector3f.UNIT_Z);
+
+        @Override // documentation inherited
+        public Executor createExecutor (final GlContext ctx, Scope scope)
+        {
+            return new Executor() {
+                public void execute () {
+                    ctx.getCameraHandler().addOffset(createOffset());
+                }
+            };
+        }
+
+        /**
+         * Creates the actual handler offset.
+         */
+        protected CameraHandler.Offset createOffset ()
+        {
+            return new CameraHandler.Offset() {
+                public boolean apply (Transform3D transform) {
+                    float elapsed = (System.currentTimeMillis() - _start) / 1000f;
+                    transform.getTranslation().addScaledLocal(amplitude,
+                        FloatMath.exp(-falloff*elapsed) * FloatMath.sin(frequency*elapsed));
+                    return elapsed < duration;
+                }
+                protected long _start = System.currentTimeMillis();
             };
         }
     }

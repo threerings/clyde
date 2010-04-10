@@ -24,8 +24,13 @@
 
 package com.threerings.opengl.camera;
 
+import java.util.List;
+
+import com.google.common.collect.Lists;
+
 import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.Renderer;
@@ -39,6 +44,19 @@ import com.threerings.opengl.gui.util.Rectangle;
 public abstract class CameraHandler
     implements Renderer.Observer
 {
+    /**
+     * Provides a means of temporarily offsetting the camera transform.
+     */
+    public interface Offset
+    {
+        /**
+         * Applies the offset.
+         *
+         * @return true to keep the offset in the list, false to remove it.
+         */
+        public boolean apply (Transform3D transform);
+    }
+
     /**
      * Creates a new camera handler for the compositor camera.
      */
@@ -93,6 +111,14 @@ public abstract class CameraHandler
     public float getFar ()
     {
         return _far;
+    }
+
+    /**
+     * Adds an element to the list of offsets to apply.
+     */
+    public void addOffset (Offset offset)
+    {
+        _offsets.add(offset);
     }
 
     /**
@@ -153,7 +179,22 @@ public abstract class CameraHandler
     /**
      * Updates the camera position.
      */
-    public abstract void updatePosition ();
+    public void updatePosition ()
+    {
+        // get the base transform
+        Transform3D transform = _camera.getWorldTransform();
+        getTransform(transform);
+
+        // apply the offsets
+        for (int ii = _offsets.size() - 1; ii >= 0; ii--) {
+            if (!_offsets.get(ii).apply(transform)) {
+                _offsets.remove(ii);
+            }
+        }
+
+        // update the camera
+        _camera.updateTransform();
+    }
 
     // documentation inherited from interface Renderer.Observer
     public void sizeChanged (int width, int height)
@@ -161,6 +202,11 @@ public abstract class CameraHandler
         _camera.getViewport().set(0, 0, width, height);
         updatePerspective();
     }
+
+    /**
+     * Computes the base (pre-offset) camera transform.
+     */
+    protected abstract void getTransform (Transform3D transform);
 
     /** The renderer context. */
     protected GlContext _ctx;
@@ -179,4 +225,7 @@ public abstract class CameraHandler
 
     /** The distance to the far clip plane. */
     protected float _far = 100f;
+
+    /** The list of registered offsets. */
+    protected List<Offset> _offsets = Lists.newArrayList();
 }

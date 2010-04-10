@@ -127,20 +127,15 @@ public class OrbitCameraHandler extends CameraHandler
     }
 
     @Override // documentation inherited
-    public void updatePosition ()
+    protected void getTransform (Transform3D transform)
     {
-        // update the camera translation and rotation
-        Transform3D xform = _camera.getWorldTransform();
         float ce = FloatMath.cos(_coords.elevation);
-        xform.getTranslation().set(
+        transform.getTranslation().set(
             FloatMath.sin(_coords.azimuth) * ce,
             -FloatMath.cos(_coords.azimuth) * ce,
             FloatMath.sin(_coords.elevation)).multLocal(_coords.distance).addLocal(_target);
-        xform.getRotation().fromAnglesXZ(
+        transform.getRotation().fromAnglesXZ(
             FloatMath.HALF_PI - _coords.elevation, _coords.azimuth);
-
-        // update the camera transform
-        _camera.updateTransform();
     }
 
     /** The location that the camera is looking at. */
