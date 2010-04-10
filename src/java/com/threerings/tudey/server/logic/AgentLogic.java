@@ -106,6 +106,14 @@ public class AgentLogic extends ActiveLogic
     }
 
     /**
+     * Returns the target rotation.
+     */
+    public float getTargetRotation ()
+    {
+        return _targetRotation;
+    }
+
+    /**
      * Clears the agent's target rotation.
      */
     public void clearTargetRotation ()
