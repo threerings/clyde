@@ -25,11 +25,11 @@ package com.threerings.tudey.server;
 
 import javax.annotation.Generated;
 
-import com.threerings.math.SphereCoords;
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.net.Transport;
 import com.threerings.presents.server.InvocationDispatcher;
 import com.threerings.presents.server.InvocationException;
+import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeySceneMarshaller;
 
@@ -81,7 +81,7 @@ public class TudeySceneDispatcher extends InvocationDispatcher<TudeySceneMarshal
 
         case TudeySceneMarshaller.SET_CAMERA_PARAMS:
             ((TudeySceneProvider)provider).setCameraParams(
-                source, ((Float)args[0]).floatValue(), ((Float)args[1]).floatValue(), ((Float)args[2]).floatValue(), ((Float)args[3]).floatValue(), (SphereCoords)args[4]
+                source, (CameraConfig)args[0], ((Float)args[1]).floatValue()
             );
             return;
 

@@ -64,6 +64,7 @@ import com.threerings.math.SphereCoords;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyBodyObject;
@@ -806,13 +807,12 @@ public class TudeySceneManager extends SceneManager
     }
 
     // documentation inherited from interface TudeySceneProvider
-    public void setCameraParams (
-        ClientObject caller, float fovy, float aspect, float near, float far, SphereCoords coords)
+    public void setCameraParams (ClientObject caller, CameraConfig config, float aspect)
     {
         // forward to client liaison
         ClientLiaison client = _clients.get(caller.getOid());
         if (client != null) {
-            client.setCameraParams(fovy, aspect, near, far, coords);
+            client.setCameraParams(config, aspect);
         } else {
             log.warning("Received camera params from unknown client.",
                 "who", caller.who(), "where", where());

@@ -25,11 +25,11 @@ package com.threerings.tudey.data;
 
 import javax.annotation.Generated;
 
-import com.threerings.math.SphereCoords;
 import com.threerings.presents.client.Client;
 import com.threerings.presents.data.InvocationMarshaller;
 import com.threerings.presents.net.Transport;
 import com.threerings.tudey.client.TudeySceneService;
+import com.threerings.tudey.config.CameraConfig;
 
 /**
  * Provides the implementation of the {@link TudeySceneService} interface
@@ -78,10 +78,10 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int SET_CAMERA_PARAMS = 4;
 
     // from interface TudeySceneService
-    public void setCameraParams (Client arg1, float arg2, float arg3, float arg4, float arg5, SphereCoords arg6)
+    public void setCameraParams (Client arg1, CameraConfig arg2, float arg3)
     {
         sendRequest(arg1, SET_CAMERA_PARAMS, new Object[] {
-            Float.valueOf(arg2), Float.valueOf(arg3), Float.valueOf(arg4), Float.valueOf(arg5), arg6
+            arg2, Float.valueOf(arg3)
         });
     }
 

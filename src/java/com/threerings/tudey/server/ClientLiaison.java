@@ -43,6 +43,7 @@ import com.threerings.math.Rect;
 import com.threerings.math.SphereCoords;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -118,10 +119,9 @@ public class ClientLiaison
     /**
      * Sets the client's camera parameters.
      */
-    public void setCameraParams (
-        float fovy, float aspect, float near, float far, SphereCoords coords)
+    public void setCameraParams (CameraConfig config, float aspect)
     {
-        _localInterest = TudeySceneMetrics.getLocalInterest(fovy, aspect, near, far, coords);
+        _localInterest = TudeySceneMetrics.getLocalInterest(config, aspect);
     }
 
     /**

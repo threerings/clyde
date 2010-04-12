@@ -60,7 +60,7 @@ public class EntryLogic extends Logic
             SceneGlobalConfig.Camera config =
                 (SceneGlobalConfig.Camera)gentry.getConfig(_scenemgr.getConfigManager());
             _scenemgr.setDefaultLocalInterest(TudeySceneMetrics.getLocalInterest(
-                config.fov, 4f/3f, config.near, config.far, config.coords));
+                config.camera, 4f / 3f));
         }
 
         @Override // documentation inherited

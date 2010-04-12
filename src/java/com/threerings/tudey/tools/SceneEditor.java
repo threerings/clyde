@@ -927,7 +927,8 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("lower_grid")) {
             _grid.setElevation(_grid.getElevation() - 1);
         } else if (action.equals("reorient")) {
-            ((OrbitCameraHandler)_camhand).getCoords().set(TudeySceneMetrics.getCameraCoords());
+            ((OrbitCameraHandler)_camhand).getCoords().set(
+                TudeySceneMetrics.getDefaultCameraConfig().coords);
         } else if (action.equals("markers")) {
             _prefs.putBoolean("markersVisible", _markersVisible = !_markers.isSelected());
             wasUpdated();

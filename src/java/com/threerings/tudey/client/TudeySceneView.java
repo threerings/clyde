@@ -144,7 +144,7 @@ public class TudeySceneView extends SimpleScope
 
         // create and initialize the camera handler
         _camhand = createCameraHandler();
-        TudeySceneMetrics.initCameraHandler(_camhand);
+        TudeySceneMetrics.getDefaultCameraConfig().apply(_camhand);
 
         // create the input window
         _inputWindow = new StretchWindow(ctx, null) {
@@ -655,7 +655,8 @@ public class TudeySceneView extends SimpleScope
         // track the target sprite, if any
         if (_targetSprite != null) {
             Vector3f translation = _targetSprite.getModel().getLocalTransform().getTranslation();
-            _camhand.getTarget().set(translation).addLocal(TudeySceneMetrics.getTargetOffset());
+            _camhand.getTarget().set(translation).addLocal(
+                TudeySceneMetrics.getDefaultCameraConfig().offset);
             _camhand.updatePosition();
         }
 

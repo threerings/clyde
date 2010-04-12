@@ -180,21 +180,9 @@ public class SceneGlobalConfig extends ParameterizedConfig
      */
     public static class Camera extends Original
     {
-        /** The vertical field of view. */
-        @Editable(min=0.0, max=180.0, scale=Math.PI/180.0, hgroup="f")
-        public float fov = FloatMath.PI/3f;
-
-        /** The distance to the near clip plane. */
-        @Editable(min=0.0, step=0.01, hgroup="f")
-        public float near = 1f;
-
-        /** The distance to the far clip plane. */
-        @Editable(min=0.0, step=0.01, hgroup="f")
-        public float far = 100f;
-
-        /** The coordinates about the target. */
+        /** The camera config. */
         @Editable
-        public SphereCoords coords = new SphereCoords(0f, FloatMath.PI/4f, 10f);
+        public CameraConfig camera = new CameraConfig();
 
         @Override // documentation inherited
         public String getLogicClassName ()

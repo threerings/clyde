@@ -146,16 +146,14 @@ public class GlobalSprite extends EntrySprite
          */
         public void setConfig (SceneGlobalConfig.Camera config)
         {
-            OrbitCameraHandler camhand = _view.getCameraHandler();
-            camhand.setPerspective(config.fov, config.near, config.far);
-            camhand.getCoords().set(config.coords);
+            config.camera.apply(_view.getCameraHandler());
         }
 
         @Override // documentation inherited
         public void dispose ()
         {
             super.dispose();
-            TudeySceneMetrics.initCameraHandler(_view.getCameraHandler());
+            TudeySceneMetrics.getDefaultCameraConfig().apply(_view.getCameraHandler());
         }
 
         /** The scene view. */

@@ -31,6 +31,7 @@ import com.threerings.presents.net.Transport;
 
 import com.threerings.math.SphereCoords;
 
+import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.data.InputFrame;
 
 /**
@@ -71,8 +72,7 @@ public interface TudeySceneService extends InvocationService
     /**
      * Requests to change the client's camera parameters (which affect its area of interest).
      */
-    public void setCameraParams (
-        Client client, float fovy, float aspect, float near, float far, SphereCoords coords);
+    public void setCameraParams (Client client, CameraConfig config, float aspect);
 
     /**
      * Submits a request related to the identified scene entry.

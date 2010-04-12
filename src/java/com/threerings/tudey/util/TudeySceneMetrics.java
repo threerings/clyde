@@ -35,8 +35,9 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.gui.util.Rectangle;
+
+import com.threerings.tudey.config.CameraConfig;
 
 /**
  * Contains static methods relating to the Tudey coordinate system.
@@ -124,43 +125,11 @@ public class TudeySceneMetrics
     }
 
     /**
-     * Returns the camera's vertical field of view, in radians.
+     * Returns a reference to the default camera config.
      */
-    public static float getCameraFov ()
+    public static CameraConfig getDefaultCameraConfig ()
     {
-        return _cameraFov;
-    }
-
-    /**
-     * Returns the distance to the camera's near clip plane.
-     */
-    public static float getCameraNear ()
-    {
-        return _cameraNear;
-    }
-
-    /**
-     * Returns the distance to the camera's far clip plane.
-     */
-    public static float getCameraFar ()
-    {
-        return _cameraFar;
-    }
-
-    /**
-     * Returns a reference to the camera's sphere coords relative to its target.
-     */
-    public static SphereCoords getCameraCoords ()
-    {
-        return _cameraCoords;
-    }
-
-    /**
-     * Returns a reference to the offset from the target translation to the camera target.
-     */
-    public static Vector3f getTargetOffset ()
-    {
-        return _targetOffset;
+        return _defaultCameraConfig;
     }
 
     /**
@@ -172,30 +141,22 @@ public class TudeySceneMetrics
     }
 
     /**
-     * Initializes the supplied camera handler using the configured camera parameters.
-     */
-    public static void initCameraHandler (OrbitCameraHandler camhand)
-    {
-        camhand.setPerspective(_cameraFov, _cameraNear, _cameraFar);
-        camhand.getCoords().set(_cameraCoords);
-    }
-
-    /**
      * Returns the local area of interest corresponding to the given camera parameters.
      */
-    public static Rect getLocalInterest (
-        float fovy, float aspect, float near, float far, SphereCoords coords)
+    public static Rect getLocalInterest (CameraConfig config, float aspect)
     {
         // create and initialize a frustum
-        Frustum frustum = new Frustum().setToPerspective(fovy, aspect, near, far);
+        Frustum frustum = new Frustum().setToPerspective(
+            config.fov, aspect, config.near, config.far);
 
         // transform based on sphere coordinates
         Transform3D xform = new Transform3D(Transform3D.UNIFORM);
+        SphereCoords coords = config.coords;
         float ce = FloatMath.cos(coords.elevation);
         xform.getTranslation().set(
             FloatMath.sin(coords.azimuth) * ce,
             -FloatMath.cos(coords.azimuth) * ce,
-            FloatMath.sin(coords.elevation)).multLocal(coords.distance);
+            FloatMath.sin(coords.elevation)).multLocal(coords.distance).addLocal(config.offset);
         xform.getRotation().fromAnglesXZ(
             FloatMath.HALF_PI - coords.elevation, coords.azimuth);
         frustum.transformLocal(xform);
@@ -215,38 +176,29 @@ public class TudeySceneMetrics
     /** The number of world units per tile elevation unit. */
     protected static float _elevationScale;
 
-    /** The camera's vertical field of view (in radians). */
-    protected static float _cameraFov;
-
-    /** The camera's near and far clip plane distances. */
-    protected static float _cameraNear, _cameraFar;
-
-    /** The camera's sphere coords relative to its target. */
-    protected static SphereCoords _cameraCoords;
-
-    /** The offset from the target translation to the camera target. */
-    protected static Vector3f _targetOffset;
+    /** The default camera config. */
+    protected static CameraConfig _defaultCameraConfig = new CameraConfig();
 
     /** The fixed amount by which to expand the area of interest. */
     protected static float _interestExpansion;
 
-    /** The local interest region corresponding the to the camera parameters. */
+    /** The local interest region corresponding to the default camera parameters. */
     protected static Rect _defaultLocalInterest;
 
     static {
         // load the fields from the configuration
         Config config = new Config("/rsrc/config/tudey/scene");
         _elevationScale = config.getValue("elevation_scale", 0.5f);
-        _cameraFov = FloatMath.toRadians(config.getValue("camera_fov", 60f));
-        _cameraNear = config.getValue("camera_near", 1f);
-        _cameraFar = config.getValue("camera_far", 100f);
-        _cameraCoords = new SphereCoords(
+        _defaultCameraConfig.fov = FloatMath.toRadians(config.getValue("camera_fov", 60f));
+        _defaultCameraConfig.near = config.getValue("camera_near", 1f);
+        _defaultCameraConfig.far = config.getValue("camera_far", 100f);
+        _defaultCameraConfig.coords.set(
             FloatMath.toRadians(config.getValue("camera_azimuth", 0f)),
             FloatMath.toRadians(config.getValue("camera_elevation", 45f)),
             config.getValue("camera_distance", 10f));
-        _targetOffset = new Vector3f(config.getValue("target_offset", new float[] { 0f, 0f, 1f }));
+        _defaultCameraConfig.offset.set(
+            config.getValue("camera_offset", new float[] { 0f, 0f, 1f }));
         _interestExpansion = config.getValue("interest_expansion", 5f);
-        _defaultLocalInterest = getLocalInterest(
-            _cameraFov, (4f / 3f), _cameraNear, _cameraFar, _cameraCoords);
+        _defaultLocalInterest = getLocalInterest(_defaultCameraConfig, 4f / 3f);
     }
 }
