@@ -85,4 +85,41 @@ public class CameraConfig extends DeepObject
         camhand.setPerspective(fov, near, far);
         camhand.getCoords().set(coords);
     }
+
+    /**
+     * Interpolates between this and the specified other config, storing the result in this
+     * config.
+     *
+     * @return a reference to this config, for chaining.
+     */
+    public CameraConfig lerpLocal (CameraConfig other, float t)
+    {
+        return lerp(other, t, this);
+    }
+
+    /**
+     * Interpolates between this and the specified other config.
+     *
+     * @return a new config containing the result.
+     */
+    public CameraConfig lerp (CameraConfig other, float t)
+    {
+        return lerp(other, t, new CameraConfig());
+    }
+
+    /**
+     * Interpolates between this and the specified other config, storing the result in the
+     * object provided.
+     *
+     * @return a reference to the result config, for chaining.
+     */
+    public CameraConfig lerp (CameraConfig other, float t, CameraConfig result)
+    {
+        result.fov = FloatMath.lerp(fov, other.fov, t);
+        result.near = FloatMath.lerp(near, other.near, t);
+        result.far = FloatMath.lerp(far, other.far, t);
+        coords.lerp(other.coords, t, result.coords);
+        offset.lerp(other.offset, t, result.offset);
+        return result;
+    }
 }

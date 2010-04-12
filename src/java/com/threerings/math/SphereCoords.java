@@ -85,6 +85,41 @@ public class SphereCoords
     }
 
     /**
+     * Interpolates between this and the specified other set of coordinates, storing the
+     * result in this object.
+     *
+     * @return a reference to these coords, for chaining.
+     */
+    public SphereCoords lerpLocal (SphereCoords other, float t)
+    {
+        return lerp(other, t, this);
+    }
+
+    /**
+     * Interpolates between this and the specified other set of coordinates.
+     *
+     * @return a new set of coordinates containing the result.
+     */
+    public SphereCoords lerp (SphereCoords other, float t)
+    {
+        return lerp(other, t, new SphereCoords());
+    }
+
+    /**
+     * Interpolates between this and the specified other set of coordinates, storing the result in
+     * the object provided.
+     *
+     * @return a reference to the result coords, for chaining.
+     */
+    public SphereCoords lerp (SphereCoords other, float t, SphereCoords result)
+    {
+        return result.set(
+            FloatMath.lerpa(azimuth, other.azimuth, t),
+            elevation + t*(other.elevation - elevation),
+            distance + t*(other.distance - distance));
+    }
+
+    /**
      * Copies the elements of another set of coordinates.
      *
      * @return a reference to these coordinates, for chaining.
