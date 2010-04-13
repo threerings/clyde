@@ -49,6 +49,15 @@ public class Point extends Shape
     }
 
     /**
+     * Creates a point at the specified location.
+     */
+    public Point (float x, float y)
+    {
+        _location.set(x, y);
+        updateBounds();
+    }
+
+    /**
      * Creates an uninitialized point.
      */
     public Point ()

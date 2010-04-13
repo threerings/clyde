@@ -27,6 +27,9 @@ package com.threerings.tudey.client.util;
 import org.lwjgl.opengl.GL11;
 
 import com.threerings.math.Box;
+import com.threerings.math.Plane;
+import com.threerings.math.Ray3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.DisplayList;
@@ -37,6 +40,8 @@ import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.scene.SimpleSceneElement;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.tudey.shape.Point;
+import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.config.ShapeConfig;
 
 /**
@@ -61,6 +66,7 @@ public class ShapeConfigElement extends SimpleSceneElement
     {
         _localBounds = config.getBounds();
         _list = config.getList(_ctx, outline);
+        _shape = outline ? null : config.getShape();
         updateBounds();
     }
 
@@ -84,6 +90,25 @@ public class ShapeConfigElement extends SimpleSceneElement
     }
 
     @Override // documentation inherited
+    public boolean getIntersection (Ray3D ray, Vector3f result)
+    {
+        // transform into model space and find the intersection (if any) with the x/y plane
+        if (_shape == null || !_bounds.intersects(ray)) {
+            return false;
+        }
+        Vector3f pt = new Vector3f();
+        if (!Plane.XY_PLANE.getIntersection(ray.transform(_transform.invert()), pt)) {
+            return false;
+        }
+        // then check against the shape and transform it back if we get a hit
+        if (!_shape.intersects(new Point(pt.x, pt.y))) {
+            return false;
+        }
+        _transform.transformPointLocal(result.set(pt));
+        return true;
+    }
+
+    @Override // documentation inherited
     protected Box getLocalBounds ()
     {
         return _localBounds;
@@ -102,4 +127,7 @@ public class ShapeConfigElement extends SimpleSceneElement
 
     /** The display list containing the shape draw commands. */
     protected DisplayList _list;
+
+    /** The untransformed shape, or <code>null</code> if non-intersectable. */
+    protected Shape _shape;
 }

@@ -29,7 +29,9 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.model.Model;
@@ -115,6 +117,12 @@ public class ShapeModel extends Model.Implementation
     public void drawBounds ()
     {
         DebugBounds.draw(_element.getBounds(), Color4f.WHITE);
+    }
+
+    @Override // documentation inherited
+    public boolean getIntersection (Ray3D ray, Vector3f result)
+    {
+        return _element.getIntersection(ray, result);
     }
 
     @Override // documentation inherited
