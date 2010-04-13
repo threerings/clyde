@@ -42,6 +42,10 @@ import com.threerings.opengl.camera.OrbitCameraHandler;
 public class CameraConfig extends DeepObject
     implements Exportable, Streamable
 {
+    /** The priority of the parameters, for when multiple configs are active. */
+    @Editable
+    public int priority;
+
     /** The camera's vertical field of view, in radians. */
     @Editable(min=0.0, max=180.0, scale=Math.PI/180.0, hgroup="f")
     public float fov = FloatMath.PI/3f;
@@ -61,13 +65,18 @@ public class CameraConfig extends DeepObject
     /**
      * Creates a new config with the supplied values.
      */
-    public CameraConfig (float fov, float near, float far, SphereCoords coords, Vector3f offset)
+    public CameraConfig (
+        int priority, float fov, float near, float far, SphereCoords coords, Vector3f offset)
     {
-        this.fov = fov;
-        this.near = near;
-        this.far = far;
-        this.coords.set(coords);
-        this.offset.set(offset);
+        set(priority, fov, near, far, coords, offset);
+    }
+
+    /**
+     * Copy constructor.
+     */
+    public CameraConfig (CameraConfig other)
+    {
+        set(other);
     }
 
     /**
@@ -115,11 +124,39 @@ public class CameraConfig extends DeepObject
      */
     public CameraConfig lerp (CameraConfig other, float t, CameraConfig result)
     {
+        result.priority = priority;
         result.fov = FloatMath.lerp(fov, other.fov, t);
         result.near = FloatMath.lerp(near, other.near, t);
         result.far = FloatMath.lerp(far, other.far, t);
         coords.lerp(other.coords, t, result.coords);
         offset.lerp(other.offset, t, result.offset);
         return result;
+    }
+
+    /**
+     * Copies the parameters of another config.
+     *
+     * @return a reference to this config, for chaining.
+     */
+    public CameraConfig set (CameraConfig other)
+    {
+        return set(other.priority, other.fov, other.near, other.far, other.coords, other.offset);
+    }
+
+    /**
+     * Sets the parameters of this config.
+     *
+     * @return a reference to this config, for chaining.
+     */
+    public CameraConfig set (
+        int priority, float fov, float near, float far, SphereCoords coords, Vector3f offset)
+    {
+        this.priority = priority;
+        this.fov = fov;
+        this.near = near;
+        this.far = far;
+        this.coords.set(coords);
+        this.offset.set(offset);
+        return this;
     }
 }

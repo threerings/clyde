@@ -46,13 +46,15 @@ import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.ViewerEffect;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.tudey.config.TudeyViewerEffectConfig;
+
 /**
  * The configuration of an effect.
  */
 @EditorTypes({
     ViewerEffectConfig.Sound.class, ViewerEffectConfig.BackgroundColor.class,
     ViewerEffectConfig.Skybox.class, ViewerEffectConfig.Particles.class,
-    ViewerEffectConfig.RenderEffect.class })
+    ViewerEffectConfig.RenderEffect.class, TudeyViewerEffectConfig.class })
 public abstract class ViewerEffectConfig extends DeepObject
     implements Exportable
 {

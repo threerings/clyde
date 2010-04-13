@@ -218,6 +218,9 @@ public class ScopeUtil
      */
     public static <T> T get (final Object object, String name, Class<T> clazz)
     {
+        if ("this".equals(name) && clazz.isInstance(object)) {
+            return clazz.cast(object);
+        }
         Member member = getScoped(object.getClass()).get(name);
         if (member instanceof Field) {
             if (clazz.isAssignableFrom(Variable.class)) {

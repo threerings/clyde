@@ -58,6 +58,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.GlView;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.compositor.Compositable;
+import com.threerings.opengl.effect.Easing;
 import com.threerings.opengl.gui.StretchWindow;
 import com.threerings.opengl.gui.Window;
 import com.threerings.opengl.model.Model;
@@ -78,6 +79,7 @@ import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
+import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
@@ -144,7 +146,7 @@ public class TudeySceneView extends SimpleScope
 
         // create and initialize the camera handler
         _camhand = createCameraHandler();
-        TudeySceneMetrics.getDefaultCameraConfig().apply(_camhand);
+        _camcfg.apply(_camhand);
 
         // create the input window
         _inputWindow = new StretchWindow(ctx, null) {
@@ -583,6 +585,55 @@ public class TudeySceneView extends SimpleScope
         _targetSprite = _actorSprites.get(_ctrl.getTargetId());
     }
 
+    /**
+     * Adds a camera config to the stack with no transition.
+     */
+    public void addCameraConfig (CameraConfig camcfg)
+    {
+        addCameraConfig(camcfg, 0f, null);
+    }
+
+    /**
+     * Adds a camera config to the stack with an option transition.
+     */
+    public void addCameraConfig (CameraConfig camcfg, float transition, Easing easing)
+    {
+        for (int ii = _camcfgs.size() - 1; ii >= 0; ii--) {
+            if (_camcfgs.get(ii).priority <= camcfg.priority) {
+                _camcfgs.add(ii + 1, camcfg);
+                if (ii == _camcfgs.size() - 2) {
+                    setCameraConfig(camcfg, transition, easing);
+                }
+            }
+        }
+    }
+
+    /**
+     * Removes a camera config from the stack with no transition.
+     */
+    public void removeCameraConfig (CameraConfig camcfg)
+    {
+        removeCameraConfig(camcfg, 0f, null);
+    }
+
+    /**
+     * Removes a camera config from the stack with an optional transition.
+     */
+    public void removeCameraConfig (CameraConfig camcfg, float transition, Easing easing)
+    {
+        // use referential equality to find the config; don't bother going all the way to the
+        // bottom of the list, because that's the default config which we don't ever want
+        // to remove
+        for (int ii = _camcfgs.size() - 1; ii > 0; ii--) {
+            if (_camcfgs.get(ii) == camcfg) {
+                _camcfgs.remove(ii);
+                if (ii == _camcfgs.size()) {
+                    setCameraConfig(_camcfgs.get(ii - 1), transition, easing);
+                }
+            }
+        }
+    }
+
     // documentation inherited from interface GlView
     public void wasAdded ()
     {
@@ -652,11 +703,15 @@ public class TudeySceneView extends SimpleScope
             }
         }
 
+        // tick the camera transition, if any
+        if (_camtrans != null) {
+            _camtrans.tick(elapsed);
+        }
+
         // track the target sprite, if any
         if (_targetSprite != null) {
             Vector3f translation = _targetSprite.getModel().getLocalTransform().getTranslation();
-            _camhand.getTarget().set(translation).addLocal(
-                TudeySceneMetrics.getDefaultCameraConfig().offset);
+            _camhand.getTarget().set(translation).addLocal(_camcfg.offset);
             _camhand.updatePosition();
         }
 
@@ -851,6 +906,32 @@ public class TudeySceneView extends SimpleScope
     protected OrbitCameraHandler createCameraHandler ()
     {
         return new OrbitCameraHandler(_ctx);
+    }
+
+    /**
+     * Sets the camera configuration (optionally transitioning to it over time).
+     */
+    protected void setCameraConfig (
+        CameraConfig camcfg, final float transition, final Easing easing)
+    {
+        if (transition <= 0f) {
+            _camcfg.set(camcfg).apply(_camhand);
+            _camtrans = null;
+            return;
+        }
+        final CameraConfig ocamcfg = new CameraConfig(_camcfg);
+        final CameraConfig ncamcfg = new CameraConfig(camcfg);
+        _camtrans = new Tickable() {
+            public void tick (float elapsed) {
+                if ((_total += elapsed) >= transition) {
+                    setCameraConfig(ncamcfg, 0f, null);
+                } else {
+                    ocamcfg.lerp(ncamcfg, easing.getTime(_total / transition),
+                        _camcfg).apply(_camhand);
+                }
+            }
+            protected float _total;
+        };
     }
 
     /**
@@ -1174,8 +1255,16 @@ public class TudeySceneView extends SimpleScope
     /** The sprite that the camera is tracking. */
     protected ActorSprite _targetSprite;
 
-    /** The offset of the camera target from the target sprite's translation. */
-    protected Vector3f _targetOffset = new Vector3f();
+    /** The priority-ordered list of active camera configs. */
+    protected List<CameraConfig> _camcfgs = Lists.newArrayList(
+        TudeySceneMetrics.getDefaultCameraConfig());
+
+    /** The current camera config. */
+    protected CameraConfig _camcfg = new CameraConfig(
+        TudeySceneMetrics.getDefaultCameraConfig());
+
+    /** The active camera transition, if any. */
+    protected Tickable _camtrans;
 
     /** Used to find the floor. */
     protected Ray3D _ray = new Ray3D(Vector3f.ZERO, new Vector3f(0f, 0f, -1f));

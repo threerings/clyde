@@ -36,6 +36,7 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
@@ -146,15 +147,21 @@ public class GlobalSprite extends EntrySprite
          */
         public void setConfig (SceneGlobalConfig.Camera config)
         {
-            config.camera.apply(_view.getCameraHandler());
+            if (_camcfg != null) {
+                _view.removeCameraConfig(_camcfg);
+            }
+            _view.addCameraConfig(_camcfg = config.camera);
         }
 
         @Override // documentation inherited
         public void dispose ()
         {
             super.dispose();
-            TudeySceneMetrics.getDefaultCameraConfig().apply(_view.getCameraHandler());
+            _view.removeCameraConfig(_camcfg);
         }
+
+        /** The added camera, if any. */
+        protected CameraConfig _camcfg;
 
         /** The scene view. */
         @Bound

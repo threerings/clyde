@@ -189,6 +189,7 @@ public class TudeySceneMetrics
         // load the fields from the configuration
         Config config = new Config("/rsrc/config/tudey/scene");
         _elevationScale = config.getValue("elevation_scale", 0.5f);
+        _defaultCameraConfig.priority = Integer.MIN_VALUE;
         _defaultCameraConfig.fov = FloatMath.toRadians(config.getValue("camera_fov", 60f));
         _defaultCameraConfig.near = config.getValue("camera_near", 1f);
         _defaultCameraConfig.far = config.getValue("camera_far", 100f);
