@@ -291,8 +291,10 @@ public abstract class BehaviorLogic extends Logic
          */
         protected void setPath (Vector2f[] path)
         {
-            _path = path;
-            _pidx = 0;
+            if (_path != path) {
+                _path = path;
+                _pidx = 0;
+            }
         }
 
         /**

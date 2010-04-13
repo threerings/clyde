@@ -255,7 +255,7 @@ public class Pathfinder
                         for (int xx = x - left, xxmax = x + right; xx <= xxmax; xx++) {
                             if (actor.canCollide(_entryFlags.get(xx/SUBDIVISION, yy/SUBDIVISION))) {
                                 return false;
-                            } else if (collideActor && actor.canCollide(_actorFlags.get(x, y))) {
+                            } else if (collideActor && actor.canCollide(_actorFlags.get(xx, yy))) {
                                 return false;
                             }
                         }
