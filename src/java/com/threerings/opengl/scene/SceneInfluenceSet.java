@@ -75,15 +75,16 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
      */
     public LightState getLightState (Box bounds, LightState state)
     {
-        Color4f totalAmbient = null;
+        Color4f closestAmbient = null;
+        float cdist = Float.MAX_VALUE;
         ArrayList<Light> lights = new ArrayList<Light>();
         for (SceneInfluence influence : this) {
             Color4f ambient = influence.getAmbientLight();
             if (ambient != null) {
-                if (totalAmbient == null) {
-                    totalAmbient = _totalAmbient.set(ambient);
-                } else {
-                    totalAmbient.clampedAddLocal(ambient);
+                float distance = influence.getBounds().getExtentDistance(bounds);
+                if (closestAmbient == null || distance <= cdist) {
+                    closestAmbient = ambient;
+                    cdist = distance;
                 }
             }
             Light light = influence.getLight();
@@ -91,7 +92,7 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
                 lights.add(light);
             }
         }
-        if (totalAmbient == null) {
+        if (closestAmbient == null) {
             return LightState.DISABLED;
         }
         if (canReuse(state, lights)) {
@@ -99,10 +100,11 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
             for (int ii = 0; ii < olights.length; ii++) {
                 olights[ii] = lights.get(ii);
             }
-            state.getGlobalAmbient().set(totalAmbient);
-            return state;
+        } else {
+            state = new LightState(lights.toArray(new Light[lights.size()]), Color4f.WHITE);
         }
-        return new LightState(lights.toArray(new Light[lights.size()]), totalAmbient);
+        state.setGlobalAmbient(closestAmbient);
+        return state;
     }
 
     /**
@@ -203,9 +205,6 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
         }
         return true;
     }
-
-    /** Used to sum up all ambient light influences. */
-    protected Color4f _totalAmbient = new Color4f();
 
     /** The maximum number of lights we allow in a set. */
     protected static final int MAX_LIGHTS = 4;

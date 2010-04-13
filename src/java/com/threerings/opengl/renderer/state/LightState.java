@@ -54,6 +54,14 @@ public class LightState extends RenderState
     }
 
     /**
+     * Sets the reference to the global ambient intensity.
+     */
+    public void setGlobalAmbient (Color4f color)
+    {
+        _globalAmbient = color;
+    }
+
+    /**
      * Returns a reference to the global ambient intensity.
      */
     public Color4f getGlobalAmbient ()
