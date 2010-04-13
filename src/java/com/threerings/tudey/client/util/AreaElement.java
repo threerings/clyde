@@ -80,8 +80,8 @@ public class AreaElement extends SimpleSceneElement
         if (!_bounds.intersects(ray)) {
             return false;
         }
-        // transform into model space and check against triangles
-        // (and back if we get a hit)
+        // transform into model space and check against both sides of the triangles
+        // (transforming back if we get a hit)
         ray = ray.transform(_transform.invert());
         Vertex v0 = _vertices[0];
         _triangle.getFirstVertex().set(v0.x, v0.y, v0.z);
@@ -89,7 +89,8 @@ public class AreaElement extends SimpleSceneElement
             Vertex v1 = _vertices[ii - 1], v2 = _vertices[ii];
             _triangle.getSecondVertex().set(v1.x, v1.y, v1.z);
             _triangle.getThirdVertex().set(v2.x, v2.y, v2.z);
-            if (_triangle.getIntersection(ray, result)) {
+            if (_triangle.getIntersection(ray, result) ||
+                    _triangle.flipLocal().getIntersection(ray, result)) {
                 _transform.transformPointLocal(result);
                 return true;
             }

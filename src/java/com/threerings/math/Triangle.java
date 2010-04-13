@@ -148,6 +148,19 @@ public final class Triangle
     }
 
     /**
+     * Flips the orientation of the triangle by swapping the second and third vertices.
+     *
+     * @return a reference to this triangle, for chaining.
+     */
+    public Triangle flipLocal ()
+    {
+        Vector3f tmp = _v2;
+        _v2 = _v3;
+        _v3 = tmp;
+        return this;
+    }
+
+    /**
      * Sets the vertices of the triangle to those of the specified other triangle.
      *
      * @return a reference to this triangle, for chaining.
