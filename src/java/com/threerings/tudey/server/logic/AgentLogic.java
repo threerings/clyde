@@ -217,6 +217,15 @@ public class AgentLogic extends ActiveLogic
     }
 
     @Override // documentation inherited
+    public void destroy (int timestamp, Logic actor)
+    {
+        if (!isDestroyed()) {
+            super.destroy(timestamp, actor);
+            _behavior.shutdown();
+        }
+    }
+
+    @Override // documentation inherited
     protected Actor createActor (
         ConfigReference<ActorConfig> ref, int id, int timestamp,
         Vector2f translation, float rotation)

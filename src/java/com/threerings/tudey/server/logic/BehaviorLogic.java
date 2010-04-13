@@ -629,6 +629,14 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Shuts down the behavior when the agent is destroyed.
+     */
+    public void shutdown ()
+    {
+        // nothing by default
+    }
+
+    /**
      * Ticks the behavior.
      */
     public void tick (int timestamp)
