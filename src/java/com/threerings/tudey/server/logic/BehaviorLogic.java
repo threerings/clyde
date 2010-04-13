@@ -263,11 +263,17 @@ public abstract class BehaviorLogic extends Logic
             // see if we've reached the current node (looping around in case the notification
             // sets us on a new path)
             Vector2f trans = _agent.getTranslation();
+            boolean completedPath = false;
             while (_path[_pidx].distance(trans) <= getReachRadius()) {
                 if (++_pidx == _path.length) {
                     _agent.stopMoving();
                     _path = null;
+                    // If we've already completed a path then just exit to prevent an infinite loop
+                    if (completedPath) {
+                        return;
+                    }
                     completedPath();
+                    completedPath = true;
                 } else {
                     reachedPathIndex(_pidx - 1);
                 }
