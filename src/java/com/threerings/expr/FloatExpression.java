@@ -45,9 +45,12 @@ import com.threerings.expr.util.ScopeUtil;
     FloatExpression.Negate.class, FloatExpression.Add.class,
     FloatExpression.Subtract.class, FloatExpression.Multiply.class,
     FloatExpression.Divide.class, FloatExpression.Remainder.class,
-    FloatExpression.Pow.class, FloatExpression.Sin.class,
-    FloatExpression.Cos.class, FloatExpression.Tan.class,
-    FloatExpression.Noise1.class, FloatExpression.Noise2.class })
+    FloatExpression.Pow.class, FloatExpression.Exp.class,
+    FloatExpression.Sin.class, FloatExpression.Cos.class,
+    FloatExpression.Tan.class, FloatExpression.Square.class,
+    FloatExpression.Triangle.class, FloatExpression.Ramp.class,
+    FloatExpression.Saw.class, FloatExpression.Noise1.class,
+    FloatExpression.Noise2.class })
 public abstract class FloatExpression extends DeepObject
     implements Exportable
 {
@@ -227,6 +230,22 @@ public abstract class FloatExpression extends DeepObject
     }
 
     /**
+     * Raises e to the power of its operand.
+     */
+    public static class Exp extends UnaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    return FloatMath.exp(eval.evaluate());
+                }
+            };
+        }
+    }
+
+    /**
      * Computes the sine of its operand.
      */
     public static class Sin extends UnaryOperation
@@ -269,6 +288,74 @@ public abstract class FloatExpression extends DeepObject
             return new Evaluator() {
                 public float evaluate () {
                     return FloatMath.tan(eval.evaluate());
+                }
+            };
+        }
+    }
+
+    /**
+     * Computes the square wave value of its operand.
+     */
+    public static class Square extends UnaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    return (FloatMath.ifloor(eval.evaluate() / FloatMath.PI) & 1) == 0 ? 1f : -1f;
+                }
+            };
+        }
+    }
+
+    /**
+     * Computes the triangle wave value of its operand.
+     */
+    public static class Triangle extends UnaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    float val = Math.abs(eval.evaluate() / FloatMath.PI + 0.5f);
+                    float mod = 2f * (val % 1f) - 1f;
+                    return (FloatMath.ifloor(val) & 1) == 0 ? +mod : -mod;
+                }
+            };
+        }
+    }
+
+    /**
+     * Computes the ramp (reverse sawtooth) wave value of its operand.
+     */
+    public static class Ramp extends UnaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    float mod = (eval.evaluate() / FloatMath.TWO_PI + 0.5f) % 1f;
+                    return (mod < 0f ? +1f : -1f) + 2f*mod;
+                }
+            };
+        }
+    }
+
+    /**
+     * Computes the sawtooth wave value of its operand.
+     */
+    public static class Saw extends UnaryOperation
+    {
+        @Override // documentation inherited
+        protected Evaluator createEvaluator (final Evaluator eval)
+        {
+            return new Evaluator() {
+                public float evaluate () {
+                    float mod = (eval.evaluate() / FloatMath.TWO_PI + 0.5f) % 1f;
+                    return (mod < 0f ? -1f : +1f) - 2f*mod;
                 }
             };
         }
@@ -526,12 +613,22 @@ public abstract class FloatExpression extends DeepObject
                     noise.secondOperand = (FloatExpression)_output.pop();
                     noise.firstOperand = (FloatExpression)_output.pop();
                     return noise;
+                } else if (function.equals("exp")) {
+                    result = new Exp();
                 } else if (function.equals("sin")) {
                     result = new Sin();
                 } else if (function.equals("cos")) {
                     result = new Cos();
                 } else if (function.equals("tan")) {
                     result = new Tan();
+                } else if (function.equals("square")) {
+                    result = new Square();
+                } else if (function.equals("triangle")) {
+                    result = new Triangle();
+                } else if (function.equals("ramp")) {
+                    result = new Ramp();
+                } else if (function.equals("saw")) {
+                    result = new Saw();
                 } else if (function.equals("noise1")) {
                     result = new Noise1();
                 } else {
