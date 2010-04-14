@@ -284,6 +284,10 @@ public class AnimationConfig extends ParameterizedConfig
      */
     public static class Procedural extends Original
     {
+        /** The duration of the animation, or zero for unlimited. */
+        @Editable(min=0, step=0.01)
+        public float duration;
+
         /** A (possibly random) offset to apply when the animation starts. */
         @Editable(min=0, step=0.01)
         public FloatVariable offset = new FloatVariable.Constant(0f);

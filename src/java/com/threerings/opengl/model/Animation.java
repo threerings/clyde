@@ -270,7 +270,8 @@ public class Animation extends SimpleScope
 
             // if blending out, store countdown time
             if (_counting = (!_config.loop && _config.blendOut > 0f)) {
-                _countdown = _config.getDuration() - _config.blendOut;
+                float foff = (_fidx == 0) ? 0f : (_fidx / getFrameRate());
+                _countdown = _config.getDuration() - foff - _config.blendOut;
             }
 
             // blend in
@@ -495,11 +496,60 @@ public class Animation extends SimpleScope
         @Override // documentation inherited
         public void start ()
         {
+            _accum = _config.offset.getValue();
+            _completed = false;
+
+            // if we have a finite duration, adjust the offset appropriately
+            if (_config.duration > 0f && (_accum %= _config.duration) < 0f) {
+                _accum += _config.duration;
+            }
+
+            // if blending out, store countdown time
+            if (_counting = (_config.duration > 0f && _config.blendOut > 0f)) {
+                _countdown = _config.duration - _accum - _config.blendOut;
+            }
+
             // set the offset epoch
             resetEpoch();
 
             // blend in
             super.start();
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            return super.isPlaying() && !hasCompleted();
+        }
+
+        @Override // documentation inherited
+        public boolean tick (float elapsed)
+        {
+            // see if we need to start blending out
+            if (_counting && (_countdown -= elapsed) <= 0f) {
+                blendToWeight(0f, _config.blendOut);
+            }
+
+            // update the weight
+            super.tick(elapsed);
+            if (!isPlaying()) {
+                return false;
+            }
+            _accum += elapsed;
+
+            // check for completion
+            if (_config.duration > 0f && _accum >= _config.duration) {
+                _completed = true;
+                ((Animation)_parentScope).stopped(true);
+                return true;
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
+        public boolean hasCompleted ()
+        {
+            return _completed;
         }
 
         @Override // documentation inherited
@@ -515,6 +565,15 @@ public class Animation extends SimpleScope
         {
             for (TargetTransform transform : _transforms) {
                 transform.blend(update, _weight);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void blendToWeight (float weight, float interval)
+        {
+            super.blendToWeight(weight, interval);
+            if (weight == 0f) {
+                _counting = false; // cancel any plans to blend out
             }
         }
 
@@ -555,8 +614,7 @@ public class Animation extends SimpleScope
          */
         protected void resetEpoch ()
         {
-            _epoch.value = ((Animation)_parentScope)._epoch.value -
-                (long)(_config.offset.getValue() * 1000f);
+            _epoch.value = _parentEpoch.value - (long)(_accum * 1000f);
         }
 
         /**
@@ -621,6 +679,22 @@ public class Animation extends SimpleScope
 
         /** The target transforms. */
         protected TargetTransform[] _transforms;
+
+        /** Whether we are counting down until we must blend out. */
+        protected boolean _counting;
+
+        /** The time remaining until we have to start blending the animation out. */
+        protected float _countdown;
+
+        /** The accumulated time. */
+        protected float _accum;
+
+        /** Set when the animation has completed. */
+        protected boolean _completed;
+
+        /** The parent epoch. */
+        @Bound("epoch")
+        protected MutableLong _parentEpoch;
 
         /** The offset epoch. */
         @Scoped
@@ -1006,7 +1080,9 @@ public class Animation extends SimpleScope
      */
     protected void resetEpoch ()
     {
-        _epoch.value = _now.value;
+        MutableLong now = ScopeUtil.resolve(
+            this, Scope.NOW, new MutableLong(System.currentTimeMillis()));
+        _epoch.value = now.value;
     }
 
     /**
@@ -1139,10 +1215,6 @@ public class Animation extends SimpleScope
 
     /** The lazily-initialized list of animation observers. */
     protected ObserverList<AnimationObserver> _observers;
-
-    /** The container for the current time. */
-    @Bound
-    protected MutableLong _now = new MutableLong(System.currentTimeMillis());
 
     /** A container for the animation epoch. */
     @Scoped
