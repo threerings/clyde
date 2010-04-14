@@ -261,6 +261,19 @@ public final class Ray2D
         return isect;
     }
 
+    /**
+     * Resturns the nearest point on the Ray to the supplied point.
+     */
+    public Vector2f getNearestPoint (Vector2f point, Vector2f result)
+    {
+        if (result == null) {
+            result = new Vector2f();
+        }
+        float r = point.subtract(_origin).dot(_direction);
+        result.set(_origin.add(_direction.mult(r)));
+        return result;
+    }
+
     @Override // documentation inherited
     public String toString ()
     {
