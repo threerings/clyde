@@ -24,11 +24,14 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
+
+import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.config.ShapeConfig;
@@ -249,6 +252,15 @@ public abstract class HandlerConfig extends DeepObject
                 underAction.invalidate();
             }
         }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            super.getPreloads(cfgmgr, preloads);
+            if (underAction != null) {
+                underAction.getPreloads(cfgmgr, preloads);
+            }
+        }
     }
 
     /**
@@ -374,6 +386,14 @@ public abstract class HandlerConfig extends DeepObject
      * Returns the name of the server-side logic class for this handler.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Adds the resources to preload for this handler into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+        action.getPreloads(cfgmgr, preloads);
+    }
 
     /**
      * Invalidates any cached data.

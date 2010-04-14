@@ -146,7 +146,7 @@ public class ActorConfig extends ParameterizedConfig
         {
             sprite.getPreloads(cfgmgr, preloads);
             for (HandlerConfig handler : handlers) {
-                handler.action.getPreloads(cfgmgr, preloads);
+                handler.getPreloads(cfgmgr, preloads);
             }
         }
 
