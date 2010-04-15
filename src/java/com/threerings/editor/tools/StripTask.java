@@ -22,9 +22,12 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.export.tools;
+package com.threerings.editor.tools;
 
+import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -34,10 +37,16 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 
+import com.threerings.editor.Introspector;
+import com.threerings.editor.Property;
+import com.threerings.editor.Strippable;
+import com.threerings.export.BinaryExporter;
+import com.threerings.export.BinaryImporter;
+
 /**
- * Converts XML export files into binary export files.
+ * Strips classes and properties flagged as strippable from exported files.
  */
-public class XMLToBinaryTask extends Task
+public class StripTask extends Task
 {
     /**
      * Sets the destination directory to which generated files will be written.
@@ -72,18 +81,18 @@ public class XMLToBinaryTask extends Task
             File fromDir = fs.getDir(getProject());
             for (String file : ds.getIncludedFiles()) {
                 try {
-                    convert(fromDir, file);
+                    strip(fromDir, file);
                 } catch (Exception e) {
-                    System.err.println("Error converting " + new File(fromDir, file) + ": " + e);
+                    System.err.println("Error stripping " + new File(fromDir, file) + ": " + e);
                 }
             }
         }
     }
 
     /**
-     * Converts a single file.
+     * Strips a single file.
      */
-    protected void convert (File sourceDir, String sourceName)
+    protected void strip (File sourceDir, String sourceName)
         throws IOException
     {
         // find the path of the target file
@@ -91,13 +100,13 @@ public class XMLToBinaryTask extends Task
         String root = (didx == -1) ? sourceName : sourceName.substring(0, didx);
         File target = new File(_dest == null ? sourceDir : _dest, root + ".dat");
 
-        // no need to compile if nothing has been modified
+        // no need to strip if nothing has been modified
         File source = new File(sourceDir, sourceName);
         long lastmod = target.lastModified();
         if (source.lastModified() < lastmod) {
             return;
         }
-        System.out.println("Converting " + source + " to " + target + "...");
+        System.out.println("Stripping " + source + " to " + target + "...");
 
         // make sure the parent exists
         File parent = target.getParentFile();
@@ -105,8 +114,27 @@ public class XMLToBinaryTask extends Task
             parent.mkdirs();
         }
 
-        // perform the conversion
-        XMLToBinaryConverter.convert(source.getPath(), target.getPath(), _compress);
+        // perform the strip
+        BinaryImporter in = new BinaryImporter(new FileInputStream(source));
+        BinaryExporter out = new BinaryExporter(new FileOutputStream(target), _compress);
+        try {
+            while (true) {
+                out.writeObject(strip(in.readObject()));
+            }
+        } catch (EOFException e) {
+            // no problem
+        } finally {
+            in.close();
+            out.close();
+        }
+    }
+
+    /**
+     * Strips and returns a single object.
+     */
+    protected Object strip (Object object)
+    {
+        return object;
     }
 
     /** The directory in which we will generate our output (in a directory tree mirroring the
