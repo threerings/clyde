@@ -56,6 +56,14 @@ public class MobileLogic extends ActorLogic
         }
     }
 
+    /**
+     * Returns the direction of the mobile.
+     */
+    public float getDirection ()
+    {
+        return ((Mobile)getActor()).getDirection();
+    }
+
     // documentation inherited from interface TudeySceneManager.TickParticipant
     public boolean tick (int timestamp)
     {
