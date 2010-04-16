@@ -35,6 +35,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -44,6 +45,7 @@ import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 /**
  * Base class for {@link GroundConfig} and {@link WallConfig}.
  */
+@Strippable
 public abstract class PaintableConfig extends ParameterizedConfig
 {
     /**

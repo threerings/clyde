@@ -30,6 +30,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
@@ -109,14 +110,17 @@ public abstract class ActionConfig extends DeepObject
     {
         /** The fixed rotation for the new actor. */
         @Editable(min=-180, max=+180, scale=Math.PI/180.0, hgroup="r")
+        @Strippable
         public float rotation = 0;
 
         /** If the rotation should be relative to the target. */
         @Editable(hgroup="r")
+        @Strippable
         public boolean relative = false;
 
         /** The random rotation variance. */
         @Editable(min=0, max=360, scale=Math.PI/180.0)
+        @Strippable
         public float rotationVariance = 0;
 
         @Override // documentation inherited
@@ -133,6 +137,7 @@ public abstract class ActionConfig extends DeepObject
     {
         /** The translation from the target for the new actor. */
         @Editable
+        @Strippable
         public Vector2f translation = new Vector2f();
 
         @Override // documentation inherited
@@ -145,6 +150,7 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Destroys an actor.
      */
+    @Strippable
     public static class DestroyActor extends ActionConfig
     {
         /** The actor to destroy. */
@@ -167,6 +173,7 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Warps an actor from one place to another.
      */
+    @Strippable
     public static class WarpActor extends ActionConfig
     {
         /** The actor to warp. */
@@ -194,6 +201,7 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Warps an actor from on place to another transformed location.
      */
+    @Strippable
     public static class WarpTransformedActor extends WarpActor
     {
         /** The fixed rotation for the new actor. */
@@ -254,6 +262,7 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Transmits a signal.
      */
+    @Strippable
     public static class Signal extends ActionConfig
     {
         /** The signal name. */
@@ -280,6 +289,7 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Superclass of the portal actions.
      */
+    @Strippable
     public static abstract class AbstractMove extends ActionConfig
     {
         /** The id of the destination scene. */
@@ -675,6 +685,7 @@ public abstract class ActionConfig extends DeepObject
     {
         /** The weight of the action. */
         @Editable(min=0, step=0.01)
+        @Strippable
         public float weight = 1f;
 
         /** The action itself. */
@@ -689,6 +700,7 @@ public abstract class ActionConfig extends DeepObject
     {
         /** The delay. */
         @Editable(min=0)
+        @Strippable
         public int delay;
 
         /** The action to perform. */
@@ -725,6 +737,7 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Sets a step limiter on mobile.
      */
+    @Strippable
     public static class StepLimitMobile extends ActionConfig
     {
         /** If we're setting or removing the limit. */
@@ -759,6 +772,7 @@ public abstract class ActionConfig extends DeepObject
     /**
      * Sets a variable on the target.
      */
+    @Strippable
     public static class SetVariable extends ActionConfig
     {
         /** The variable name. */

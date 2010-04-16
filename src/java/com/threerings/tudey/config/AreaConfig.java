@@ -32,6 +32,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
@@ -111,10 +112,12 @@ public class AreaConfig extends ParameterizedConfig
     {
         /** The color to use when showing this path in the scene editor. */
         @Editable(mode="alpha", hgroup="c")
+        @Strippable
         public Color4f color = new Color4f();
 
         /** Whether or not the area should be used as a default entrance. */
         @Editable(hgroup="c")
+        @Strippable
         public boolean defaultEntrance;
 
         /** Tags used to identify the area within the scene. */

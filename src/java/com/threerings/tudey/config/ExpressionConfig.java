@@ -30,6 +30,7 @@ import com.threerings.io.Streamable;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.ExpressionParser;
 import com.threerings.util.DeepObject;
@@ -50,6 +51,7 @@ import com.threerings.util.DeepOmit;
     ExpressionConfig.Less.class, ExpressionConfig.Greater.class,
     ExpressionConfig.Equals.class, ExpressionConfig.LessEquals.class,
     ExpressionConfig.GreaterEquals.class, ExpressionConfig.NumTargets.class })
+@Strippable
 public abstract class ExpressionConfig extends DeepObject
     implements Exportable, Streamable
 {

@@ -30,6 +30,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
 import com.threerings.probs.FloatVariable;
@@ -38,6 +39,7 @@ import com.threerings.util.DeepObject;
 /**
  * Configurations for agent behavior.
  */
+@Strippable
 public class BehaviorConfig extends ParameterizedConfig
 {
     /**

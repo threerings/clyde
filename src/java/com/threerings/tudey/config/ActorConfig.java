@@ -30,6 +30,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.math.FloatMath;
@@ -112,15 +113,18 @@ public class ActorConfig extends ParameterizedConfig
         /** Whether or not the actor is "static" (always in clients' area of interest, notifies
          * the scene manager when its state changes). */
         @Editable
+        @Strippable
         public boolean isStatic = true;
 
         /** Whether or not the actor should be used as a default entrance. */
         @Editable(hgroup="d")
+        @Strippable
         public boolean defaultEntrance;
 
         /** If non-zero, the spawn point will be adjusted so that the actor doesn't collide with
          * anything that matches the mask (if possible). */
         @Editable(editor="mask", mode="collision", hgroup="d")
+        @Strippable
         public int spawnMask;
 
         /** Determines which collision categories the actor belongs to. */
@@ -185,15 +189,18 @@ public class ActorConfig extends ParameterizedConfig
 
         /** If true, set the actor in motion after spawning. */
         @Editable(hgroup="s")
+        @Strippable
         public boolean startMoving;
 
         /** Whether or not the actor starts out in stasis. */
         @Editable(hgroup="a")
+        @Strippable
         public boolean startInStasis = true;
 
         /** Put the actor into stasis when it's been out of sight for this long
          * (zero if we should never put it into stasis). */
         @Editable(min=0, hgroup="a")
+        @Strippable
         public int stasisInterval = 5000;
 
         /**
@@ -243,6 +250,7 @@ public class ActorConfig extends ParameterizedConfig
 
         /** The agent's behavior. */
         @Editable(nullable=true)
+        @Strippable
         public ConfigReference<BehaviorConfig> behavior;
 
         @Override // documentation inherited

@@ -27,6 +27,7 @@ package com.threerings.tudey.config;
 import com.threerings.config.ConfigManager;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
@@ -93,10 +94,12 @@ public abstract class HandlerConfig extends DeepObject
     {
         /** The timer interval, in seconds. */
         @Editable(min=0.0, step=0.1, hgroup="i")
+        @Strippable
         public float interval = 1f;
 
         /** The number of times to fire the timer (or zero for unlimited). */
         @Editable(min=0, hgroup="i")
+        @Strippable
         public int limit;
 
         @Override // documentation inherited
@@ -113,10 +116,12 @@ public abstract class HandlerConfig extends DeepObject
     {
         /** The name of the signal of interest. */
         @Editable(hgroup="n")
+        @Strippable
         public String name = "";
 
         /** The amount of time that must elapse between firings. */
         @Editable(min=0.0, step=0.1, hgroup="n")
+        @Strippable
         public float refractoryPeriod;
 
         @Override // documentation inherited
@@ -133,6 +138,7 @@ public abstract class HandlerConfig extends DeepObject
     {
         /** The name of the signal of interest. */
         @Editable
+        @Strippable
         public String name = "";
 
         @Override // documentation inherited
@@ -149,6 +155,7 @@ public abstract class HandlerConfig extends DeepObject
     {
         /** The name of the signal of interest. */
         @Editable
+        @Strippable
         public String name = "";
 
         @Override // documentation inherited
@@ -182,6 +189,7 @@ public abstract class HandlerConfig extends DeepObject
     {
         /** The amount of time that must elapse between firings. */
         @Editable(min=0.0, step=0.1)
+        @Strippable
         public float refractoryPeriod;
 
         @Override // documentation inherited
@@ -232,6 +240,7 @@ public abstract class HandlerConfig extends DeepObject
     {
         /** The threshold value. */
         @Editable(min=0)
+        @Strippable
         public int threshold;
 
         /** The action to perform when we go under the threshold. */
@@ -270,6 +279,7 @@ public abstract class HandlerConfig extends DeepObject
     {
         /** The name of the request of interest. */
         @Editable
+        @Strippable
         public String name = "";
 
         @Override // documentation inherited
@@ -290,6 +300,7 @@ public abstract class HandlerConfig extends DeepObject
 
         /** If we're waiting for them all to be removed. */
         @Editable
+        @Strippable
         public boolean all = true;
 
         @Override // documentation inherited
@@ -321,6 +332,7 @@ public abstract class HandlerConfig extends DeepObject
      * Base class for the intersection shapes.
      */
     @EditorTypes({ DefaultShape.class, TransformedShape.class })
+    @Strippable
     public static abstract class IntersectionShape extends DeepObject
         implements Exportable
     {

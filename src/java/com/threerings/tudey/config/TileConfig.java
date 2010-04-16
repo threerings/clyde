@@ -32,6 +32,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
@@ -121,6 +122,7 @@ public class TileConfig extends ParameterizedConfig
 
         /** Whether or not the tile should be used as a default entrance. */
         @Editable(hgroup="d")
+        @Strippable
         public boolean defaultEntrance;
 
         /** The model to use for the tile. */
