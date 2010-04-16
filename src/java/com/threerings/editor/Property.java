@@ -343,6 +343,14 @@ public abstract class Property extends DeepObject
     }
 
     /**
+     * Determines whether the property has an annotation of the specified class.
+     */
+    public boolean isAnnotationPresent (Class<? extends Annotation> clazz)
+    {
+        return getAnnotation(clazz) != null;
+    }
+
+    /**
      * Returns a reference to the annotation of the specified class, if it exists.
      */
     public <T extends Annotation> T getAnnotation (Class<T> clazz)

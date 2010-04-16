@@ -24,24 +24,30 @@
 
 package com.threerings.editor.tools;
 
+import java.lang.reflect.Array;
+
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 
+import com.google.common.collect.Lists;
+
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
+import com.threerings.export.Exportable;
+import com.threerings.export.ObjectMarshaller;
 
 /**
  * Strips classes and properties flagged as strippable from exported files.
@@ -134,7 +140,60 @@ public class StripTask extends Task
      */
     protected Object strip (Object object)
     {
+        if (object == null) {
+            return null;
+        }
+        if (object instanceof Object[]) {
+            List<Object> list = Lists.newArrayList();
+            Object[] oarray = (Object[])object;
+            for (Object element : oarray) {
+                if (element == null || !isStrippable(element.getClass())) {
+                    list.add(strip(element));
+                }
+            }
+            int nsize = list.size();
+            return list.toArray(oarray.length == nsize ?
+                oarray : (Object[])Array.newInstance(oarray.getClass().getComponentType(), nsize));
+        }
+        if (object instanceof List) {
+            @SuppressWarnings("unchecked") List<Object> list = (List<Object>)object;
+            for (int ii = list.size() - 1; ii >= 0; ii--) {
+                Object element = list.get(ii);
+                if (element != null && isStrippable(element.getClass())) {
+                    list.remove(ii);
+                } else {
+                    list.set(ii, strip(element));
+                }
+            }
+            return list;
+        }
+        if (!(object instanceof Exportable)) {
+            return object;
+        }
+        Class<?> clazz = object.getClass();
+        Object prototype = ObjectMarshaller.getObjectMarshaller(clazz).getPrototype();
+        for (Property property : Introspector.getProperties(clazz)) {
+            Object ovalue = property.get(object);
+            if (property.isAnnotationPresent(Strippable.class) ||
+                    isStrippable(property.getType()) ||
+                    isStrippable(property.getComponentType()) ||
+                    (ovalue != null && isStrippable(ovalue.getClass()))) {
+                property.set(object, property.get(prototype));
+            } else {
+                property.set(object, strip(ovalue));
+            }
+        }
         return object;
+    }
+
+    /**
+     * Checks whether the specified class or its component type or any of its superclasses are
+     * flagged as strippable.
+     */
+    protected boolean isStrippable (Class<?> clazz)
+    {
+        return clazz != null && (clazz.isAnnotationPresent(Strippable.class) ||
+            isStrippable(clazz.getComponentType()) || isStrippable(clazz.getSuperclass()));
     }
 
     /** The directory in which we will generate our output (in a directory tree mirroring the
@@ -145,5 +204,5 @@ public class StripTask extends Task
     protected boolean _compress = true;
 
     /** A list of filesets that contain XML exports. */
-    protected ArrayList<FileSet> _filesets = new ArrayList<FileSet>();
+    protected List<FileSet> _filesets = Lists.newArrayList();
 }

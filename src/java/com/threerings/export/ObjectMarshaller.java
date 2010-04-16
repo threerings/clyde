@@ -55,6 +55,14 @@ public class ObjectMarshaller
     }
 
     /**
+     * Returns a reference to the prototype object (used to determine field defaults).
+     */
+    public Object getPrototype ()
+    {
+        return _prototype;
+    }
+
+    /**
      * Reads the fields of an object from the specified importer.
      */
     public void readFields (Object object, Importer importer, boolean useReader)
