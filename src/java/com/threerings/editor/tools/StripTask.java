@@ -32,7 +32,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -41,6 +43,7 @@ import org.apache.tools.ant.types.FileSet;
 
 import com.google.common.collect.Lists;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
@@ -147,7 +150,7 @@ public class StripTask extends Task
             List<Object> list = Lists.newArrayList();
             Object[] oarray = (Object[])object;
             for (Object element : oarray) {
-                if (element == null || !isStrippable(element.getClass())) {
+                if (!isStrippable(element)) {
                     list.add(strip(element));
                 }
             }
@@ -159,7 +162,7 @@ public class StripTask extends Task
             @SuppressWarnings("unchecked") List<Object> list = (List<Object>)object;
             for (int ii = list.size() - 1; ii >= 0; ii--) {
                 Object element = list.get(ii);
-                if (element != null && isStrippable(element.getClass())) {
+                if (isStrippable(element)) {
                     list.remove(ii);
                 } else {
                     list.set(ii, strip(element));
@@ -167,23 +170,53 @@ public class StripTask extends Task
             }
             return list;
         }
+        if (object instanceof ConfigReference) {
+            ConfigReference<?> ref = (ConfigReference)object;
+            for (Iterator<Map.Entry<String, Object>> it = ref.getArguments().entrySet().iterator();
+                    it.hasNext(); ) {
+                Map.Entry<String, Object> entry = it.next();
+                Object value = entry.getValue();
+                if (isStrippable(value)) {
+                    it.remove();
+                } else {
+                    entry.setValue(strip(value));
+                }
+            }
+        }
         if (!(object instanceof Exportable)) {
             return object;
         }
         Class<?> clazz = object.getClass();
         Object prototype = ObjectMarshaller.getObjectMarshaller(clazz).getPrototype();
         for (Property property : Introspector.getProperties(clazz)) {
-            Object ovalue = property.get(object);
-            if (property.isAnnotationPresent(Strippable.class) ||
-                    isStrippable(property.getType()) ||
-                    isStrippable(property.getComponentType()) ||
-                    (ovalue != null && isStrippable(ovalue.getClass()))) {
+            Object value = property.get(object);
+            if (isStrippable(property) || isStrippable(value)) {
                 property.set(object, property.get(prototype));
             } else {
-                property.set(object, strip(ovalue));
+                property.set(object, strip(value));
             }
         }
         return object;
+    }
+
+    /**
+     * Checks whether the specified property is strippable.
+     */
+    protected boolean isStrippable (Property property)
+    {
+        Class<?> type = property.getType();
+        return property.isAnnotationPresent(Strippable.class) ||
+            isStrippable(type) || isStrippable(property.getComponentType()) ||
+            ConfigReference.class.isAssignableFrom(type) &&
+                isStrippable(property.getArgumentType(ConfigReference.class));
+    }
+
+    /**
+     * Checks whether the specified object itself is strippable.
+     */
+    protected boolean isStrippable (Object object)
+    {
+        return object != null && isStrippable(object.getClass());
     }
 
     /**
