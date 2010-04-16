@@ -44,7 +44,7 @@ public class BehaviorConfig extends ParameterizedConfig
       * Contains the actual implementation of the behavior.
       */
     @EditorTypes({
-        Original.class, Wander.class, Patrol.class, Follow.class, Random.class })
+        Original.class, Derived.class, Wander.class, Patrol.class, Follow.class, Random.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {

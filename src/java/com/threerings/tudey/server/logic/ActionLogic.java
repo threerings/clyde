@@ -244,12 +244,13 @@ public abstract class ActionLogic extends Logic
             ActionConfig.WarpTransformedActor config = (ActionConfig.WarpTransformedActor)_config;
             float rotation = config.rotation + location.getRotation();
             Vector2f translation = new Vector2f();
+            Vector2f ltrans = location.getTranslation();
             if (config.rotatedTranslation) {
-                config.translation.rotateAndAdd(rotation, location.getTranslation(), translation);
+                config.translation.rotateAndAdd(rotation, ltrans, translation);
             } else {
-                translation.addLocal(location.getTranslation());
+                translation.addLocal(ltrans);
             }
-            target.warp(translation.x, translation.y, rotation);
+            target.warp(translation.x, translation.y, rotation, ltrans.x, ltrans.y);
         }
     }
 

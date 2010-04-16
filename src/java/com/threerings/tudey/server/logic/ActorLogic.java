@@ -31,6 +31,7 @@ import com.samskivert.util.ObserverList;
 import com.threerings.crowd.data.BodyObject;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
@@ -44,6 +45,8 @@ import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Controls the state of an actor on the server.
@@ -206,7 +209,15 @@ public class ActorLogic extends Logic
      */
     public void warp (float x, float y, float rotation)
     {
-        warp(x, y, rotation, true);
+        warp(x, y, rotation, x, y);
+    }
+
+    /**
+     * Warps the actor.
+     */
+    public void warp (float x, float y, float rotation, float tx, float ty)
+    {
+        warp(x, y, rotation, tx, ty, true);
     }
 
     /**
@@ -215,15 +226,23 @@ public class ActorLogic extends Logic
      * @param adjust if true, adjusts the location as when spawning to avoid intersecting other
      * actors.
      */
-    public void warp (float x, float y, float rotation, boolean adjust)
+    public void warp (float x, float y, float rotation, float tx, float ty, boolean adjust)
     {
         // set the warp flag and clear it on the next tick
         _actor.set(Actor.WARP);
+        if (tx != x || ty != y) {
+            rotation = FloatMath.atan2(ty - y, tx - x);
+        }
         move(x, y, rotation);
         if (adjust && _config.spawnMask != 0) {
             _scenemgr.getActorSpace().remove(_shape);
             if (_scenemgr.collides(_config.spawnMask, getShape(), _scenemgr.getTimestamp())) {
-                adjustSpawnPoint();
+                adjustSpawnPoint(tx, ty);
+                if (tx != x || ty != y) {
+                    Vector2f trans = _actor.getTranslation();
+                    _actor.setRotation(FloatMath.atan2(ty - trans.y, tx - trans.x));
+                    updateShape();
+                }
             }
             _scenemgr.getActorSpace().add(_shape);
         }
@@ -398,6 +417,15 @@ public class ActorLogic extends Logic
      */
     protected void adjustSpawnPoint ()
     {
+        Vector2f translation = _actor.getTranslation();
+        adjustSpawnPoint(translation.x, translation.y);
+    }
+
+    /**
+     * Adjusts the initial location of the actor so as to avoid collisions.
+     */
+    protected void adjustSpawnPoint (float tx, float ty)
+    {
         // get the bounds with respect to the position
         Rect bounds = _shape.getBounds();
         float width = bounds.getWidth() + 0.01f, height = bounds.getHeight() + 0.01f;
@@ -409,25 +437,25 @@ public class ActorLogic extends Logic
             // loop counterclockwise around the center
             float bottom = oy - dist*height;
             for (int xx = -dist; xx <= +dist; xx++) {
-                if (testSpawnPoint(ox, oy, ox + xx*width, bottom)) {
+                if (testSpawnPoint(tx, ty, ox + xx*width, bottom)) {
                     return;
                 }
             }
             float right = ox + dist*width;
             for (int yy = 1 - dist, yymax = -yy; yy <= yymax; yy++) {
-                if (testSpawnPoint(ox, oy, right, oy + yy*height)) {
+                if (testSpawnPoint(tx, ty, right, oy + yy*height)) {
                     return;
                 }
             }
             float top = oy + dist*height;
             for (int xx = +dist; xx >= -dist; xx--) {
-                if (testSpawnPoint(ox, oy, ox + xx*width, top)) {
+                if (testSpawnPoint(tx, ty, ox + xx*width, top)) {
                     return;
                 }
             }
             float left = ox - dist*width;
             for (int yy = dist - 1, yymin = -yy; yy >= yymin; yy--) {
-                if (testSpawnPoint(ox, oy, left, oy + yy*height)) {
+                if (testSpawnPoint(tx, ty, left, oy + yy*height)) {
                     return;
                 }
             }
