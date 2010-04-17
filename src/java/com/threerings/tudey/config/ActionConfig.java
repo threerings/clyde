@@ -53,7 +53,8 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.Conditional.class, ActionConfig.Switch.class,
     ActionConfig.ExpressionSwitch.class, ActionConfig.Compound.class,
     ActionConfig.Random.class, ActionConfig.Delayed.class,
-    ActionConfig.StepLimitMobile.class, ActionConfig.SetVariable.class })
+    ActionConfig.StepLimitMobile.class, ActionConfig.SetVariable.class,
+    ActionConfig.SetFlag.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -791,6 +792,37 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SetVariable";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
+    }
+
+    /**
+     * Sets a flag on the target.
+     */
+    @Strippable
+    public static class SetFlag extends ActionConfig
+    {
+        /** The target to modify. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        /** The flag name */
+        @Editable
+        public String flag = "";
+
+        /** The value to set. */
+        @Editable
+        public boolean on = true;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$SetFlag";
         }
 
         @Override // documentation inherited

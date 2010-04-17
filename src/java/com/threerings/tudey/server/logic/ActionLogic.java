@@ -24,6 +24,7 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import com.google.common.base.Objects;
@@ -44,6 +45,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.EffectConfig;
+import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.server.TudeySceneManager;
@@ -734,6 +736,46 @@ public abstract class ActionLogic extends Logic
 
         /** The value logic. */
         protected ExpressionLogic _value;
+    }
+
+    /**
+     * Handles a set flag action.
+     */
+    public static class SetFlag extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            ActionConfig.SetFlag config = (ActionConfig.SetFlag)_config;
+            _target.resolve(activator, _targets);
+            boolean ret = false;
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                if (target instanceof ActorLogic) {
+                    Actor actor = ((ActorLogic)target).getActor();
+                    try {
+                        Field flag = actor.getClass().getField(config.flag);
+                        actor.set(flag.getInt(actor), config.on);
+                        ret = true;
+                    } catch (NoSuchFieldException e) {
+                        log.warning("Flag field not found in class for Set Flag Action.", e);
+                    } catch (IllegalAccessException e) {
+                        log.warning("Cannot access flag field for Set Flag Action.", e);
+                    }
+                }
+            }
+            _targets.clear();
+            return ret;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ActionConfig.SetFlag)_config).target, _source);
+        }
+
+        /** The target logic. */
+        protected TargetLogic _target;
     }
 
     /**
