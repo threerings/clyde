@@ -118,15 +118,6 @@ public class MobileLogic extends ActorLogic
     }
 
     @Override // documentation inherited
-    public void destroy (int timestamp, Logic activator)
-    {
-        super.destroy(timestamp, activator);
-
-        // deregister as tick participant
-        _scenemgr.removeTickParticipant(this);
-    }
-
-    @Override // documentation inherited
     protected Actor createActor (
         ConfigReference<ActorConfig> ref, int id, int timestamp,
         Vector2f translation, float rotation)
@@ -152,6 +143,15 @@ public class MobileLogic extends ActorLogic
             _scenemgr.addTickParticipant(this);
             leftStasis();
         }
+    }
+
+    @Override // documentation inherited
+    protected void wasDestroyed ()
+    {
+        super.wasDestroyed();
+
+        // deregister as tick participant
+        _scenemgr.removeTickParticipant(this);
     }
 
     /**

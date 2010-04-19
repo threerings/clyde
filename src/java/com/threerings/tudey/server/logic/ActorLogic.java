@@ -290,6 +290,8 @@ public class ActorLogic extends Logic
         for (HandlerLogic handler : _handlers) {
             handler.shutdown(timestamp, activator);
         }
+
+        wasDestroyed();
     }
 
     /**
@@ -538,6 +540,14 @@ public class ActorLogic extends Logic
      * Override to perform custom cleanup.
      */
     protected void wasRemoved ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Override to perform custom cleanup.
+     */
+    protected void wasDestroyed ()
     {
         // nothing by default
     }

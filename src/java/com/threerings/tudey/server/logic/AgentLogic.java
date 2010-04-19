@@ -217,12 +217,10 @@ public class AgentLogic extends ActiveLogic
     }
 
     @Override // documentation inherited
-    public void destroy (int timestamp, Logic actor)
+    protected void wasDestroyed ()
     {
-        if (!isDestroyed()) {
-            super.destroy(timestamp, actor);
-            _behavior.shutdown();
-        }
+        super.wasDestroyed();
+        _behavior.shutdown();
     }
 
     @Override // documentation inherited
