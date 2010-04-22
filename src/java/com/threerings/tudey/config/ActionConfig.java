@@ -424,6 +424,7 @@ public abstract class ActionConfig extends DeepObject
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             action.getPreloads(cfgmgr, preloads);
+            condition.getPreloads(cfgmgr, preloads);
             if (elseAction != null) {
                 elseAction.getPreloads(cfgmgr, preloads);
             }
@@ -606,6 +607,10 @@ public abstract class ActionConfig extends DeepObject
         /** The actions to execute. */
         @Editable
         public ActionConfig[] actions = new ActionConfig[0];
+
+        /** If we should stop executing actions if one fails. */
+        @Editable
+        public boolean stopOnFailure = false;
 
         @Override // documentation inherited
         public String getLogicClassName ()

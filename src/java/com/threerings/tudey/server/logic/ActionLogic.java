@@ -559,6 +559,9 @@ public abstract class ActionLogic extends Logic
             boolean success = false;
             for (ActionLogic action : _actions) {
                 success = action.execute(timestamp, activator) | success;
+                if (((ActionConfig.Compound)_config).stopOnFailure && !success) {
+                    return false;
+                }
             }
             return success;
         }

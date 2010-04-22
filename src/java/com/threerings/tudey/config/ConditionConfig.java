@@ -24,11 +24,14 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
+
+import com.threerings.opengl.util.PreloadableSet;
 
 /**
  * Configurations for handler conditions.
@@ -40,7 +43,7 @@ import com.threerings.util.DeepObject;
     ConditionConfig.All.class, ConditionConfig.Any.class,
     ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class,
     ConditionConfig.Not.class, ConditionConfig.Always.class,
-    ConditionConfig.Evaluate.class })
+    ConditionConfig.Evaluate.class, ConditionConfig.Action.class })
 @Strippable
 public abstract class ConditionConfig extends DeepObject
     implements Exportable
@@ -366,9 +369,45 @@ public abstract class ConditionConfig extends DeepObject
     }
 
     /**
+     * Satisfied if executing the aciton returns true.
+     */
+    public static class Action extends ConditionConfig
+    {
+        /** The action to perform. */
+        @Editable
+        public ActionConfig action = new ActionConfig.SpawnActor();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Action";
+        }
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            action.getPreloads(cfgmgr, preloads);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            action.invalidate();
+        }
+    }
+
+    /**
      * Returns the name of the server-side logic class for this condition.
      */
     public abstract String getLogicClassName ();
+
+    /**
+     * Adds the resources to preload for this action into the provided set.
+     */
+    public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+    {
+        // nothing by default
+    }
 
     /**
      * Invalidates any cached data.

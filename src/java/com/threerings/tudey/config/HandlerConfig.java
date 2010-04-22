@@ -231,6 +231,13 @@ public abstract class HandlerConfig extends DeepObject
         /** The condition that must be satisfied for a valid intersection. */
         @Editable
         public ConditionConfig condition = new ConditionConfig.InstanceOf();
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            super.getPreloads(cfgmgr, preloads);
+            condition.getPreloads(cfgmgr, preloads);
+        }
     }
 
     /**
