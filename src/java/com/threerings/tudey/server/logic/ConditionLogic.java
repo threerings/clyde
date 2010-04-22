@@ -466,6 +466,27 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the action condition.
+     */
+    public static class Action extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            return _action.execute(_scenemgr.getTimestamp(), activator);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _action = createAction(((ConditionConfig.Action)_config).action, _source);
+        }
+
+        /** The action to execute. */
+        protected ActionLogic _action;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ConditionConfig config, Logic source)
