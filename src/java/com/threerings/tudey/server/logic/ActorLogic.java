@@ -376,7 +376,7 @@ public class ActorLogic extends Logic
     public void signal (int timestamp, Logic source, String name)
     {
         // make sure we're not already destroyed
-        if (isDestroyed()) {
+        if (isDestroyed() || _handlers == null) {
             return;
         }
         for (HandlerLogic handler : _handlers) {
