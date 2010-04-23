@@ -402,7 +402,7 @@ public class TabbedPane extends Container
                 selectTab(Integer.parseInt(event.getAction()),
                     event.getWhen(), event.getModifiers());
             } catch (Exception e) {
-                log.warning("Got weird action event " + event + ".");
+                log.warning("Exception thrown handling selection event.", "event", event, e);
             }
         }
     };
