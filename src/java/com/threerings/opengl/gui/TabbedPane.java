@@ -159,6 +159,34 @@ public class TabbedPane extends Container
     }
 
     /**
+     * Replaces the specified tab component.
+     */
+    public void replaceTab (Component otab, Component ntab)
+    {
+        int idx = indexOfTab(otab);
+        if (idx != -1) {
+            replaceTab(idx, ntab);
+        } else {
+            log.warning("Requested to replace non-added tab.", "pane", this, "tab", otab);
+        }
+    }
+
+    /**
+     * Replaces the tab component at the specified index.
+     */
+    public void replaceTab (int tabidx, Component ntab)
+    {
+        Tab tab = _tabs.get(tabidx);
+
+        // if we're replacing the selected tab...
+        if (_selidx == tabidx) {
+            remove(tab.component);
+            add(ntab, BorderLayout.CENTER);
+        }
+        tab.component = ntab;
+    }
+
+    /**
      * Removes the specified tab.
      */
     public void removeTab (Component tab)
