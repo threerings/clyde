@@ -308,8 +308,10 @@ public abstract class BehaviorLogic extends Logic
          */
         protected void clearPath ()
         {
-            _agent.stopMoving();
-            _path = null;
+            if (_path != null) {
+                _agent.stopMoving();
+                _path = null;
+            }
         }
 
         /**
