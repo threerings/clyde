@@ -27,7 +27,7 @@ package com.threerings.opengl.scene;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.samskivert.util.Predicate;
+import com.google.common.base.Predicate;
 
 import com.threerings.math.Box;
 import com.threerings.math.Frustum;
@@ -67,7 +67,7 @@ public class SimpleScene extends Scene
 
     @Override // documentation inherited
     public SceneElement getIntersection (
-        Ray3D ray, Vector3f location, Predicate<SceneElement> filter)
+        Ray3D ray, Vector3f location, Predicate<? super SceneElement> filter)
     {
         return getIntersection(_elements, ray, location, filter);
     }

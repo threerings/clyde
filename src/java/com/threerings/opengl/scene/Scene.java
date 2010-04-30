@@ -32,9 +32,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
-
-import com.samskivert.util.Predicate;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
@@ -307,7 +307,7 @@ public abstract class Scene extends DynamicScope
      */
     public SceneElement getIntersection (Ray3D ray, Vector3f location)
     {
-        Predicate<SceneElement> filter = Predicate.trueInstance();
+        Predicate<SceneElement> filter = Predicates.alwaysTrue();
         return getIntersection(ray, location, filter);
     }
 
@@ -320,7 +320,7 @@ public abstract class Scene extends DynamicScope
      * none.
      */
     public abstract SceneElement getIntersection (
-        Ray3D ray, Vector3f location, Predicate<SceneElement> filter);
+        Ray3D ray, Vector3f location, Predicate<? super SceneElement> filter);
 
     /**
      * Retrieves all scene elements whose bounds intersect the provided region.
@@ -601,13 +601,13 @@ public abstract class Scene extends DynamicScope
      */
     protected SceneElement getIntersection (
         ArrayList<SceneElement> elements, Ray3D ray, Vector3f location,
-        Predicate<SceneElement> filter)
+        Predicate<? super SceneElement> filter)
     {
         SceneElement closest = null;
         Vector3f origin = ray.getOrigin();
         for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
             SceneElement element = elements.get(ii);
-            if (filter.isMatch(element) && element.getIntersection(ray, _result) &&
+            if (filter.apply(element) && element.getIntersection(ray, _result) &&
                     (closest == null || origin.distanceSquared(_result) <
                         origin.distanceSquared(location))) {
                 closest = element;

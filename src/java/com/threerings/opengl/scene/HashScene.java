@@ -29,9 +29,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
-
-import com.samskivert.util.Predicate;
 
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -111,7 +110,7 @@ public class HashScene extends Scene
 
     @Override // documentation inherited
     public SceneElement getIntersection (
-        Ray3D ray, Vector3f location, Predicate<SceneElement> filter)
+        Ray3D ray, Vector3f location, Predicate<? super SceneElement> filter)
     {
         // check for an intersection with the oversized elements
         SceneElement closest = getIntersection(_oversizedElements, ray, location, filter);
@@ -515,13 +514,13 @@ public class HashScene extends Scene
         /**
          * Checks for an intersection with this node.
          */
-        public T getIntersection (Ray3D ray, Vector3f location, Predicate<T> filter)
+        public T getIntersection (Ray3D ray, Vector3f location, Predicate<? super T> filter)
         {
             T closest = null;
             Vector3f origin = ray.getOrigin();
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
-                if (filter.isMatch(object) && object.updateLastVisit(_visit) &&
+                if (filter.apply(object) && object.updateLastVisit(_visit) &&
                         ((Intersectable)object).getIntersection(ray, _result) &&
                             (closest == null || origin.distanceSquared(_result) <
                                 origin.distanceSquared(location))) {
@@ -675,7 +674,7 @@ public class HashScene extends Scene
         }
 
         @Override // documentation inherited
-        public T getIntersection (Ray3D ray, Vector3f location, Predicate<T> filter)
+        public T getIntersection (Ray3D ray, Vector3f location, Predicate<? super T> filter)
         {
             T closest = super.getIntersection(ray, location, filter);
             Vector3f origin = ray.getOrigin();

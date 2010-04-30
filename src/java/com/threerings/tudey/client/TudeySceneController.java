@@ -30,12 +30,12 @@ import java.util.List;
 
 import org.lwjgl.input.Keyboard;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.ObserverList;
-import com.samskivert.util.Predicate;
 import com.samskivert.util.RunAnywhere;
 
 import com.threerings.presents.client.Client;
@@ -943,7 +943,7 @@ public class TudeySceneController extends SceneController
 
     /** Selects hoverable sprites. */
     protected static final Predicate<SceneElement> HOVER_FILTER = new Predicate<SceneElement>() {
-        public boolean isMatch (SceneElement element) {
+        public boolean apply (SceneElement element) {
             Object obj = element.getUserObject();
             return obj instanceof Sprite && ((Sprite)obj).isHoverable();
         }

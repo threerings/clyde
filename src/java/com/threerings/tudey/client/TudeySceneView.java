@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.HashIntMap;
@@ -69,7 +71,6 @@ import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 import com.threerings.opengl.util.Tickable;
 
-import com.samskivert.util.Predicate;
 import com.samskivert.util.RunAnywhere;
 
 import com.threerings.tudey.client.sprite.ActorSprite;
@@ -308,7 +309,7 @@ public class TudeySceneView extends SimpleScope
      */
     public Sprite getIntersection (Ray3D ray, Vector3f location)
     {
-        Predicate<Sprite> filter = Predicate.trueInstance();
+        Predicate<Sprite> filter = Predicates.alwaysTrue();
         return getIntersection(ray, location, filter);
     }
 
@@ -319,12 +320,13 @@ public class TudeySceneView extends SimpleScope
      * @return a reference to the first sprite intersected by the ray, or <code>null</code> for
      * none.
      */
-    public Sprite getIntersection (Ray3D ray, Vector3f location, final Predicate<Sprite> filter)
+    public Sprite getIntersection (
+        Ray3D ray, Vector3f location, final Predicate<? super Sprite> filter)
     {
         SceneElement el = _scene.getIntersection(ray, location, new Predicate<SceneElement>() {
-            public boolean isMatch (SceneElement element) {
+            public boolean apply (SceneElement element) {
                 Object userObject = element.getUserObject();
-                return userObject instanceof Sprite && filter.isMatch((Sprite)userObject);
+                return userObject instanceof Sprite && filter.apply((Sprite)userObject);
             }
         });
         return (el == null) ? null : (Sprite)el.getUserObject();
@@ -346,7 +348,7 @@ public class TudeySceneView extends SimpleScope
      * @param filter the floor filter to use for the query.
      */
     public Transform3D getFloorTransform (
-        float x, float y, float rotation, Predicate<SceneElement> filter)
+        float x, float y, float rotation, Predicate<? super SceneElement> filter)
     {
         return getFloorTransform(x, y, rotation, filter, new Transform3D(Transform3D.UNIFORM));
     }
@@ -368,7 +370,8 @@ public class TudeySceneView extends SimpleScope
      * @param filter the floor filter to use for the query.
      */
     public Transform3D getFloorTransform (
-        float x, float y, float rotation, Predicate<SceneElement> filter, Transform3D result)
+        float x, float y, float rotation, Predicate<? super SceneElement> filter,
+        Transform3D result)
     {
         Vector3f translation = result.getTranslation();
         translation.set(x, y, getFloorZ(x, y, filter, translation.z));
@@ -393,7 +396,8 @@ public class TudeySceneView extends SimpleScope
      *
      * @param filter the floor filter to use for the query.
      */
-    public float getFloorZ (float x, float y, Predicate<SceneElement> filter, float defvalue)
+    public float getFloorZ (
+        float x, float y, Predicate<? super SceneElement> filter, float defvalue)
     {
         _ray.getOrigin().set(x, y, 10000f);
         return (_scene.getIntersection(_ray, _isect, filter) == null) ? defvalue : _isect.z;
@@ -1149,7 +1153,8 @@ public class TudeySceneView extends SimpleScope
     /**
      * Used to select sprites according to their floor flags.
      */
-    protected static class FloorMaskFilter extends Predicate<SceneElement>
+    protected static class FloorMaskFilter
+        implements Predicate<SceneElement>
     {
         /**
          * (Re)initializes the filter with its mask.
@@ -1162,8 +1167,8 @@ public class TudeySceneView extends SimpleScope
             return this;
         }
 
-        @Override // documentation inherited
-        public boolean isMatch (SceneElement element)
+        // from Predicate
+        public boolean apply (SceneElement element)
         {
             Object obj = element.getUserObject();
             return obj instanceof Sprite && (((Sprite)obj).getFloorFlags() & _mask) != 0;

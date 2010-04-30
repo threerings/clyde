@@ -74,6 +74,8 @@ import javax.swing.undo.UndoableEditSupport;
 
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 
 import com.samskivert.swing.GroupLayout;
@@ -81,7 +83,6 @@ import com.samskivert.swing.HGroupLayout;
 import com.samskivert.swing.Spacer;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.Predicate;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.media.image.ImageUtil;
@@ -148,16 +149,17 @@ public class SceneEditor extends TudeyTool
         KeyEventDispatcher, MouseListener, ClipboardOwner
 {
     /** Allows only tile entries. */
-    public static final Predicate<Entry> TILE_ENTRY_FILTER =
-        new Predicate.InstanceOf<Entry>(TileEntry.class);
+    public static final Predicate<Object> TILE_ENTRY_FILTER =
+        Predicates.instanceOf(TileEntry.class);
 
     /** Allows only placeable entries. */
-    public static final Predicate<Entry> PLACEABLE_ENTRY_FILTER =
-        new Predicate.InstanceOf<Entry>(PlaceableEntry.class);
+    public static final Predicate<Object> PLACEABLE_ENTRY_FILTER =
+        Predicates.instanceOf(PlaceableEntry.class);
 
     /** Allows all entries except globals. */
-    public static final Predicate<Entry> DEFAULT_ENTRY_FILTER =
-        new Predicate.Not<Entry>(new Predicate.InstanceOf<Entry>(GlobalEntry.class));
+    public static final Predicate<Object> DEFAULT_ENTRY_FILTER =
+        Predicates.and(Predicates.instanceOf(Entry.class),
+            Predicates.not(Predicates.instanceOf(GlobalEntry.class)));
 
     /**
      * The program entry point.
@@ -535,7 +537,7 @@ public class SceneEditor extends TudeyTool
     /**
      * Attempts to delete the entry under the mouse cursor.
      */
-    public void deleteMouseEntry (Predicate<Entry> filter)
+    public void deleteMouseEntry (Predicate<? super Entry> filter)
     {
         Entry entry = getMouseEntry(filter);
         if (entry != null) {
@@ -583,16 +585,16 @@ public class SceneEditor extends TudeyTool
     /**
      * Returns a reference to the entry under the mouse cursor.
      */
-    public Entry getMouseEntry (final Predicate<Entry> filter)
+    public Entry getMouseEntry (final Predicate<? super Entry> filter)
     {
         if (!getMouseRay(_pick)) {
             return null;
         }
         EntrySprite sprite = (EntrySprite)_view.getIntersection(
             _pick, _pt, new Predicate<Sprite>() {
-            public boolean isMatch (Sprite sprite) {
+            public boolean apply (Sprite sprite) {
                 return sprite instanceof EntrySprite &&
-                    filter.isMatch(((EntrySprite)sprite).getEntry());
+                    filter.apply(((EntrySprite)sprite).getEntry());
             }
         });
         return (sprite == null) ? null : sprite.getEntry();

@@ -27,7 +27,8 @@ package com.threerings.tudey.space;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.samskivert.util.Predicate;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
@@ -73,7 +74,7 @@ public abstract class Space
      */
     public SpaceElement getIntersection (Ray2D ray, Vector2f location)
     {
-        Predicate<SpaceElement> filter = Predicate.trueInstance();
+        Predicate<SpaceElement> filter = Predicates.alwaysTrue();
         return getIntersection(ray, location, filter);
     }
 
@@ -86,7 +87,7 @@ public abstract class Space
      * none.
      */
     public abstract SpaceElement getIntersection (
-        Ray2D ray, Vector2f location, Predicate<SpaceElement> filter);
+        Ray2D ray, Vector2f location, Predicate<? super SpaceElement> filter);
 
     /**
      * Retrieves all space elements that intersect the provided shape.
@@ -134,13 +135,13 @@ public abstract class Space
      */
     protected SpaceElement getIntersection (
         ArrayList<SpaceElement> elements, Ray2D ray, Vector2f location,
-        Predicate<SpaceElement> filter)
+        Predicate<? super SpaceElement> filter)
     {
         SpaceElement closest = null;
         Vector2f origin = ray.getOrigin();
         for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
             SpaceElement element = elements.get(ii);
-            if (filter.isMatch(element) && element.getIntersection(ray, _result) &&
+            if (filter.apply(element) && element.getIntersection(ray, _result) &&
                     (closest == null || origin.distanceSquared(_result) <
                         origin.distanceSquared(location))) {
                 closest = element;

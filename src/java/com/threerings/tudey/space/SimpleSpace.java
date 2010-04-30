@@ -27,7 +27,7 @@ package com.threerings.tudey.space;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.samskivert.util.Predicate;
+import com.google.common.base.Predicate;
 
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
@@ -42,7 +42,7 @@ public class SimpleSpace extends Space
 {
     @Override // documentation inherited
     public SpaceElement getIntersection (
-        Ray2D ray, Vector2f location, Predicate<SpaceElement> filter)
+        Ray2D ray, Vector2f location, Predicate<? super SpaceElement> filter)
     {
         return getIntersection(_elements, ray, location, filter);
     }

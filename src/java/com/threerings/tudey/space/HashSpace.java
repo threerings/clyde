@@ -29,9 +29,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
-
-import com.samskivert.util.Predicate;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray2D;
@@ -60,7 +59,7 @@ public class HashSpace extends Space
 
     @Override // documentation inherited
     public SpaceElement getIntersection (
-        Ray2D ray, Vector2f location, Predicate<SpaceElement> filter)
+        Ray2D ray, Vector2f location, Predicate<? super SpaceElement> filter)
     {
         // check for an intersection with the oversized elements
         SpaceElement closest = getIntersection(_oversizedElements, ray, location, filter);
@@ -392,13 +391,13 @@ public class HashSpace extends Space
         /**
          * Checks for an intersection with this node.
          */
-        public T getIntersection (Ray2D ray, Vector2f location, Predicate<T> filter)
+        public T getIntersection (Ray2D ray, Vector2f location, Predicate<? super T> filter)
         {
             T closest = null;
             Vector2f origin = ray.getOrigin();
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
-                if (filter.isMatch(object) && object.updateLastVisit(_visit) &&
+                if (filter.apply(object) && object.updateLastVisit(_visit) &&
                         ((SpaceElement)object).getIntersection(ray, _result) &&
                             (closest == null || origin.distanceSquared(_result) <
                                 origin.distanceSquared(location))) {
@@ -548,7 +547,7 @@ public class HashSpace extends Space
         }
 
         @Override // documentation inherited
-        public T getIntersection (Ray2D ray, Vector2f location, Predicate<T> filter)
+        public T getIntersection (Ray2D ray, Vector2f location, Predicate<? super T> filter)
         {
             T closest = super.getIntersection(ray, location, filter);
             Vector2f origin = ray.getOrigin();

@@ -26,8 +26,9 @@ package com.threerings.tudey.tools;
 
 import java.awt.event.MouseEvent;
 
+import com.google.common.base.Predicate;
+
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.Predicate;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
@@ -246,7 +247,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
 
     /** A filter that only passes area models. */
     protected static final Predicate<SceneElement> AREA_FILTER = new Predicate<SceneElement>() {
-        public boolean isMatch (SceneElement element) {
+        public boolean apply (SceneElement element) {
             return element.getUserObject() instanceof AreaSprite;
         }
     };
