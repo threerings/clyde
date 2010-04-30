@@ -127,6 +127,30 @@ public abstract class BackgroundConfig extends DeepObject
             protected boolean _frame;
         }
 
+        /** The various tile anchors. */
+        public enum Anchor {
+            LOWER_LEFT(ImageBackground.ANCHOR_LL),
+            LOWER_RIGHT(ImageBackground.ANCHOR_LR),
+            UPPER_LEFT(ImageBackground.ANCHOR_UL),
+            UPPER_RIGHT(ImageBackground.ANCHOR_UR);
+
+            /**
+             * Returns the corresponding {@link ImageBackground} constant.
+             */
+            public int getConstant ()
+            {
+                return _constant;
+            }
+
+            Anchor (int constant)
+            {
+                _constant = constant;
+            }
+
+            /** The corresponding {@link ImageBackground} constant. */
+            protected int _constant;
+        }
+
         /** The background image. */
         @Editable(editor="resource", nullable=true, hgroup="f")
         @FileConstraints(
@@ -136,8 +160,12 @@ public abstract class BackgroundConfig extends DeepObject
         public String file;
 
         /** The image mode. */
-        @Editable(hgroup="f")
+        @Editable(hgroup="m")
         public Mode mode = Mode.SCALE_XY;
+
+        /** The image anchor. */
+        @Editable(hgroup="m")
+        public Anchor anchor = Anchor.LOWER_LEFT;
 
         /** The image frame. */
         @Editable(nullable=true)
@@ -156,7 +184,8 @@ public abstract class BackgroundConfig extends DeepObject
         {
             return (file == null) ? new BlankBackground() :
                 new ImageBackground(mode.getConstant(), getImage(ctx),
-                    (frame != null && mode.isFrame()) ? frame.createInsets() : null);
+                    (frame != null && mode.isFrame()) ? frame.createInsets() : null,
+                    anchor.getConstant());
         }
 
         /**

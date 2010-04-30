@@ -72,6 +72,11 @@ public class ImageBackground extends Background
     public static final int FRAME_X = 10;
     public static final int FRAME_Y = 11;
 
+    public static final int ANCHOR_LL = 0;
+    public static final int ANCHOR_LR = 1;
+    public static final int ANCHOR_UR = 2;
+    public static final int ANCHOR_UL = 3;
+
     /**
      * Creates an image background in the specified mode using the supplied image.
      */
@@ -87,9 +92,20 @@ public class ImageBackground extends Background
      */
     public ImageBackground (int mode, Image image, Insets frame)
     {
+        this(mode, image, frame, ANCHOR_LL);
+    }
+
+    /**
+     * Creates an image background in the specified mode using the supplied image and the special
+     * frame. This should only be used if one of the framing modes is being used and the supplied
+     * frame will be used instead of the default frame which divides the image in thirds.
+     */
+    public ImageBackground (int mode, Image image, Insets frame, int anchor)
+    {
         _mode = mode;
         _image = image;
         _frame = frame;
+        _anchor = anchor;
 
         // compute the frame for our framed mode if one was not specially provided
         if (_frame == null && (_mode == FRAME_X || _mode == FRAME_Y || _mode == FRAME_XY)) {
@@ -175,45 +191,62 @@ public class ImageBackground extends Background
     {
         int iwidth = _image.getWidth(), iheight = _image.getHeight();
         if (_mode == TILE_X) {
-            renderRow(renderer, x, y, width, Math.min(height, iheight), alpha);
+            renderRow(renderer, x, y, width, Math.min(height, iheight), 0, alpha);
 
         } else if (_mode == TILE_Y) {
             int up = height / iheight;
             iwidth = Math.min(width, iwidth);
+            int remain = height % iheight;
+            int offset = 0;
+            if (remain > 0 && (_anchor == ANCHOR_UL || _anchor == ANCHOR_UR)) {
+                _image.render(renderer, 0, iheight - remain, iwidth, remain,
+                        x, y, iwidth, remain, alpha);
+                offset = remain;
+            }
             for (int yy = 0; yy < up; yy++) {
                 _image.render(renderer, 0, 0, iwidth, iheight,
-                              x, y + yy*iheight, iwidth, iheight, alpha);
+                              x, offset + y + yy*iheight, iwidth, iheight, alpha);
             }
-            int remain = height % iheight;
-            if (remain > 0) {
+            if (remain > 0 && (_anchor == ANCHOR_LL || _anchor == ANCHOR_LR)) {
                 _image.render(renderer, 0, 0, iwidth, remain,
                               x, y + up*iheight, iwidth, remain, alpha);
             }
 
         } else if (_mode == TILE_XY) {
             int up = height / iheight;
-            for (int yy = 0; yy < up; yy++) {
-                renderRow(renderer, x, y + yy*iheight, width, iheight, alpha);
-            }
             int remain = height % iheight;
-            if (remain > 0) {
-                renderRow(renderer, x, y + up*iheight, width, remain, alpha);
+            int offset = 0;
+            if (remain > 0 && (_anchor == ANCHOR_UL || _anchor == ANCHOR_UR)) {
+                renderRow(renderer, x, y, width, remain, iheight - remain, alpha);
+                offset = remain;
+            }
+            for (int yy = 0; yy < up; yy++) {
+                renderRow(renderer, x, offset + y + yy*iheight, width, iheight, 0, alpha);
+            }
+            if (remain > 0 && (_anchor == ANCHOR_LL || _anchor == ANCHOR_LR)) {
+                renderRow(renderer, x, y + up*iheight, width, remain, 0, alpha);
             }
         }
     }
 
     protected void renderRow (
-        Renderer renderer, int x, int y, int width, int iheight, float alpha)
+        Renderer renderer, int x, int y, int width, int iheight, int sy, float alpha)
     {
         int iwidth = _image.getWidth();
         int across = width / iwidth;
-        for (int xx = 0; xx < across; xx++) {
-            _image.render(renderer, 0, 0, iwidth, iheight,
-                          x + xx*iwidth, y, iwidth, iheight, alpha);
-        }
         int remain = width % iwidth;
-        if (remain > 0) {
-            _image.render(renderer, 0, 0, remain, iheight,
+        int offset = 0;
+        if (remain > 0 && (_anchor == ANCHOR_LR || _anchor == ANCHOR_UR)) {
+            _image.render(renderer, iwidth - remain, sy, remain, iheight,
+                    x, y, remain, iheight, alpha);
+            offset = remain;
+        }
+        for (int xx = 0; xx < across; xx++) {
+            _image.render(renderer, 0, sy, iwidth, iheight,
+                          offset + x + xx*iwidth, y, iwidth, iheight, alpha);
+        }
+        if (remain > 0 && (_anchor == ANCHOR_LL || _anchor == ANCHOR_UL)) {
+            _image.render(renderer, 0, sy, remain, iheight,
                           x + across*iwidth, y, remain, iheight, alpha);
         }
     }
@@ -251,6 +284,7 @@ public class ImageBackground extends Background
     }
 
     protected int _mode;
+    protected int _anchor;
     protected Image _image;
     protected Insets _frame;
 
