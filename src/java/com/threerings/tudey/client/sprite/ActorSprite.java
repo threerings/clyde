@@ -891,15 +891,17 @@ public class ActorSprite extends Sprite
      */
     public void spawnTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
     {
-        if (ref != null) {
-            Transform3D mxform = _model.getLocalTransform();
-            Transform3D txform = new Transform3D(Transform3D.UNIFORM);
-            mxform.extractTranslation(txform.getTranslation());
-            if (rotate) {
-                mxform.extractRotation(txform.getRotation());
-            }
-            _view.getScene().spawnTransient(ref, txform);
-        }
+        spawnOffsetTransientModel(ref, rotate, 0f);
+    }
+
+    /**
+     * Spawns a transient model at a z-offset of the location of this sprite.
+     *
+     * @param rotate if true, match the rotation as well as the translation of the sprite.
+     */
+    public void spawnOffsetTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
+    {
+        spawnOffsetTransientModel(ref, rotate, _impl.getAttachedScale() - 1f);
     }
 
     /**
@@ -1173,6 +1175,28 @@ public class ActorSprite extends Sprite
     {
         _shape.getTransform().set(_actor.getTranslation(), _actor.getRotation(), 1f);
         _shape.setConfig(_actor.getOriginal().shape); // also updates the bounds
+    }
+
+    /**
+     * Spawns a transient model at a z-offset of the location of this sprite.
+     *
+     * @param rotate if true, match the rotation as well as the translation of the sprite.
+     */
+    public void spawnOffsetTransientModel (
+            ConfigReference<ModelConfig> ref, boolean rotate, float offset)
+    {
+        if (ref != null) {
+            Transform3D mxform = _model.getLocalTransform();
+            Transform3D txform = new Transform3D(Transform3D.UNIFORM);
+            mxform.extractTranslation(txform.getTranslation());
+            if (offset != 0) {
+                txform.getTranslation().z += offset;
+            }
+            if (rotate) {
+                mxform.extractRotation(txform.getRotation());
+            }
+            _view.getScene().spawnTransient(ref, txform);
+        }
     }
 
     /** The history that we use to find interpolated actor state. */
