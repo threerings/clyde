@@ -249,7 +249,7 @@ public class Sounder extends SimpleScope
             // resolve the group
             SoundGroup group = ScopeUtil.resolve(
                 _parentScope, "soundGroup", null, SoundGroup.class);
-            if (sound == null || sound.getGroup() != group ||
+            if (sound == null || sound.getGroup() != group || sound.getBuffer() == null ||
                     !sound.getBuffer().getPath().equals(file)) {
                 if (sound != null) {
                     sound.stop();
