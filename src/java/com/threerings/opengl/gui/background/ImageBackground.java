@@ -121,7 +121,8 @@ public class ImageBackground extends Background
     // documentation inherited
     public int getMinimumWidth ()
     {
-        return (_mode == FRAME_XY || _mode == FRAME_X) ?
+        return (_mode == TILE_X || _mode == TILE_XY) ? 0 :
+            (_mode == FRAME_XY || _mode == FRAME_X) ?
             (_frame.left + _frame.right) : _image.getWidth();
     }
 
@@ -130,7 +131,8 @@ public class ImageBackground extends Background
      */
     public int getMinimumHeight ()
     {
-        return (_mode == FRAME_XY || _mode == FRAME_Y) ?
+        return (_mode == TILE_Y || _mode == TILE_XY) ? 0 :
+            (_mode == FRAME_XY || _mode == FRAME_Y) ?
             _frame.top + _frame.bottom : _image.getHeight();
     }
 
