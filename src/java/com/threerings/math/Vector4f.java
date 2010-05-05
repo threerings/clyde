@@ -62,6 +62,14 @@ public final class Vector4f
     }
 
     /**
+     * Creates a vector from a float buffer.
+     */
+    public Vector4f (FloatBuffer buf)
+    {
+        set(buf);
+    }
+
+    /**
      * Copy constructor.
      */
     public Vector4f (Vector4f other)
@@ -101,6 +109,16 @@ public final class Vector4f
      *
      * @return a reference to this vector, for chaining.
      */
+    public Vector4f set (FloatBuffer buf)
+    {
+        return set(buf.get(), buf.get(), buf.get(), buf.get());
+    }
+
+    /**
+     * Sets all of the elements of the vector.
+     *
+     * @return a reference to this vector, for chaining.
+     */
     public Vector4f set (float x, float y, float z, float w)
     {
         this.x = x;
@@ -118,6 +136,18 @@ public final class Vector4f
     public FloatBuffer get (FloatBuffer buf)
     {
         return buf.put(x).put(y).put(z).put(w);
+    }
+
+    /**
+     * Compares this vector to another with the provided epsilon.
+     */
+    public boolean epsilonEquals (Vector4f other, float epsilon)
+    {
+        return
+            Math.abs(x - other.x) < epsilon &&
+            Math.abs(y - other.y) < epsilon &&
+            Math.abs(z - other.z) < epsilon &&
+            Math.abs(w - other.w) < epsilon;
     }
 
     // documentation inherited from interface Encodable
