@@ -108,19 +108,19 @@ public class TudeySceneController extends SceneController
     }
 
     /**
-     * Checks whether this client is in control of the target.
+     * Returns the id of the actor that is being controlled.
      */
-    public boolean isTargetControlled ()
+    public int getControlledId ()
     {
-        return _targetControlled;
+        return _controlledId;
     }
 
     /**
      * Checks whether the specified actor id is that of the controlled target.
      */
-    public boolean isControlledTargetId (int actorId)
+    public boolean isControlledId (int actorId)
     {
-        return actorId == _targetId && _targetControlled;
+        return actorId == _controlledId;
     }
 
     /**
@@ -132,18 +132,18 @@ public class TudeySceneController extends SceneController
     }
 
     /**
-     * Called by the view when we first add our controlled target.
+     * Called by the view when we first add our controlled actor.
      */
-    public void controlledTargetAdded (int timestamp, Actor actor)
+    public void controlledActorAdded (int timestamp, Actor actor)
     {
         _advancer = (PawnAdvancer)actor.maybeCreateAdvancer(_tctx, _tsview, timestamp);
         _advancer.advance(_tsview.getAdvancedTime());
     }
 
     /**
-     * Called by the view when we receive an update for our controlled target.
+     * Called by the view when we receive an update for our controlled actor.
      */
-    public void controlledTargetUpdated (int timestamp, Actor actor)
+    public void controlledActorUpdated (int timestamp, Actor actor)
     {
         // remove outdated states
         while (!_states.isEmpty() && timestamp >= _states.get(0).getFrame().getTimestamp()) {
@@ -172,7 +172,7 @@ public class TudeySceneController extends SceneController
         _advancer.advance(advancedTime);
 
         // copy everything *except* the translation (which will be smoothed) to the sprite
-        Actor sactor = _tsview.getTargetSprite().getActor();
+        Actor sactor = _tsview.getControlledSprite().getActor();
         _translation.set(sactor.getTranslation());
         nactor.copy(sactor);
         if (!sactor.isSet(Actor.WARP)) {
@@ -181,9 +181,9 @@ public class TudeySceneController extends SceneController
     }
 
     /**
-     * Called by the view when we remove our controlled target.
+     * Called by the view when we remove our controlled sprite.
      */
-    public void controlledTargetRemoved (long timestamp)
+    public void controlledSpriteRemoved (long timestamp)
     {
         _advancer = null;
     }
@@ -331,7 +331,7 @@ public class TudeySceneController extends SceneController
     public void tick (float elapsed)
     {
         // update the input if we control our target
-        if (_targetControlled) {
+        if (_controlledId > 0) {
             updateInput(elapsed);
         }
 
@@ -394,11 +394,11 @@ public class TudeySceneController extends SceneController
         _tsview.getInputWindow().addListener(this);
         _tsview.getInputWindow().addListener(_unifier);
 
-        // if the player controls a pawn, then the target is and will always be that pawn.
+        // if the player controls a pawn, then the target by default.
         // otherwise, the target starts out being the first pawn in the occupant list
-        _targetId = _tsobj.getPawnId(clobj.getOid());
-        if (_targetId > 0) {
-            _targetControlled = true;
+        _controlledId = _tsobj.getPawnId(clobj.getOid());
+        if (_controlledId > 0) {
+            _targetId = _controlledId;
         } else {
             _targetId = _tsobj.getFirstPawnId();
         }
@@ -439,7 +439,7 @@ public class TudeySceneController extends SceneController
      */
     protected void bindKeys ()
     {
-        if (_targetControlled) {
+        if (_controlledId > 0) {
             bindKeyMovement(PseudoKeys.KEY_BUTTON1, _relativeMoveAmounts, 0);
             bindKeyMovement(Keyboard.KEY_W, _absoluteMoveAmounts, 0);
             bindKeyMovement(Keyboard.KEY_S, _absoluteMoveAmounts, 1);
@@ -604,7 +604,7 @@ public class TudeySceneController extends SceneController
     protected void updateInput (float elapsed)
     {
         // make sure we have our target
-        ActorSprite targetSprite = _tsview.getTargetSprite();
+        ActorSprite targetSprite = _tsview.getControlledSprite();
         if (targetSprite == null) {
             return;
         }
@@ -614,7 +614,7 @@ public class TudeySceneController extends SceneController
         Sprite nhsprite = null;
 
         // update the direction if hovered
-        if (inputWindowHovered()) {
+        if (inputWindowHovered() && targetSprite == _tsview.getTargetSprite()) {
             // get the pick ray
             Root root = _tctx.getRoot();
             _tctx.getCompositor().getCamera().getPickRay(
@@ -872,8 +872,8 @@ public class TudeySceneController extends SceneController
     /** The id of the actor that the camera should track. */
     protected int _targetId;
 
-    /** Whether or not we are in control of the camera target. */
-    protected boolean _targetControlled;
+    /** The id of the actor being controlled. */
+    protected int _controlledId;
 
     /** The current hover sprite, if any. */
     protected Sprite _hsprite;

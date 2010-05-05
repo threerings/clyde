@@ -67,7 +67,6 @@ public class Pawn extends Active
     @Override // documentation inherited
     public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
     {
-        return view.getController().isControlledTargetId(_id) ?
-            createAdvancer(view, timestamp) : null;
+        return view.getController().isControlledId(_id) ?  createAdvancer(view, timestamp) : null;
     }
 }

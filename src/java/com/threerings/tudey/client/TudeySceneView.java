@@ -301,6 +301,14 @@ public class TudeySceneView extends SimpleScope
     }
 
     /**
+     * Returns a reference to the controlled sprite.
+     */
+    public ActorSprite getControlledSprite ()
+    {
+        return _controlledSprite;
+    }
+
+    /**
      * Checks for an intersection between the provided ray and the sprites in the scene.
      *
      * @param location a vector to populate with the location of the intersection, if any.
@@ -514,8 +522,8 @@ public class TudeySceneView extends SimpleScope
             }
             ActorSprite sprite = _actorSprites.get(id);
             if (sprite != null) {
-                if (_ctrl.isControlledTargetId(id)) {
-                    _ctrl.controlledTargetUpdated(timestamp, actor);
+                if (_ctrl.isControlledId(id)) {
+                    _ctrl.controlledActorUpdated(timestamp, actor);
                 } else {
                     sprite.update(timestamp, actor);
                 }
@@ -531,11 +539,12 @@ public class TudeySceneView extends SimpleScope
             if (!actors.containsKey(entry.getIntKey())) {
                 ActorSprite sprite = entry.getValue();
                 sprite.remove(timestamp);
+                if (_controlledSprite == sprite) {
+                    _controlledSprite = null;
+                    _ctrl.controlledSpriteRemoved(timestamp);
+                }
                 if (_targetSprite == sprite) {
-                    _targetSprite = null;
-                    if (_ctrl.isTargetControlled()) {
-                        _ctrl.controlledTargetRemoved(timestamp);
-                    }
+                    _targetSprite = _controlledSprite;
                 }
                 it.remove();
             }
@@ -587,6 +596,14 @@ public class TudeySceneView extends SimpleScope
     public void updateTargetSprite ()
     {
         _targetSprite = _actorSprites.get(_ctrl.getTargetId());
+    }
+
+    /**
+     * Updates the controlled sprite base on the controlled id.
+     */
+    public void updateControlledSprite ()
+    {
+        _controlledSprite = _actorSprites.get(_ctrl.getControlledId());
     }
 
     /**
@@ -1030,11 +1047,12 @@ public class TudeySceneView extends SimpleScope
         int timestamp = _records.get(_records.size() - 1).getTimestamp();
         ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
         _actorSprites.put(id, sprite);
+        if (id == _ctrl.getControlledId()) {
+            _controlledSprite = sprite;
+            _ctrl.controlledActorAdded(timestamp, actor);
+        }
         if (id == _ctrl.getTargetId()) {
             _targetSprite = sprite;
-            if (_ctrl.isTargetControlled()) {
-                _ctrl.controlledTargetAdded(timestamp, actor);
-            }
         }
     }
 
@@ -1259,6 +1277,9 @@ public class TudeySceneView extends SimpleScope
 
     /** The sprite that the camera is tracking. */
     protected ActorSprite _targetSprite;
+
+    /** The sprite that the user is controlling. */
+    protected ActorSprite _controlledSprite;
 
     /** The priority-ordered list of active camera configs. */
     protected List<CameraConfig> _camcfgs = Lists.newArrayList(
