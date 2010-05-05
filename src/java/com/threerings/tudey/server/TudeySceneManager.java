@@ -790,11 +790,11 @@ public class TudeySceneManager extends SceneManager
         }
 
         // make sure they're not controlling a pawn of their own
-        if (_tsobj.getPawnId(cloid) > 0) {
-            log.warning("User with pawn tried to set target.",
-                "who", caller.who(), "pawnId", pawnId);
-            return;
-        }
+        //if (_tsobj.getPawnId(cloid) > 0) {
+        //    log.warning("User with pawn tried to set target.",
+        //        "who", caller.who(), "pawnId", pawnId);
+        //    return;
+        //}
 
         // retrieve the actor and ensure it's a pawn
         ActorLogic target = _actors.get(pawnId);

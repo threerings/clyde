@@ -76,13 +76,13 @@ public class ClientLiaison
         // find the client's initial target
         int targetId = _tsobj.getPawnId(_bodyobj.getOid());
         if (targetId > 0) {
-            _targetControlled = true;
+            _controlled = (PawnLogic)_scenemgr.getActorLogic(targetId);
         } else {
             targetId = _tsobj.getFirstPawnId();
         }
         _target = (PawnLogic)_scenemgr.getActorLogic(targetId);
-        if (_targetControlled) {
-            _target.bodyEntered(this);
+        if (_controlled != null) {
+            _controlled.bodyEntered(this);
         }
         _localInterest = _scenemgr.getDefaultLocalInterest();
 
@@ -168,7 +168,7 @@ public class ClientLiaison
         _pingAverage.record(_ping = ping);
 
         // if we do not control the target, we do not process the input
-        if (!_targetControlled) {
+        if (_controlled == null) {
             if (frames.length > 0) {
                 log.warning("Got input frames for non-controlled pawn.",
                     "who", _bodyobj.who(), "actor", _target.getActor());
@@ -189,7 +189,7 @@ public class ClientLiaison
             // discard any out of date frames except for the last one,
             // which we will interpret as the most recent
             if (input > timestamp || ii == frames.length - 1) {
-                _target.enqueueInput(frame);
+                _controlled.enqueueInput(frame);
             } else {
                 log.debug("Discarding out-of-date frame.", "frame", frame);
             }
@@ -458,8 +458,8 @@ public class ClientLiaison
     /** The pawn that the client's camera is tracking. */
     protected PawnLogic _target;
 
-    /** Whether or not the client is controlling the target pawn. */
-    protected boolean _targetControlled;
+    /** The pawn that the client is controlling. */
+    protected PawnLogic _controlled;
 
     /** The untranslated area of interest. */
     protected Rect _localInterest;
