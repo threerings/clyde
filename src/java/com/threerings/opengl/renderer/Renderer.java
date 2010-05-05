@@ -54,6 +54,7 @@ import org.lwjgl.opengl.Pbuffer;
 import com.samskivert.util.IntListUtil;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.WeakObserverList;
 
 import com.threerings.math.FloatMath;
@@ -1837,7 +1838,9 @@ public class Renderer
             if (type == Transform3D.IDENTITY || type == Transform3D.RIGID) {
                 setNormalize(false, false);
             } else if (type == Transform3D.UNIFORM &&
-                    GLContext.getCapabilities().GL_EXT_rescale_normal) {
+                    GLContext.getCapabilities().GL_EXT_rescale_normal && !RunAnywhere.isMacOS()) {
+                // OS X has a bug where the normal scale affects the parameters to glTexGen, so
+                // we just disable it there
                 setNormalize(false, true);
             } else {
                 setNormalize(true, false);
