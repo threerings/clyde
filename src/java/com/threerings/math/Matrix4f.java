@@ -78,6 +78,14 @@ public final class Matrix4f
     }
 
     /**
+     * Creates a matrix from a float buffer.
+     */
+    public Matrix4f (FloatBuffer buf)
+    {
+        set(buf);
+    }
+
+    /**
      * Copy constructor.
      */
     public Matrix4f (Matrix4f other)
@@ -865,6 +873,20 @@ public final class Matrix4f
     }
 
     /**
+     * Sets the contents of this matrix from the supplied buffer.
+     *
+     * @return a reference to this matrix, for chaining.
+     */
+    public Matrix4f set (FloatBuffer buf)
+    {
+        m00 = buf.get(); m01 = buf.get(); m02 = buf.get(); m03 = buf.get();
+        m10 = buf.get(); m11 = buf.get(); m12 = buf.get(); m13 = buf.get();
+        m20 = buf.get(); m21 = buf.get(); m22 = buf.get(); m23 = buf.get();
+        m30 = buf.get(); m31 = buf.get(); m32 = buf.get(); m33 = buf.get();
+        return this;
+    }
+
+    /**
      * Sets all of the matrix's components at once.
      *
      * @return a reference to this matrix, for chaining.
@@ -1113,6 +1135,33 @@ public final class Matrix4f
             m00*(m11*m22 - m12*m21) +
             m01*(m12*m20 - m10*m22) +
             m02*(m10*m21 - m11*m20));
+    }
+
+    /**
+     * Compares this matrix to another with the provided epsilon.
+     */
+    public boolean epsilonEquals (Matrix4f other, float epsilon)
+    {
+        return
+            Math.abs(m00 - other.m00) < epsilon &&
+            Math.abs(m10 - other.m10) < epsilon &&
+            Math.abs(m20 - other.m20) < epsilon &&
+            Math.abs(m30 - other.m30) < epsilon &&
+
+            Math.abs(m01 - other.m01) < epsilon &&
+            Math.abs(m11 - other.m11) < epsilon &&
+            Math.abs(m21 - other.m21) < epsilon &&
+            Math.abs(m31 - other.m31) < epsilon &&
+
+            Math.abs(m02 - other.m02) < epsilon &&
+            Math.abs(m12 - other.m12) < epsilon &&
+            Math.abs(m22 - other.m22) < epsilon &&
+            Math.abs(m32 - other.m32) < epsilon &&
+
+            Math.abs(m03 - other.m03) < epsilon &&
+            Math.abs(m13 - other.m13) < epsilon &&
+            Math.abs(m23 - other.m23) < epsilon &&
+            Math.abs(m33 - other.m33) < epsilon;
     }
 
     // documentation inherited from interface Encodable

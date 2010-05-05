@@ -34,6 +34,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Vector4f;
+import com.threerings.util.ShallowObject;
 
 import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.Enqueueable;
@@ -49,7 +50,7 @@ import com.threerings.opengl.util.GlContext;
 /**
  * Represents a projection onto a surface.
  */
-public class Projection
+public class Projection extends ShallowObject
 {
     /**
      * Rewrites a technique to include the supplied projections.
