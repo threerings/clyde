@@ -769,6 +769,78 @@ public final class Matrix3f
             m01*vector.x + m11*vector.y);
     }
 
+    /**
+     * Extracts the rotation component of the matrix.  This uses the iterative polar decomposition
+     * algorithm described by
+     * <a href="http://www.cs.wisc.edu/graphics/Courses/838-s2002/Papers/polar-decomp.pdf">Ken
+     * Shoemake</a>.
+     */
+    public float extractRotation ()
+    {
+        // start with the contents of the upper 2x2 portion of the matrix
+        float n00 = m00, n10 = m10;
+        float n01 = m01, n11 = m11;
+        for (int ii = 0; ii < 10; ii++) {
+            // store the results of the previous iteration
+            float o00 = n00, o10 = n10;
+            float o01 = n01, o11 = n11;
+
+            // compute average of the matrix with its inverse transpose
+            float det = o00*o11 - o10*o01;
+            if (Math.abs(det) == 0f) {
+                // determinant is zero; matrix is not invertible
+                throw new SingularMatrixException(this.toString());
+            }
+            float hrdet = 0.5f / det;
+            n00 = +o11 * hrdet + o00*0.5f;
+            n10 = -o01 * hrdet + o10*0.5f;
+
+            n01 = -o10 * hrdet + o01*0.5f;
+            n11 = +o00 * hrdet + o11*0.5f;
+
+            // compute the difference; if it's small enough, we're done
+            float d00 = n00 - o00, d10 = n10 - o10;
+            float d01 = n01 - o01, d11 = n11 - o11;
+            if (d00*d00 + d10*d10 + d01*d01 + d11*d11 < FloatMath.EPSILON) {
+                break;
+            }
+        }
+        // now that we have a nice orthogonal matrix, we can extract the rotation
+        return FloatMath.atan2(n01, n00);
+    }
+
+    /**
+     * Extracts the scale component of the matrix.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector2f extractScale ()
+    {
+        return extractScale(new Vector2f());
+    }
+
+    /**
+     * Extracts the scale component of the matrix and places it in the provided result vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector2f extractScale (Vector2f result)
+    {
+        return result.set(
+            FloatMath.sqrt(m00*m00 + m01*m01),
+            FloatMath.sqrt(m10*m10 + m11*m11));
+    }
+
+    /**
+     * Returns an approximation of the uniform scale for this matrix (the square root of the
+     * signed area of the parallelogram spanned by the axis vectors).
+     */
+    public float approximateUniformScale ()
+    {
+        float cp = m00*m11 - m01*m10;
+        return (cp < 0f) ? -FloatMath.sqrt(-cp) : FloatMath.sqrt(cp);
+    }
+
     // documentation inherited from interface Encodable
     public String encodeToString ()
     {

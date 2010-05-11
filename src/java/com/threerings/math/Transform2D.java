@@ -649,6 +649,55 @@ public final class Transform2D
     }
 
     /**
+     * Extracts the translation component of the transform.
+     *
+     * @return a new vector containing the result.
+     */
+    public Vector2f extractTranslation ()
+    {
+        return extractTranslation(new Vector2f());
+    }
+
+    /**
+     * Extracts the translation component of the transform and places it in the provided result
+     * vector.
+     *
+     * @return a reference to the result vector, for chaining.
+     */
+    public Vector2f extractTranslation (Vector2f result)
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+                return result.set(Vector2f.ZERO);
+            case RIGID:
+            case UNIFORM:
+                return result.set(_translation);
+            case AFFINE:
+            case GENERAL:
+                return result.set(_matrix.m20, _matrix.m21);
+        }
+    }
+
+    /**
+     * Extracts the rotation component of the transform.
+     */
+    public float extractRotation ()
+    {
+        switch (_type) {
+            default:
+            case IDENTITY:
+                return 0f;
+            case RIGID:
+            case UNIFORM:
+                return _rotation;
+            case AFFINE:
+            case GENERAL:
+                return _matrix.extractRotation();
+        }
+    }
+
+    /**
      * Extracts an approximation of the uniform scale from this transform.
      */
     public float approximateUniformScale ()
@@ -662,8 +711,7 @@ public final class Transform2D
                 return _scale;
             case AFFINE:
             case GENERAL:
-                return (FloatMath.hypot(_matrix.m00, _matrix.m01) +
-                    FloatMath.hypot(_matrix.m10, _matrix.m11)) * 0.5f;
+                return _matrix.approximateUniformScale();
         }
     }
 

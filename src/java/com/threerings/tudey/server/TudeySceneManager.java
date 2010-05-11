@@ -61,6 +61,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
 import com.threerings.math.SphereCoords;
+import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
@@ -698,6 +699,11 @@ public class TudeySceneManager extends SceneManager
                     translation = entrance.getTranslation();
                     rotation = entrance.getRotation();
                 }
+            } else if (portalKey instanceof Transform2D) {
+                Transform2D transform = (Transform2D)portalKey;
+                translation = transform.extractTranslation();
+                rotation = transform.extractRotation();
+
             } else if (portalKey != null) {
                 // get the translation/rotation from the entering portal
                 Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(portalKey);
