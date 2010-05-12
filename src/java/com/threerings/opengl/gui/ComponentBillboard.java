@@ -62,14 +62,11 @@ public class ComponentBillboard extends Model.Implementation
     {
         super(parentScope);
         _ctx = ctx;
-        _queue = ctx.getCompositor().getQueue(RenderQueue.TRANSPARENT);
 
         // create the batch that we will enqueue
         RenderState[] states = RenderState.createDefaultSet();
-        states[RenderState.ALPHA_STATE] = AlphaState.PREMULTIPLIED;
         states[RenderState.ARRAY_STATE] = null;
         states[RenderState.COLOR_STATE] = null;
-        states[RenderState.DEPTH_STATE] = DepthState.TEST;
         states[RenderState.MATERIAL_STATE] = null;
         states[RenderState.TEXTURE_STATE] = null;
         states[RenderState.TRANSFORM_STATE] = new TransformState();
@@ -110,7 +107,7 @@ public class ComponentBillboard extends Model.Implementation
         _batch.depth = modelview.transformPointZ(Vector3f.ZERO);
 
         // enqueue our batch
-        _queue.add(_batch);
+        _queue.add(_batch, _config.priority);
     }
 
     @Override // documentation inherited
@@ -175,6 +172,12 @@ public class ComponentBillboard extends Model.Implementation
 
         // update the influence flags
         _influenceFlags = _config.influences.getFlags();
+
+        // update the queue reference and states
+        _queue = _ctx.getCompositor().getQueue(_config.queue);
+        RenderState[] states = _batch.getStates();
+        states[RenderState.ALPHA_STATE] = _config.alphaState.getState();
+        states[RenderState.DEPTH_STATE] = _config.depthState.getState();
 
         // update the bounds
         updateBounds();

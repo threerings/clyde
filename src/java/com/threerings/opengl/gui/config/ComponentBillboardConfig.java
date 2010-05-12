@@ -28,10 +28,13 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 
+import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.ComponentBillboard;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.renderer.config.AlphaStateConfig;
+import com.threerings.opengl.renderer.config.DepthStateConfig;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -51,9 +54,35 @@ public class ComponentBillboardConfig extends ModelConfig.Implementation
     @Editable
     public ComponentConfig root = new ComponentConfig.Spacer();
 
+    /** The queue into which we render. */
+    @Editable(editor="config", mode="render_queue", nullable=true, hgroup="q")
+    public String queue = RenderQueue.TRANSPARENT;
+
+    /** The priority at which the batch is enqueued. */
+    @Editable(hgroup="q")
+    public int priority;
+
+    /** The alpha state to use in this pass. */
+    @Editable
+    public AlphaStateConfig alphaState = new AlphaStateConfig();
+
+    /** The depth state to use. */
+    @Editable
+    public DepthStateConfig depthState = new DepthStateConfig();
+
     /** The influences allowed to affect this model. */
     @Editable
     public InfluenceFlagConfig influences = new InfluenceFlagConfig(false);
+
+    /**
+     * Default constructor.
+     */
+    public ComponentBillboardConfig ()
+    {
+        // set up the default states
+        alphaState.destBlendFactor = AlphaStateConfig.DestBlendFactor.ONE_MINUS_SRC_ALPHA;
+        depthState.mask = false;
+    }
 
     @Override // documentation inherited
     public Model.Implementation getModelImplementation (
