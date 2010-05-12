@@ -374,7 +374,7 @@ public class ConfigManager
     {
         ArrayList<ConfigGroup> groups = new ArrayList<ConfigGroup>();
         for (ConfigManager cfgmgr = this; cfgmgr != null; cfgmgr = cfgmgr.getParent()) {
-            ConfigGroup group = cfgmgr.getGroup(name);
+            ConfigGroup group = cfgmgr.getGroup(name, false);
             if (group != null) {
                 groups.add(group);
             }
@@ -388,12 +388,22 @@ public class ConfigManager
      */
     public ConfigGroup getGroup (String name)
     {
+        return getGroup(name, true);
+    }
+
+    /**
+     * Returns the configuration group with the specified name.
+     *
+     * @param forward if true and there's no such group, forward the request to the parent.
+     */
+    public ConfigGroup getGroup (String name, boolean forward)
+    {
         for (ConfigGroup group : _groups.values()) {
             if (group.getName().equals(name)) {
                 return group;
             }
         }
-        return (_parent == null) ? null : _parent.getGroup(name);
+        return (forward && _parent != null) ? _parent.getGroup(name) : null;
     }
 
     /**
