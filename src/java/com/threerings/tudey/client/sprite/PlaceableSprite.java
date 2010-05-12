@@ -343,7 +343,7 @@ public class PlaceableSprite extends EntrySprite
         /**
          * Creates a new marker implementation.
          */
-        public Marker (TudeyContext ctx, Scope parentScope, PlaceableConfig.Marker config)
+        public Marker (TudeyContext ctx, Scope parentScope, PlaceableConfig.Original config)
         {
             super(ctx, parentScope);
             setConfig(config);
