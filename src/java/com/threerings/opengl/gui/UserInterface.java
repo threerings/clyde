@@ -302,6 +302,25 @@ public class UserInterface extends Container
         return _tagged;
     }
 
+    /**
+     * Replaces the component at the tag with a new component.
+     */
+    public boolean replace (String tag, Component newc)
+    {
+        Component oldc = getComponent(tag);
+        if (oldc.getParent().replace(oldc, newc)) {
+            List<Component> list = _tagged.get(tag);
+            for (int ii = 0, ll = list.size(); ii < ll; ii++) {
+                if (oldc == list.get(ii)) {
+                    list.set(ii, newc);
+                    break;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
     @Override // documentation inherited
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
