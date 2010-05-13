@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.config.ConfigManager;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -46,7 +48,7 @@ import com.threerings.opengl.util.PreloadableSet;
     ConditionConfig.Evaluate.class, ConditionConfig.Action.class })
 @Strippable
 public abstract class ConditionConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Determines whether an entity has a tag.
