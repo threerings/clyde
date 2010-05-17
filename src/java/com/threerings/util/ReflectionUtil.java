@@ -98,7 +98,7 @@ public class ReflectionUtil
                 }
             }
             if (ctor == null) {
-                log.warning("Class has no default constructor [class=" + clazz + "].");
+                log.warning("Class has no default constructor.", "class", clazz);
                 return null;
             }
             ctor.setAccessible(true);
