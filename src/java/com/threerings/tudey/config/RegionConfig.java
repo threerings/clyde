@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
@@ -40,7 +42,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     RegionConfig.Fixed.class })
 @Strippable
 public abstract class RegionConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Base class for the located region configs.
