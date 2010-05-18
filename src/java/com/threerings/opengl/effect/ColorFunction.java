@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.effect;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -39,7 +41,7 @@ import com.threerings.opengl.renderer.Color4f;
     ColorFunction.InAndOut.class, ColorFunction.ThreePoint.class,
     ColorFunction.Multipoint.class })
 public abstract class ColorFunction extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * A color function that always returns the same color.
