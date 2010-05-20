@@ -743,7 +743,9 @@ public class TudeySceneView extends SimpleScope
     // documentation inherited from interface Compositable
     public void composite ()
     {
-        _scene.composite();
+        if (_loadingWindow == null) {
+            _scene.composite();
+        }
     }
 
     // documentation inherited from interface PlaceView
