@@ -281,15 +281,16 @@ public class Container extends Component
     public void validate ()
     {
         if (!_valid) {
-            layout(); // lay ourselves out
+            if (isVisible()) {
+                layout(); // lay ourselves out
 
-            // now validate our children
-            applyOperation(new ChildOp() {
-                public void apply (Component child) {
-                    child.validate();
-                }
-            });
-
+                // now validate our children
+                applyOperation(new ChildOp() {
+                    public void apply (Component child) {
+                        child.validate();
+                    }
+                });
+            }
             _valid = true; // finally mark ourselves as valid
         }
     }
