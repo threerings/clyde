@@ -60,6 +60,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
@@ -879,7 +880,9 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("save_as")) {
             save();
         } else if (action.equals("revert")) {
-            open(_file);
+            if (showCantUndo()) {
+                open(_file);
+            }
         } else if (action.equals("import")) {
             importScene();
         } else if (action.equals("export")) {
@@ -1520,6 +1523,16 @@ public class SceneEditor extends TudeyTool
         Rectangle region = new Rectangle();
         entry.getRegion(config, region);
         setPaint(region, null);
+    }
+
+    /**
+     * Shows a confirm dialog.
+     */
+    protected boolean showCantUndo ()
+    {
+        return JOptionPane.showConfirmDialog(_frame, _msgs.get("m.cant_undo"),
+                _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE) == 0;
     }
 
     /**

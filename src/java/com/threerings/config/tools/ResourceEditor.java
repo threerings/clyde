@@ -38,6 +38,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -246,7 +247,9 @@ public class ResourceEditor extends BaseConfigEditor
         } else if (action.equals("save_as")) {
             save();
         } else if (action.equals("revert")) {
-            open(_file);
+            if (showCantUndo()) {
+                open(_file);
+            }
         } else if (action.equals("import")) {
             importConfig();
         } else if (action.equals("export")) {
@@ -434,6 +437,16 @@ public class ResourceEditor extends BaseConfigEditor
         _revert.setEnabled(file != null);
         _export.setEnabled(enable);
         setTitle(_msgs.get("m.title") + (file == null ? "" : (": " + file)));
+    }
+
+    /**
+     * Shows a confirm dialog.
+     */
+    protected boolean showCantUndo ()
+    {
+        return JOptionPane.showConfirmDialog(this, _msgs.get("m.cant_undo"),
+                _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE) == 0;
     }
 
     /** The file menu items. */

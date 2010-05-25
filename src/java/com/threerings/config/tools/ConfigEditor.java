@@ -51,6 +51,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -245,7 +246,9 @@ public class ConfigEditor extends BaseConfigEditor
         } else if (action.equals("save_group")) {
             item.group.save();
         } else if (action.equals("revert_group")) {
-            item.group.revert();
+            if (showCantUndo()) {
+                item.group.revert();
+            }
         } else if (action.equals("import_group")) {
             item.importGroup();
         } else if (action.equals("export_group")) {
@@ -293,6 +296,16 @@ public class ConfigEditor extends BaseConfigEditor
                 return;
             }
         }
+    }
+
+    /**
+     * Shows a confirm dialog.
+     */
+    protected boolean showCantUndo ()
+    {
+        return JOptionPane.showConfirmDialog(this, _msgs.get("m.cant_undo"),
+                _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE) == 0;
     }
 
     /**
