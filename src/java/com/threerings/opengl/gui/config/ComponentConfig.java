@@ -636,6 +636,10 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="v")
         public boolean horizontal;
 
+        /** If we show only buttons. */
+        @Editable(hgroup="v")
+        public boolean buttons;
+
         /** The snap value. */
         @Editable(hgroup="s")
         public int snap;
@@ -668,7 +672,8 @@ public abstract class ComponentConfig extends DeepObject
                 ochild.getParent().remove(ochild);
             }
             return new com.threerings.opengl.gui.ScrollPane(
-                ctx, child.getComponent(ctx, scope, msgs, ochild), vertical, horizontal, snap);
+                ctx, child.getComponent(ctx, scope, msgs, ochild),
+                vertical, horizontal, snap, buttons);
         }
 
         @Override // documentation inherited

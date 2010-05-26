@@ -56,17 +56,38 @@ public class ScrollPane extends Container
     public ScrollPane (
         GlContext ctx, Component child, boolean vert, boolean horiz, int snap)
     {
+        this(ctx, child, vert, horiz, snap, false);
+    }
+
+    public ScrollPane (
+        GlContext ctx, Component child, boolean vert, boolean horiz, int snap, boolean buttons)
+    {
         super(ctx, new BorderLayout(0, 0));
 
         add(_vport = new Viewport(ctx, child, vert, horiz, snap),
             BorderLayout.CENTER);
+        _showAlways = buttons;
         if (vert) {
-            add(_vbar = new ScrollBar(ctx, ScrollBar.VERTICAL,
-                _vport.getVModel()), BorderLayout.EAST);
+            if (buttons) {
+                add(_vlbtn = new ScrollButton(ctx, true, ScrollBar.VERTICAL,
+                            _vport.getVModel()), BorderLayout.NORTH);
+                add(_vmbtn = new ScrollButton(ctx, false, ScrollBar.VERTICAL,
+                            _vport.getVModel()), BorderLayout.SOUTH);
+            } else {
+                add(_vbar = new ScrollBar(ctx, ScrollBar.VERTICAL,
+                    _vport.getVModel()), BorderLayout.EAST);
+            }
         }
         if (horiz) {
-            add(_hbar = new ScrollBar(ctx, ScrollBar.HORIZONTAL,
-                _vport.getHModel()), BorderLayout.SOUTH);
+            if (buttons) {
+                add(_hlbtn = new ScrollButton(ctx, true, ScrollBar.HORIZONTAL,
+                            _vport.getHModel()), BorderLayout.WEST);
+                add(_hmbtn = new ScrollButton(ctx, false, ScrollBar.HORIZONTAL,
+                            _vport.getHModel()), BorderLayout.EAST);
+            } else {
+                add(_hbar = new ScrollBar(ctx, ScrollBar.HORIZONTAL,
+                    _vport.getHModel()), BorderLayout.SOUTH);
+            }
         }
     }
 
@@ -100,7 +121,7 @@ public class ScrollPane extends Container
      */
     public void setShowScrollbarAlways (boolean showAlways)
     {
-        if (_showAlways != showAlways) {
+        if (_showAlways != showAlways && _vlbtn == null && _hlbtn == null) {
             _showAlways = showAlways;
             invalidate();
         }
@@ -130,11 +151,23 @@ public class ScrollPane extends Container
                 remove(_vbar);
             }
         }
+        if (_vlbtn != null) {
+            if (_vlbtn.getParent() == null) {
+                add(_vlbtn, BorderLayout.NORTH);
+                add(_vmbtn, BorderLayout.SOUTH);
+            }
+        }
         if (_hbar != null) {
             if (_showAlways && _hbar.getParent() == null) {
                 add(_hbar, BorderLayout.SOUTH);
             } else if (!_showAlways && _hbar.getParent() != null) {
                 remove(_hbar);
+            }
+        }
+        if (_hlbtn != null) {
+            if (_hlbtn.getParent() == null) {
+                add(_hlbtn, BorderLayout.WEST);
+                add(_hmbtn, BorderLayout.EAST);
             }
         }
         validate();
@@ -370,5 +403,6 @@ public class ScrollPane extends Container
 
     protected Viewport _vport;
     protected ScrollBar _vbar, _hbar;
+    protected ScrollButton _vlbtn, _vmbtn, _hlbtn, _hmbtn;
     protected boolean _showAlways = true, _layingOut;
 }
