@@ -112,7 +112,7 @@ public class ResourceUtil
      */
     public static InputStream getResourceAsStream (String path)
     {
-        InputStream stream = ResourceUtil.class.getResourceAsStream(path);
+        InputStream stream = ResourceUtil.class.getResourceAsStream("/" + path);
         if (stream == null) {
             log.warning("Missing resource.", "path", path);
             stream = new ByteArrayInputStream(new byte[0]);
