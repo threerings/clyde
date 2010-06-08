@@ -201,11 +201,10 @@ public abstract class GlDisplayApp extends GlApp
             public void run () {
                 if (Display.isCloseRequested()) {
                     shutdown();
-                } else {
-                    makeCurrent();
-                    updateFrame();
-                    EventQueue.invokeLater(this);
                 }
+                makeCurrent();
+                updateFrame();
+                EventQueue.invokeLater(this);
             }
         };
         EventQueue.invokeLater(updater);
