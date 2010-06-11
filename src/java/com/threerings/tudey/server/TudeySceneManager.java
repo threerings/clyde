@@ -442,8 +442,13 @@ public class TudeySceneManager extends SceneManager
      */
     public Logic getLogic (EntityKey key)
     {
-        return (key instanceof EntityKey.Entry) ? getEntryLogic(((EntityKey.Entry)key).getKey()) :
-            getActorLogic(((EntityKey.Actor)key).getId());
+        if (key instanceof EntityKey.Entry) {
+            return getEntryLogic(((EntityKey.Entry)key).getKey());
+        } else if (key instanceof EntityKey.Actor) {
+            return getActorLogic(((EntityKey.Actor)key).getId());
+        } else {
+            return null;
+        }
     }
 
     /**

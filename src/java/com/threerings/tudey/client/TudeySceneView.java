@@ -281,8 +281,13 @@ public class TudeySceneView extends SimpleScope
      */
     public Sprite getSprite (EntityKey key)
     {
-        return (key instanceof EntityKey.Entry) ? getEntrySprite(((EntityKey.Entry)key).getKey()) :
-            getActorSprite(((EntityKey.Actor)key).getId());
+        if (key instanceof EntityKey.Entry) {
+            return getEntrySprite(((EntityKey.Entry)key).getKey());
+        } else if (key instanceof EntityKey.Actor) {
+            return getActorSprite(((EntityKey.Actor)key).getId());
+        } else {
+            return null;
+        }
     }
 
     /**
