@@ -90,8 +90,7 @@ public class EffectSprite extends Sprite
             super(parentScope);
 
             // determine the target model, if any
-            EntityKey key = effect.getTarget();
-            Sprite sprite = (key == null) ? null : _view.getSprite(key);
+            Sprite sprite = _view.getSprite(effect.getTarget());
             _targetModel = (sprite == null) ? null : sprite.getModel();
 
             // spawn the effect transient, if any
