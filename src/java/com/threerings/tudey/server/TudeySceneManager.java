@@ -1020,6 +1020,10 @@ public class TudeySceneManager extends SceneManager
         // stop listening to the scene model
         ((TudeySceneModel)_scene.getSceneModel()).removeObserver(this);
 
+        // flag the spaces as disposed to avoid extra unnecessary removal computation
+        _actorSpace.dispose();
+        _sensorSpace.dispose();
+
         // remove all actors
         ActorLogic[] actors = _actors.values().toArray(new ActorLogic[_actors.size()]);
         for (ActorLogic logic : actors) {

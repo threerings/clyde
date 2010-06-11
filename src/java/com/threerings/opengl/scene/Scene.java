@@ -239,6 +239,10 @@ public abstract class Scene extends DynamicScope
      */
     public void remove (SceneElement element, boolean clearParentScope)
     {
+        if (_disposed) {
+            return; // don't bother with the extra computation
+        }
+
         // notify element
         element.willBeRemoved();
 
@@ -273,6 +277,10 @@ public abstract class Scene extends DynamicScope
      */
     public void remove (SceneInfluence influence)
     {
+        if (_disposed) {
+            return; // don't bother with the extra computation
+        }
+
         // add any intersecting elements to the update list
         getElements(influence.getBounds(), _updateInfluences);
 
@@ -295,7 +303,9 @@ public abstract class Scene extends DynamicScope
     public void remove (ViewerEffect effect)
     {
         // remove from spatial data structure
-        removeFromSpatial(effect);
+        if (!_disposed) {
+            removeFromSpatial(effect);
+        }
     }
 
     /**
@@ -440,6 +450,14 @@ public abstract class Scene extends DynamicScope
     {
     }
 
+    /**
+     * Clears any viewer effects (when called outside the tick method).
+     */
+    public void clearEffects ()
+    {
+        setEffects(_neffects);
+    }
+
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
@@ -490,8 +508,9 @@ public abstract class Scene extends DynamicScope
     public void dispose ()
     {
         super.dispose();
-        setEffects(_neffects);
+        clearEffects();
         _soundGroup.dispose();
+        _disposed = true;
     }
 
     /**
@@ -673,6 +692,9 @@ public abstract class Scene extends DynamicScope
     /** A sound clip manager for the scene. */
     @Scoped
     protected SoundClipManager _clipmgr;
+
+    /** Set when we've been disposed. */
+    protected boolean _disposed;
 
     /** The viewer volume. */
     protected Box _viewer = new Box();

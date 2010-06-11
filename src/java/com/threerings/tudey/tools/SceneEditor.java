@@ -1004,6 +1004,7 @@ public class SceneEditor extends TudeyTool
                 if (_ctrl != null) {
                     _ctrl.wasRemoved();
                 }
+                _scene.clearEffects();
             }
             @Override protected OrbitCameraHandler createCameraHandler () {
                 // camera target elevation matches grid elevation

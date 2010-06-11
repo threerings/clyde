@@ -58,6 +58,10 @@ public abstract class Space
      */
     public void remove (SpaceElement element)
     {
+        if (_disposed) {
+            return; // don't bother with the extra computation
+        }
+
         // notify element
         element.willBeRemoved();
 
@@ -121,6 +125,14 @@ public abstract class Space
     }
 
     /**
+     * Flags this space as having been disposed.
+     */
+    public void dispose ()
+    {
+        _disposed = true;
+    }
+
+    /**
      * Adds an element to the space's spatial data structure.
      */
     protected abstract void addToSpatial (SpaceElement element);
@@ -180,6 +192,9 @@ public abstract class Space
             }
         }
     }
+
+    /** Set when we've been disposed. */
+    protected boolean _disposed;
 
     /** Result vector for intersection testing. */
     protected Vector2f _result = new Vector2f();

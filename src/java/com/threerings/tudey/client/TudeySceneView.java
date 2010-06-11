@@ -691,6 +691,8 @@ public class TudeySceneView extends SimpleScope
         if (_ctrl != null) {
             _ctrl.wasRemoved();
         }
+        _scene.dispose();
+        _actorSpace.dispose();
         for (EntrySprite sprite : _entrySprites.values()) {
             sprite.dispose();
         }
@@ -699,7 +701,6 @@ public class TudeySceneView extends SimpleScope
         }
         _entrySprites.clear();
         _actorSprites.clear();
-        _scene.dispose();
     }
 
     // documentation inherited from interface Tickable
