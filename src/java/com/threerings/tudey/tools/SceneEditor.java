@@ -994,7 +994,18 @@ public class SceneEditor extends TudeyTool
 
         // create the scene view
         setView(_view = new TudeySceneView(this) {
-            protected OrbitCameraHandler createCameraHandler () {
+            @Override public void wasRemoved () {
+                // do not dispose of the sprites/scene
+                _ctx.getRoot().removeWindow(_inputWindow);
+                if (_loadingWindow != null) {
+                    _ctx.getRoot().removeWindow(_loadingWindow);
+                    _loadingWindow = null;
+                }
+                if (_ctrl != null) {
+                    _ctrl.wasRemoved();
+                }
+            }
+            @Override protected OrbitCameraHandler createCameraHandler () {
                 // camera target elevation matches grid elevation
                 OrbitCameraHandler camhand = new OrbitCameraHandler(_ctx) {
                     public void updatePosition () {

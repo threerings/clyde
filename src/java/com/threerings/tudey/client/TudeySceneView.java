@@ -691,6 +691,14 @@ public class TudeySceneView extends SimpleScope
         if (_ctrl != null) {
             _ctrl.wasRemoved();
         }
+        for (EntrySprite sprite : _entrySprites.values()) {
+            sprite.dispose();
+        }
+        for (ActorSprite sprite : _actorSprites.values()) {
+            sprite.dispose();
+        }
+        _entrySprites.clear();
+        _actorSprites.clear();
         _scene.dispose();
     }
 
