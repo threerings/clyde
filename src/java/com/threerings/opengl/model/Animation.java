@@ -766,7 +766,9 @@ public class Animation extends SimpleScope
             }
 
             // tick the active component animation
-            if (!_animations[_aidx].tick(elapsed)) {
+            Animation anim = _animations[_aidx];
+            anim.tick(elapsed);
+            if (anim.isPlaying()) {
                 return false;
             }
             _aidx++;
