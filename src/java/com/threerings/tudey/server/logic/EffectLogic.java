@@ -30,6 +30,7 @@ import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.EffectConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
@@ -44,10 +45,13 @@ public class EffectLogic extends Logic
      */
     public void init (
         TudeySceneManager scenemgr, ConfigReference<EffectConfig> ref,
-        EffectConfig.Original config, int timestamp, Vector2f translation, float rotation)
+        EffectConfig.Original config, int timestamp, Logic target,
+        Vector2f translation, float rotation)
     {
         super.init(scenemgr);
-        _effect = createEffect(ref, timestamp, translation, rotation);
+        _target = target;
+        _effect = createEffect(ref, timestamp, (target == null) ? null : target.getEntityKey(),
+            translation, rotation);
         _effect.init(scenemgr.getConfigManager());
         _shape = config.shape.getShape().transform(new Transform2D(translation, rotation));
         _action = (config.action == null) ? null : createAction(config.action, this);
@@ -88,9 +92,10 @@ public class EffectLogic extends Logic
      * Creates the effect for this logic.
      */
     protected Effect createEffect (
-        ConfigReference<EffectConfig> ref, int timestamp, Vector2f translation, float rotation)
+        ConfigReference<EffectConfig> ref, int timestamp,
+        EntityKey target, Vector2f translation, float rotation)
     {
-        return new Effect(ref, timestamp, translation, rotation);
+        return new Effect(ref, timestamp, target, translation, rotation);
     }
 
     /**
@@ -100,12 +105,15 @@ public class EffectLogic extends Logic
     {
         // execute the configured action, if any
         if (_action != null) {
-            _action.execute(_effect.getTimestamp(), this);
+            _action.execute(_effect.getTimestamp(), (_target == null) ? this : _target);
         }
     }
 
     /** The effect fired. */
     protected Effect _effect;
+
+    /** The target of the effect (if any). */
+    protected Logic _target;
 
     /** The shape of the effect. */
     protected Shape _shape;

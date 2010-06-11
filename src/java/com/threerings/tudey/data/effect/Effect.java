@@ -33,6 +33,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.config.EffectConfig;
 
 /**
@@ -44,10 +45,12 @@ public class Effect extends SimpleStreamableObject
      * Creates a new effect.
      */
     public Effect (
-        ConfigReference<EffectConfig> config, int timestamp, Vector2f translation, float rotation)
+        ConfigReference<EffectConfig> config, int timestamp,
+        EntityKey target, Vector2f translation, float rotation)
     {
         _config = config;
         _timestamp = timestamp;
+        _target = target;
         _translation.set(translation);
         _rotation = rotation;
     }
@@ -97,6 +100,14 @@ public class Effect extends SimpleStreamableObject
     }
 
     /**
+     * Returns the target of the effect (if any).
+     */
+    public EntityKey getTarget ()
+    {
+        return _target;
+    }
+
+    /**
      * Returns a reference to the effect's translation vector.
      */
     public Vector2f getTranslation ()
@@ -125,6 +136,9 @@ public class Effect extends SimpleStreamableObject
 
     /** The time at which the effect was fired. */
     protected int _timestamp;
+
+    /** The entity upon which to fire the effect, if any. */
+    protected EntityKey _target;
 
     /** The effect's translation. */
     protected Vector2f _translation = new Vector2f();

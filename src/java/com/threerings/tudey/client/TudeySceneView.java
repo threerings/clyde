@@ -81,6 +81,7 @@ import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
 import com.threerings.tudey.config.CameraConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
@@ -273,6 +274,15 @@ public class TudeySceneView extends SimpleScope
         for (Entry entry : _sceneModel.getEntries()) {
             addEntrySprite(entry);
         }
+    }
+
+    /**
+     * Returns the sprite corresponding to the entity with the given key.
+     */
+    public Sprite getSprite (EntityKey key)
+    {
+        return (key instanceof EntityKey.Entry) ? getEntrySprite(((EntityKey.Entry)key).getKey()) :
+            getActorSprite(((EntityKey.Actor)key).getId());
     }
 
     /**

@@ -39,6 +39,7 @@ import com.threerings.opengl.model.config.ModelConfig;
 
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.HandlerConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.HasActor;
 import com.threerings.tudey.dobj.ActorDelta;
@@ -63,6 +64,7 @@ public class ActorLogic extends Logic
     {
         super.init(scenemgr);
         _config = config;
+        _entityKey = new EntityKey.Actor(id);
         _actor = createActor(ref, id, timestamp, translation, rotation);
         _actor.init(scenemgr.getConfigManager());
         _shape = new ShapeElement(config.shape);
@@ -337,6 +339,12 @@ public class ActorLogic extends Logic
     }
 
     @Override // documentation inherited
+    public EntityKey getEntityKey ()
+    {
+        return _entityKey;
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _actor.getTranslation();
@@ -573,6 +581,9 @@ public class ActorLogic extends Logic
 
     /** The actor configuration. */
     protected ActorConfig.Original _config;
+
+    /** The entity key. */
+    protected EntityKey.Actor _entityKey;
 
     /** The actor object, which may be manipulated directly. */
     protected Actor _actor;

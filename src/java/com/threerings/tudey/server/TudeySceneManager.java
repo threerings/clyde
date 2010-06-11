@@ -67,6 +67,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.config.EffectConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeyCodes;
@@ -377,9 +378,9 @@ public class TudeySceneManager extends SceneManager
      * Fires off an effect at the with the named configuration.
      */
     public EffectLogic fireEffect (
-        int timestamp, Vector2f translation, float rotation, String name)
+        int timestamp, Logic source, Vector2f translation, float rotation, String name)
     {
-        return fireEffect(timestamp, translation, rotation,
+        return fireEffect(timestamp, source, translation, rotation,
             new ConfigReference<EffectConfig>(name));
     }
 
@@ -387,10 +388,10 @@ public class TudeySceneManager extends SceneManager
      * Fires off an effect with the supplied name and arguments.
      */
     public EffectLogic fireEffect (
-        int timestamp, Vector2f translation, float rotation, String name,
+        int timestamp, Logic source, Vector2f translation, float rotation, String name,
         String firstKey, Object firstValue, Object... otherArgs)
     {
-        return fireEffect(timestamp, translation, rotation,
+        return fireEffect(timestamp, source, translation, rotation,
             new ConfigReference<EffectConfig>(name, firstKey, firstValue, otherArgs));
     }
 
@@ -398,7 +399,8 @@ public class TudeySceneManager extends SceneManager
      * Fires off an effect with the referenced configuration.
      */
     public EffectLogic fireEffect (
-        int timestamp, Vector2f translation, float rotation, ConfigReference<EffectConfig> ref)
+        int timestamp, Logic source, Vector2f translation, float rotation,
+        ConfigReference<EffectConfig> ref)
     {
         // attempt to resolve the implementation
         EffectConfig config = _cfgmgr.getConfig(EffectConfig.class, ref);
@@ -415,7 +417,7 @@ public class TudeySceneManager extends SceneManager
         }
 
         // initialize the logic and add it to the list
-        logic.init(this, ref, original, timestamp, translation, rotation);
+        logic.init(this, ref, original, timestamp, source, translation, rotation);
         _effectsFired.add(logic);
 
         return logic;
@@ -433,6 +435,15 @@ public class TudeySceneManager extends SceneManager
             log.warning("Failed to instantiate logic.", "class", cname, e);
             return null;
         }
+    }
+
+    /**
+     * Returns the logic object for the entity with the provided key, if any.
+     */
+    public Logic getLogic (EntityKey key)
+    {
+        return (key instanceof EntityKey.Entry) ? getEntryLogic(((EntityKey.Entry)key).getKey()) :
+            getActorLogic(((EntityKey.Actor)key).getId());
     }
 
     /**

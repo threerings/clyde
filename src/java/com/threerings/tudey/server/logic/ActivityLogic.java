@@ -26,6 +26,7 @@ package com.threerings.tudey.server.logic;
 
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.server.TudeySceneManager;
 
 /**
@@ -62,6 +63,12 @@ public abstract class ActivityLogic extends Logic
     public boolean isActive ()
     {
         return _source.isActive();
+    }
+
+    @Override // documentation inherited
+    public EntityKey getEntityKey ()
+    {
+        return _source.getEntityKey();
     }
 
     @Override // documentation inherited

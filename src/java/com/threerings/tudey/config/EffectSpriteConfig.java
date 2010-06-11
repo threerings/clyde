@@ -32,6 +32,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
@@ -43,7 +44,7 @@ import com.threerings.tudey.util.TudeyContext;
 /**
  * The configuration of an effect sprite.
  */
-@EditorTypes({ EffectSpriteConfig.Default.class })
+@EditorTypes({ EffectSpriteConfig.Default.class, EffectSpriteConfig.Animator.class })
 public abstract class EffectSpriteConfig extends DeepObject
     implements Exportable
 {
@@ -57,6 +58,23 @@ public abstract class EffectSpriteConfig extends DeepObject
             TudeyContext ctx, Scope scope, Effect effect)
         {
             return new EffectSprite.Original(ctx, scope, this, effect);
+        }
+    }
+
+    /**
+     * A sprite that plays an animation on another sprite.
+     */
+    public static class Animator extends EffectSpriteConfig
+    {
+        /** The animation to play. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> animation;
+
+         @Override // documentation inherited
+        public EffectSprite.Implementation createImplementation (
+            TudeyContext ctx, Scope scope, Effect effect)
+        {
+            return new EffectSprite.Animator(ctx, scope, this, effect);
         }
     }
 

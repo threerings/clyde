@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ExpressionConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.server.TudeySceneManager;
 
 import static com.threerings.tudey.Log.*;
@@ -428,6 +429,12 @@ public abstract class ExpressionLogic extends Logic
     public boolean isActive ()
     {
         return _source.isActive();
+    }
+
+    @Override // documentation inherited
+    public EntityKey getEntityKey ()
+    {
+        return _source.getEntityKey();
     }
 
     @Override // documentation inherited

@@ -41,6 +41,7 @@ import com.threerings.tudey.config.ExpressionConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.config.RegionConfig;
 import com.threerings.tudey.config.TargetConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 
@@ -104,6 +105,14 @@ public abstract class Logic extends ShallowObject
     public boolean isVisible (ActorLogic actor)
     {
         return true;
+    }
+
+    /**
+     * Returns the entity key for this logic, if any.
+     */
+    public EntityKey getEntityKey ()
+    {
+        return null;
     }
 
     /**

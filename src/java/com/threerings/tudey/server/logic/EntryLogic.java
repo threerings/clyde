@@ -36,6 +36,7 @@ import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.SceneGlobalConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
@@ -108,6 +109,7 @@ public class EntryLogic extends Logic
     public void init (TudeySceneManager scenemgr, Entry entry)
     {
         super.init(scenemgr);
+        _entityKey = new EntityKey.Entry(entry.getKey());
         _entry = entry;
         ConfigManager cfgmgr = scenemgr.getConfigManager();
         _translation = entry.getTranslation(cfgmgr);
@@ -188,6 +190,12 @@ public class EntryLogic extends Logic
     }
 
     @Override // documentation inherited
+    public EntityKey getEntityKey ()
+    {
+        return _entityKey;
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _translation;
@@ -265,6 +273,9 @@ public class EntryLogic extends Logic
     {
         // nothing by default
     }
+
+    /** The entity key. */
+    protected EntityKey.Entry _entityKey;
 
     /** The scene entry. */
     protected Entry _entry;

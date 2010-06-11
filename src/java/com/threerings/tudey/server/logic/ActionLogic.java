@@ -45,6 +45,7 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.EffectConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -268,8 +269,8 @@ public abstract class ActionLogic extends Logic
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
-                _scenemgr.fireEffect(
-                    timestamp, target.getTranslation(), target.getRotation(), effect);
+                EffectLogic logic = _scenemgr.fireEffect(
+                    timestamp, target, target.getTranslation(), target.getRotation(), effect);
             }
             _targets.clear();
             return true;
@@ -815,6 +816,12 @@ public abstract class ActionLogic extends Logic
     public boolean isActive ()
     {
         return _source.isActive();
+    }
+
+    @Override // documentation inherited
+    public EntityKey getEntityKey ()
+    {
+        return _source.getEntityKey();
     }
 
     @Override // documentation inherited

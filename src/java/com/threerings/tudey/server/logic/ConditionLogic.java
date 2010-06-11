@@ -34,6 +34,7 @@ import com.samskivert.util.ListUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.config.ConditionConfig;
 import com.threerings.tudey.server.TudeySceneManager;
@@ -510,6 +511,12 @@ public abstract class ConditionLogic extends Logic
     public boolean isActive ()
     {
         return _source.isActive();
+    }
+
+    @Override // documentation inherited
+    public EntityKey getEntityKey ()
+    {
+        return _source.getEntityKey();
     }
 
     @Override // documentation inherited

@@ -33,6 +33,7 @@ import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.RegionConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 
@@ -143,6 +144,12 @@ public abstract class RegionLogic extends Logic
     public boolean isActive ()
     {
         return _source.isActive();
+    }
+
+    @Override // documentation inherited
+    public EntityKey getEntityKey ()
+    {
+        return _source.getEntityKey();
     }
 
     @Override // documentation inherited

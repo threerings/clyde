@@ -820,14 +820,6 @@ public class ActorSprite extends Sprite
     }
 
     /**
-     * Returns a reference to the sprite's model.
-     */
-    public Model getModel ()
-    {
-        return _model;
-    }
-
-    /**
      * Returns a reference to all the sprites models.
      */
     public Set<Model> getModels ()
@@ -1029,6 +1021,12 @@ public class ActorSprite extends Sprite
     {
         updateFromConfig();
         _impl.update(_actor);
+    }
+
+    @Override // documentation inherited
+    public Model getModel ()
+    {
+        return _model;
     }
 
     @Override // documentation inherited

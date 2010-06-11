@@ -55,14 +55,6 @@ public abstract class EntrySprite extends Sprite
     public abstract void update (Entry entry);
 
     /**
-     * Returns the model for this sprite, or <code>null</code> for none.
-     */
-    public Model getModel ()
-    {
-        return null;
-    }
-
-    /**
      * Sets whether or not this sprite is selected.
      */
     public void setSelected (boolean selected)

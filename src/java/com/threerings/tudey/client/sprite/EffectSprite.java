@@ -27,11 +27,16 @@ package com.threerings.tudey.client.sprite;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
+
+import com.threerings.opengl.model.Animation;
+import com.threerings.opengl.model.Model;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.config.EffectSpriteConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.util.TudeyContext;
 
@@ -84,17 +89,64 @@ public class EffectSprite extends Sprite
         {
             super(parentScope);
 
+            // determine the target model, if any
+            EntityKey key = effect.getTarget();
+            Sprite sprite = (key == null) ? null : _view.getSprite(key);
+            _targetModel = (sprite == null) ? null : sprite.getModel();
+
             // spawn the effect transient, if any
             if (config.model != null) {
-                Vector2f translation = effect.getTranslation();
-                _view.getScene().spawnTransient(config.model, _view.getFloorTransform(
-                    translation.x, translation.y, effect.getRotation(), config.floorMask));
+                Transform3D transform;
+                if (_targetModel != null) {
+                    transform = _targetModel.getLocalTransform();
+                } else {
+                    Vector2f translation = effect.getTranslation();
+                    transform = _view.getFloorTransform(
+                        translation.x, translation.y, effect.getRotation(), config.floorMask);
+                }
+                _view.getScene().spawnTransient(config.model, transform);
             }
         }
+
+        /**
+         * Gets the target model for the effect.
+         */
+        protected Model getTargetModel (Effect effect)
+        {
+            EntityKey key = effect.getTarget();
+            Sprite sprite = (key == null) ? null : _view.getSprite(key);
+            return (sprite == null) ? null : sprite.getModel();
+        }
+
+        /** The target model, if any. */
+        protected Model _targetModel;
 
         /** The owning view. */
         @Bound
         protected TudeySceneView _view;
+    }
+
+    /**
+     * Plays an animation on a target sprite.
+     */
+    public static class Animator extends Original
+    {
+        /**
+         * Creates a new implementation.
+         */
+        public Animator (
+            TudeyContext ctx, Scope parentScope, EffectSpriteConfig.Animator config, Effect effect)
+        {
+            super(ctx, parentScope, config, effect);
+
+            // play the animation, if any
+            if (_targetModel != null && config.animation != null) {
+                Animation anim = _targetModel.createAnimation(config.animation);
+                if (anim != null) {
+                    anim.start();
+                }
+            }
+        }
     }
 
     /**

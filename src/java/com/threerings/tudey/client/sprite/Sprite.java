@@ -28,6 +28,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.gui.event.Event;
+import com.threerings.opengl.model.Model;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.util.TudeyContext;
@@ -69,6 +70,14 @@ public abstract class Sprite extends SimpleScope
     public boolean isClickable ()
     {
         return false;
+    }
+
+    /**
+     * Returns the model associated with the sprite (if any).
+     */
+    public Model getModel ()
+    {
+        return null;
     }
 
     /**
