@@ -108,16 +108,6 @@ public class EffectSprite extends Sprite
             }
         }
 
-        /**
-         * Gets the target model for the effect.
-         */
-        protected Model getTargetModel (Effect effect)
-        {
-            EntityKey key = effect.getTarget();
-            Sprite sprite = (key == null) ? null : _view.getSprite(key);
-            return (sprite == null) ? null : sprite.getModel();
-        }
-
         /** The target model, if any. */
         protected Model _targetModel;
 
