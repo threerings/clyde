@@ -33,6 +33,7 @@ import com.samskivert.util.Tuple;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
@@ -177,7 +178,7 @@ public class PropertyUtil
      */
     public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
     {
-        getResources(cfgmgr, object, paths, Sets.<Tuple<Class, ConfigReference>>newHashSet());
+        getResources(cfgmgr, object, paths, new ConfigReferenceSet());
     }
 
     /**
@@ -185,8 +186,7 @@ public class PropertyUtil
      * supplied set.
      */
     protected static void getResources (
-        ConfigManager cfgmgr, Object object, Set<String> paths,
-        Set<Tuple<Class, ConfigReference>> refs)
+        ConfigManager cfgmgr, Object object, Set<String> paths, ConfigReferenceSet refs)
     {
         if (object == null) {
             return;
@@ -218,7 +218,7 @@ public class PropertyUtil
                     (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
                 @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
                     (ConfigReference<ManagedConfig>)value;
-                if (!refs.add(new Tuple<Class, ConfigReference>(cclass, ref))) {
+                if (!refs.add(cclass, ref)) {
                     continue;
                 }
                 if (cfgmgr.isResourceClass(cclass)) {
