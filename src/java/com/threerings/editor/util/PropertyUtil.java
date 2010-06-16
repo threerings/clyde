@@ -211,6 +211,38 @@ public class PropertyUtil
     }
 
     /**
+     * Valides the supplied sets of configs and resources.
+     */
+    public static void validateReferences (
+        String where, ConfigManager cfgmgr, Set<Tuple<Class, String>> configs,
+        Set<String> resources, PrintStream out)
+    {
+        for (Tuple<Class, String> tuple : configs) {
+            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+                (Class<ManagedConfig>)tuple.left;
+            if (cfgmgr.getConfig(cclass, tuple.right) == null) {
+                out.println(where + " references missing config of type " +
+                    ConfigGroup.getName(cclass) + ": " + tuple.right);
+            }
+        }
+        ResourceManager rsrcmgr = cfgmgr.getResourceManager();
+        for (String resource : resources) {
+            if (!rsrcmgr.getResourceFile(resource).exists()) {
+                out.println(where + " references missing resource: " + resource);
+            }
+        }
+    }
+
+    /**
+     * Finds all resources referenced by the specified editable object (and any configs referenced
+     * by that object, etc.) and places them in the supplied set.
+     */
+    public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
+    {
+        getResources(cfgmgr, object, paths, new ConfigReferenceSet());
+    }
+
+    /**
      * Finds all configs and resources referenced by the supplied property of the supplied object
      * and places them in the given sets.
      */
@@ -260,38 +292,6 @@ public class PropertyUtil
         } else {
             getReferences(cfgmgr, value, configs, resources);
         }
-    }
-
-    /**
-     * Valides the supplied sets of configs and resources.
-     */
-    public static void validateReferences (
-        String where, ConfigManager cfgmgr, Set<Tuple<Class, String>> configs,
-        Set<String> resources, PrintStream out)
-    {
-        for (Tuple<Class, String> tuple : configs) {
-            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
-                (Class<ManagedConfig>)tuple.left;
-            if (cfgmgr.getConfig(cclass, tuple.right) == null) {
-                out.println(where + " references missing config of type " +
-                    ConfigGroup.getName(cclass) + ": " + tuple.right);
-            }
-        }
-        ResourceManager rsrcmgr = cfgmgr.getResourceManager();
-        for (String resource : resources) {
-            if (!rsrcmgr.getResourceFile(resource).exists()) {
-                out.println(where + " references missing resource: " + resource);
-            }
-        }
-    }
-
-    /**
-     * Finds all resources referenced by the specified editable object (and any configs referenced
-     * by that object, etc.) and places them in the supplied set.
-     */
-    public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
-    {
-        getResources(cfgmgr, object, paths, new ConfigReferenceSet());
     }
 
     /**
