@@ -70,7 +70,10 @@ public class StatusLabel extends Label
             final BlankIcon blank = (alert == null) ?
                 null : new BlankIcon(alert.getWidth(), alert.getHeight());
             setIcon(alert);
-            Interval flashAlert = new Interval(_ctx.getApp().getRunQueue()) {
+            if (_flashAlert != null) {
+                _flashAlert.cancel();
+            }
+            (_flashAlert = new Interval(_ctx.getApp().getRunQueue()) {
                 public void expired () {
                     _flashCount++;
                     setIcon(_flashCount % 2 == 0 ? alert : blank);
@@ -79,8 +82,7 @@ public class StatusLabel extends Label
                     }
                 }
                 protected int _flashCount = 0;
-            };
-            flashAlert.schedule(FLASH_DELAY, true);
+            }).schedule(FLASH_DELAY, true);
         }
     }
 
@@ -99,6 +101,9 @@ public class StatusLabel extends Label
 
     /** The icons for each state. */
     protected Icon[] _icons = new Icon[getStateCount()];
+
+    /** The flash interval, if any. */
+    protected Interval _flashAlert;
 
     /** The delay between flashes. */
     protected static final long FLASH_DELAY = 300L;
