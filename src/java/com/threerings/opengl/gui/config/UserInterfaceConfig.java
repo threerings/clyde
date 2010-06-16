@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.gui.config;
 
+import java.io.PrintStream;
+
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigManager;
@@ -185,6 +187,13 @@ public class UserInterfaceConfig extends ParameterizedConfig
     public ConfigManager getConfigManager ()
     {
         return implementation.getConfigManager(_configs);
+    }
+
+    @Override // documentation inherited
+    public void validateReferences (String where, PrintStream out)
+    {
+        super.validateReferences(where, out);
+        _configs.validateReferences(where + ":", out);
     }
 
     @Override // documentation inherited

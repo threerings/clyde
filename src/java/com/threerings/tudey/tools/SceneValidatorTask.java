@@ -18,9 +18,11 @@ import com.google.common.collect.Lists;
 import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.BinaryImporter;
 
 import com.threerings.tudey.data.TudeySceneModel;
+import com.threerings.tudey.data.TudeySceneModel.Entry;
 
 import static com.threerings.tudey.Log.*;
 
@@ -54,6 +56,8 @@ public class SceneValidatorTask extends Task
                 try {
                     TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
                         new FileInputStream(source)).readObject();
+                    model.getConfigManager().init("scene", cfgmgr);
+                    model.validateReferences(file, System.err);
 
                 } catch (Exception e) { // IOException, ClassCastException
                     log.warning("Failed to read scene.", "file", source, e);

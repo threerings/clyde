@@ -25,6 +25,7 @@
 package com.threerings.tudey.data;
 
 import java.io.IOException;
+import java.io.PrintStream;
 
 import java.lang.ref.SoftReference;
 
@@ -41,9 +42,11 @@ import java.util.WeakHashMap;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayIntSet;
 import com.samskivert.util.ObserverList;
+import com.samskivert.util.Tuple;
 
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
@@ -1658,6 +1661,20 @@ public class TudeySceneModel extends SceneModel
         for (Entry entry : getEntries()) {
             PropertyUtil.getResources(_cfgmgr, entry, paths);
         }
+    }
+
+    /**
+     * Validates the references in the scene.
+     */
+    public void validateReferences (String where, PrintStream out)
+    {
+        Set<Tuple<Class, String>> configs = Sets.newHashSet();
+        Set<String> resources = Sets.newHashSet();
+        for (Entry entry : getEntries()) {
+            PropertyUtil.getReferences(_cfgmgr, entry, configs, resources);
+        }
+        PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
+        _cfgmgr.validateReferences(where + ":", out);
     }
 
     /**

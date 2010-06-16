@@ -24,8 +24,13 @@
 
 package com.threerings.config;
 
+import java.io.PrintStream;
+
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.WeakObserverList;
@@ -36,6 +41,7 @@ import com.threerings.resource.ResourceManager;
 import com.threerings.resource.ResourceManager.ModificationObserver;
 
 import com.threerings.editor.util.EditorContext;
+import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
@@ -171,6 +177,17 @@ public abstract class ManagedConfig extends DeepObject
             addUpdateDependencies();
         }
         fireConfigUpdated();
+    }
+
+    /**
+     * Validates the references in this config.
+     */
+    public void validateReferences (String where, PrintStream out)
+    {
+        Set<Tuple<Class, String>> configs = Sets.newHashSet();
+        Set<String> resources = Sets.newHashSet();
+        PropertyUtil.getReferences(_cfgmgr, this, configs, resources);
+        PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
     }
 
     // documentation inherited from interface ConfigUpdateListener

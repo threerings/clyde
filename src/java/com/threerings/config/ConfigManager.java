@@ -24,7 +24,9 @@
 
 package com.threerings.config;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -332,7 +334,11 @@ public class ConfigManager
                 config.setName(name);
                 config.init(getRoot());
                 in.close();
-            } catch (IOException e) {
+
+            } catch (FileNotFoundException fnfe) {
+                return null;
+
+            } catch (Exception e) { // IOException, ClassCastException
                 log.warning("Failed to load config from resource.", "name", name, e);
                 return null;
             }
@@ -476,6 +482,19 @@ public class ConfigManager
             config.copy(oconfig);
             oconfig.wasUpdated();
             return oconfig;
+        }
+    }
+
+    /**
+     * Validates the references of all configs managed by this manager.
+     */
+    public void validateReferences (String where, PrintStream out)
+    {
+        for (ConfigGroup<?> group : getGroups()) {
+            String gwhere = where + group.getName() + ":";
+            for (ManagedConfig config : group.getConfigs()) {
+                config.validateReferences(gwhere + config.getName(), out);
+            }
         }
     }
 

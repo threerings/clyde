@@ -17,6 +17,7 @@ import com.google.common.collect.Lists;
 import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ManagedConfig;
 
 /**
  * Validates the references in a set of configs.
@@ -40,12 +41,20 @@ public class ConfigValidatorTask extends Task
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
         cfgmgr.init();
 
+        // validate the base configs
+        cfgmgr.validateReferences("", System.err);
+
         // validate the resource configs
         for (FileSet fs : _filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             File fromDir = fs.getDir(getProject());
             for (String file : ds.getIncludedFiles()) {
                 File source = new File(fromDir, file);
+                String path = rsrcmgr.getResourcePath(source);
+                ManagedConfig config = (path == null) ? null : cfgmgr.getResourceConfig(path);
+                if (config != null) {
+                    config.validateReferences(path, System.err);
+                }
             }
         }
     }

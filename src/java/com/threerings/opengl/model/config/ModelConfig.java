@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.model.config;
 
+import java.io.PrintStream;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -594,6 +596,13 @@ public class ModelConfig extends ParameterizedConfig
     public void updateFromSource (EditorContext ctx, boolean force)
     {
         implementation.updateFromSource(ctx, force);
+    }
+
+    @Override // documentation inherited
+    public void validateReferences (String where, PrintStream out)
+    {
+        super.validateReferences(where, out);
+        _configs.validateReferences(where + ":", out);
     }
 
     @Override // documentation inherited

@@ -24,18 +24,26 @@
 
 package com.threerings.editor.util;
 
+import java.io.PrintStream;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
 
 import com.samskivert.util.Tuple;
 
+import com.threerings.resource.ResourceManager;
+
+import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ManagedConfig;
+import com.threerings.config.Parameter;
+import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
@@ -174,8 +182,112 @@ public class PropertyUtil
     }
 
     /**
-     * Finds all resources referenced by the specified editable object and places them in the
-     * supplied set.
+     * Finds all configs and resources referenced in the supplied editable object and places them
+     * in the supplied sets.
+     */
+    public static void getReferences (
+        ConfigManager cfgmgr, Object object,
+        Set<Tuple<Class, String>> configs, Set<String> resources)
+    {
+        if (object == null) {
+            return;
+        }
+        if (object instanceof Object[]) {
+            for (Object element : (Object[])object) {
+                getReferences(cfgmgr, element, configs, resources);
+            }
+            return;
+        }
+        if (object instanceof List) {
+            List list = (List)object;
+            for (int ii = 0, nn = list.size(); ii < nn; ii++) {
+                getReferences(cfgmgr, list.get(ii), configs, resources);
+            }
+            return;
+        }
+        for (Property property : Introspector.getProperties(object.getClass())) {
+            getReferences(cfgmgr, object, property, configs, resources);
+        }
+    }
+
+    /**
+     * Finds all configs and resources referenced by the supplied property of the supplied object
+     * and places them in the given sets.
+     */
+    protected static void getReferences (
+        ConfigManager cfgmgr, Object object, Property property,
+        Set<Tuple<Class, String>> configs, Set<String> resources)
+    {
+        Object value = property.get(object);
+        if (value == null) {
+            return;
+        }
+        Editable annotation = property.getAnnotation();
+        String editor = annotation.editor();
+        if (editor.equals("resource")) {
+            resources.add((String)value);
+
+        } else if (editor.equals("config")) {
+            ConfigGroup group = cfgmgr.getGroup(annotation.mode());
+            if (group != null) {
+                configs.add(new Tuple<Class, String>(group.getConfigClass(), (String)value));
+            }
+        } else if (property.getType().equals(ConfigReference.class)) {
+            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+                (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+            @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
+                (ConfigReference<ManagedConfig>)value;
+            configs.add(new Tuple<Class, String>(cclass, ref.getName()));
+            ArgumentMap args = ref.getArguments();
+            if (args.isEmpty()) {
+                return;
+            }
+            ManagedConfig config = cfgmgr.getConfig(cclass, ref.getName());
+            if (!(config instanceof ParameterizedConfig)) {
+                return;
+            }
+            ParameterizedConfig pconfig = (ParameterizedConfig)config;
+            for (Map.Entry<String, Object> entry : args.entrySet()) {
+                Parameter param = pconfig.getParameter(entry.getKey());
+                if (param == null) {
+                    continue;
+                }
+                Property prop = param.getArgumentProperty(pconfig);
+                if (prop != null) {
+                    getReferences(cfgmgr, args, prop, configs, resources);
+                }
+            }
+        } else {
+            getReferences(cfgmgr, value, configs, resources);
+        }
+    }
+
+    /**
+     * Valides the supplied sets of configs and resources.
+     */
+    public static void validateReferences (
+        String where, ConfigManager cfgmgr, Set<Tuple<Class, String>> configs,
+        Set<String> resources, PrintStream out)
+    {
+        for (Tuple<Class, String> tuple : configs) {
+            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+                (Class<ManagedConfig>)tuple.left;
+            if (cfgmgr.getConfig(cclass, tuple.right) == null) {
+                out.println(where + " references missing config of type " +
+                    ConfigGroup.getName(cclass) + ": " + tuple.right);
+            }
+        }
+        ResourceManager rsrcmgr = cfgmgr.getResourceManager();
+        for (String resource : resources) {
+            if (!rsrcmgr.getResourceFile(resource).exists()) {
+                out.println(where + " references missing resource: " + resource);
+            }
+        }
+    }
+
+    /**
+     * Finds all resources referenced by the specified editable object (and any configs referenced
+     * by that object, etc.) and places them in the supplied set.
      */
     public static void getResources (ConfigManager cfgmgr, Object object, Set<String> paths)
     {
@@ -183,8 +295,8 @@ public class PropertyUtil
     }
 
     /**
-     * Finds all resources referenced by the specified editable object and places them in the
-     * supplied set.
+     * Finds all resources referenced by the specified editable object (and any configs referenced
+     * by that object, etc.) and places them in the supplied set.
      */
     protected static void getResources (
         ConfigManager cfgmgr, Object object, Set<String> paths, ConfigReferenceSet refs)
