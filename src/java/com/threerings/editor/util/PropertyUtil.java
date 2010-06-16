@@ -31,6 +31,7 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.util.Tuple;
 
+import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -209,15 +210,29 @@ public class PropertyUtil
             if (value == null) {
                 continue;
             }
-            String editor = property.getAnnotation().editor();
-            if (editor.equals("resource")) {
-                paths.add((String)value);
-
-            } else if (property.getType().equals(ConfigReference.class)) {
-                @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
-                    (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
-                @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
-                    (ConfigReference<ManagedConfig>)value;
+            Editable annotation = property.getAnnotation();
+            String editor = annotation.editor();
+            boolean cfg = editor.equals("config");
+            if (cfg || property.getType().equals(ConfigReference.class)) {
+                Class<ManagedConfig> cclass;
+                ConfigReference<ManagedConfig> ref;
+                if (cfg) {
+                    ConfigGroup group = cfgmgr.getGroup(annotation.mode());
+                    if (group == null) {
+                        continue;
+                    }
+                    @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
+                        (Class<ManagedConfig>)group.getConfigClass();
+                    cclass = mclass;
+                    ref = new ConfigReference<ManagedConfig>((String)value);
+                } else {
+                    @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
+                        (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+                    @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> mref =
+                        (ConfigReference<ManagedConfig>)value;
+                    cclass = mclass;
+                    ref = mref;
+                }
                 if (!refs.add(cclass, ref)) {
                     continue;
                 }
@@ -228,6 +243,9 @@ public class PropertyUtil
                 if (config != null) {
                     getResources(cfgmgr, config, paths, refs);
                 }
+            } else if (editor.equals("resource")) {
+                paths.add((String)value);
+
             } else {
                 getResources(cfgmgr, value, paths, refs);
             }
