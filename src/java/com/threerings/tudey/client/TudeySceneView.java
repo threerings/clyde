@@ -48,9 +48,9 @@ import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
-import com.threerings.expr.SimpleScope;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
@@ -107,7 +107,7 @@ import static com.threerings.tudey.Log.*;
 /**
  * Displays a view of a Tudey scene.
  */
-public class TudeySceneView extends SimpleScope
+public class TudeySceneView extends DynamicScope
     implements GlView, PlaceView, TudeySceneModel.Observer, OccupantObserver,
         ChatDisplay, ActorAdvancer.Environment, TudeyCodes
 {
@@ -138,7 +138,7 @@ public class TudeySceneView extends SimpleScope
      */
     public TudeySceneView (TudeyContext ctx, TudeySceneController ctrl)
     {
-        super(ctx.getScope());
+        super("view", ctx.getScope());
         _ctx = ctx;
         _ctrl = ctrl;
         _placeConfig = (ctrl == null) ?
@@ -691,6 +691,7 @@ public class TudeySceneView extends SimpleScope
         if (_ctrl != null) {
             _ctrl.wasRemoved();
         }
+        dispose();
         _scene.dispose();
         _actorSpace.dispose();
         for (EntrySprite sprite : _entrySprites.values()) {
@@ -939,12 +940,6 @@ public class TudeySceneView extends SimpleScope
 
         // if our vector is non-zero, we penetrated
         return !result.equals(Vector2f.ZERO);
-    }
-
-    @Override // documentation inherited
-    public String getScopeName ()
-    {
-        return "view";
     }
 
     /**

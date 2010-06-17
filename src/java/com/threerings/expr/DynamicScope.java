@@ -158,6 +158,7 @@ public class DynamicScope
         if (_parentScope != null) {
             _parentScope.removeListener(this);
         }
+        _listeners = null;
     }
 
     // documentation inherited from interface Scope
