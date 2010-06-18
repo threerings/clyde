@@ -43,7 +43,14 @@ import org.apache.tools.ant.types.FileSet;
 
 import com.google.common.collect.Lists;
 
+import com.threerings.resource.ResourceManager;
+
+import com.threerings.config.ArgumentMap;
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
+import com.threerings.config.Parameter;
+import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.Strippable;
@@ -85,6 +92,11 @@ public class StripTask extends Task
     public void execute ()
         throws BuildException
     {
+        ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+        rsrcmgr.initResourceDir("rsrc/");
+        _cfgmgr = new ConfigManager(rsrcmgr, "config/");
+        _cfgmgr.init();
+
         for (FileSet fs : _filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             File fromDir = fs.getDir(getProject());
@@ -170,33 +182,70 @@ public class StripTask extends Task
             }
             return list;
         }
-        if (object instanceof ConfigReference) {
-            ConfigReference<?> ref = (ConfigReference)object;
-            for (Iterator<Map.Entry<String, Object>> it = ref.getArguments().entrySet().iterator();
-                    it.hasNext(); ) {
-                Map.Entry<String, Object> entry = it.next();
-                Object value = entry.getValue();
-                if (isStrippable(value)) {
-                    it.remove();
-                } else {
-                    entry.setValue(strip(value));
-                }
-            }
-        }
         if (!(object instanceof Exportable)) {
             return object;
         }
         Class<?> clazz = object.getClass();
         Object prototype = ObjectMarshaller.getObjectMarshaller(clazz).getPrototype();
         for (Property property : Introspector.getProperties(clazz)) {
-            Object value = property.get(object);
-            if (isStrippable(property) || isStrippable(value)) {
-                property.set(object, property.get(prototype));
-            } else {
-                property.set(object, strip(value));
-            }
+            Object result = strip(object, property);
+            property.set(object, result == STRIP_OUT ? property.get(prototype) : result);
         }
         return object;
+    }
+
+    /**
+     * Strips a single property of an object.
+     */
+    protected Object strip (Object object, Property property)
+    {
+        Object value = property.get(object);
+        if (isStrippable(property) || isStrippable(value)) {
+            return STRIP_OUT;
+        }
+        if (value == null) {
+            return null;
+
+        } else if (property.getType().equals(ConfigReference.class)) {
+            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+                (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+            @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
+                (ConfigReference<ManagedConfig>)value;
+            ArgumentMap args = ref.getArguments();
+            if (args.isEmpty()) {
+                return ref;
+            }
+            ManagedConfig config = _cfgmgr.getConfig(cclass, ref.getName());
+            if (!(config instanceof ParameterizedConfig)) {
+                args.clear();
+                return ref;
+            }
+            ParameterizedConfig pconfig = (ParameterizedConfig)config;
+            for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
+                    it.hasNext(); ) {
+                Map.Entry<String, Object> entry = it.next();
+                Parameter param = pconfig.getParameter(entry.getKey());
+                if (param == null) {
+                    it.remove();
+                    continue;
+                }
+                Property prop = param.getArgumentProperty(pconfig);
+                if (prop == null) {
+                    it.remove();
+                    continue;
+                }
+                Object result = strip(args, prop);
+                if (result == STRIP_OUT) {
+                    it.remove();
+                } else {
+                    entry.setValue(result);
+                }
+            }
+            return ref;
+
+        } else {
+            return strip(value);
+        }
     }
 
     /**
@@ -229,6 +278,9 @@ public class StripTask extends Task
             isStrippable(clazz.getComponentType()) || isStrippable(clazz.getSuperclass()));
     }
 
+    /** The config manager. */
+    protected ConfigManager _cfgmgr;
+
     /** The directory in which we will generate our output (in a directory tree mirroring the
      * source files. */
     protected File _dest;
@@ -238,4 +290,7 @@ public class StripTask extends Task
 
     /** A list of filesets that contain XML exports. */
     protected List<FileSet> _filesets = Lists.newArrayList();
+
+    /** Signifies that a property should be stripped out completely. */
+    protected static final Object STRIP_OUT = new Object() { };
 }
