@@ -221,6 +221,11 @@ public class RenderableView extends Component
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
+        // no time elapses for static views
+        if (_static) {
+            elapsed = 0f;
+        }
+
         // tick the config models
         for (Model model : _configModels) {
             model.tick(elapsed);
