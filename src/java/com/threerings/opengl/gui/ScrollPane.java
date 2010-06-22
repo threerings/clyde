@@ -149,6 +149,7 @@ public class ScrollPane extends Container
                 add(_vbar, BorderLayout.EAST);
             } else if (!_showAlways && _vbar.getParent() != null) {
                 remove(_vbar);
+                _vport.storeOldV();
             }
         }
         if (_vlbtn != null) {
@@ -162,6 +163,7 @@ public class ScrollPane extends Container
                 add(_hbar, BorderLayout.SOUTH);
             } else if (!_showAlways && _hbar.getParent() != null) {
                 remove(_hbar);
+                _vport.storeOldH();
             }
         }
         if (_hlbtn != null) {
@@ -256,6 +258,22 @@ public class ScrollPane extends Container
             return _hmodel;
         }
 
+        /**
+         * Stores our current vertical bound value.
+         */
+        public void storeOldV ()
+        {
+            _oldV = (_vmodel == null) ? 0 : _vmodel.getValue();
+        }
+
+        /**
+         * Stores our current horizontal bound value.
+         */
+        public void storeOldH ()
+        {
+            _oldH = (_hmodel == null) ? 0 : _hmodel.getValue();
+        }
+
         // documentation inherited
         public void layout ()
         {
@@ -281,12 +299,12 @@ public class ScrollPane extends Container
             // and recompute our scrollbar range
             if (_vmodel != null) {
                 int extent = getHeight() - insets.getVertical();
-                int value = Math.max(0,Math.min(_vmodel.getValue(), d.height - extent));
+                int value = Math.max(0,Math.min(_oldV, d.height - extent));
                 _vmodel.setRange(0, value, extent, d.height);
             }
             if (_hmodel != null) {
                 int extent = getWidth() - insets.getHorizontal();
-                int value = Math.max(0,Math.min(_hmodel.getValue(), d.width - extent));
+                int value = Math.max(0,Math.min(_oldH, d.width - extent));
                 _hmodel.setRange(0, value, extent, d.width);
             }
         }
@@ -399,6 +417,7 @@ public class ScrollPane extends Container
         protected Component _target;
         protected MouseWheelListener _wheelListener;
         protected Rectangle _srect = new Rectangle();
+        protected int _oldV, _oldH;
     }
 
     protected Viewport _vport;
