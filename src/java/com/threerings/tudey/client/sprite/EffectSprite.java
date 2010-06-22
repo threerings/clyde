@@ -94,17 +94,22 @@ public class EffectSprite extends Sprite
             _targetModel = (sprite == null) ? null : sprite.getModel();
 
             // spawn the effect transient, if any
-            if (config.model != null) {
-                Transform3D transform;
-                if (_targetModel != null) {
-                    transform = _targetModel.getLocalTransform();
-                } else {
-                    Vector2f translation = effect.getTranslation();
-                    transform = _view.getFloorTransform(
-                        translation.x, translation.y, effect.getRotation(), config.floorMask);
-                }
-                _view.getScene().spawnTransient(config.model, transform);
+            if (config.model == null) {
+                return;
             }
+            if (sprite instanceof ActorSprite && config.attachToTarget) {
+                ((ActorSprite)sprite).spawnAttachedTransientModel(config.model);
+                return;
+            }
+            Transform3D transform;
+            if (_targetModel != null) {
+                transform = _targetModel.getLocalTransform();
+            } else {
+                Vector2f translation = effect.getTranslation();
+                transform = _view.getFloorTransform(
+                    translation.x, translation.y, effect.getRotation(), config.floorMask);
+            }
+            _view.getScene().spawnTransient(config.model, transform);
         }
 
         /** The target model, if any. */
