@@ -66,6 +66,14 @@ public abstract class Property extends DeepObject
     }
 
     /**
+     * Returns whether or not we should attempt to translate the name.
+     */
+    public boolean shouldTranslateName ()
+    {
+        return true;
+    }
+
+    /**
      * Returns the name of the color lookup for the property.
      */
     public String getColorName ()

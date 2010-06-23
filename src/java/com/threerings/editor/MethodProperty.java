@@ -37,6 +37,9 @@ import static com.threerings.editor.Log.*;
  */
 public class MethodProperty extends Property
 {
+    /**
+     * Creates a new method property.
+     */
     public MethodProperty (Method getter, Method setter)
     {
         _getter = getter;

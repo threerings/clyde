@@ -37,6 +37,9 @@ import static com.threerings.editor.Log.*;
  */
 public class FieldProperty extends Property
 {
+    /**
+     * Creates a new field property.
+     */
     public FieldProperty (Field field)
     {
         _field = field;

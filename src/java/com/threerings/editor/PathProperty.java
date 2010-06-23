@@ -121,6 +121,12 @@ public class PathProperty extends Property
     }
 
     @Override // documentation inherited
+    public boolean shouldTranslateName ()
+    {
+        return false;
+    }
+
+    @Override // documentation inherited
     public String getColorName ()
     {
         return _paths[0][_paths[0].length - 1].getColorName();
@@ -399,6 +405,12 @@ public class PathProperty extends Property
         public IndexProperty (Property base, int idx)
         {
             _name = (_base = base).getName() + "[" + idx + "]";
+        }
+
+        @Override // documentation inherited
+        public boolean shouldTranslateName ()
+        {
+            return false;
         }
 
         @Override // documentation inherited

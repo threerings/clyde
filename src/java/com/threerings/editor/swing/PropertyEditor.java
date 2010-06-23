@@ -201,7 +201,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
      */
     protected String getPropertyLabel ()
     {
-        return getLabel(_property.getName(), _property.getMessageBundle());
+        String name = _property.getName();
+        return _property.shouldTranslateName() ?
+            getLabel(name, _property.getMessageBundle()) : name;
     }
 
     /**
