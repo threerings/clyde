@@ -266,6 +266,9 @@ public abstract class ActionLogic extends Logic
         public boolean execute (int timestamp, Logic activator)
         {
             ConfigReference<EffectConfig> effect = ((ActionConfig.FireEffect)_config).effect;
+            if (effect == null) {
+                return true;
+            }
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
