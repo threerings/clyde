@@ -145,11 +145,11 @@ public class ScrollPane extends Container
         }
         _layingOut = true;
         if (_vbar != null) {
+            _vport.storeOldV();
             if (_showAlways && _vbar.getParent() == null) {
                 add(_vbar, BorderLayout.EAST);
             } else if (!_showAlways && _vbar.getParent() != null) {
                 remove(_vbar);
-                _vport.storeOldV();
             }
         }
         if (_vlbtn != null) {
@@ -159,11 +159,11 @@ public class ScrollPane extends Container
             }
         }
         if (_hbar != null) {
+            _vport.storeOldH();
             if (_showAlways && _hbar.getParent() == null) {
                 add(_hbar, BorderLayout.SOUTH);
             } else if (!_showAlways && _hbar.getParent() != null) {
                 remove(_hbar);
-                _vport.storeOldH();
             }
         }
         if (_hlbtn != null) {
