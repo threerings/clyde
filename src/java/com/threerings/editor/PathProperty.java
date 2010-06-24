@@ -37,6 +37,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.samskivert.util.ClassUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigManager;
@@ -129,13 +130,15 @@ public class PathProperty extends Property
     @Override // documentation inherited
     public String getColorName ()
     {
-        return _paths[0][_paths[0].length - 1].getColorName();
+        Property[] path = _paths[0];
+        return path[path.length - 1].getColorName();
     }
 
     @Override // documentation inherited
     public Member getMember ()
     {
-        return _paths[0][_paths[0].length - 1].getMember();
+        Property[] path = _paths[0];
+        return path[path.length - 1].getMember();
     }
 
     @Override // documentation inherited
@@ -152,13 +155,15 @@ public class PathProperty extends Property
     @Override // documentation inherited
     public Class getType ()
     {
-        return _paths[0][_paths[0].length - 1].getType();
+        Property[] path = _paths[0];
+        return path[path.length - 1].getType();
     }
 
     @Override // documentation inherited
     public Type getGenericType ()
     {
-        return _paths[0][_paths[0].length - 1].getGenericType();
+        Property[] path = _paths[0];
+        return path[path.length - 1].getGenericType();
     }
 
     @Override // documentation inherited
@@ -221,13 +226,16 @@ public class PathProperty extends Property
     @Override // documentation inherited
     public void set (Object object, Object value)
     {
-        for (Property[] path : _paths) {
+        for (int ii = 0; ii < _paths.length; ii++) {
+            Property[] path = _paths[ii];
             Object obj = object;
             int last = path.length - 1;
-            for (int ii = 0; ii < last; ii++) {
-                obj = path[ii].get(obj);
+            for (int jj = 0; jj < last; jj++) {
+                obj = path[jj].get(obj);
             }
-            path[last].set(obj, value);
+            // use some simple coercion rules on the paths after the first
+            Property plast = path[last];
+            plast.set(obj, ii == 0 ? value : coerce(value, plast.getType()));
         }
     }
 
@@ -395,6 +403,75 @@ public class PathProperty extends Property
             return null;
         }
         return (prop == null) ? null : getProperty(cfgmgr, object, prop, tok);
+    }
+
+    /**
+     * Coerces the supplied value to the given type.
+     */
+    protected static Object coerce (Object value, Class type)
+    {
+        if (type.isPrimitive()) {
+            type = ClassUtil.objectEquivalentOf(type);
+        }
+        if (value == null || type.isInstance(value)) {
+            return value;
+
+        } else if (value instanceof String) {
+            if (type == Byte.class) {
+                try {
+                    return Byte.valueOf((String)value);
+                } catch (NumberFormatException e) {
+                    return Byte.valueOf((byte)0);
+                }
+            } else if (type == Double.class) {
+                try {
+                    return Double.valueOf((String)value);
+                } catch (NumberFormatException e) {
+                    return Double.valueOf(0.0);
+                }
+            } else if (type == Float.class) {
+                try {
+                    return Float.valueOf((String)value);
+                } catch (NumberFormatException e) {
+                    return Float.valueOf(0f);
+                }
+            } else if (type == Integer.class) {
+                try {
+                    return Integer.valueOf((String)value);
+                } catch (NumberFormatException e) {
+                    return Integer.valueOf(0);
+                }
+            } else if (type == Long.class) {
+                try {
+                    return Long.valueOf((String)value);
+                } catch (NumberFormatException e) {
+                    return Long.valueOf(0L);
+                }
+            } else if (type == Short.class) {
+                try {
+                    return Short.valueOf((String)value);
+                } catch (NumberFormatException e) {
+                    return Short.valueOf((short)0);
+                }
+            }
+        } else if (value instanceof Number) {
+            if (type == Byte.class) {
+                return ((Number)value).byteValue();
+            } else if (type == Double.class) {
+                return ((Number)value).doubleValue();
+            } else if (type == Float.class) {
+                return ((Number)value).floatValue();
+            } else if (type == Integer.class) {
+                return ((Number)value).intValue();
+            } else if (type == Long.class) {
+                return ((Number)value).longValue();
+            } else if (type == Short.class) {
+                return ((Number)value).shortValue();
+            } else if (type == String.class) {
+                return value.toString();
+            }
+        }
+        throw new IllegalArgumentException("Can't coerce " + value + " to " + type);
     }
 
     /**
