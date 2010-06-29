@@ -170,7 +170,7 @@ public class TudeySceneController extends SceneController
 
         // make sure we have the most recent frame, advance to current time
         if (_lastFrame != null) {
-            _advance.advance(_lastFrame);
+            _advancer.advance(_lastFrame);
         }
         _advancer.advance(advancedTime);
 
