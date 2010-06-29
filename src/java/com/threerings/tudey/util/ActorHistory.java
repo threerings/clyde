@@ -150,7 +150,7 @@ public class ActorHistory
          */
         public Actor extrapolate (int timestamp, Actor result)
         {
-            return _actor.extrapolate((timestamp - _timestamp) / 1000f, result);
+            return _actor.extrapolate((timestamp - _timestamp) / 1000f, timestamp, result);
         }
 
         /**

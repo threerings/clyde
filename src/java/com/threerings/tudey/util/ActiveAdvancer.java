@@ -81,12 +81,12 @@ public class ActiveAdvancer extends MobileAdvancer
     }
 
     @Override // documentation inherited
-    protected void mobileStep (float elapsed)
+    protected void mobileStep (float elapsed, int timestamp)
     {
         if (!canMove()) {
             _active.clear(Mobile.MOVING);
         }
-        super.mobileStep(elapsed);
+        super.mobileStep(elapsed, timestamp);
     }
 
     /**

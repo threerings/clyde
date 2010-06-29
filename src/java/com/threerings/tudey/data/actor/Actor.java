@@ -271,7 +271,7 @@ public class Actor extends DeepObject
      * Extrapolates the state of this actor after the specified time interval, in seconds (which
      * may be negative).
      */
-    public Actor extrapolate (float elapsed, Actor result)
+    public Actor extrapolate (float elapsed, int timestamp, Actor result)
     {
         return (Actor)copy(result);
     }

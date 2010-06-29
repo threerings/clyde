@@ -136,8 +136,10 @@ public class Mobile extends Actor
 
     /**
      * Takes an Euler step of the specified duration.
+     *
+     * @param timestamp the timestamp at the end of the step.
      */
-    public void step (float elapsed)
+    public void step (float elapsed, int timestamp)
     {
         if (isSet(MOVING) && !isLimited(_direction)) {
             float length = getSpeed() * elapsed;
@@ -149,12 +151,12 @@ public class Mobile extends Actor
     }
 
     @Override // documentation inherited
-    public Actor extrapolate (float elapsed, Actor result)
+    public Actor extrapolate (float elapsed, int timestamp, Actor result)
     {
-        super.extrapolate(elapsed, result);
+        super.extrapolate(elapsed, timestamp, result);
 
         // take a step of the indicated duration
-        ((Mobile)result).step(elapsed);
+        ((Mobile)result).step(elapsed, timestamp);
 
         return result;
     }

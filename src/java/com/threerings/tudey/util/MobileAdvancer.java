@@ -53,23 +53,24 @@ public class MobileAdvancer extends ActorAdvancer
     protected void step (float elapsed)
     {
         while (elapsed > 0f) {
-            substep(Math.min(elapsed, MAX_SUBSTEP));
-            _subElapsed += MAX_SUBSTEP;
-            elapsed -= MAX_SUBSTEP;
+            float nelapsed = Math.max(elapsed - MAX_SUBSTEP, 0f);
+            substep(elapsed - nelapsed, _timestamp - (int)(nelapsed*1000f));
+            elapsed = nelapsed;
         }
-        _subElapsed = 0f;
     }
 
     /**
      * Executes a substep of the specified duration.
+     *
+     * @param timestamp the timestamp at the end of the substep.
      */
-    protected void substep (float elapsed)
+    protected void substep (float elapsed, int timestamp)
     {
         // save the mobile's translation
         _otrans.set(_mobile.getTranslation());
 
         // take a step
-        mobileStep(elapsed);
+        mobileStep(elapsed, timestamp);
 
         // make sure we actually moved
         if (_mobile.getTranslation().equals(_otrans)) {
@@ -95,10 +96,9 @@ public class MobileAdvancer extends ActorAdvancer
     /**
      * Executes a step on the mobile.
      */
-    protected void mobileStep (float elapsed)
+    protected void mobileStep (float elapsed, int timestamp)
     {
-        // take a step
-        _mobile.step(elapsed);
+        _mobile.step(elapsed, timestamp);
     }
 
     /** A casted reference to the mobile. */
@@ -109,9 +109,6 @@ public class MobileAdvancer extends ActorAdvancer
 
     /** Used to store the mobile's original translation. */
     protected Vector2f _otrans = new Vector2f();
-
-    /** Used to store the about of elapsed time while performing substeps. */
-    protected float _subElapsed = 0f;
 
     /** The length, in seconds, of the longest substep we're willing to take. */
     protected static final float MAX_SUBSTEP = 1f / 60f;
