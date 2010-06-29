@@ -97,6 +97,25 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     }
 
     /**
+     * Inserts a collection of values into our list.
+     */
+    public void addValues (Collection<V> values)
+    {
+        addValues(_values.size(), values);
+    }
+
+    /**
+     * Inserts a collection of values into our list starting at the specified position.
+     */
+    public void addValues (int index, Collection<V> values)
+    {
+        for (V value : values) {
+            _values.add(index++, new Entry<V, C>(value));
+        }
+        _vport.invalidate();
+    }
+
+    /**
      * Clears all the current values and any related components.
      */
     public void removeValues ()
@@ -132,7 +151,11 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     protected void addValue (int index, V value, boolean snap)
     {
         _values.add(index, new Entry<V, C>(value));
-        _vport.invalidateAndSnap();
+        if (snap) {
+            _vport.invalidateAndSnap();
+        } else {
+            _vport.invalidate();
+        }
     }
 
     /** Does all the heavy lifting for the {@link ScrollingList}. */
