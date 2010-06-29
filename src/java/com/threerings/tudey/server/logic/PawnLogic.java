@@ -97,7 +97,7 @@ public class PawnLogic extends ActiveLogic
     @Override // documentation inherited
     protected int getActivityAdvance ()
     {
-        return getControlDelta(); // split the difference
+        return getControlDelta()/2; // split the difference
     }
 
     /** A casted reference to the advancer. */
