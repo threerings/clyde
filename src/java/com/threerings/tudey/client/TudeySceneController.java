@@ -168,7 +168,10 @@ public class TudeySceneController extends SceneController
             nactor.copy(spawn);
         }
 
-        // advance to current time
+        // make sure we have the most recent frame, advance to current time
+        if (_lastFrame != null) {
+            _advance.advance(_lastFrame);
+        }
         _advancer.advance(advancedTime);
 
         // copy everything *except* the translation (which will be smoothed) to the sprite
@@ -657,7 +660,7 @@ public class TudeySceneController extends SceneController
         if (rotation != _lastRotation || direction != _lastDirection ||
                 _frameFlags != _lastFlags) {
             // create and enqueue the frame
-            InputFrame frame = createInputFrame(
+            InputFrame frame = _lastFrame = createInputFrame(
                 _tsview.getAdvancedTime(), rotation, direction, _frameFlags);
             _lastRotation = rotation;
             _lastDirection = direction;
@@ -901,6 +904,9 @@ public class TudeySceneController extends SceneController
 
     /** The list of outgoing input frames. */
     protected List<InputFrame> _input = Lists.newArrayList();
+
+    /** The last input frame added. */
+    protected InputFrame _lastFrame;
 
     /** States recorded for input frames. */
     protected List<PawnState> _states = Lists.newArrayList();
