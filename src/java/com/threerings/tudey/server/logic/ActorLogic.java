@@ -419,7 +419,7 @@ public class ActorLogic extends Logic
         ConfigReference<ActorConfig> ref, int id, int timestamp,
         Vector2f translation, float rotation)
     {
-        return new Actor(ref, id, timestamp, translation, rotation);
+        return _config.createActor(ref, id, timestamp, translation, rotation);
     }
 
     /**

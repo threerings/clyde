@@ -34,6 +34,7 @@ import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.model.config.ModelConfig;
@@ -41,6 +42,7 @@ import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.sprite.ActorSprite;
+import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.util.TudeyContext;
 
@@ -144,6 +146,16 @@ public class ActorConfig extends ParameterizedConfig
         }
 
         /**
+         * Creates a new actor of the type associated with this config.
+         */
+        public Actor createActor (
+            ConfigReference<ActorConfig> config, int id, int created,
+            Vector2f translation, float rotation)
+        {
+            return new Actor(config, id, created, translation, rotation);
+        }
+
+        /**
          * Adds the resources to preload for this actor into the provided set.
          */
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
@@ -216,6 +228,15 @@ public class ActorConfig extends ParameterizedConfig
         {
             return "com.threerings.tudey.server.logic.MobileLogic";
         }
+
+        @Override // documentation inherited
+        public Actor createActor (
+            ConfigReference<ActorConfig> config, int id, int created,
+            Vector2f translation, float rotation)
+        {
+            return new com.threerings.tudey.data.actor.Mobile(
+                config, id, created, translation, rotation);
+        }
     }
 
     /**
@@ -237,6 +258,15 @@ public class ActorConfig extends ParameterizedConfig
         {
             return "com.threerings.tudey.server.logic.PawnLogic";
         }
+
+        @Override // documentation inherited
+        public Actor createActor (
+            ConfigReference<ActorConfig> config, int id, int created,
+            Vector2f translation, float rotation)
+        {
+            return new com.threerings.tudey.data.actor.Pawn(
+                config, id, created, translation, rotation);
+        }
     }
 
     /**
@@ -257,6 +287,15 @@ public class ActorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.AgentLogic";
+        }
+
+        @Override // documentation inherited
+        public Actor createActor (
+            ConfigReference<ActorConfig> config, int id, int created,
+            Vector2f translation, float rotation)
+        {
+            return new com.threerings.tudey.data.actor.Agent(
+                config, id, created, translation, rotation);
         }
 
         @Override // documentation inherited

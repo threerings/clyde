@@ -224,14 +224,6 @@ public class AgentLogic extends ActiveLogic
     }
 
     @Override // documentation inherited
-    protected Actor createActor (
-        ConfigReference<ActorConfig> ref, int id, int timestamp,
-        Vector2f translation, float rotation)
-    {
-        return new Agent(ref, id, timestamp, translation, rotation);
-    }
-
-    @Override // documentation inherited
     protected void didInit ()
     {
         super.didInit();

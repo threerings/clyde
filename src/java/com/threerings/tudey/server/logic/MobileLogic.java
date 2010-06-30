@@ -118,14 +118,6 @@ public class MobileLogic extends ActorLogic
     }
 
     @Override // documentation inherited
-    protected Actor createActor (
-        ConfigReference<ActorConfig> ref, int id, int timestamp,
-        Vector2f translation, float rotation)
-    {
-        return new Mobile(ref, id, timestamp, translation, rotation);
-    }
-
-    @Override // documentation inherited
     protected void didInit ()
     {
         // create advancer

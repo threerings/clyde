@@ -45,14 +45,6 @@ public class EntryStateLogic extends ActorLogic
         ((EntryState)_actor).setKey(entry.getEntry().getKey());
     }
 
-    @Override // documentation inherited
-    protected Actor createActor (
-        ConfigReference<ActorConfig> ref, int id, int timestamp,
-        Vector2f translation, float rotation)
-    {
-        return new EntryState(ref, id, timestamp, translation, rotation);
-    }
-
     /**
      * Sets the actor state and calls {@link #wasUpdated}.
      */

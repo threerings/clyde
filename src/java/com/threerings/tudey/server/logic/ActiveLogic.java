@@ -61,14 +61,6 @@ public class ActiveLogic extends MobileLogic
     }
 
     @Override // documentation inherited
-    protected Actor createActor (
-        ConfigReference<ActorConfig> ref, int id, int timestamp,
-        Vector2f translation, float rotation)
-    {
-        return new Active(ref, id, timestamp, translation, rotation);
-    }
-
-    @Override // documentation inherited
     protected ActorAdvancer createAdvancer ()
     {
         return new ActiveAdvancer(this, (Active)_actor, _actor.getCreated());

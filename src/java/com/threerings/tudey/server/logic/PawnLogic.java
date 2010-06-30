@@ -81,14 +81,6 @@ public class PawnLogic extends ActiveLogic
     }
 
     @Override // documentation inherited
-    protected Actor createActor (
-        ConfigReference<ActorConfig> ref, int id, int timestamp,
-        Vector2f translation, float rotation)
-    {
-        return new Pawn(ref, id, timestamp, translation, rotation);
-    }
-
-    @Override // documentation inherited
     protected ActorAdvancer createAdvancer ()
     {
         return (_advancer = ((Pawn)_actor).createAdvancer(this, _actor.getCreated()));
