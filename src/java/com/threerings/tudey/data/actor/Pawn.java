@@ -56,17 +56,15 @@ public class Pawn extends Active
     {
     }
 
-    /**
-     * Creates the advancer for the pawn.
-     */
-    public PawnAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+    @Override // documentation inherited
+    public boolean isClientControlled (TudeySceneView view)
     {
-        return new PawnAdvancer(environment, this, timestamp);
+        return super.isClientControlled(view) || view.getController().isControlledId(_id);
     }
 
     @Override // documentation inherited
-    public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
+    public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
     {
-        return view.getController().isControlledId(_id) ?  createAdvancer(view, timestamp) : null;
+        return new PawnAdvancer(environment, this, timestamp);
     }
 }

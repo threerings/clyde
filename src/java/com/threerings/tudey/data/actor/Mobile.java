@@ -32,6 +32,8 @@ import com.threerings.math.Vector2f;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.util.ActorAdvancer;
+import com.threerings.tudey.util.MobileAdvancer;
 
 /**
  * An actor capable of moving by itself.
@@ -159,6 +161,12 @@ public class Mobile extends Actor
         ((Mobile)result).step(elapsed, timestamp);
 
         return result;
+    }
+
+    @Override // documentation inherited
+    public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+    {
+        return new MobileAdvancer(environment, this, timestamp);
     }
 
     @Override // documentation inherited

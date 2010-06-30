@@ -151,7 +151,7 @@ public class MobileLogic extends ActorLogic
      */
     protected ActorAdvancer createAdvancer ()
     {
-        return new MobileAdvancer(this, (Mobile)_actor, _actor.getCreated());
+        return _actor.createAdvancer(this, _actor.getCreated());
     }
 
     /**

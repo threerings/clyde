@@ -83,7 +83,7 @@ public class PawnLogic extends ActiveLogic
     @Override // documentation inherited
     protected ActorAdvancer createAdvancer ()
     {
-        return (_advancer = ((Pawn)_actor).createAdvancer(this, _actor.getCreated()));
+        return (_advancer = (PawnAdvancer)_actor.createAdvancer(this, _actor.getCreated()));
     }
 
     @Override // documentation inherited

@@ -33,8 +33,6 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Active;
 import com.threerings.tudey.data.actor.Actor;
-import com.threerings.tudey.util.ActiveAdvancer;
-import com.threerings.tudey.util.ActorAdvancer;
 
 /**
  * Controls the state of an active actor.
@@ -58,12 +56,6 @@ public class ActiveLogic extends MobileLogic
         }
 
         return true;
-    }
-
-    @Override // documentation inherited
-    protected ActorAdvancer createAdvancer ()
-    {
-        return new ActiveAdvancer(this, (Active)_actor, _actor.getCreated());
     }
 
     /**

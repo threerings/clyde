@@ -30,6 +30,8 @@ import com.threerings.math.Vector2f;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.util.ActiveAdvancer;
+import com.threerings.tudey.util.ActorAdvancer;
 
 /**
  * An actor capable of performing activities.
@@ -113,6 +115,12 @@ public class Active extends Mobile
             aresult.setActivity(oactive.getActivity(), activityStarted);
         }
         return aresult;
+    }
+
+    @Override // documentation inherited
+    public ActorAdvancer createAdvancer (ActorAdvancer.Environment environment, int timestamp)
+    {
+        return new ActiveAdvancer(environment, this, timestamp);
     }
 
     @Override // documentation inherited
