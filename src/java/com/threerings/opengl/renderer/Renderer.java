@@ -1045,11 +1045,9 @@ public class Renderer
         // clear any cached reference
         _states[RenderState.FOG_STATE] = null;
 
-        boolean fogEnabled = (fogMode != -1);
-        if (_fogEnabled != Boolean.valueOf(fogEnabled)) {
-            setCapability(GL11.GL_FOG, _fogEnabled = fogEnabled);
-        }
-        if (!fogEnabled) {
+        _wouldEnableFog = (fogMode != -1);
+        updateFogEnabled();
+        if (!_wouldEnableFog) {
             return;
         }
         if (_fogMode != fogMode) {
@@ -1064,6 +1062,7 @@ public class Renderer
         }
     }
 
+
     /**
      * Sets the linear fog state.  If <code>fogMode</code> is -1, fog will be disabled.
      */
@@ -1072,11 +1071,9 @@ public class Renderer
         // clear any cached reference
         _states[RenderState.FOG_STATE] = null;
 
-        boolean fogEnabled = (fogMode != -1);
-        if (_fogEnabled != Boolean.valueOf(fogEnabled)) {
-            setCapability(GL11.GL_FOG, _fogEnabled = fogEnabled);
-        }
-        if (!fogEnabled) {
+        _wouldEnableFog = (fogMode != -1);
+        updateFogEnabled();
+        if (!_wouldEnableFog) {
             return;
         }
         if (_fogMode != fogMode) {
@@ -1419,6 +1416,9 @@ public class Renderer
             setCapability(ARBVertexShader.GL_VERTEX_PROGRAM_TWO_SIDE_ARB,
                 _vertexProgramTwoSide = vertexProgramTwoSide);
         }
+
+        // fog state depends on shader state
+        updateFogEnabled();
     }
 
     /**
@@ -1985,6 +1985,17 @@ public class Renderer
             ARBBufferObject.glBindBufferARB(
                 ARBVertexBufferObject.GL_ARRAY_BUFFER_ARB, id);
             _arrayBuffer = arrayBuffer;
+        }
+    }
+
+    /**
+     * Updates the fog enabled state, which depends on the fog state and the shader state.
+     */
+    protected void updateFogEnabled ()
+    {
+        boolean fogEnabled = (_wouldEnableFog && _program == null);
+        if (_fogEnabled != Boolean.valueOf(fogEnabled)) {
+            setCapability(GL11.GL_FOG, _fogEnabled = fogEnabled);
         }
     }
 
@@ -2794,6 +2805,9 @@ public class Renderer
 
     /** Whether or not fog is enabled. */
     protected Boolean _fogEnabled = false;
+
+    /** Whether or not we would enable fog if not for the shader state. */
+    protected boolean _wouldEnableFog;
 
     /** The current fog mode. */
     protected int _fogMode = GL11.GL_EXP;
