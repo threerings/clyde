@@ -334,7 +334,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             Rectangle oscissor = intersectScissor(
                 renderer, _srect,
                 getAbsoluteX() + insets.left,
-                getAbsoluteY() + insets.bottom,
+                getAbsoluteY() + insets.bottom - _offset,
                 _width - insets.getHorizontal(),
                 _height - insets.getVertical());
             try {
@@ -346,6 +346,12 @@ public abstract class ScrollingList<V, C extends Component> extends Container
                 renderer.setScissor(oscissor);
                 GL11.glTranslatef(0, -_offset, 0);
             }
+        }
+
+        @Override // documentation inherited
+        public int getAbsoluteY ()
+        {
+            return super.getAbsoluteY() + _offset;
         }
 
         @Override // documentation inherited
