@@ -353,9 +353,8 @@ public class ComboBox extends Label
                 height += cont.getComponent(ii).getPreferredSize(-1, -1).height;
             }
             BoundedRangeModel model = pane.getVerticalScrollBar().getModel();
-            model.setRange(
-                model.getMinimum(), height, model.getExtent(),
-                Math.max(height + model.getExtent(), model.getMaximum()));
+            height = Math.min(height, model.getMaximum() - model.getExtent());
+            model.setRange(model.getMinimum(), height, model.getExtent(), model.getMaximum());
         }
 
         protected Dimension computePreferredSize (int whint, int hhint) {
