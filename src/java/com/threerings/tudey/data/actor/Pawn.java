@@ -57,9 +57,9 @@ public class Pawn extends Active
     }
 
     @Override // documentation inherited
-    public boolean isClientControlled (TudeySceneView view)
+    public boolean isClientControlled (TudeyContext ctx, TudeySceneView view)
     {
-        return super.isClientControlled(view) || view.getController().isControlledId(_id);
+        return super.isClientControlled(ctx, view) || view.getController().isControlledId(_id);
     }
 
     @Override // documentation inherited

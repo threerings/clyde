@@ -283,13 +283,13 @@ public class Actor extends DeepObject
      */
     public ActorAdvancer maybeCreateAdvancer (TudeyContext ctx, TudeySceneView view, int timestamp)
     {
-        return isClientControlled(view) ? createAdvancer(view, timestamp) : null;
+        return isClientControlled(ctx, view) ? createAdvancer(view, timestamp) : null;
     }
 
     /**
      * Checks whether this actor is client controlled.
      */
-    public boolean isClientControlled (TudeySceneView view)
+    public boolean isClientControlled (TudeyContext ctx, TudeySceneView view)
     {
         return _id < 0;
     }

@@ -804,10 +804,28 @@ public class ActorSprite extends Sprite
         }
     }
 
-    @Override // documentation inherited
-    public Actor getActor ()
+    /**
+     * Reinitializes the sprite.
+     */
+    public void reinit (int timestamp, Actor actor)
     {
-        return _actor;
+        actor.copy(_actor);
+        if (_actor.isClientControlled(_ctx, _view)) {
+            if (_advancer == null) {
+                _advancer = _actor.createAdvancer(_view, timestamp);
+                _history = null;
+            } else {
+                _advancer.init(_actor, timestamp);
+            }
+        } else {
+            if (_history == null) {
+                _history = new ActorHistory(timestamp, actor, _view.getBufferDelay() * 4);
+                _advancer = null;
+            } else {
+                _history.init(timestamp, actor);
+            }
+        }
+        updateActor();
     }
 
     /**
@@ -914,7 +932,11 @@ public class ActorSprite extends Sprite
      */
     public void update (int timestamp, Actor actor)
     {
-        _history.record(timestamp, actor);
+        if (_advancer == null) {
+            _history.record(timestamp, actor);
+        } else {
+            _advancer.init((Actor)actor.copy(_advancer.getActor()), timestamp);
+        }
     }
 
     /**
@@ -1021,6 +1043,12 @@ public class ActorSprite extends Sprite
     {
         updateFromConfig();
         _impl.update(_actor);
+    }
+
+    @Override // documentation inherited
+    public Actor getActor ()
+    {
+        return _actor;
     }
 
     @Override // documentation inherited

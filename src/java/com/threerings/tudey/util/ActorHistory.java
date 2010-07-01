@@ -41,6 +41,15 @@ public class ActorHistory
     public ActorHistory (int timestamp, Actor actor, int duration)
     {
         _duration = duration;
+        init(timestamp, actor);
+    }
+
+    /**
+     * (Re)initializes the history.
+     */
+    public void init (int timestamp, Actor actor)
+    {
+        _entries.clear();
         record(timestamp, actor);
     }
 

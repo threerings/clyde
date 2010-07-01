@@ -564,12 +564,6 @@ public class TudeySceneView extends DynamicScope
             if (sprite != null) {
                 if (_ctrl.isControlledId(id)) {
                     _ctrl.controlledActorUpdated(timestamp, actor);
-
-                } else if (sprite.getAdvancer() != null) {
-                    ActorAdvancer advancer = sprite.getAdvancer();
-                    advancer.init((Actor)actor.copy(advancer.getActor()), timestamp);
-                    advancer.advance(getAdvancedTime());
-
                 } else {
                     sprite.update(timestamp, actor);
                 }
@@ -1109,9 +1103,7 @@ public class TudeySceneView extends DynamicScope
             ActorSprite sprite = _actorSprites.remove(-actor.getCreated());
             if (sprite != null) {
                 _actorSprites.put(id, sprite);
-                ActorAdvancer advancer = sprite.getAdvancer();
-                advancer.init((Actor)actor.copy(advancer.getActor()), timestamp);
-                advancer.advance(getAdvancedTime());
+                sprite.reinit(timestamp, actor);
             }
             return;
         }
