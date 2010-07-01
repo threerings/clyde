@@ -48,6 +48,7 @@ import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
@@ -80,6 +81,7 @@ import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.client.sprite.PlaceableSprite;
 import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
+import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.TudeyCodes;
@@ -427,6 +429,28 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Requests to prespawn an actor.
+     */
+    public ActorSprite prespawnActor (
+        int timestamp, Vector2f translation, float rotation, ConfigReference<ActorConfig> ref)
+    {
+        // attempt to resolve the implementation
+        ConfigManager cfgmgr = _ctx.getConfigManager();
+        ActorConfig config = cfgmgr.getConfig(ActorConfig.class, ref);
+        ActorConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+        if (original == null) {
+            log.warning("Failed to resolve actor config.", "actor", ref);
+            return null;
+        }
+        int id = -timestamp;
+        Actor actor = original.createActor(ref, id, timestamp, translation, rotation);
+        actor.init(cfgmgr);
+        ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
+        _actorSprites.put(id, sprite);
+        return sprite;
+    }
+
+    /**
      * Processes a scene delta received from the server.
      *
      * @return true if the scene delta was processed, false if we have not yet received the
@@ -551,7 +575,14 @@ public class TudeySceneView extends DynamicScope
         for (Iterator<IntEntry<ActorSprite>> it = _actorSprites.intEntrySet().iterator();
                 it.hasNext(); ) {
             IntEntry<ActorSprite> entry = it.next();
-            if (!actors.containsKey(entry.getIntKey())) {
+            int id = entry.getIntKey();
+            if (id < 0) {
+                ActorSprite sprite = entry.getValue();
+                if (sprite.getActor().getCreated() <= timestamp) {
+                    sprite.remove(timestamp);
+                    it.remove();
+                }
+            } else if (!actors.containsKey(id)) {
                 ActorSprite sprite = entry.getValue();
                 sprite.remove(timestamp);
                 if (_controlledSprite == sprite) {

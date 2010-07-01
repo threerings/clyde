@@ -123,14 +123,8 @@ public class MobileLogic extends ActorLogic
         // create advancer
         _advancer = createAdvancer();
 
-        // set the actor in motion if appropriate
-        ActorConfig.Mobile config = (ActorConfig.Mobile)_config;
-        if (config.startMoving) {
-            ((Mobile)_actor).setDirection(_actor.getRotation());
-            _actor.set(Mobile.MOVING);
-        }
-
         // start ticking immediately if we don't start out in stasis
+        ActorConfig.Mobile config = (ActorConfig.Mobile)_config;
         if (!(_inStasis = config.startInStasis)) {
             _scenemgr.addTickParticipant(this);
             leftStasis();
