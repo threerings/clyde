@@ -48,7 +48,7 @@ public abstract class ActivityLogic extends Logic
      */
     public void start (int timestamp)
     {
-        _started = timestamp;
+        _started = timestamp - (shouldAdvance() ? _source.getActivityAdvance() : 0);
     }
 
     /**
@@ -89,6 +89,15 @@ public abstract class ActivityLogic extends Logic
     protected void didInit ()
     {
         // nothing by default
+    }
+
+    /**
+     * Checks whether we should advance the activity to compensate for control latency, if
+     * relevant.
+     */
+    protected boolean shouldAdvance ()
+    {
+        return true;
     }
 
     /** The activity source. */

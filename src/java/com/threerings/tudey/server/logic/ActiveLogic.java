@@ -39,6 +39,14 @@ import com.threerings.tudey.data.actor.Actor;
  */
 public class ActiveLogic extends MobileLogic
 {
+    /**
+     * Returns the amount of time to advance activities to compensate for control latency.
+     */
+    public int getActivityAdvance ()
+    {
+        return 0;
+    }
+
     @Override // documentation inherited
     public boolean tick (int timestamp)
     {
@@ -50,20 +58,12 @@ public class ActiveLogic extends MobileLogic
         if (activity != null) {
             int started = active.getActivityStarted();
             if (started > _lastActivityStarted) {
-                activity.start((_lastActivityStarted = started) - getActivityAdvance());
+                activity.start(_lastActivityStarted = started);
             }
             activity.tick(timestamp);
         }
 
         return true;
-    }
-
-    /**
-     * Returns the amount of time to advance activities to compensate for control latency.
-     */
-    protected int getActivityAdvance ()
-    {
-        return 0;
     }
 
     /** Activity logic mappings. */

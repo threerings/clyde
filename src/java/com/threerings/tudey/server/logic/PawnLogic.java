@@ -69,6 +69,12 @@ public class PawnLogic extends ActiveLogic
     }
 
     @Override // documentation inherited
+    public int getActivityAdvance ()
+    {
+        return getControlDelta()/2; // split the difference
+    }
+
+    @Override // documentation inherited
     public boolean tick (int timestamp)
     {
         // process the enqueued input
@@ -84,12 +90,6 @@ public class PawnLogic extends ActiveLogic
     protected ActorAdvancer createAdvancer ()
     {
         return (_advancer = (PawnAdvancer)_actor.createAdvancer(this, _actor.getCreated()));
-    }
-
-    @Override // documentation inherited
-    protected int getActivityAdvance ()
-    {
-        return getControlDelta()/2; // split the difference
     }
 
     /** A casted reference to the advancer. */

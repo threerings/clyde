@@ -91,6 +91,7 @@ import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.Prespawnable;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
@@ -563,6 +564,12 @@ public class TudeySceneView extends DynamicScope
             if (sprite != null) {
                 if (_ctrl.isControlledId(id)) {
                     _ctrl.controlledActorUpdated(timestamp, actor);
+
+                } else if (sprite.getAdvancer() != null) {
+                    ActorAdvancer advancer = sprite.getAdvancer();
+                    advancer.init((Actor)actor.copy(advancer.getActor()), timestamp);
+                    advancer.advance(getAdvancedTime());
+
                 } else {
                     sprite.update(timestamp, actor);
                 }
@@ -1097,6 +1104,17 @@ public class TudeySceneView extends DynamicScope
         addPreloads(actor);
         int id = actor.getId();
         int timestamp = _records.get(_records.size() - 1).getTimestamp();
+        if (actor instanceof Prespawnable &&
+                ((Prespawnable)actor).getClientOid() == _ctx.getClient().getClientOid()) {
+            ActorSprite sprite = _actorSprites.remove(-actor.getCreated());
+            if (sprite != null) {
+                _actorSprites.put(id, sprite);
+                ActorAdvancer advancer = sprite.getAdvancer();
+                advancer.init((Actor)actor.copy(advancer.getActor()), timestamp);
+                advancer.advance(getAdvancedTime());
+            }
+            return;
+        }
         ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
         _actorSprites.put(id, sprite);
         if (id == _ctrl.getControlledId()) {
