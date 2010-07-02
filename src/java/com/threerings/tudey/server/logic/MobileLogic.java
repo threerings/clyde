@@ -28,6 +28,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.data.actor.StepLimiter;
@@ -93,6 +94,12 @@ public class MobileLogic extends ActorLogic
     }
 
     // documentation inherited from ActorAdvancer.Environment
+    public TudeySceneModel getSceneModel ()
+    {
+        return _scenemgr.getSceneModel();
+    }
+
+    // documentation inherited from ActorAdvancer.Environment
     public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
     {
         if (!_scenemgr.getPenetration(actor, shape, result)) {
@@ -102,6 +109,12 @@ public class MobileLogic extends ActorLogic
         _penetrationCount++;
         _penetrationSum.addLocal(result);
         return true;
+    }
+
+    // documentation inherited from ActorAdvancer.Environment
+    public boolean collides (Actor actor, Shape shape)
+    {
+        return _scenemgr.collides(actor, shape);
     }
 
     @Override // documentation inherited

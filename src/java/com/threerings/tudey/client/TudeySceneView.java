@@ -948,6 +948,12 @@ public class TudeySceneView extends DynamicScope
     }
 
     // documentation inherited from interface ActorAdvancer.Environment
+    public TudeySceneModel getSceneModel ()
+    {
+        return _sceneModel;
+    }
+
+    // documentation inherited from interface ActorAdvancer.Environment
     public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
     {
         // start with zero penetration
@@ -972,6 +978,30 @@ public class TudeySceneView extends DynamicScope
 
         // if our vector is non-zero, we penetrated
         return !result.equals(Vector2f.ZERO);
+    }
+
+    // documentation inherited from interface ActorAdvancer.Environment
+    public boolean collides (Actor actor, Shape shape)
+    {
+        // check the scene model
+        if (_sceneModel.collides(actor, shape)) {
+            return true;
+        }
+
+        // look for intersecting elements
+        _actorSpace.getIntersecting(shape, _elements);
+        try {
+            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+                SpaceElement element = _elements.get(ii);
+                Actor oactor = ((ActorSprite)element.getUserObject()).getActor();
+                if (actor.canCollide(oactor)) {
+                    return true;
+                }
+            }
+        } finally {
+            _elements.clear();
+        }
+        return false;
     }
 
     /**

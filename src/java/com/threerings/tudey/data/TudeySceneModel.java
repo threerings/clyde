@@ -1893,6 +1893,12 @@ public class TudeySceneModel extends SceneModel
     }
 
     // documentation inherited from interface ActorAdvancer.Environment
+    public TudeySceneModel getSceneModel ()
+    {
+        return this;
+    }
+
+    // documentation inherited from interface ActorAdvancer.Environment
     public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
     {
         // start with zero penetration

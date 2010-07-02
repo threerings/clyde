@@ -27,6 +27,7 @@ package com.threerings.tudey.util;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.shape.Shape;
 
@@ -37,11 +38,16 @@ import com.threerings.tudey.shape.Shape;
 public class ActorAdvancer
 {
     /**
-     * Provides a callback mechanism to allow the advancer to query the pawn's environment while
+     * Provides a callback mechanism to allow the advancer to query the actor's environment while
      * advancing it.
      */
     public interface Environment
     {
+        /**
+         * Returns a reference to the scene model.
+         */
+        public TudeySceneModel getSceneModel ();
+
         /**
          * Checks whether the actor is colliding with anything and, if it is, populates the
          * provided object with the penetration vector (the minimum translation required to
@@ -51,6 +57,11 @@ public class ActorAdvancer
          * populated), false otherwise.
          */
         public boolean getPenetration (Actor actor, Shape shape, Vector2f result);
+
+        /**
+         * Checks whether the actor is colliding with anything.
+         */
+        public boolean collides (Actor actor, Shape shape);
     }
 
     /**

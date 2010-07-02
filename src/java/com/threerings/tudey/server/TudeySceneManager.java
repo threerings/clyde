@@ -603,8 +603,15 @@ public class TudeySceneManager extends SceneManager
      */
     public boolean collides (ActorLogic logic, Shape shape, int timestamp)
     {
+        return collides(logic.getActor(), shape, timestamp);
+    }
+
+    /**
+     * Determines whether the specified actor collides with anything in the environment.
+     */
+    public boolean collides (Actor actor, Shape shape, int timestamp)
+    {
         // check the scene model
-        Actor actor = logic.getActor();
         if (((TudeySceneModel)_scene.getSceneModel()).collides(actor, shape)) {
             return true;
         }
@@ -925,6 +932,12 @@ public class TudeySceneManager extends SceneManager
     }
 
     // documentation inherited from interface ActorAdvancer.Environment
+    public TudeySceneModel getSceneModel ()
+    {
+        return (TudeySceneModel)_scene.getSceneModel();
+    }
+
+    // documentation inherited from interface ActorAdvancer.Environment
     public boolean getPenetration (Actor actor, Shape shape, Vector2f result)
     {
         // start with zero penetration
@@ -949,6 +962,12 @@ public class TudeySceneManager extends SceneManager
 
         // if our vector is non-zero, we penetrated
         return !result.equals(Vector2f.ZERO);
+    }
+
+    // documentation inherited from interface ActorAdvancer.Environment
+    public boolean collides (Actor actor, Shape shape)
+    {
+        return collides(actor, shape, _timestamp);
     }
 
     // documentation inherited from interface RunQueue
