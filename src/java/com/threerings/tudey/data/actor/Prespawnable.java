@@ -31,7 +31,12 @@ package com.threerings.tudey.data.actor;
 public interface Prespawnable
 {
     /**
-     * Returns the oid of the client that (may have) prespawned the actor, or zero for none.
+     * Sets the oid of the client that (may have) prespawned the actor, or zero for none.
+     */
+    public void setClientOid (int clientOid);
+
+    /**
+     * Returns the oid of the client that (may have) prespawned the actor.
      */
     public int getClientOid ();
 }

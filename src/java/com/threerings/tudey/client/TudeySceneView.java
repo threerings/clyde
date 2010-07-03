@@ -1132,6 +1132,7 @@ public class TudeySceneView extends DynamicScope
                 ((Prespawnable)actor).getClientOid() == _ctx.getClient().getClientOid()) {
             ActorSprite sprite = _actorSprites.remove(-actor.getCreated());
             if (sprite != null) {
+                System.out.println("got it");
                 _actorSprites.put(id, sprite);
                 sprite.reinit(timestamp, actor);
             }
