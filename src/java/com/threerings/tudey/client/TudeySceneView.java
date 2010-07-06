@@ -83,6 +83,7 @@ import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.CameraConfig;
+import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeyOccupantInfo;
@@ -93,6 +94,7 @@ import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Prespawnable;
 import com.threerings.tudey.data.effect.Effect;
+import com.threerings.tudey.data.effect.Prefireable;
 import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.dobj.SceneDeltaEvent;
 import com.threerings.tudey.shape.Shape;
@@ -452,6 +454,26 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Requests to prefire an effect.
+     */
+    public EffectSprite prefireEffect (
+        int timestamp, EntityKey target, Vector2f translation, float rotation,
+        ConfigReference<EffectConfig> ref)
+    {
+        // attempt to resolve the implementation
+        ConfigManager cfgmgr = _ctx.getConfigManager();
+        EffectConfig config = cfgmgr.getConfig(EffectConfig.class, ref);
+        EffectConfig.Original original = (config == null) ? null : config.getOriginal(cfgmgr);
+        if (original == null) {
+            log.warning("Failed to resolve effect config.", "effect", ref);
+            return null;
+        }
+        Effect effect = original.createEffect(ref, timestamp, target, translation, rotation);
+        effect.init(cfgmgr);
+        return new EffectSprite(_ctx, this, effect);
+    }
+
+    /**
      * Processes a scene delta received from the server.
      *
      * @return true if the scene delta was processed, false if we have not yet received the
@@ -611,7 +633,8 @@ public class TudeySceneView extends DynamicScope
         if (fired != null) {
             int last = _records.get(_records.size() - 2).getTimestamp();
             for (Effect effect : fired) {
-                if (effect.getTimestamp() > last) {
+                if (effect.getTimestamp() > last && !(effect instanceof Prefireable &&
+                        ((Prefireable)effect).getClientOid() == _ctx.getClient().getClientOid())) {
                     effect.init(_ctx.getConfigManager());
                     new EffectSprite(_ctx, this, effect);
                 }

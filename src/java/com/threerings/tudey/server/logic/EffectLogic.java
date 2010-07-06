@@ -49,6 +49,7 @@ public class EffectLogic extends Logic
         Vector2f translation, float rotation)
     {
         super.init(scenemgr);
+        _config = config;
         _target = target;
         _effect = createEffect(ref, timestamp, (target == null) ? null : target.getEntityKey(),
             translation, rotation);
@@ -95,7 +96,7 @@ public class EffectLogic extends Logic
         ConfigReference<EffectConfig> ref, int timestamp,
         EntityKey target, Vector2f translation, float rotation)
     {
-        return new Effect(ref, timestamp, target, translation, rotation);
+        return _config.createEffect(ref, timestamp, target, translation, rotation);
     }
 
     /**
@@ -108,6 +109,9 @@ public class EffectLogic extends Logic
             _action.execute(_effect.getTimestamp(), (_target == null) ? this : _target);
         }
     }
+
+    /** The effect configuration. */
+    protected EffectConfig.Original _config;
 
     /** The effect fired. */
     protected Effect _effect;

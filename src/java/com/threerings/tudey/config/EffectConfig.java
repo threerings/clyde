@@ -32,6 +32,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.util.Preloadable;
@@ -39,6 +40,7 @@ import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EffectSprite;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.util.TudeyContext;
@@ -114,6 +116,16 @@ public class EffectConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.EffectLogic";
+        }
+
+        /**
+         * Creates a new effect of the type associated with this config.
+         */
+        public Effect createEffect (
+            ConfigReference<EffectConfig> config, int timestamp, EntityKey target,
+            Vector2f translation, float rotation)
+        {
+            return new Effect(config, timestamp, target, translation, rotation);
         }
 
         /**

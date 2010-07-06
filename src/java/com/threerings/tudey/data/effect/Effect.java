@@ -40,6 +40,7 @@ import com.threerings.tudey.config.EffectConfig;
  * Represents a stateless event occurring within the scene.
  */
 public class Effect extends SimpleStreamableObject
+    implements Prefireable
 {
     /**
      * Creates a new effect.
@@ -131,6 +132,18 @@ public class Effect extends SimpleStreamableObject
         return _timestamp + _original.lifespan;
     }
 
+    // documentation inherited from interface Prefireable
+    public void setClientOid (int clientOid)
+    {
+        _clientOid = clientOid;
+    }
+
+    // documentation inherited from interface Prefireable
+    public int getClientOid ()
+    {
+        return _clientOid;
+    }
+
     /** The effect configuration. */
     protected ConfigReference<EffectConfig> _config;
 
@@ -145,6 +158,9 @@ public class Effect extends SimpleStreamableObject
 
     /** The effect's rotation angle. */
     protected float _rotation;
+
+    /** The oid of the client on which the effect was prefired, if any. */
+    protected int _clientOid;
 
     /** The cached config implementation. */
     protected transient EffectConfig.Original _original;
