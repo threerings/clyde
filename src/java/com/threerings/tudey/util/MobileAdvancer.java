@@ -26,6 +26,7 @@ package com.threerings.tudey.util;
 
 import com.threerings.math.Vector2f;
 
+import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 
@@ -47,6 +48,18 @@ public class MobileAdvancer extends ActorAdvancer
     {
         super.init(actor, timestamp);
         _mobile = (Mobile)actor;
+    }
+
+    @Override // documentation inherited
+    public void advance (int timestamp)
+    {
+        // set the mobile in motion if just created and so configured
+        if (_timestamp == _mobile.getCreated() && timestamp > _timestamp &&
+                ((ActorConfig.Mobile)_mobile.getOriginal()).startMoving) {
+            _mobile.setDirection(_mobile.getRotation());
+            _mobile.set(Mobile.MOVING);
+        }
+        super.advance(timestamp);
     }
 
     @Override // documentation inherited

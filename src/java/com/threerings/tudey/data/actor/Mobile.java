@@ -26,7 +26,6 @@ package com.threerings.tudey.data.actor;
 
 import com.samskivert.util.ArrayUtil;
 
-import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
@@ -150,17 +149,6 @@ public class Mobile extends Actor
                 length * FloatMath.cos(_direction),
                 length * FloatMath.sin(_direction));
             setDirty(true);
-        }
-    }
-
-    @Override // documentation inherited
-    public void init (ConfigManager cfgmgr)
-    {
-        super.init(cfgmgr);
-        if (_original instanceof ActorConfig.Mobile &&
-                ((ActorConfig.Mobile)_original).startMoving) {
-            setDirection(_rotation);
-            set(MOVING);
         }
     }
 
