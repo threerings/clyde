@@ -40,6 +40,7 @@ import com.threerings.presents.dobj.OidList;
 import com.threerings.presents.server.PresentsDObjectMgr;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActionConfig;
@@ -130,10 +131,10 @@ public abstract class ActionLogic extends Logic
             ActionConfig.SpawnRotatedActor config = (ActionConfig.SpawnRotatedActor)_config;
             float rotation = config.rotation;
             if (config.rotationVariance > 0) {
-                rotation += config.rotationVariance * 0.5f +
-                    RandomUtil.getFloat(config.rotationVariance);
+                rotation += config.rotationVariance * (FloatMath.random() - 0.5f);
             }
-            return (config.relative ? target.getRotation() : 0f) + rotation;
+            return FloatMath.normalizeAngle(
+                (config.relative ? target.getRotation() : 0f) + rotation);
         }
     }
 
