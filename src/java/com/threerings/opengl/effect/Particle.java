@@ -132,10 +132,7 @@ public final class Particle
     {
         _age = 0f;
         _lifescale = 1f / lifespan;
-        Vector3f hpos = _history.init(_position);
-        if (historyTransform != null) {
-            historyTransform.transformPointLocal(hpos);
-        }
+        _history.init(_position, historyTransform);
         _alphaMode = alphaMode;
         _colorfunc = color.getValue(_colorfunc);
         _alphaMode.apply(_colorfunc.getValue(0f, _color));
@@ -155,7 +152,6 @@ public final class Particle
             _framefunc = frame.getValue(_framefunc);
             _frame = _framefunc.getValue(0f);
         }
-        _historyTransform = historyTransform;
     }
 
     /**
@@ -179,10 +175,7 @@ public final class Particle
         // update length and record the new position if we have a tail
         if (_lengthfunc != null) {
             _length = _lengthfunc.getValue(_age);
-            Vector3f hpos = _history.record(_position, elapsed, _length);
-            if (_historyTransform != null && hpos != null) {
-                _historyTransform.transformPointLocal(hpos);
-            }
+            _history.record(_position, elapsed, _length);
         }
 
         // update texture frame
@@ -239,7 +232,4 @@ public final class Particle
 
     /** The particle's current texture frame. */
     protected float _frame;
-
-    /** The transform to apply to the recorded positions, if any. */
-    protected Transform3D _historyTransform;
 }

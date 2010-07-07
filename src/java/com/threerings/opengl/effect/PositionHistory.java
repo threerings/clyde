@@ -27,6 +27,7 @@ package com.threerings.opengl.effect;
 import java.util.ArrayList;
 
 import com.threerings.math.FloatMath;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 /**
@@ -39,29 +40,28 @@ public final class PositionHistory
      * (Re)initializes the history.
      *
      * @param initial the initial position.
-     * @return a reference to the saved historical position.
+     * @param transform the transform to apply to new entries, or null for none.
      */
-    public Vector3f init (Vector3f initial)
+    public void init (Vector3f initial, Transform3D transform)
     {
         // throw all entries back in the pool
         _pool.addAll(_entries);
         _entries.clear();
 
-        // add the initial entry
-        return addEntry(initial, _time = 0f).position;
+        // set the transform and add the initial entry
+        _transform = transform;
+        addEntry(initial, _time = 0f);
     }
 
     /**
      * Records a position occupied by the particle.
-     *
-     * @return a reference to the historical position, or null if no time elapsed.
      */
-    public Vector3f record (Vector3f position, float elapsed, float length)
+    public void record (Vector3f position, float elapsed, float length)
     {
         if (elapsed <= 0f) {
-            return null; // make sure we have actually advanced
+            return; // make sure we have actually advanced
         }
-        Entry entry = addEntry(position, _time += elapsed);
+        addEntry(position, _time += elapsed);
 
         // we can remove everything up to the first entry past the cutoff (which we will
         // need for interpolation)
@@ -69,7 +69,6 @@ public final class PositionHistory
         while (_entries.get(1).time <= cutoff) {
             _pool.add(_entries.remove(0));
         }
-        return entry.position;
     }
 
     /**
@@ -116,16 +115,16 @@ public final class PositionHistory
 
     /**
      * Adds an entry for the specified values, fetching one from the pool if possible.
-     *
-     * @return a reference to the added entry.
      */
-    protected Entry addEntry (Vector3f position, float time)
+    protected void addEntry (Vector3f position, float time)
     {
         int size = _pool.size();
         Entry entry = (size == 0) ? new Entry(position, time) :
             _pool.remove(size - 1).set(position, time);
+        if (_transform != null) {
+            _transform.transformPointLocal(entry.position);
+        }
         _entries.add(entry);
-        return entry;
     }
 
     /**
@@ -162,6 +161,9 @@ public final class PositionHistory
 
     /** The current length. */
     protected float _length;
+
+    /** The transform to apply to new entries. */
+    protected Transform3D _transform;
 
     /** The entries in the history. */
     protected ArrayList<Entry> _entries = new ArrayList<Entry>();
