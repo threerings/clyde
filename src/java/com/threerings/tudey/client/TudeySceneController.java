@@ -657,14 +657,16 @@ public class TudeySceneController extends SceneController
         }
 
         // perhaps enqueue an input frame
+        long now = RunAnywhere.currentTimeMillis();
         if (rotation != _lastRotation || direction != _lastDirection ||
-                _frameFlags != _lastFlags) {
+                _frameFlags != _lastFlags || now >= _nextInput) {
             // create and enqueue the frame
             InputFrame frame = _lastFrame = createInputFrame(
                 _tsview.getAdvancedTime(), rotation, direction, _frameFlags);
             _lastRotation = rotation;
             _lastDirection = direction;
             _lastFlags = _frameFlags;
+            _nextInput = now + _tsview.getElapsed();
             _input.add(frame);
 
             // apply it immediately to the controller and sprite advancers
@@ -922,6 +924,9 @@ public class TudeySceneController extends SceneController
 
     /** The last flags we transmitted. */
     protected int _lastFlags;
+
+    /** The latest time at which we should enqueue an input frame. */
+    protected long _nextInput;
 
     /** The time at which we last transmitted our input.  */
     protected long _lastTransmit;

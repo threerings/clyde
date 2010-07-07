@@ -227,6 +227,14 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Returns the average of the elapsed times.
+     */
+    public int getElapsed ()
+    {
+        return _elapsedAverage.value();
+    }
+
+    /**
      * Returns the advanced time, which is the smoothed time plus an interval that compensates for
      * buffering and latency.
      */
