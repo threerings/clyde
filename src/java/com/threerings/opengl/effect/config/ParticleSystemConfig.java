@@ -157,6 +157,14 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         /**
+         * Returns whether or not to move the particle trails with the particles.
+         */
+        public boolean getMoveTrailsWithParticles ()
+        {
+            return true;
+        }
+
+        /**
          * Returns the radius of the geometry (used to expand the bounds).
          */
         public float getRadius (GlContext ctx)
@@ -196,8 +204,12 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
     public static class Lines extends ParticleGeometryConfig
     {
         /** The number of segments in each particle. */
-        @Editable(min=0)
+        @Editable(min=0, hgroup="s")
         public int segments;
+
+        /** Whether or not to move the trails with the particles. */
+        @Editable(hgroup="s")
+        public boolean moveTrailsWithParticles = true;
 
         public Lines (Quads quads)
         {
@@ -212,6 +224,12 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         public int getSegments ()
         {
             return segments;
+        }
+
+        @Override // documentation inherited
+        public boolean getMoveTrailsWithParticles ()
+        {
+            return moveTrailsWithParticles;
         }
 
         @Override // documentation inherited
@@ -230,8 +248,12 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
     public static class Quads extends ParticleGeometryConfig
     {
         /** The number of segments in each particle. */
-        @Editable(min=0)
+        @Editable(min=0, hgroup="s")
         public int segments;
+
+        /** Whether or not to move the trails with the particles. */
+        @Editable(hgroup="s")
+        public boolean moveTrailsWithParticles = true;
 
         public Quads (Lines lines)
         {
@@ -246,6 +268,12 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         public int getSegments ()
         {
             return segments;
+        }
+
+        @Override // documentation inherited
+        public boolean getMoveTrailsWithParticles ()
+        {
+            return moveTrailsWithParticles;
         }
 
         @Override // documentation inherited

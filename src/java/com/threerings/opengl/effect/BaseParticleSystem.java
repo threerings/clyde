@@ -320,7 +320,7 @@ public abstract class BaseParticleSystem extends Model.Implementation
         protected void initParticle (int idx)
         {
             _particles[idx].init(_config.lifespan.getValue(), _config.alphaMode,
-                _config.color, _config.size, null, null);
+                _config.color, _config.size, null, null, null);
         }
 
         /**

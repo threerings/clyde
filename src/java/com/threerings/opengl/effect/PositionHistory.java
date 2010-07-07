@@ -39,26 +39,29 @@ public final class PositionHistory
      * (Re)initializes the history.
      *
      * @param initial the initial position.
+     * @return a reference to the saved historical position.
      */
-    public void init (Vector3f initial)
+    public Vector3f init (Vector3f initial)
     {
         // throw all entries back in the pool
         _pool.addAll(_entries);
         _entries.clear();
 
         // add the initial entry
-        addEntry(initial, _time = 0f);
+        return addEntry(initial, _time = 0f).position;
     }
 
     /**
      * Records a position occupied by the particle.
+     *
+     * @return a reference to the historical position, or null if no time elapsed.
      */
-    public void record (Vector3f position, float elapsed, float length)
+    public Vector3f record (Vector3f position, float elapsed, float length)
     {
         if (elapsed <= 0f) {
-            return; // make sure we have actually advanced
+            return null; // make sure we have actually advanced
         }
-        addEntry(position, _time += elapsed);
+        Entry entry = addEntry(position, _time += elapsed);
 
         // we can remove everything up to the first entry past the cutoff (which we will
         // need for interpolation)
@@ -66,6 +69,7 @@ public final class PositionHistory
         while (_entries.get(1).time <= cutoff) {
             _pool.add(_entries.remove(0));
         }
+        return entry.position;
     }
 
     /**
@@ -112,12 +116,16 @@ public final class PositionHistory
 
     /**
      * Adds an entry for the specified values, fetching one from the pool if possible.
+     *
+     * @return a reference to the added entry.
      */
-    protected void addEntry (Vector3f position, float time)
+    protected Entry addEntry (Vector3f position, float time)
     {
         int size = _pool.size();
-        _entries.add(size == 0 ?
-            new Entry(position, time) : _pool.remove(size - 1).set(position, time));
+        Entry entry = (size == 0) ? new Entry(position, time) :
+            _pool.remove(size - 1).set(position, time);
+        _entries.add(entry);
+        return entry;
     }
 
     /**

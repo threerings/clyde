@@ -25,6 +25,7 @@
 package com.threerings.opengl.effect;
 
 import com.threerings.math.Quaternion;
+import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.probs.ColorFunctionVariable;
@@ -49,8 +50,8 @@ public final class Particle
     }
 
     /**
-     * Computes the particle's position at some point in its past (where 0 is the current position
-     * and 1 is the oldest).
+     * Computes the particle's position at some point in its past (where 0 is the oldest position
+     * and 1 is the newest).
      */
     public Vector3f getPosition (float t, Vector3f result)
     {
@@ -126,11 +127,15 @@ public final class Particle
      */
     public void init (
         float lifespan, AlphaMode alphaMode, ColorFunctionVariable color,
-        FloatFunctionVariable size, FloatFunctionVariable length, FloatFunctionVariable frame)
+        FloatFunctionVariable size, FloatFunctionVariable length,
+        FloatFunctionVariable frame, Transform3D historyTransform)
     {
         _age = 0f;
         _lifescale = 1f / lifespan;
-        _history.init(_position);
+        Vector3f hpos = _history.init(_position);
+        if (historyTransform != null) {
+            historyTransform.transformPointLocal(hpos);
+        }
         _alphaMode = alphaMode;
         _colorfunc = color.getValue(_colorfunc);
         _alphaMode.apply(_colorfunc.getValue(0f, _color));
@@ -150,6 +155,7 @@ public final class Particle
             _framefunc = frame.getValue(_framefunc);
             _frame = _framefunc.getValue(0f);
         }
+        _historyTransform = historyTransform;
     }
 
     /**
@@ -173,7 +179,10 @@ public final class Particle
         // update length and record the new position if we have a tail
         if (_lengthfunc != null) {
             _length = _lengthfunc.getValue(_age);
-            _history.record(_position, elapsed, _length);
+            Vector3f hpos = _history.record(_position, elapsed, _length);
+            if (_historyTransform != null && hpos != null) {
+                _historyTransform.transformPointLocal(hpos);
+            }
         }
 
         // update texture frame
@@ -230,4 +239,7 @@ public final class Particle
 
     /** The particle's current texture frame. */
     protected float _frame;
+
+    /** The transform to apply to the recorded positions, if any. */
+    protected Transform3D _historyTransform;
 }

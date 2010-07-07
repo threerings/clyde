@@ -68,7 +68,7 @@ public class ParticleSystem extends BaseParticleSystem
         public void enqueue ()
         {
             // update the transform state if necessary
-            if (_config.moveParticlesWithEmitter) {
+            if (_ownTransformState) {
                 _parentViewTransform.compose(_config.transform, _transformState.getModelview());
                 _transformState.setDirty(true);
             }
@@ -102,7 +102,10 @@ public class ParticleSystem extends BaseParticleSystem
             super.setConfig(config);
 
             // transform state depends on whether we use local or world coordinates
-            _transformState = config.moveParticlesWithEmitter ? new TransformState() :
+            ParticleSystemConfig.Layer psconfig = (ParticleSystemConfig.Layer)config;
+            _ownTransformState = psconfig.moveParticlesWithEmitter &&
+                psconfig.geometry.getMoveTrailsWithParticles();
+            _transformState = _ownTransformState ? new TransformState() :
                 ScopeUtil.resolve(
                     _parentScope, "viewTransformState",
                     TransformState.IDENTITY, TransformState.class);
@@ -111,7 +114,6 @@ public class ParticleSystem extends BaseParticleSystem
             if (_surface != null) {
                 _surface.dispose();
             }
-            ParticleSystemConfig.Layer psconfig = (ParticleSystemConfig.Layer)config;
             _surface = new Surface(
                 _ctx, this, psconfig.geometry,
                 _ctx.getConfigManager().getConfig(MaterialConfig.class, psconfig.material));
@@ -150,7 +152,9 @@ public class ParticleSystem extends BaseParticleSystem
                 _config.lifespan.getValue(), _config.alphaMode, _config.color, _config.size,
                 (psconfig.geometry.getSegments() > 0) ? psconfig.length : null,
                 (psconfig.textureDivisionsS > 1 || psconfig.textureDivisionsT > 1) ?
-                    psconfig.frame : null);
+                    psconfig.frame : null,
+                (psconfig.moveParticlesWithEmitter &&
+                    !psconfig.geometry.getMoveTrailsWithParticles()) ? _worldTransform : null);
         }
 
         @Override // documentation inherited
@@ -181,6 +185,9 @@ public class ParticleSystem extends BaseParticleSystem
 
         /** The layer surface. */
         protected Surface _surface;
+
+        /** Whether or not we're using a transform state of our own (as opposed to inheriting). */
+        protected boolean _ownTransformState;
     }
 
     /**

@@ -353,7 +353,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
                     particle.getOrientation().transformUnitZ(n);
                     float nx = n.x, ny = n.y, nz = n.z;
 
-                    for (int jj = 0; jj < segments; jj++) {
+                    for (int jj = 0; jj <= segments; jj++) {
                         float frac = jj * tscale;
                         particle.getPosition(frac, position);
                         texCoordIdx = write(data, texCoordIdx, stride, uoff + frac*uscale, voff);
@@ -361,22 +361,14 @@ public abstract class ParticleGeometry extends DynamicGeometry
                         normalIdx = write(data, normalIdx, stride, nx, ny, nz);
                         vertexIdx = write(data, vertexIdx, stride, position);
                     }
-                    texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
-                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                    normalIdx = write(data, normalIdx, stride, nx, ny, nz);
-                    vertexIdx = write(data, vertexIdx, stride, particle.getPosition());
-
                 } else {
-                    for (int jj = 0; jj < segments; jj++) {
+                    for (int jj = 0; jj <= segments; jj++) {
                         float frac = jj * tscale;
                         particle.getPosition(frac, position);
                         texCoordIdx = write(data, texCoordIdx, stride, uoff + frac*uscale, voff);
                         colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
                         vertexIdx = write(data, vertexIdx, stride, position);
                     }
-                    texCoordIdx = write(data, texCoordIdx, stride, uoff + uscale, voff);
-                    colorIdx = write(data, colorIdx, stride, cr, cg, cb, ca);
-                    vertexIdx = write(data, vertexIdx, stride, particle.getPosition());
                 }
             }
         }
