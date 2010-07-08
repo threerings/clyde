@@ -456,7 +456,10 @@ public class TudeySceneView extends DynamicScope
         int id = -timestamp;
         Actor actor = original.createActor(ref, id, timestamp, translation, rotation);
         actor.init(cfgmgr);
-        ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
+        // as a hack, make sure the timestamp is less than the advanced time so that we notify
+        // the advancer of creation right away
+        ActorSprite sprite = new ActorSprite(
+            _ctx, this, Math.min(timestamp, _advancedTime - 1), actor);
         _actorSprites.put(id, sprite);
         return sprite;
     }

@@ -48,18 +48,13 @@ public class MobileAdvancer extends ActorAdvancer
     {
         super.init(actor, timestamp);
         _mobile = (Mobile)actor;
-    }
 
-    @Override // documentation inherited
-    public void advance (int timestamp)
-    {
         // set the mobile in motion if just created and so configured
-        if (_timestamp == _mobile.getCreated() && timestamp > _timestamp &&
+        if (timestamp == _mobile.getCreated() &&
                 ((ActorConfig.Mobile)_mobile.getOriginal()).startMoving) {
             _mobile.setDirection(_mobile.getRotation());
             _mobile.set(Mobile.MOVING);
         }
-        super.advance(timestamp);
     }
 
     @Override // documentation inherited
