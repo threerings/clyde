@@ -39,6 +39,8 @@ import com.threerings.util.DeepObject;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
+import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.util.Coord;
 
 /**
@@ -58,6 +60,22 @@ import com.threerings.tudey.util.Coord;
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
+    /**
+     * Interface for actions that require pre-execution on the owning client.
+     */
+    public interface PreExecutable
+    {
+        /**
+         * Checks whether we should pre-execute this action on the owning client.
+         */
+        public boolean shouldPreExecute ();
+
+        /**
+         * Pre-executes the action on the owning client.
+         */
+        public void preExecute (TudeySceneView view, ActorSprite sprite, int timestamp);
+    }
+
     /**
      * Spawns a new actor.
      */
@@ -603,6 +621,7 @@ public abstract class ActionConfig extends DeepObject
      * Executes multiple actions simultaneously.
      */
     public static class Compound extends ActionConfig
+        implements PreExecutable
     {
         /** The actions to execute. */
         @Editable
@@ -611,6 +630,31 @@ public abstract class ActionConfig extends DeepObject
         /** If we should stop executing actions if one fails. */
         @Editable
         public boolean stopOnFailure = false;
+
+        // documentation inherited from interface PreExecutable
+        public boolean shouldPreExecute ()
+        {
+            for (ActionConfig action : actions) {
+                if (action instanceof PreExecutable &&
+                        ((PreExecutable)action).shouldPreExecute()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // documentation inherited from interface PreExecutable
+        public void preExecute (TudeySceneView view, ActorSprite sprite, int timestamp)
+        {
+            for (ActionConfig action : actions) {
+                if (action instanceof PreExecutable) {
+                    PreExecutable preex = (PreExecutable)action;
+                    if (preex.shouldPreExecute()) {
+                        preex.preExecute(view, sprite, timestamp);
+                    }
+                }
+            }
+        }
 
         @Override // documentation inherited
         public String getLogicClassName ()
