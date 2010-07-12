@@ -103,15 +103,6 @@ public class UserInterface extends Container
     }
 
     /**
-     * Returns a reference to the interface context, which provides access to the interface
-     * config manager.
-     */
-    public GlContext getContext ()
-    {
-        return _ctx;
-    }
-
-    /**
      * Returns a reference to the interface's scope.
      */
     public DynamicScope getScope ()

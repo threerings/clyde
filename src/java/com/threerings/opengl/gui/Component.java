@@ -86,6 +86,14 @@ public class Component
     }
 
     /**
+     * Returns a reference to the component context.
+     */
+    public GlContext getContext ()
+    {
+        return _ctx;
+    }
+
+    /**
      * Sets the style configuration.
      */
     public void setStyleConfig (String name)
