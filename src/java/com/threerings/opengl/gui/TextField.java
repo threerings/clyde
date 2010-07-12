@@ -365,7 +365,6 @@ public class TextField extends TextComponent
                 lostFocus();
                 break;
             }
-            return true;
         }
 
         return super.dispatchEvent(event);
