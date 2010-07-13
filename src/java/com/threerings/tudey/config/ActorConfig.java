@@ -201,7 +201,6 @@ public class ActorConfig extends ParameterizedConfig
 
         /** If true, set the actor in motion after spawning. */
         @Editable(hgroup="s")
-        @Strippable
         public boolean startMoving;
 
         /** Whether or not the actor starts out in stasis. */
