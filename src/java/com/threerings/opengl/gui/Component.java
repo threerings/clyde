@@ -628,7 +628,7 @@ public class Component
      */
     public void removeAllListeners ()
     {
-    	_listeners.clear();
+        _listeners = null;
     }
 
     /**
