@@ -561,25 +561,28 @@ public class TudeySceneManager extends SceneManager
     /**
      * Triggers any intersection sensors intersecting the specified shape.
      */
-    public void triggerIntersectionSensors (int timestamp, ActorLogic actor)
+    public int triggerIntersectionSensors (int timestamp, ActorLogic actor)
     {
-        triggerSensors(IntersectionSensor.class, timestamp, actor.getShape(), actor);
+        return triggerSensors(IntersectionSensor.class, timestamp, actor.getShape(), actor);
     }
 
     /**
      * Triggers any sensors of the specified type intersecting the specified shape.
      */
-    public void triggerSensors (
+    public int triggerSensors (
         Class<? extends Sensor> type, int timestamp, Shape shape, ActorLogic actor)
     {
         List<SpaceElement> elements = Lists.newArrayList();
         _sensorSpace.getIntersecting(shape, elements);
+        int count = 0;
         for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
             Sensor sensor = (Sensor)elements.get(ii).getUserObject();
             if (type.isInstance(sensor)) {
                 sensor.trigger(timestamp, actor);
+                count++;
             }
         }
+        return count;
     }
 
     /**
