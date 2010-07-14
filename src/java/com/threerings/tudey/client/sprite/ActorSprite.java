@@ -799,6 +799,9 @@ public class ActorSprite extends Sprite
             _view.getActorSpace().add(_shape);
             _model.tick(0f);
             update();
+            if (timestamp == _actor.getCreated()) {
+                _impl.wasCreated();
+            }
         } else {
             _impl = null; // signifies that the actor has not yet been created
         }
