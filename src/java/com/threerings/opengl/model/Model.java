@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.samskivert.util.ObjectUtil;
+import com.google.common.base.Objects;
+
 import com.samskivert.util.ObserverList;
 
 import com.threerings.config.ConfigEvent;
@@ -323,7 +324,7 @@ public class Model extends DynamicScope
             GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings)
         {
             for (MaterialMapping mapping : materialMappings) {
-                if (ObjectUtil.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
+                if (Objects.equal(texture, mapping.texture) && tag.equals(mapping.tag)) {
                     if (mapping.material == null) {
                         return null;
                     }
@@ -491,7 +492,7 @@ public class Model extends DynamicScope
      */
     public void setRenderScheme (String scheme)
     {
-        if (!ObjectUtil.equals(_renderScheme, scheme)) {
+        if (!Objects.equal(_renderScheme, scheme)) {
             _renderScheme = scheme;
             wasUpdated();
         }

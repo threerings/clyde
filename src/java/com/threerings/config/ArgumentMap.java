@@ -33,7 +33,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.samskivert.util.ObjectUtil;
+import com.google.common.base.Objects;
+
 import com.samskivert.util.SortableArrayList;
 
 import com.threerings.io.ObjectInputStream;
@@ -126,7 +127,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
     public boolean containsValue (Object value)
     {
         for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-            if (ObjectUtil.equals(_entries.get(ii).getValue(), value)) {
+            if (Objects.equal(_entries.get(ii).getValue(), value)) {
                 return true;
             }
         }

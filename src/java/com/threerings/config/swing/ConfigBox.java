@@ -30,7 +30,8 @@ import java.util.Collection;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 
-import com.samskivert.util.ObjectUtil;
+import com.google.common.base.Objects;
+
 import com.samskivert.util.QuickSort;
 
 import com.threerings.util.MessageBundle;
@@ -179,7 +180,7 @@ public class ConfigBox extends JComboBox
         @Override // documentation inherited
         public boolean equals (Object other)
         {
-            return ObjectUtil.equals(name, ((ConfigItem)other).name);
+            return Objects.equal(name, ((ConfigItem)other).name);
         }
     }
 

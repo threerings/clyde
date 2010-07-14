@@ -38,7 +38,8 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.PixelFormat;
 
-import com.samskivert.util.ObjectUtil;
+import com.google.common.base.Objects;
+
 import com.samskivert.util.RunQueue;
 
 import com.threerings.config.ConfigManager;
@@ -104,7 +105,7 @@ public abstract class GlApp extends DynamicScope
      */
     public void setRenderScheme (String scheme)
     {
-        if (!ObjectUtil.equals(_renderScheme, scheme)) {
+        if (!Objects.equal(_renderScheme, scheme)) {
             _renderScheme = scheme;
             wasUpdated();
         }

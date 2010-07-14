@@ -31,11 +31,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.TreeSet;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import com.samskivert.util.ComparableTuple;
-import com.samskivert.util.ObjectUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigManager;
@@ -349,7 +349,7 @@ public class ModelConfig extends ParameterizedConfig
         protected MaterialMapping getMaterialMapping (String texture, String tag)
         {
             for (MaterialMapping mapping : materialMappings) {
-                if (ObjectUtil.equals(texture, mapping.texture) && tag.equals(mapping.tag)) {
+                if (Objects.equal(texture, mapping.texture) && tag.equals(mapping.tag)) {
                     return mapping;
                 }
             }

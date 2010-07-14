@@ -44,10 +44,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
+import com.google.common.base.Objects;
+
 import com.samskivert.swing.event.CommandEvent;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayIntSet;
-import com.samskivert.util.ObjectUtil;
 
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
@@ -361,7 +362,7 @@ public class ResourceEditor extends BaseConfigEditor
         // do some special handling to make sure we play nice with the cache
         String opath = (_file == null) ? null : _rsrcmgr.getResourcePath(_file);
         String npath = _rsrcmgr.getResourcePath(file);
-        if (!ObjectUtil.equals(opath, npath)) {
+        if (!Objects.equal(opath, npath)) {
             if (opath != null) {
                 config = (ManagedConfig)config.clone();
                 config.init(_cfgmgr);

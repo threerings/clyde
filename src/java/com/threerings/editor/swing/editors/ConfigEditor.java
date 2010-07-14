@@ -29,7 +29,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JLabel;
 
-import com.samskivert.util.ObjectUtil;
+import com.google.common.base.Objects;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.swing.ConfigBox;
@@ -48,7 +48,7 @@ public class ConfigEditor extends PropertyEditor
     public void actionPerformed (ActionEvent event)
     {
         Object value = _box.getSelectedConfig();
-        if (!ObjectUtil.equals(_property.get(_object), value)) {
+        if (!Objects.equal(_property.get(_object), value)) {
             _property.set(_object, value);
             fireStateChanged();
         }

@@ -26,7 +26,7 @@ package com.threerings.opengl.material.config;
 
 import java.util.ArrayList;
 
-import com.samskivert.util.ObjectUtil;
+import com.google.common.base.Objects;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -99,7 +99,7 @@ public class MaterialConfig extends ParameterizedConfig
             ArrayList<TechniqueConfig> processed = getProcessedTechniques(ctx);
             for (int ii = 0, nn = processed.size(); ii < nn; ii++) {
                 TechniqueConfig technique = processed.get(ii);
-                if (ObjectUtil.equals(technique.scheme, scheme)) {
+                if (Objects.equal(technique.scheme, scheme)) {
                     return technique;
                 }
             }
