@@ -209,6 +209,14 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Returns the client control delta (the difference between the advanced and delayed times).
+     */
+    public int getControlDelta ()
+    {
+        return _advancedTime - _delayedTime;
+    }
+
+    /**
      * Returns the delayed client time, which is the smoothed time minus a delay that compensates
      * for network jitter and dropped packets.
      */
