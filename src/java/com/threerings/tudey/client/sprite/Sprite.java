@@ -57,6 +57,14 @@ public abstract class Sprite extends SimpleScope
     }
 
     /**
+     * Returns the sprite's floor mask.
+     */
+    public int getFloorMask ()
+    {
+        return 0x255;
+    }
+
+    /**
      * Determines whether the sprite is hoverable (for purposes of in-game user interaction).
      */
     public boolean isHoverable ()

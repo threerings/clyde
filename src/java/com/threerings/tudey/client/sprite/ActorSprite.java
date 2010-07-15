@@ -96,6 +96,14 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Returns the sprite's floor mask.
+         */
+        public int getFloorMask ()
+        {
+            return 0xFF;
+        }
+
+        /**
          * Determines whether the implementation is hoverable.
          */
         public boolean isHoverable ()
@@ -231,6 +239,12 @@ public class ActorSprite extends Sprite
         public int getFloorFlags ()
         {
             return _config.floorFlags;
+        }
+
+        @Override // documentation inherited
+        public int getFloorMask ()
+        {
+            return _config.floorMask;
         }
 
         @Override // documentation inherited
@@ -1064,6 +1078,12 @@ public class ActorSprite extends Sprite
     public int getFloorFlags ()
     {
         return _impl.getFloorFlags();
+    }
+
+    @Override // documentaiton inherited
+    public int getFloorMask ()
+    {
+        return _impl.getFloorMask();
     }
 
     @Override // documentation inherited
