@@ -46,7 +46,8 @@ public class BehaviorConfig extends ParameterizedConfig
       * Contains the actual implementation of the behavior.
       */
     @EditorTypes({
-        Original.class, Derived.class, Wander.class, Patrol.class, Follow.class, Random.class })
+        Original.class, Derived.class, Wander.class, Patrol.class, Follow.class, Random.class,
+        Scripted.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -223,6 +224,22 @@ public class BehaviorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Random";
+        }
+    }
+
+    /**
+     * A behavior that has a set of scripted actions.
+     */
+    public static class Scripted extends Original
+    {
+        /** The script steps to follow. */
+        @Editable
+        public ScriptConfig[] steps = new ScriptConfig[0];
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$Scripted";
         }
     }
 

@@ -611,6 +611,46 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Handles the scripted behavior.
+     */
+    public static class Scripted extends BehaviorLogic
+    {
+        @Override // documentaiton inherited
+        public void tick (int timestamp)
+        {
+            if (_currentStep < steps.length) {
+                if (_start) {
+                    steps[_currentStep].start(timestamp);
+                }
+                if (_start = steps[_currentStep].tick(timestamp)) {
+                    _currentStep++;
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+
+            BehaviorConfig.Scripted config = (BehaviorConfig.Scripted)_config;
+            steps = new ScriptLogic[config.steps.length];
+            for (int ii = 0; ii < steps.length; ii++) {
+                steps[ii] = ScriptLogic.createScriptLogic(_scenemgr, config.steps[ii], _agent);
+            }
+        }
+
+        /** The script logics. */
+        protected ScriptLogic[] steps;
+
+        /** The current step. */
+        protected int _currentStep;
+
+        /** If we need to start the next step. */
+        protected boolean _start = true;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, BehaviorConfig.Original config, AgentLogic agent)
