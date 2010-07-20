@@ -187,6 +187,36 @@ public abstract class ScriptLogic extends Logic
     }
 
     /**
+     * Handles the condition script.
+     */
+    public static class Condition extends ScriptLogic
+    {
+        @Override // documentation inherited
+        public void start (int timestamp)
+        {
+            _agent.stopMoving();
+            _agent.clearTargetRotation();
+        }
+
+        @Override // documentation inherited
+        public boolean tick (int timestamp)
+        {
+            return _condition.isSatisfied(_agent);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+
+            _condition = createCondition(((ScriptConfig.Condition)_config).condition, _agent);
+        }
+
+        /** The condition to evaluate. */
+        protected ConditionLogic _condition;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ScriptConfig config, AgentLogic agent)

@@ -36,7 +36,7 @@ import com.threerings.util.DeepObject;
  * Configurations for scripted actions in a behavior.
  */
 @EditorTypes({
-    ScriptConfig.Wait.class, ScriptConfig.Move.class })
+    ScriptConfig.Wait.class, ScriptConfig.Move.class, ScriptConfig.Condition.class })
 public abstract class ScriptConfig extends DeepObject
     implements Exportable
 {
@@ -69,6 +69,22 @@ public abstract class ScriptConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ScriptLogic$Move";
+        }
+    }
+
+    /**
+     * A script that waits until a condition is satisfied before completing.
+     */
+    public static class Condition extends ScriptConfig
+    {
+        /** The condition. */
+        @Editable
+        public ConditionConfig condition = new ConditionConfig.Always();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ScriptLogic$Condition";
         }
     }
 
