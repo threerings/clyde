@@ -545,7 +545,8 @@ public class Sounder extends SimpleScope
                 int top = getTop();
                 if (top > -1 && top < oldLevel) {
                     for (com.threerings.openal.Stream stream : _soundmgr.getStreams()) {
-                        if (sameStack(stream) && ((StackedStream)stream).getLevel() == top) {
+                        if (sameStack(stream) && ((StackedStream)stream).getLevel() == top &&
+                                stream._fadeMode != FadeMode.OUT_DISPOSE) {
                             if (interval > 0f) {
                                 stream.fadeIn(interval);
                             } else {
