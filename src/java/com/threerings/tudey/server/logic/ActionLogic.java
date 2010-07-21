@@ -26,9 +26,11 @@ package com.threerings.tudey.server.logic;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Set;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import com.google.inject.Inject;
 
@@ -75,9 +77,7 @@ public abstract class ActionLogic extends Logic
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
-                ActorLogic logic = _scenemgr.spawnActor(
-                    timestamp, getTranslation(target), getRotation(target), actor);
-                initLogic(logic, timestamp, activator);
+                spawnActor(timestamp, actor, target, activator);
             }
             _targets.clear();
             return true;
@@ -90,9 +90,20 @@ public abstract class ActionLogic extends Logic
         }
 
         /**
-         * Initialize the logic.
+         * Spawns an actor at the target
          */
-        protected void initLogic (ActorLogic logic, int timestamp, Logic activator)
+        protected void spawnActor (
+                int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
+        {
+            ActorLogic logic = _scenemgr.spawnActor(
+                    timestamp, getTranslation(target), getRotation(target), actor);
+            initLogic(logic, activator);
+        }
+
+        /**
+         * Initializes the logic.
+         */
+        protected void initLogic (ActorLogic logic, Logic activator)
         {
             if (logic != null) {
                 logic.setSource(_source);
@@ -148,6 +159,31 @@ public abstract class ActionLogic extends Logic
         {
             return ((ActionConfig.SpawnTransformedActor)_config).translation.rotateAndAdd(
                 target.getRotation(), target.getTranslation(), new Vector2f());
+        }
+    }
+
+    /**
+     * Handles a spawn random translated actor action.
+     */
+    public static class SpawnRandomTranslatedActor extends SpawnActor
+    {
+        @Override // documentation inherited
+        protected void spawnActor (
+                int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
+        {
+            ActionConfig.SpawnRandomTranslatedActor config =
+                (ActionConfig.SpawnRandomTranslatedActor)_config;
+            Set<Vector2f> locations = Sets.newHashSet();
+            for (int ii = 0; ii < config.count; ii++) {
+                Vector2f location = getTranslation(target).add(
+                        RandomUtil.getInRange(-config.steps, config.steps + 1) * config.stepSize,
+                        RandomUtil.getInRange(-config.steps, config.steps + 1) * config.stepSize);
+                if (locations.add(location)) {
+                    ActorLogic logic = _scenemgr.spawnActor(
+                            timestamp, location, getRotation(target), actor);
+                    initLogic(logic, activator);
+                }
+            }
         }
     }
 

@@ -618,14 +618,20 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentaiton inherited
         public void tick (int timestamp)
         {
-            if (_currentStep < steps.length) {
+            if (_currentStep < _steps.length) {
                 if (_start) {
-                    steps[_currentStep].start(timestamp);
+                    _steps[_currentStep].start(timestamp);
                 }
-                if (_start = steps[_currentStep].tick(timestamp)) {
+                if (_start = _steps[_currentStep].tick(timestamp)) {
                     _currentStep++;
                 }
             }
+        }
+
+        @Override // documentation inherited
+        public void reachedTargetRotation ()
+        {
+            _steps[_currentStep].reachedTargetRotation();
         }
 
         @Override // documentation inherited
@@ -634,14 +640,14 @@ public abstract class BehaviorLogic extends Logic
             super.didInit();
 
             BehaviorConfig.Scripted config = (BehaviorConfig.Scripted)_config;
-            steps = new ScriptLogic[config.steps.length];
-            for (int ii = 0; ii < steps.length; ii++) {
-                steps[ii] = ScriptLogic.createScriptLogic(_scenemgr, config.steps[ii], _agent);
+            _steps = new ScriptLogic[config.steps.length];
+            for (int ii = 0; ii < _steps.length; ii++) {
+                _steps[ii] = ScriptLogic.createScriptLogic(_scenemgr, config.steps[ii], _agent);
             }
         }
 
         /** The script logics. */
-        protected ScriptLogic[] steps;
+        protected ScriptLogic[] _steps;
 
         /** The current step. */
         protected int _currentStep;

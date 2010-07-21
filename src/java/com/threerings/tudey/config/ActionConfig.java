@@ -48,15 +48,15 @@ import com.threerings.tudey.util.Coord;
  */
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
-    ActionConfig.SpawnTransformedActor.class, ActionConfig.DestroyActor.class,
-    ActionConfig.WarpActor.class, ActionConfig.WarpTransformedActor.class,
-    ActionConfig.FireEffect.class, ActionConfig.Signal.class,
-    ActionConfig.MoveBody.class, ActionConfig.MoveAll.class,
-    ActionConfig.Conditional.class, ActionConfig.Switch.class,
-    ActionConfig.ExpressionSwitch.class, ActionConfig.Compound.class,
-    ActionConfig.Random.class, ActionConfig.Delayed.class,
-    ActionConfig.StepLimitMobile.class, ActionConfig.SetVariable.class,
-    ActionConfig.SetFlag.class })
+    ActionConfig.SpawnTransformedActor.class, ActionConfig.SpawnRandomTranslatedActor.class,
+    ActionConfig.DestroyActor.class, ActionConfig.WarpActor.class,
+    ActionConfig.WarpTransformedActor.class, ActionConfig.FireEffect.class,
+    ActionConfig.Signal.class, ActionConfig.MoveBody.class,
+    ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
+    ActionConfig.Switch.class, ActionConfig.ExpressionSwitch.class,
+    ActionConfig.Compound.class, ActionConfig.Random.class,
+    ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
+    ActionConfig.SetVariable.class, ActionConfig.SetFlag.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -163,6 +163,33 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnTransformedActor";
+        }
+    }
+
+    /**
+     * Spawns a number of actors randomly translated from the location.
+     */
+    public static class SpawnRandomTranslatedActor extends SpawnActor
+    {
+        /** The number of actors to spawn. */
+        @Editable
+        @Strippable
+        public int count = 1;
+
+        /** The translation step. */
+        @Editable(min=0.01, step=0.01, hgroup="s")
+        @Strippable
+        public float stepSize = 1;
+
+        /** The number of steps to take. */
+        @Editable(hgroup="s")
+        @Strippable
+        public int steps = 1;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$SpawnRandomTranslatedActor";
         }
     }
 

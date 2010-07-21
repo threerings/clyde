@@ -187,6 +187,35 @@ public abstract class ScriptLogic extends Logic
     }
 
     /**
+     * Handles the rotate script.
+     */
+    public static class Rotate extends ScriptLogic
+    {
+        @Override // documentation inherited
+        public void start (int timestamp)
+        {
+            _agent.stopMoving();
+            _agent.setTargetRotation(((ScriptConfig.Rotate)_config).direction);
+            _complete = false;
+        }
+
+        @Override // documentation inherited
+        public void reachedTargetRotation ()
+        {
+            _complete = true;
+        }
+
+        @Override // documentation inherited
+        public boolean tick (int timestamp)
+        {
+            return _complete;
+        }
+
+        /** If we're done. */
+        protected boolean _complete = false;
+    }
+
+    /**
      * Handles the condition script.
      */
     public static class Condition extends ScriptLogic
@@ -243,6 +272,14 @@ public abstract class ScriptLogic extends Logic
      * Called when we are about to start the current script.
      */
     public void start (int timestamp)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Called when the agent reached its target rotation.
+     */
+    public void reachedTargetRotation ()
     {
         // nothing by default
     }

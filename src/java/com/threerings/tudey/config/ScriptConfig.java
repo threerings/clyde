@@ -36,7 +36,8 @@ import com.threerings.util.DeepObject;
  * Configurations for scripted actions in a behavior.
  */
 @EditorTypes({
-    ScriptConfig.Wait.class, ScriptConfig.Move.class, ScriptConfig.Condition.class })
+    ScriptConfig.Wait.class, ScriptConfig.Move.class,
+    ScriptConfig.Rotate.class, ScriptConfig.Condition.class })
 public abstract class ScriptConfig extends DeepObject
     implements Exportable
 {
@@ -69,6 +70,22 @@ public abstract class ScriptConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ScriptLogic$Move";
+        }
+    }
+
+    /**
+     * Rotates to a target orientation.
+     */
+    public static class Rotate extends ScriptConfig
+    {
+        /** The target rotation. */
+        @Editable(min=0.0, max=360.0, scale=Math.PI/180.0)
+        public float direction = 0;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ScriptLogic$Rotate";
         }
     }
 
