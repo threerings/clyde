@@ -738,15 +738,11 @@ public class ShaderConfig extends ParameterizedConfig
         @Editable
         public String eyeVertex = "eyeVertex";
 
-        /** The name of the fog parameter variable. */
-        @Editable
-        public String fogParam = "fogParam";
-
         @Override // documentation inherited
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
-            SnippetUtil.getFogParam(name, eyeVertex, fogParam, states, defs);
+            SnippetUtil.getFogParam(name, eyeVertex, states, defs);
         }
     }
 
@@ -756,15 +752,11 @@ public class ShaderConfig extends ParameterizedConfig
      */
     public static class FogBlendSnippet extends Definition
     {
-        /** The name of the fog parameter variable. */
-        @Editable
-        public String fogParam = "fogParam";
-
         @Override // documentation inherited
         public void getDefinitions (
             Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
         {
-            SnippetUtil.getFogBlend(name, fogParam, states, defs);
+            SnippetUtil.getFogBlend(name, states, defs);
         }
     }
 

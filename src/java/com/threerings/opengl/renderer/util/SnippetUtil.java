@@ -49,20 +49,18 @@ public class SnippetUtil
      * Creates a fog parameter snippet.
      */
     public static void getFogParam (
-        String name, String eyeVertex, String fogParam, RenderState[] states, List<String> defs)
+        String name, String eyeVertex, RenderState[] states, List<String> defs)
     {
         FogState state = (FogState)states[RenderState.FOG_STATE];
         int mode = (state == null) ? -1 : state.getFogMode();
         if (mode == -1) {
-            defs.add("DECLARE_" + name);
             defs.add("SET_" + name);
             return;
         }
-        defs.add("DECLARE_" + name + " varying float " + fogParam + ";");
-        ArrayKey key = new ArrayKey(name, eyeVertex, fogParam, mode);
+        ArrayKey key = new ArrayKey(name, eyeVertex, mode);
         String def = _fogParams.get(key);
         if (def == null) {
-            _fogParams.put(key, def = createFogParamDef(name, eyeVertex, fogParam, mode));
+            _fogParams.put(key, def = createFogParamDef(name, eyeVertex, mode));
         }
         defs.add(def);
     }
@@ -70,19 +68,16 @@ public class SnippetUtil
     /**
      * Creates a fog blend snippet.
      */
-    public static void getFogBlend (
-        String name, String fogParam, RenderState[] states, List<String> defs)
+    public static void getFogBlend (String name, RenderState[] states, List<String> defs)
     {
         FogState state = (FogState)states[RenderState.FOG_STATE];
         int mode = (state == null) ? -1 : state.getFogMode();
         if (mode == -1) {
-            defs.add("DECLARE_" + name);
             defs.add("BLEND_" + name);
             return;
         }
-        defs.add("DECLARE_" + name + " varying float " + fogParam + ";");
         defs.add("BLEND_" + name + " gl_FragColor.rgb = mix(gl_Fog.color.rgb, gl_FragColor.rgb, " +
-            fogParam + ");");
+            "gl_FogFragCoord);");
     }
 
     /**
@@ -125,20 +120,19 @@ public class SnippetUtil
     /**
      * Creates and returns the definition for the supplied fog parameters.
      */
-    protected static String createFogParamDef (
-        String name, String eyeVertex, String fogParam, int mode)
+    protected static String createFogParamDef (String name, String eyeVertex, int mode)
     {
         StringBuilder buf = new StringBuilder();
         switch(mode) {
             case GL11.GL_LINEAR:
-                buf.append(fogParam + " = clamp((gl_Fog.end + " + eyeVertex + ".z) * gl_Fog.scale");
+                buf.append("gl_FogFragCoord = clamp((gl_Fog.end + " + eyeVertex + ".z) * gl_Fog.scale");
                 break;
             case GL11.GL_EXP:
-                buf.append(fogParam + " = clamp(exp(gl_Fog.density * " + eyeVertex + ".z)");
+                buf.append("gl_FogFragCoord = clamp(exp(gl_Fog.density * " + eyeVertex + ".z)");
                 break;
             case GL11.GL_EXP2:
                 buf.append("float f = gl_Fog.density * " + eyeVertex + ".z; ");
-                buf.append(fogParam + " = clamp(exp(-f*f)");
+                buf.append("gl_FogFragCoord = clamp(exp(-f*f)");
                 break;
         }
         buf.append(", 0.0, 1.0); ");
