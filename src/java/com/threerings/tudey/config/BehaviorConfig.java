@@ -47,7 +47,7 @@ public class BehaviorConfig extends ParameterizedConfig
       */
     @EditorTypes({
         Original.class, Derived.class, Wander.class, Patrol.class, Follow.class, Random.class,
-        Scripted.class })
+        Scripted.class, Combined.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -240,6 +240,26 @@ public class BehaviorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Scripted";
+        }
+    }
+
+    /**
+     * A combined behavior.
+     */
+    public static class Combined extends Original
+    {
+        /** The first behavior. */
+        @Editable(nullable=true)
+        public ConfigReference<BehaviorConfig> first;
+
+        /** The second behavior. */
+        @Editable(nullable=true)
+        public ConfigReference<BehaviorConfig> second;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$Combined";
         }
     }
 

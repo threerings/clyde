@@ -657,6 +657,100 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
+     * Handles the combined behavior.
+     */
+    public static class Combined extends BehaviorLogic
+    {
+        @Override // documentation inherited
+        public void startup ()
+        {
+            if (_first != null) {
+                _first.startup();
+            }
+            if (_second != null) {
+                _second.startup();
+            }
+        }
+
+        @Override // documentation inherited
+        public void shutdown ()
+        {
+            if (_first != null) {
+                _first.shutdown();
+            }
+            if (_second != null) {
+                _second.shutdown();
+            }
+        }
+
+        @Override // documentation inherited
+        public void tick (int timestamp)
+        {
+            if (_first != null) {
+                _first.tick(timestamp);
+            }
+            if (_second != null) {
+                _second.tick(timestamp);
+            }
+        }
+
+        @Override // documentation inherited
+        public void reachedTargetRotation ()
+        {
+            if (_first != null) {
+                _first.reachedTargetRotation();
+            }
+            if (_second != null) {
+                _second.reachedTargetRotation();
+            }
+        }
+
+        @Override // documentation inherited
+        public void penetratedEnvironment (Vector2f penetration)
+        {
+            if (_first != null) {
+                _first.penetratedEnvironment(penetration);
+            }
+            if (_second != null) {
+                _second.penetratedEnvironment(penetration);
+            }
+        }
+
+        @Override // documentation inherited
+        public Logic getCurrentTarget ()
+        {
+            Logic target = null;
+            if (_first != null) {
+                target = _first.getCurrentTarget();
+            }
+            if (_second != null && target == null) {
+                target = _second.getCurrentTarget();
+            }
+            return target;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            BehaviorConfig.Combined config = (BehaviorConfig.Combined)_config;
+            _first = _agent.createBehavior(config.first);
+            if (_first != null) {
+                _first.didInit();
+            }
+            _second = _agent.createBehavior(config.second);
+            if (_second != null) {
+                _second.didInit();
+            }
+        }
+
+        /** Our first behavior. */
+        protected BehaviorLogic _first;
+
+        /** Our second behavior. */
+        protected BehaviorLogic _second;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, BehaviorConfig.Original config, AgentLogic agent)
