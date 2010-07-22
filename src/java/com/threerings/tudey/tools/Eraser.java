@@ -126,7 +126,7 @@ public class Eraser extends EditorTool
             _transform.getTranslation().set(_isect.x, _isect.y);
             _transform.setRotation(_angle);
             _shape = _options.shape.getShape().transform(_transform, _shape);
-            _scene.getEntries(_shape, _entries);
+            _editor.getLayerEntries(_shape, _entries);
             for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
                 Entry entry = _entries.get(ii);
                 if (_options.filter.matches(entry)) {

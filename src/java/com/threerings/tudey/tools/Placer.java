@@ -132,7 +132,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         if (_editor.isThirdButtonDown()) {
             Shape shape = _cursor.getShape();
             if (shape != null) {
-                _scene.getEntries(shape, _entries);
+                _editor.getLayerEntries(shape, _entries);
                 for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
                     Entry entry = _entries.get(ii);
                     if (entry instanceof PlaceableEntry) {

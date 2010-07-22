@@ -145,6 +145,17 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * An extended Observer interface for observers interested in layers.
+     */
+    public interface LayerObserver extends Observer
+    {
+        /**
+         * Notes that the layer was set for the specified entry.
+         */
+        public void entryLayerWasSet (Object key, int layer);
+    }
+
+    /**
      * An entry in the scene.
      */
     public static abstract class Entry extends DeepObject
@@ -1651,6 +1662,16 @@ public class TudeySceneModel extends SceneModel
             int entryLayer = entry.getValue();
             if (entryLayer == layer) {
                 itr.remove(); // shift that object to the base layer
+                // notify the observers
+                final Object key = entry.getKey();
+                _observers.apply(new ObserverList.ObserverOp<Observer>() {
+                    public boolean apply (Observer observer) {
+                        if (observer instanceof LayerObserver) {
+                            ((LayerObserver) observer).entryLayerWasSet(key, 0);
+                        }
+                        return true;
+                    }
+                });
             } else if (entryLayer > layer) {
                 entry.setValue(entryLayer - 1);
             }
@@ -1673,7 +1694,7 @@ public class TudeySceneModel extends SceneModel
     /**
      * Set the layer of the entry with the specified key.
      */
-    public void setLayer (Object key, int layer)
+    public void setLayer (final Object key, final int layer)
     {
         validateLayer(layer);
         if (layer == 0) {
@@ -1683,6 +1704,15 @@ public class TudeySceneModel extends SceneModel
                 "Tiles may only be placed on layer 0");
             _entryLayers.put(key, layer);
         }
+        // notify the observers
+        _observers.apply(new ObserverList.ObserverOp<Observer>() {
+            public boolean apply (Observer observer) {
+                if (observer instanceof LayerObserver) {
+                    ((LayerObserver) observer).entryLayerWasSet(key, layer);
+                }
+                return true;
+            }
+        });
     }
 
     /**

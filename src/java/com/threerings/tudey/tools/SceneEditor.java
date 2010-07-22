@@ -44,8 +44,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Map;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -77,6 +78,7 @@ import org.lwjgl.opengl.GL11;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.swing.GroupLayout;
@@ -451,6 +453,21 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
+     * Get entries from the specified scene that are on the currently selected layer.
+     */
+    public void getLayerEntries (Shape shape, Collection<Entry> results)
+    {
+        List<Entry> all = Lists.newArrayList();
+        _scene.getEntries(shape, all);
+        int layer = _layers.getSelectedLayer();
+        for (Entry entry : all) {
+            if (layer == _scene.getLayer(entry.getKey())) {
+                results.add(entry);
+            }
+        }
+    }
+
+    /**
      * Selects the specified entries and switches to either the selector tool or the arrow
      * tool, depending on whether multiple entries are selected.
      */
@@ -596,11 +613,15 @@ public class SceneEditor extends TudeyTool
         if (!getMouseRay(_pick)) {
             return null;
         }
+        final int layer = _layers.getSelectedLayer();
         EntrySprite sprite = (EntrySprite)_view.getIntersection(
             _pick, _pt, new Predicate<Sprite>() {
             public boolean apply (Sprite sprite) {
-                return sprite instanceof EntrySprite &&
-                    filter.apply(((EntrySprite)sprite).getEntry());
+                if (!(sprite instanceof EntrySprite)) {
+                    return false;
+                }
+                Entry entry = ((EntrySprite)sprite).getEntry();
+                return (layer == _scene.getLayer(entry.getKey())) && filter.apply(entry);
             }
         });
         return (sprite == null) ? null : sprite.getEntry();
@@ -654,10 +675,10 @@ public class SceneEditor extends TudeyTool
             TileConfig.Original config = tentry.getConfig(getConfigManager());
             Rectangle region = new Rectangle();
             tentry.getRegion(config, region);
-            ArrayList<TileEntry> results = new ArrayList<TileEntry>();
+            List<TileEntry> results = Lists.newArrayList();
             _scene.getTileEntries(region, results);
-            for (int ii = 0, nn = results.size(); ii < nn; ii++) {
-                removeEntry(results.get(ii).getKey());
+            for (TileEntry tile : results) {
+                removeEntry(tile.getKey());
             }
         }
         addEntry(entry);
@@ -1180,6 +1201,10 @@ public class SceneEditor extends TudeyTool
                 _layerSplit.setDividerLocation(_layerDividerPos);
             }
         }
+        boolean forceBase = (tool == _tileBrush) || (tool == _groundBrush) || (tool == _wallBrush);
+        if (forceBase) {
+            _layers.setSelectedLayer(0);
+        }
 
         SwingUtil.refresh(_opanel);
     }
@@ -1473,7 +1498,7 @@ public class SceneEditor extends TudeyTool
     protected void transformSelection (Transform3D xform)
     {
         incrementEditId();
-        ArrayList<Entry> overwrites = new ArrayList<Entry>();
+        List<Entry> overwrites = Lists.newArrayList();
         Entry[] oselection = _selection;
         Entry[] nselection = new Entry[oselection.length];
         for (int ii = 0; ii < oselection.length; ii++) {
@@ -1522,7 +1547,7 @@ public class SceneEditor extends TudeyTool
                 }
             }
         } else {
-            ArrayList<Object> keys = new ArrayList<Object>();
+            List<Object> keys = Lists.newArrayList();
             for (Entry entry : _scene.getEntries()) {
                 if (!entry.isValid(getConfigManager())) {
                     keys.add(entry.getKey());
@@ -1672,7 +1697,7 @@ public class SceneEditor extends TudeyTool
     protected JPanel _opanel;
 
     /** Tools mapped by name. */
-    protected HashMap<String, EditorTool> _tools = new HashMap<String, EditorTool>();
+    protected Map<String, EditorTool> _tools = Maps.newHashMap();
 
     /** The arrow tool. */
     protected Arrow _arrow;

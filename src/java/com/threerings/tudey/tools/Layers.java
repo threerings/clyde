@@ -176,6 +176,7 @@ public class Layers extends EditorTool
  * A table model for the table in the layer tool.
  */
 class LayerTableModel extends AbstractTableModel
+    implements TudeySceneModel.LayerObserver
 {
     public LayerTableModel (SceneEditor editor)
     {
@@ -195,6 +196,7 @@ class LayerTableModel extends AbstractTableModel
     public void setScene (TudeySceneModel scene)
     {
         _scene = scene;
+        _scene.addObserver(this);
         _vis = Lists.newArrayList(Collections.nCopies(getRowCount(), Boolean.TRUE));
         fireTableDataChanged();
     }
@@ -208,9 +210,6 @@ class LayerTableModel extends AbstractTableModel
 
     public void removeLayer (int layer)
     {
-        // update the visibilty of all objects on that layer to match layer 0's vis
-        updateVisibility(layer, _vis.get(0));
-        // remove it
         _scene.removeLayer(layer);
         _vis.remove(layer);
         fireTableRowsDeleted(layer, layer);
@@ -300,12 +299,37 @@ class LayerTableModel extends AbstractTableModel
             Object key = entry.getKey();
             if (layer == _scene.getLayer(key)) {
                 EntrySprite sprite = view.getEntrySprite(key);
-                if (sprite == null) {
-                    System.err.println("WTF: " + key);
-                } else {
+                if (sprite != null) {
                     sprite.getModel().setVisible(visible);
                 }
             }
+        }
+    }
+
+    // from Observer (not part of public API)
+    public void entryAdded (TudeySceneModel.Entry entry)
+    {
+        // nada
+    }
+
+    // from Observer (not part of public API)
+    public void entryUpdated (TudeySceneModel.Entry oentry, TudeySceneModel.Entry nentry)
+    {
+        // nada
+    }
+
+    // from Observer (not part of public API)
+    public void entryRemoved (TudeySceneModel.Entry oentry)
+    {
+        // nada
+    }
+
+    // from LayerObserver (not part of public API)
+    public void entryLayerWasSet (Object key, int layer)
+    {
+        EntrySprite sprite = _editor.getView().getEntrySprite(key);
+        if (sprite != null) {
+            sprite.getModel().setVisible(_vis.get(layer));
         }
     }
 

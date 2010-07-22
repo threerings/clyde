@@ -138,7 +138,7 @@ public class Selector extends EditorTool
             TudeySceneMetrics.getTileZ(_editor.getGrid().getElevation());
 
         // update the selection
-        _scene.getEntries(shape, _entries);
+        _editor.getLayerEntries(shape, _entries);
         for (int ii = _entries.size() - 1; ii >= 0; ii--) {
             if (!_options.filter.matches(_entries.get(ii))) {
                 _entries.remove(ii);
