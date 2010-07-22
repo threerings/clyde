@@ -2604,6 +2604,10 @@ public class Renderer
         public TextureUnitRecord ()
         {
             genModeS = genModeT = genModeR = genModeQ = GL11.GL_EYE_LINEAR;
+
+            // for some reason the texture matrices aren't starting out as identity on ATI cards,
+            // so we have to invalidate them
+            transform.setType(-1);
         }
 
         /**
