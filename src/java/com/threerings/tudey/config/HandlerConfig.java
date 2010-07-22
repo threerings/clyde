@@ -187,8 +187,13 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class Intersection extends BaseIntersection
     {
+        /** The mask representing the types of entities that trigger the sensor. */
+        @Editable(editor="mask", mode="collision", hgroup="m")
+        @Strippable
+        public int mask = 0xFF;
+
         /** The amount of time that must elapse between firings. */
-        @Editable(min=0.0, step=0.1)
+        @Editable(min=0.0, step=0.1, hgroup="m")
         @Strippable
         public float refractoryPeriod;
 
@@ -204,6 +209,11 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class IntersectionStart extends BaseIntersection
     {
+        /** The mask representing the types of entities that trigger the sensor. */
+        @Editable(editor="mask", mode="collision")
+        @Strippable
+        public int mask = 0xFF;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
@@ -216,6 +226,11 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static class IntersectionStop extends BaseIntersection
     {
+        /** The mask representing the types of entities that trigger the sensor. */
+        @Editable(editor="mask", mode="collision")
+        @Strippable
+        public int mask = 0xFF;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
@@ -228,6 +243,11 @@ public abstract class HandlerConfig extends DeepObject
      */
     public static abstract class BaseIntersectionCount extends BaseIntersection
     {
+        /** The mask representing the types of entities that trigger the sensor. */
+        @Editable(editor="mask", mode="collision")
+        @Strippable
+        public int mask = 0xFF;
+
         /** The condition that must be satisfied for a valid intersection. */
         @Editable
         public ConditionConfig condition = new ConditionConfig.InstanceOf();

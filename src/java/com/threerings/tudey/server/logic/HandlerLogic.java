@@ -335,6 +335,12 @@ public abstract class HandlerLogic extends Logic
         }
 
         // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public int getMask ()
+        {
+            return ((HandlerConfig.Intersection)_config).mask;
+        }
+
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
         public void trigger (int timestamp, ActorLogic actor)
         {
             if (timestamp >= _minTimestamp) {
@@ -363,6 +369,12 @@ public abstract class HandlerLogic extends Logic
         }
 
         // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public int getMask ()
+        {
+            return ((HandlerConfig.IntersectionStart)_config).mask;
+        }
+
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
         public void trigger (int timestamp, ActorLogic actor)
         {
             activate(timestamp, actor);
@@ -381,6 +393,12 @@ public abstract class HandlerLogic extends Logic
         public IntersectionStop ()
         {
             super(false, true);
+        }
+
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public int getMask ()
+        {
+            return ((HandlerConfig.IntersectionStop)_config).mask;
         }
 
         // documentation inherited from interface TudeySceneManager.IntersectionSensor
@@ -409,6 +427,12 @@ public abstract class HandlerLogic extends Logic
         {
             _condition = createCondition(
                     ((HandlerConfig.BaseIntersectionCount)_config).condition, _source);
+        }
+
+        // documentation inherited from interface TudeySceneManager.IntersectionSensor
+        public int getMask ()
+        {
+            return ((HandlerConfig.BaseIntersectionCount)_config).mask;
         }
 
         // documentation inherited from interface TudeySceneManager.IntersectionSensor

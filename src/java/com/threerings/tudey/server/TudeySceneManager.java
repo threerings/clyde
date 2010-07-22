@@ -138,6 +138,12 @@ public class TudeySceneManager extends SceneManager
     public interface Sensor
     {
         /**
+         * Returns the sensor's bitmask.  Only triggers whose flags intersect the mask will
+         * activate the sensor.
+         */
+        public int getMask ();
+
+        /**
          * Triggers the sensor.
          *
          * @param timestamp the timestamp of the intersection.
@@ -563,21 +569,23 @@ public class TudeySceneManager extends SceneManager
      */
     public int triggerIntersectionSensors (int timestamp, ActorLogic actor)
     {
-        return triggerSensors(IntersectionSensor.class, timestamp, actor.getShape(), actor);
+        return triggerSensors(
+            IntersectionSensor.class, timestamp, actor.getShape(),
+            actor.getActor().getCollisionFlags(), actor);
     }
 
     /**
      * Triggers any sensors of the specified type intersecting the specified shape.
      */
     public int triggerSensors (
-        Class<? extends Sensor> type, int timestamp, Shape shape, ActorLogic actor)
+        Class<? extends Sensor> type, int timestamp, Shape shape, int flags, ActorLogic actor)
     {
         List<SpaceElement> elements = Lists.newArrayList();
         _sensorSpace.getIntersecting(shape, elements);
         int count = 0;
         for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
             Sensor sensor = (Sensor)elements.get(ii).getUserObject();
-            if (type.isInstance(sensor)) {
+            if (type.isInstance(sensor) && (flags & sensor.getMask()) != 0) {
                 sensor.trigger(timestamp, actor);
                 count++;
             }
