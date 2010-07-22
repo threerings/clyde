@@ -353,11 +353,12 @@ public class SceneEditor extends TudeyTool
 
         // create the option panel
         _opanel = GroupLayout.makeVStretchBox(5);
-        _epanel.add(_opanel);
 
         // set up the layer tool, which is special and added to the _tools map by hand
-        _opanel.add(_layers = new Layers(this), GroupLayout.FIXED);
-        _tools.put("layers", _layers);
+        _tools.put("layers", _layers = new Layers(this));
+
+        _epanel.add(_layerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _layers, _opanel));
+        _layerSplit.setBorder(BorderFactory.createEmptyBorder());
 
         // activate the arrow tool
         setActiveTool(_arrow);
@@ -1167,8 +1168,19 @@ public class SceneEditor extends TudeyTool
             _opanel.add(_activeTool);
             _activeTool.activate();
         }
+
+        // update whether we are showing or hiding layers
         boolean hideLayers = (tool instanceof GlobalEditor) || (tool instanceof Notepad);
-        _layers.setVisible(!hideLayers);
+        if (hideLayers) {
+            _layerDividerPos = _layerSplit.getDividerLocation();
+            _layers.setVisible(false);
+        } else {
+            _layers.setVisible(true);
+            if (_layerDividerPos != 0) {
+                _layerSplit.setDividerLocation(_layerDividerPos);
+            }
+        }
+
         SwingUtil.refresh(_opanel);
     }
 
@@ -1694,6 +1706,12 @@ public class SceneEditor extends TudeyTool
 
     /** The palette tool. */
     protected Palette _palette;
+
+    /** The pane splitting layers from the other tools. */
+    protected JSplitPane _layerSplit;
+
+    /** The last position of the layer divider. */
+    protected int _layerDividerPos;
 
     /** The layer display tool. */
     protected Layers _layers;
