@@ -77,6 +77,9 @@ public class DisplayRoot extends Root
                 Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)) {
             _modifiers |= InputEvent.CTRL_DOWN_MASK;
         }
+        if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) {
+            _modifiers |= InputEvent.ALT_DOWN_MASK;
+        }
         if (Keyboard.isKeyDown(Keyboard.KEY_LMETA) || Keyboard.isKeyDown(Keyboard.KEY_RMETA)) {
             _modifiers |= InputEvent.META_DOWN_MASK;
         }
