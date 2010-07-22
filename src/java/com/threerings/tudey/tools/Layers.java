@@ -19,6 +19,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -42,6 +44,7 @@ public class Layers extends EditorTool
     public Layers (SceneEditor editor)
     {
         super(editor);
+        ((GroupLayout) getLayout()).setGap(0);
         _tableModel = new LayerTableModel(editor);
         _table = _tableModel.getTable();
         _table.setPreferredScrollableViewportSize(new Dimension(100, 64));
@@ -56,10 +59,17 @@ public class Layers extends EditorTool
                 _removeLayerAction.setEnabled(layer != 0);
             }
         });
+        _tableModel.addTableModelListener(new TableModelListener() {
+            public void tableChanged (TableModelEvent event) {
+                _mergeVisibleLayersAction.setEnabled(_tableModel.getVisibleLayers().size() >= 2);
+            }
+        });
         _removeLayerAction.setEnabled(false);
+        _mergeVisibleLayersAction.setEnabled(false);
 
         add(GroupLayout.makeButtonBox(new JLabel("Layers"),
-            new JButton(_addLayerAction), new JButton(_removeLayerAction)), GroupLayout.FIXED);
+            new JButton(_addLayerAction), new JButton(_removeLayerAction),
+            new JButton(_mergeVisibleLayersAction)), GroupLayout.FIXED);
         add(new JScrollPane(_table));
     }
 
@@ -87,6 +97,36 @@ public class Layers extends EditorTool
         setSelectedLayer(0);
     }
 
+    protected void mergeVisible ()
+    {
+        TudeySceneView view = _editor.getView();
+        List<Integer> visible = _tableModel.getVisibleLayers();
+        // remove the first layer and call that the "mergeTo" layer
+        int mergeTo = visible.remove(0);
+
+        // move all entries in the merged layers to the mergeTo layer
+        for (TudeySceneModel.Entry entry : _scene.getEntries()) {
+            Object key = entry.getKey();
+            if (visible.contains(_scene.getLayer(key))) {
+                _scene.setLayer(key, mergeTo);
+            }
+        }
+
+        // kill the layers, highest to lowest
+        for (int ii = visible.size() - 1; ii >= 0; ii--) {
+            _tableModel.removeLayer(visible.get(ii));
+        }
+    }
+
+    /**
+     * Utility to ask for confirmation of a layer operation.
+     */
+    protected boolean confirm (String title, String message)
+    {
+        return JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(
+            this, message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+    }
+
     /** The table. */
     protected JTable _table;
 
@@ -98,6 +138,9 @@ public class Layers extends EditorTool
         public void actionPerformed (ActionEvent e) {
             _tableModel.addLayer("Layer " + (1 + _scene.getLayers().size()));
         }
+        { // initializer
+            putValue(Action.SHORT_DESCRIPTION, "Add a new layer");
+        }
     };
 
     /** An action for removing the currently selected layer. */
@@ -105,15 +148,26 @@ public class Layers extends EditorTool
         public void actionPerformed (ActionEvent e) {
             int layer = getSelectedLayer();
             if (_scene.isLayerEmpty(layer) ||
-                (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(
-                    Layers.this,
-                    "This layer has stuff on it.\n" +
-                        "Continue anyway and move the stuff to the base layer?",
-                    "Layer is not empty!",
-                    JOptionPane.OK_CANCEL_OPTION,
-                    JOptionPane.WARNING_MESSAGE))) {
+                    confirm("Layer is not empty!", "This layer has stuff on it.\n" +
+                        "Continue anyway and move the stuff to the base layer?")) {
                 _tableModel.removeLayer(layer);
             }
+        }
+        { // initializer
+            putValue(Action.SHORT_DESCRIPTION, "Remove the selected layer");
+        }
+    };
+
+    /** An action for merging the visible layers. */
+    protected Action _mergeVisibleLayersAction = new AbstractAction("Merge visible") {
+        public void actionPerformed (ActionEvent e) {
+            if (confirm("Merge layers...", "This cannot be un-done.\n" +
+                "Are you sure you want to merge the visible layers?")) {
+                mergeVisible();
+            }
+        }
+        { // initializer
+            putValue(Action.SHORT_DESCRIPTION, "Merge visible layers into the lowest visible");
         }
     };
 }
@@ -162,6 +216,17 @@ class LayerTableModel extends AbstractTableModel
         fireTableRowsDeleted(layer, layer);
     }
 
+    public List<Integer> getVisibleLayers ()
+    {
+        List<Integer> visLayers = Lists.newArrayList();
+        for (int layer = 0, nn = _vis.size(); layer < nn; layer++) {
+            if (_vis.get(layer)) {
+                visLayers.add(layer);
+            }
+        }
+        return visLayers;
+    }
+
     // from TableModel
     public int getRowCount ()
     {
@@ -196,8 +261,8 @@ class LayerTableModel extends AbstractTableModel
     public String getColumnName (int column)
     {
         switch (column) {
-        default: return "Layers";
-        case 1: return "i"; // TODO
+        default: return "Layer";
+        case 1: return "\u0298"; // sort of an eye-looking glyph
         }
     }
 
