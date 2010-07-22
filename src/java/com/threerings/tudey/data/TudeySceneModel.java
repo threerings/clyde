@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -1600,6 +1601,91 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Add a new layer to the model.
+     */
+    public int addLayer (String name)
+    {
+        Preconditions.checkNotNull(name);
+        _layerNames.add(name);
+        return _layerNames.size();
+    }
+
+    /**
+     * Rename one of the layers.
+     */
+    public void renameLayer (int layer, String name)
+    {
+        Preconditions.checkArgument(validateLayer(layer) != 0, "Cannot rename layer 0");
+        Preconditions.checkNotNull(name);
+        _layerNames.set(layer - 1, name);
+    }
+
+    /**
+     * Get the layer names. Layer 0, always present, is named "<Base Layer>"
+     */
+    public List<String> getLayers ()
+    {
+        return Lists.asList("<Base Layer>", _layerNames.toArray(new String[0]));
+    }
+
+    /**
+     * Return true if the specified layer not 0 and is empty.
+     */
+    public boolean isLayerEmpty (int layer)
+    {
+        validateLayer(layer);
+        return (layer != 0) && !_entryLayers.containsValue(layer);
+    }
+
+    /**
+     * Remove the specified layer, moving anything present to the base layer.
+     */
+    public void removeLayer (int layer)
+    {
+        Preconditions.checkArgument(validateLayer(layer) != 0, "Cannot remove layer 0");
+        _layerNames.remove(layer - 1);
+        // adjust any entries at higher layers
+        for (Iterator<Map.Entry<Object, Integer>> itr = _entryLayers.entrySet().iterator();
+                itr.hasNext(); ) {
+            Map.Entry<Object, Integer> entry = itr.next();
+            int entryLayer = entry.getValue();
+            if (entryLayer == layer) {
+                itr.remove(); // shift that object to the base layer
+            } else if (entryLayer > layer) {
+                entry.setValue(entryLayer - 1);
+            }
+            // else: no change
+        }
+    }
+
+    /**
+     * Get the layer of the entry with the specified key.
+     */
+    public int getLayer (Object key)
+    {
+        if (key instanceof Coord) {
+            return 0;
+        }
+        Integer val = _entryLayers.get(key);
+        return (val == null) ? 0 : val;
+    }
+
+    /**
+     * Set the layer of the entry with the specified key.
+     */
+    public void setLayer (Object key, int layer)
+    {
+        validateLayer(layer);
+        if (layer == 0) {
+            _entryLayers.remove(key);
+        } else {
+            Preconditions.checkArgument(!(key instanceof Coord),
+                "Tiles may only be placed on layer 0");
+            _entryLayers.put(key, layer);
+        }
+    }
+
+    /**
      * Sets the paint at the specified coordinates.
      *
      * @return the previous paint at the coordinates, if any.
@@ -1775,6 +1861,8 @@ public class TudeySceneModel extends SceneModel
         _paintConfigIds = nmodel._paintConfigIds;
         _entries = nmodel._entries;
         _references = nmodel._references;
+        _entryLayers = nmodel._entryLayers;
+        _layerNames = nmodel._layerNames;
 
         // store the cached data
         _data = new SoftReference<byte[]>(data);
@@ -1987,6 +2075,10 @@ public class TudeySceneModel extends SceneModel
             model._entries.put(entry.getKey(), entry);
         }
 
+        // and the layers
+        model._entryLayers = Maps.newHashMap(_entryLayers);
+        model._layerNames = Lists.newArrayList(_layerNames);
+
         return model;
     }
 
@@ -2069,6 +2161,7 @@ public class TudeySceneModel extends SceneModel
      */
     protected Entry remove (Object key)
     {
+        _entryLayers.remove(key);
         if (!(key instanceof Coord)) {
             Entry oentry = _entries.remove(key);
             if (oentry != null) {
@@ -2364,6 +2457,14 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * Validate that a layer value is valid.
+     */
+    protected int validateLayer (int layer)
+    {
+        return Preconditions.checkElementIndex(layer, _layerNames.size() + 1);
+    }
+
+    /**
      * Extracts the tile configuration index from the supplied encoded tile.
      */
     protected static int getConfigIndex (int value)
@@ -2456,6 +2557,14 @@ public class TudeySceneModel extends SceneModel
     /** Paint config references by id. */
     @DeepOmit
     protected ArrayList<PaintConfigMapping> _paintConfigs = Lists.newArrayList();
+
+    /** Maps entry keys to their layer. Entries are on layer 0 by default. */
+    @DeepOmit
+    protected Map<Object, Integer> _entryLayers = Maps.newHashMap();
+
+    /** The names of each layer. Layer n is at index n-1. */
+    @DeepOmit
+    protected List<String> _layerNames = Lists.newArrayList();
 
     /** Paint config ids mapped by reference. */
     @DeepOmit

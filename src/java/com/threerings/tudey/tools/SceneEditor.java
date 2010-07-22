@@ -355,6 +355,10 @@ public class SceneEditor extends TudeyTool
         _opanel = GroupLayout.makeVStretchBox(5);
         _epanel.add(_opanel);
 
+        // set up the layer tool, which is special and added to the _tools map by hand
+        _opanel.add(_layers = new Layers(this), GroupLayout.FIXED);
+        _tools.put("layers", _layers);
+
         // activate the arrow tool
         setActiveTool(_arrow);
 
@@ -663,9 +667,11 @@ public class SceneEditor extends TudeyTool
     {
         if (entry instanceof TileEntry) {
             clearPaint((TileEntry)entry);
+            _layers.setSelectedLayer(0);
         }
         _undoSupport.postEdit(
-            new EntryEdit(_scene, _editId, new Entry[] { entry }, new Entry[0], new Object[0]));
+            new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
+                new Entry[] { entry }, new Entry[0], new Object[0]));
     }
 
     // documentation inherited from interface EntryManipulator
@@ -674,9 +680,11 @@ public class SceneEditor extends TudeyTool
         if (entry instanceof TileEntry) {
             clearPaint((TileEntry)_scene.getEntry(entry.getKey()));
             clearPaint((TileEntry)entry);
+            _layers.setSelectedLayer(0);
         }
         _undoSupport.postEdit(
-            new EntryEdit(_scene, _editId, new Entry[0], new Entry[] { entry }, new Object[0]));
+            new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
+                new Entry[0], new Entry[] { entry }, new Object[0]));
     }
 
     // documentation inherited from interface EntryManipulator
@@ -684,15 +692,18 @@ public class SceneEditor extends TudeyTool
     {
         if (key instanceof Coord) {
             clearPaint((TileEntry)_scene.getEntry(key));
+            _layers.setSelectedLayer(0);
         }
         _undoSupport.postEdit(
-            new EntryEdit(_scene, _editId, new Entry[0], new Entry[0], new Object[] { key }));
+            new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
+                new Entry[0], new Entry[0], new Object[] { key }));
     }
 
     // documentation inherited from interface EntryManipulator
     public void setPaint (Rectangle region, Paint paint)
     {
-        _undoSupport.postEdit(new EntryEdit(_scene, _editId, region, paint));
+        _undoSupport.postEdit(new EntryEdit(_scene, _layers.getSelectedLayer(),
+            _editId, region, paint));
     }
 
     // documentation inherited from interface TudeySceneModel.Observer
@@ -1156,6 +1167,8 @@ public class SceneEditor extends TudeyTool
             _opanel.add(_activeTool);
             _activeTool.activate();
         }
+        boolean hideLayers = (tool instanceof GlobalEditor) || (tool instanceof Notepad);
+        _layers.setVisible(!hideLayers);
         SwingUtil.refresh(_opanel);
     }
 
@@ -1681,6 +1694,9 @@ public class SceneEditor extends TudeyTool
 
     /** The palette tool. */
     protected Palette _palette;
+
+    /** The layer display tool. */
+    protected Layers _layers;
 
     /** The active tool. */
     protected EditorTool _activeTool;

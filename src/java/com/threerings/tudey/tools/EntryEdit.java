@@ -51,14 +51,16 @@ public class EntryEdit extends AbstractUndoableEdit
      * Creates and applies a new entry edit.
      */
     public EntryEdit (
-        TudeySceneModel scene, int id, Entry[] add, Entry[] update, Object[] remove)
+        TudeySceneModel scene, int id, int layer, Entry[] add, Entry[] update, Object[] remove)
     {
         _scene = scene;
         _id = id;
+        _layer = layer;
 
         // add the new entries and put them in the map
         for (Entry entry : add) {
             if (_scene.addEntry(entry)) {
+                _scene.setLayer(entry.getKey(), layer);
                 _added.put(entry.getKey(), null);
             }
         }
@@ -66,6 +68,7 @@ public class EntryEdit extends AbstractUndoableEdit
         // update the modified entries and store old state
         for (Entry entry : update) {
             Entry oentry = _scene.updateEntry(entry);
+            _scene.setLayer(entry.getKey(), layer);
             if (oentry != null) {
                 _updated.put(entry.getKey(), oentry);
             }
@@ -83,10 +86,11 @@ public class EntryEdit extends AbstractUndoableEdit
     /**
      * Creates and applies a new paint edit.
      */
-    public EntryEdit (TudeySceneModel scene, int id, Rectangle region, Paint paint)
+    public EntryEdit (TudeySceneModel scene, int id, int layer, Rectangle region, Paint paint)
     {
         _scene = scene;
         _id = id;
+        _layer = layer;
 
         // set the paint entry and store the old state
         for (int yy = region.y, yymax = yy + region.height; yy < yymax; yy++) {
@@ -108,6 +112,9 @@ public class EntryEdit extends AbstractUndoableEdit
         }
         EntryEdit oedit = (EntryEdit)edit;
         if (oedit._id != _id) {
+            return false;
+        }
+        if (oedit._layer != _layer) {
             return false;
         }
 
@@ -178,6 +185,7 @@ public class EntryEdit extends AbstractUndoableEdit
         // add back the entries we removed (retaining their ids)
         for (Map.Entry<Object, Entry> entry : removed.entrySet()) {
             _scene.addEntry(entry.getValue(), false);
+            _scene.setLayer(entry.getValue().getKey(), _layer);
             entry.setValue(null);
         }
 
@@ -203,6 +211,9 @@ public class EntryEdit extends AbstractUndoableEdit
 
     /** The edit id, which determines which edits we can merge. */
     protected int _id;
+
+    /** The layer to which this edit applies. */
+    protected int _layer;
 
     /** The entries added in this edit. */
     protected Map<Object, Entry> _added = Maps.newHashMap();
