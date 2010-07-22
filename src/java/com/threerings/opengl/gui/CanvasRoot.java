@@ -86,7 +86,7 @@ public class CanvasRoot extends Root
     // documentation inherited from interface MouseListener
     public void mousePressed (java.awt.event.MouseEvent e)
     {
-        _modifiers = convertModifiers(e.getModifiers());
+        _modifiers = convertModifiers(e.getModifiersEx());
         mousePressed(e.getWhen(), convertButton(e), e.getX(),
             _canvas.getHeight() - e.getY() - 1, e.isConsumed());
     }
@@ -94,7 +94,7 @@ public class CanvasRoot extends Root
     // documentation inherited from interface MouseListener
     public void mouseReleased (java.awt.event.MouseEvent e)
     {
-        _modifiers = convertModifiers(e.getModifiers());
+        _modifiers = convertModifiers(e.getModifiersEx());
         mouseReleased(e.getWhen(), convertButton(e), e.getX(),
             _canvas.getHeight() - e.getY() - 1, e.isConsumed());
     }
@@ -108,14 +108,14 @@ public class CanvasRoot extends Root
     // documentation inherited from interface MouseMotionListener
     public void mouseMoved (java.awt.event.MouseEvent e)
     {
-        _modifiers = convertModifiers(e.getModifiers());
+        _modifiers = convertModifiers(e.getModifiersEx());
         mouseMoved(e.getWhen(), e.getX(), _canvas.getHeight() - e.getY() - 1, e.isConsumed());
     }
 
     // documentation inherited from interface MouseWheelListener
     public void mouseWheelMoved (java.awt.event.MouseWheelEvent e)
     {
-        _modifiers = convertModifiers(e.getModifiers());
+        _modifiers = convertModifiers(e.getModifiersEx());
         mouseWheeled(e.getWhen(), e.getX(), _canvas.getHeight() - e.getY() - 1,
             -e.getWheelRotation(), e.isConsumed());
     }
@@ -123,14 +123,14 @@ public class CanvasRoot extends Root
     // documentation inherited from interface KeyListener
     public void keyPressed (java.awt.event.KeyEvent e)
     {
-        _modifiers = convertModifiers(e.getModifiers());
+        _modifiers = convertModifiers(e.getModifiersEx());
         keyPressed(e.getWhen(), e.getKeyChar(), convertKeyCode(e), e.isConsumed());
     }
 
     // documentation inherited from interface KeyListener
     public void keyReleased (java.awt.event.KeyEvent e)
     {
-        _modifiers = convertModifiers(e.getModifiers());
+        _modifiers = convertModifiers(e.getModifiersEx());
         keyReleased(e.getWhen(), e.getKeyChar(), convertKeyCode(e), e.isConsumed());
     }
 
@@ -152,25 +152,25 @@ public class CanvasRoot extends Root
     protected int convertModifiers (int modifiers)
     {
         int nmodifiers = 0;
-        if ((modifiers & java.awt.event.InputEvent.BUTTON1_MASK) != 0) {
+        if ((modifiers & java.awt.event.InputEvent.BUTTON1_DOWN_MASK) != 0) {
             nmodifiers |= InputEvent.BUTTON1_DOWN_MASK;
         }
-        if ((modifiers & java.awt.event.InputEvent.BUTTON3_MASK) != 0) {
+        if ((modifiers & java.awt.event.InputEvent.BUTTON3_DOWN_MASK) != 0) {
             nmodifiers |= InputEvent.BUTTON2_DOWN_MASK;
         }
-        if ((modifiers & java.awt.event.InputEvent.BUTTON2_MASK) != 0) {
+        if ((modifiers & java.awt.event.InputEvent.BUTTON2_DOWN_MASK) != 0) {
             nmodifiers |= InputEvent.BUTTON3_DOWN_MASK;
         }
-        if ((modifiers & java.awt.event.InputEvent.SHIFT_MASK) != 0) {
+        if ((modifiers & java.awt.event.InputEvent.SHIFT_DOWN_MASK) != 0) {
             nmodifiers |= InputEvent.SHIFT_DOWN_MASK;
         }
-        if ((modifiers & java.awt.event.InputEvent.CTRL_MASK) != 0) {
+        if ((modifiers & java.awt.event.InputEvent.CTRL_DOWN_MASK) != 0) {
             nmodifiers |= InputEvent.CTRL_DOWN_MASK;
         }
-        if ((modifiers & java.awt.event.InputEvent.ALT_MASK) != 0) {
+        if ((modifiers & java.awt.event.InputEvent.ALT_DOWN_MASK) != 0) {
             nmodifiers |= InputEvent.ALT_DOWN_MASK;
         }
-        if ((modifiers & java.awt.event.InputEvent.META_MASK) != 0) {
+        if ((modifiers & java.awt.event.InputEvent.META_DOWN_MASK) != 0) {
             nmodifiers |= InputEvent.META_DOWN_MASK;
         }
         return nmodifiers;
