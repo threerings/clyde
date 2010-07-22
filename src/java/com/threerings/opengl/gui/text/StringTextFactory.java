@@ -440,7 +440,7 @@ public class StringTextFactory extends TextFactory
         // parse the style commands into an array of runs and extract the raw text along the way
         ArrayList<StyleRun> stack = new ArrayList<StyleRun>();
         ArrayList<StyleRun> runs = new ArrayList<StyleRun>();
-        StringBuffer raw = new StringBuffer();
+        StringBuilder raw = new StringBuilder();
         int rawpos = 0;
         for (int ii = 0, ll = text.length(); ii < ll; ii++) {
             char c = text.charAt(ii);
@@ -588,7 +588,7 @@ public class StringTextFactory extends TextFactory
         public int end;
 
         public String toString () {
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             for (int ii = 0; ii < styles.length; ii++) {
                 if (styles[ii] > 0) {
                     buf.append(styles[ii]);

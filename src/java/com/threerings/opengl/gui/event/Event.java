@@ -62,7 +62,7 @@ public class Event extends EventObject
      */
     public String toString ()
     {
-        StringBuffer buf = new StringBuffer("[ev:");
+        StringBuilder buf = new StringBuilder("[ev:");
         toString(buf);
         buf.append("]");
         return buf.toString();
@@ -96,7 +96,7 @@ public class Event extends EventObject
         _when = when;
     }
 
-    protected void toString (StringBuffer buf)
+    protected void toString (StringBuilder buf)
     {
         String name = getClass().getName();
         name = name.substring(name.lastIndexOf(".") + 1);

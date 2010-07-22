@@ -47,7 +47,7 @@ public class CommandEvent extends ActionEvent
     }
 
     @Override // documentation inherited
-    protected void toString (StringBuffer buf)
+    protected void toString (StringBuilder buf)
     {
         super.toString(buf);
         buf.append(", argument=").append(_argument);

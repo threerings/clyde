@@ -211,7 +211,7 @@ public class CharacterTextFactory extends TextFactory
                             Color4f effectColor, int maxWidth)
     {
         ArrayList<Text> lines = new ArrayList<Text>();
-        StringBuffer line = new StringBuffer();
+        StringBuilder line = new StringBuilder();
         int width = 0;
         for (int ii = 0, nn = text.length(); ii < nn; ii++) {
             char c = text.charAt(ii);
@@ -232,7 +232,7 @@ public class CharacterTextFactory extends TextFactory
                 }
                 lines.add(createText(
                     line.toString(), color, effect, effectSize, effectColor, true));
-                line = new StringBuffer(extra);
+                line = new StringBuilder(extra);
                 width = 0;
                 for (int jj = 0, ll = extra.length(); jj < ll; jj++) {
                     width += getGlyph(extra.charAt(jj)).width;
@@ -281,7 +281,7 @@ public class CharacterTextFactory extends TextFactory
      * @return the start and end indices of the span (inclusive), or <code>null</code> if no span
      * was found.
      */
-    protected IntTuple getBreakSpan (StringBuffer buf)
+    protected IntTuple getBreakSpan (StringBuilder buf)
     {
         for (int ii = buf.length() - 1; ii > 0; ii--) {
             if (Character.isWhitespace(buf.charAt(ii))) {

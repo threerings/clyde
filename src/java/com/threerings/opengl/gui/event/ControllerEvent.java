@@ -167,7 +167,7 @@ public class ControllerEvent extends InputEvent
     }
 
     @Override // documentation inherited
-    protected void toString (StringBuffer buf)
+    protected void toString (StringBuilder buf)
     {
         super.toString(buf);
         buf.append(", type=").append(_type);

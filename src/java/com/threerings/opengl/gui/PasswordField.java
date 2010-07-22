@@ -59,7 +59,7 @@ public class PasswordField extends TextField
         if (text == null) {
             return null;
         } else if (_stars == null || _stars.length() != text.length()) {
-            StringBuffer stars = new StringBuffer();
+            StringBuilder stars = new StringBuilder();
             for (int ii = 0; ii < text.length(); ii++) {
                 stars.append("*");
             }

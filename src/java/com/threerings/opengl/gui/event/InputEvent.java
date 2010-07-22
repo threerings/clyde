@@ -105,7 +105,7 @@ public class InputEvent extends Event
         _modifiers = modifiers;
     }
 
-    protected void toString (StringBuffer buf)
+    protected void toString (StringBuilder buf)
     {
         super.toString(buf);
         buf.append(", mods=").append(_modifiers);

@@ -59,7 +59,7 @@ public class ActionEvent extends InputEvent
         return false;
     }
 
-    protected void toString (StringBuffer buf)
+    protected void toString (StringBuilder buf)
     {
         super.toString(buf);
         buf.append(", action=").append(_action);

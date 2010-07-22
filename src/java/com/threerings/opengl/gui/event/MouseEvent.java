@@ -204,7 +204,7 @@ public class MouseEvent extends InputEvent
         }
     }
 
-    protected void toString (StringBuffer buf)
+    protected void toString (StringBuilder buf)
     {
         super.toString(buf);
         buf.append(", type=").append(_type);

@@ -214,7 +214,7 @@ public class Document
      */
     public boolean replace (final int offset, final int length, final String text, int undoId)
     {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         if (offset > 0) {
             buf.append(_text.substring(0, offset));
         }
