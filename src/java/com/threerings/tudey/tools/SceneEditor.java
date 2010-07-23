@@ -906,11 +906,13 @@ public class SceneEditor extends TudeyTool
             return;
         }
         if (action.equals("new")) {
-            if (_sceneIsSaved || showWarning("New scene?", "Lose unsaved changes?")) {
+            if (saveWarning("clear the scene")) {
                 newScene();
             }
         } else if (action.equals("open")) {
-            open();
+            if (saveWarning("open a new scene")) {
+                open();
+            }
         } else if (action.equals("save")) {
             if (_file != null) {
                 save(_file);
@@ -920,7 +922,7 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("save_as")) {
             save();
         } else if (action.equals("revert")) {
-            if (_sceneIsSaved || showWarning("Revert?", "Lose unsaved changes and revert?")) {
+            if (saveWarning("revert to the last saved version")) {
                 open(_file);
             }
         } else if (action.equals("import")) {
@@ -994,7 +996,7 @@ public class SceneEditor extends TudeyTool
     @Override
     public void shutdown ()
     {
-        if (_sceneIsSaved || showWarning("Quit?", "Lose unsaved changes and quit?")) {
+        if (saveWarning("quit")) {
             super.shutdown();
         }
     }
@@ -1606,12 +1608,33 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Shows a confirm dialog, return true if the user selected "OK".
+     * Show a warning if the scene is unsaved. Return true if it's ok to proceed with
+     * the operation.
      */
-    protected boolean showWarning (String title, String message)
+    protected boolean saveWarning (String message)
     {
-        return JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(_frame,
-            message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (_sceneIsSaved) {
+            return true;
+        }
+        int option = JOptionPane.showOptionDialog(_frame,
+            "Discard unsaved changes and " + message + "?", "Discard changes?",
+            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+            new Object[] { "Cancel", "Save First", "Discard Changes" }, "Cancel");
+        switch (option) {
+        default:
+            return false;
+
+        case 1:
+            if (_file != null) {
+                save(_file);
+                return true;
+            }
+            save();
+            return false;
+
+        case 2:
+            return true;
+        }
     }
 
     /**
