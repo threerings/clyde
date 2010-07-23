@@ -157,29 +157,39 @@ public class TudeySceneView extends DynamicScope
         _camcfg.apply(_camhand);
 
         // create the input window
-        _inputWindow = new StretchWindow(ctx, null) {
-            @Override public boolean shouldShadeBehind () {
-                return false;
-            }
-            @Override public String getTooltipText () {
-                Sprite sprite = _ctrl.getHoverSprite();
-                return (sprite == null) ? super.getTooltipText() : sprite.getTooltipText();
-            }
-            @Override public float getTooltipTimeout () {
-                Sprite sprite = _ctrl.getHoverSprite();
-                return (sprite == null) ? super.getTooltipTimeout() : sprite.getTooltipTimeout();
-            }
-            @Override public String getTooltipWindowStyle () {
-                Sprite sprite = _ctrl.getHoverSprite();
-                return (sprite == null) ?
-                    super.getTooltipWindowStyle() : sprite.getTooltipWindowStyle();
-            }
-            @Override protected Component createTooltipComponent (String tiptext) {
-                Sprite sprite = _ctrl.getHoverSprite();
-                return (sprite == null) ? super.createTooltipComponent(tiptext) :
-                    sprite.createTooltipComponent(tiptext);
-            }
-        };
+        if (_ctrl != null) {
+            _inputWindow = new StretchWindow(ctx, null) {
+                @Override public boolean shouldShadeBehind () {
+                    return false;
+                }
+                @Override public String getTooltipText () {
+                    Sprite sprite = _ctrl.getHoverSprite();
+                    return (sprite == null) ? super.getTooltipText() : sprite.getTooltipText();
+                }
+                @Override public float getTooltipTimeout () {
+                    Sprite sprite = _ctrl.getHoverSprite();
+                    return (sprite == null) ?
+                        super.getTooltipTimeout() : sprite.getTooltipTimeout();
+                }
+                @Override public String getTooltipWindowStyle () {
+                    Sprite sprite = _ctrl.getHoverSprite();
+                    return (sprite == null) ?
+                        super.getTooltipWindowStyle() : sprite.getTooltipWindowStyle();
+                }
+                @Override protected Component createTooltipComponent (String tiptext) {
+                    Sprite sprite = _ctrl.getHoverSprite();
+                    return (sprite == null) ? super.createTooltipComponent(tiptext) :
+                        sprite.createTooltipComponent(tiptext);
+                }
+            };
+        } else {
+            _inputWindow = new StretchWindow(ctx, null) {
+                @Override public boolean shouldShadeBehind () {
+                    return false;
+                }
+            };
+        }
+
         _inputWindow.setTooltipRelativeToMouse(true);
         _inputWindow.setModal(true);
 
