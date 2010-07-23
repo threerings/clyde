@@ -1210,8 +1210,10 @@ public class SceneEditor extends TudeyTool
         // update whether we are showing or hiding layers
         boolean hideLayers = (tool instanceof GlobalEditor) || (tool instanceof Notepad);
         if (hideLayers) {
-            _layerDividerPos = _layerSplit.getDividerLocation();
-            _layers.setVisible(false);
+            if (_layers.isVisible()) {
+                _layerDividerPos = _layerSplit.getDividerLocation();
+                _layers.setVisible(false);
+            }
         } else {
             _layers.setVisible(true);
             if (_layerDividerPos != 0) {
