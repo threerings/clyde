@@ -103,6 +103,14 @@ public class EntryEdit extends AbstractUndoableEdit
         }
     }
 
+    /**
+     * Is this edit empty?
+     */
+    public boolean isEmpty ()
+    {
+        return _added.isEmpty() && _updated.isEmpty() && _removed.isEmpty() && _paint.isEmpty();
+    }
+
     @Override // documentation inherited
     public boolean addEdit (UndoableEdit edit)
     {
@@ -111,10 +119,7 @@ public class EntryEdit extends AbstractUndoableEdit
             return false;
         }
         EntryEdit oedit = (EntryEdit)edit;
-        if (oedit._id != _id) {
-            return false;
-        }
-        if (oedit._layer != _layer) {
+        if ((oedit._id != _id) || (oedit._layer != _layer)) {
             return false;
         }
 
