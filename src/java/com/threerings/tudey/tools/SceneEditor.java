@@ -68,6 +68,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.InputMap;
 import javax.swing.KeyStroke;
+import javax.swing.WindowConstants;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.filechooser.FileFilter;
@@ -183,6 +184,9 @@ public class SceneEditor extends TudeyTool
     public SceneEditor (String scene)
     {
         super("scene");
+
+        // we override shutdown() and may want to abort a close
+        _frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         _initScene = (scene == null) ? null : new File(scene);
 
         // set the title
@@ -662,6 +666,7 @@ public class SceneEditor extends TudeyTool
      */
     public void incrementEditId ()
     {
+        _sceneIsSaved = false;
         _editId++;
     }
 
@@ -901,7 +906,9 @@ public class SceneEditor extends TudeyTool
             return;
         }
         if (action.equals("new")) {
-            newScene();
+            if (_sceneIsSaved || showWarning("New scene?", "Lose unsaved changes?")) {
+                newScene();
+            }
         } else if (action.equals("open")) {
             open();
         } else if (action.equals("save")) {
@@ -913,7 +920,7 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("save_as")) {
             save();
         } else if (action.equals("revert")) {
-            if (showCantUndo()) {
+            if (_sceneIsSaved || showWarning("Revert?", "Lose unsaved changes and revert?")) {
                 open(_file);
             }
         } else if (action.equals("import")) {
@@ -981,6 +988,14 @@ public class SceneEditor extends TudeyTool
             wasUpdated();
         } else {
             super.actionPerformed(event);
+        }
+    }
+
+    @Override
+    public void shutdown ()
+    {
+        if (_sceneIsSaved || showWarning("Quit?", "Lose unsaved changes and quit?")) {
+            super.shutdown();
         }
     }
 
@@ -1288,6 +1303,8 @@ public class SceneEditor extends TudeyTool
             out.writeObject(_scene);
             out.close();
             setFile(file);
+            _sceneIsSaved = true;
+
         } catch (IOException e) {
             log.warning("Failed to save scene [file=" + file + "].", e);
         }
@@ -1335,6 +1352,7 @@ public class SceneEditor extends TudeyTool
         clearSelection();
         _undomgr.discardAllEdits();
         updateUndoActions();
+        _sceneIsSaved = true;
     }
 
     /**
@@ -1588,13 +1606,12 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Shows a confirm dialog.
+     * Shows a confirm dialog, return true if the user selected "OK".
      */
-    protected boolean showCantUndo ()
+    protected boolean showWarning (String title, String message)
     {
-        return JOptionPane.showConfirmDialog(_frame, _msgs.get("m.cant_undo"),
-                _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.WARNING_MESSAGE) == 0;
+        return JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(_frame,
+            message, title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
     }
 
     /**
@@ -1755,6 +1772,9 @@ public class SceneEditor extends TudeyTool
 
     /** The scene id used for testing. */
     protected int _sceneId;
+
+    /** Has the scene been saved? */
+    protected boolean _sceneIsSaved;
 
     /** Whether or not markers are visible. */
     @Scoped
