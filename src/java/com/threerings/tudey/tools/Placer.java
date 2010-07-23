@@ -29,6 +29,8 @@ import java.awt.event.MouseWheelEvent;
 
 import java.util.ArrayList;
 
+import com.google.common.base.Predicates;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.math.FloatMath;
@@ -132,12 +134,12 @@ public class Placer extends ConfigTool<PlaceableConfig>
         if (_editor.isThirdButtonDown()) {
             Shape shape = _cursor.getShape();
             if (shape != null) {
-                _editor.getLayerEntries(shape, _entries);
+                _scene.getEntries(shape,
+                    Predicates.and(Predicates.instanceOf(PlaceableEntry.class),
+                        _editor.getLayerPredicate()),
+                    _entries);
                 for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-                    Entry entry = _entries.get(ii);
-                    if (entry instanceof PlaceableEntry) {
-                        _editor.removeEntry(entry.getKey());
-                    }
+                    _editor.removeEntry(_entries.get(ii).getKey());
                 }
                 _entries.clear();
             }

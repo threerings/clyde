@@ -164,7 +164,7 @@ public abstract class BaseMover extends EditorTool
 
         // erase if the third button is down
         if (_editor.isThirdButtonDown()) {
-            _editor.getLayerEntries(_cursor.getShape(), _underneath);
+            _scene.getEntries(_cursor.getShape(), _editor.getLayerPredicate(), _underneath);
             for (int ii = 0, nn = _underneath.size(); ii < nn; ii++) {
                 _editor.removeEntry(_underneath.get(ii).getKey());
             }

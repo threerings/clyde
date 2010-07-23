@@ -31,6 +31,9 @@ import java.util.ArrayList;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.Exportable;
@@ -126,12 +129,10 @@ public class Eraser extends EditorTool
             _transform.getTranslation().set(_isect.x, _isect.y);
             _transform.setRotation(_angle);
             _shape = _options.shape.getShape().transform(_transform, _shape);
-            _editor.getLayerEntries(_shape, _entries);
-            for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-                Entry entry = _entries.get(ii);
-                if (_options.filter.matches(entry)) {
-                    _editor.removeEntry(entry.getKey());
-                }
+            _scene.getEntries(
+                _shape, Predicates.and(_options.filter, _editor.getLayerPredicate()), _entries);
+            for (Entry entry : _entries) {
+                _editor.removeEntry(entry.getKey());
             }
             _entries.clear();
         }

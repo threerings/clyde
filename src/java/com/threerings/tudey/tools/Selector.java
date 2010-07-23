@@ -28,6 +28,8 @@ import java.awt.event.MouseEvent;
 
 import java.util.ArrayList;
 
+import com.google.common.base.Predicates;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.export.Exportable;
@@ -138,12 +140,8 @@ public class Selector extends EditorTool
             TudeySceneMetrics.getTileZ(_editor.getGrid().getElevation());
 
         // update the selection
-        _editor.getLayerEntries(shape, _entries);
-        for (int ii = _entries.size() - 1; ii >= 0; ii--) {
-            if (!_options.filter.matches(_entries.get(ii))) {
-                _entries.remove(ii);
-            }
-        }
+        _scene.getEntries(
+            shape, Predicates.and(_options.filter, _editor.getLayerPredicate()), _entries);
         if (!keysEqual(_entries, _editor.getSelection())) {
             _editor.setSelection(_entries.toArray(new Entry[_entries.size()]));
         }

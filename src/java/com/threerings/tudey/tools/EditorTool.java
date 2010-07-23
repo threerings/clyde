@@ -34,6 +34,8 @@ import java.awt.event.MouseWheelListener;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
+import com.google.common.base.Predicate;
+
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
@@ -231,7 +233,7 @@ public abstract class EditorTool extends JPanel
      * Determines which kinds of entries we want to affect.
      */
     protected static class Filter extends DeepObject
-        implements Exportable
+        implements Predicate<Entry>, Exportable
     {
         /** Whether or not we select tiles. */
         @Editable(hgroup="t")
@@ -249,10 +251,8 @@ public abstract class EditorTool extends JPanel
         @Editable(hgroup="p")
         public boolean areas = true;
 
-        /**
-         * Determines whether the specified entry matches this filter.
-         */
-        public boolean matches (Entry entry)
+        // from Predicate
+        public boolean apply (Entry entry)
         {
             if (entry instanceof TileEntry) {
                 return tiles;

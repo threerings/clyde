@@ -41,6 +41,8 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -1531,6 +1533,14 @@ public class TudeySceneModel extends SceneModel
      */
     public void getEntries (Shape shape, Collection<Entry> results)
     {
+        getEntries(shape, Predicates.alwaysTrue(), results);
+    }
+
+    /**
+     * Retrieves all entries intersecting the supplied shape and matching the predicate.
+     */
+    public void getEntries (Shape shape, Predicate<? super Entry> pred, Collection<Entry> results)
+    {
         // find intersecting tiles
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
@@ -1553,7 +1563,7 @@ public class TudeySceneModel extends SceneModel
         }
         for (int ii = 0, nn = pairs.size(); ii < nn; ii++) {
             TileEntry entry = getTileEntry(pairs.get(ii));
-            if (entry != null) {
+            if (entry != null && pred.apply(entry)) {
                 results.add(entry);
             }
         }
@@ -1562,7 +1572,10 @@ public class TudeySceneModel extends SceneModel
         ArrayList<SpaceElement> intersecting = Lists.newArrayList();
         _space.getIntersecting(shape, intersecting);
         for (int ii = 0, nn = intersecting.size(); ii < nn; ii++) {
-            results.add((Entry)intersecting.get(ii).getUserObject());
+            Entry entry = (Entry)intersecting.get(ii).getUserObject();
+            if (pred.apply(entry)) {
+                results.add(entry);
+            }
         }
     }
 

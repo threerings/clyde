@@ -457,18 +457,16 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Get entries from the specified scene that are on the currently selected layer.
+     * Returns a Predicate that selects entries only on the current layer.
      */
-    public void getLayerEntries (Shape shape, Collection<Entry> results)
+    public Predicate<Entry> getLayerPredicate ()
     {
-        List<Entry> all = Lists.newArrayList();
-        _scene.getEntries(shape, all);
-        int layer = _layers.getSelectedLayer();
-        for (Entry entry : all) {
-            if (layer == _scene.getLayer(entry.getKey())) {
-                results.add(entry);
+        final int layer = _layers.getSelectedLayer();
+        return new Predicate<Entry>() {
+            public boolean apply (Entry entry) {
+                return (layer == _scene.getLayer(entry.getKey()));
             }
-        }
+        };
     }
 
     /**
