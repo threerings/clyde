@@ -27,6 +27,7 @@ package com.threerings.tudey.client.sprite;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.model.Model;
 
@@ -78,6 +79,39 @@ public abstract class Sprite extends SimpleScope
     public boolean isClickable ()
     {
         return false;
+    }
+
+    /**
+     * Returns the sprite's tooltip text, or <code>null</code> for none.
+     */
+    public String getTooltipText ()
+    {
+        return null;
+    }
+
+    /**
+     * Returns the sprite's tooltip timeout, or -1 to use the default.
+     */
+    public float getTooltipTimeout ()
+    {
+        return -1f;
+    }
+
+    /**
+     * Returns the sprite's tooltip window style.
+     */
+    public String getTooltipWindowStyle ()
+    {
+        return "Default/TooltipWindow";
+    }
+
+    /**
+     * Creates a tooltip component for the sprite (will only be called if {@link #getTooltipText}
+     * returns true).
+     */
+    public Component createTooltipComponent (String tiptext)
+    {
+        return Component.createDefaultTooltipComponent(_ctx, tiptext);
     }
 
     /**

@@ -62,6 +62,7 @@ import com.threerings.opengl.GlView;
 import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.effect.Easing;
+import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.StretchWindow;
 import com.threerings.opengl.gui.Window;
 import com.threerings.opengl.model.Model;
@@ -157,10 +158,29 @@ public class TudeySceneView extends DynamicScope
 
         // create the input window
         _inputWindow = new StretchWindow(ctx, null) {
-            public boolean shouldShadeBehind () {
+            @Override public boolean shouldShadeBehind () {
                 return false;
             }
+            @Override public String getTooltipText () {
+                Sprite sprite = _ctrl.getHoverSprite();
+                return (sprite == null) ? super.getTooltipText() : sprite.getTooltipText();
+            }
+            @Override public float getTooltipTimeout () {
+                Sprite sprite = _ctrl.getHoverSprite();
+                return (sprite == null) ? super.getTooltipTimeout() : sprite.getTooltipTimeout();
+            }
+            @Override public String getTooltipWindowStyle () {
+                Sprite sprite = _ctrl.getHoverSprite();
+                return (sprite == null) ?
+                    super.getTooltipWindowStyle() : sprite.getTooltipWindowStyle();
+            }
+            @Override protected Component createTooltipComponent (String tiptext) {
+                Sprite sprite = _ctrl.getHoverSprite();
+                return (sprite == null) ? super.createTooltipComponent(tiptext) :
+                    sprite.createTooltipComponent(tiptext);
+            }
         };
+        _inputWindow.setTooltipRelativeToMouse(true);
         _inputWindow.setModal(true);
 
         // insert the baseline (empty) update record

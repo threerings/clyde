@@ -32,6 +32,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 
+import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.model.Animation;
@@ -99,6 +100,39 @@ public class PlaceableSprite extends EntrySprite
         }
 
         /**
+         * Returns the implementation's tooltip text, or <code>null</code> for none.
+         */
+        public String getTooltipText ()
+        {
+            return null;
+        }
+
+        /**
+         * Returns the implementation's tooltip timeout, or -1 to use the default.
+         */
+        public float getTooltipTimeout ()
+        {
+            return -1f;
+        }
+
+        /**
+         * Returns the implementation's tooltip window style.
+         */
+        public String getTooltipWindowStyle ()
+        {
+            return "Default/TooltipWindow";
+        }
+
+        /**
+         * Creates a tooltip component for the implementation (will only be called if
+         * {@link #getTooltipText} returns true).
+         */
+        public Component createTooltipComponent (String tiptext)
+        {
+            return null;
+        }
+
+        /**
          * Dispatches an event on the implementation.
          *
          * @return true if the implementation handled the event, false if it should be handled
@@ -158,6 +192,12 @@ public class PlaceableSprite extends EntrySprite
                 _scene.remove(_footprint);
                 _footprint = null;
             }
+        }
+
+        @Override // documentation inherited
+        public Component createTooltipComponent (String tiptext)
+        {
+            return Component.createDefaultTooltipComponent(_ctx, tiptext);
         }
 
         @Override // documentation inherited
@@ -390,6 +430,30 @@ public class PlaceableSprite extends EntrySprite
     public boolean isClickable ()
     {
         return _impl.isClickable();
+    }
+
+    @Override // documentation inherited
+    public String getTooltipText ()
+    {
+        return _impl.getTooltipText();
+    }
+
+    @Override // documentation inherited
+    public float getTooltipTimeout ()
+    {
+        return _impl.getTooltipTimeout();
+    }
+
+    @Override // documentation inherited
+    public String getTooltipWindowStyle ()
+    {
+        return _impl.getTooltipWindowStyle();
+    }
+
+    @Override // documentation inherited
+    public Component createTooltipComponent (String tiptext)
+    {
+        return _impl.createTooltipComponent(tiptext);
     }
 
     @Override // documentation inherited

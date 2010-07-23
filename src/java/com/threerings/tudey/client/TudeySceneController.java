@@ -756,6 +756,7 @@ public class TudeySceneController extends SceneController
                 this, root.getTickStamp(), root.getModifiers(), MouseEvent.MOUSE_ENTERED,
                 root.getMouseX(), root.getMouseY()));
         }
+        root.tipTextChanged(_tsview.getInputWindow());
     }
 
     /**

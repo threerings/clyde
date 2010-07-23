@@ -78,6 +78,29 @@ public class Component
     public static final int DISABLED = 2;
 
     /**
+     * Creates a tooltip component of the default form with the default style.
+     */
+    public static Component createDefaultTooltipComponent (GlContext ctx, String tiptext)
+    {
+        return createDefaultTooltipComponent(ctx, tiptext, null);
+    }
+
+    /**
+     * Creates a tooltip component of the default form.
+     */
+    public static Component createDefaultTooltipComponent (
+        GlContext ctx, String tiptext, ConfigReference<StyleConfig> tipstyle)
+    {
+        if (tiptext.startsWith("<html>")) {
+            return new HTMLView(ctx, "", tiptext);
+        } else {
+            Label label = new Label(ctx, tiptext);
+            label.setStyleConfig(tipstyle);
+            return label;
+        }
+    }
+
+    /**
      * Creates a new component.
      */
     public Component (GlContext ctx)
@@ -964,13 +987,7 @@ public class Component
      */
     protected Component createTooltipComponent (String tiptext)
     {
-        if (tiptext.startsWith("<html>")) {
-            return new HTMLView(_ctx, "", tiptext);
-        } else {
-            Label label = new Label(_ctx, tiptext);
-            label.setStyleConfig(_tooltipStyle);
-            return label;
-        }
+        return createDefaultTooltipComponent(_ctx, tiptext, _tooltipStyle);
     }
 
     /**
