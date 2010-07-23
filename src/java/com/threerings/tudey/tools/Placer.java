@@ -135,12 +135,9 @@ public class Placer extends ConfigTool<PlaceableConfig>
             Shape shape = _cursor.getShape();
             if (shape != null) {
                 _scene.getEntries(shape,
-                    Predicates.and(Predicates.instanceOf(PlaceableEntry.class),
-                        _editor.getLayerPredicate()),
+                    Predicates.and(SceneEditor.PLACEABLE_ENTRY_FILTER, _editor.getLayerPredicate()),
                     _entries);
-                for (int ii = 0, nn = _entries.size(); ii < nn; ii++) {
-                    _editor.removeEntry(_entries.get(ii).getKey());
-                }
+                _editor.removeEntries(_entries);
                 _entries.clear();
             }
         } else if (_editor.isFirstButtonDown() &&
@@ -158,7 +155,7 @@ public class Placer extends ConfigTool<PlaceableConfig>
         PlaceableEntry entry = (PlaceableEntry)_entry.clone();
         PlaceableConfig.Original config = entry.getConfig(_editor.getConfigManager());
         entry.transform.getRotation().multLocal(config.rotationOffset.getValue(new Quaternion()));
-        _editor.addEntry(entry);
+        _editor.addEntries(entry);
         _lastPlacement.set(entry.transform.getTranslation());
     }
 

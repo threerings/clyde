@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.util;
 
+import java.util.Collection;
+
 import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.data.TudeySceneModel.Entry;
@@ -35,19 +37,24 @@ import com.threerings.tudey.data.TudeySceneModel.Paint;
 public interface EntryManipulator
 {
     /**
-     * Adds an entry to the scene.
+     * Adds entries to the scene.
      */
-    public void addEntry (Entry entry);
+    public void addEntries (Entry... entries);
 
     /**
-     * Updates an entry within the scene.
+     * Updates entries within the scene.
      */
-    public void updateEntry (Entry entry);
+    public void updateEntries (Entry... entries);
 
     /**
-     * Removes an entry from the scene.
+     * Removes entries from the scene.
      */
-    public void removeEntry (Object key);
+    public void removeEntries (Object... keys);
+
+    /**
+     * Removes the specified entries from the scene.
+     */
+    public void removeEntries (Collection<? extends Entry> entries);
 
     /**
      * Sets or clears the paint for a region in the scene.

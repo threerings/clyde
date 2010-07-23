@@ -124,7 +124,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
             } else if (element != null && button == MouseEvent.BUTTON3) {
                 // delete the entire area
                 AreaSprite sprite = (AreaSprite)element.getUserObject();
-                _editor.removeEntry(sprite.getEntry().getKey());
+                _editor.removeEntries(sprite.getEntry().getKey());
             }
         }
         ConfigReference<AreaConfig> area = _eref.getReference();
@@ -135,7 +135,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
             _entry.area = area;
             _entry.vertices = new Vertex[] { new Vertex(), new Vertex() };
             setMouseLocation(_entry.vertices[0]);
-            _editor.addEntry(_entry);
+            _editor.addEntries(_entry);
         }
     }
 
@@ -147,7 +147,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         }
         _entry = (AreaEntry)_entry.clone();
         setMouseLocation(_entry.vertices[_idx]);
-        _editor.updateEntry(_entry);
+        _editor.updateEntries(_entry);
     }
 
     @Override // documentation inherited
@@ -196,7 +196,7 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
         _entry = (AreaEntry)entry.clone();
         _idx = idx;
         _entry.vertices = ArrayUtil.insert(_entry.vertices, new Vertex(), idx);
-        _editor.updateEntry(_entry);
+        _editor.updateEntries(_entry);
     }
 
     /**
@@ -206,11 +206,11 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
     protected void removeVertices (AreaEntry entry, int idx, int count)
     {
         if (entry.vertices.length <= count) {
-            _editor.removeEntry(entry.getKey());
+            _editor.removeEntries(entry.getKey());
         } else {
             AreaEntry nentry = (AreaEntry)entry.clone();
             nentry.vertices = ArrayUtil.splice(nentry.vertices, idx, count);
-            _editor.updateEntry(nentry);
+            _editor.updateEntries(nentry);
         }
     }
 

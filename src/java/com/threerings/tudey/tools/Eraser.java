@@ -131,9 +131,7 @@ public class Eraser extends EditorTool
             _shape = _options.shape.getShape().transform(_transform, _shape);
             _scene.getEntries(
                 _shape, Predicates.and(_options.filter, _editor.getLayerPredicate()), _entries);
-            for (Entry entry : _entries) {
-                _editor.removeEntry(entry.getKey());
-            }
+            _editor.removeEntries(_entries);
             _entries.clear();
         }
     }

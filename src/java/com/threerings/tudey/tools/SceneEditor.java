@@ -44,9 +44,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.List;
+import java.util.Set;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -77,10 +79,13 @@ import javax.swing.undo.UndoableEditSupport;
 
 import org.lwjgl.opengl.GL11;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.HGroupLayout;
@@ -164,6 +169,13 @@ public class SceneEditor extends TudeyTool
     public static final Predicate<Object> DEFAULT_ENTRY_FILTER =
         Predicates.and(Predicates.instanceOf(Entry.class),
             Predicates.not(Predicates.instanceOf(GlobalEntry.class)));
+
+    /** A function that transforms an Entry to its key. */
+    public static final Function<Entry, Object> ENTRY_TO_KEY = new Function<Entry, Object>() {
+        public Object apply (Entry entry) {
+            return entry.getKey();
+        }
+    };
 
     /**
      * The program entry point.
@@ -566,7 +578,7 @@ public class SceneEditor extends TudeyTool
     {
         Entry entry = getMouseEntry(filter);
         if (entry != null) {
-            removeEntry(entry.getKey());
+            removeEntries(entry.getKey());
         }
     }
 
@@ -610,22 +622,19 @@ public class SceneEditor extends TudeyTool
     /**
      * Returns a reference to the entry under the mouse cursor.
      */
-    public Entry getMouseEntry (final Predicate<? super Entry> filter)
+    public Entry getMouseEntry (Predicate<? super Entry> filter)
     {
         if (!getMouseRay(_pick)) {
             return null;
         }
-        final int layer = _layers.getSelectedLayer();
+        final Predicate<Entry> pred = Predicates.and(getLayerPredicate(), filter);
         EntrySprite sprite = (EntrySprite)_view.getIntersection(
             _pick, _pt, new Predicate<Sprite>() {
-            public boolean apply (Sprite sprite) {
-                if (!(sprite instanceof EntrySprite)) {
-                    return false;
+                public boolean apply (Sprite sprite) {
+                    return (sprite instanceof EntrySprite) &&
+                        pred.apply(((EntrySprite) sprite).getEntry());
                 }
-                Entry entry = ((EntrySprite)sprite).getEntry();
-                return (layer == _scene.getLayer(entry.getKey())) && filter.apply(entry);
-            }
-        });
+            });
         return (sprite == null) ? null : sprite.getEntry();
     }
 
@@ -643,9 +652,7 @@ public class SceneEditor extends TudeyTool
     public void removeAndMove (Entry... entries)
     {
         incrementEditId();
-        for (Entry entry : entries) {
-            removeEntry(entry.getKey());
-        }
+        removeEntries(Arrays.asList(entries));
         move(entries);
     }
 
@@ -671,57 +678,81 @@ public class SceneEditor extends TudeyTool
     /**
      * Adds an entry, removing any conflicting entries if necessary.
      */
-    public void overwriteEntry (Entry entry)
+    public void overwriteEntries (Entry... entries)
     {
-        if (entry instanceof TileEntry) {
-            TileEntry tentry = (TileEntry)entry;
-            TileConfig.Original config = tentry.getConfig(getConfigManager());
-            Rectangle region = new Rectangle();
-            tentry.getRegion(config, region);
-            List<TileEntry> results = Lists.newArrayList();
-            _scene.getTileEntries(region, results);
-            for (TileEntry tile : results) {
-                removeEntry(tile.getKey());
+        Set<Object> toRemoveKeys = Sets.newHashSet();
+        List<TileEntry> temp = Lists.newArrayList();
+        for (Entry entry : entries) {
+            if (entry instanceof TileEntry) {
+                TileEntry tentry = (TileEntry)entry;
+                TileConfig.Original config = tentry.getConfig(getConfigManager());
+                Rectangle region = new Rectangle();
+                tentry.getRegion(config, region);
+                _scene.getTileEntries(region, temp);
+                toRemoveKeys.addAll(Collections2.transform(temp, ENTRY_TO_KEY));
+                temp.clear();
             }
         }
-        addEntry(entry);
+        removeEntries(toRemoveKeys.toArray());
+        addEntries(entries);
     }
 
     // documentation inherited from interface EntryManipulator
-    public void addEntry (Entry entry)
+    public void addEntries (Entry... entries)
     {
-        if (entry instanceof TileEntry) {
-            clearPaint((TileEntry)entry);
-            _layers.setSelectedLayer(0);
+        if (entries.length == 0) {
+            return;
+        }
+        for (Entry entry : entries) {
+            if (entry instanceof TileEntry) {
+                clearPaint((TileEntry)entry);
+                _layers.setSelectedLayer(0);
+            }
         }
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
-                new Entry[] { entry }, new Entry[0], new Object[0]));
+                entries, new Entry[0], new Object[0]));
     }
 
     // documentation inherited from interface EntryManipulator
-    public void updateEntry (Entry entry)
+    public void updateEntries (Entry... entries)
     {
-        if (entry instanceof TileEntry) {
-            clearPaint((TileEntry)_scene.getEntry(entry.getKey()));
-            clearPaint((TileEntry)entry);
-            _layers.setSelectedLayer(0);
+        if (entries.length == 0) {
+            return;
+        }
+        for (Entry entry : entries) {
+            if (entry instanceof TileEntry) {
+                clearPaint((TileEntry)_scene.getEntry(entry.getKey()));
+                clearPaint((TileEntry)entry);
+                _layers.setSelectedLayer(0);
+            }
         }
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
-                new Entry[0], new Entry[] { entry }, new Object[0]));
+                new Entry[0], entries, new Object[0]));
     }
 
     // documentation inherited from interface EntryManipulator
-    public void removeEntry (Object key)
+    public void removeEntries (Object... keys)
     {
-        if (key instanceof Coord) {
-            clearPaint((TileEntry)_scene.getEntry(key));
-            _layers.setSelectedLayer(0);
+        if (keys.length == 0) {
+            return;
+        }
+        for (Object key : keys) {
+            if (key instanceof Coord) {
+                clearPaint((TileEntry)_scene.getEntry(key));
+                _layers.setSelectedLayer(0);
+            }
         }
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
-                new Entry[0], new Entry[0], new Object[] { key }));
+                new Entry[0], new Entry[0], keys));
+    }
+
+    // documentation inherited from interface EntryManipulator
+    public void removeEntries (Collection<? extends Entry> coll)
+    {
+        removeEntries(Collections2.transform(coll, ENTRY_TO_KEY).toArray());
     }
 
     // documentation inherited from interface EntryManipulator
@@ -1462,9 +1493,7 @@ public class SceneEditor extends TudeyTool
     protected void deleteSelection ()
     {
         incrementEditId();
-        for (Entry entry : _selection) {
-            removeEntry(entry.getKey());
-        }
+        removeEntries(Arrays.asList(_selection));
     }
 
     /**
@@ -1518,6 +1547,8 @@ public class SceneEditor extends TudeyTool
     protected void transformSelection (Transform3D xform)
     {
         incrementEditId();
+        List<Object> removes = Lists.newArrayList();
+        List<Entry> updates = Lists.newArrayList();
         List<Entry> overwrites = Lists.newArrayList();
         Entry[] oselection = _selection;
         Entry[] nselection = new Entry[oselection.length];
@@ -1527,15 +1558,15 @@ public class SceneEditor extends TudeyTool
             nentry.transform(getConfigManager(), xform);
             Object okey = oentry.getKey(), nkey = nentry.getKey();
             if (!okey.equals(nkey)) {
-                removeEntry(okey);
+                removes.add(okey);
                 overwrites.add(nentry);
             } else {
-                updateEntry(nentry);
+                updates.add(nentry);
             }
         }
-        for (Entry entry : overwrites) {
-            overwriteEntry(entry);
-        }
+        removeEntries(removes.toArray());
+        updateEntries(updates.toArray(new Entry[updates.size()]));
+        overwriteEntries(overwrites.toArray(new Entry[overwrites.size()]));
         setSelection(nselection);
     }
 
@@ -1560,23 +1591,14 @@ public class SceneEditor extends TudeyTool
     protected void deleteErrors ()
     {
         incrementEditId();
-        if (_selection.length > 0) {
-            for (Entry entry : _selection) {
-                if (!entry.isValid(getConfigManager())) {
-                    removeEntry(entry.getKey());
-                }
+        Collection<Entry> toProcess =
+            (_selection.length > 0) ? Arrays.asList(_selection) : _scene.getEntries();
+        Predicate<Entry> isInvalid = new Predicate<Entry>() {
+            public boolean apply (Entry entry) {
+                return !entry.isValid(getConfigManager());
             }
-        } else {
-            List<Object> keys = Lists.newArrayList();
-            for (Entry entry : _scene.getEntries()) {
-                if (!entry.isValid(getConfigManager())) {
-                    keys.add(entry.getKey());
-                }
-            }
-            for (Object key : keys) {
-               removeEntry(key);
-            }
-        }
+        };
+        removeEntries(Collections2.filter(toProcess, isInvalid));
     }
 
     /**

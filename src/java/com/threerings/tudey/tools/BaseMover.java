@@ -165,9 +165,7 @@ public abstract class BaseMover extends EditorTool
         // erase if the third button is down
         if (_editor.isThirdButtonDown()) {
             _scene.getEntries(_cursor.getShape(), _editor.getLayerPredicate(), _underneath);
-            for (int ii = 0, nn = _underneath.size(); ii < nn; ii++) {
-                _editor.removeEntry(_underneath.get(ii).getKey());
-            }
+            _editor.removeEntries(_underneath);
             _underneath.clear();
         }
     }
@@ -180,9 +178,10 @@ public abstract class BaseMover extends EditorTool
     protected Entry[] placeEntries ()
     {
         Entry[] placed = new Entry[_tentries.length];
-        for (int ii = 0; ii < _tentries.length; ii++) {
-            _editor.overwriteEntry(placed[ii] = (Entry)_tentries[ii].clone());
+        for (int ii = 0, nn = _tentries.length; ii < nn; ii++) {
+            placed[ii] = (Entry)_tentries[ii].clone();
         }
+        _editor.overwriteEntries(placed);
         return placed;
     }
 
@@ -192,7 +191,7 @@ public abstract class BaseMover extends EditorTool
     protected Entry[] transform (Entry[] entries, Transform3D transform)
     {
         Entry[] tentries = new Entry[entries.length];
-        for (int ii = 0; ii < entries.length; ii++) {
+        for (int ii = 0, nn = entries.length; ii < nn; ii++) {
             Entry tentry = tentries[ii] = (Entry)entries[ii].clone();
             tentry.transform(_editor.getConfigManager(), transform);
         }

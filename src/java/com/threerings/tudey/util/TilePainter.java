@@ -351,7 +351,7 @@ public class TilePainter
     protected void addEntry (TileEntry entry, Rectangle region, Paint paint)
     {
         removeEntries(region);
-        _manipulator.addEntry(entry);
+        _manipulator.addEntries(entry);
         _manipulator.setPaint(region, paint);
     }
 
@@ -362,9 +362,7 @@ public class TilePainter
     {
         ArrayList<TileEntry> results = new ArrayList<TileEntry>();
         _scene.getTileEntries(region, results);
-        for (int ii = 0, nn = results.size(); ii < nn; ii++) {
-            _manipulator.removeEntry(results.get(ii).getKey());
-        }
+        _manipulator.removeEntries(results);
     }
 
     /**
@@ -372,12 +370,14 @@ public class TilePainter
      */
     protected void removeEntries (CoordSet coords)
     {
+        ArrayList<TileEntry> list = new ArrayList<TileEntry>();
         for (Coord coord : coords) {
             TileEntry entry = _scene.getTileEntry(coord.x, coord.y);
             if (entry != null) {
-                _manipulator.removeEntry(entry.getKey());
+                list.add(entry);
             }
         }
+        _manipulator.removeEntries(list);
     }
 
     /** The config manager used to resolve configuration references. */

@@ -124,7 +124,7 @@ public class GlobalEditor extends EditorTool
             if (nglobal == null) { // removed
                 _ignoreRemove = true;
                 try {
-                    _editor.removeEntry(id);
+                    _editor.removeEntries(id);
                 } finally {
                     _ignoreRemove = false;
                 }
@@ -134,7 +134,7 @@ public class GlobalEditor extends EditorTool
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
                 _ignoreUpdate = true;
                 try {
-                    _editor.updateEntry(cglobal);
+                    _editor.updateEntries(cglobal);
                 } finally {
                     _ignoreUpdate = false;
                 }
@@ -146,7 +146,7 @@ public class GlobalEditor extends EditorTool
                 GlobalEntry cglobal = (GlobalEntry)nglobal.clone();
                 _ignoreAdd = true;
                 try {
-                    _editor.addEntry(cglobal);
+                    _editor.addEntries(cglobal);
                 } finally {
                     _ignoreAdd = false;
                 }
@@ -258,9 +258,7 @@ public class GlobalEditor extends EditorTool
                 XMLImporter in = new XMLImporter(new FileInputStream(file));
                 GlobalEntry[] entries = (GlobalEntry[])in.readObject();
                 _editor.incrementEditId();
-                for (GlobalEntry entry : entries) {
-                    _editor.addEntry(entry);
-                }
+                _editor.addEntries(entries);
                 in.close();
             } catch (Exception e) { // IOException, ClassCastException
                 log.warning("Failed to import globals.", "file", file, e);

@@ -67,7 +67,7 @@ public class Arrow extends EditorTool
         try {
             Entry entry = (Entry)_epanel.getObject();
             if (entry != null) {
-                _editor.updateEntry((Entry)entry.clone());
+                _editor.updateEntries((Entry)entry.clone());
             }
         } finally {
             _ignoreUpdate = false;
