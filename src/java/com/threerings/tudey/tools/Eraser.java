@@ -61,6 +61,11 @@ public class Eraser extends EditorTool
     {
         super(editor);
 
+        // make the rectangle non-obnoxious
+        ShapeConfig.Rectangle rect = (ShapeConfig.Rectangle)_options.shape;
+        rect.width = .99f;
+        rect.height = .99f;
+
         // create and add the editor panel
         EditorPanel epanel = new EditorPanel(editor);
         add(epanel);
