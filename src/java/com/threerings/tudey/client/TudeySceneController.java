@@ -624,13 +624,8 @@ public class TudeySceneController extends SceneController
                 root.getMouseX(), root.getMouseY(), _pick);
 
             // see if it intersects anything in the scene
-            if (_holdHover && (_hsprite == null || _hsprite.isClickable())) {
-                nhsprite = _hsprite;
-            } else {
-                SceneElement element = _tsview.getScene().getIntersection(
-                    _pick, _isect, HOVER_FILTER);
-                nhsprite = (element == null) ? null : (Sprite)element.getUserObject();
-            }
+            nhsprite = (_holdHover && (_hsprite == null || _hsprite.isClickable())) ?
+                _hsprite : findHoverSprite(_pick);
 
             // find the camera target plane
             Vector3f target = _tsview.getCameraHandler().getTarget();
@@ -689,6 +684,15 @@ public class TudeySceneController extends SceneController
 
         // reset the frame flags
         _frameFlags = _flags;
+    }
+
+    /**
+     * Finds the hover sprite that the pick ray intersects, if any.
+     */
+    protected Sprite findHoverSprite (Ray3D pick)
+    {
+        SceneElement element = _tsview.getScene().getIntersection(pick, _isect, HOVER_FILTER);
+        return (element == null) ? null : (Sprite)element.getUserObject();
     }
 
     /**
