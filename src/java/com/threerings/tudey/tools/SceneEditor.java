@@ -213,6 +213,7 @@ public class SceneEditor extends TudeyTool
         // create the undo apparatus
         _undoSupport = new UndoableEditSupport();
         _undoSupport.addUndoableEditListener(_undomgr = new UndoManager());
+        _undomgr.setLimit(10000);
         _undoSupport.addUndoableEditListener(new UndoableEditListener() {
             public void undoableEditHappened (UndoableEditEvent event) {
                 updateUndoActions();
