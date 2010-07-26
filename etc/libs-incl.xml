@@ -2,6 +2,7 @@
 <!-- declares the libraries needed to build clyde -->
 <project name="library-dependencies">
   <fileset dir="${libs.dir}" id="clyde.libs">
+    <include name="AppleJavaExtensions.jar"/>
     <include name="ant.jar"/>
     <include name="commons-beanutils.jar"/>
     <include name="commons-collections.jar"/>
