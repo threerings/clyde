@@ -120,6 +120,15 @@ public class ClientArrayConfig extends DeepObject
     }
 
     /**
+     * Checks whether, all other things being equal, we can merge this array with the specified
+     * other.
+     */
+    public boolean canMerge (ClientArrayConfig oarray)
+    {
+        return size == oarray.size && type == oarray.type && normalized == oarray.normalized;
+    }
+
+    /**
      * Creates a client array from this config.
      */
     public ClientArray createClientArray ()

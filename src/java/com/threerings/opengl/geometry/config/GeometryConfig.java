@@ -404,6 +404,49 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         /**
+         * Checks whether, all other things being equal, this geometry can be merged with the
+         * specified other.
+         */
+        protected boolean canMerge (Stored ostored)
+        {
+            return mode == ostored.mode &&
+                vertexArray.canMerge(ostored.vertexArray) &&
+                canMerge(normalArray, ostored.normalArray) &&
+                canMerge(colorArray, ostored.colorArray) &&
+                canMerge(texCoordArrays, ostored.texCoordArrays) &&
+                canMerge(vertexAttribArrays, ostored.vertexAttribArrays);
+        }
+
+        /**
+         * Checks whether the specified arrays of arrays (either or both of which may be
+         * <code>null</code>) can be merged.
+         */
+        protected boolean canMerge (ClientArrayConfig[] a1, ClientArrayConfig[] a2)
+        {
+            if (a1 == null || a1.length == 0) {
+                return a2 == null || a2.length == 0;
+            }
+            if (a2 == null || a2.length != a1.length) {
+                return false;
+            }
+            for (int ii = 0; ii < a1.length; ii++) {
+                if (!canMerge(a1[ii], a2[ii])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Checks whether the specified arrays (either or both of which may be <code>null</code>)
+         * can be merged.
+         */
+        protected boolean canMerge (ClientArrayConfig a1, ClientArrayConfig a2)
+        {
+            return (a1 == null) ? (a2 == null) : (a2 != null && a1.canMerge(a2));
+        }
+
+        /**
          * Extracts the coord spaces from the supplied passes.
          */
         protected CoordSpace[] getCoordSpaces (PassDescriptor[] passes)
@@ -571,8 +614,10 @@ public abstract class GeometryConfig extends DeepObject
                 return null;
             }
             ArrayStored ostored = (ArrayStored)other;
-
-            return null;
+            if (!canMerge(ostored)) {
+                return null;
+            }
+            return new ArrayStored();
         }
 
         @Override // documentation inherited
@@ -617,7 +662,14 @@ public abstract class GeometryConfig extends DeepObject
         @Override // documentation inherited
         public GeometryConfig merge (Transform3D xform, GeometryConfig other, Transform3D oxform)
         {
-            return null;
+            if (!(other instanceof IndexedStored)) {
+                return null;
+            }
+            IndexedStored ostored = (IndexedStored)other;
+            if (!canMerge(ostored)) {
+                return null;
+            }
+            return new IndexedStored();
         }
 
         @Override // documentation inherited
@@ -706,6 +758,13 @@ public abstract class GeometryConfig extends DeepObject
 
         public AttributeArrayConfig ()
         {
+        }
+
+        @Override // documentation inherited
+        public boolean canMerge (ClientArrayConfig oarray)
+        {
+            return super.canMerge(oarray) && oarray instanceof AttributeArrayConfig &&
+                ((AttributeArrayConfig)oarray).name.equals(name);
         }
     }
 
