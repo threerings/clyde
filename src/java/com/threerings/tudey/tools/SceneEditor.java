@@ -788,10 +788,8 @@ public class SceneEditor extends TudeyTool
     // documentation inherited from interface EntryManipulator
     public void setPaint (Rectangle region, Paint paint)
     {
-        EntryEdit edit = new EntryEdit(_scene, _layers.getSelectedLayer(), _editId, region, paint);
-        if (!edit.isEmpty()) {
-            _undoSupport.postEdit(edit);
-        }
+        _undoSupport.postEdit(new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
+            region, paint));
     }
 
     // documentation inherited from interface TudeySceneModel.Observer

@@ -103,26 +103,6 @@ public class EntryEdit extends AbstractUndoableEdit
         }
     }
 
-//    public String getPresentationName ()
-//    {
-//        return "[Added=" + _added.size() + ", Updated=" + _updated.size() +
-//            ", Removed=" + _removed.size() + ", Paint=" + _paint.size() + "]";
-//    }
-
-    /**
-     * Is this edit empty?
-     */
-    public boolean isEmpty ()
-    {
-        return !isSignificant() && _paint.isEmpty();
-    }
-
-    @Override
-    public boolean isSignificant ()
-    {
-        return !_added.isEmpty() || !_updated.isEmpty() || !_removed.isEmpty();
-    }
-
     @Override // documentation inherited
     public boolean addEdit (UndoableEdit edit)
     {
