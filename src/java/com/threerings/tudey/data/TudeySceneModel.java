@@ -1630,8 +1630,8 @@ public class TudeySceneModel extends SceneModel
     public int addLayer (String name)
     {
         Preconditions.checkNotNull(name);
-        _layerNames.add(name);
-        return _layerNames.size();
+        _layers.add(name);
+        return _layers.size();
     }
 
     /**
@@ -1641,7 +1641,7 @@ public class TudeySceneModel extends SceneModel
     {
         Preconditions.checkArgument(validateLayer(layer) != 0, "Cannot rename layer 0");
         Preconditions.checkNotNull(name);
-        _layerNames.set(layer - 1, name);
+        _layers.set(layer - 1, name);
     }
 
     /**
@@ -1649,7 +1649,7 @@ public class TudeySceneModel extends SceneModel
      */
     public List<String> getLayers ()
     {
-        return Lists.asList("<Base Layer>", _layerNames.toArray(new String[0]));
+        return Lists.asList("<Base Layer>", _layers.toArray(new String[_layers.size()]));
     }
 
     /**
@@ -1658,7 +1658,7 @@ public class TudeySceneModel extends SceneModel
     public boolean isLayerEmpty (int layer)
     {
         validateLayer(layer);
-        return (layer != 0) && !_entryLayers.containsValue(layer);
+        return (layer != 0) && !_layerMap.containsValue(layer);
     }
 
     /**
@@ -1667,9 +1667,9 @@ public class TudeySceneModel extends SceneModel
     public void removeLayer (int layer)
     {
         Preconditions.checkArgument(validateLayer(layer) != 0, "Cannot remove layer 0");
-        _layerNames.remove(layer - 1);
+        _layers.remove(layer - 1);
         // adjust any entries at higher layers
-        for (Iterator<Map.Entry<Object, Integer>> itr = _entryLayers.entrySet().iterator();
+        for (Iterator<Map.Entry<Object, Integer>> itr = _layerMap.entrySet().iterator();
                 itr.hasNext(); ) {
             Map.Entry<Object, Integer> entry = itr.next();
             int entryLayer = entry.getValue();
@@ -1700,7 +1700,7 @@ public class TudeySceneModel extends SceneModel
         if (key instanceof Coord) {
             return 0;
         }
-        Integer val = _entryLayers.get(key);
+        Integer val = _layerMap.get(key);
         return (val == null) ? 0 : val;
     }
 
@@ -1711,11 +1711,11 @@ public class TudeySceneModel extends SceneModel
     {
         validateLayer(layer);
         if (layer == 0) {
-            _entryLayers.remove(key);
+            _layerMap.remove(key);
         } else {
             Preconditions.checkArgument(!(key instanceof Coord),
                 "Tiles may only be placed on layer 0");
-            _entryLayers.put(key, layer);
+            _layerMap.put(key, layer);
         }
         // notify the observers
         _observers.apply(new ObserverList.ObserverOp<Observer>() {
@@ -1819,6 +1819,23 @@ public class TudeySceneModel extends SceneModel
         out.write("auxModels", auxModels, new AuxModel[0], AuxModel[].class);
         out.write("entries", _entries.values().toArray(new Entry[_entries.size()]),
             new Entry[0], Entry[].class);
+        if (_exportLayers) {
+            int layerCount = _layers.size();
+            out.write("layers", _layers.toArray(new String[layerCount]),
+                new String[0], String[].class);
+            // invert the layerMap to output it...
+            List<List<Object>> layers = Lists.newArrayList();
+            for (int ii = 0; ii < layerCount; ii++) {
+                layers.add(Lists.newArrayList());
+            }
+            for (Map.Entry<Object, Integer> entry : _layerMap.entrySet()) {
+                layers.get(entry.getValue() - 1).add(entry.getKey());
+            }
+            Object[] DEFAULT = new Object[0];
+            for (int ii = 0; ii < layerCount; ii++) {
+                out.write("layer" + (ii + 1), layers.get(ii).toArray(), DEFAULT, Object[].class);
+            }
+        }
     }
 
     /**
@@ -1869,6 +1886,17 @@ public class TudeySceneModel extends SceneModel
                 _lastEntryId = Math.max(_lastEntryId, ((IdEntry)entry).getId());
             }
         }
+
+        // read in the layer information
+        _layers = Lists.newArrayList(in.read("layers", new String[0], String[].class));
+        _layerMap = Maps.newHashMap();
+        Object[] DEFAULT = new Object[0];
+        for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
+            Integer layer = (ii + 1);
+            for (Object key : in.read("layer" + layer, DEFAULT, Object[].class)) {
+                _layerMap.put(key, layer);
+            }
+        }
     }
 
     /**
@@ -1904,8 +1932,8 @@ public class TudeySceneModel extends SceneModel
         _paintConfigIds = nmodel._paintConfigIds;
         _entries = nmodel._entries;
         _references = nmodel._references;
-        _entryLayers = nmodel._entryLayers;
-        _layerNames = nmodel._layerNames;
+        _layers = nmodel._layers;
+        _layerMap = nmodel._layerMap;
 
         // store the cached data
         _data = new SoftReference<byte[]>(data);
@@ -1918,7 +1946,12 @@ public class TudeySceneModel extends SceneModel
     {
         byte[] data = (_data == null) ? null : _data.get();
         if (data == null) {
-            _data = new SoftReference<byte[]>(data = ExportUtil.toBytes(this));
+            try {
+                _exportLayers = false;
+                _data = new SoftReference<byte[]>(data = ExportUtil.toBytes(this));
+            } finally {
+                _exportLayers = true;
+            }
         }
         return data;
     }
@@ -2119,8 +2152,8 @@ public class TudeySceneModel extends SceneModel
         }
 
         // and the layers
-        model._entryLayers = Maps.newHashMap(_entryLayers);
-        model._layerNames = Lists.newArrayList(_layerNames);
+        model._layers = Lists.newArrayList(_layers);
+        model._layerMap = Maps.newHashMap(_layerMap);
 
         return model;
     }
@@ -2204,7 +2237,7 @@ public class TudeySceneModel extends SceneModel
      */
     protected Entry remove (Object key)
     {
-        _entryLayers.remove(key);
+        _layerMap.remove(key);
         if (!(key instanceof Coord)) {
             Entry oentry = _entries.remove(key);
             if (oentry != null) {
@@ -2504,7 +2537,7 @@ public class TudeySceneModel extends SceneModel
      */
     protected int validateLayer (int layer)
     {
-        return Preconditions.checkElementIndex(layer, _layerNames.size() + 1);
+        return Preconditions.checkElementIndex(layer, _layers.size() + 1);
     }
 
     /**
@@ -2601,13 +2634,17 @@ public class TudeySceneModel extends SceneModel
     @DeepOmit
     protected ArrayList<PaintConfigMapping> _paintConfigs = Lists.newArrayList();
 
-    /** Maps entry keys to their layer. Entries are on layer 0 by default. */
+    /** Do we want to export layers when we serialize? */
     @DeepOmit
-    protected Map<Object, Integer> _entryLayers = Maps.newHashMap();
+    protected transient boolean _exportLayers = true;
 
     /** The names of each layer. Layer n is at index n-1. */
     @DeepOmit
-    protected List<String> _layerNames = Lists.newArrayList();
+    protected transient List<String> _layers = Lists.newArrayList();
+
+    /** Maps entry keys to their layer. Entries are on layer 0 by default. */
+    @DeepOmit
+    protected transient Map<Object, Integer> _layerMap = Maps.newHashMap();
 
     /** Paint config ids mapped by reference. */
     @DeepOmit
