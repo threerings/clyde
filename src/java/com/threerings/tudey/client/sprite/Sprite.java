@@ -123,6 +123,17 @@ public abstract class Sprite extends SimpleScope
     }
 
     /**
+     * Attempt to set the visibility of this sprite. No guarantees are made.
+     */
+    public void setVisible (boolean visible)
+    {
+        Model model = getModel();
+        if (model != null) {
+            model.setVisible(visible);
+        }
+    }
+
+    /**
      * Dispatches an event on the sprite.
      *
      * @return true if the sprite handled the event, false if it should be handled elsewhere.

@@ -298,18 +298,11 @@ class LayerTableModel extends AbstractTableModel
 
     protected void updateVisibility (int layer, boolean visible)
     {
-        TudeySceneView view = _editor.getView();
         // just enumerate all entries, since there is otherwise no list of things on layer 0
         for (TudeySceneModel.Entry entry : _scene.getEntries()) {
             Object key = entry.getKey();
             if (layer == _scene.getLayer(key)) {
-                EntrySprite sprite = view.getEntrySprite(key);
-                if (sprite != null) {
-                    Model model = sprite.getModel();
-                    if (model != null) {
-                        model.setVisible(visible);
-                    }
-                }
+                setVisibility(key, visible);
             }
         }
     }
@@ -335,9 +328,14 @@ class LayerTableModel extends AbstractTableModel
     // from LayerObserver (not part of public API)
     public void entryLayerWasSet (Object key, int layer)
     {
+        setVisibility(key, _vis.get(layer));
+    }
+
+    protected void setVisibility (Object key, boolean visible)
+    {
         EntrySprite sprite = _editor.getView().getEntrySprite(key);
         if (sprite != null) {
-            sprite.getModel().setVisible(_vis.get(layer));
+            sprite.setVisible(visible);
         }
     }
 
