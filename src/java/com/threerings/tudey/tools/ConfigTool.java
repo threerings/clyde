@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.tools;
 
+import java.awt.Dimension;
+
 import javax.swing.BorderFactory;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -62,6 +64,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
             _pane = new JScrollPane(), _epanel = new EditorPanel(editor));
         split.setResizeWeight(1.0);
         add(split);
+        _epanel.setMinimumSize(new Dimension(120, 120));
         _epanel.setObject(eref);
         _epanel.addChangeListener(this);
     }
