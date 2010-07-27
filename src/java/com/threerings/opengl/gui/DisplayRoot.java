@@ -58,41 +58,17 @@ public class DisplayRoot extends Root
      */
     public void poll ()
     {
-        // update the modifiers
-        _modifiers = 0;
-        int bcount = Mouse.getButtonCount();
-        if (bcount >= 1 && Mouse.isButtonDown(0)) {
-            _modifiers |= InputEvent.BUTTON1_DOWN_MASK;
-        }
-        if (bcount >= 2 && Mouse.isButtonDown(1)) {
-            _modifiers |= InputEvent.BUTTON2_DOWN_MASK;
-        }
-        if (bcount >= 3 && Mouse.isButtonDown(2)) {
-            _modifiers |= InputEvent.BUTTON3_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
-            _modifiers |= InputEvent.SHIFT_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) ||
-                Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)) {
-            _modifiers |= InputEvent.CTRL_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) {
-            _modifiers |= InputEvent.ALT_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LMETA) || Keyboard.isKeyDown(Keyboard.KEY_RMETA)) {
-            _modifiers |= InputEvent.META_DOWN_MASK;
-        }
-
         // process mouse events
         while (Mouse.next()) {
             int button = Mouse.getEventButton();
             if (button != -1) {
-                if (Mouse.getEventButtonState()) {
+                boolean pressed = Mouse.getEventButtonState();
+                if (pressed) {
                     mousePressed(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
                 } else {
                     mouseReleased(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
                 }
+                updateButtonModifier(button, pressed);
             }
             int delta = Mouse.getEventDWheel();
             if (delta != 0) {
@@ -106,13 +82,19 @@ public class DisplayRoot extends Root
 
         // process keyboard events
         while (Keyboard.next()) {
-            if (Keyboard.getEventKeyState()) {
-                keyPressed(_tickStamp, Keyboard.getEventCharacter(),
-                    Keyboard.getEventKey(), false);
+            int key = Keyboard.getEventKey();
+            boolean pressed = Keyboard.getEventKeyState();
+            if (pressed) {
+                keyPressed(_tickStamp, Keyboard.getEventCharacter(), key, false);
             } else {
-                keyReleased(_tickStamp, Keyboard.getEventCharacter(),
-                    Keyboard.getEventKey(), false);
+                keyReleased(_tickStamp, Keyboard.getEventCharacter(), key, false);
             }
+            updateKeyModifier(key, pressed);
+        }
+
+        // clear the modifiers if we don't have focus
+        if (!Display.isActive()) {
+            _modifiers = 0;
         }
 
         // process controller events
@@ -169,6 +151,77 @@ public class DisplayRoot extends Root
             Mouse.setNativeCursor(cursor == null ? null : cursor.getLWJGLCursor());
         } catch (LWJGLException e) {
             log.warning("Failed to set cursor.", "cursor", cursor, e);
+        }
+    }
+
+    /**
+     * Updates the modifier for the specified button.
+     */
+    protected void updateButtonModifier (int button, boolean pressed)
+    {
+        int mask;
+        switch (button) {
+            case 0:
+                mask = InputEvent.BUTTON1_DOWN_MASK;
+                break;
+
+            case 1:
+                mask = InputEvent.BUTTON2_DOWN_MASK;
+                break;
+
+            case 2:
+                mask = InputEvent.BUTTON3_DOWN_MASK;
+                break;
+
+            default:
+                return;
+        }
+        if (pressed) {
+            _modifiers |= mask;
+        } else {
+            _modifiers &= ~mask;
+        }
+    }
+
+    /**
+     * Updates the modifier for the specified key, if any.
+     */
+    protected void updateKeyModifier (int key, boolean pressed)
+    {
+        int mask, okey;
+        switch (key) {
+            case Keyboard.KEY_LSHIFT:
+            case Keyboard.KEY_RSHIFT:
+                mask = InputEvent.SHIFT_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LSHIFT) ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
+                break;
+
+            case Keyboard.KEY_LCONTROL:
+            case Keyboard.KEY_RCONTROL:
+                mask = InputEvent.CTRL_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LCONTROL) ?
+                    Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
+                break;
+
+            case Keyboard.KEY_LMENU:
+            case Keyboard.KEY_RMENU:
+                mask = InputEvent.ALT_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LMENU) ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
+                break;
+
+            case Keyboard.KEY_LMETA:
+            case Keyboard.KEY_RMETA:
+                mask = InputEvent.META_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LMETA) ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
+                break;
+
+            default:
+                return;
+        }
+        if (pressed || _pressedKeys.containsKey(okey)) {
+            _modifiers |= mask;
+        } else {
+            _modifiers &= ~mask;
         }
     }
 
