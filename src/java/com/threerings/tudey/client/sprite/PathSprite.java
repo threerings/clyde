@@ -94,6 +94,14 @@ public class PathSprite extends EntrySprite
             // nothing by default
         }
 
+        /**
+         * Update the visibility.
+         */
+        public void setVisible (boolean visible)
+        {
+            // nothing by default
+        }
+
         @Override // documentation inherited
         public String getScopeName ()
         {
@@ -167,6 +175,17 @@ public class PathSprite extends EntrySprite
             if (_footprint != null) {
                 _footprint.getTransform().getTranslation().z = minz;
                 _footprint.setShape(entry.createShape(_ctx.getConfigManager()));
+            }
+        }
+
+        @Override // documentation inherited
+        public void setVisible (boolean visible)
+        {
+            for (Model vertex : _vertices) {
+                vertex.setVisible(visible);
+            }
+            for (Model edge : _edges) {
+                edge.setVisible(visible);
             }
         }
 
@@ -330,6 +349,12 @@ public class PathSprite extends EntrySprite
     {
         setConfig((_entry = (PathEntry)entry).path);
         _impl.update(_entry);
+    }
+
+    @Override // documentation inherited
+    public void setVisible (boolean visible)
+    {
+        _impl.setVisible(visible);
     }
 
     @Override // documentation inherited

@@ -92,6 +92,14 @@ public class AreaSprite extends EntrySprite
             // nothing by default
         }
 
+        /**
+         * Update the visibility.
+         */
+        public void setVisible (boolean visible)
+        {
+            // nothing by default
+        }
+
         @Override // documentation inherited
         public String getScopeName ()
         {
@@ -182,6 +190,18 @@ public class AreaSprite extends EntrySprite
         }
 
         @Override // documentation inherited
+        public void setVisible (boolean visible)
+        {
+            for (Model vertex : _vertices) {
+                vertex.setVisible(visible);
+            }
+            for (Model edge : _edges) {
+                edge.setVisible(visible);
+            }
+            _area.setVisible(visible);
+        }
+
+        @Override // documentation inherited
         public void dispose ()
         {
             super.dispose();
@@ -262,6 +282,12 @@ public class AreaSprite extends EntrySprite
     public Entry getEntry ()
     {
         return _entry;
+    }
+
+    @Override // documentation inherited
+    public void setVisible (boolean visible)
+    {
+        _impl.setVisible(visible);
     }
 
     @Override // documentation inherited

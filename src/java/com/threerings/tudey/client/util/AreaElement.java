@@ -73,6 +73,14 @@ public class AreaElement extends SimpleSceneElement
         return cstate.getColor();
     }
 
+    /**
+     * Update the visibility.
+     */
+    public void setVisible (boolean visible)
+    {
+        _visible = visible;
+    }
+
     @Override // documentation inherited
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
@@ -125,7 +133,7 @@ public class AreaElement extends SimpleSceneElement
     @Override // documentation inherited
     protected void draw ()
     {
-        if (_vertices == null) {
+        if (_vertices == null || !_visible) {
             return;
         }
         GL11.glBegin(GL11.GL_POLYGON);
@@ -149,4 +157,7 @@ public class AreaElement extends SimpleSceneElement
 
     /** Triangle used for intersection testing. */
     protected Triangle _triangle = new Triangle();
+
+    /** Are we visible? */
+    protected boolean _visible = true;
 }
