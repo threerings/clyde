@@ -29,6 +29,8 @@ import com.samskivert.swing.GroupLayout;
 
 import com.google.common.collect.Lists;
 
+import com.threerings.opengl.model.Model;
+
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.data.TudeySceneModel;
@@ -136,7 +138,10 @@ public class Layers extends EditorTool
     /** An action for adding a new layer. */
     protected Action _addLayerAction = new AbstractAction("+") {
         public void actionPerformed (ActionEvent e) {
-            _tableModel.addLayer("Layer " + (1 + _scene.getLayers().size()));
+            int newLayer = _scene.getLayers().size();
+            _tableModel.addLayer("Layer " + (1 + newLayer)); // human readable name
+            // immediately select it
+            setSelectedLayer(newLayer);
         }
         { // initializer
             putValue(Action.SHORT_DESCRIPTION, "Add a new layer");
@@ -300,7 +305,10 @@ class LayerTableModel extends AbstractTableModel
             if (layer == _scene.getLayer(key)) {
                 EntrySprite sprite = view.getEntrySprite(key);
                 if (sprite != null) {
-                    sprite.getModel().setVisible(visible);
+                    Model model = sprite.getModel();
+                    if (model != null) {
+                        model.setVisible(visible);
+                    }
                 }
             }
         }
