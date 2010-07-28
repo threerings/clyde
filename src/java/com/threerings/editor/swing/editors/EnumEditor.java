@@ -72,11 +72,12 @@ public class EnumEditor extends PropertyEditor
         add(new JLabel(getPropertyLabel() + ":"));
         final MessageBundle msgs =
             _msgmgr.getBundle(Introspector.getMessageBundle(_property.getType()));
-        add(_box = new JComboBox(Lists.transform(getValues(), new Function<Enum, String>() {
+        Object[] labels = Lists.transform(getValues(), new Function<Enum, String>() {
             public String apply (Enum value) {
                 return getLabel(value, msgs);
             }
-        }).toArray()));
+        }).toArray();
+        add(_box = new JComboBox(labels));
         _box.addActionListener(this);
     }
 
