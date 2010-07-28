@@ -27,10 +27,16 @@ package com.threerings.editor.swing.editors;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 
-import com.samskivert.util.ListUtil;
+import com.google.common.base.Function;
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+
 import com.samskivert.util.StringUtil;
 
 import com.threerings.util.MessageBundle;
@@ -47,8 +53,8 @@ public class EnumEditor extends PropertyEditor
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
-        Object value = _property.getType().getEnumConstants()[_box.getSelectedIndex()];
-        if (!_property.get(_object).equals(value)) {
+        Object value = getValues().get(_box.getSelectedIndex());
+        if (!Objects.equal(_property.get(_object), value)) {
             _property.set(_object, value);
             fireStateChanged();
         }
@@ -57,23 +63,44 @@ public class EnumEditor extends PropertyEditor
     @Override // documentation inherited
     public void update ()
     {
-        _box.setSelectedIndex(ListUtil.indexOf(
-            _property.getType().getEnumConstants(), _property.get(_object)));
+        _box.setSelectedIndex(getValues().indexOf(_property.get(_object)));
     }
 
     @Override // documentation inherited
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        Class type = _property.getType();
-        MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(type));
-        Enum[] constants = (Enum[])type.getEnumConstants();
-        String[] names = new String[constants.length];
-        for (int ii = 0; ii < constants.length; ii++) {
-            names[ii] = getLabel(StringUtil.toUSLowerCase(constants[ii].name()), msgs);
-        }
-        add(_box = new JComboBox(names));
+        final MessageBundle msgs =
+            _msgmgr.getBundle(Introspector.getMessageBundle(_property.getType()));
+        add(_box = new JComboBox(Lists.transform(getValues(), new Function<Enum, String>() {
+            public String apply (Enum value) {
+                return getLabel(value, msgs);
+            }
+        }).toArray()));
         _box.addActionListener(this);
+    }
+
+    /**
+     * A special version of getLabel for enums.
+     */
+    public String getLabel (Enum value, MessageBundle msgs)
+    {
+        if (value == null) {
+            return _msgs.get("m.none");
+        }
+        String key = "m." + StringUtil.toUSLowerCase(value.name());
+        return msgs.exists(key) ? msgs.get(key) : value.toString();
+    }
+
+    /**
+     * Get the valid values for this enum property, which may or may not include null.
+     */
+    protected List<Enum> getValues ()
+    {
+        Enum[] constants = (Enum[])_property.getType().getEnumConstants();
+        return _property.getAnnotation().nullable()
+            ? Lists.asList(null, constants)
+            : Arrays.asList(constants);
     }
 
     /** The combo box. */
