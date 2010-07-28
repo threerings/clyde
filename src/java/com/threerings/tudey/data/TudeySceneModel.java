@@ -46,6 +46,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 
 import com.samskivert.util.ArrayIntSet;
 import com.samskivert.util.ObserverList;
@@ -1669,14 +1670,14 @@ public class TudeySceneModel extends SceneModel
         Preconditions.checkArgument(validateLayer(layer) != 0, "Cannot remove layer 0");
         _layers.remove(layer - 1);
         // adjust any entries at higher layers
-        for (Iterator<Map.Entry<Object, Integer>> itr = _layerMap.entrySet().iterator();
+        for (Iterator<Map.Entry<Integer, Integer>> itr = _layerMap.entrySet().iterator();
                 itr.hasNext(); ) {
-            Map.Entry<Object, Integer> entry = itr.next();
+            Map.Entry<Integer, Integer> entry = itr.next();
             int entryLayer = entry.getValue();
             if (entryLayer == layer) {
                 itr.remove(); // shift that object to the base layer
                 // notify the observers
-                final Object key = entry.getKey();
+                final Integer key = entry.getKey();
                 _observers.apply(new ObserverList.ObserverOp<Observer>() {
                     public boolean apply (Observer observer) {
                         if (observer instanceof LayerObserver) {
@@ -1697,7 +1698,7 @@ public class TudeySceneModel extends SceneModel
      */
     public int getLayer (Object key)
     {
-        if (key instanceof Coord) {
+        if (!(key instanceof Integer)) {
             return 0;
         }
         Integer val = _layerMap.get(key);
@@ -1711,11 +1712,13 @@ public class TudeySceneModel extends SceneModel
     {
         validateLayer(layer);
         if (layer == 0) {
-            _layerMap.remove(key);
+            if (key instanceof Integer) {
+                _layerMap.remove((Integer)key);
+            }
         } else {
-            Preconditions.checkArgument(!(key instanceof Coord),
+            Preconditions.checkArgument((key instanceof Integer),
                 "Tiles may only be placed on layer 0");
-            _layerMap.put(key, layer);
+            _layerMap.put((Integer)key, layer);
         }
         // notify the observers
         _observers.apply(new ObserverList.ObserverOp<Observer>() {
@@ -1824,16 +1827,16 @@ public class TudeySceneModel extends SceneModel
             out.write("layers", _layers.toArray(new String[layerCount]),
                 new String[0], String[].class);
             // invert the layerMap to output it...
-            List<List<Object>> layers = Lists.newArrayList();
+            List<List<Integer>> layers = Lists.newArrayList();
             for (int ii = 0; ii < layerCount; ii++) {
-                layers.add(Lists.newArrayList());
+                layers.add(Lists.<Integer>newArrayList());
             }
-            for (Map.Entry<Object, Integer> entry : _layerMap.entrySet()) {
+            for (Map.Entry<Integer, Integer> entry : _layerMap.entrySet()) {
                 layers.get(entry.getValue() - 1).add(entry.getKey());
             }
-            Object[] DEFAULT = new Object[0];
+            int[] DEFAULT = new int[0];
             for (int ii = 0; ii < layerCount; ii++) {
-                out.write("layer" + (ii + 1), layers.get(ii).toArray(), DEFAULT, Object[].class);
+                out.write("layer" + (ii + 1), Ints.toArray(layers.get(ii)), DEFAULT);
             }
         }
     }
@@ -1890,12 +1893,21 @@ public class TudeySceneModel extends SceneModel
         // read in the layer information
         _layers = Lists.newArrayList(in.read("layers", new String[0], String[].class));
         _layerMap = Maps.newHashMap();
-        Object[] DEFAULT = new Object[0];
+        int[] DEFAULT = new int[0];
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
             Integer layer = (ii + 1);
-            for (Object key : in.read("layer" + layer, DEFAULT, Object[].class)) {
-                _layerMap.put(key, layer);
+            // TODO: Just try the new way, Remove old way
+            try {
+                for (int key : in.read("layer" + layer, DEFAULT)) {
+                    _layerMap.put(key, layer);
+                }
+            } catch (ClassCastException cce) {
+                System.err.println("Reading layer the old way...");
+                for (Object key : in.read("layer" + layer, new Object[0], Object[].class)) {
+                    _layerMap.put((Integer)key, layer);
+                }
             }
+            // END: TODO
         }
     }
 
@@ -2237,8 +2249,8 @@ public class TudeySceneModel extends SceneModel
      */
     protected Entry remove (Object key)
     {
-        _layerMap.remove(key);
         if (!(key instanceof Coord)) {
+            _layerMap.remove(key);
             Entry oentry = _entries.remove(key);
             if (oentry != null) {
                 removeElement(oentry);
@@ -2642,9 +2654,9 @@ public class TudeySceneModel extends SceneModel
     @DeepOmit
     protected transient List<String> _layers = Lists.newArrayList();
 
-    /** Maps entry keys to their layer. Entries are on layer 0 by default. */
+    /** Maps entry keys to their layer. Entries are on layer 0 by default, as are all tiles. */
     @DeepOmit
-    protected transient Map<Object, Integer> _layerMap = Maps.newHashMap();
+    protected transient Map<Integer, Integer> _layerMap = Maps.newHashMap();
 
     /** Paint config ids mapped by reference. */
     @DeepOmit
