@@ -1896,18 +1896,9 @@ public class TudeySceneModel extends SceneModel
         int[] DEFAULT = new int[0];
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
             Integer layer = (ii + 1);
-            // TODO: Just try the new way, Remove old way
-            try {
-                for (int key : in.read("layer" + layer, DEFAULT)) {
-                    _layerMap.put(key, layer);
-                }
-            } catch (ClassCastException cce) {
-                System.err.println("Reading layer the old way...");
-                for (Object key : in.read("layer" + layer, new Object[0], Object[].class)) {
-                    _layerMap.put((Integer)key, layer);
-                }
+            for (int key : in.read("layer" + layer, DEFAULT)) {
+                _layerMap.put(key, layer);
             }
-            // END: TODO
         }
     }
 
