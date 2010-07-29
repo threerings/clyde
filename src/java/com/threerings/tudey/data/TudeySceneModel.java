@@ -1712,12 +1712,13 @@ public class TudeySceneModel extends SceneModel
     {
         validateLayer(layer);
         if (layer == 0) {
-            if (key instanceof Integer) {
-                _layerMap.remove((Integer)key);
-            }
+            _layerMap.remove(key);
+
         } else {
             Preconditions.checkArgument((key instanceof Integer),
                 "Tiles may only be placed on layer 0");
+            Preconditions.checkArgument(!(getEntry(key) instanceof GlobalEntry),
+                "Globals may only be placed on layer 0");
             _layerMap.put((Integer)key, layer);
         }
         // notify the observers
@@ -1897,7 +1898,13 @@ public class TudeySceneModel extends SceneModel
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
             Integer layer = (ii + 1);
             for (int key : in.read("layer" + layer, DEFAULT)) {
-                _layerMap.put(key, layer);
+                // TEMP: push globals to layer 0
+                if (_entries.get(key) instanceof GlobalEntry) {
+                    System.err.println("Moving global to layer 0...");
+                } else {
+                    _layerMap.put(key, layer);
+                }
+                // END: temp
             }
         }
     }
