@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -580,11 +581,23 @@ public class TudeySceneManager extends SceneManager
     public int triggerSensors (
         Class<? extends Sensor> type, int timestamp, Shape shape, int flags, ActorLogic actor)
     {
-        List<SpaceElement> elements = Lists.newArrayList();
-        _sensorSpace.getIntersecting(shape, elements);
+
+        return triggerSensors(type, timestamp, ImmutableList.of(shape), flags, actor);
+    }
+
+    /**
+     * Triggers any sensors of the specified type intersecting the specified shape.
+     */
+    public int triggerSensors (Class<? extends Sensor> type, int timestamp,
+            Collection<Shape> shapes, int flags, ActorLogic actor)
+    {
+        Set<SpaceElement> elements = Sets.newHashSet();
+        for (Shape shape : shapes) {
+            _sensorSpace.getIntersecting(shape, elements);
+        }
         int count = 0;
-        for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
-            Sensor sensor = (Sensor)elements.get(ii).getUserObject();
+        for (SpaceElement element : elements) {
+            Sensor sensor = (Sensor)element.getUserObject();
             if (type.isInstance(sensor) && (flags & sensor.getMask()) != 0) {
                 sensor.trigger(timestamp, actor);
                 count++;
