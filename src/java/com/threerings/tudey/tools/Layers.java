@@ -28,9 +28,10 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-import com.samskivert.swing.GroupLayout;
-
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+
+import com.samskivert.swing.GroupLayout;
 
 import com.threerings.opengl.model.Model;
 
@@ -142,7 +143,7 @@ public class Layers extends EditorTool
     protected Action _addLayerAction = new AbstractAction("+") {
         public void actionPerformed (ActionEvent e) {
             int newLayer = _scene.getLayers().size();
-            _tableModel.addLayer("Layer " + (1 + newLayer)); // human readable name
+            _tableModel.addLayer("Layer " + newLayer);
             // immediately select it
             setSelectedLayer(newLayer);
         }
@@ -203,7 +204,10 @@ class LayerTableModel extends AbstractTableModel
             }
         });
         TableColumnModel columnModel = table.getColumnModel();
-        TableColumn visCol = columnModel.getColumn(1);
+        TableColumn numCol = columnModel.getColumn(0);
+        numCol.setResizable(false);
+        numCol.setMaxWidth(20);
+        TableColumn visCol = columnModel.getColumn(2);
         visCol.setResizable(false);
         visCol.setMaxWidth(10);
         return table;
@@ -251,15 +255,16 @@ class LayerTableModel extends AbstractTableModel
     // from TableModel
     public int getColumnCount ()
     {
-        return 2;
+        return 3;
     }
 
     // from TableModel
     public Object getValueAt (int row, int column)
     {
         switch (column) {
+        case 0: return row;
         default: return _scene.getLayers().get(row);
-        case 1: return _vis.get(row);
+        case 2: return _vis.get(row);
         }
     }
 
@@ -267,8 +272,9 @@ class LayerTableModel extends AbstractTableModel
     public Class<?> getColumnClass (int column)
     {
         switch (column) {
+        case 0: return Integer.class;
         default: return String.class;
-        case 1: return Boolean.class;
+        case 2: return Boolean.class;
         }
     }
 
@@ -276,8 +282,9 @@ class LayerTableModel extends AbstractTableModel
     public String getColumnName (int column)
     {
         switch (column) {
+        case 0: return "#";
         default: return "Layer";
-        case 1: return "\u0298"; // sort of an eye-looking glyph
+        case 2: return "\u0298"; // sort of an eye-looking glyph
         }
     }
 
@@ -285,20 +292,22 @@ class LayerTableModel extends AbstractTableModel
     public boolean isCellEditable (int row, int column)
     {
         switch (column) {
+        case 0: return false;
         default: return (row > 0);
-        case 1: return true;
+        case 2: return true;
         }
     }
 
     @Override
     public void setValueAt (Object value, int row, int column)
     {
+        Preconditions.checkArgument(isCellEditable(row, column));
         switch (column) {
         default:
             _scene.renameLayer(row, String.valueOf(value));
             break;
 
-        case 1:
+        case 2:
             Boolean visible = (Boolean)value;
             _vis.set(row, visible);
             updateVisibility(row, visible);
