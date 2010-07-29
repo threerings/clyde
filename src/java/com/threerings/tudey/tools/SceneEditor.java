@@ -1267,7 +1267,7 @@ public class SceneEditor extends TudeyTool
         }
 
         // update whether we are showing or hiding layers
-        boolean hideLayers = (tool instanceof GlobalEditor) || (tool instanceof Notepad);
+        boolean hideLayers = (tool instanceof Notepad);
         if (hideLayers) {
             if (_layers.isVisible()) {
                 _layerDividerPos = _layerSplit.getDividerLocation();
@@ -1279,7 +1279,8 @@ public class SceneEditor extends TudeyTool
                 _layerSplit.setDividerLocation(_layerDividerPos);
             }
         }
-        boolean forceBase = (tool == _tileBrush) || (tool == _groundBrush) || (tool == _wallBrush);
+        boolean forceBase = (tool == _globalEditor) ||
+            (tool == _tileBrush) || (tool == _groundBrush) || (tool == _wallBrush);
         if (forceBase) {
             _layers.setSelectedLayer(0);
         }
