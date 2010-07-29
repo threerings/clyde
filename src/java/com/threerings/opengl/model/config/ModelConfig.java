@@ -29,6 +29,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeSet;
 
 import com.google.common.base.Objects;
@@ -56,6 +57,7 @@ import com.threerings.opengl.effect.config.MetaParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.gui.config.ComponentBillboardConfig;
+import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.CollisionMesh;
@@ -86,14 +88,22 @@ public class ModelConfig extends ParameterizedConfig
      * Contains the actual implementation of the model.
      */
     @EditorTypes({
-        StaticConfig.class, StaticSetConfig.class, ArticulatedConfig.class,
-        ParticleSystemConfig.class, MetaParticleSystemConfig.class, SceneInfluencerConfig.class,
-        ViewerAffecterConfig.class, ComponentBillboardConfig.class, ConditionalConfig.class,
-        CompoundConfig.class, ScriptedConfig.class, ActorModelConfig.Wrapper.class,
-        ShapeModelConfig.class, Derived.class })
+        StaticConfig.class, StaticSetConfig.class, MergedStaticConfig.class,
+        ArticulatedConfig.class, ParticleSystemConfig.class, MetaParticleSystemConfig.class,
+        SceneInfluencerConfig.class, ViewerAffecterConfig.class, ComponentBillboardConfig.class,
+        ConditionalConfig.class, CompoundConfig.class, ScriptedConfig.class,
+        ActorModelConfig.Wrapper.class, ShapeModelConfig.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
+        /**
+         * Retrieves a reference to the underlying original implementation.
+         */
+        public Implementation getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
+        }
+
         /**
          * Updates this implementation from its external source, if any.
          *
@@ -372,6 +382,22 @@ public class ModelConfig extends ParameterizedConfig
             // nothing by default
         }
 
+        /**
+         * Creates the array of resolved geometry/material pairs.
+         */
+        protected static GeometryMaterial[] getGeometryMaterials (
+            GlContext ctx, VisibleMesh[] meshes, MaterialMapping[] materialMappings)
+        {
+            GeometryMaterial[] gmats = new GeometryMaterial[meshes.length];
+            Map<String, MaterialConfig> mmap = Maps.newHashMap();
+            for (int ii = 0; ii < gmats.length; ii++) {
+                VisibleMesh mesh = meshes[ii];
+                gmats[ii] = new GeometryMaterial(mesh.geometry, Model.getMaterialConfig(
+                    ctx, mesh.texture, mesh.tag, materialMappings, mmap));
+            }
+            return gmats;
+        }
+
         /** The resource from which we read the model data. */
         protected String _source;
 
@@ -388,6 +414,13 @@ public class ModelConfig extends ParameterizedConfig
         /** The model reference. */
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
+
+        @Override // documentation inherited
+        public Implementation getOriginal (ConfigManager cfgmgr)
+        {
+            ModelConfig config = cfgmgr.getConfig(ModelConfig.class, model);
+            return (config == null) ? null : config.getOriginal();
+        }
 
         @Override // documentation inherited
         public void getUpdateReferences (ConfigReferenceSet refs)
@@ -546,6 +579,14 @@ public class ModelConfig extends ParameterizedConfig
     /** The actual model implementation. */
     @Editable
     public Implementation implementation = new StaticConfig();
+
+    /**
+     * Retrieves a reference to the underlying original implementation.
+     */
+    public Implementation getOriginal ()
+    {
+        return implementation.getOriginal(_configs);
+    }
 
     /**
      * Creates or updates a model implementation for this configuration.

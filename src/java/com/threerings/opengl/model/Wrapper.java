@@ -190,14 +190,6 @@ public class Wrapper extends Model.Implementation
         return _impl.getScopeName();
     }
 
-    @Override // documentation inherited
-    protected Surface[] createSurfaces (
-            GlContext ctx, Scope scope, VisibleMesh[] meshes, MaterialMapping[] materialMappings,
-            Map<String, MaterialConfig> materialConfigs)
-    {
-        return _impl.createSurfaces(ctx, scope, meshes, materialMappings, materialConfigs);
-    }
-
     /** The implementation we're wrapping. */
     protected Model.Implementation _impl;
 }

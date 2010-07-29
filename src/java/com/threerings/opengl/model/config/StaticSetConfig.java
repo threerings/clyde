@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.model.config;
 
+import java.lang.ref.SoftReference;
+
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -31,8 +33,10 @@ import com.samskivert.util.ComparableTuple;
 
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
+import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
+import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.Static;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
@@ -70,12 +74,24 @@ public class StaticSetConfig extends ModelConfig.Imported
         if (mset == null) {
             return null;
         }
+        GeometryMaterial[] gmats = (_gmats == null) ? null : _gmats.get();
+        if (gmats == null) {
+            _gmats = new SoftReference<GeometryMaterial[]>(gmats = getGeometryMaterials(
+                ctx, mset.visible, materialMappings));
+        }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(mset, materialMappings, influences.getFlags());
+            ((Static)impl).setConfig(mset.bounds, mset.collision, gmats, influences.getFlags());
         } else {
-            impl = new Static(ctx, scope, mset, materialMappings, influences.getFlags());
+            impl = new Static(ctx, scope, mset.bounds, mset.collision,
+                gmats, influences.getFlags());
         }
         return impl;
+    }
+
+    @Override // documentation inherited
+    public void invalidate ()
+    {
+        _gmats = null;
     }
 
     @Override // documentation inherited
@@ -115,4 +131,8 @@ public class StaticSetConfig extends ModelConfig.Imported
             }
         }
     }
+
+    /** The cached geometry/material pairs. */
+    @DeepOmit
+    protected transient SoftReference<GeometryMaterial[]> _gmats;
 }

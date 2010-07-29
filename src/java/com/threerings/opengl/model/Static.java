@@ -37,6 +37,7 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.material.Surface;
+import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
@@ -56,21 +57,23 @@ public class Static extends Model.Implementation
      * Creates a new static implementation.
      */
     public Static (
-        GlContext ctx, Scope parentScope, MeshSet meshes,
-        MaterialMapping[] materialMappings, int influenceFlags)
+        GlContext ctx, Scope parentScope, Box bounds, CollisionMesh collision,
+        GeometryMaterial[] gmats, int influenceFlags)
     {
         super(parentScope);
         _ctx = ctx;
-        setConfig(meshes, materialMappings, influenceFlags);
+        setConfig(bounds, collision, gmats, influenceFlags);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (MeshSet meshes, MaterialMapping[] materialMappings, int influenceFlags)
+    public void setConfig (
+        Box bounds, CollisionMesh collision, GeometryMaterial[] gmats, int influenceFlags)
     {
-        _meshes = meshes;
-        _materialMappings = materialMappings;
+        _localBounds = bounds;
+        _collision = collision;
+        _gmats = gmats;
         _influenceFlags = influenceFlags;
         updateFromConfig();
     }
@@ -107,7 +110,7 @@ public class Static extends Model.Implementation
         }
 
         // and the world bounds
-        _meshes.bounds.transform(_worldTransform, _nbounds);
+        _localBounds.transform(_worldTransform, _nbounds);
         if (!_bounds.equals(_nbounds)) {
             ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
@@ -125,9 +128,8 @@ public class Static extends Model.Implementation
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
-        CollisionMesh collision = _meshes.collision;
-        if (collision == null || !_bounds.intersects(ray) ||
-                !collision.getIntersection(ray.transform(_worldTransform.invert()), result)) {
+        if (_collision == null || !_bounds.intersects(ray) ||
+                !_collision.getIntersection(ray.transform(_worldTransform.invert()), result)) {
             return false;
         }
         // then transform it back if we get a hit
@@ -164,20 +166,21 @@ public class Static extends Model.Implementation
                 surface.dispose();
             }
         }
-        _surfaces = createSurfaces(
-            _ctx, this, _meshes.visible, _materialMappings,
-            new HashMap<String, MaterialConfig>(_materialMappings.length));
+        _surfaces = createSurfaces(_ctx, this, _gmats);
         updateBounds();
     }
 
     /** The application context. */
     protected GlContext _ctx;
 
-    /** The model meshes. */
-    protected MeshSet _meshes;
+    /** The local bounds of the model. */
+    protected Box _localBounds;
 
-    /** The material mappings. */
-    protected MaterialMapping[] _materialMappings;
+    /** The model's collision mesh. */
+    protected CollisionMesh _collision;
+
+    /** The visible geometry objects and their materials. */
+    protected GeometryMaterial[] _gmats;
 
     /** The surfaces corresponding to each visible mesh. */
     protected Surface[] _surfaces;

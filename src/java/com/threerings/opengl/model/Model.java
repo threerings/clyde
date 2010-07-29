@@ -54,6 +54,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.material.Surface;
+import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
@@ -278,7 +279,21 @@ public class Model extends DynamicScope
         /**
          * Creates a set of surfaces.
          */
-        protected Surface[] createSurfaces (
+        protected static Surface[] createSurfaces (
+            GlContext ctx, Scope scope, GeometryMaterial[] gmats)
+        {
+            Surface[] surfaces = new Surface[gmats.length];
+            for (int ii = 0; ii < gmats.length; ii++) {
+                GeometryMaterial gmat = gmats[ii];
+                surfaces[ii] = new Surface(ctx, scope, gmat.geometry, gmat.material);
+            }
+            return surfaces;
+        }
+
+        /**
+         * Creates a set of surfaces.
+         */
+        protected static Surface[] createSurfaces (
             GlContext ctx, Scope scope, VisibleMesh[] meshes, MaterialMapping[] materialMappings,
             Map<String, MaterialConfig> materialConfigs)
         {
@@ -300,45 +315,6 @@ public class Model extends DynamicScope
             return new Surface(ctx, scope, mesh.geometry,
                 getMaterialConfig(ctx, mesh.texture, mesh.tag, materialMappings, materialConfigs));
         }
-
-        /**
-         * Resolves a material config through a cache.
-         */
-        protected static MaterialConfig getMaterialConfig (
-            GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings,
-            Map<String, MaterialConfig> materialConfigs)
-        {
-            String key = texture + "|" + tag;
-            MaterialConfig config = materialConfigs.get(key);
-            if (config == null) {
-                materialConfigs.put(
-                    key, config = getMaterialConfig(ctx, texture, tag, materialMappings));
-            }
-            return config;
-        }
-
-        /**
-         * Resolves a material config.
-         */
-        protected static MaterialConfig getMaterialConfig (
-            GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings)
-        {
-            for (MaterialMapping mapping : materialMappings) {
-                if (Objects.equal(texture, mapping.texture) && tag.equals(mapping.tag)) {
-                    if (mapping.material == null) {
-                        return null;
-                    }
-                    MaterialConfig config = ctx.getConfigManager().getConfig(
-                        MaterialConfig.class, mapping.material);
-                    if (config == null) {
-                        log.warning("Missing material for mapping.", "material", mapping.material);
-                    }
-                    return config;
-                }
-            }
-            log.warning("No material mapping found.", "texture", texture, "tag", tag);
-            return null;
-        }
     }
 
     /** A flag indicating that the model implementation relies on the fog state. */
@@ -352,6 +328,22 @@ public class Model extends DynamicScope
 
     /** A flag indicating that the model implementation relies on the definitions. */
     public static final int DEFINITION_INFLUENCE = (1 << 3);
+
+    /**
+     * Resolves a material config through a cache.
+     */
+    public static MaterialConfig getMaterialConfig (
+        GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings,
+        Map<String, MaterialConfig> materialConfigs)
+    {
+        String key = texture + "|" + tag;
+        MaterialConfig config = materialConfigs.get(key);
+        if (config == null) {
+            materialConfigs.put(
+                key, config = getMaterialConfig(ctx, texture, tag, materialMappings));
+        }
+        return config;
+    }
 
     /**
      * Creates a new model with a null configuration.
@@ -1071,6 +1063,29 @@ public class Model extends DynamicScope
     protected void animationStopped (Animation animation, boolean completed)
     {
         Animation.applyStoppedOp(_observers, animation, completed);
+    }
+
+    /**
+     * Resolves a material config.
+     */
+    protected static MaterialConfig getMaterialConfig (
+        GlContext ctx, String texture, String tag, MaterialMapping[] materialMappings)
+    {
+        for (MaterialMapping mapping : materialMappings) {
+            if (Objects.equal(texture, mapping.texture) && tag.equals(mapping.tag)) {
+                if (mapping.material == null) {
+                    return null;
+                }
+                MaterialConfig config = ctx.getConfigManager().getConfig(
+                    MaterialConfig.class, mapping.material);
+                if (config == null) {
+                    log.warning("Missing material for mapping.", "material", mapping.material);
+                }
+                return config;
+            }
+        }
+        log.warning("No material mapping found.", "texture", texture, "tag", tag);
+        return null;
     }
 
     /**
