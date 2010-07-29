@@ -460,4 +460,30 @@ public class FloatMath
         return (k < 0f) ? result.set(Vector3f.ZERO) :
             result.set(n).multLocal(-eta * ndoti - sqrt(k)).addScaledLocal(i, eta);
     }
+
+    /**
+     * Updates the value of the closest point and returns a new result vector reference.
+     * This is used to minimize garbage creation when searching for the closet point using, for
+     * example, the following pattern:
+     *
+     * <p><pre>
+     * Vector3f closest = result;
+     * for (Model model : models) {
+     *     if (model.getIntersection(ray, result)) {
+     *         result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
+     *     }
+     * }
+     * // if result != closest, then we hit something
+     * </pre>
+     */
+    public static Vector3f updateClosest (Vector3f origin, Vector3f result, Vector3f closest)
+    {
+        if (result == closest) {
+            return new Vector3f();
+        }
+        if (origin.distanceSquared(result) < origin.distanceSquared(closest)) {
+            closest.set(result);
+        }
+        return result;
+    }
 }

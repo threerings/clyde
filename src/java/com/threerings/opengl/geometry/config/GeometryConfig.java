@@ -410,11 +410,17 @@ public abstract class GeometryConfig extends DeepObject
         {
             List<TransformedGeometry> merge = Lists.newArrayList();
             Class<? extends Stored> clazz = getClass();
+            int vcount = 0;
             for (int ii = glist.size() - 1; ii >= 0; ii--) {
                 TransformedGeometry tgeom = glist.get(ii);
-                if (tgeom.geometry.getClass() == clazz && canMerge((Stored)tgeom.geometry)) {
+                if (tgeom.geometry.getClass() != clazz) {
+                    continue;
+                }
+                Stored stored = (Stored)tgeom.geometry;
+                if (canMerge(stored)) {
                     glist.remove(ii);
                     merge.add(tgeom);
+                    vcount += stored.getCount();
                 }
             }
             if (merge.isEmpty()) {
@@ -423,12 +429,81 @@ public abstract class GeometryConfig extends DeepObject
             Stored merged = createMerged(merge);
             merged.bounds = new Box();
             merged.mode = mode;
+            int stride = vertexArray.stride / 4;
+            FloatBuffer vbuf = BufferUtils.createFloatBuffer(stride * vcount);
+            if (vertexAttribArrays != null) {
+                merged.vertexAttribArrays = new AttributeArrayConfig[vertexAttribArrays.length];
+                for (int ii = 0; ii < vertexAttribArrays.length; ii++) {
+                    AttributeArrayConfig attrArray = vertexAttribArrays[ii];
+                    merged.vertexAttribArrays[ii] = new AttributeArrayConfig(
+                        attrArray.size, attrArray.stride, attrArray.offset, vbuf, attrArray.name);
+                }
+            }
+            if (texCoordArrays != null) {
+                merged.texCoordArrays = new ClientArrayConfig[texCoordArrays.length];
+                for (int ii = 0; ii < texCoordArrays.length; ii++) {
+                    ClientArrayConfig texCoordArray = texCoordArrays[ii];
+                    merged.texCoordArrays[ii] = new ClientArrayConfig(
+                        texCoordArray.size, texCoordArray.stride, texCoordArray.offset, vbuf);
+                }
+            }
+            if (colorArray != null) {
+                merged.colorArray = new ClientArrayConfig(
+                    colorArray.size, colorArray.stride, colorArray.offset, vbuf);
+            }
+            if (normalArray != null) {
+                merged.normalArray = new ClientArrayConfig(
+                    normalArray.size, normalArray.stride, normalArray.offset, vbuf);
+            }
+            merged.vertexArray = new ClientArrayConfig(
+                vertexArray.size, vertexArray.stride, vertexArray.offset, vbuf);
+            int vpos = 0;
             for (int ii = merge.size() - 1; ii >= 0; ii--) {
                 TransformedGeometry tgeom = merge.get(ii);
                 Stored stored = (Stored)tgeom.geometry;
                 merged.bounds.addLocal(stored.bounds.transform(tgeom.transform));
 
+                // perform a bulk transfer of the array data
+                FloatBuffer obuf = stored.vertexArray.floatArray;
+                int olimit = obuf.limit(), opos = obuf.position();
+                int npos = opos + stored.getFirst() * stride;
+                int count = stored.getCount();
+                obuf.limit(npos + count * stride).position(npos);
+                vbuf.put(stored.vertexArray.floatArray);
+                obuf.limit(olimit).position(opos);
+
+                // then transform the vertices and normals in-place
+                tgeom.transform.update(Transform3D.AFFINE);
+                Matrix4f mat = tgeom.transform.getMatrix();
+                int voff = vertexArray.offset / 4;
+                if (normalArray == null) {
+                    for (int jj = 0; jj < count; jj++) {
+                        int pos = vpos + voff;
+                        float vx = vbuf.get(pos), vy = vbuf.get(pos + 1), vz = vbuf.get(pos + 2);
+                        vbuf.put(pos, mat.m00*vx + mat.m10*vy + mat.m20*vz + mat.m30);
+                        vbuf.put(pos + 1, mat.m01*vx + mat.m11*vy + mat.m21*vz + mat.m31);
+                        vbuf.put(pos + 2, mat.m02*vx + mat.m12*vy + mat.m22*vz + mat.m32);
+                        vpos += stride;
+                    }
+                } else {
+                    int noff = normalArray.offset / 4;
+                    for (int jj = 0; jj < count; jj++) {
+                        int pos = vpos + voff;
+                        float vx = vbuf.get(pos), vy = vbuf.get(pos + 1), vz = vbuf.get(pos + 2);
+                        vbuf.put(pos, mat.m00*vx + mat.m10*vy + mat.m20*vz + mat.m30);
+                        vbuf.put(pos + 1, mat.m01*vx + mat.m11*vy + mat.m21*vz + mat.m31);
+                        vbuf.put(pos + 2, mat.m02*vx + mat.m12*vy + mat.m22*vz + mat.m32);
+
+                        pos = vpos + noff;
+                        float nx = vbuf.get(pos), ny = vbuf.get(pos + 1), nz = vbuf.get(pos + 2);
+                        vbuf.put(pos, mat.m00*nx + mat.m10*ny + mat.m20*nz);
+                        vbuf.put(pos + 1, mat.m01*nx + mat.m11*ny + mat.m21*nz);
+                        vbuf.put(pos + 2, mat.m02*nx + mat.m12*ny + mat.m22*nz);
+                        vpos += stride;
+                    }
+                }
             }
+            vbuf.rewind();
             return merged;
         }
 
@@ -474,6 +549,16 @@ public abstract class GeometryConfig extends DeepObject
         {
             return (a1 == null) ? (a2 == null) : (a2 != null && a1.canMerge(a2));
         }
+
+        /**
+         * Returns the index of the first vertex included in the geometry.
+         */
+        protected abstract int getFirst ();
+
+        /**
+         * Returns the number of vertices included in the geometry.
+         */
+        protected abstract int getCount ();
 
         /**
          * Creates the merged geometry (without initializing the arrays, etc.)
@@ -648,10 +733,24 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
+        protected int getFirst ()
+        {
+            return first;
+        }
+
+        @Override // documentation inherited
+        protected int getCount ()
+        {
+            return count;
+        }
+
+        @Override // documentation inherited
         protected Stored createMerged (List<TransformedGeometry> glist)
         {
             ArrayStored merged = new ArrayStored();
-
+            for (int ii = 0, nn = glist.size(); ii < nn; ii++) {
+                merged.count += ((ArrayStored)glist.get(ii).geometry).count;
+            }
             return merged;
         }
     }
@@ -700,10 +799,40 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
+        protected int getFirst ()
+        {
+            return start;
+        }
+
+        @Override // documentation inherited
+        protected int getCount ()
+        {
+            return (end - start) + 1;
+        }
+
+        @Override // documentation inherited
         protected Stored createMerged (List<TransformedGeometry> glist)
         {
             IndexedStored merged = new IndexedStored();
-
+            int vcount = 0, icount = 0;
+            for (int ii = 0, nn = glist.size(); ii < nn; ii++) {
+                IndexedStored indexed = (IndexedStored)glist.get(ii).geometry;
+                vcount += indexed.getCount();
+                icount += indexed.indices.remaining();
+            }
+            merged.end = vcount - 1;
+            ShortBuffer mindices = merged.indices = BufferUtils.createShortBuffer(icount);
+            int offset = 0;
+            for (int ii = glist.size() - 1; ii >= 0; ii--) {
+                IndexedStored indexed = (IndexedStored)glist.get(ii).geometry;
+                ShortBuffer sindices = indexed.indices;
+                int delta = offset - indexed.start;
+                for (int jj = sindices.position(), jjmax = sindices.limit(); jj < jjmax; jj++) {
+                    mindices.put((short)(sindices.get(jj) + delta));
+                }
+                offset += indexed.getCount();
+            }
+            merged.indices.rewind();
             return merged;
         }
 

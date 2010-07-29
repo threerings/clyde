@@ -29,6 +29,7 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
@@ -189,7 +190,7 @@ public class Compound extends Model.Implementation
         Vector3f closest = result;
         for (Model model : _models) {
             if (model.getIntersection(ray, result)) {
-                result = Articulated.updateClosest(ray.getOrigin(), result, closest);
+                result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
             }
         }
         // if we ever changed the result reference, that means we hit something

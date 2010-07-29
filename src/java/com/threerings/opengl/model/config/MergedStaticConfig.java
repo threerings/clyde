@@ -38,13 +38,17 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 import com.threerings.math.Box;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.geometry.config.TransformedGeometry;
 import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.model.Articulated;
 import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.Compound;
 import com.threerings.opengl.model.Model;
@@ -112,7 +116,8 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         IdentityHashMap<MaterialConfig, List<TransformedGeometry>> glists =
             Maps.newIdentityHashMap();
         Map<String, MaterialConfig> mmap = Maps.newHashMap();
-        Box bounds = new Box();
+        List<TransformedCollision> cmeshes = Lists.newArrayList();
+        final Box bounds = new Box();
         for (ComponentModel cmodel : models) {
             ModelConfig config = cfgmgr.getConfig(ModelConfig.class, cmodel.model);
             ModelConfig.Implementation original = (config == null) ? null : config.getOriginal();
@@ -133,6 +138,9 @@ public class MergedStaticConfig extends ModelConfig.Implementation
                 continue;
             }
             bounds.addLocal(mset.bounds.transform(cmodel.transform));
+            if (mset.collision != null) {
+                cmeshes.add(new TransformedCollision(mset.collision, cmodel.transform));
+            }
             ModelConfig.Imported imported = (ModelConfig.Imported)original;
             for (VisibleMesh mesh : mset.visible) {
                 String key = mesh.texture + "|" + mesh.tag;
@@ -162,7 +170,29 @@ public class MergedStaticConfig extends ModelConfig.Implementation
             }
         }
 
-        return new Cached(bounds, null, gmats.toArray(new GeometryMaterial[gmats.size()]));
+        // create the combined collision mesh
+        final TransformedCollision[] tcollisions = cmeshes.toArray(
+            new TransformedCollision[cmeshes.size()]);
+        CollisionMesh collision = new CollisionMesh() {
+            @Override public Box getBounds () {
+                return bounds;
+            }
+            @Override public boolean getIntersection (Ray3D ray, Vector3f result) {
+                // check the component meshes (transforming the ray into their space and back out
+                // again if we detect a hit)
+                Vector3f closest = result;
+                for (TransformedCollision tcoll : tcollisions) {
+                    if (tcoll.bounds.intersects(ray) && tcoll.collision.getIntersection(
+                            ray.transform(tcoll.invTransform), result)) {
+                        tcoll.transform.transformPointLocal(result);
+                        result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
+                    }
+                }
+                // if we ever changed the result reference, that means we hit something
+                return (result != closest);
+            }
+        };
+        return new Cached(bounds, collision, gmats.toArray(new GeometryMaterial[gmats.size()]));
     }
 
     /**
@@ -184,6 +214,32 @@ public class MergedStaticConfig extends ModelConfig.Implementation
             this.bounds = bounds;
             this.collision = collision;
             this.gmats = gmats;
+        }
+    }
+
+    /**
+     * Holds a collision mesh and associated transform.
+     */
+    protected static class TransformedCollision
+    {
+        /** The collision mesh. */
+        public final CollisionMesh collision;
+
+        /** The transform to apply to the mesh. */
+        public final Transform3D transform;
+
+        /** The inverse of the mesh transform. */
+        public final Transform3D invTransform;
+
+        /** The transformed bounds. */
+        public final Box bounds;
+
+        public TransformedCollision (CollisionMesh collision, Transform3D transform)
+        {
+            this.collision = collision;
+            this.transform = transform;
+            invTransform = transform.invert();
+            bounds = collision.getBounds().transform(transform);
         }
     }
 

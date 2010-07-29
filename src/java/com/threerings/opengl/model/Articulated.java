@@ -40,6 +40,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.Updater;
 import com.threerings.math.Box;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
@@ -677,24 +678,24 @@ public class Articulated extends Model.Implementation
         // first check against the skin
         Vector3f closest = result;
         if (getSkinIntersection(ray, result)) {
-            result = updateClosest(ray.getOrigin(), result, closest);
+            result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
         }
         // then the nodes
         for (Node node : _nodes) {
             if (node.getIntersection(ray, result)) {
-                result = updateClosest(ray.getOrigin(), result, closest);
+                result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
             }
         }
         // then the configured attachments
         for (Model model : _configAttachments) {
             if (model.getIntersection(ray, result)) {
-                result = updateClosest(ray.getOrigin(), result, closest);
+                result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
             }
         }
         // then the user attachments
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             if (_userAttachments.get(ii).getIntersection(ray, result)) {
-                result = updateClosest(ray.getOrigin(), result, closest);
+                result = FloatMath.updateClosest(ray.getOrigin(), result, closest);
             }
         }
         // if we ever changed the result reference, that means we hit something
@@ -992,20 +993,6 @@ public class Articulated extends Model.Implementation
         // then transform it back if we get a hit
         _worldTransform.transformPointLocal(result);
         return true;
-    }
-
-    /**
-     * Updates the value of the closest point and returns a new result vector reference.
-     */
-    protected static Vector3f updateClosest (Vector3f origin, Vector3f result, Vector3f closest)
-    {
-        if (result == closest) {
-            return new Vector3f();
-        }
-        if (origin.distanceSquared(result) < origin.distanceSquared(closest)) {
-            closest.set(result);
-        }
-        return result;
     }
 
     /**
