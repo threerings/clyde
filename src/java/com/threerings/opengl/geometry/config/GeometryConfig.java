@@ -31,12 +31,14 @@ import java.nio.ShortBuffer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
@@ -403,6 +405,33 @@ public abstract class GeometryConfig extends DeepObject
                 deformer.createGeometry(ctx, scope, this, passes);
         }
 
+        @Override // documentation inherited
+        public GeometryConfig merge (List<TransformedGeometry> glist)
+        {
+            List<TransformedGeometry> merge = Lists.newArrayList();
+            Class<? extends Stored> clazz = getClass();
+            for (int ii = glist.size() - 1; ii >= 0; ii--) {
+                TransformedGeometry tgeom = glist.get(ii);
+                if (tgeom.geometry.getClass() == clazz && canMerge((Stored)tgeom.geometry)) {
+                    glist.remove(ii);
+                    merge.add(tgeom);
+                }
+            }
+            if (merge.isEmpty()) {
+                return null;
+            }
+            Stored merged = createMerged(merge);
+            merged.bounds = new Box();
+            merged.mode = mode;
+            for (int ii = merge.size() - 1; ii >= 0; ii--) {
+                TransformedGeometry tgeom = merge.get(ii);
+                Stored stored = (Stored)tgeom.geometry;
+                merged.bounds.addLocal(stored.bounds.transform(tgeom.transform));
+
+            }
+            return merged;
+        }
+
         /**
          * Checks whether, all other things being equal, this geometry can be merged with the
          * specified other.
@@ -445,6 +474,11 @@ public abstract class GeometryConfig extends DeepObject
         {
             return (a1 == null) ? (a2 == null) : (a2 != null && a1.canMerge(a2));
         }
+
+        /**
+         * Creates the merged geometry (without initializing the arrays, etc.)
+         */
+        protected abstract Stored createMerged (List<TransformedGeometry> glist);
 
         /**
          * Extracts the coord spaces from the supplied passes.
@@ -608,22 +642,17 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public GeometryConfig merge (Transform3D xform, GeometryConfig other, Transform3D oxform)
-        {
-            if (!(other instanceof ArrayStored)) {
-                return null;
-            }
-            ArrayStored ostored = (ArrayStored)other;
-            if (!canMerge(ostored)) {
-                return null;
-            }
-            return new ArrayStored();
-        }
-
-        @Override // documentation inherited
         public DrawCommand createDrawCommand (boolean ibo)
         {
             return new SimpleBatch.DrawArrays(mode.getConstant(), first, count);
+        }
+
+        @Override // documentation inherited
+        protected Stored createMerged (List<TransformedGeometry> glist)
+        {
+            ArrayStored merged = new ArrayStored();
+
+            return merged;
         }
     }
 
@@ -660,19 +689,6 @@ public abstract class GeometryConfig extends DeepObject
         }
 
         @Override // documentation inherited
-        public GeometryConfig merge (Transform3D xform, GeometryConfig other, Transform3D oxform)
-        {
-            if (!(other instanceof IndexedStored)) {
-                return null;
-            }
-            IndexedStored ostored = (IndexedStored)other;
-            if (!canMerge(ostored)) {
-                return null;
-            }
-            return new IndexedStored();
-        }
-
-        @Override // documentation inherited
         public DrawCommand createDrawCommand (boolean ibo)
         {
             return ibo ?
@@ -681,6 +697,14 @@ public abstract class GeometryConfig extends DeepObject
                     GL11.GL_UNSIGNED_SHORT, 0L) :
                 SimpleBatch.createDrawShortElements(
                     mode.getConstant(), start, end, indices);
+        }
+
+        @Override // documentation inherited
+        protected Stored createMerged (List<TransformedGeometry> glist)
+        {
+            IndexedStored merged = new IndexedStored();
+
+            return merged;
         }
 
         @Override // documentation inherited
@@ -822,13 +846,13 @@ public abstract class GeometryConfig extends DeepObject
     public abstract Box getBounds ();
 
     /**
-     * Attempts to merge this geometry with another.
+     * Attempts to merge several transformed geometries.
      *
-     * @param xform the transform to apply to this geometry before merging.
-     * @param oxform the transform to apply to the other geometry before merging.
-     * @return the combined geometry, or <code>null</code> if the configs could not be merged.
+     * @param glist a list of the geometry to merge.  Any successfully merged elements will be
+     * removed from the list.
+     * @return the combined geometry, or <code>null</code> if we could not merge any.
      */
-    public GeometryConfig merge (Transform3D xform, GeometryConfig other, Transform3D oxform)
+    public GeometryConfig merge (List<TransformedGeometry> glist)
     {
         return null;
     }

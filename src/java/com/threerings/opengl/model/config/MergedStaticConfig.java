@@ -112,6 +112,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         IdentityHashMap<MaterialConfig, List<TransformedGeometry>> glists =
             Maps.newIdentityHashMap();
         Map<String, MaterialConfig> mmap = Maps.newHashMap();
+        Box bounds = new Box();
         for (ComponentModel cmodel : models) {
             ModelConfig config = cfgmgr.getConfig(ModelConfig.class, cmodel.model);
             ModelConfig.Implementation original = (config == null) ? null : config.getOriginal();
@@ -131,6 +132,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
             if (mset == null) {
                 continue;
             }
+            bounds.addLocal(mset.bounds.transform(cmodel.transform));
             ModelConfig.Imported imported = (ModelConfig.Imported)original;
             for (VisibleMesh mesh : mset.visible) {
                 String key = mesh.texture + "|" + mesh.tag;
@@ -148,11 +150,19 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         // merge geometry of the same material
         List<GeometryMaterial> gmats = Lists.newArrayList();
         for (Map.Entry<MaterialConfig, List<TransformedGeometry>> entry : glists.entrySet()) {
+            MaterialConfig material = entry.getKey();
             List<TransformedGeometry> glist = entry.getValue();
-
+            while (!glist.isEmpty()) {
+                GeometryConfig merged = glist.get(0).geometry.merge(glist);
+                if (merged != null) {
+                    gmats.add(new GeometryMaterial(merged, material));
+                } else {
+                    glist.remove(0);
+                }
+            }
         }
 
-        return new Cached(null, null, null);
+        return new Cached(bounds, null, gmats.toArray(new GeometryMaterial[gmats.size()]));
     }
 
     /**
