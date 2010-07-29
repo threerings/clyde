@@ -7,12 +7,15 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
 import java.util.Collections;
+import java.util.EventObject;
 import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultCellEditor;
 import javax.swing.ListSelectionModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
@@ -191,6 +194,14 @@ class LayerTableModel extends AbstractTableModel
     public JTable getTable ()
     {
         JTable table = new JTable(this);
+        // configure the cell editor for visible to not change the selection
+        JCheckBox box = new JCheckBox();
+        box.setHorizontalAlignment(JCheckBox.CENTER);
+        table.setDefaultEditor(Boolean.class, new DefaultCellEditor(box) {
+            public boolean shouldSelectCell (EventObject anEvent) {
+                return false;
+            }
+        });
         TableColumnModel columnModel = table.getColumnModel();
         TableColumn visCol = columnModel.getColumn(1);
         visCol.setResizable(false);
