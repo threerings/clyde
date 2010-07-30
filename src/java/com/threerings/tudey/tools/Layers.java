@@ -30,6 +30,7 @@ import javax.swing.table.TableColumnModel;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
 
 import com.samskivert.swing.GroupLayout;
 
@@ -93,6 +94,18 @@ public class Layers extends EditorTool
     public void setSelectedLayer (int layer)
     {
         _table.setRowSelectionInterval(layer, layer);
+    }
+
+    /**
+     * Select the next or previous layer, and update the visibility of all
+     * layers so that only the selected layer (and the base (0)) are visible.
+     */
+    public void selectLayer (boolean next)
+    {
+        int layerCount = _table.getRowCount();
+        int layer = (getSelectedLayer() + (next ? 1 : layerCount - 1)) % layerCount;
+        _tableModel.setVisibilities(0, layer);
+        setSelectedLayer(layer);
     }
 
     @Override
@@ -314,6 +327,23 @@ class LayerTableModel extends AbstractTableModel
             break;
         }
         fireTableRowsUpdated(row, row);
+    }
+
+    /**
+     * Update the visibilities of each layer, en masse.
+     */
+    public void setVisibilities (int... visibleLayers)
+    {
+        List<Integer> viz = Ints.asList(visibleLayers);
+        for (int ii = 0, nn = _vis.size(); ii < nn; ii++) {
+            _vis.set(ii, viz.contains(ii));
+        }
+        fireTableDataChanged();
+        // update every damn entry
+        for (TudeySceneModel.Entry entry : _scene.getEntries()) {
+            Object key = entry.getKey();
+            setVisibility(key, _vis.get(_scene.getLayer(key)));
+        }
     }
 
     protected void updateVisibility (int layer, boolean visible)

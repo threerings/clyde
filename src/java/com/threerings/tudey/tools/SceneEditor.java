@@ -296,6 +296,9 @@ public class SceneEditor extends TudeyTool
         view.addSeparator();
         view.add(createMenuItem("reorient", KeyEvent.VK_I, KeyEvent.VK_I));
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
+        view.addSeparator();
+        view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_MASK));
+        view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_MASK));
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("scene_dir", null));
@@ -1035,6 +1038,10 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("reorient")) {
             ((OrbitCameraHandler)_camhand).getCoords().set(
                 TudeySceneMetrics.getDefaultCameraConfig().coords);
+        } else if (action.equals("next_layer")) {
+            _layers.selectLayer(true);
+        } else if (action.equals("prev_layer")) {
+            _layers.selectLayer(false);
         } else if (action.equals("markers")) {
             _prefs.putBoolean("markersVisible", _markersVisible = !_markers.isSelected());
             wasUpdated();
