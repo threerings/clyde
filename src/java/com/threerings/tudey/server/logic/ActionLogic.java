@@ -70,7 +70,7 @@ public abstract class ActionLogic extends Logic
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
         {
-            ConfigReference<ActorConfig> actor = ((ActionConfig.SpawnActor)_config).actor;
+            ConfigReference<ActorConfig> actor = getActorConfig(activator);
             if (actor == null) {
                 return true;
             }
@@ -87,6 +87,14 @@ public abstract class ActionLogic extends Logic
         protected void didInit ()
         {
             _location = createTarget(((ActionConfig.SpawnActor)_config).location, _source);
+        }
+
+        /**
+         * Returns the actor config to spawn.
+         */
+        public ConfigReference<ActorConfig> getActorConfig (Logic activator)
+        {
+            return ((ActionConfig.SpawnActor)_config).actor;
         }
 
         /**
