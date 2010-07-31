@@ -902,8 +902,6 @@ public class TudeySceneView extends DynamicScope
         _actorSprites.clear();
     }
 
-    protected long _pstart, _estart, _astart;
-
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
@@ -913,27 +911,16 @@ public class TudeySceneView extends DynamicScope
             float ppct, epct, apct;
             if ((ppct = _preloads.preloadBatch()) == 1f) {
                 if ((epct = createEntrySpriteBatch()) == 1f) {
-                    if (_astart == 0L) {
-                        _astart = System.currentTimeMillis();
-                    }
                     apct = createActorSpriteBatch();
                 } else {
-                    if (_estart == 0L) {
-                        _estart = System.currentTimeMillis();
-                    }
                     apct = 0f;
                 }
             } else {
-                if (_pstart == 0L) {
-                    _pstart = System.currentTimeMillis();
-                }
                 epct = apct = 0f;
             }
             updateLoadingWindow(
                 ppct*PRELOAD_PERCENT + epct*ENTRY_LOAD_PERCENT + apct*ACTOR_LOAD_PERCENT);
             if (apct == 1f) {
-                long now = System.currentTimeMillis();
-                System.out.println(now - _pstart);
                 _loadingWindow = null;
                 _loadingEntries = null;
                 _loadingActors = null;
