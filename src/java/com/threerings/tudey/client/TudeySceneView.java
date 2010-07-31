@@ -461,6 +461,7 @@ public class TudeySceneView extends DynamicScope
             if (Objects.equal(cmodel.model, ref) && cmodel.transform.equals(transform)) {
                 if (impl.models.length == 1) {
                     _scene.remove(model);
+                    _mergedSprites.remove(key);
                 } else {
                     impl.models = ArrayUtil.splice(impl.models, ii, 1);
                     mconfig.wasUpdated();
