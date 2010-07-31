@@ -29,11 +29,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
+import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntMap.IntEntry;
 
@@ -66,6 +70,9 @@ import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.StretchWindow;
 import com.threerings.opengl.gui.Window;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.CompoundConfig.ComponentModel;
+import com.threerings.opengl.model.config.MergedStaticConfig;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.HashScene;
 import com.threerings.opengl.scene.SceneElement;
 import com.threerings.opengl.util.GlContext;
@@ -85,12 +92,14 @@ import com.threerings.tudey.client.util.TimeSmoother;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.config.EffectConfig;
+import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Prespawnable;
@@ -103,6 +112,7 @@ import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.ActorAdvancer;
+import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.TruncatedAverage;
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
@@ -372,6 +382,91 @@ public class TudeySceneView extends DynamicScope
     public ActorSprite getControlledSprite ()
     {
         return _controlledSprite;
+    }
+
+    /**
+     * Attempts to merge a static model.
+     *
+     * @return a reference to the merged model, or <code>null</code> if the model cannot be merged.
+     */
+    public Model maybeMerge (
+        int x, int y, ConfigReference<ModelConfig> ref,
+        Transform3D transform, final int floorFlags)
+    {
+        int granularity = getMergeGranularity();
+        if (granularity == 0) {
+            return null;
+        }
+        Coord key = new Coord(x >> granularity, y >> granularity);
+        Sprite sprite = _mergedSprites.get(key);
+        Model model;
+        if (sprite == null) {
+            final Model fmodel = model = new Model(_ctx);
+            _mergedSprites.put(key, sprite = new Sprite(_ctx, this) {
+                @Override public int getFloorFlags () {
+                    return floorFlags;
+                }
+                @Override public Model getModel () {
+                    return fmodel;
+                }
+            });
+            model.setUserObject(sprite);
+            model.setConfig(new ModelConfig(new MergedStaticConfig(
+                new ComponentModel[] { new ComponentModel(ref, transform) })) { {
+                   _cfgmgr = _configs = _ctx.getConfigManager();
+                }
+                @Override protected void maybeFireOnConfigManager () {
+                    // no-op
+                }
+            });
+            _scene.add(model);
+
+        } else {
+            if (sprite.getFloorFlags() != floorFlags) {
+                return null;
+            }
+            model = sprite.getModel();
+            ModelConfig mconfig = model.getConfig();
+            MergedStaticConfig impl = (MergedStaticConfig)mconfig.implementation;
+            impl.models = ArrayUtil.append(impl.models, new ComponentModel(ref, transform));
+            mconfig.wasUpdated();
+        }
+        return model;
+    }
+
+    /**
+     * Unmerges a model.
+     *
+     * @return whether or not the model was found and unmerged.
+     */
+    public boolean unmerge (
+        int x, int y, ConfigReference<ModelConfig> ref, Transform3D transform)
+    {
+        int granularity = getMergeGranularity();
+        if (granularity == 0) {
+            return false;
+        }
+        Coord key = new Coord(x >> granularity, y >> granularity);
+        Sprite sprite = _mergedSprites.get(key);
+        if (sprite == null) {
+            return false;
+        }
+        Model model = sprite.getModel();
+        ModelConfig mconfig = sprite.getModel().getConfig();
+        MergedStaticConfig impl = (MergedStaticConfig)mconfig.implementation;
+        for (int ii = 0; ii < impl.models.length; ii++) {
+            ComponentModel cmodel = impl.models[ii];
+            if (Objects.equal(cmodel.model, ref) && cmodel.transform.equals(transform)) {
+                if (impl.models.length == 1) {
+                    _scene.remove(model);
+                } else {
+                    impl.models = ArrayUtil.splice(impl.models, ii, 1);
+                    mconfig.wasUpdated();
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1248,6 +1343,16 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Returns the merge granularity to use for static tile models.  This is expressed as a power
+     * of two: tiles with coordinates in the same 2^granularity square block will be merged
+     * together if possible.  A value of zero allows no merging.
+     */
+    protected int getMergeGranularity ()
+    {
+        return 1;
+    }
+
+    /**
      * Notes a jitter value (difference between elapsed time on server and elapsed time on client
      * between two successive updates).
      */
@@ -1435,6 +1540,9 @@ public class TudeySceneView extends DynamicScope
 
     /** The list of participants in the tick. */
     protected List<TickParticipant> _tickParticipants = Lists.newArrayList();
+
+    /** Sprites for merged static models mapped by coordinates. */
+    protected Map<Coord, Sprite> _mergedSprites = Maps.newHashMap();
 
     /** The sprite that the camera is tracking. */
     protected ActorSprite _targetSprite;

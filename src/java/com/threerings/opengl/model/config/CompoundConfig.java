@@ -54,6 +54,23 @@ public class CompoundConfig extends ModelConfig.Implementation
         /** The model transform. */
         @Editable(step=0.01)
         public Transform3D transform = new Transform3D();
+
+        /**
+         * Default constructor.
+         */
+        public ComponentModel ()
+        {
+            transform = new Transform3D();
+        }
+
+        /**
+         * Constructor that takes a precreated model reference and transform.
+         */
+        public ComponentModel (ConfigReference<ModelConfig> model, Transform3D transform)
+        {
+            this.model = model;
+            this.transform = transform;
+        }
     }
 
     /** The model's tick policy. */

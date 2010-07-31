@@ -74,6 +74,22 @@ public class MergedStaticConfig extends ModelConfig.Implementation
     @Editable
     public ComponentModel[] models = new ComponentModel[0];
 
+    /**
+     * Default constructor.
+     */
+    public MergedStaticConfig ()
+    {
+        models = new ComponentModel[0];
+    }
+
+    /**
+     * Constructor that takes a precreated array of component models.
+     */
+    public MergedStaticConfig (ComponentModel[] models)
+    {
+        this.models = models;
+    }
+
     @Override // documentation inherited
     public void getUpdateReferences (ConfigReferenceSet refs)
     {

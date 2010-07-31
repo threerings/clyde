@@ -37,9 +37,12 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
+import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.model.config.StaticConfig;
+import com.threerings.opengl.model.config.StaticSetConfig;
 import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
@@ -161,6 +164,21 @@ public class TileConfig extends ParameterizedConfig
         }
 
         /**
+         * Checks whether we can merge this tile's model with others in the scene.
+         */
+        public boolean isMergeable (ConfigManager cfgmgr)
+        {
+            if (_modelStatic == null) {
+                ModelConfig config = cfgmgr.getConfig(ModelConfig.class, model);
+                ModelConfig.Implementation original =
+                    (config == null) ? null : config.getOriginal();
+                _modelStatic = (original instanceof StaticConfig ||
+                    original instanceof StaticSetConfig);
+            }
+            return _modelStatic;
+        }
+
+        /**
          * Finds the transform of the tile at the specified coordinates.
          */
         public void getTransform (int x, int y, int elevation, int rotation, Transform3D result)
@@ -247,6 +265,12 @@ public class TileConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(ModelConfig.class, model);
+        }
+
+        @Override // documentation inherited
         public Original getOriginal (ConfigManager cfgmgr)
         {
             return this;
@@ -282,7 +306,12 @@ public class TileConfig extends ParameterizedConfig
             for (HandlerConfig handler : handlers) {
                 handler.invalidate();
             }
+            _modelStatic = null;
         }
+
+        /** Cached flag indicating whether or not the model is static. */
+        @DeepOmit
+        protected transient Boolean _modelStatic;
     }
 
     /**

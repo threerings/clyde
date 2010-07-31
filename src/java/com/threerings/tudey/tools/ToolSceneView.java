@@ -42,6 +42,12 @@ public class ToolSceneView extends TudeySceneView
         super(ctx, ctrl);
     }
 
+    @Override // documentation inherited
+    protected int getMergeGranularity ()
+    {
+        return 0; // can't merge tiles since they must be individually selectable
+    }
+
     /** Whether or not markers are visible. */
     @Scoped
     protected boolean _markersVisible;

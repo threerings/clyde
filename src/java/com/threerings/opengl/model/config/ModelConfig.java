@@ -578,7 +578,23 @@ public class ModelConfig extends ParameterizedConfig
 
     /** The actual model implementation. */
     @Editable
-    public Implementation implementation = new StaticConfig();
+    public Implementation implementation;
+
+    /**
+     * Default constructor.
+     */
+    public ModelConfig ()
+    {
+        implementation = new StaticConfig();
+    }
+
+    /**
+     * Constructor that takes an already-created implementation.
+     */
+    public ModelConfig (Implementation impl)
+    {
+        implementation = impl;
+    }
 
     /**
      * Retrieves a reference to the underlying original implementation.
