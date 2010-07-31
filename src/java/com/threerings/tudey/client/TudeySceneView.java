@@ -385,6 +385,14 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Checks whether we should attempt to merge static models.
+     */
+    public boolean canMerge ()
+    {
+        return getMergeGranularity() > 0;
+    }
+
+    /**
      * Attempts to merge a static model.
      *
      * @return a reference to the merged model, or <code>null</code> if the model cannot be merged.
@@ -394,9 +402,6 @@ public class TudeySceneView extends DynamicScope
         Transform3D transform, final int floorFlags)
     {
         int granularity = getMergeGranularity();
-        if (granularity == 0) {
-            return null;
-        }
         Coord key = new Coord(x >> granularity, y >> granularity);
         Sprite sprite = _mergedSprites.get(key);
         Model model;
@@ -443,9 +448,6 @@ public class TudeySceneView extends DynamicScope
         int x, int y, ConfigReference<ModelConfig> ref, Transform3D transform)
     {
         int granularity = getMergeGranularity();
-        if (granularity == 0) {
-            return false;
-        }
         Coord key = new Coord(x >> granularity, y >> granularity);
         Sprite sprite = _mergedSprites.get(key);
         if (sprite == null) {
@@ -900,6 +902,8 @@ public class TudeySceneView extends DynamicScope
         _actorSprites.clear();
     }
 
+    protected long _pstart, _estart, _astart;
+
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
@@ -909,16 +913,27 @@ public class TudeySceneView extends DynamicScope
             float ppct, epct, apct;
             if ((ppct = _preloads.preloadBatch()) == 1f) {
                 if ((epct = createEntrySpriteBatch()) == 1f) {
+                    if (_astart == 0L) {
+                        _astart = System.currentTimeMillis();
+                    }
                     apct = createActorSpriteBatch();
                 } else {
+                    if (_estart == 0L) {
+                        _estart = System.currentTimeMillis();
+                    }
                     apct = 0f;
                 }
             } else {
+                if (_pstart == 0L) {
+                    _pstart = System.currentTimeMillis();
+                }
                 epct = apct = 0f;
             }
             updateLoadingWindow(
                 ppct*PRELOAD_PERCENT + epct*ENTRY_LOAD_PERCENT + apct*ACTOR_LOAD_PERCENT);
             if (apct == 1f) {
+                long now = System.currentTimeMillis();
+                System.out.println(now - _pstart);
                 _loadingWindow = null;
                 _loadingEntries = null;
                 _loadingActors = null;
@@ -1349,7 +1364,7 @@ public class TudeySceneView extends DynamicScope
      */
     protected int getMergeGranularity ()
     {
-        return 1;
+        return 0; // disabled for now
     }
 
     /**

@@ -1147,6 +1147,9 @@ public class SceneEditor extends TudeyTool
                 }.addTo(_canvas);
                 return camhand;
             }
+            @Override protected int getMergeGranularity () {
+                return 0; // can't merge tiles since they must be individually selectable
+            }
         });
 
         // initialize the tools

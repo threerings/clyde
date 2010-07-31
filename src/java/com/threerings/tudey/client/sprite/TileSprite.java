@@ -30,8 +30,10 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
+import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.Scene;
 
 import com.threerings.tudey.client.TudeySceneView;
@@ -39,7 +41,10 @@ import com.threerings.tudey.client.util.RectangleElement;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
+import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.TudeyContext;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Represents a tile.
@@ -103,8 +108,6 @@ public class TileSprite extends EntrySprite
         {
             super(parentScope);
             _ctx = ctx;
-            _scene.add(_model = new Model(ctx));
-            _model.setUserObject(parentScope);
             setConfig(config);
         }
 
@@ -113,10 +116,16 @@ public class TileSprite extends EntrySprite
          */
         public void setConfig (TileConfig.Original config)
         {
-            _model.setConfig((_config = config).model);
+            // unmerge, set the config, then remerge/update
+            maybeUnmerge();
+            _config = config;
+            TileSprite parent = (TileSprite)_parentScope;
+            if (parent._entry != null) {
+                updateModel(parent._entry);
+            }
 
             // update the footprint
-            boolean selected = ((TileSprite)_parentScope).isSelected();
+            boolean selected = parent.isSelected();
             if (selected && _footprint == null) {
                 _footprint = new RectangleElement(_ctx, true);
                 _footprint.getColor().set(SELECTED_COLOR);
@@ -142,8 +151,8 @@ public class TileSprite extends EntrySprite
         @Override // documentation inherited
         public void update (TileEntry entry)
         {
-            entry.getTransform(_config, _model.getLocalTransform());
-            _model.updateBounds();
+            maybeUnmerge();
+            updateModel(entry);
 
             if (_footprint != null) {
                 entry.getRegion(_config, _footprint.getRegion());
@@ -156,10 +165,68 @@ public class TileSprite extends EntrySprite
         public void dispose ()
         {
             super.dispose();
-            _scene.remove(_model);
+            if (!maybeUnmerge()) {
+                _scene.remove(_model);
+            }
             if (_footprint != null) {
                 _scene.remove(_footprint);
             }
+        }
+
+        /**
+         * Ensures that the model is added to the scene and up-to-date.
+         */
+        protected void updateModel (TileEntry entry)
+        {
+            if (_model == null) {
+                if (maybeMerge()) {
+                    return;
+                }
+                _scene.add(_model = new Model(_ctx));
+                _model.setUserObject(_parentScope);
+            }
+            entry.getTransform(_config, _model.getLocalTransform());
+            _model.setConfig(_config.model);
+            _model.updateBounds();
+        }
+
+        /**
+         * Merges the model if appropriate.
+         */
+        protected boolean maybeMerge ()
+        {
+            TileSprite parent = (TileSprite)_parentScope;
+            if (!(parent._view.canMerge() && _config.isMergeable(_ctx.getConfigManager()))) {
+                return false;
+            }
+            TileEntry entry = parent._entry;
+            Coord location = entry.getLocation();
+            Transform3D transform = new Transform3D();
+            entry.getTransform(_config, transform);
+            if ((_model = parent._view.maybeMerge(location.x, location.y, _config.model,
+                    transform, _config.floorFlags)) == null) {
+                return false;
+            }
+            _mergeTransform = transform;
+            return true;
+        }
+
+        /**
+         * Unmerges the model if previously merged.
+         */
+        protected boolean maybeUnmerge ()
+        {
+            if (_mergeTransform == null) {
+                return false;
+            }
+            TileSprite parent = (TileSprite)_parentScope;
+            Coord location = parent._entry.getLocation();
+            if (!parent._view.unmerge(location.x, location.y, _config.model, _mergeTransform)) {
+                log.warning("Failed to unmerge static model.", "entry", parent._entry);
+            }
+            _mergeTransform = null;
+            _model = null;
+            return true;
         }
 
         /** The renderer context. */
@@ -173,6 +240,9 @@ public class TileSprite extends EntrySprite
 
         /** The tile footprint. */
         protected RectangleElement _footprint;
+
+        /** The transform under which we merged, if any. */
+        protected Transform3D _mergeTransform;
 
         /** The scene to which we add our model. */
         @Bound
@@ -210,8 +280,9 @@ public class TileSprite extends EntrySprite
     @Override // documentation inherited
     public void update (Entry entry)
     {
-        setConfig((_entry = (TileEntry)entry).tile);
-        _impl.update(_entry);
+        TileEntry tentry = (TileEntry)entry;
+        setConfig(tentry.tile);
+        _impl.update(_entry = tentry);
     }
 
     @Override // documentation inherited
