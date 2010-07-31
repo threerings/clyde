@@ -53,7 +53,7 @@ public class CompoundConfig extends ModelConfig.Implementation
 
         /** The model transform. */
         @Editable(step=0.01)
-        public Transform3D transform = new Transform3D();
+        public Transform3D transform;
 
         /**
          * Default constructor.

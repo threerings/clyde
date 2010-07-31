@@ -72,7 +72,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
 
     /** The component models. */
     @Editable
-    public ComponentModel[] models = new ComponentModel[0];
+    public ComponentModel[] models;
 
     /**
      * Default constructor.
