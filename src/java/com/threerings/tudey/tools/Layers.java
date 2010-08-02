@@ -59,14 +59,7 @@ public class Layers extends EditorTool
         _table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged (ListSelectionEvent event) {
-                int layer = getSelectedLayer();
-                // if no layer is selected, select layer 0 (avoid triggering this unless
-                // we're in the process of adjusting)
-                if (layer == -1 && !event.getValueIsAdjusting() && (event.getFirstIndex() != -1)) {
-                    layer = 0;
-                    setSelectedLayer(layer);
-                }
-                _removeLayerAction.setEnabled(layer != 0);
+                _removeLayerAction.setEnabled(getSelectedLayer() != 0);
             }
         });
         _tableModel.addTableModelListener(new TableModelListener() {
@@ -178,6 +171,10 @@ public class Layers extends EditorTool
             if (_scene.isLayerEmpty(layer) ||
                     confirm("Layer is not empty!", "This layer has stuff on it.\n" +
                         "Continue anyway and move the stuff to the base layer?")) {
+                // if it's currently selected, select the layer below it (we can never remove 0)
+                if (getSelectedLayer() == layer) {
+                    setSelectedLayer(layer - 1);
+                }
                 _tableModel.removeLayer(layer);
             }
         }
