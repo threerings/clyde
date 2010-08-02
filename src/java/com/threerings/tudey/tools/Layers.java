@@ -4,6 +4,7 @@
 package com.threerings.tudey.tools;
 
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 
 import java.util.Collections;
@@ -59,7 +60,9 @@ public class Layers extends EditorTool
         _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged (ListSelectionEvent event) {
                 int layer = getSelectedLayer();
-                if (layer == -1) {
+                // if no layer is selected, select layer 0 (avoid triggering this unless
+                // we're in the process of adjusting)
+                if (layer == -1 && !event.getValueIsAdjusting() && (event.getFirstIndex() != -1)) {
                     layer = 0;
                     setSelectedLayer(layer);
                 }
@@ -94,6 +97,9 @@ public class Layers extends EditorTool
     public void setSelectedLayer (int layer)
     {
         _table.setRowSelectionInterval(layer, layer);
+        // and scroll the selected row to be visible
+        int rowHeight = _table.getRowHeight();
+        _table.scrollRectToVisible(new Rectangle(0, rowHeight * layer, 1, rowHeight));
     }
 
     /**
