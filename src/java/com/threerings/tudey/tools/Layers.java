@@ -30,6 +30,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
 
@@ -64,7 +65,8 @@ public class Layers extends EditorTool
         });
         _tableModel.addTableModelListener(new TableModelListener() {
             public void tableChanged (TableModelEvent event) {
-                _mergeVisibleLayersAction.setEnabled(_tableModel.getVisibleLayers().size() >= 2);
+                _mergeVisibleLayersAction.setEnabled(
+                    2 <= Collections.frequency(getLayerVisibility(), true));
             }
         });
         _removeLayerAction.setEnabled(false);
@@ -107,6 +109,31 @@ public class Layers extends EditorTool
         setSelectedLayer(layer);
     }
 
+    /**
+     * Get a <b>view</b> of layer visibility.
+     *
+     * @return a view of layer visibility, with each 
+     */
+    public List<Boolean> getLayerVisibility ()
+    {
+        return _tableModel.getLayerVisibility();
+    }
+
+    /**
+     * Get a list of the currently visible layers.
+     */
+    public List<Integer> getVisibleLayers ()
+    {
+        List<Integer> visible = Lists.newArrayList();
+        List<Boolean> visibility = getLayerVisibility();
+        for (int layer = 0, nn = visibility.size(); layer < nn; layer++) {
+            if (visibility.get(layer)) {
+                visible.add(layer);
+            }
+        }
+        return visible;
+    }
+
     @Override
     public void sceneChanged (TudeySceneModel scene)
     {
@@ -117,12 +144,12 @@ public class Layers extends EditorTool
 
     protected void mergeVisible ()
     {
-        TudeySceneView view = _editor.getView();
-        List<Integer> visible = _tableModel.getVisibleLayers();
+        List<Integer> visible = getVisibleLayers();
         // remove the first layer and call that the "mergeTo" layer
-        int mergeTo = visible.remove(0);
+        int mergeTo = visible.remove(0); // remove first value, not value 0!
 
         // move all entries in the merged layers to the mergeTo layer
+        TudeySceneView view = _editor.getView();
         for (TudeySceneModel.Entry entry : _scene.getEntries()) {
             Object key = entry.getKey();
             if (visible.contains(_scene.getLayer(key))) {
@@ -131,8 +158,8 @@ public class Layers extends EditorTool
         }
 
         // kill the layers, highest to lowest
-        for (int ii = visible.size() - 1; ii >= 0; ii--) {
-            _tableModel.removeLayer(visible.get(ii));
+        for (Integer layer : Iterables.reverse(visible)) {
+            _tableModel.removeLayer(layer);
         }
     }
 
@@ -251,15 +278,12 @@ class LayerTableModel extends AbstractTableModel
         fireTableRowsDeleted(layer, layer);
     }
 
-    public List<Integer> getVisibleLayers ()
+    /**
+     * Get <b>view</b> of the layer visibilities.
+     */
+    public List<Boolean> getLayerVisibility ()
     {
-        List<Integer> visLayers = Lists.newArrayList();
-        for (int layer = 0, nn = _vis.size(); layer < nn; layer++) {
-            if (_vis.get(layer)) {
-                visLayers.add(layer);
-            }
-        }
-        return visLayers;
+        return Collections.unmodifiableList(_vis);
     }
 
     // from TableModel

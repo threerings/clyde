@@ -1519,8 +1519,21 @@ public class SceneEditor extends TudeyTool
      */
     protected void testScene ()
     {
-        // configure the scene repository with a copy of our scene
         TudeySceneModel scene = _scene.clone();
+        // remove non-visibile layers
+        scene.init(_scene.getConfigManager());
+        List<Object> toRemove = Lists.newArrayList();
+        List<Boolean> visibility = _layers.getLayerVisibility();
+        for (Entry entry : scene.getEntries()) {
+            Object key = entry.getKey();
+            if (!visibility.get(scene.getLayer(key))) {
+                toRemove.add(key);
+            }
+        }
+        for (Object key : toRemove) {
+            scene.removeEntry(key);
+        }
+        // configure the scene repository with a copy of our scene
         scene.sceneId = ++_sceneId;
         _server.getSceneRepository().setSceneModel(scene);
 
