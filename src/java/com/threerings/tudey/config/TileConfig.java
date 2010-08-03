@@ -137,8 +137,12 @@ public class TileConfig extends ParameterizedConfig
         public int[][] collisionFlags = new int[][] { { 0x01 } };
 
         /** The tile's floor flags. */
-        @Editable(editor="mask", mode="floor")
+        @Editable(editor="mask", mode="floor", hgroup="f")
         public int floorFlags = 0x01;
+
+        /** Allows control over whether the tile can be merged with others. */
+        @Editable(hgroup="f")
+        public boolean mergeable = true;
 
         /** Tags used to identify the tile within the scene. */
         @Editable
@@ -168,6 +172,9 @@ public class TileConfig extends ParameterizedConfig
          */
         public boolean isMergeable (ConfigManager cfgmgr)
         {
+            if (!(mergeable && getLogicClassName() == null)) {
+                return false;
+            }
             if (_modelStatic == null) {
                 ModelConfig config = cfgmgr.getConfig(ModelConfig.class, model);
                 ModelConfig.Implementation original =

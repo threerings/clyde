@@ -66,10 +66,6 @@ import static com.threerings.opengl.Log.*;
  */
 public class MergedStaticConfig extends ModelConfig.Implementation
 {
-    /** The influences allowed to affect this model. */
-    @Editable
-    public InfluenceFlagConfig influences = new InfluenceFlagConfig();
-
     /** The component models. */
     @Editable
     public ComponentModel[] models;
@@ -108,10 +104,10 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         }
         if (impl instanceof Static) {
             ((Static)impl).setConfig(cached.bounds, cached.collision,
-                cached.gmats, influences.getFlags());
+                cached.gmats, cached.influenceFlags);
         } else {
             impl = new Static(ctx, scope, cached.bounds, cached.collision,
-                cached.gmats, influences.getFlags());
+                cached.gmats, cached.influenceFlags);
         }
         return impl;
     }
@@ -134,6 +130,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         Map<String, MaterialConfig> mmap = Maps.newHashMap();
         List<TransformedCollision> cmeshes = Lists.newArrayList();
         final Box bounds = new Box();
+        int influenceFlags = 0;
         for (ComponentModel cmodel : models) {
             ModelConfig config = cfgmgr.getConfig(ModelConfig.class, cmodel.model);
             ModelConfig.Implementation original = (config == null) ? null : config.getOriginal();
@@ -169,6 +166,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
                 glist.add(new TransformedGeometry(mesh.geometry, cmodel.transform));
             }
             mmap.clear();
+            influenceFlags |= imported.influences.getFlags();
         }
 
         // merge geometry of the same material
@@ -208,7 +206,8 @@ public class MergedStaticConfig extends ModelConfig.Implementation
                 return (result != closest);
             }
         };
-        return new Cached(bounds, collision, gmats.toArray(new GeometryMaterial[gmats.size()]));
+        return new Cached(bounds, collision,
+            gmats.toArray(new GeometryMaterial[gmats.size()]), influenceFlags);
     }
 
     /**
@@ -225,11 +224,16 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         /** The merged geometry/material pairs. */
         public final GeometryMaterial[] gmats;
 
-        public Cached (Box bounds, CollisionMesh collision, GeometryMaterial[] gmats)
+        /** The merged influence flags. */
+        public final int influenceFlags;
+
+        public Cached (
+            Box bounds, CollisionMesh collision, GeometryMaterial[] gmats, int influenceFlags)
         {
             this.bounds = bounds;
             this.collision = collision;
             this.gmats = gmats;
+            this.influenceFlags = influenceFlags;
         }
     }
 

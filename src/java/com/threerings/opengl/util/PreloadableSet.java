@@ -44,23 +44,23 @@ public class PreloadableSet extends HashSet<Preloadable>
     }
 
     /**
-     * Preloads a batch of the default size.
+     * Preloads a batch of the default duration.
      *
      * @return the percentage of the total resources loaded, from zero to one.
      */
     public float preloadBatch ()
     {
-        return preloadBatch(10);
+        return preloadBatch(100L);
     }
 
     /**
      * Preloads a batch of resources in the set.  Any preloadables added to the set after this
      * method is called for the first time will be preloaded immediately.
      *
-     * @param count the (maximum) number of resources to preload.
+     * @param duration the maximum amount of time to spend on the batch.
      * @return the percentage of the total resources loaded, from zero to one.
      */
-    public float preloadBatch (int count)
+    public float preloadBatch (long duration)
     {
         if (_remaining != null && _remaining.isEmpty()) {
             return 1f;
@@ -68,8 +68,8 @@ public class PreloadableSet extends HashSet<Preloadable>
         if (_remaining == null) {
             _remaining = Lists.newArrayList(this);
         }
-        for (int ii = _remaining.size() - 1, ll = Math.max(_remaining.size() - count, 0);
-                ii >= ll; ii--) {
+        long end = System.currentTimeMillis() + duration;
+        for (int ii = _remaining.size() - 1; ii >= 0 && System.currentTimeMillis() < end; ii--) {
             _remaining.remove(ii).preload(_ctx);
             _preloaded++;
         }

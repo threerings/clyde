@@ -406,7 +406,13 @@ public class TudeySceneView extends DynamicScope
         Sprite sprite = _mergedSprites.get(key);
         Model model;
         if (sprite == null) {
-            final Model fmodel = model = new Model(_ctx);
+            final Model fmodel = model = new Model(_ctx) {
+                @Override protected void updateFromConfig () {
+                    if (_loadingEntries == null || _loadingMerged != null) {
+                        super.updateFromConfig();
+                    }
+                }
+            };
             _mergedSprites.put(key, sprite = new Sprite(_ctx, this) {
                 @Override public int getFloorFlags () {
                     return floorFlags;
@@ -447,6 +453,9 @@ public class TudeySceneView extends DynamicScope
     public boolean unmerge (
         int x, int y, ConfigReference<ModelConfig> ref, Transform3D transform)
     {
+        if (_disposed) {
+            return true; // don't bother with the computation if we're being removed
+        }
         int granularity = getMergeGranularity();
         Coord key = new Coord(x >> granularity, y >> granularity);
         Sprite sprite = _mergedSprites.get(key);
@@ -462,6 +471,9 @@ public class TudeySceneView extends DynamicScope
                 if (impl.models.length == 1) {
                     _scene.remove(model);
                     _mergedSprites.remove(key);
+                    if (_loadingMerged != null) {
+                        _loadingMerged.remove(sprite);
+                    }
                 } else {
                     impl.models = ArrayUtil.splice(impl.models, ii, 1);
                     mconfig.wasUpdated();
@@ -891,6 +903,7 @@ public class TudeySceneView extends DynamicScope
             _ctrl.wasRemoved();
         }
         dispose();
+        _disposed = true;
         _scene.dispose();
         _actorSpace.dispose();
         for (EntrySprite sprite : _entrySprites.values()) {
@@ -901,6 +914,7 @@ public class TudeySceneView extends DynamicScope
         }
         _entrySprites.clear();
         _actorSprites.clear();
+        _mergedSprites.clear();
     }
 
     // documentation inherited from interface Tickable
@@ -909,21 +923,21 @@ public class TudeySceneView extends DynamicScope
         // if we are loading, preload the next batch of resources or
         // create the next batch of sprites
         if (_loadingWindow != null && _preloads != null) {
-            float ppct, epct, apct;
-            if ((ppct = _preloads.preloadBatch()) == 1f) {
+            float ppct = 0f, epct = 0f, mpct = 0f, apct = 0f;
+            if ((ppct = _preloads.preloadBatch(BATCH_LOAD_DURATION)) == 1f) {
                 if ((epct = createEntrySpriteBatch()) == 1f) {
-                    apct = createActorSpriteBatch();
-                } else {
-                    apct = 0f;
+                    if ((mpct = initMergedSpriteBatch()) == 1f) {
+                        apct = createActorSpriteBatch();
+                    }
                 }
-            } else {
-                epct = apct = 0f;
             }
             updateLoadingWindow(
-                ppct*PRELOAD_PERCENT + epct*ENTRY_LOAD_PERCENT + apct*ACTOR_LOAD_PERCENT);
+                ppct*PRELOAD_PERCENT + epct*ENTRY_LOAD_PERCENT +
+                mpct*ENTRY_MERGE_PERCENT + apct*ACTOR_LOAD_PERCENT);
             if (apct == 1f) {
                 _loadingWindow = null;
                 _loadingEntries = null;
+                _loadingMerged = null;
                 _loadingActors = null;
             }
         }
@@ -1230,14 +1244,40 @@ public class TudeySceneView extends DynamicScope
             _loadingEntries = Lists.newArrayList(entries);
             (_sceneModel = model).addObserver(this);
         }
-        for (int ii = _loadingEntries.size() - 1, ll = Math.max(_loadingEntries.size() - 50, 0);
-                ii >= ll; ii--) {
+        long end = System.currentTimeMillis() + BATCH_LOAD_DURATION;
+        for (int ii = _loadingEntries.size() - 1;
+                ii >= 0 && System.currentTimeMillis() < end; ii--) {
             addEntrySprite(_loadingEntries.remove(ii));
         }
         if (_loadingEntries.isEmpty()) {
             return 1f;
         }
         return (float)_entrySprites.size() / entries.size();
+    }
+
+    /**
+     * Initializes a batch of merged sprites as part of the loading process.
+     *
+     * @return the completion percentage.
+     */
+    protected float initMergedSpriteBatch ()
+    {
+        if (_loadingMerged != null && _loadingMerged.isEmpty()) {
+            return 1f;
+        }
+        if (_loadingMerged == null) {
+            _loadingMerged = Lists.newArrayList(_mergedSprites.values());
+        }
+        long end = System.currentTimeMillis() + BATCH_LOAD_DURATION;
+        for (int ii = _loadingMerged.size() - 1;
+                ii >= 0 && System.currentTimeMillis() < end; ii--) {
+            _loadingMerged.remove(ii).getModel().getConfig().wasUpdated();
+        }
+        int size = _loadingMerged.size();
+        if (size == 0) {
+            return 1f;
+        }
+        return 1f - (float)size / _mergedSprites.size();
     }
 
     /**
@@ -1254,8 +1294,9 @@ public class TudeySceneView extends DynamicScope
         if (_loadingActors == null) {
             _loadingActors = Lists.newArrayList(actors.values());
         }
-        for (int ii = _loadingActors.size() - 1, ll = Math.max(_loadingActors.size() - 5, 0);
-                ii >= ll; ii--) {
+        long end = System.currentTimeMillis() + BATCH_LOAD_DURATION;
+        for (int ii = _loadingActors.size() - 1;
+                ii >= 0 && System.currentTimeMillis() < end; ii--) {
             addActorSprite(_loadingActors.remove(ii));
         }
         if (_loadingActors.isEmpty()) {
@@ -1352,7 +1393,7 @@ public class TudeySceneView extends DynamicScope
      */
     protected int getMergeGranularity ()
     {
-        return 0; // disabled for now
+        return 2;
     }
 
     /**
@@ -1492,6 +1533,9 @@ public class TudeySceneView extends DynamicScope
     /** The remaining entries to add during loading. */
     protected List<Entry> _loadingEntries;
 
+    /** The remaining merged sprites to be initialized during loading. */
+    protected List<Sprite> _loadingMerged;
+
     /** The remaining actors to add during loading. */
     protected List<Actor> _loadingActors;
 
@@ -1564,6 +1608,9 @@ public class TudeySceneView extends DynamicScope
     /** The active camera transition, if any. */
     protected Tickable _camtrans;
 
+    /** Set when we've been disposed. */
+    protected boolean _disposed;
+
     /** Used to find the floor. */
     protected Ray3D _ray = new Ray3D(Vector3f.ZERO, new Vector3f(0f, 0f, -1f));
 
@@ -1579,11 +1626,17 @@ public class TudeySceneView extends DynamicScope
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();
 
+    /** The amount of time to spend on each batch when loading. */
+    protected static final long BATCH_LOAD_DURATION = 50L;
+
     /** The percentage of load progress devoted to preloading. */
-    protected static final float PRELOAD_PERCENT = 0.6f;
+    protected static final float PRELOAD_PERCENT = 0.4f;
 
     /** The percentage of load progress devoted to loading entries. */
     protected static final float ENTRY_LOAD_PERCENT = 0.3f;
+
+    /** The percentage of load progress devoted to merging entries. */
+    protected static final float ENTRY_MERGE_PERCENT = 0.2f;
 
     /** The percentage of load progress devoted to loading actors. */
     protected static final float ACTOR_LOAD_PERCENT = 0.1f;
