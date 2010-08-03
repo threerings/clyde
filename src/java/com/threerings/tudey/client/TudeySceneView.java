@@ -332,8 +332,15 @@ public class TudeySceneView extends DynamicScope
 
         // create the new sprites
         (_sceneModel = model).addObserver(this);
+        _suppressMergeUpdate = true;
         for (Entry entry : _sceneModel.getEntries()) {
             addEntrySprite(entry);
+        }
+
+        // init merged sprites
+        _suppressMergeUpdate = false;
+        for (Sprite sprite : _mergedSprites.values()) {
+            sprite.getModel().getConfig().wasUpdated();
         }
     }
 
@@ -408,7 +415,7 @@ public class TudeySceneView extends DynamicScope
         if (sprite == null) {
             final Model fmodel = model = new Model(_ctx) {
                 @Override protected void updateFromConfig () {
-                    if (_loadingEntries == null || _loadingMerged != null) {
+                    if (!_suppressMergeUpdate) {
                         super.updateFromConfig();
                     }
                 }
@@ -1243,6 +1250,7 @@ public class TudeySceneView extends DynamicScope
         if (_loadingEntries == null) {
             _loadingEntries = Lists.newArrayList(entries);
             (_sceneModel = model).addObserver(this);
+            _suppressMergeUpdate = true;
         }
         long end = System.currentTimeMillis() + BATCH_LOAD_DURATION;
         for (int ii = _loadingEntries.size() - 1;
@@ -1267,6 +1275,7 @@ public class TudeySceneView extends DynamicScope
         }
         if (_loadingMerged == null) {
             _loadingMerged = Lists.newArrayList(_mergedSprites.values());
+            _suppressMergeUpdate = false;
         }
         long end = System.currentTimeMillis() + BATCH_LOAD_DURATION;
         for (int ii = _loadingMerged.size() - 1;
@@ -1590,6 +1599,9 @@ public class TudeySceneView extends DynamicScope
 
     /** Sprites for merged static models mapped by coordinates. */
     protected Map<Coord, Sprite> _mergedSprites = Maps.newHashMap();
+
+    /** When set, indicates that we should hold off on updating merged sprites. */
+    protected boolean _suppressMergeUpdate;
 
     /** The sprite that the camera is tracking. */
     protected ActorSprite _targetSprite;
