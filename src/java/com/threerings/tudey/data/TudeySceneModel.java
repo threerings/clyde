@@ -1898,13 +1898,7 @@ public class TudeySceneModel extends SceneModel
         for (int ii = 0, nn = _layers.size(); ii < nn; ii++) {
             Integer layer = (ii + 1);
             for (int key : in.read("layer" + layer, DEFAULT)) {
-                // TEMP: push globals to layer 0
-                if (_entries.get(key) instanceof GlobalEntry) {
-                    System.err.println("Moving global to layer 0...");
-                } else {
-                    _layerMap.put(key, layer);
-                }
-                // END: temp
+                _layerMap.put(key, layer);
             }
         }
     }
