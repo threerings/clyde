@@ -127,7 +127,9 @@ public abstract class Preloadable extends DeepObject
         @Override // documentation inherited
         public void preload (GlContext ctx)
         {
-            _model = new com.threerings.opengl.model.Model(ctx, _ref);
+            _model = new com.threerings.opengl.model.Model(ctx);
+            _model.setParentScope(ctx.getScope());
+            _model.setConfig(_ref);
         }
 
         @Override // documentation inherited
