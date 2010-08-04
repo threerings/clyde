@@ -49,6 +49,7 @@ import com.threerings.editor.FileConstraints;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -92,7 +93,7 @@ public class ModelConfig extends ParameterizedConfig
         ArticulatedConfig.class, ParticleSystemConfig.class, MetaParticleSystemConfig.class,
         SceneInfluencerConfig.class, ViewerAffecterConfig.class, ComponentBillboardConfig.class,
         ConditionalConfig.class, CompoundConfig.class, ScriptedConfig.class,
-        ActorModelConfig.Wrapper.class, ShapeModelConfig.class, Derived.class })
+        ActorModelConfig.Wrapper.class, ShapeModelConfig.class, Derived.class, Schemed.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -456,6 +457,64 @@ public class ModelConfig extends ParameterizedConfig
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
             return (config == null) ? null : config.getParticleMaterial(ctx);
         }
+    }
+
+    /**
+     * Chooses different models based on the render scheme.
+     */
+    public static class Schemed extends Implementation
+    {
+        /** The models and their associated render schemes. */
+        @Editable
+        public SchemedModel[] models = new SchemedModel[0];
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (SchemedModel smodel : models) {
+                refs.add(ModelConfig.class, smodel.model);
+            }
+        }
+
+        @Override // documentation inherited
+        public Model.Implementation getModelImplementation (
+            GlContext ctx, Scope scope, Model.Implementation impl)
+        {
+            ConfigReference<ModelConfig> model = getModel(scope);
+            ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
+            return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
+        }
+
+        /**
+         * Returns the active model reference.
+         */
+        protected ConfigReference<ModelConfig> getModel (Scope scope)
+        {
+            // as we do with the material techniques, first look for an exact match
+            String scheme = ScopeUtil.resolve(scope, "renderScheme", (String)null);
+            for (SchemedModel smodel : models) {
+                if (Objects.equal(smodel.scheme, scheme)) {
+                    return smodel.model;
+                }
+            }
+            // then return whatever's at the top of the list
+            return (models.length > 0) ? models[0].model : null;
+        }
+    }
+
+    /**
+     * Combines a render scheme with a model reference.
+     */
+    public static class SchemedModel extends DeepObject
+        implements Exportable
+    {
+        /** The render scheme with which this model is associated. */
+        @Editable(editor="config", mode="render_scheme", nullable=true)
+        public String scheme;
+
+        /** The model reference. */
+        @Editable(nullable=true)
+        public ConfigReference<ModelConfig> model;
     }
 
     /**
