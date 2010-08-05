@@ -934,6 +934,15 @@ public class Model extends DynamicScope
     }
 
     @Override // documentation inherited
+    public void wasUpdated ()
+    {
+        super.wasUpdated();
+        if (_impl != null && _compoundDepth == 0) {
+            updateFromConfig();
+        }
+    }
+
+    @Override // documentation inherited
     public void dispose ()
     {
         super.dispose();

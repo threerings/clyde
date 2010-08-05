@@ -26,7 +26,6 @@ package com.threerings.opengl.model;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -207,13 +206,6 @@ public class Compound extends Model.Implementation
         for (Model model : _models) {
             model.composite();
         }
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

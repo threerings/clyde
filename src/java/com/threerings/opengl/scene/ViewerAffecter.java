@@ -26,7 +26,6 @@ package com.threerings.opengl.scene;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Transform3D;
@@ -124,13 +123,6 @@ public class ViewerAffecter extends Model.Implementation
     public void willBeRemoved ()
     {
         ((Model)_parentScope).getScene(this).remove(_effect);
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

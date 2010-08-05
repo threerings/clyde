@@ -27,7 +27,6 @@ package com.threerings.opengl.material;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
@@ -129,13 +128,6 @@ public class Surface extends SimpleScope
     public String getScopeName ()
     {
         return "surface";
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfigs();
     }
 
     @Override // documentation inherited

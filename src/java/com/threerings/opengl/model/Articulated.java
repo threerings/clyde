@@ -35,7 +35,6 @@ import com.google.common.collect.Maps;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.Updater;
@@ -727,13 +726,6 @@ public class Articulated extends Model.Implementation
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             _userAttachments.get(ii).composite();
         }
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

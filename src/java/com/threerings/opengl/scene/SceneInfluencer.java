@@ -28,7 +28,6 @@ import java.util.ArrayList;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.Updater;
 import com.threerings.math.Box;
@@ -147,13 +146,6 @@ public class SceneInfluencer extends Model.Implementation
     public void composite ()
     {
         _ctx.getCompositor().addEnqueueable(this);
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

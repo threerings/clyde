@@ -26,7 +26,6 @@ package com.threerings.tudey.shape;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Ray3D;
@@ -129,13 +128,6 @@ public class ShapeModel extends Model.Implementation
     public void composite ()
     {
         _element.composite();
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

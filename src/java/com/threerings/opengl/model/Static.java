@@ -28,7 +28,6 @@ import java.util.HashMap;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Ray3D;
@@ -147,13 +146,6 @@ public class Static extends Model.Implementation
         for (Surface surface : _surfaces) {
             surface.composite();
         }
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

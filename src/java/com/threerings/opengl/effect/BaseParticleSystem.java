@@ -31,7 +31,6 @@ import com.google.common.collect.Maps;
 import com.threerings.expr.Bound;
 import com.threerings.expr.MutableInteger;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.math.Box;
@@ -539,13 +538,6 @@ public abstract class BaseParticleSystem extends Model.Implementation
         for (Layer layer : _layers) {
             layer.composite();
         }
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

@@ -28,7 +28,6 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.BooleanExpression;
 import com.threerings.expr.MutableFloat;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Ray3D;
@@ -196,13 +195,6 @@ public class Conditional extends Model.Implementation
 
         // composite the active model
         _active.composite();
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**

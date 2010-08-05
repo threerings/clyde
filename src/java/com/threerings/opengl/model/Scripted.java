@@ -27,7 +27,6 @@ package com.threerings.opengl.model;
 import com.threerings.expr.Bound;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
@@ -135,13 +134,6 @@ public class Scripted extends Model.Implementation
             _completed = true;
             ((Model)_parentScope).completed(this);
         }
-    }
-
-    @Override // documentation inherited
-    public void scopeUpdated (ScopeEvent event)
-    {
-        super.scopeUpdated(event);
-        updateFromConfig();
     }
 
     /**
