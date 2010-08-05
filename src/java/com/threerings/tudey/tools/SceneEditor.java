@@ -585,7 +585,7 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Attempts to edit the entry under the mouse cursor.
+     * Attempts to edit the entry under the mouse cursor on the currently selected layer.
      */
     public void editMouseEntry ()
     {
@@ -597,7 +597,7 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Attempts to delete the entry under the mouse cursor.
+     * Attempts to delete the entry under the mouse cursor on the currently selected layer.
      */
     public void deleteMouseEntry ()
     {
@@ -605,7 +605,7 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Attempts to delete the entry under the mouse cursor.
+     * Attempts to delete the entry under the mouse cursor on the currently selected layer.
      */
     public void deleteMouseEntry (Predicate<? super Entry> filter)
     {
@@ -616,7 +616,7 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Attempts to "use" the entry under the mouse cursor.
+     * Attempts to "use" the entry under the mouse cursor on the currently selected layer.
      */
     public void useMouseEntry ()
     {
@@ -645,7 +645,7 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Returns a reference to the entry under the mouse cursor.
+     * Returns a reference to the entry under the mouse cursor on the currently selected layer.
      */
     public Entry getMouseEntry ()
     {
@@ -653,7 +653,7 @@ public class SceneEditor extends TudeyTool
     }
 
     /**
-     * Returns a reference to the entry under the mouse cursor.
+     * Returns a reference to the entry under the mouse cursor on the currently selected layer.
      */
     public Entry getMouseEntry (Predicate<? super Entry> filter)
     {
