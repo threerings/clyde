@@ -70,6 +70,20 @@ public class Agent extends Active
     }
 
     @Override // documentation inherited
+    public float getSpeed ()
+    {
+        return _speed;
+    }
+
+    /**
+     * Set the speed.
+     */
+    public void setSpeed (float speed)
+    {
+        _speed = speed;
+    }
+
+    @Override // documentation inherited
     public int getTurnDirection ()
     {
         return isSet(TURNING_LEFT) ? +1 : (isSet(TURNING_RIGHT) ? -1 : 0);
@@ -80,4 +94,7 @@ public class Agent extends Active
     {
         return ((ActorConfig.Agent)_original).turnRate;
     }
+
+    /** The agent speed. */
+    protected float _speed;
 }

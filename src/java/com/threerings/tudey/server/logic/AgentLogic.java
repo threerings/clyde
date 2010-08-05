@@ -143,6 +143,22 @@ public class AgentLogic extends ActiveLogic
     }
 
     /**
+     * Sets the speed.
+     */
+    public void setSpeed (float speed)
+    {
+        ((Agent)_actor).setSpeed(speed);
+    }
+
+    /**
+     * Clears a modified speed.
+     */
+    public void clearSpeed ()
+    {
+        ((Agent)_actor).setSpeed(((ActorConfig.Agent)_config).speed);
+    }
+
+    /**
      * Sets the agent in motion.
      */
     public void startMoving ()
@@ -237,6 +253,7 @@ public class AgentLogic extends ActiveLogic
         _behavior.startup();
 
         clearTurnRate();
+        clearSpeed();
     }
 
     @Override // documentation inherited
