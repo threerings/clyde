@@ -31,10 +31,12 @@ import java.util.TreeSet;
 import com.samskivert.util.ComparableTuple;
 
 import com.threerings.expr.Scope;
+import com.threerings.math.Box;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
 import com.threerings.opengl.material.config.GeometryMaterial;
+import com.threerings.opengl.model.CollisionMesh;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.Static;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
@@ -47,6 +49,33 @@ import com.threerings.opengl.util.GlContext;
  */
 public class StaticConfig extends ModelConfig.Imported
 {
+    /**
+     * Contains the resolved derived config bits.
+     */
+    public static class Resolved
+    {
+        /** The merged bounds. */
+        public final Box bounds;
+
+        /** The merged collision mesh. */
+        public final CollisionMesh collision;
+
+        /** The merged geometry/material pairs. */
+        public final GeometryMaterial[] gmats;
+
+        /** The merged influence flags. */
+        public final int influenceFlags;
+
+        public Resolved (
+            Box bounds, CollisionMesh collision, GeometryMaterial[] gmats, int influenceFlags)
+        {
+            this.bounds = bounds;
+            this.collision = collision;
+            this.gmats = gmats;
+            this.influenceFlags = influenceFlags;
+        }
+    }
+
     /** The meshes comprising this model. */
     @Shallow
     public MeshSet meshes;
@@ -58,17 +87,17 @@ public class StaticConfig extends ModelConfig.Imported
         if (meshes == null) {
             return null;
         }
-        GeometryMaterial[] gmats = (_gmats == null) ? null : _gmats.get();
-        if (gmats == null) {
-            _gmats = new SoftReference<GeometryMaterial[]>(gmats = getGeometryMaterials(
-                ctx, meshes.visible, materialMappings));
+        Resolved resolved = (_resolved == null) ? null : _resolved.get();
+        if (resolved == null) {
+            _resolved = new SoftReference<Resolved>(resolved = new Resolved(
+                meshes.bounds, meshes.collision,
+                getGeometryMaterials(ctx, meshes.visible, materialMappings),
+                influences.getFlags()));
         }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(meshes.bounds, meshes.collision,
-                gmats, influences.getFlags());
+            ((Static)impl).setConfig(resolved);
         } else {
-            impl = new Static(ctx, scope, meshes.bounds, meshes.collision,
-                gmats, influences.getFlags());
+            impl = new Static(ctx, scope, resolved);
         }
         return impl;
     }
@@ -76,7 +105,7 @@ public class StaticConfig extends ModelConfig.Imported
     @Override // documentation inherited
     public void invalidate ()
     {
-        _gmats = null;
+        _resolved = null;
     }
 
     @Override // documentation inherited
@@ -111,7 +140,7 @@ public class StaticConfig extends ModelConfig.Imported
         }
     }
 
-    /** The cached geometry/material pairs. */
+    /** The cached resolved config bits. */
     @DeepOmit
-    protected transient SoftReference<GeometryMaterial[]> _gmats;
+    protected transient SoftReference<Resolved> _resolved;
 }

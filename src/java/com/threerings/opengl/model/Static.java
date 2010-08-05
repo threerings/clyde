@@ -41,6 +41,7 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
+import com.threerings.opengl.model.config.StaticConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.DebugBounds;
@@ -55,25 +56,19 @@ public class Static extends Model.Implementation
     /**
      * Creates a new static implementation.
      */
-    public Static (
-        GlContext ctx, Scope parentScope, Box bounds, CollisionMesh collision,
-        GeometryMaterial[] gmats, int influenceFlags)
+    public Static (GlContext ctx, Scope parentScope, StaticConfig.Resolved config)
     {
         super(parentScope);
         _ctx = ctx;
-        setConfig(bounds, collision, gmats, influenceFlags);
+        setConfig(config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (
-        Box bounds, CollisionMesh collision, GeometryMaterial[] gmats, int influenceFlags)
+    public void setConfig (StaticConfig.Resolved config)
     {
-        _localBounds = bounds;
-        _collision = collision;
-        _gmats = gmats;
-        _influenceFlags = influenceFlags;
+        _config = config;
         updateFromConfig();
     }
 
@@ -89,7 +84,7 @@ public class Static extends Model.Implementation
     @Override // documentation inherited
     public int getInfluenceFlags ()
     {
-        return _influenceFlags;
+        return _config.influenceFlags;
     }
 
     @Override // documentation inherited
@@ -109,7 +104,7 @@ public class Static extends Model.Implementation
         }
 
         // and the world bounds
-        _localBounds.transform(_worldTransform, _nbounds);
+        _config.bounds.transform(_worldTransform, _nbounds);
         if (!_bounds.equals(_nbounds)) {
             ((Model)_parentScope).boundsWillChange(this);
             _bounds.set(_nbounds);
@@ -127,8 +122,9 @@ public class Static extends Model.Implementation
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh
-        if (_collision == null || !_bounds.intersects(ray) ||
-                !_collision.getIntersection(ray.transform(_worldTransform.invert()), result)) {
+        if (_config.collision == null || !_bounds.intersects(ray) ||
+                !_config.collision.getIntersection(ray.transform(
+                    _worldTransform.invert()), result)) {
             return false;
         }
         // then transform it back if we get a hit
@@ -158,21 +154,15 @@ public class Static extends Model.Implementation
                 surface.dispose();
             }
         }
-        _surfaces = createSurfaces(_ctx, this, _gmats);
+        _surfaces = createSurfaces(_ctx, this, _config.gmats);
         updateBounds();
     }
 
     /** The application context. */
     protected GlContext _ctx;
 
-    /** The local bounds of the model. */
-    protected Box _localBounds;
-
-    /** The model's collision mesh. */
-    protected CollisionMesh _collision;
-
-    /** The visible geometry objects and their materials. */
-    protected GeometryMaterial[] _gmats;
+    /** The model configuration. */
+    protected StaticConfig.Resolved _config;
 
     /** The surfaces corresponding to each visible mesh. */
     protected Surface[] _surfaces;
@@ -196,9 +186,6 @@ public class Static extends Model.Implementation
     /** The shared transform state. */
     @Scoped
     protected TransformState _transformState = new TransformState();
-
-    /** Flags indicating which influences can affect the model. */
-    protected int _influenceFlags;
 
     /** The bounds of the model. */
     @Scoped

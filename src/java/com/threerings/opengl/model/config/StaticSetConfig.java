@@ -41,6 +41,7 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.Static;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
+import com.threerings.opengl.model.config.StaticConfig.Resolved;
 import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.util.GlContext;
 
@@ -74,16 +75,17 @@ public class StaticSetConfig extends ModelConfig.Imported
         if (mset == null) {
             return null;
         }
-        GeometryMaterial[] gmats = (_gmats == null) ? null : _gmats.get();
-        if (gmats == null) {
-            _gmats = new SoftReference<GeometryMaterial[]>(gmats = getGeometryMaterials(
-                ctx, mset.visible, materialMappings));
+        Resolved resolved = (_resolved == null) ? null : _resolved.get();
+        if (resolved == null) {
+            _resolved = new SoftReference<Resolved>(resolved = new Resolved(
+                mset.bounds, mset.collision,
+                getGeometryMaterials(ctx, mset.visible, materialMappings),
+                influences.getFlags()));
         }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(mset.bounds, mset.collision, gmats, influences.getFlags());
+            ((Static)impl).setConfig(resolved);
         } else {
-            impl = new Static(ctx, scope, mset.bounds, mset.collision,
-                gmats, influences.getFlags());
+            impl = new Static(ctx, scope, resolved);
         }
         return impl;
     }
@@ -91,7 +93,7 @@ public class StaticSetConfig extends ModelConfig.Imported
     @Override // documentation inherited
     public void invalidate ()
     {
-        _gmats = null;
+        _resolved = null;
     }
 
     @Override // documentation inherited
@@ -132,7 +134,7 @@ public class StaticSetConfig extends ModelConfig.Imported
         }
     }
 
-    /** The cached geometry/material pairs. */
+    /** The cached resolved config bits. */
     @DeepOmit
-    protected transient SoftReference<GeometryMaterial[]> _gmats;
+    protected transient SoftReference<Resolved> _resolved;
 }

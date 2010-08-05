@@ -57,6 +57,7 @@ import com.threerings.opengl.model.config.CompoundConfig.ComponentModel;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
+import com.threerings.opengl.model.config.StaticConfig.Resolved;
 import com.threerings.opengl.util.GlContext;
 
 import static com.threerings.opengl.Log.*;
@@ -98,16 +99,14 @@ public class MergedStaticConfig extends ModelConfig.Implementation
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
-        Cached cached = (_cached == null) ? null : _cached.get();
-        if (cached == null) {
-            _cached = new SoftReference<Cached>(cached = createCached(ctx));
+        Resolved resolved = (_resolved == null) ? null : _resolved.get();
+        if (resolved == null) {
+            _resolved = new SoftReference<Resolved>(resolved = resolve(ctx));
         }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(cached.bounds, cached.collision,
-                cached.gmats, cached.influenceFlags);
+            ((Static)impl).setConfig(resolved);
         } else {
-            impl = new Static(ctx, scope, cached.bounds, cached.collision,
-                cached.gmats, cached.influenceFlags);
+            impl = new Static(ctx, scope, resolved);
         }
         return impl;
     }
@@ -115,13 +114,13 @@ public class MergedStaticConfig extends ModelConfig.Implementation
     @Override // documentation inherited
     public void invalidate ()
     {
-        _cached = null;
+        _resolved = null;
     }
 
     /**
-     * (Re)generates the cached data.
+     * (Re)resolves the data.
      */
-    protected Cached createCached (GlContext ctx)
+    protected Resolved resolve (GlContext ctx)
     {
         // process the component models, mapping geometry by material
         ConfigManager cfgmgr = ctx.getConfigManager();
@@ -206,35 +205,8 @@ public class MergedStaticConfig extends ModelConfig.Implementation
                 return (result != closest);
             }
         };
-        return new Cached(bounds, collision,
+        return new Resolved(bounds, collision,
             gmats.toArray(new GeometryMaterial[gmats.size()]), influenceFlags);
-    }
-
-    /**
-     * Contains the cached derived config bits.
-     */
-    protected static class Cached
-    {
-        /** The merged bounds. */
-        public final Box bounds;
-
-        /** The merged collision mesh. */
-        public final CollisionMesh collision;
-
-        /** The merged geometry/material pairs. */
-        public final GeometryMaterial[] gmats;
-
-        /** The merged influence flags. */
-        public final int influenceFlags;
-
-        public Cached (
-            Box bounds, CollisionMesh collision, GeometryMaterial[] gmats, int influenceFlags)
-        {
-            this.bounds = bounds;
-            this.collision = collision;
-            this.gmats = gmats;
-            this.influenceFlags = influenceFlags;
-        }
     }
 
     /**
@@ -263,7 +235,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
         }
     }
 
-    /** The cached derived config bits. */
+    /** The cached resolved config bits. */
     @DeepOmit
-    protected transient SoftReference<Cached> _cached;
+    protected transient SoftReference<Resolved> _resolved;
 }
