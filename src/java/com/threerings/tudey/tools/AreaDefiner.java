@@ -246,9 +246,11 @@ public class AreaDefiner extends ConfigTool<AreaConfig>
     protected Vector3f _isect = new Vector3f();
 
     /** A filter that only passes area models. */
-    protected static final Predicate<SceneElement> AREA_FILTER = new Predicate<SceneElement>() {
+    protected final Predicate<SceneElement> AREA_FILTER = new Predicate<SceneElement>() {
         public boolean apply (SceneElement element) {
-            return element.getUserObject() instanceof AreaSprite;
+            Object obj = element.getUserObject();
+            return (obj instanceof AreaSprite) &&
+                _editor.getLayerPredicate().apply(((AreaSprite) obj).getEntry());
         }
     };
 }

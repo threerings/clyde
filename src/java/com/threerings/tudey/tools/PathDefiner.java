@@ -246,9 +246,11 @@ public class PathDefiner extends ConfigTool<PathConfig>
     protected Vector3f _isect = new Vector3f();
 
     /** A filter that only passes path vertex or edge models. */
-    protected static final Predicate<SceneElement> PATH_FILTER = new Predicate<SceneElement>() {
+    protected final Predicate<SceneElement> PATH_FILTER = new Predicate<SceneElement>() {
         public boolean apply (SceneElement element) {
-            return element.getUserObject() instanceof PathSprite;
+            Object obj = element.getUserObject();
+            return (obj instanceof PathSprite) &&
+                _editor.getLayerPredicate().apply(((PathSprite) obj).getEntry());
         }
     };
 }
