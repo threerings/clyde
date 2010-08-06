@@ -72,13 +72,13 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
             for jj = 1 to 3 do (
                 format "    <vertex" to:outFile
                 writePoint3Attr " location" (getVert mesh face[jj]) outFile
-				local normal
-				if normals[jj] != undefined then (
-					normal = normals[jj]
-				) else (
-					normal = getNormal mesh face[jj]
-				)
-	            writePoint3Attr " normal" normal outFile
+                local normal
+                if normals[jj] != undefined then (
+                    normal = normals[jj]
+                ) else (
+                    normal = getNormal mesh face[jj]
+                )
+                writePoint3Attr " normal" normal outFile
                 if tvface != undefined do (
                     tvert = getTVert mesh tvface[jj]
                     format " tcoords=\"%, %\"" tvert[1] tvert[2] to:outFile
