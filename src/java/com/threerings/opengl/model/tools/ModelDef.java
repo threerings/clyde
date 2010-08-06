@@ -33,12 +33,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 
 import org.lwjgl.BufferUtils;
+
+import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
@@ -459,8 +462,11 @@ public class ModelDef
 
             // create the base arrays
             AttributeArrayConfig[] vertexAttribArrays = createVertexAttribArrays(config);
-            ClientArrayConfig[] texCoordArrays =
-                new ClientArrayConfig[] { new ClientArrayConfig(2) };
+            ClientArrayConfig[] texCoordArrays = new ClientArrayConfig[
+                vertices.isEmpty() ? 1 : (vertices.get(0).extras.size() + 1)];
+            for (int ii = 0; ii < texCoordArrays.length; ii++) {
+                texCoordArrays[ii] = new ClientArrayConfig(2);
+            }
             ClientArrayConfig colorArray = colored ? new ClientArrayConfig(4) : null;
             ClientArrayConfig normalArray = new ClientArrayConfig(3);
             ClientArrayConfig vertexArray = new ClientArrayConfig(3);
@@ -851,6 +857,9 @@ public class ModelDef
         public float[] tcoords;
         public float[] color;
 
+        /** Extra data associated with the vertex. */
+        public List<Extra> extras = Lists.newArrayList();
+
         /** When reordering vertices, the triangles containing the vertex. */
         public ArrayList<Triangle> triangles;
 
@@ -859,6 +868,14 @@ public class ModelDef
 
         /** The tangent vector, if computed. */
         public Vector3f tangent;
+
+        /**
+         * Called by the parser to add extra data to this vertex.
+         */
+        public void addExtra (Extra extra)
+        {
+            extras.add(extra);
+        }
 
         /**
          * Transforms this vertex in-place by the given vertex and normal matrices.
@@ -910,6 +927,9 @@ public class ModelDef
                 tangent.get(vbuf);
             }
             vbuf.put(tcoords);
+            for (int ii = 0, nn = extras.size(); ii < nn; ii++) {
+                vbuf.put(extras.get(ii).tcoords);
+            }
             if (color != null) {
                 vbuf.put(color);
             }
@@ -948,13 +968,29 @@ public class ModelDef
             return Arrays.equals(location, overt.location) &&
                 Arrays.equals(normal, overt.normal) &&
                 Arrays.equals(tcoords, overt.tcoords) &&
-                Arrays.equals(color, overt.color);
+                Arrays.equals(color, overt.color) &&
+                extras.equals(overt.extras);
         }
 
         @Override // documentation inherited
         public String toString ()
         {
             return StringUtil.toString(location);
+        }
+    }
+
+    /**
+     * An extra bit of data associated with a vertex.
+     */
+    public static class Extra
+    {
+        /** The extra texture coordinates. */
+        public float[] tcoords;
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            return Arrays.equals(tcoords, ((Extra)other).tcoords);
         }
     }
 

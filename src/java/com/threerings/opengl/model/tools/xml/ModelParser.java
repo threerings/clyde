@@ -53,39 +53,35 @@ public class ModelParser
         String tmesh = model + "/triMesh";
         _digester.addObjectCreate(tmesh, ModelDef.TriMeshDef.class.getName());
         _digester.addRule(tmesh, new SetPropertyFieldsRule(false));
-        _digester.addSetNext(tmesh, "addSpatial",
-            ModelDef.SpatialDef.class.getName());
+        _digester.addSetNext(tmesh, "addSpatial", ModelDef.SpatialDef.class.getName());
 
         String smesh = model + "/skinMesh";
-        _digester.addObjectCreate(smesh,
-            ModelDef.SkinMeshDef.class.getName());
+        _digester.addObjectCreate(smesh, ModelDef.SkinMeshDef.class.getName());
         _digester.addRule(smesh, new SetPropertyFieldsRule(false));
-        _digester.addSetNext(smesh, "addSpatial",
-            ModelDef.SpatialDef.class.getName());
+        _digester.addSetNext(smesh, "addSpatial", ModelDef.SpatialDef.class.getName());
 
         String node = model + "/node";
         _digester.addObjectCreate(node, ModelDef.NodeDef.class.getName());
         _digester.addRule(node, new SetPropertyFieldsRule());
-        _digester.addSetNext(node, "addSpatial",
-            ModelDef.SpatialDef.class.getName());
+        _digester.addSetNext(node, "addSpatial", ModelDef.SpatialDef.class.getName());
 
         String vertex = tmesh + "/vertex", svertex = smesh + "/vertex";
         _digester.addObjectCreate(vertex, ModelDef.Vertex.class.getName());
-        _digester.addObjectCreate(svertex,
-            ModelDef.SkinVertex.class.getName());
+        _digester.addObjectCreate(svertex, ModelDef.SkinVertex.class.getName());
         _digester.addRule(vertex, new SetPropertyFieldsRule());
         _digester.addRule(svertex, new SetPropertyFieldsRule());
-        _digester.addSetNext(vertex, "addVertex",
-            ModelDef.Vertex.class.getName());
-        _digester.addSetNext(svertex, "addVertex",
-            ModelDef.Vertex.class.getName());
+        _digester.addSetNext(vertex, "addVertex", ModelDef.Vertex.class.getName());
+        _digester.addSetNext(svertex, "addVertex", ModelDef.Vertex.class.getName());
+
+        String extra = "*/extra";
+        _digester.addObjectCreate(extra, ModelDef.Extra.class.getName());
+        _digester.addRule(extra, new SetPropertyFieldsRule());
+        _digester.addSetNext(extra, "addExtra", ModelDef.Extra.class.getName());
 
         String bweight = smesh + "/vertex/boneWeight";
-        _digester.addObjectCreate(bweight,
-            ModelDef.BoneWeight.class.getName());
+        _digester.addObjectCreate(bweight, ModelDef.BoneWeight.class.getName());
         _digester.addRule(bweight, new SetPropertyFieldsRule());
-        _digester.addSetNext(bweight, "addBoneWeight",
-            ModelDef.BoneWeight.class.getName());
+        _digester.addSetNext(bweight, "addBoneWeight", ModelDef.BoneWeight.class.getName());
     }
 
     /**
