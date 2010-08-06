@@ -925,12 +925,22 @@ public class ActorSprite extends Sprite
     }
 
     /**
-     * Attaches a model to this sprite that is scaled by the implmentation.
+     * Attaches a model to this sprite, setting its scale to the product of its current scale and
+     * an attachment scale specified by the implementation.
      */
     public void attachScaledModel (Model model)
     {
+        attachScaledModel(model, model.getLocalTransform().getScale());
+    }
+
+    /**
+     * Attaches a model to this sprite, setting its scale to the product of the provided base scale
+     * and an attachment scale specified by the implementation.
+     */
+    public void attachScaledModel (Model model, float baseScale)
+    {
         Transform3D transform = model.getLocalTransform();
-        transform.setScale(transform.getScale() * _impl.getAttachedScale());
+        transform.setScale(baseScale * _impl.getAttachedScale());
         attachModel(model);
     }
 
