@@ -44,12 +44,22 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
     -- Writes a mesh's vertices to the file
     fn writeVertices mesh outFile =
     (
+        mchannels = #()
+        for ii = 2 to (meshop.getNumMaps mesh - 1) do (
+            if meshop.getMapSupport mesh ii do (
+                append mchannels ii
+            )
+        )
         for ii = 1 to mesh.numfaces do (
             face = getFace mesh ii
             normals = meshop.getFaceRNormals mesh ii
             local tvface
             if mesh.numtverts > 0 do (
                 tvface = getTVFace mesh ii
+            )
+            mfaces = #()
+            for mchannel in mchannels do (
+                append mfaces (meshop.getMapFace mesh mchannel ii)
             )
             local cpvface
             if mesh.numcpvverts > 0 do (
@@ -82,11 +92,15 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                     format " color=\"%, %, %, %\"" (vcolor.r/255.0) (vcolor.g/255.0) (vcolor.b/255.0) \
                         valpha[1] to:outFile
                 )
-                if isProperty mesh #skin or isProperty mesh #physique then (
+                if isProperty mesh #skin or isProperty mesh #physique or mfaces.count > 0 then (
                     format ">\n" to:outFile
+                    for kk = 1 to mfaces.count do (
+                        mvert = meshop.getMapVert mesh mchannels[kk] mfaces[kk][jj]
+                        format "      <extra tcoords=\"%, %\"/>\n" mvert[1] mvert[2] to:outFile
+                    )
                     if isProperty mesh #skin then (
                         writeSkinBoneWeights mesh.skin face[jj] outFile
-                    ) else (
+                    ) else if isProperty mesh #physique then (
                         writePhysiqueBoneWeights mesh face[jj] outFile
                     )
                     format "    </vertex>\n" to:outFile
