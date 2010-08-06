@@ -939,8 +939,7 @@ public class ActorSprite extends Sprite
      */
     public void attachScaledModel (Model model, float baseScale)
     {
-        Transform3D transform = model.getLocalTransform();
-        transform.setScale(baseScale * _impl.getAttachedScale());
+        model.getLocalTransform().setScale(baseScale * _impl.getAttachedScale());
         attachModel(model);
     }
 
