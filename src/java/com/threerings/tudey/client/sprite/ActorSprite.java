@@ -292,7 +292,8 @@ public class ActorSprite extends Sprite
         {
             // update the model transform
             Vector2f translation = actor.getTranslation();
-            for (Model model : _attachedModels) {
+            for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
+                Model model = _attachedModels.get(ii);
                 _view.getFloorTransform(
                     translation.x, translation.y, actor.getRotation(),
                     _config.floorMask, model.getLocalTransform());
@@ -354,7 +355,7 @@ public class ActorSprite extends Sprite
 
         /** Other models attached to this sprite. */
         @Bound
-        protected HashSet<Model> _attachedModels;
+        protected List<Model> _attachedModels;
     }
 
     /**
@@ -838,7 +839,7 @@ public class ActorSprite extends Sprite
         // create the model and the shape
         _model = new Model(ctx);
         _model.setUserObject(this);
-        _attachedModels = new HashSet<Model>();
+        _attachedModels = Lists.newArrayList();
         _attachedModels.add(_model);
         _shape = new ShapeElement(_actor.getOriginal().shape);
         _shape.setUserObject(this);
@@ -897,7 +898,7 @@ public class ActorSprite extends Sprite
     /**
      * Returns a reference to all the sprites models.
      */
-    public Set<Model> getModels ()
+    public List<Model> getModels ()
     {
         return _attachedModels;
     }
@@ -915,8 +916,11 @@ public class ActorSprite extends Sprite
      */
     public void attachModel (Model model)
     {
-        if (_attachedModels.add(model) && isCreated()) {
-            _view.getScene().add(model);
+        if (!_attachedModels.contains(model)) {
+            _attachedModels.add(model);
+            if (isCreated()) {
+                _view.getScene().add(model);
+            }
         }
     }
 
@@ -1063,8 +1067,8 @@ public class ActorSprite extends Sprite
         // handle pre-creation state
         if (_impl == null) {
             if (isCreated()) {
-                for (Model model : _attachedModels) {
-                    _view.getScene().add(model);
+                for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
+                    _view.getScene().add(_attachedModels.get(ii));
                 }
                 _view.getActorSpace().add(_shape);
 
@@ -1178,8 +1182,8 @@ public class ActorSprite extends Sprite
         if (_config != null) {
             _config.removeListener(this);
         }
-        for (Model model : _attachedModels) {
-            _view.getScene().remove(model);
+        for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
+            _view.getScene().remove(_attachedModels.get(ii));
         }
         _view.getActorSpace().remove(_shape);
     }
@@ -1332,9 +1336,9 @@ public class ActorSprite extends Sprite
     @Scoped
     protected Model _model;
 
-    /** Other models attached to this sprite. */
+    /** Models attached to this sprite (including the primary model). */
     @Scoped
-    protected HashSet<Model> _attachedModels;
+    protected List<Model> _attachedModels;
 
     /** The actor's shape element. */
     protected ShapeElement _shape;
