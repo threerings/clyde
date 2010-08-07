@@ -292,12 +292,16 @@ public class ActorSprite extends Sprite
         {
             // update the model transform
             Vector2f translation = actor.getTranslation();
-            for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
-                Model model = _attachedModels.get(ii);
-                _view.getFloorTransform(
-                    translation.x, translation.y, actor.getRotation(),
-                    _config.floorMask, model.getLocalTransform());
-                model.updateBounds();
+            Transform3D mtrans = _model.getLocalTransform();
+            _view.getFloorTransform(
+                translation.x, translation.y, actor.getRotation(), _config.floorMask, mtrans);
+            _model.updateBounds();
+            for (int ii = 1, nn = _attachedModels.size(); ii < nn; ii++) {
+                Model attached = _attachedModels.get(ii);
+                Transform3D atrans = attached.getLocalTransform();
+                atrans.getTranslation().set(mtrans.getTranslation());
+                atrans.getRotation().set(mtrans.getRotation());
+                attached.updateBounds();
             }
         }
 
@@ -918,7 +922,7 @@ public class ActorSprite extends Sprite
     {
         if (!_attachedModels.contains(model)) {
             _attachedModels.add(model);
-            if (isCreated()) {
+            if (_impl != null) {
                 _view.getScene().add(model);
             }
         }
@@ -948,7 +952,7 @@ public class ActorSprite extends Sprite
      */
     public void spawnAttachedTransientModel (ConfigReference<ModelConfig> ref)
     {
-        if (isCreated()) {
+        if (_impl != null) {
             Model model = _view.getScene().getFromTransientPool(ref);
             model.addObserver(_transientObserver);
             _attachedModels.add(model);
@@ -992,7 +996,7 @@ public class ActorSprite extends Sprite
         if (model == _model) {
             return;
         }
-        if (_attachedModels.remove(model) && isCreated()) {
+        if (_attachedModels.remove(model) && _impl != null) {
             _view.getScene().remove(model);
         }
     }
