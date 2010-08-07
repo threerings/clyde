@@ -295,12 +295,13 @@ public class ActorSprite extends Sprite
             Transform3D mtrans = _model.getLocalTransform();
             _view.getFloorTransform(
                 translation.x, translation.y, actor.getRotation(), _config.floorMask, mtrans);
+            mtrans.promote(Transform3D.UNIFORM);
             _model.updateBounds();
             for (int ii = 1, nn = _attachedModels.size(); ii < nn; ii++) {
                 Model attached = _attachedModels.get(ii);
                 Transform3D atrans = attached.getLocalTransform();
-                atrans.getTranslation().set(mtrans.getTranslation());
-                atrans.getRotation().set(mtrans.getRotation());
+                atrans.set(mtrans.getTranslation(), mtrans.getRotation(),
+                    atrans.approximateUniformScale());
                 attached.updateBounds();
             }
         }
@@ -934,7 +935,7 @@ public class ActorSprite extends Sprite
      */
     public void attachScaledModel (Model model)
     {
-        attachScaledModel(model, model.getLocalTransform().getScale());
+        attachScaledModel(model, model.getLocalTransform().approximateUniformScale());
     }
 
     /**
@@ -943,7 +944,9 @@ public class ActorSprite extends Sprite
      */
     public void attachScaledModel (Model model, float baseScale)
     {
-        model.getLocalTransform().setScale(baseScale * _impl.getAttachedScale());
+        Transform3D transform = model.getLocalTransform();
+        transform.setScale(baseScale * _impl.getAttachedScale());
+        transform.promote(Transform3D.UNIFORM);
         attachModel(model);
     }
 
