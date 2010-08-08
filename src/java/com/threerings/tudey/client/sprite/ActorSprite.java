@@ -43,6 +43,7 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
+import com.threerings.expr.Updater;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
@@ -51,9 +52,9 @@ import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
-import com.threerings.opengl.model.ModelAdapter;
 import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.scene.Scene.Transient;
 
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
@@ -298,11 +299,7 @@ public class ActorSprite extends Sprite
             mtrans.promote(Transform3D.UNIFORM);
             _model.updateBounds();
             for (int ii = 1, nn = _attachedModels.size(); ii < nn; ii++) {
-                Model attached = _attachedModels.get(ii);
-                Transform3D atrans = attached.getLocalTransform();
-                atrans.set(mtrans.getTranslation(), mtrans.getRotation(),
-                    atrans.approximateUniformScale());
-                attached.updateBounds();
+                updateAttachedTransform(_attachedModels.get(ii), mtrans);
             }
         }
 
@@ -917,19 +914,6 @@ public class ActorSprite extends Sprite
     }
 
     /**
-     * Attaches a model to this sprite.
-     */
-    public void attachModel (Model model)
-    {
-        if (!_attachedModels.contains(model)) {
-            _attachedModels.add(model);
-            if (_impl != null) {
-                _view.getScene().add(model);
-            }
-        }
-    }
-
-    /**
      * Attaches a model to this sprite, setting its scale to the product of its current scale and
      * an attachment scale specified by the implementation.
      */
@@ -945,9 +929,36 @@ public class ActorSprite extends Sprite
     public void attachScaledModel (Model model, float baseScale)
     {
         Transform3D transform = model.getLocalTransform();
-        transform.setScale(baseScale * _impl.getAttachedScale());
+        transform.setScale(baseScale * getAttachedScale());
         transform.promote(Transform3D.UNIFORM);
         attachModel(model);
+    }
+
+    /**
+     * Attaches a model to this sprite.
+     */
+    public void attachModel (Model model)
+    {
+        if (!(_attachedModels.contains(model) || _disposed)) {
+            _attachedModels.add(model);
+            if (_impl != null) {
+                updateAttachedTransform(model, _model.getLocalTransform());
+                _view.getScene().add(model);
+            }
+        }
+    }
+
+    /**
+     * Detaches a model from this sprite.
+     */
+    public void detachModel (Model model)
+    {
+        if (model == _model) {
+            return;
+        }
+        if (_attachedModels.remove(model) && _impl != null) {
+            _view.getScene().remove(model);
+        }
     }
 
     /**
@@ -955,12 +966,17 @@ public class ActorSprite extends Sprite
      */
     public void spawnAttachedTransientModel (ConfigReference<ModelConfig> ref)
     {
-        if (_impl != null) {
-            Model model = _view.getScene().getFromTransientPool(ref);
-            model.addObserver(_transientObserver);
-            _attachedModels.add(model);
-            _view.getScene().add(model);
+        if (_impl == null) {
+            return;
         }
+        final Transient trans = _view.getScene().getFromTransientPool(ref);
+        trans.setUpdater(new Updater() {
+            public void update () {
+                updateAttachedTransform(trans, _model.getLocalTransform());
+            }
+        });
+        updateAttachedTransform(trans, _model.getLocalTransform());
+        _view.getScene().add(trans);
     }
 
     /**
@@ -988,20 +1004,7 @@ public class ActorSprite extends Sprite
      */
     public void spawnOffsetTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
     {
-        spawnOffsetTransientModel(ref, rotate, _impl.getAttachedScale() - 1f);
-    }
-
-    /**
-     * Detaches a model from this sprite.
-     */
-    public void detachModel (Model model)
-    {
-        if (model == _model) {
-            return;
-        }
-        if (_attachedModels.remove(model) && _impl != null) {
-            _view.getScene().remove(model);
-        }
+        spawnOffsetTransientModel(ref, rotate, getAttachedScale() - 1f);
     }
 
     /**
@@ -1201,7 +1204,9 @@ public class ActorSprite extends Sprite
         for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
             _view.getScene().remove(_attachedModels.get(ii));
         }
+        _attachedModels.clear();
         _view.getActorSpace().remove(_shape);
+        _disposed = true;
     }
 
     /**
@@ -1311,6 +1316,14 @@ public class ActorSprite extends Sprite
     }
 
     /**
+     * Returns the scale to use for attachments.
+     */
+    protected float getAttachedScale ()
+    {
+        return (_impl == null) ? 1f : _impl.getAttachedScale();
+    }
+
+    /**
      * Spawns a transient model at a z-offset of the location of this sprite.
      *
      * @param rotate if true, match the rotation as well as the translation of the sprite.
@@ -1330,6 +1343,17 @@ public class ActorSprite extends Sprite
             }
             _view.getScene().spawnTransient(ref, txform);
         }
+    }
+
+    /**
+     * Updates the transform of an attached model based on that of the primary.
+     */
+    protected static void updateAttachedTransform (Model attached, Transform3D mtrans)
+    {
+        Transform3D atrans = attached.getLocalTransform();
+        atrans.set(mtrans.getTranslation(), mtrans.getRotation(),
+            atrans.approximateUniformScale());
+        attached.updateBounds();
     }
 
     /** The history that we use to find interpolated actor state. */
@@ -1362,14 +1386,8 @@ public class ActorSprite extends Sprite
     /** The actor implementation (<code>null</code> until actually created). */
     protected Implementation _impl = NULL_IMPLEMENTATION;
 
-    /** Detaches transient models. */
-    protected ModelAdapter _transientObserver = new ModelAdapter() {
-        public boolean modelCompleted (Model model) {
-            _attachedModels.remove(model);
-            model.removeObserver(this);
-            return true;
-        }
-    };
+    /** Set when the sprite has been disposed. */
+    protected boolean _disposed;
 
     /** An implementation that does nothing. */
     protected static final Implementation NULL_IMPLEMENTATION = new Implementation(null) {
