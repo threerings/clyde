@@ -54,7 +54,7 @@ public abstract class BooleanExpression extends DeepObject
     public static class Parsed extends BooleanExpression
     {
         /** The expression to parse. */
-        @Editable
+        @Editable(width=20)
         public String expression = "false";
 
         @Override // documentation inherited

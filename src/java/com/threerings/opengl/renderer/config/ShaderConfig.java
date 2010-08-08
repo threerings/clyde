@@ -38,7 +38,13 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.expr.BooleanExpression;
+import com.threerings.expr.Color4fExpression;
+import com.threerings.expr.FloatExpression;
+import com.threerings.expr.IntegerExpression;
+import com.threerings.expr.ObjectExpression;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Transform3DExpression;
 import com.threerings.expr.Updater;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.util.DeepObject;
@@ -384,9 +390,10 @@ public class ShaderConfig extends ParameterizedConfig
      * Represents the configuration of one or more shader uniforms.
      */
     @EditorTypes({
-        BooleanUniformConfig.class, ColorUniformConfig.class,
-        FloatUniformConfig.class, IntegerUniformConfig.class,
-        TransformUniformConfig.class, MatrixArrayRefUniformConfig.class })
+        BooleanUniformConfig.class, ColorUniformConfig.class, FloatUniformConfig.class,
+        IntegerUniformConfig.class, TransformUniformConfig.class, BooleanExprUniformConfig.class,
+        ColorExprUniformConfig.class, FloatExprUniformConfig.class, IntegerExprUniformConfig.class,
+        TransformExprUniformConfig.class, MatrixArrayRefUniformConfig.class })
     public static abstract class UniformConfig extends DeepObject
         implements Exportable
     {
@@ -502,6 +509,153 @@ public class ShaderConfig extends ParameterizedConfig
         {
             value.update(Transform3D.GENERAL);
             return new Matrix4fUniform(location, value.getMatrix());
+        }
+    }
+
+    /**
+     * Base class for expression-derived uniforms.
+     */
+    public static abstract class ExpressionUniformConfig extends UniformConfig
+    {
+        @Override // documentation inherited
+        public void createUniforms (
+            Scope scope, Program program, List<Uniform> uniforms, List<Updater> updaters)
+        {
+            int location = program.getUniformLocation(name);
+            if (location != -1) {
+                uniforms.add(createUniform(location, scope, updaters));
+            }
+        }
+
+        /**
+         * Creates a uniform object from this configuration.
+         *
+         * @param location the location of the uniform.
+         */
+        protected abstract Uniform createUniform (
+            int location, Scope scope, List<Updater> updaters);
+    }
+
+    /**
+     * A boolean-valued uniform whose value is derived from an expression.
+     */
+    public static class BooleanExprUniformConfig extends ExpressionUniformConfig
+    {
+        /** The expression for the uniform. */
+        @Editable
+        public BooleanExpression expression = new BooleanExpression.Constant();
+
+        @Override // documentation inherited
+        protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
+        {
+            final IntegerUniform uniform = new IntegerUniform(location);
+            final BooleanExpression.Evaluator eval = expression.createEvaluator(scope);
+            updaters.add(new Updater() {
+                public void update () {
+                    uniform.value = eval.evaluate() ? 1 : 0;
+                    uniform.dirty = true;
+                }
+            });
+            return uniform;
+        }
+    }
+
+    /**
+     * A color-valued uniform whose value is derived from an expression.
+     */
+    public static class ColorExprUniformConfig extends ExpressionUniformConfig
+    {
+        /** The expression for the uniform. */
+        @Editable
+        public Color4fExpression expression = new Color4fExpression.Constant();
+
+        @Override // documentation inherited
+        protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
+        {
+            final Vector4fUniform uniform = new Vector4fUniform(location);
+            final ObjectExpression.Evaluator<Color4f> eval = expression.createEvaluator(scope);
+            updaters.add(new Updater() {
+                public void update () {
+                    Color4f value = eval.evaluate();
+                    uniform.value.set(value.r, value.g, value.b, value.a);
+                    uniform.dirty = true;
+                }
+            });
+            return uniform;
+        }
+    }
+
+    /**
+     * A float-valued uniform whose value is derived from an expression.
+     */
+    public static class FloatExprUniformConfig extends ExpressionUniformConfig
+    {
+        /** The expression for the uniform. */
+        @Editable
+        public FloatExpression expression = new FloatExpression.Constant();
+
+        @Override // documentation inherited
+        protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
+        {
+            final FloatUniform uniform = new FloatUniform(location);
+            final FloatExpression.Evaluator eval = expression.createEvaluator(scope);
+            updaters.add(new Updater() {
+                public void update () {
+                    uniform.value = eval.evaluate();
+                    uniform.dirty = true;
+                }
+            });
+            return uniform;
+        }
+    }
+
+    /**
+     * An integer-valued uniform whose value is derived from an expression.
+     */
+    public static class IntegerExprUniformConfig extends ExpressionUniformConfig
+    {
+        /** The expression for the uniform. */
+        @Editable
+        public IntegerExpression expression = new IntegerExpression.Constant();
+
+        @Override // documentation inherited
+        protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
+        {
+            final IntegerUniform uniform = new IntegerUniform(location);
+            final IntegerExpression.Evaluator eval = expression.createEvaluator(scope);
+            updaters.add(new Updater() {
+                public void update () {
+                    uniform.value = eval.evaluate();
+                    uniform.dirty = true;
+                }
+            });
+            return uniform;
+        }
+    }
+
+    /**
+     * A transform-valued uniform whose value is derived from an expression.
+     */
+    public static class TransformExprUniformConfig extends ExpressionUniformConfig
+    {
+        /** The expression for the uniform. */
+        @Editable
+        public Transform3DExpression expression = new Transform3DExpression.Constant();
+
+        @Override // documentation inherited
+        protected Uniform createUniform (int location, Scope scope, List<Updater> updaters)
+        {
+            final Matrix4fUniform uniform = new Matrix4fUniform(location);
+            final ObjectExpression.Evaluator<Transform3D> eval = expression.createEvaluator(scope);
+            updaters.add(new Updater() {
+                public void update () {
+                    Transform3D value = eval.evaluate();
+                    value.update(Transform3D.GENERAL);
+                    uniform.value.set(value.getMatrix());
+                    uniform.dirty = true;
+                }
+            });
+            return uniform;
         }
     }
 

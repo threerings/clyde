@@ -60,7 +60,7 @@ public abstract class FloatExpression extends DeepObject
     public static class Parsed extends FloatExpression
     {
         /** The expression to parse. */
-        @Editable
+        @Editable(width=20)
         public String expression = "0.0";
 
         @Override // documentation inherited

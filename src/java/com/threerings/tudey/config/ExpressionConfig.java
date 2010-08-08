@@ -61,7 +61,7 @@ public abstract class ExpressionConfig extends DeepObject
     public static class Parsed extends ExpressionConfig
     {
         /** The expression to parse. */
-        @Editable
+        @Editable(width=20)
         public String expression = "";
 
         /**
