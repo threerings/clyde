@@ -34,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.util.Set;
+
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -45,10 +47,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Sets;
 
 import com.samskivert.swing.event.CommandEvent;
 import com.samskivert.swing.util.SwingUtil;
-import com.samskivert.util.ArrayIntSet;
 
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
@@ -144,7 +146,7 @@ public class ResourceEditor extends BaseConfigEditor
         edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
 
         // add the new items now that we've initialized the config manager
-        ArrayIntSet mnems = new ArrayIntSet();
+        Set<Character> mnems = Sets.newHashSet();
         mnems.add('w');
         int idx = 0;
         for (final Class clazz : cfgmgr.getResourceClasses()) {
@@ -152,8 +154,7 @@ public class ResourceEditor extends BaseConfigEditor
             JMenuItem item = new JMenuItem(label);
             for (int ii = 0, nn = label.length(); ii < nn; ii++) {
                 char c = Character.toLowerCase(label.charAt(ii));
-                if (Character.isLetter(c) && !mnems.contains(c)) {
-                    mnems.add(c);
+                if (Character.isLetter(c) && mnems.add(c)) {
                     item.setMnemonic(c);
                     break;
                 }
