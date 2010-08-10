@@ -5,9 +5,9 @@ package com.threerings.openal;
 
 import java.util.ArrayList;
 
+import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
-
-import com.samskivert.util.CountHashMap;
+import com.google.common.collect.Multiset;
 
 import com.threerings.openal.ClipBuffer;
 import com.threerings.openal.util.AlContext;
@@ -34,7 +34,7 @@ public class SoundClipManager
             return;
         }
         String path = buffer.getPath();
-        int count = _counts.getCount(path);
+        int count = _counts.count(path);
         boolean canStop = false;
         if (sound.isPlaying() || count > 0) {
             for (int ii = _sounds.size() - 1; ii >= 0; ii--) {
@@ -42,7 +42,7 @@ public class SoundClipManager
                 if (sound.isPlaying()) {
                     if (entry.sound == sound) {
                         _sounds.remove(ii);
-                        _counts.incrementCount(path, -1);
+                        _counts.remove(path);
                         count--;
                         log.debug("ClipManager replaying sound", "path", path);
                         break;
@@ -66,7 +66,7 @@ public class SoundClipManager
                 SoundEntry entry = _sounds.get(ii);
                 if (entry.sound.getBuffer().getPath().equals(sound.getBuffer().getPath())) {
                     _sounds.remove(ii);
-                    _counts.incrementCount(entry.sound.getBuffer().getPath(), -1);
+                    _counts.remove(entry.sound.getBuffer().getPath());
                     log.debug("ClipManager sound popped", "path", path);
                     break;
                 }
@@ -74,7 +74,8 @@ public class SoundClipManager
         }
         if (sound.play(true)) {
             _sounds.add(new SoundEntry(sound, gain));
-            count = _counts.incrementCount(path, 1);
+            _counts.add(path);
+            count = _counts.count(path);
             sound.setGain(gain * getGainModifier(count));
             log.debug("ClipManager play sound", "count", count, "path", path);
         }
@@ -89,14 +90,14 @@ public class SoundClipManager
             SoundEntry entry = _sounds.get(ii);
             if (!entry.sound.isPlaying()) {
                 _sounds.remove(ii);
-                _counts.incrementCount(entry.sound.getBuffer().getPath(), -1);
+                _counts.remove(entry.sound.getBuffer().getPath());
                 log.debug("ClipManager sound ended", "path", entry.sound.getBuffer().getPath());
             }
         }
         for (int ii = _sounds.size() - 1; ii >= 0; ii--) {
             SoundEntry entry = _sounds.get(ii);
             entry.elapsed += elapsed;
-            int count = _counts.getCount(entry.sound.getBuffer().getPath());
+            int count = _counts.count(entry.sound.getBuffer().getPath());
             entry.sound.setGain(entry.gain * getGainModifier(count));
         }
     }
@@ -137,7 +138,7 @@ public class SoundClipManager
     protected ArrayList<SoundEntry> _sounds = Lists.newArrayList();
 
     /** A count for currently playing clips. */
-    protected CountHashMap<String> _counts = new CountHashMap<String>();
+    protected Multiset<String> _counts = HashMultiset.create();
 
     /** A map for gain levels at different sound counts. */
     protected static final float[] GAIN_LEVEL = { 1f, 1.5f, 2.0f, 2.4f };
