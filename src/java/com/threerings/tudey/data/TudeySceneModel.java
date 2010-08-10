@@ -30,6 +30,7 @@ import java.io.PrintStream;
 import java.lang.ref.SoftReference;
 
 import java.util.AbstractCollection;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -1650,7 +1651,7 @@ public class TudeySceneModel extends SceneModel
      */
     public List<String> getLayers ()
     {
-        return Lists.asList("<Base Layer>", _layers.toArray(new String[_layers.size()]));
+        return _layerNamesView;
     }
 
     /**
@@ -2645,6 +2646,17 @@ public class TudeySceneModel extends SceneModel
     /** The names of each layer. Layer n is at index n-1. */
     @DeepOmit
     protected transient List<String> _layers = Lists.newArrayList();
+
+    /** An unmodifiable list that represents the names of each layer. */
+    @DeepOmit
+    protected transient List<String> _layerNamesView = new AbstractList<String>() {
+        public int size () {
+            return 1 + _layers.size();
+        }
+        public String get (int index) {
+            return (index == 0) ? "<Base Layer>" : _layers.get(index - 1);
+        }
+    };
 
     /** Maps entry keys to their layer. Entries are on layer 0 by default, as are all tiles. */
     @DeepOmit
