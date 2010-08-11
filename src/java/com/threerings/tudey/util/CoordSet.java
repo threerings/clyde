@@ -28,7 +28,7 @@ import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 
-import com.samskivert.util.ArrayIntSet;
+import com.samskivert.util.HashIntSet;
 import com.samskivert.util.Interator;
 import com.samskivert.util.RandomUtil;
 
@@ -213,7 +213,11 @@ public class CoordSet extends AbstractSet<Coord>
     public Coord pickRandom (int width, int height, Coord result)
     {
         if (width == 1 && height == 1) {
-            return get(RandomUtil.getInt(size()), result);
+            Interator it = _coords.interator();
+            for (int ii = 0, nn = RandomUtil.getInt(size()); ii < nn; ii++) {
+                it.nextInt();
+            }
+            return result.set(it.nextInt());
         }
         CoordSet origins = new CoordSet();
         for (Coord coord : this) {
@@ -222,26 +226,6 @@ public class CoordSet extends AbstractSet<Coord>
             }
         }
         return origins.pickRandom(result);
-    }
-
-    /**
-     * Returns the coordinate at the specified index.
-     *
-     * @return a new object containing the result.
-     */
-    public Coord get (int idx)
-    {
-        return get(idx, new Coord());
-    }
-
-    /**
-     * Retrieves the coordinate at the specified index and places it in the provided object.
-     *
-     * @return a reference to the result object, for chaining.
-     */
-    public Coord get (int idx, Coord result)
-    {
-        return result.set(_coords.get(idx));
     }
 
     /**
@@ -364,5 +348,5 @@ public class CoordSet extends AbstractSet<Coord>
     }
 
     /** The underlying set. */
-    protected ArrayIntSet _coords = new ArrayIntSet();
+    protected HashIntSet _coords = new HashIntSet(8, Coord.EMPTY);
 }

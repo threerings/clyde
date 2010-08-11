@@ -40,6 +40,9 @@ import com.threerings.export.Encodable;
 public class Coord
     implements Encodable, Streamable, Cloneable
 {
+    /** A value used to signify an empty coordinate. */
+    public static final int EMPTY = encode(Short.MIN_VALUE, Short.MIN_VALUE);
+
     /** The coordinates. */
     public int x, y;
 

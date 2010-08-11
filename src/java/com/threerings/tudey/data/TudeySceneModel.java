@@ -49,7 +49,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
-import com.samskivert.util.ArrayIntSet;
+import com.samskivert.util.HashIntSet;
+import com.samskivert.util.Interator;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Tuple;
 
@@ -1550,11 +1551,11 @@ public class TudeySceneModel extends SceneModel
         int maxx = FloatMath.ifloor(max.x);
         int miny = FloatMath.ifloor(min.y);
         int maxy = FloatMath.ifloor(max.y);
-        ArrayIntSet pairs = new ArrayIntSet();
+        HashIntSet pairs = new HashIntSet(8, Coord.EMPTY);
         for (int yy = miny; yy <= maxy; yy++) {
             for (int xx = minx; xx <= maxx; xx++) {
                 int pair = _tileCoords.get(xx, yy);
-                if (pair != EMPTY_COORD) {
+                if (pair != Coord.EMPTY) {
                     _rect.getMinimumExtent().set(xx, yy);
                     _rect.getMaximumExtent().set(xx + 1f, yy + 1f);
                     if (shape.getIntersectionType(_rect) != Shape.IntersectionType.NONE) {
@@ -1563,8 +1564,8 @@ public class TudeySceneModel extends SceneModel
                 }
             }
         }
-        for (int ii = 0, nn = pairs.size(); ii < nn; ii++) {
-            TileEntry entry = getTileEntry(pairs.get(ii));
+        for (Interator it = pairs.interator(); it.hasNext(); ) {
+            TileEntry entry = getTileEntry(it.nextInt());
             if (entry != null && pred.apply(entry)) {
                 results.add(entry);
             }
@@ -1586,17 +1587,17 @@ public class TudeySceneModel extends SceneModel
      */
     public void getTileEntries (Rectangle region, Collection<TileEntry> results)
     {
-        ArrayIntSet pairs = new ArrayIntSet();
+        HashIntSet pairs = new HashIntSet(8, Coord.EMPTY);
         for (int yy = region.y, yymax = yy + region.height; yy < yymax; yy++) {
             for (int xx = region.x, xxmax = xx + region.width; xx < xxmax; xx++) {
                 int pair = _tileCoords.get(xx, yy);
-                if (pair != EMPTY_COORD) {
+                if (pair != Coord.EMPTY) {
                     pairs.add(pair);
                 }
             }
         }
-        for (int ii = 0, nn = pairs.size(); ii < nn; ii++) {
-            TileEntry entry = getTileEntry(pairs.get(ii));
+        for (Interator it = pairs.interator(); it.hasNext(); ) {
+            TileEntry entry = getTileEntry(it.nextInt());
             if (entry != null) {
                 results.add(entry);
             }
@@ -1609,7 +1610,7 @@ public class TudeySceneModel extends SceneModel
     public TileEntry getTileEntry (int x, int y)
     {
         int pair = _tileCoords.get(x, y);
-        return (pair == EMPTY_COORD) ? null : getTileEntry(pair);
+        return (pair == Coord.EMPTY) ? null : getTileEntry(pair);
     }
 
     /**
@@ -1619,7 +1620,7 @@ public class TudeySceneModel extends SceneModel
     public int getTileElevation (int x, int y)
     {
         int pair = _tileCoords.get(x, y);
-        if (pair == EMPTY_COORD) {
+        if (pair == Coord.EMPTY) {
             return Integer.MIN_VALUE;
         }
         int value = getTileValue(pair);
@@ -2682,7 +2683,7 @@ public class TudeySceneModel extends SceneModel
 
     /** Maps locations to the encoded coordinates of any tiles intersecting them. */
     @DeepOmit
-    protected transient CoordIntMap _tileCoords = new CoordIntMap(3, EMPTY_COORD);
+    protected transient CoordIntMap _tileCoords = new CoordIntMap(3, Coord.EMPTY);
 
     /** Collision flags for each location. */
     @DeepOmit
@@ -2723,7 +2724,4 @@ public class TudeySceneModel extends SceneModel
     /** Stores penetration vector during queries. */
     @DeepOmit
     protected transient Vector2f _penetration = new Vector2f();
-
-    /** The value we use to signify an empty coordinate location. */
-    protected static final int EMPTY_COORD = Coord.encode(Short.MIN_VALUE, Short.MIN_VALUE);
 }
