@@ -201,8 +201,7 @@ public class XMLImporter extends Importer
         if (child == null) {
             return defvalue;
         }
-        @SuppressWarnings("unchecked") T value = (T)read(child, clazz);
-        return value;
+        return clazz.cast(read(child, clazz));
     }
 
     @Override // documentation inherited

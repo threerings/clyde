@@ -205,7 +205,7 @@ public class BinaryImporter extends Importer
         throws IOException
     {
         try {
-            @SuppressWarnings("unchecked") T value = (T)_fields.get(name);
+            T value = clazz.cast(_fields.get(name));
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
             log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
