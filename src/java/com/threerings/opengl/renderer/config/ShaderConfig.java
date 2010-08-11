@@ -51,6 +51,7 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
@@ -59,6 +60,7 @@ import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.FloatUniform;
 import com.threerings.opengl.renderer.Program.IntegerUniform;
+import com.threerings.opengl.renderer.Program.Vector2fUniform;
 import com.threerings.opengl.renderer.Program.Vector3fUniform;
 import com.threerings.opengl.renderer.Program.Vector4fUniform;
 import com.threerings.opengl.renderer.Program.Matrix4fUniform;
@@ -391,9 +393,10 @@ public class ShaderConfig extends ParameterizedConfig
      */
     @EditorTypes({
         BooleanUniformConfig.class, ColorUniformConfig.class, FloatUniformConfig.class,
-        IntegerUniformConfig.class, TransformUniformConfig.class, BooleanExprUniformConfig.class,
-        ColorExprUniformConfig.class, FloatExprUniformConfig.class, IntegerExprUniformConfig.class,
-        TransformExprUniformConfig.class, MatrixArrayRefUniformConfig.class })
+        IntegerUniformConfig.class, PolarUniformConfig.class, TransformUniformConfig.class,
+        BooleanExprUniformConfig.class, ColorExprUniformConfig.class, FloatExprUniformConfig.class,
+        IntegerExprUniformConfig.class, TransformExprUniformConfig.class,
+        MatrixArrayRefUniformConfig.class })
     public static abstract class UniformConfig extends DeepObject
         implements Exportable
     {
@@ -492,6 +495,22 @@ public class ShaderConfig extends ParameterizedConfig
         public Uniform createUniform (int location)
         {
             return new IntegerUniform(location, value);
+        }
+    }
+
+    /**
+     * A polar coordinate-valued uniform.
+     */
+    public static class PolarUniformConfig extends SimpleUniformConfig
+    {
+        /** The value of the uniform. */
+        @Editable(mode="polar", hgroup="p")
+        public Vector2f value = new Vector2f();
+
+        @Override // documentation inherited
+        public Uniform createUniform (int location)
+        {
+            return new Vector2fUniform(location, value);
         }
     }
 
