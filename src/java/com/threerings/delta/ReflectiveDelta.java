@@ -181,7 +181,7 @@ public class ReflectiveDelta extends Delta
     public String toString ()
     {
         StringBuilder buf = new StringBuilder();
-        buf.append("[class=" + _clazz.getName());
+        buf.append("[class=").append(_clazz.getName());
         ClassMapping cmap = getClassMapping(_clazz);
         Field[] fields = cmap.getFields();
         FieldHandler[] handlers = cmap.getHandlers();
