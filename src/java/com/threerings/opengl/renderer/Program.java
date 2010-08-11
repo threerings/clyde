@@ -40,6 +40,7 @@ import org.lwjgl.opengl.GL11;
 import com.samskivert.util.HashIntMap;
 
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
@@ -181,6 +182,54 @@ public class Program extends ShaderObject
         {
             return other instanceof FloatUniform &&
                 ((FloatUniform)other).value == value;
+        }
+    }
+
+    /**
+     * A uniform containing a two-element vector.
+     */
+    public static class Vector2fUniform extends Uniform
+    {
+        /** The vector value. */
+        public Vector2f value = new Vector2f();
+
+        /**
+         * Creates a new vector uniform with the specified location.
+         */
+        public Vector2fUniform (int location)
+        {
+            super(location);
+        }
+
+        /**
+         * Creates a new vector uniform with the specified location and value.
+         */
+        public Vector2fUniform (int location, Vector2f value)
+        {
+            super(location);
+            this.value.set(value);
+        }
+
+        @Override // documentation inherited
+        public void apply ()
+        {
+            ARBShaderObjects.glUniform2fARB(_location, value.x, value.y);
+        }
+
+        @Override // documentation inherited
+        public Uniform clone (Uniform uniform)
+        {
+            Vector2fUniform clone = (uniform instanceof Vector2fUniform) ?
+                ((Vector2fUniform)uniform) : new Vector2fUniform(_location);
+            clone.value.set(value);
+            return clone;
+        }
+
+        @Override // documentation inherited
+        public boolean equals (Object other)
+        {
+            return other instanceof Vector2fUniform &&
+                ((Vector2fUniform)other).value.equals(value);
         }
     }
 
