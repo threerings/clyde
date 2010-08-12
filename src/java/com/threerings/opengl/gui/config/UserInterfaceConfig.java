@@ -34,6 +34,7 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
+import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
@@ -72,6 +73,11 @@ public class UserInterfaceConfig extends ParameterizedConfig
         public abstract ConfigManager getConfigManager (ConfigManager cfgmgr);
 
         /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (ConfigManager cfgmgr);
+
+        /**
          * Creates or updates a component for this configuration.
          *
          * @param scope the component's expression scope.
@@ -103,10 +109,32 @@ public class UserInterfaceConfig extends ParameterizedConfig
         @Editable
         public ComponentConfig root = new ComponentConfig.Spacer();
 
+        /** The sound to play on addition, if any. */
+        @Editable(editor="resource", nullable=true)
+        @FileConstraints(
+            description="m.sound_files_desc",
+            extensions={".ogg"},
+            directory="sound_dir")
+        public String addSound;
+
+        /** The sound to play on removal, if any. */
+        @Editable(editor="resource", nullable=true)
+        @FileConstraints(
+            description="m.sound_files_desc",
+            extensions={".ogg"},
+            directory="sound_dir")
+        public String removeSound;
+
         @Override // documentation inherited
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
             return cfgmgr;
+        }
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
         }
 
         @Override // documentation inherited
@@ -151,6 +179,14 @@ public class UserInterfaceConfig extends ParameterizedConfig
         }
 
         @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            UserInterfaceConfig config = cfgmgr.getConfig(
+                UserInterfaceConfig.class, userInterface);
+            return (config == null) ? null : config.getOriginal();
+        }
+
+        @Override // documentation inherited
         public Component getComponent (GlContext ctx, Scope scope, Component comp)
         {
             UserInterfaceConfig config = ctx.getConfigManager().getConfig(
@@ -162,6 +198,14 @@ public class UserInterfaceConfig extends ParameterizedConfig
     /** The actual interface implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Retrieves a reference to the underlying original implementation.
+     */
+    public Original getOriginal ()
+    {
+        return implementation.getOriginal(_configs);
+    }
 
     /**
      * Creates or updates a component for this configuration.
