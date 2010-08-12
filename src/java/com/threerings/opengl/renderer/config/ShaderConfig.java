@@ -504,7 +504,7 @@ public class ShaderConfig extends ParameterizedConfig
     public static class PolarUniformConfig extends SimpleUniformConfig
     {
         /** The value of the uniform. */
-        @Editable(mode="polar", hgroup="p")
+        @Editable(step=0.01, mode="polar", hgroup="p")
         public Vector2f value = new Vector2f();
 
         @Override // documentation inherited
@@ -520,7 +520,7 @@ public class ShaderConfig extends ParameterizedConfig
     public static class TransformUniformConfig extends SimpleUniformConfig
     {
         /** The value of the uniform. */
-        @Editable(hgroup="p")
+        @Editable(step=0.01, hgroup="p")
         public Transform3D value = new Transform3D();
 
         @Override // documentation inherited
@@ -869,7 +869,7 @@ public class ShaderConfig extends ParameterizedConfig
     public static class TransformDefinition extends Definition
     {
         /** The value of the definition. */
-        @Editable(hgroup="p")
+        @Editable(step=0.01, hgroup="p")
         public Transform3D value = new Transform3D();
 
         @Override // documentation inherited
