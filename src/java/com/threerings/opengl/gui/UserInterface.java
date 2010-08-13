@@ -327,7 +327,7 @@ public class UserInterface extends Container
     {
         super.wasAdded();
         Window window = getWindow();
-        _root = (window == null) ? null : getWindow().getRoot();
+        _root = (window == null) ? null : window.getRoot();
 
         // play the addition sound, if any
         UserInterfaceConfig.Original original = (_config == null) ? null : _config.getOriginal();
