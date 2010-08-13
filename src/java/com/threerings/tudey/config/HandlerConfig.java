@@ -190,7 +190,7 @@ public abstract class HandlerConfig extends DeepObject
         /** The mask representing the types of entities that trigger the sensor. */
         @Editable(editor="mask", mode="collision", hgroup="m")
         @Strippable
-        public int mask = 0xFF;
+        public int mask = 0xFFFF;
 
         /** The amount of time that must elapse between firings. */
         @Editable(min=0.0, step=0.1, hgroup="m")
@@ -212,7 +212,7 @@ public abstract class HandlerConfig extends DeepObject
         /** The mask representing the types of entities that trigger the sensor. */
         @Editable(editor="mask", mode="collision")
         @Strippable
-        public int mask = 0xFF;
+        public int mask = 0xFFFF;
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -229,7 +229,7 @@ public abstract class HandlerConfig extends DeepObject
         /** The mask representing the types of entities that trigger the sensor. */
         @Editable(editor="mask", mode="collision")
         @Strippable
-        public int mask = 0xFF;
+        public int mask = 0xFFFF;
 
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -246,7 +246,7 @@ public abstract class HandlerConfig extends DeepObject
         /** The mask representing the types of entities that trigger the sensor. */
         @Editable(editor="mask", mode="collision")
         @Strippable
-        public int mask = 0xFF;
+        public int mask = 0xFFFF;
 
         /** The condition that must be satisfied for a valid intersection. */
         @Editable

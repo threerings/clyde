@@ -59,6 +59,16 @@ import static com.threerings.editor.Log.*;
 public class MaskEditor extends PropertyEditor
     implements DocumentListener, ActionListener
 {
+    /**
+     * Retrieves the value of a flag from the configuration, or zero if not found.
+     */
+    public static int getFlag (String mode, String flag)
+    {
+        String[] flags = _modes.get(mode);
+        int idx = (flags == null) ? -1 : ListUtil.indexOf(flags, flag);
+        return (idx == -1) ? 0 : (1 << idx);
+    }
+
     // documentation inherited from interface DocumentListener
     public void insertUpdate (DocumentEvent event)
     {
