@@ -328,11 +328,14 @@ public class UserInterface extends Container
         super.wasAdded();
         Window window = getWindow();
         _root = (window == null) ? null : window.getRoot();
+        if (_root == null) {
+            return;
+        }
 
         // play the addition sound, if any
         UserInterfaceConfig.Original original = (_config == null) ? null : _config.getOriginal();
         String sound = (original == null) ? null : original.addSound;
-        if (sound != null && _root != null) {
+        if (sound != null) {
             _root.playSound(sound);
         }
     }
@@ -341,11 +344,14 @@ public class UserInterface extends Container
     protected void wasRemoved ()
     {
         super.wasRemoved();
+        if (_root == null) {
+            return;
+        }
 
         // play the removal sound, if any
         UserInterfaceConfig.Original original = (_config == null) ? null : _config.getOriginal();
         String sound = (original == null) ? null : original.removeSound;
-        if (sound != null && _root != null) {
+        if (sound != null) {
             _root.playSound(sound);
         }
         _root = null;
