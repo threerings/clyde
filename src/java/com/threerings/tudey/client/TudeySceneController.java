@@ -31,8 +31,11 @@ import java.util.List;
 import org.lwjgl.input.Keyboard;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
+import com.samskivert.util.HashIntSet;
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.ObserverList;
@@ -443,11 +446,11 @@ public class TudeySceneController extends SceneController
     protected void bindKeys ()
     {
         if (_controlledId > 0) {
-            bindKeyMovement(PseudoKeys.KEY_BUTTON1, _relativeMoveAmounts, 0);
-            bindKeyMovement(Keyboard.KEY_W, _absoluteMoveAmounts, 0);
-            bindKeyMovement(Keyboard.KEY_S, _absoluteMoveAmounts, 1);
-            bindKeyMovement(Keyboard.KEY_A, _absoluteMoveAmounts, 2);
-            bindKeyMovement(Keyboard.KEY_D, _absoluteMoveAmounts, 3);
+            bindKeyMovement(PseudoKeys.KEY_BUTTON1, _relativeMoveAmounts, _relativeMovePresses, 0);
+            bindKeyMovement(Keyboard.KEY_W, _absoluteMoveAmounts, _absoluteMovePresses, 0);
+            bindKeyMovement(Keyboard.KEY_S, _absoluteMoveAmounts, _absoluteMovePresses, 1);
+            bindKeyMovement(Keyboard.KEY_A, _absoluteMoveAmounts, _absoluteMovePresses, 2);
+            bindKeyMovement(Keyboard.KEY_D, _absoluteMoveAmounts, _absoluteMovePresses, 3);
             bindKeyStrafe(Keyboard.KEY_C);
         } else {
             bindKeyCycle(Keyboard.KEY_LEFT, false);
@@ -462,13 +465,55 @@ public class TudeySceneController extends SceneController
     {
         addKeyObserver(key, new PseudoKeys.Observer() {
             public void keyPressed (long when, int key, float amount) {
-                _flags |= flag;
-                _frameFlags |= flag;
+                _flagPresses.put(flag, key);
+                updateFlag(flag);
             }
             public void keyReleased (long when, int key) {
-                _flags &= ~flag;
+                _flagPresses.remove(flag, key);
+                updateFlag(flag);
             }
         });
+    }
+
+    /**
+     * Updates the state of the specified flag based on its presses.
+     */
+    protected void updateFlag (int flag)
+    {
+        if (flag == InputFrame.MOVE) {
+            updateMoveFlag();
+            return;
+        }
+        if (_flagPresses.containsKey(flag)) {
+            _flags |= flag;
+            _frameFlags |= flag;
+        } else {
+            _flags &= ~flag;
+        }
+    }
+
+    /**
+     * Updates the move flag.
+     */
+    protected void updateMoveFlag ()
+    {
+        if (isPressed(_absoluteMoveAmounts) || isPressed(_relativeMoveAmounts) ||
+                _flagPresses.containsKey(InputFrame.MOVE)) {
+            _flags |= InputFrame.MOVE;
+            _frameFlags |= InputFrame.MOVE;
+        } else {
+            _flags &= ~InputFrame.MOVE;
+        }
+    }
+
+    /**
+     * Checks whether the supplied amounts count as a "press" for movement purposes.
+     */
+    protected boolean isPressed (float[] amounts)
+    {
+        float fx = amounts[3] - amounts[2];
+        float fy = amounts[0] - amounts[1];
+        return FloatMath.hypot(fx, fy) > 0.5f;
     }
 
     /**
@@ -486,16 +531,26 @@ public class TudeySceneController extends SceneController
     /**
      * Binds a key to a movement direction.
      */
-    protected void bindKeyMovement (int key, final float[] amounts, final int idx)
+    protected void bindKeyMovement (
+        int key, final float[] amounts, IntMap<Float>[] presses, final int idx)
     {
+        final IntMap<Float> fpresses = presses[idx];
         addKeyObserver(key, new PseudoKeys.Observer() {
             public void keyPressed (long when, int key, float amount) {
-                amounts[idx] = amount;
-                updateMovement(amounts);
+                fpresses.put(key, Float.valueOf(amount));
+                updateAmount();
             }
             public void keyReleased (long when, int key) {
-                amounts[idx] = 0f;
-                updateMovement(amounts);
+                fpresses.remove(key);
+                updateAmount();
+            }
+            protected void updateAmount () {
+                float maximum = 0f;
+                for (float value : fpresses.values()) {
+                    maximum = Math.max(maximum, value);
+                }
+                amounts[idx] = maximum;
+                updateMoveFlag();
             }
         });
     }
@@ -507,10 +562,10 @@ public class TudeySceneController extends SceneController
     {
         addKeyObserver(key, new PseudoKeys.Observer() {
             public void keyPressed (long when, int key, float amount) {
-                _strafe = true;
+                _strafePresses.add(key);
             }
             public void keyReleased (long when, int key) {
-                _strafe = false;
+                _strafePresses.remove(key);
             }
         });
     }
@@ -525,22 +580,6 @@ public class TudeySceneController extends SceneController
             _keyObservers.put(key, list = ObserverList.newFastUnsafe());
         }
         list.add(observer);
-    }
-
-    /**
-     * Updates the movement in response to a relative movement command.
-     */
-    protected void updateMovement (float[] amounts)
-    {
-        float fx = amounts[3] - amounts[2];
-        float fy = amounts[0] - amounts[1];
-        float flen = FloatMath.hypot(fx, fy);
-        if (flen > 0.5f) {
-            _flags |= InputFrame.MOVE;
-            _frameFlags |= InputFrame.MOVE;
-        } else {
-            _flags &= ~InputFrame.MOVE;
-        }
     }
 
     /**
@@ -634,7 +673,7 @@ public class TudeySceneController extends SceneController
             // determine where they intersect and use that to calculate the requested direction
             if (_tplane.getIntersection(_pick, _isect) && !_isect.equals(target)) {
                 float dir = FloatMath.atan2(_isect.y - target.y, _isect.x - target.x);
-                rotation = _strafe ? _lastRotation : dir;
+                rotation = _strafePresses.isEmpty() ? dir : _lastRotation;
                 direction = computeDirection(dir);
             }
         } else {
@@ -721,9 +760,9 @@ public class TudeySceneController extends SceneController
         int mask = ~getInputMask();
         _frameFlags &= mask;
         _flags &= mask;
-        _strafe = false;
-        Arrays.fill(_relativeMoveAmounts, 0f);
-        Arrays.fill(_absoluteMoveAmounts, 0f);
+        _strafePresses.clear();
+        clearDirection(_relativeMoveAmounts, _relativeMovePresses);
+        clearDirection(_absoluteMoveAmounts, _absoluteMovePresses);
     }
 
     /**
@@ -733,6 +772,17 @@ public class TudeySceneController extends SceneController
     protected int getInputMask ()
     {
         return InputFrame.MOVE;
+    }
+
+    /**
+     * Clears directional state.
+     */
+    protected void clearDirection (float[] amounts, IntMap<Float>[] presses)
+    {
+        Arrays.fill(amounts, 0f);
+        for (IntMap<Float> map : presses) {
+            map.clear();
+        }
     }
 
     /**
@@ -830,6 +880,18 @@ public class TudeySceneController extends SceneController
     }
 
     /**
+     * Creates a map array to store per-direction pseudo-key presses.
+     */
+    protected static IntMap<Float>[] createDirectionPresses ()
+    {
+        @SuppressWarnings("unchecked") IntMap<Float>[] presses = new IntMap[4];
+        for (int ii = 0; ii < 4; ii++) {
+            presses[ii] = IntMaps.newHashIntMap();
+        }
+        return presses;
+    }
+
+    /**
      * Records the state of the controlled pawn at the time of an input frame (along with the
      * frame itself).
      */
@@ -903,11 +965,20 @@ public class TudeySceneController extends SceneController
     /** Contains all flags set during the current frame. */
     protected int _frameFlags;
 
+    /** Maps flags to corresponding presses pseudo-keys. */
+    protected Multimap<Integer, Integer> _flagPresses = HashMultimap.create();
+
     /** The absolute move command amounts in each direction. */
     protected float[] _absoluteMoveAmounts = new float[4];
 
     /** The relative move command amounts in each direction. */
     protected float[] _relativeMoveAmounts = new float[4];
+
+    /** Pseudo-key presses for each absolute direction. */
+    protected IntMap<Float>[] _absoluteMovePresses = createDirectionPresses();
+
+    /** Pseudo-key presses for each relative direction. */
+    protected IntMap<Float>[] _relativeMovePresses = createDirectionPresses();
 
     /** The list of outgoing input frames. */
     protected List<InputFrame> _input = Lists.newArrayList();
@@ -939,8 +1010,8 @@ public class TudeySceneController extends SceneController
     /** The timestamp of the last delta received from the server. */
     protected int _lastDelta;
 
-    /** Whether or not strafe mode is enabled. */
-    protected boolean _strafe;
+    /** The set of keys pressed mapped to the strafe function. */
+    protected HashIntSet _strafePresses = new HashIntSet();
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();
