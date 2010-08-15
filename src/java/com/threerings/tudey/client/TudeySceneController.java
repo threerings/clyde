@@ -336,6 +336,9 @@ public class TudeySceneController extends SceneController
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
+        // increment the tick count
+        _tickCount++;
+
         // update the input if we control our target
         if (_controlledId > 0) {
             updateInput(elapsed);
@@ -486,7 +489,6 @@ public class TudeySceneController extends SceneController
         }
         if (_flagPresses.containsKey(flag)) {
             _flags |= flag;
-            _frameFlags |= flag;
         } else {
             _flags &= ~flag;
         }
@@ -500,7 +502,6 @@ public class TudeySceneController extends SceneController
         if (isPressed(_absoluteMoveAmounts) || isPressed(_relativeMoveAmounts) ||
                 _flagPresses.containsKey(InputFrame.MOVE)) {
             _flags |= InputFrame.MOVE;
-            _frameFlags |= InputFrame.MOVE;
         } else {
             _flags &= ~InputFrame.MOVE;
         }
@@ -575,11 +576,54 @@ public class TudeySceneController extends SceneController
      */
     protected void addKeyObserver (int key, PseudoKeys.Observer observer)
     {
-        ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
-        if (list == null) {
-            _keyObservers.put(key, list = ObserverList.newFastUnsafe());
+        addKeyObserver(key, observer, true);
+    }
+
+    /**
+     * Adds an observer for a single key.
+     *
+     * @param hold if true and the key is pressed and released in the same frame, hold the release
+     * event until the next frame so that we have a chance to process the press.
+     */
+    protected void addKeyObserver (final int key, final PseudoKeys.Observer observer, boolean hold)
+    {
+        if (!hold) {
+            ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
+            if (list == null) {
+                _keyObservers.put(key, list = ObserverList.newFastUnsafe());
+            }
+            list.add(observer);
+            return;
         }
-        list.add(observer);
+        class Holder implements PseudoKeys.Observer, Runnable {
+            public void keyPressed (long when, int key, float amount) {
+                observer.keyPressed(when, key, amount);
+                _pressTick = (_pressTick == 0) ? _tickCount : _pressTick;
+                _released = 0L;
+            }
+            public void keyReleased (long when, int key) {
+                if (_tickCount == _pressTick) {
+                    _released = when;
+                    if (!_posted) {
+                        _ctx.getClient().getRunQueue().postRunnable(this);
+                        _posted = true;
+                    }
+                } else {
+                    observer.keyReleased(when, key);
+                }
+                _pressTick = 0;
+            }
+            public void run () {
+                if (_released > 0L) {
+                    observer.keyReleased(_released, key);
+                }
+                _posted = false;
+            }
+            protected int _pressTick;
+            protected long _released;
+            protected boolean _posted;
+        }
+        addKeyObserver(key, new Holder(), false);
     }
 
     /**
@@ -693,13 +737,13 @@ public class TudeySceneController extends SceneController
         // perhaps enqueue an input frame
         long now = RunAnywhere.currentTimeMillis();
         if (rotation != _lastRotation || direction != _lastDirection ||
-                _frameFlags != _lastFlags || now >= _nextInput) {
+                _flags != _lastFlags || now >= _nextInput) {
             // create and enqueue the frame
             InputFrame frame = _lastFrame = createInputFrame(
-                _tsview.getAdvancedTime(), rotation, direction, _frameFlags);
+                _tsview.getAdvancedTime(), rotation, direction, _flags);
             _lastRotation = rotation;
             _lastDirection = direction;
-            _lastFlags = _frameFlags;
+            _lastFlags = _flags;
             _nextInput = now + _tsview.getElapsed();
             _input.add(frame);
 
@@ -720,9 +764,6 @@ public class TudeySceneController extends SceneController
         // have the sprite actor's translation smoothly approach that of the advancer actor
         targetSprite.getActor().getTranslation().lerpLocal(
             _advancer.getActor().getTranslation(), 1f - FloatMath.exp(CONVERGENCE_RATE * elapsed));
-
-        // reset the frame flags
-        _frameFlags = _flags;
     }
 
     /**
@@ -758,7 +799,6 @@ public class TudeySceneController extends SceneController
     protected void clearInput ()
     {
         int mask = ~getInputMask();
-        _frameFlags &= mask;
         _flags &= mask;
         _strafePresses.clear();
         clearDirection(_relativeMoveAmounts, _relativeMovePresses);
@@ -962,9 +1002,6 @@ public class TudeySceneController extends SceneController
     /** The current value of the input flags. */
     protected int _flags;
 
-    /** Contains all flags set during the current frame. */
-    protected int _frameFlags;
-
     /** Maps flags to corresponding presses pseudo-keys. */
     protected Multimap<Integer, Integer> _flagPresses = HashMultimap.create();
 
@@ -1012,6 +1049,9 @@ public class TudeySceneController extends SceneController
 
     /** The set of keys pressed mapped to the strafe function. */
     protected HashIntSet _strafePresses = new HashIntSet();
+
+    /** Incremented on each tick. */
+    protected int _tickCount;
 
     /** Used for picking. */
     protected Ray3D _pick = new Ray3D();
