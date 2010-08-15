@@ -41,6 +41,9 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.PixelFormat;
+
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
@@ -54,6 +57,8 @@ import com.threerings.math.Ray3D;
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
 import com.threerings.opengl.renderer.Renderer;
+
+import static com.threerings.opengl.Log.*;
 
 /**
  * A base class for applications centered around an OpenGL canvas.
@@ -212,17 +217,43 @@ public abstract class GlCanvasApp extends GlApp
      */
     protected Component createCanvas ()
     {
-        return new DisplayCanvas() {
-            @Override protected void didInit () {
-                GlCanvasApp.this.init();
+        // at least as of Ubuntu 9.10 (Karmic Koala), using the AWTCanvas on Linux results
+        // in frequent crashes.  on Windows, however, the DisplayCanvas doesn't handle mouse
+        // events as well: for example, the mouse button states aren't updated if one presses
+        // or releases the button when the pointer is outside the canvas.  so, we use AWTCanvas
+        // on Windows and DisplayCanvas on Linux (i have yet to test on OS X)
+        if (RunAnywhere.isLinux()) {
+            return new DisplayCanvas() {
+                @Override protected void didInit () {
+                    GlCanvasApp.this.init();
+                }
+                @Override protected void updateView () {
+                    GlCanvasApp.this.updateView();
+                }
+                @Override protected void renderView () {
+                    GlCanvasApp.this.renderView();
+                }
+            };
+        }
+        for (PixelFormat format : PIXEL_FORMATS) {
+            try {
+                return new AWTCanvas(format) {
+                    @Override protected void didInit () {
+                        GlCanvasApp.this.init();
+                    }
+                    @Override protected void updateView () {
+                        GlCanvasApp.this.updateView();
+                    }
+                    @Override protected void renderView () {
+                        GlCanvasApp.this.renderView();
+                    }
+                };
+            } catch (LWJGLException e) {
+                // proceed to next format
             }
-            @Override protected void updateView () {
-                GlCanvasApp.this.updateView();
-            }
-            @Override protected void renderView () {
-                GlCanvasApp.this.renderView();
-            }
-        };
+        }
+        log.warning("Couldn't find valid pixel format.");
+        return null;
     }
 
     /**
