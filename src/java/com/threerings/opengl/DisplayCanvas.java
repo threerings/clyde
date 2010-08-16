@@ -166,6 +166,12 @@ public class DisplayCanvas extends JPanel
         Display.destroy();
     }
 
+    @Override // documentation inherited
+    public Point getMousePosition ()
+    {
+        return _canvas.getMousePosition();
+    }
+
     /**
      * Attempts to create the display with this canvas as its parent.
      */
