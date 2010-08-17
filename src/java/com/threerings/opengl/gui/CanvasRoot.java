@@ -146,7 +146,12 @@ public class CanvasRoot extends Root
         if (cursor == null) {
             cursor = getDefaultCursor();
         }
-        _canvas.setCursor(cursor == null ? null : cursor.getAWTCursor(_canvas.getToolkit()));
+        if (cursor == null) {
+            _canvas.setCursor(null);
+        } else {
+            _canvas.setCursor(cursor.getAWTCursor(_canvas.getToolkit()));
+            cursor.show(); // hack for DisplayCanvas
+        }
     }
 
     protected int convertModifiers (int modifiers)
