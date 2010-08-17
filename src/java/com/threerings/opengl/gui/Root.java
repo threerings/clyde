@@ -1106,6 +1106,14 @@ public abstract class Root extends SimpleOverlay
         }
 
         /**
+         * Returns a reference to the press event.
+         */
+        public KeyEvent getPress ()
+        {
+            return _press;
+        }
+
+        /**
          * Dispatches a key repeat event if appropriate.
          */
         public void maybeRepeat ()

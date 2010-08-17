@@ -92,8 +92,17 @@ public class DisplayRoot extends Root
             updateKeyModifier(key, pressed);
         }
 
-        // clear the modifiers if we don't have focus
+        // clear the modifiers and release keys if we don't have focus
         if (!Display.isActive()) {
+            if (!_pressedKeys.isEmpty()) {
+                for (KeyRecord record : _pressedKeys.values()) {
+                    KeyEvent press = record.getPress();
+                    dispatchEvent(getFocus(), new KeyEvent(
+                        this, _tickStamp, _modifiers, KeyEvent.KEY_RELEASED,
+                        press.getKeyChar(), press.getKeyCode(), false));
+                }
+                _pressedKeys.clear();
+            }
             _modifiers = 0;
         }
 
