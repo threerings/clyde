@@ -51,6 +51,7 @@ import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.PixelFormat;
 
 import com.samskivert.util.HashIntSet;
+import com.samskivert.util.Interator;
 
 import static com.threerings.opengl.Log.*;
 
@@ -272,6 +273,11 @@ public class DisplayCanvas extends JPanel
                 this, pressed ? KeyEvent.KEY_PRESSED : KeyEvent.KEY_RELEASED,
                 now, _modifiers, getAWTCode(key), Keyboard.getEventCharacter(),
                 getAWTLocation(key)));
+            if (pressed) {
+                _pressedKeys.add(key);
+            } else {
+                _pressedKeys.remove(key);
+            }
             updateKeyModifier(key, pressed);
         }
 
@@ -302,10 +308,18 @@ public class DisplayCanvas extends JPanel
         checkButtonState(now, pt.x, pt.y, 1, Mouse.isButtonDown(1));
         checkButtonState(now, pt.x, pt.y, 2, Mouse.isButtonDown(2));
 
-        // clear the modifiers if we don't have focus
+        // clear the keys if we don't have focus
         if (!windowIsFocused()) {
-            _modifiers = 0;
-            _pressedKeys.clear();
+            if (!_pressedKeys.isEmpty()) {
+                for (Interator it = _pressedKeys.interator(); it.hasNext(); ) {
+                    int key = it.nextInt();
+                    dispatchEvent(new KeyEvent(
+                        this, KeyEvent.KEY_RELEASED, now, _modifiers, getAWTCode(key),
+                        KeyEvent.CHAR_UNDEFINED, getAWTLocation(key)));
+                    updateKeyModifier(key, false);
+                }
+                _pressedKeys.clear();
+            }
         }
     }
 
@@ -432,11 +446,6 @@ public class DisplayCanvas extends JPanel
 
             default:
                 return;
-        }
-        if (pressed) {
-            _pressedKeys.add(key);
-        } else {
-            _pressedKeys.remove(key);
         }
         if (pressed || _pressedKeys.contains(okey)) {
             _modifiers |= mask;
