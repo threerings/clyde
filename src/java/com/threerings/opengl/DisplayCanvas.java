@@ -31,6 +31,7 @@ import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.MouseInfo;
 import java.awt.Point;
+import java.awt.Window;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
@@ -325,7 +326,7 @@ public class DisplayCanvas extends JPanel
      */
     protected void checkEntered (long now, int modifiers, int x, int y)
     {
-        if (!_entered && contains(x, y)) {
+        if (!_entered && contains(x, y) && windowIsFocused()) {
             dispatchEvent(new MouseEvent(
                 this, MouseEvent.MOUSE_ENTERED, now, modifiers, x, y, 0, false));
         }
@@ -336,13 +337,22 @@ public class DisplayCanvas extends JPanel
      */
     protected void checkExited (long now, int modifiers, int x, int y)
     {
-        if (_entered && !anyButtonsDown(modifiers) && !contains(x, y)) {
+        if (_entered && !anyButtonsDown(modifiers) && !(contains(x, y) && windowIsFocused())) {
             for (int ii = 0; ii < _lbuttons.length; ii++) {
                 checkButtonState(now, modifiers, x, y, ii, false);
             }
             dispatchEvent(new MouseEvent(
                 this, MouseEvent.MOUSE_EXITED, now, modifiers, x, y, 0, false));
         }
+    }
+
+    /**
+     * Checks whether the window that contains this canvas (if any) is focused.
+     */
+    protected boolean windowIsFocused ()
+    {
+        Window window = SwingUtilities.windowForComponent(this);
+        return window != null && window.isFocused();
     }
 
     /**
