@@ -50,6 +50,8 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.Drawable;
 import org.lwjgl.opengl.PixelFormat;
 
+import com.samskivert.util.HashIntSet;
+
 import static com.threerings.opengl.Log.*;
 
 /**
@@ -114,10 +116,14 @@ public class DisplayCanvas extends JPanel
             }
             @Override public void mousePressed (MouseEvent event) {
                 requestFocusInWindow();
-                _lbuttons[getLWJGLButton(event.getButton())] = true;
+                int button = getLWJGLButton(event.getButton());
+                _lbuttons[button] = true;
+                updateButtonModifier(button, true);
             }
             @Override public void mouseReleased (MouseEvent event) {
-                _lbuttons[getLWJGLButton(event.getButton())] = false;
+                int button = getLWJGLButton(event.getButton());
+                _lbuttons[button] = false;
+                updateButtonModifier(button, false);
             }
             @Override public void mouseMoved (MouseEvent event) {
                 _lx = event.getX();
@@ -258,54 +264,30 @@ public class DisplayCanvas extends JPanel
     {
         long now = System.currentTimeMillis();
 
-        // get the modifiers
-        int modifiers = 0;
-        int bcount = Mouse.getButtonCount();
-        if (bcount >= 1 && Mouse.isButtonDown(0)) {
-            modifiers |= InputEvent.BUTTON1_DOWN_MASK;
-        }
-        if (bcount >= 2 && Mouse.isButtonDown(1)) {
-            modifiers |= InputEvent.BUTTON3_DOWN_MASK;
-        }
-        if (bcount >= 3 && Mouse.isButtonDown(2)) {
-            modifiers |= InputEvent.BUTTON2_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT)) {
-            modifiers |= InputEvent.SHIFT_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) ||
-                Keyboard.isKeyDown(Keyboard.KEY_RCONTROL)) {
-            modifiers |= InputEvent.CTRL_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU)) {
-            modifiers |= InputEvent.ALT_DOWN_MASK;
-        }
-        if (Keyboard.isKeyDown(Keyboard.KEY_LMETA) || Keyboard.isKeyDown(Keyboard.KEY_RMETA)) {
-            modifiers |= InputEvent.META_DOWN_MASK;
-        }
-
         // dispatch keyboard events
         while (Keyboard.next()) {
             int key = Keyboard.getEventKey();
+            boolean pressed = Keyboard.getEventKeyState();
             dispatchEvent(new KeyEvent(
-                this, Keyboard.getEventKeyState() ? KeyEvent.KEY_PRESSED : KeyEvent.KEY_RELEASED,
-                now, modifiers, getAWTCode(key), Keyboard.getEventCharacter(),
+                this, pressed ? KeyEvent.KEY_PRESSED : KeyEvent.KEY_RELEASED,
+                now, _modifiers, getAWTCode(key), Keyboard.getEventCharacter(),
                 getAWTLocation(key)));
+            updateKeyModifier(key, pressed);
         }
 
         // process mouse events
         while (Mouse.next()) {
             int x = Mouse.getEventX(), y = getHeight() - Mouse.getEventY() - 1;
-            checkEntered(now, modifiers, x, y);
-            checkMoved(now, modifiers, x, y);
+            checkEntered(now, x, y);
+            checkMoved(now, x, y);
             int button = Mouse.getEventButton();
             if (button != -1) {
-                checkButtonState(now, modifiers, x, y, button, Mouse.getEventButtonState());
+                checkButtonState(now, x, y, button, Mouse.getEventButtonState());
             }
             int delta = -Integer.signum(Mouse.getEventDWheel());
             if (delta != 0 && ++_lclicks > 0) {
                 dispatchEvent(new MouseWheelEvent(
-                    this, MouseEvent.MOUSE_WHEEL, now, modifiers, x, y,
+                    this, MouseEvent.MOUSE_WHEEL, now, _modifiers, x, y,
                     0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, delta, delta));
             }
         }
@@ -313,36 +295,42 @@ public class DisplayCanvas extends JPanel
         // handle non-event mouse business (once the pointer is outside the window, we no longer
         // receive events)
         Point pt = getRelativeMouseLocation();
-        checkEntered(now, modifiers, pt.x, pt.y);
-        checkExited(now, modifiers, pt.x, pt.y);
-        checkMoved(now, modifiers, pt.x, pt.y);
-        checkButtonState(now, modifiers, pt.x, pt.y, 0, Mouse.isButtonDown(0));
-        checkButtonState(now, modifiers, pt.x, pt.y, 1, Mouse.isButtonDown(1));
-        checkButtonState(now, modifiers, pt.x, pt.y, 2, Mouse.isButtonDown(2));
+        checkEntered(now, pt.x, pt.y);
+        checkExited(now, pt.x, pt.y);
+        checkMoved(now, pt.x, pt.y);
+        checkButtonState(now, pt.x, pt.y, 0, Mouse.isButtonDown(0));
+        checkButtonState(now, pt.x, pt.y, 1, Mouse.isButtonDown(1));
+        checkButtonState(now, pt.x, pt.y, 2, Mouse.isButtonDown(2));
+
+        // clear the modifiers if we don't have focus
+        if (!windowIsFocused()) {
+            _modifiers = 0;
+            _pressedKeys.clear();
+        }
     }
 
     /**
      * Determines whether the mouse has entered the component, dispatching an event if so.
      */
-    protected void checkEntered (long now, int modifiers, int x, int y)
+    protected void checkEntered (long now, int x, int y)
     {
         if (!_entered && contains(x, y) && windowIsFocused()) {
             dispatchEvent(new MouseEvent(
-                this, MouseEvent.MOUSE_ENTERED, now, modifiers, x, y, 0, false));
+                this, MouseEvent.MOUSE_ENTERED, now, _modifiers, x, y, 0, false));
         }
     }
 
     /**
      * Determines whether the mouse has exited the component, dispatching an event if so.
      */
-    protected void checkExited (long now, int modifiers, int x, int y)
+    protected void checkExited (long now, int x, int y)
     {
-        if (_entered && !anyButtonsDown(modifiers) && !(contains(x, y) && windowIsFocused())) {
+        if (_entered && !anyButtonsDown() && !(contains(x, y) && windowIsFocused())) {
             for (int ii = 0; ii < _lbuttons.length; ii++) {
-                checkButtonState(now, modifiers, x, y, ii, false);
+                checkButtonState(now, x, y, ii, false);
             }
             dispatchEvent(new MouseEvent(
-                this, MouseEvent.MOUSE_EXITED, now, modifiers, x, y, 0, false));
+                this, MouseEvent.MOUSE_EXITED, now, _modifiers, x, y, 0, false));
         }
     }
 
@@ -358,26 +346,102 @@ public class DisplayCanvas extends JPanel
     /**
      * Determines whether the mouse has moved, dispatching an event if so.
      */
-    protected void checkMoved (long now, int modifiers, int x, int y)
+    protected void checkMoved (long now, int x, int y)
     {
         if (_entered && (_lx != x || _ly != y)) {
             dispatchEvent(new MouseEvent(
                 this,
-                anyButtonsDown(modifiers) ? MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED,
-                now, modifiers, x, y, 0, false));
+                anyButtonsDown() ? MouseEvent.MOUSE_DRAGGED : MouseEvent.MOUSE_MOVED,
+                now, _modifiers, x, y, 0, false));
         }
     }
 
     /**
      * Checks for button press/release.
      */
-    protected void checkButtonState (long now, int modifiers, int x, int y, int button, boolean pressed)
+    protected void checkButtonState (long now, int x, int y, int button, boolean pressed)
     {
         if (_entered && _lbuttons[button] != pressed) {
             dispatchEvent(new MouseEvent(
                 this,
                 pressed ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_RELEASED,
-                now, modifiers, x, y, 0, false, getAWTButton(button)));
+                now, _modifiers, x, y, 0, false, getAWTButton(button)));
+        }
+    }
+
+    /**
+     * Updates the modifier for the specified button.
+     */
+    protected void updateButtonModifier (int button, boolean pressed)
+    {
+        int mask;
+        switch (button) {
+            case 0:
+                mask = InputEvent.BUTTON1_DOWN_MASK;
+                break;
+
+            case 1:
+                mask = InputEvent.BUTTON3_DOWN_MASK;
+                break;
+
+            case 2:
+                mask = InputEvent.BUTTON2_DOWN_MASK;
+                break;
+
+            default:
+                return;
+        }
+        if (pressed) {
+            _modifiers |= mask;
+        } else {
+            _modifiers &= ~mask;
+        }
+    }
+
+    /**
+     * Updates the modifier for the specified key, if any.
+     */
+    protected void updateKeyModifier (int key, boolean pressed)
+    {
+        int mask, okey;
+        switch (key) {
+            case Keyboard.KEY_LSHIFT:
+            case Keyboard.KEY_RSHIFT:
+                mask = InputEvent.SHIFT_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LSHIFT) ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
+                break;
+
+            case Keyboard.KEY_LCONTROL:
+            case Keyboard.KEY_RCONTROL:
+                mask = InputEvent.CTRL_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LCONTROL) ?
+                    Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
+                break;
+
+            case Keyboard.KEY_LMENU:
+            case Keyboard.KEY_RMENU:
+                mask = InputEvent.ALT_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LMENU) ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
+                break;
+
+            case Keyboard.KEY_LMETA:
+            case Keyboard.KEY_RMETA:
+                mask = InputEvent.META_DOWN_MASK;
+                okey = (key == Keyboard.KEY_LMETA) ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
+                break;
+
+            default:
+                return;
+        }
+        if (pressed) {
+            _pressedKeys.add(key);
+        } else {
+            _pressedKeys.remove(key);
+        }
+        if (pressed || _pressedKeys.contains(okey)) {
+            _modifiers |= mask;
+        } else {
+            _modifiers &= ~mask;
         }
     }
 
@@ -404,6 +468,14 @@ public class DisplayCanvas extends JPanel
         Point pt = MouseInfo.getPointerInfo().getLocation();
         SwingUtilities.convertPointFromScreen(pt, this);
         return pt;
+    }
+
+    /**
+     * Determines whether the current set of modifiers contains any pressed buttons.
+     */
+    protected boolean anyButtonsDown ()
+    {
+        return (_modifiers & ANY_BUTTONS_DOWN_MASK) != 0;
     }
 
     /**
@@ -605,14 +677,6 @@ public class DisplayCanvas extends JPanel
         }
     }
 
-    /**
-     * Determines whether the current set of modifiers contains any pressed buttons.
-     */
-    protected static boolean anyButtonsDown (int modifiers)
-    {
-        return (modifiers & ANY_BUTTONS_DOWN_MASK) != 0;
-    }
-
     /** The contained canvas. */
     protected Canvas _canvas;
 
@@ -633,6 +697,12 @@ public class DisplayCanvas extends JPanel
 
     /** The number of wheel clicks recorded. */
     protected int _lclicks;
+
+    /** The current set of modifiers. */
+    protected int _modifiers;
+
+    /** The set of currently pressed keys. */
+    protected HashIntSet _pressedKeys = new HashIntSet();
 
     /** A mask for checking whether any mouse buttons are down. */
     protected static final int ANY_BUTTONS_DOWN_MASK =
