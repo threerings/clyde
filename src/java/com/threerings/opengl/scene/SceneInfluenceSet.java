@@ -25,13 +25,14 @@
 package com.threerings.opengl.scene;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.Tuple;
 
 import com.threerings.math.Box;
+import com.threerings.util.IdentityHashSet;
 
 import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.renderer.Color4f;
@@ -42,7 +43,7 @@ import com.threerings.opengl.renderer.state.LightState;
 /**
  * A set of scene influences.
  */
-public class SceneInfluenceSet extends HashSet<SceneInfluence>
+public class SceneInfluenceSet extends IdentityHashSet<SceneInfluence>
 {
     /**
      * Returns the fog state for this influence set.
@@ -138,7 +139,7 @@ public class SceneInfluenceSet extends HashSet<SceneInfluence>
      */
     public Map<String, Object> getDefinitions (Map<String, Object> definitions)
     {
-        Map<String, Object> defs = new HashMap<String, Object>(0);
+        Map<String, Object> defs = Maps.newHashMap();
         for (SceneInfluence influence : this) {
             Tuple<String, Object>[] idefs = influence.getDefinitions();
             if (idefs != null) {
