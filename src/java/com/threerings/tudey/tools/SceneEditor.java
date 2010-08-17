@@ -1091,7 +1091,7 @@ public class SceneEditor extends TudeyTool
     }
 
     @Override // documentation inherited
-    protected ToolUtil.EditablePrefs createEditablePrefs ()
+    protected CanvasToolPrefs createEditablePrefs ()
     {
         return new SceneEditorPrefs(_prefs);
     }

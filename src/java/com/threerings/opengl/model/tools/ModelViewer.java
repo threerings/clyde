@@ -60,7 +60,6 @@ import com.threerings.editor.Property;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.util.ChangeBlock;
-import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.ModelObserver;
@@ -262,7 +261,7 @@ public class ModelViewer extends ModelTool
     }
 
     @Override // documentation inherited
-    protected ToolUtil.EditablePrefs createEditablePrefs ()
+    protected CanvasToolPrefs createEditablePrefs ()
     {
         return new ModelToolPrefs(_prefs);
     }

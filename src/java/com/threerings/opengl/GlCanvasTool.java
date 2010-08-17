@@ -133,6 +133,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
     {
         super.didInit();
 
+        // notify the prefs
+        _eprefs.didInit();
+
         // create the various renderables
         _grid = createGrid();
         _grid.getColor().set(0.2f, 0.2f, 0.2f, 1f);
@@ -164,7 +167,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     /**
      * Creates and returns the editable preferences.
      */
-    protected abstract ToolUtil.EditablePrefs createEditablePrefs ();
+    protected abstract CanvasToolPrefs createEditablePrefs ();
 
     /**
      * Creates the grid object.
@@ -284,6 +287,15 @@ public abstract class GlCanvasTool extends GlCanvasApp
         }
 
         /**
+         * Called when the canvas has been initialized.
+         */
+        public void didInit ()
+        {
+            // initialize vertical synchronization
+            ((GlCanvas)_canvas).setVSyncEnabled(getVSyncEnabled());
+        }
+
+        /**
          * Sets whether or not automatic file refresh is enabled.
          */
         @Editable(weight=1)
@@ -341,6 +353,25 @@ public abstract class GlCanvasTool extends GlCanvasApp
         }
 
         /**
+         * Enables or disables vertical synchronization.
+         */
+        @Editable(weight=4)
+        public void setVSyncEnabled (boolean enabled)
+        {
+            ((GlCanvas)_canvas).setVSyncEnabled(enabled);
+            _prefs.putBoolean("vsync_enabled", enabled);
+        }
+
+        /**
+         * Checks whether vertical synchronization is enabled.
+         */
+        @Editable
+        public boolean getVSyncEnabled ()
+        {
+            return _prefs.getBoolean("vsync_enabled", false);
+        }
+
+        /**
          * Updates the schedule of the refresh interval.
          */
         protected void rescheduleRefreshInterval ()
@@ -361,7 +392,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
     protected MessageBundle _msgs;
 
     /** The editable preferences. */
-    protected ToolUtil.EditablePrefs _eprefs;
+    protected CanvasToolPrefs _eprefs;
 
     /** Toggles for the various renderables. */
     protected JCheckBoxMenuItem _showBounds, _showCompass, _showGrid, _showStats;

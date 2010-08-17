@@ -74,7 +74,6 @@ import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
-import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.effect.config.ParticleSystemConfig;
 import com.threerings.opengl.effect.config.ParticleSystemConfig.Layer;
@@ -337,7 +336,7 @@ public class ParticleEditor extends ModelTool
     }
 
     @Override // documentation inherited
-    protected ToolUtil.EditablePrefs createEditablePrefs ()
+    protected CanvasToolPrefs createEditablePrefs ()
     {
         return new ModelToolPrefs(_prefs);
     }

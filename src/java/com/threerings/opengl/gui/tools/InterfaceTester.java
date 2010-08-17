@@ -50,7 +50,6 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.util.ChangeBlock;
-import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.gui.Root;
@@ -182,7 +181,7 @@ public class InterfaceTester extends GlCanvasTool
     }
 
     @Override // documentation inherited
-    protected ToolUtil.EditablePrefs createEditablePrefs ()
+    protected CanvasToolPrefs createEditablePrefs ()
     {
         return new CanvasToolPrefs(_prefs);
     }
