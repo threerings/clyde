@@ -347,7 +347,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         }
 
         /**
-         * Returns the background colsetRenderSchemeor.
+         * Returns the background color.
          */
         @Editable
         public Color4f getBackgroundColor ()
