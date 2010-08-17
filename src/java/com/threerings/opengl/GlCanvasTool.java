@@ -284,6 +284,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
 
             // set the background color
             _compositor.getDefaultBackgroundColor().set(getPref("background_color", Color4f.GRAY));
+
+            // and the render scheme
+            _renderScheme = _prefs.get("render_scheme", null);
         }
 
         /**
@@ -344,7 +347,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         }
 
         /**
-         * Returns the background color.
+         * Returns the background colsetRenderSchemeor.
          */
         @Editable
         public Color4f getBackgroundColor ()
@@ -369,6 +372,29 @@ public abstract class GlCanvasTool extends GlCanvasApp
         public boolean getVSyncEnabled ()
         {
             return _prefs.getBoolean("vsync_enabled", false);
+        }
+
+        /**
+         * Sets the render scheme to use.
+         */
+        @Editable(editor="config", mode="render_scheme", nullable=true, weight=5)
+        public void setRenderScheme (String scheme)
+        {
+            GlCanvasTool.this.setRenderScheme(scheme);
+            if (scheme == null) {
+                _prefs.remove("render_scheme");
+            } else {
+                _prefs.put("render_scheme", scheme);
+            }
+        }
+
+        /**
+         * Returns the active render scheme.
+         */
+        @Editable
+        public String getRenderScheme ()
+        {
+            return _renderScheme;
         }
 
         /**
