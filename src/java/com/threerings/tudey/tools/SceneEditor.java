@@ -704,7 +704,6 @@ public class SceneEditor extends TudeyTool
      */
     public void incrementEditId ()
     {
-        _sceneIsSaved = false;
         _editId++;
     }
 
@@ -1378,7 +1377,7 @@ public class SceneEditor extends TudeyTool
             out.writeObject(_scene);
             out.close();
             setFile(file);
-            _sceneIsSaved = true;
+            _scene.setDirty(false);
 
         } catch (IOException e) {
             log.warning("Failed to save scene [file=" + file + "].", e);
@@ -1427,7 +1426,6 @@ public class SceneEditor extends TudeyTool
         clearSelection();
         _undomgr.discardAllEdits();
         updateUndoActions();
-        _sceneIsSaved = true;
     }
 
     /**
@@ -1690,7 +1688,7 @@ public class SceneEditor extends TudeyTool
      */
     protected boolean saveWarning (String message)
     {
-        if (_sceneIsSaved) {
+        if (!_scene.isDirty()) {
             return true;
         }
         int option = JOptionPane.showOptionDialog(_frame,
@@ -1872,9 +1870,6 @@ public class SceneEditor extends TudeyTool
 
     /** The scene id used for testing. */
     protected int _sceneId;
-
-    /** Has the scene been saved? */
-    protected boolean _sceneIsSaved;
 
     /** Whether or not markers are visible. */
     @Scoped

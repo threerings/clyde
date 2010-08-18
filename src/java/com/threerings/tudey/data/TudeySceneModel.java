@@ -1963,11 +1963,29 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
-     * Invalidates any cached data in the model, forcing it to be recreated.
+     * Invalidates any cached data in the model, forcing it to be recreated (and sets the dirty
+     * flag).
      */
     public void invalidate ()
     {
         _data = null;
+        _dirty = true;
+    }
+
+    /**
+     * Sets the value of the dirty flag.
+     */
+    public void setDirty (boolean dirty)
+    {
+        _dirty = dirty;
+    }
+
+    /**
+     * Returns the value of the dirty flag.
+     */
+    public boolean isDirty ()
+    {
+        return _dirty;
     }
 
     /**
@@ -2704,6 +2722,10 @@ public class TudeySceneModel extends SceneModel
     /** The cached exported representation of the scene model. */
     @DeepOmit
     protected transient SoftReference<byte[]> _data;
+
+    /** Flags the scene model as having changed since the dirty bit was last cleared. */
+    @DeepOmit
+    protected transient boolean _dirty;
 
     /** Region object to reuse. */
     @DeepOmit
