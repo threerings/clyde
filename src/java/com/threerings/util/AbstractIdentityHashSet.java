@@ -25,20 +25,25 @@
 package com.threerings.util;
 
 import java.util.AbstractSet;
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
+import com.google.common.collect.Sets;
+
 /**
- * Wraps up an {@link IdentityHashMap} to look like a set.  IdentityHashMap has the desirable
- * property of not generating extra objects when elements are added/removed, because it stores
- * the elements directly in its bucket array (resolving collisions using linear probing).
+ * Wraps up an {@link IdentityHashMap} to look like a set for the purpose of subclassing.
+ * IdentityHashMap has the desirable property of not generating extra objects when elements
+ * are added/removed, because it stores the elements directly in its bucket array (resolving
+ * collisions using linear probing).  Note that if you don't need to subclass the set,
+ * then you can just pass an IdentityHashMap to {@link Sets#newSetFromMap}.
  */
-public class IdentityHashSet<T> extends AbstractSet<T>
+public abstract class AbstractIdentityHashSet<T> extends AbstractSet<T>
 {
     /**
      * Creates a new set with the default expected maximum size.
      */
-    public IdentityHashSet ()
+    public AbstractIdentityHashSet ()
     {
         _map = new IdentityHashMap<T, Boolean>();
     }
@@ -46,7 +51,7 @@ public class IdentityHashSet<T> extends AbstractSet<T>
     /**
      * Creates a new set with the specified expected maximum size.
      */
-    public IdentityHashSet (int expectedMaxSize)
+    public AbstractIdentityHashSet (int expectedMaxSize)
     {
         _map = new IdentityHashMap<T, Boolean>(expectedMaxSize);
     }

@@ -32,7 +32,7 @@ import com.google.common.collect.Maps;
 import com.samskivert.util.Tuple;
 
 import com.threerings.math.Box;
-import com.threerings.util.IdentityHashSet;
+import com.threerings.util.AbstractIdentityHashSet;
 
 import com.threerings.opengl.material.Projection;
 import com.threerings.opengl.renderer.Color4f;
@@ -43,7 +43,7 @@ import com.threerings.opengl.renderer.state.LightState;
 /**
  * A set of scene influences.
  */
-public class SceneInfluenceSet extends IdentityHashSet<SceneInfluence>
+public class SceneInfluenceSet extends AbstractIdentityHashSet<SceneInfluence>
 {
     /**
      * Returns the fog state for this influence set.

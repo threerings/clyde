@@ -25,14 +25,14 @@
 package com.threerings.opengl.scene;
 
 import com.threerings.math.Box;
-import com.threerings.util.IdentityHashSet;
+import com.threerings.util.AbstractIdentityHashSet;
 
 import com.threerings.opengl.renderer.Color4f;
 
 /**
  * A set of viewer effects.
  */
-public class ViewerEffectSet extends IdentityHashSet<ViewerEffect>
+public class ViewerEffectSet extends AbstractIdentityHashSet<ViewerEffect>
 {
     /**
      * Returns the background color for this effect set.
