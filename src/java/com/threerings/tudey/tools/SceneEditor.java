@@ -1079,8 +1079,9 @@ public class SceneEditor extends TudeyTool
         _canvas.setPreferredSize(new Dimension(1, 1));
         _pane.setResizeWeight(1.0);
         _pane.setOneTouchExpandable(true);
-        bindAction(ccont, KeyEvent.VK_UP, 0, "raise_grid");
-        bindAction(ccont, KeyEvent.VK_DOWN, 0, "lower_grid");
+        JComponent bcomp = (_canvas instanceof JComponent) ? ((JComponent)_canvas) : ccont;
+        bindAction(bcomp, KeyEvent.VK_UP, 0, "raise_grid");
+        bindAction(bcomp, KeyEvent.VK_DOWN, 0, "lower_grid");
         return _pane;
     }
 
