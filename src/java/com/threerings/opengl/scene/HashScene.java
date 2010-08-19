@@ -69,6 +69,10 @@ public class HashScene extends Scene
         super(ctx, sources);
         _granularity = granularity;
         _levels = levels;
+        _lresults = new Vector3f[levels];
+        for (int ii = 0; ii < levels; ii++) {
+            _lresults[ii] = new Vector3f();
+        }
     }
 
     // documentation inherited from interface Compositable
@@ -139,7 +143,7 @@ public class HashScene extends Scene
 
         // step through each cell that the ray intersects, returning the first hit or bailing
         // out when we exceed the bounds
-        Vector3f result = new Vector3f();
+        Vector3f result = _lresults[0];
         do {
             _coord.set(
                 lx - (xdir < 0 ? 1 : 0),
@@ -678,7 +682,7 @@ public class HashScene extends Scene
         {
             T closest = super.getIntersection(ray, location, filter);
             Vector3f origin = ray.getOrigin();
-            Vector3f result = new Vector3f();
+            Vector3f result = _lresults[_levels];
             for (Node<T> child : _children) {
                 if (child == null || !child.getBounds().intersects(ray)) {
                     continue;
@@ -888,4 +892,7 @@ public class HashScene extends Scene
 
     /** Reusable location vector. */
     protected Vector3f _pt = new Vector3f();
+
+    /** Per-level result vectors. */
+    protected Vector3f[] _lresults;
 }
