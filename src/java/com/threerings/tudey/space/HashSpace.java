@@ -27,9 +27,11 @@ package com.threerings.tudey.space;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.threerings.math.FloatMath;
@@ -309,7 +311,7 @@ public class HashSpace extends Space
      */
     protected <T extends SpaceObject> Node<T> createRoot (int x, int y)
     {
-        Node<T> root = (_levels > 1) ? new InternalNode<T>(_levels - 1) : new LeafNode<T>();
+        Node<T> root = getFromNodePool(_levels);
         Rect bounds = root.getBounds();
         bounds.getMinimumExtent().set(x * _granularity, y * _granularity);
         bounds.getMaximumExtent().set((x + 1) * _granularity, (y + 1) * _granularity);
@@ -349,6 +351,48 @@ public class HashSpace extends Space
        _maxCoord.set(
             Math.max(coord.x, _maxCoord.x),
             Math.max(coord.y, _maxCoord.y));
+    }
+
+    /**
+     * Returns an internal or leaf node from the pool as appropriate for the number of remaining
+     * levels.
+     */
+    protected <T extends SpaceObject> Node<T> getFromNodePool (int levels)
+    {
+        if (levels > 1) {
+            return getFromInternalNodePool(levels - 1);
+        } else {
+            return getFromLeafNodePool();
+        }
+    }
+
+    /**
+     * Obtains an internal node through the pool.
+     */
+    protected <T extends SpaceObject> InternalNode<T> getFromInternalNodePool (int levels)
+    {
+        int size = _internalNodePool.size();
+        if (size == 0) {
+            return new InternalNode<T>(levels);
+        }
+        @SuppressWarnings("unchecked") InternalNode<T> node =
+            (InternalNode<T>)_internalNodePool.remove(size - 1);
+        node.reinit(levels);
+        return node;
+    }
+
+    /**
+     * Obtains a leaf node through the pool.
+     */
+    protected <T extends SpaceObject> LeafNode<T> getFromLeafNodePool ()
+    {
+        int size = _leafNodePool.size();
+        if (size == 0) {
+            return new LeafNode<T>();
+        }
+        @SuppressWarnings("unchecked") LeafNode<T> node =
+            (LeafNode<T>)_leafNodePool.remove(size - 1);
+        return node;
     }
 
     /**
@@ -431,6 +475,11 @@ public class HashSpace extends Space
         }
 
         /**
+         * Returns this node to the pool.
+         */
+        public abstract void returnToPool ();
+
+        /**
          * Gets all objects in this node.
          */
         protected void getAll (Collection<T> results)
@@ -487,6 +536,14 @@ public class HashSpace extends Space
             _levels = levels;
         }
 
+        /**
+         * Reinitializes the node with a new level count.
+         */
+        public void reinit (int levels)
+        {
+            _levels = levels;
+        }
+
         @Override // documentation inherited
         public boolean isEmpty ()
         {
@@ -515,8 +572,7 @@ public class HashSpace extends Space
                 if (child == null) {
                     getChildBounds(ii, _rect);
                     if (_rect.intersects(bounds)) {
-                        _children[ii] = child = (_levels > 1) ?
-                            new InternalNode<T>(_levels - 1) : new LeafNode<T>();
+                        _children[ii] = child = getFromNodePool(_levels);
                         child.getBounds().set(_rect);
                         child.add(object, level);
                     }
@@ -540,6 +596,7 @@ public class HashSpace extends Space
                 if (child != null && child.getBounds().intersects(bounds)) {
                     child.remove(object, level);
                     if (child.isEmpty()) {
+                        child.returnToPool();
                         _children[ii] = null;
                     }
                 }
@@ -564,6 +621,12 @@ public class HashSpace extends Space
                 }
             }
             return closest;
+        }
+
+        @Override // documentation inherited
+        public void returnToPool ()
+        {
+            _internalNodePool.add(this);
         }
 
         @Override // documentation inherited
@@ -636,6 +699,11 @@ public class HashSpace extends Space
      */
     protected class LeafNode<T extends SpaceObject> extends Node<T>
     {
+        @Override // documentation inherited
+        public void returnToPool ()
+        {
+            _leafNodePool.add(this);
+        }
     }
 
     /** The size of the root nodes. */
@@ -670,4 +738,10 @@ public class HashSpace extends Space
 
     /** Reusable location vector. */
     protected Vector2f _pt = new Vector2f();
+
+    /** A pool of internal nodes to reuse. */
+    protected List<InternalNode> _internalNodePool = Lists.newArrayList();
+
+    /** A pool of leaf nodes to reuse. */
+    protected List<LeafNode> _leafNodePool = Lists.newArrayList();
 }
