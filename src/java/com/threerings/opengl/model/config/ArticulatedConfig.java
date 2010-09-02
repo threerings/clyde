@@ -320,86 +320,9 @@ public class ArticulatedConfig extends ModelConfig.Imported
         @Override // documentation inherited
         public Updater createUpdater (GlContext ctx, Articulated.Node node)
         {
-            final Transform3D pview = node.getParentViewTransform();
-            final Transform3D local = node.getLocalTransform();
-            if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
-                    rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
-                return new ViewTransformUpdater() {
-                    public void update () {
-                        ensureRigidOrUniform(local);
-                        pview.extractRotation(local.getRotation()).invertLocal();
-                    }
-                };
-            }
-            if (rotationX == BillboardRotationX.NONE &&
-                    rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
-                final Quaternion brot = ScopeUtil.resolve(
-                    node, "billboardRotation", Quaternion.IDENTITY);
-                return new ViewTransformUpdater() {
-                    public void update () {
-                        ensureRigidOrUniform(local);
-                        pview.extractRotation(local.getRotation()).invertLocal().multLocal(brot);
-                    }
-                };
-            }
-            if (rotationX == BillboardRotationX.FACE_VIEWER &&
-                    rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
-                // pivot about the x axis
-                return new ViewTransformUpdater() {
-                    public void update () {
-                        ensureRigidOrUniform(local);
-                        pview.transformPoint(local.getTranslation(), _trans);
-                        _rot.fromAngleAxis(FloatMath.atan2(_trans.y, -_trans.z), Vector3f.UNIT_X);
-                        pview.extractRotation(local.getRotation()).invertLocal().multLocal(_rot);
-                    }
-                    protected Vector3f _trans = new Vector3f();
-                    protected Quaternion _rot = new Quaternion();
-                };
-            }
-            if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
-                    rotationY == BillboardRotationY.FACE_VIEWER) {
-                // pivot about the y axis
-                return new ViewTransformUpdater() {
-                    public void update () {
-                        ensureRigidOrUniform(local);
-                        pview.transformPoint(local.getTranslation(), _trans);
-                        _rot.fromAngleAxis(FloatMath.atan2(-_trans.x, -_trans.z), Vector3f.UNIT_Y);
-                        pview.extractRotation(local.getRotation()).invertLocal().multLocal(_rot);
-                    }
-                    protected Vector3f _trans = new Vector3f();
-                    protected Quaternion _rot = new Quaternion();
-                };
-            }
-            if (rotationX == BillboardRotationX.FACE_VIEWER &&
-                    rotationY == BillboardRotationY.FACE_VIEWER) {
-                // pivot about the x and y axes
-                return new ViewTransformUpdater() {
-                    public void update () {
-                        ensureRigidOrUniform(local);
-                        pview.transformPoint(local.getTranslation(), _trans);
-                        _rot.fromAnglesXY(
-                            FloatMath.atan2(_trans.y, -_trans.z),
-                            FloatMath.atan2(-_trans.x, -_trans.z));
-                        pview.extractRotation(local.getRotation()).invertLocal().multLocal(_rot);
-                    }
-                    protected Vector3f _trans = new Vector3f();
-                    protected Quaternion _rot = new Quaternion();
-                };
-            }
-            // final possibility: no rotation about x, face viewer about y
-            final Quaternion brot = ScopeUtil.resolve(
-                node, "billboardRotation", Quaternion.IDENTITY);
-            return new ViewTransformUpdater() {
-                public void update () {
-                    ensureRigidOrUniform(local);
-                    pview.transformPoint(local.getTranslation(), _trans);
-                    _rot.fromAngleAxis(FloatMath.atan2(-_trans.x, -_trans.z), Vector3f.UNIT_Y);
-                    brot.mult(_rot, _rot);
-                    pview.extractRotation(local.getRotation()).invertLocal().multLocal(_rot);
-                }
-                protected Vector3f _trans = new Vector3f();
-                protected Quaternion _rot = new Quaternion();
-            };
+            return createBillboardUpdater(
+                node, node.getParentViewTransform(),
+                node.getLocalTransform(), rotationX, rotationY);
         }
     }
 
@@ -492,6 +415,99 @@ public class ArticulatedConfig extends ModelConfig.Imported
     /** The skin meshes. */
     @Shallow
     public MeshSet skin;
+
+    /**
+     * Creates an updater to apply a billboard transform.
+     */
+    public static Updater createBillboardUpdater (
+        Scope scope, final Transform3D parentViewTransform, final Transform3D localTransform,
+        BillboardRotationX rotationX, BillboardRotationY rotationY)
+    {
+        if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
+                rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
+            return new ViewTransformUpdater() {
+                public void update () {
+                    ensureRigidOrUniform(localTransform);
+                    parentViewTransform.extractRotation(
+                        localTransform.getRotation()).invertLocal();
+                }
+            };
+        }
+        if (rotationX == BillboardRotationX.NONE &&
+                rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
+            final Quaternion brot = ScopeUtil.resolve(
+                scope, "billboardRotation", Quaternion.IDENTITY);
+            return new ViewTransformUpdater() {
+                public void update () {
+                    ensureRigidOrUniform(localTransform);
+                    parentViewTransform.extractRotation(
+                        localTransform.getRotation()).invertLocal().multLocal(brot);
+                }
+            };
+        }
+        if (rotationX == BillboardRotationX.FACE_VIEWER &&
+                rotationY == BillboardRotationY.ALIGN_TO_VIEW) {
+            // pivot about the x axis
+            return new ViewTransformUpdater() {
+                public void update () {
+                    ensureRigidOrUniform(localTransform);
+                    parentViewTransform.transformPoint(localTransform.getTranslation(), _trans);
+                    _rot.fromAngleAxis(FloatMath.atan2(_trans.y, -_trans.z), Vector3f.UNIT_X);
+                    parentViewTransform.extractRotation(
+                        localTransform.getRotation()).invertLocal().multLocal(_rot);
+                }
+                protected Vector3f _trans = new Vector3f();
+                protected Quaternion _rot = new Quaternion();
+            };
+        }
+        if (rotationX == BillboardRotationX.ALIGN_TO_VIEW &&
+                rotationY == BillboardRotationY.FACE_VIEWER) {
+            // pivot about the y axis
+            return new ViewTransformUpdater() {
+                public void update () {
+                    ensureRigidOrUniform(localTransform);
+                    parentViewTransform.transformPoint(localTransform.getTranslation(), _trans);
+                    _rot.fromAngleAxis(FloatMath.atan2(-_trans.x, -_trans.z), Vector3f.UNIT_Y);
+                    parentViewTransform.extractRotation(
+                        localTransform.getRotation()).invertLocal().multLocal(_rot);
+                }
+                protected Vector3f _trans = new Vector3f();
+                protected Quaternion _rot = new Quaternion();
+            };
+        }
+        if (rotationX == BillboardRotationX.FACE_VIEWER &&
+                rotationY == BillboardRotationY.FACE_VIEWER) {
+            // pivot about the x and y axes
+            return new ViewTransformUpdater() {
+                public void update () {
+                    ensureRigidOrUniform(localTransform);
+                    parentViewTransform.transformPoint(localTransform.getTranslation(), _trans);
+                    _rot.fromAnglesXY(
+                        FloatMath.atan2(_trans.y, -_trans.z),
+                        FloatMath.atan2(-_trans.x, -_trans.z));
+                    parentViewTransform.extractRotation(
+                        localTransform.getRotation()).invertLocal().multLocal(_rot);
+                }
+                protected Vector3f _trans = new Vector3f();
+                protected Quaternion _rot = new Quaternion();
+            };
+        }
+        // final possibility: no rotation about x, face viewer about y
+        final Quaternion brot = ScopeUtil.resolve(
+            scope, "billboardRotation", Quaternion.IDENTITY);
+        return new ViewTransformUpdater() {
+            public void update () {
+                ensureRigidOrUniform(localTransform);
+                parentViewTransform.transformPoint(localTransform.getTranslation(), _trans);
+                _rot.fromAngleAxis(FloatMath.atan2(-_trans.x, -_trans.z), Vector3f.UNIT_Y);
+                brot.mult(_rot, _rot);
+                parentViewTransform.extractRotation(
+                    localTransform.getRotation()).invertLocal().multLocal(_rot);
+            }
+            protected Vector3f _trans = new Vector3f();
+            protected Quaternion _rot = new Quaternion();
+        };
+    }
 
     /**
      * Returns the names of the model's nodes in sorted order.

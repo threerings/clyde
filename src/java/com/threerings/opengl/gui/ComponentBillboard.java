@@ -28,6 +28,7 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
@@ -39,6 +40,7 @@ import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.config.ComponentBillboardConfig;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.state.AlphaState;
@@ -95,11 +97,15 @@ public class ComponentBillboard extends Model.Implementation
     // documentation inherited from interface Enqueueable
     public void enqueue ()
     {
+        // update the rotation
+        if (_updater != null) {
+            _updater.update();
+        }
+
         // update the view transform
         TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
         Transform3D modelview = tstate.getModelview();
         _parentViewTransform.compose(_localTransform, modelview);
-        modelview.getRotation().set(Quaternion.IDENTITY);
         modelview.setScale(modelview.getScale() * _config.scale);
         tstate.setDirty(true);
 
@@ -179,6 +185,14 @@ public class ComponentBillboard extends Model.Implementation
         states[RenderState.ALPHA_STATE] = _config.alphaState.getState();
         states[RenderState.DEPTH_STATE] = _config.depthState.getState();
 
+        // (re)create the updater
+        if (_config.rotationEnabled) {
+            _updater = ArticulatedConfig.createBillboardUpdater(
+                this, _parentViewTransform, _localTransform, _config.rotationX, _config.rotationY);
+        } else {
+            _updater = null;
+        }
+
         // update the bounds
         updateBounds();
     }
@@ -197,6 +211,9 @@ public class ComponentBillboard extends Model.Implementation
 
     /** The root component. */
     protected Component _root;
+
+    /** The transform updater. */
+    protected Updater _updater;
 
     /** The parent world transform. */
     @Bound("worldTransform")

@@ -31,6 +31,8 @@ import com.threerings.expr.Scope;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.ComponentBillboard;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.ArticulatedConfig.BillboardRotationX;
+import com.threerings.opengl.model.config.ArticulatedConfig.BillboardRotationY;
 import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.config.AlphaStateConfig;
@@ -53,6 +55,18 @@ public class ComponentBillboardConfig extends ModelConfig.Implementation
     /** The root component. */
     @Editable
     public ComponentConfig root = new ComponentConfig.Spacer();
+
+    /** Whether or not rotation is enabled. */
+    @Editable
+    public boolean rotationEnabled = true;
+
+    /** The x rotation mode. */
+    @Editable(hgroup="r")
+    public BillboardRotationX rotationX = BillboardRotationX.ALIGN_TO_VIEW;
+
+    /** The y rotation mode. */
+    @Editable(hgroup="r")
+    public BillboardRotationY rotationY = BillboardRotationY.ALIGN_TO_VIEW;
 
     /** The queue into which we render. */
     @Editable(editor="config", mode="render_queue", nullable=true, hgroup="q")
