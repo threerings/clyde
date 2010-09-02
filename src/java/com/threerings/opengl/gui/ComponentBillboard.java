@@ -98,15 +98,17 @@ public class ComponentBillboard extends Model.Implementation
     public void enqueue ()
     {
         // update the rotation
+        _parentViewTransform.compose(_localTransform, _billboardViewTransform);
         if (_updater != null) {
             _updater.update();
+        } else {
+            _billboardLocalTransform.getRotation().set(Quaternion.IDENTITY);
         }
 
         // update the view transform
         TransformState tstate = (TransformState)_batch.getStates()[RenderState.TRANSFORM_STATE];
         Transform3D modelview = tstate.getModelview();
-        _parentViewTransform.compose(_localTransform, modelview);
-        modelview.setScale(modelview.getScale() * _config.scale);
+        _billboardViewTransform.compose(_billboardLocalTransform, modelview);
         tstate.setDirty(true);
 
         // update the depth
@@ -185,10 +187,14 @@ public class ComponentBillboard extends Model.Implementation
         states[RenderState.ALPHA_STATE] = _config.alphaState.getState();
         states[RenderState.DEPTH_STATE] = _config.depthState.getState();
 
+        // initialize the local transform
+        _billboardLocalTransform.set(Vector3f.ZERO, Quaternion.IDENTITY, _config.scale);
+
         // (re)create the updater
         if (_config.rotationEnabled) {
             _updater = ArticulatedConfig.createBillboardUpdater(
-                this, _parentViewTransform, _localTransform, _config.rotationX, _config.rotationY);
+                this, _billboardViewTransform, _billboardLocalTransform,
+                _config.rotationX, _config.rotationY);
         } else {
             _updater = null;
         }
@@ -226,6 +232,12 @@ public class ComponentBillboard extends Model.Implementation
     /** The local transform. */
     @Bound
     protected Transform3D _localTransform;
+
+    /** The billboard view transform. */
+    protected Transform3D _billboardViewTransform = new Transform3D();
+
+    /** The billboard local transform. */
+    protected Transform3D _billboardLocalTransform = new Transform3D();
 
     /** The world transform. */
     protected Transform3D _worldTransform = new Transform3D();
