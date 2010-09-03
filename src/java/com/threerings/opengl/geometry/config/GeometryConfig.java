@@ -974,8 +974,9 @@ public abstract class GeometryConfig extends DeepObject
         ClientArrayConfig texCoordArray = new ClientArrayConfig(2, 32, 0, floatArray);
         ClientArrayConfig normalArray = new ClientArrayConfig(3, 32, 8, floatArray);
         ClientArrayConfig vertexArray = new ClientArrayConfig(3, 32, 20, floatArray);
+        float hx = sizeX * 0.5f, hy = sizeY * 0.5f;
         return new IndexedStored(
-            new Box(new Vector3f(-1f, -1f, 0f), new Vector3f(+1f, +1f, 0f)), Mode.TRIANGLES,
+            new Box(new Vector3f(-hx, -hy, 0f), new Vector3f(+hx, +hy, 0f)), Mode.TRIANGLES,
             new AttributeArrayConfig[0], new ClientArrayConfig[] { texCoordArray }, null,
             normalArray, vertexArray, 0, indices.capacity() - 1, indices);
     }

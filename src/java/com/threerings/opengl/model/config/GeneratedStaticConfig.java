@@ -103,7 +103,7 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
                 sizeX, sizeY, divisionsX, divisionsY);
             GeometryMaterial[] gmats = new GeometryMaterial[] {
                 new GeometryMaterial(geometry, material) };
-            return new Resolved(bounds, null, gmats, influenceFlags);
+            return new Resolved(bounds, collision, gmats, influenceFlags);
         }
     }
 
