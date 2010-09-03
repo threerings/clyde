@@ -851,14 +851,15 @@ public class SceneEditor extends TudeyTool
     {
         if (mouseCameraEnabled() && event.getClickCount() == 2) {
             editMouseEntry();
-        } else if (event.isAltDown()) {
-            useMouseEntry();
         }
     }
 
     // documentation inherited from interface MouseListener
     public void mousePressed (MouseEvent event)
     {
+        if (event.isAltDown()) {
+            useMouseEntry();
+        }
         switch (event.getButton()) {
             case MouseEvent.BUTTON1:
                 _firstButtonDown = true;

@@ -40,7 +40,7 @@ public class Eyedropper extends EditorTool
     }
 
     @Override // documentation inherited
-    public void mouseClicked (MouseEvent event)
+    public void mousePressed (MouseEvent event)
     {
         if (event.getButton() == MouseEvent.BUTTON1 && !_editor.isSpecialDown()) {
             _editor.useMouseEntry();
