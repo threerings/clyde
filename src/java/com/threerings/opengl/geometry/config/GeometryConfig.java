@@ -930,43 +930,54 @@ public abstract class GeometryConfig extends DeepObject
         ArrayKey key = new ArrayKey("quad", divisionsX, divisionsY);
         GeometryConfig quad = _generated.get(key);
         if (quad == null) {
-            int vx = divisionsX + 1, vy = divisionsY + 1;
-            FloatBuffer floatArray = BufferUtils.createFloatBuffer(vx * vy * 8);
-            for (int ii = 0; ii <= divisionsY; ii++) {
-                float t = ii / (float)divisionsY;
-                float y = -1f + 2f * t;
-                for (int jj = 0; jj <= divisionsX; jj++) {
-                    float s = jj / (float)divisionsX;
-                    float x = -1f + 2f * s;
-                    floatArray.put(s).put(t);
-                    floatArray.put(0f).put(0f).put(1f);
-                    floatArray.put(x).put(y).put(0f);
-                }
-            }
-            floatArray.rewind();
-
-            ShortBuffer indices = BufferUtils.createShortBuffer(divisionsX * divisionsY * 2 * 3);
-            for (int ii = 0; ii < divisionsY; ii++) {
-                for (int jj = 0; jj < divisionsX; jj++) {
-                    short ll = (short)(ii*vx + jj);
-                    short ul = (short)(ll + vx);
-                    short ur = (short)(ul + 1);
-                    short lr = (short)(ll + 1);
-                    indices.put(ul).put(ll).put(ur);
-                    indices.put(ur).put(ll).put(lr);
-                }
-            }
-            indices.rewind();
-
-            ClientArrayConfig texCoordArray = new ClientArrayConfig(2, 32, 0, floatArray);
-            ClientArrayConfig normalArray = new ClientArrayConfig(3, 32, 8, floatArray);
-            ClientArrayConfig vertexArray = new ClientArrayConfig(3, 32, 20, floatArray);
-            _generated.put(key, quad = new IndexedStored(
-                new Box(new Vector3f(-1f, -1f, 0f), new Vector3f(+1f, +1f, 0f)), Mode.TRIANGLES,
-                new AttributeArrayConfig[0], new ClientArrayConfig[] { texCoordArray }, null,
-                normalArray, vertexArray, 0, indices.capacity() - 1, indices));
+            _generated.put(key, quad = createQuad(2f, 2f, divisionsX, divisionsY));
         }
         return quad;
+    }
+
+    /**
+     * Creates a new {@link GeometryConfig} instance representing a quad extending from
+     * (-sizeX/2, -sizeY/2, 0) to (+sizeX/2, +sizeY/2, 0) with the specified number of
+     * divisions in x and y.
+     */
+    public static GeometryConfig createQuad (
+        float sizeX, float sizeY, int divisionsX, int divisionsY)
+    {
+        int vx = divisionsX + 1, vy = divisionsY + 1;
+        FloatBuffer floatArray = BufferUtils.createFloatBuffer(vx * vy * 8);
+        for (int ii = 0; ii <= divisionsY; ii++) {
+            float t = ii / (float)divisionsY;
+            float y = sizeY * (t - 0.5f);
+            for (int jj = 0; jj <= divisionsX; jj++) {
+                float s = jj / (float)divisionsX;
+                float x = sizeX * (s - 0.5f);
+                floatArray.put(s).put(t);
+                floatArray.put(0f).put(0f).put(1f);
+                floatArray.put(x).put(y).put(0f);
+            }
+        }
+        floatArray.rewind();
+
+        ShortBuffer indices = BufferUtils.createShortBuffer(divisionsX * divisionsY * 2 * 3);
+        for (int ii = 0; ii < divisionsY; ii++) {
+            for (int jj = 0; jj < divisionsX; jj++) {
+                short ll = (short)(ii*vx + jj);
+                short ul = (short)(ll + vx);
+                short ur = (short)(ul + 1);
+                short lr = (short)(ll + 1);
+                indices.put(ul).put(ll).put(ur);
+                indices.put(ur).put(ll).put(lr);
+            }
+        }
+        indices.rewind();
+
+        ClientArrayConfig texCoordArray = new ClientArrayConfig(2, 32, 0, floatArray);
+        ClientArrayConfig normalArray = new ClientArrayConfig(3, 32, 8, floatArray);
+        ClientArrayConfig vertexArray = new ClientArrayConfig(3, 32, 20, floatArray);
+        return new IndexedStored(
+            new Box(new Vector3f(-1f, -1f, 0f), new Vector3f(+1f, +1f, 0f)), Mode.TRIANGLES,
+            new AttributeArrayConfig[0], new ClientArrayConfig[] { texCoordArray }, null,
+            normalArray, vertexArray, 0, indices.capacity() - 1, indices);
     }
 
     /**

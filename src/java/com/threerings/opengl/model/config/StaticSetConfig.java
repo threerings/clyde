@@ -71,12 +71,12 @@ public class StaticSetConfig extends ModelConfig.Imported
     public Model.Implementation getModelImplementation (
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
-        MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
-        if (mset == null) {
-            return null;
-        }
         Resolved resolved = (_resolved == null) ? null : _resolved.get();
         if (resolved == null) {
+            MeshSet mset = (model == null || meshes == null) ? null : meshes.get(model);
+            if (mset == null) {
+                return null;
+            }
             _resolved = new SoftReference<Resolved>(resolved = new Resolved(
                 mset.bounds, mset.collision,
                 getGeometryMaterials(ctx, mset.visible, materialMappings),

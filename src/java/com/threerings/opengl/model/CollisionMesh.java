@@ -48,7 +48,7 @@ public class CollisionMesh
      * Creates the mesh from an array of vertices, where each set of three vertices represents a
      * triangle.
      */
-    public CollisionMesh (Vector3f[] vertices)
+    public CollisionMesh (Vector3f... vertices)
     {
         Triangle[] triangles = new Triangle[vertices.length / 3];
         for (int ii = 0; ii < triangles.length; ii++) {
