@@ -29,6 +29,8 @@ import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Window;
@@ -59,7 +61,7 @@ import static com.threerings.opengl.Log.*;
  * A canvas that uses {@link Display}.
  */
 public class DisplayCanvas extends JPanel
-    implements GlCanvas
+    implements GlCanvas, KeyEventDispatcher
 {
     /**
      * Creates a new canvas.
@@ -118,12 +120,12 @@ public class DisplayCanvas extends JPanel
             @Override public void mousePressed (MouseEvent event) {
                 requestFocusInWindow();
                 int button = getLWJGLButton(event.getButton());
-                _lbuttons[button] = true;
+                _buttons[button].wasPressed(event);
                 updateButtonModifier(button, true);
             }
             @Override public void mouseReleased (MouseEvent event) {
                 int button = getLWJGLButton(event.getButton());
-                _lbuttons[button] = false;
+                _buttons[button].wasReleased(event);
                 updateButtonModifier(button, false);
             }
             @Override public void mouseMoved (MouseEvent event) {
@@ -172,6 +174,67 @@ public class DisplayCanvas extends JPanel
         Keyboard.destroy();
         Mouse.destroy();
         Display.destroy();
+    }
+
+    // documentation inherited from interface KeyEventDispatcher
+    public boolean dispatchKeyEvent (KeyEvent event)
+    {
+        // update the key modifiers
+        boolean pressed;
+        int id = event.getID();
+        if (id == KeyEvent.KEY_PRESSED) {
+            pressed = true;
+        } else if (id == KeyEvent.KEY_RELEASED) {
+            pressed = false;
+        } else {
+            return false;
+        }
+        int mask, okey;
+        boolean left = (event.getKeyLocation() == KeyEvent.KEY_LOCATION_LEFT);
+        switch (event.getKeyCode()) {
+            case KeyEvent.VK_SHIFT:
+                mask = InputEvent.SHIFT_DOWN_MASK;
+                okey = left ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
+                break;
+
+            case KeyEvent.VK_CONTROL:
+                mask = InputEvent.CTRL_DOWN_MASK;
+                okey = left ? Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
+                break;
+
+            case KeyEvent.VK_ALT:
+                mask = InputEvent.ALT_DOWN_MASK;
+                okey = left ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
+                break;
+
+            case KeyEvent.VK_META:
+                mask = InputEvent.META_DOWN_MASK;
+                okey = left ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
+                break;
+
+            default:
+                return false;
+        }
+        if (pressed || _pressedKeys.contains(okey)) {
+            _modifiers |= mask;
+        } else {
+            _modifiers &= ~mask;
+        }
+        return false;
+    }
+
+    @Override // documentation inherited
+    public void addNotify ()
+    {
+        super.addNotify();
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this);
+    }
+
+    @Override // documentation inherited
+    public void removeNotify ()
+    {
+        super.removeNotify();
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventDispatcher(this);
     }
 
     @Override // documentation inherited
@@ -278,7 +341,6 @@ public class DisplayCanvas extends JPanel
             } else {
                 _pressedKeys.remove(key);
             }
-            updateKeyModifier(key, pressed);
         }
 
         // process mouse events
@@ -340,7 +402,7 @@ public class DisplayCanvas extends JPanel
     protected void checkExited (long now, int x, int y)
     {
         if (_entered && !anyButtonsDown() && !(contains(x, y) && windowIsFocused())) {
-            for (int ii = 0; ii < _lbuttons.length; ii++) {
+            for (int ii = 0; ii < _buttons.length; ii++) {
                 checkButtonState(now, x, y, ii, false);
             }
             dispatchEvent(new MouseEvent(
@@ -375,7 +437,7 @@ public class DisplayCanvas extends JPanel
      */
     protected void checkButtonState (long now, int x, int y, int button, boolean pressed)
     {
-        if (_entered && _lbuttons[button] != pressed) {
+        if (_entered && _buttons[button].isPressed() != pressed) {
             dispatchEvent(new MouseEvent(
                 this,
                 pressed ? MouseEvent.MOUSE_PRESSED : MouseEvent.MOUSE_RELEASED,
@@ -406,48 +468,6 @@ public class DisplayCanvas extends JPanel
                 return;
         }
         if (pressed) {
-            _modifiers |= mask;
-        } else {
-            _modifiers &= ~mask;
-        }
-    }
-
-    /**
-     * Updates the modifier for the specified key, if any.
-     */
-    protected void updateKeyModifier (int key, boolean pressed)
-    {
-        int mask, okey;
-        switch (key) {
-            case Keyboard.KEY_LSHIFT:
-            case Keyboard.KEY_RSHIFT:
-                mask = InputEvent.SHIFT_DOWN_MASK;
-                okey = (key == Keyboard.KEY_LSHIFT) ? Keyboard.KEY_RSHIFT : Keyboard.KEY_LSHIFT;
-                break;
-
-            case Keyboard.KEY_LCONTROL:
-            case Keyboard.KEY_RCONTROL:
-                mask = InputEvent.CTRL_DOWN_MASK;
-                okey = (key == Keyboard.KEY_LCONTROL) ?
-                    Keyboard.KEY_RCONTROL : Keyboard.KEY_LCONTROL;
-                break;
-
-            case Keyboard.KEY_LMENU:
-            case Keyboard.KEY_RMENU:
-                mask = InputEvent.ALT_DOWN_MASK;
-                okey = (key == Keyboard.KEY_LMENU) ? Keyboard.KEY_RMENU : Keyboard.KEY_LMENU;
-                break;
-
-            case Keyboard.KEY_LMETA:
-            case Keyboard.KEY_RMETA:
-                mask = InputEvent.META_DOWN_MASK;
-                okey = (key == Keyboard.KEY_LMETA) ? Keyboard.KEY_RMETA : Keyboard.KEY_LMETA;
-                break;
-
-            default:
-                return;
-        }
-        if (pressed || _pressedKeys.contains(okey)) {
             _modifiers |= mask;
         } else {
             _modifiers &= ~mask;
@@ -686,6 +706,57 @@ public class DisplayCanvas extends JPanel
         }
     }
 
+    /**
+     * Contains the state of a single mouse button.
+     */
+    protected class ButtonRecord
+    {
+        /**
+         * Checks whether the button is pressed.
+         */
+        public boolean isPressed ()
+        {
+            return _pressed;
+        }
+
+        /**
+         * Notes that the button has been pressed.
+         */
+        public void wasPressed (MouseEvent press)
+        {
+            _pressed = true;
+
+            long when = press.getWhen();
+            _clickTime = when + CLICK_INTERVAL;
+            _count = (when < _chainTime) ? (_count + 1) : 1;
+        }
+
+        /**
+         * Notes that the button has been released.
+         */
+        public void wasReleased (MouseEvent release)
+        {
+            _pressed = false;
+
+            long when = release.getWhen();
+            if (when < _clickTime) {
+                dispatchEvent(new MouseEvent(
+                    DisplayCanvas.this, MouseEvent.MOUSE_CLICKED, when, _modifiers,
+                    release.getX(), release.getY(), _count, false, release.getButton()));
+                _chainTime = when + CLICK_CHAIN_INTERVAL;
+            }
+        }
+
+        /** Whether or not the button is currently pressed. */
+        protected boolean _pressed;
+
+        /** The initial and chained click times. */
+        protected long _clickTime, _chainTime;
+
+        /** The current click count. */
+        protected int _count;
+    }
+
     /** The contained canvas. */
     protected Canvas _canvas;
 
@@ -701,8 +772,9 @@ public class DisplayCanvas extends JPanel
     /** The last position we reported. */
     protected int _lx, _ly;
 
-    /** The last button states we reported. */
-    protected boolean[] _lbuttons = new boolean[3];
+    /** The states of the mouse buttons. */
+    protected ButtonRecord[] _buttons = new ButtonRecord[] {
+        new ButtonRecord(), new ButtonRecord(), new ButtonRecord() };
 
     /** The number of wheel clicks recorded. */
     protected int _lclicks;
@@ -716,4 +788,10 @@ public class DisplayCanvas extends JPanel
     /** A mask for checking whether any mouse buttons are down. */
     protected static final int ANY_BUTTONS_DOWN_MASK =
         InputEvent.BUTTON1_DOWN_MASK | InputEvent.BUTTON2_DOWN_MASK | InputEvent.BUTTON3_DOWN_MASK;
+
+    /** Mouse buttons released within this interval after being pressed are counted as clicks. */
+    protected static final long CLICK_INTERVAL = 250L;
+
+    /** Clicks this close to one another are chained together for counting purposes. */
+    protected static final long CLICK_CHAIN_INTERVAL = 250L;
 }
