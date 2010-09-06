@@ -106,13 +106,30 @@ public class SnippetUtil
         CullState cstate = (CullState)states[RenderState.CULL_STATE];
         LightState lstate = (LightState)states[RenderState.LIGHT_STATE];
         int cullFace = (cstate == null) ? -1 : cstate.getCullFace();
-        Light[] lights = (lstate == null) ? null : lstate.getLights();
-        ArrayKey key = createVertexLightingKey(
+        Light.Type[] lights = (lstate == null) ? null : getLightTypes(lstate.getLights());
+        ArrayKey key = new ArrayKey(
             name, eyeVertex, eyeNormal, cullFace, vertexProgramTwoSide, lights);
         String def = _vertexLighting.get(key);
         if (def == null) {
             _vertexLighting.put(key, def = createVertexLightingDef(
                 name, eyeVertex, eyeNormal, cullFace, vertexProgramTwoSide, lights));
+        }
+        defs.add(def);
+    }
+
+    /**
+     * Creates a fragment lighting snippet.
+     */
+    public static void getFragmentLighting (
+        String name, String eyeVertex, String eyeNormal, RenderState[] states, List<String> defs)
+    {
+        LightState lstate = (LightState)states[RenderState.LIGHT_STATE];
+        Light.Type[] lights = (lstate == null) ? null : getLightTypes(lstate.getLights());
+        ArrayKey key = new ArrayKey(name, eyeVertex, eyeNormal, lights);
+        String def = _fragmentLighting.get(key);
+        if (def == null) {
+            _fragmentLighting.put(key, def = createFragmentLightingDef(
+                name, eyeVertex, eyeNormal, lights));
         }
         defs.add(def);
     }
@@ -238,23 +255,19 @@ public class SnippetUtil
     }
 
     /**
-     * Creates and returns a key for the supplied vertex lighting parameters.
+     * Returns an array of types corresponding to each light.
      */
-    protected static ArrayKey createVertexLightingKey (
-        String name, String eyeVertex, String eyeNormal, int cullFace,
-        boolean vertexProgramTwoSide, Light[] lights)
+    protected static Light.Type[] getLightTypes (Light[] lights)
     {
-        Light.Type[] types;
-        if (lights != null) {
-            types = new Light.Type[lights.length];
-            for (int ii = 0; ii < types.length; ii++) {
-                Light light = lights[ii];
-                types[ii] = (light == null) ? null : light.getType();
-            }
-        } else {
-            types = null;
+        if (lights == null) {
+            return null;
         }
-        return new ArrayKey(name, eyeVertex, eyeNormal, cullFace, vertexProgramTwoSide, types);
+        Light.Type[] types = new Light.Type[lights.length];
+        for (int ii = 0; ii < types.length; ii++) {
+            Light light = lights[ii];
+            types[ii] = (light == null) ? null : light.getType();
+        }
+        return types;
     }
 
     /**
@@ -262,43 +275,54 @@ public class SnippetUtil
      */
     protected static String createVertexLightingDef (
         String name, String eyeVertex, String eyeNormal, int cullFace,
-        boolean vertexProgramTwoSide, Light[] lights)
+        boolean vertexProgramTwoSide, Light.Type[] lights)
     {
         StringBuilder buf = new StringBuilder();
-        buf.append(createVertexLightingSide("Front", eyeVertex, eyeNormal, lights));
+        buf.append(createLightingSide("Front", "Front", eyeVertex, eyeNormal, lights));
         if (vertexProgramTwoSide) {
             buf.append("vec4 rnormal = -" + eyeNormal + "; ");
-            buf.append(createVertexLightingSide("Back", eyeVertex, "rnormal", lights));
+            buf.append(createLightingSide("Back", "Back", eyeVertex, "rnormal", lights));
         }
         return name + " { " + buf + "}";
     }
 
     /**
-     * Creates and returns the expression for a single vertex-lit side.
+     * Creates and returns the definition for the supplied fragment lighting parameters.
      */
-    protected static String createVertexLightingSide (
-        String side, String eyeVertex, String eyeNormal, Light[] lights)
+    protected static String createFragmentLightingDef (
+        String name, String eyeVertex, String eyeNormal, Light.Type[] lights)
     {
-        String variable = "gl_" + side + "Color";
+        StringBuilder buf = new StringBuilder();
+        buf.append(createLightingSide("Frag", "Front", eyeVertex, eyeNormal, lights));
+        return name + " { " + buf + "}";
+    }
+
+    /**
+     * Creates and returns the expression for a single lit side.
+     */
+    protected static String createLightingSide (
+        String dest, String side, String eyeVertex, String eyeNormal, Light.Type[] lights)
+    {
+        String variable = "gl_" + dest + "Color";
         if (lights == null) {
             return variable + " = gl_Color; ";
         }
         StringBuilder buf = new StringBuilder();
         buf.append(variable + " = gl_" + side + "LightModelProduct.sceneColor; ");
         for (int ii = 0; ii < lights.length; ii++) {
-            Light light = lights[ii];
+            Light.Type light = lights[ii];
             if (light == null) {
                 continue;
             }
-            switch (light.getType()) {
+            switch (light) {
                 case DIRECTIONAL:
-                    addDirectionalLight(ii, side, eyeNormal, buf);
+                    addDirectionalLight(ii, dest, side, eyeNormal, buf);
                     break;
                 case POINT:
-                    addPointLight(ii, side, eyeVertex, eyeNormal, buf);
+                    addPointLight(ii, dest, side, eyeVertex, eyeNormal, buf);
                     break;
                 case SPOT:
-                    addSpotLight(ii, side, eyeVertex, eyeNormal, buf);
+                    addSpotLight(ii, dest, side, eyeVertex, eyeNormal, buf);
                     break;
             }
         }
@@ -309,9 +333,9 @@ public class SnippetUtil
      * Adds the influence of a directional light.
      */
     protected static void addDirectionalLight (
-        int idx, String side, String eyeNormal, StringBuilder buf)
+        int idx, String dest, String side, String eyeNormal, StringBuilder buf)
     {
-        buf.append("gl_" + side + "Color += gl_" + side + "LightProduct[" + idx +
+        buf.append("gl_" + dest + "Color += gl_" + side + "LightProduct[" + idx +
             "].ambient + gl_" + side + "LightProduct[" + idx + "].diffuse * max(dot(" +
             eyeNormal + ", gl_LightSource[" + idx + "].position), 0.0); ");
     }
@@ -320,7 +344,7 @@ public class SnippetUtil
      * Adds the influence of a point light.
      */
     protected static void addPointLight (
-        int idx, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
+        int idx, String dest, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
     {
     }
 
@@ -328,7 +352,7 @@ public class SnippetUtil
      * Adds the influence of a spot light.
      */
     protected static void addSpotLight (
-        int idx, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
+        int idx, String dest, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
     {
     }
 
@@ -340,5 +364,9 @@ public class SnippetUtil
 
     /** Cached vertex lighting snippets. */
     protected static SoftCache<ArrayKey, String> _vertexLighting =
+        new SoftCache<ArrayKey, String>();
+
+    /** Cached fragment lighting snippets. */
+    protected static SoftCache<ArrayKey, String> _fragmentLighting =
         new SoftCache<ArrayKey, String>();
 }

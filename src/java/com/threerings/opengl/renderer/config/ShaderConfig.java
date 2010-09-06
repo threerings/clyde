@@ -757,7 +757,7 @@ public class ShaderConfig extends ParameterizedConfig
         BooleanDefinition.class, ColorDefinition.class, FloatDefinition.class,
         IntegerDefinition.class, StringDefinition.class, TransformDefinition.class,
         FogParamSnippet.class, FogBlendSnippet.class, TexCoordSnippet.class,
-        VertexLightingSnippet.class })
+        VertexLightingSnippet.class, FragmentLightingSnippet.class })
     public static abstract class Definition extends DeepObject
         implements Exportable
     {
@@ -975,6 +975,27 @@ public class ShaderConfig extends ParameterizedConfig
         {
             SnippetUtil.getVertexLighting(
                 name, eyeVertex, eyeNormal, states, vertexProgramTwoSide, defs);
+        }
+    }
+
+    /**
+     * Defines a snippet that computes the fragment color based on the lighting parameters.
+     */
+    public static class FragmentLightingSnippet extends Definition
+    {
+        /** The variable containing the location of the vertex in eye space. */
+        @Editable
+        public String eyeVertex = "eyeVertex";
+
+        /** The variable containing the normal in eye space. */
+        @Editable
+        public String eyeNormal = "eyeNormal";
+
+        @Override // documentation inherited
+        public void getDefinitions (
+            Scope scope, RenderState[] states, boolean vertexProgramTwoSide, List<String> defs)
+        {
+            SnippetUtil.getFragmentLighting(name, eyeVertex, eyeNormal, states, defs);
         }
     }
 
