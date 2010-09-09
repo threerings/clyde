@@ -33,6 +33,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -857,7 +858,7 @@ public class SceneEditor extends TudeyTool
     // documentation inherited from interface MouseListener
     public void mousePressed (MouseEvent event)
     {
-        if (event.isAltDown()) {
+        if ((event.getModifiersEx() & InputEvent.ALT_DOWN_MASK) != 0) {
             useMouseEntry();
         }
         switch (event.getButton()) {
