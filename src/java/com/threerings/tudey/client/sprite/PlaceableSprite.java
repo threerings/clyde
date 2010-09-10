@@ -37,6 +37,7 @@ import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.Scene;
@@ -179,7 +180,7 @@ public class PlaceableSprite extends EntrySprite
          */
         public void setConfig (PlaceableConfig.Original config)
         {
-            _model.setConfig(config.model);
+            _model.setConfig(getModelConfig(config));
 
             // update the footprint
             boolean selected = ((PlaceableSprite)_parentScope).isSelected();
@@ -225,6 +226,14 @@ public class PlaceableSprite extends EntrySprite
             }
         }
 
+        /**
+         * Retrieves the model config reference from the configuration.
+         */
+        protected ConfigReference<ModelConfig> getModelConfig (PlaceableConfig.Original config)
+        {
+            return config.model;
+        }
+
         /** The renderer context. */
         protected TudeyContext _ctx;
 
@@ -249,7 +258,7 @@ public class PlaceableSprite extends EntrySprite
          */
         public Prop (TudeyContext ctx, Scope parentScope, PlaceableConfig.Prop config)
         {
-            super(ctx, parentScope);
+            this(ctx, parentScope);
             setConfig(config);
         }
 
@@ -264,6 +273,14 @@ public class PlaceableSprite extends EntrySprite
         public int getFloorFlags ()
         {
             return _config.floorFlags;
+        }
+
+        /**
+         * Creates a new prop implementation (for use by subclasses).
+         */
+        protected Prop (TudeyContext ctx, Scope parentScope)
+        {
+            super(ctx, parentScope);
         }
 
         /** The prop configuration. */
