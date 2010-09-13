@@ -853,6 +853,14 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Provides a hint as to whether this action should be executed.
+     */
+    public boolean shouldExecute ()
+    {
+        return true;
+    }
+
+    /**
      * Executes the action.
      *
      * @param activator the entity that triggered the action.
