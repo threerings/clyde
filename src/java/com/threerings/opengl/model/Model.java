@@ -767,6 +767,14 @@ public class Model extends DynamicScope
     }
 
     /**
+     * Retrieves the implementation (use with caution).
+     */
+    public Implementation getImplementation ()
+    {
+        return _impl;
+    }
+
+    /**
      * Resets the state of this model.
      */
     public void reset ()

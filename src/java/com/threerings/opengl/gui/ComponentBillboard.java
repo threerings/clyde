@@ -94,6 +94,26 @@ public class ComponentBillboard extends Model.Implementation
         updateFromConfig();
     }
 
+    /**
+     * Returns the root component.
+     */
+    public Component getRoot ()
+    {
+        return _root;
+    }
+
+    /**
+     * Validates a reconfigured root.
+     */
+    public void validateRoot ()
+    {
+        Dimension size = _root.getPreferredSize(-1, -1);
+        _root.setBounds(-size.width/2, -size.height/2, size.width, size.height);
+        _root.validate();
+        _root.wasAdded();
+    }
+
+
     // documentation inherited from interface Enqueueable
     public void enqueue ()
     {
@@ -173,10 +193,7 @@ public class ComponentBillboard extends Model.Implementation
             MessageManager.GLOBAL_BUNDLE : _config.bundle;
         _root = _config.root.getComponent(
             _ctx, this, _ctx.getMessageManager().getBundle(bundle), _root);
-        Dimension size = _root.getPreferredSize(-1, -1);
-        _root.setBounds(-size.width/2, -size.height/2, size.width, size.height);
-        _root.validate();
-        _root.wasAdded();
+        validateRoot();
 
         // update the influence flags
         _influenceFlags = _config.influences.getFlags();
