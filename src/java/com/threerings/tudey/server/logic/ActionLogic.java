@@ -47,9 +47,11 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.ActorConfig;
+import com.threerings.tudey.config.ClientActionConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.server.TudeySceneManager;
@@ -828,6 +830,48 @@ public abstract class ActionLogic extends Logic
 
         /** The target logic. */
         protected TargetLogic _target;
+    }
+
+    /**
+     * Handles a force client action... action.
+     */
+    public static class ForceClientAction extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            ClientActionConfig action = ((ActionConfig.ForceClientAction)_config).action;
+            _target.resolve(activator, _targets);
+            boolean success = false;
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                if (!(target instanceof PawnLogic)) {
+                    continue;
+                }
+                int pawnId = ((PawnLogic)target).getActor().getId();
+                TudeyOccupantInfo info =
+                    ((TudeySceneObject)_scenemgr.getPlaceObject()).getOccupantInfo(pawnId);
+                if (info != null) {
+                    _omgr.getObject(info.getBodyOid()).postMessage(
+                        TudeyBodyObject.FORCE_CLIENT_ACTION, action, _source.getEntityKey());
+                    success = true;
+                }
+            }
+            _targets.clear();
+            return success;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ActionConfig.ForceClientAction)_config).target, _source);
+        }
+
+        /** The target logic. */
+        protected TargetLogic _target;
+
+        /** The distributed object manager. */
+        @Inject protected PresentsDObjectMgr _omgr;
     }
 
     /**

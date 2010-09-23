@@ -56,7 +56,8 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.Switch.class, ActionConfig.ExpressionSwitch.class,
     ActionConfig.Compound.class, ActionConfig.Random.class,
     ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
-    ActionConfig.SetVariable.class, ActionConfig.SetFlag.class })
+    ActionConfig.SetVariable.class, ActionConfig.SetFlag.class,
+    ActionConfig.ForceClientAction.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -899,6 +900,33 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SetFlag";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
+    }
+
+    /**
+     * Forces the client associated with the target to do something.
+     */
+    @Strippable
+    public static class ForceClientAction extends ActionConfig
+    {
+        /** The target to modify. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        /** The action to force. */
+        @Editable
+        public ClientActionConfig action = new ClientActionConfig.ControllerAction();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$ForceClientAction";
         }
 
         @Override // documentation inherited

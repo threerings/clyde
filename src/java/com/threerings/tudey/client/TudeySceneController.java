@@ -43,6 +43,8 @@ import com.samskivert.util.RunAnywhere;
 
 import com.threerings.presents.client.Client;
 import com.threerings.presents.data.ClientObject;
+import com.threerings.presents.dobj.MessageEvent;
+import com.threerings.presents.dobj.MessageListener;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.crowd.data.OccupantInfo;
@@ -74,7 +76,10 @@ import com.threerings.opengl.util.Tickable;
 import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
+import com.threerings.tudey.config.ClientActionConfig;
+import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -91,8 +96,8 @@ import static com.threerings.tudey.Log.*;
  * The basic Tudey scene controller class.
  */
 public class TudeySceneController extends SceneController
-    implements SceneDeltaListener, PseudoKeys.Observer, MouseListener,
-        MouseMotionListener, MouseWheelListener,  Tickable
+    implements SceneDeltaListener, MessageListener, PseudoKeys.Observer,
+        MouseListener, MouseMotionListener, MouseWheelListener,  Tickable
 {
     /**
      * Returns the interval at which we transmit our input frames.
@@ -234,6 +239,16 @@ public class TudeySceneController extends SceneController
         // pass it on to the view for visualization
         if (_tsview.processSceneDelta(event)) {
             _lastDelta = timestamp;
+        }
+    }
+
+    // documentation inherited from interface MessageListener
+    public void messageReceived (MessageEvent event)
+    {
+        if (event.getName().equals(TudeyBodyObject.FORCE_CLIENT_ACTION)) {
+            Object[] args = event.getArgs();
+            ((ClientActionConfig)args[0]).execute(
+                _tctx, _tsview, _tsview.getSprite((EntityKey)args[1]));
         }
     }
 

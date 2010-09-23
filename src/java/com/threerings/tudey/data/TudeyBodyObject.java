@@ -40,6 +40,11 @@ public class TudeyBodyObject extends BodyObject
     public static final String PAWN_ID = "pawnId";
     // AUTO-GENERATED: FIELDS END
 
+    /** The name of the message posted by the server to force the client to perform a client
+     * action. The message provides two arguments: the client action config and the
+     * {@link EntityKey} of the source. */
+    public static final String FORCE_CLIENT_ACTION = "forceClientAction";
+
     /** The id of the player's pawn. */
     public int pawnId;
 

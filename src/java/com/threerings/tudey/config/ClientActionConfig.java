@@ -24,6 +24,8 @@
 
 package com.threerings.tudey.config;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -43,7 +45,7 @@ import static com.threerings.tudey.Log.*;
     ClientActionConfig.ServerRequest.class,
     ClientActionConfig.Compound.class })
 public abstract class ClientActionConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Fires an action on the scene controller.
