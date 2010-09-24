@@ -260,6 +260,19 @@ public class UserInterface extends Container
     }
 
     /**
+     * Shortcut method to remove all listeners from all components with the specified tag.
+     */
+    public void removeAllListeners (String tag)
+    {
+        List<Component> comps = getComponents(tag);
+        if (comps != null) {
+            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
+                comps.get(ii).removeAllListeners();
+            }
+        }
+    }
+
+    /**
      * Returns a reference to the first component registered with the specified tag, or
      * <code>null</code> if there are no such components.
      */
