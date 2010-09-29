@@ -153,6 +153,7 @@ public class ScrollPane extends Container
             }
         }
         if (_vlbtn != null) {
+            _vport.storeOldV();
             if (_vlbtn.getParent() == null) {
                 add(_vlbtn, BorderLayout.NORTH);
                 add(_vmbtn, BorderLayout.SOUTH);
@@ -167,6 +168,7 @@ public class ScrollPane extends Container
             }
         }
         if (_hlbtn != null) {
+            _vport.storeOldH();
             if (_hlbtn.getParent() == null) {
                 add(_hlbtn, BorderLayout.WEST);
                 add(_hmbtn, BorderLayout.EAST);
