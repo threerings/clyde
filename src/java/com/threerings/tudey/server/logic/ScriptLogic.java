@@ -43,8 +43,8 @@ public abstract class ScriptLogic extends Logic
     /**
      * Creates a script logic.
      */
-    public static ScriptLogic createScriptLogic (
-            TudeySceneManager scenemgr, ScriptConfig config, AgentLogic agent)
+    public static ScriptLogic createScriptLogic (TudeySceneManager scenemgr, ScriptConfig config,
+            AgentLogic agent, BehaviorLogic.Scripted scripted)
     {
         // create the logic instance
         ScriptLogic logic = (ScriptLogic)scenemgr.createLogic(config.getLogicClassName());
@@ -53,7 +53,7 @@ public abstract class ScriptLogic extends Logic
         }
 
         // initialize then return the logic
-        logic.init(scenemgr, config, agent);
+        logic.init(scenemgr, config, agent, scripted);
         return logic;
     }
 
@@ -246,13 +246,27 @@ public abstract class ScriptLogic extends Logic
     }
 
     /**
+     * Handles the goto script.
+     */
+    public static class Goto extends ScriptLogic
+    {
+        @Override // documentation inherited
+        public void start (int timestamp)
+        {
+            _scripted.setCurrentStep(((ScriptConfig.Goto)_config).step, timestamp);
+        }
+    }
+
+    /**
      * Initializes the logic.
      */
-    public void init (TudeySceneManager scenemgr, ScriptConfig config, AgentLogic agent)
+    public void init (TudeySceneManager scenemgr, ScriptConfig config, AgentLogic agent,
+            BehaviorLogic.Scripted scripted)
     {
         super.init(scenemgr);
         _config = config;
         _agent = agent;
+        _scripted = scripted;
 
         // give subclasses a change to initialize
         didInit();
@@ -297,6 +311,9 @@ public abstract class ScriptLogic extends Logic
 
     /** The controlled agent. */
     protected AgentLogic _agent;
+
+    /** The scripted logic. */
+    protected BehaviorLogic.Scripted _scripted;
 
     /** The maximum path length for a move. */
     protected static final float MAX_PATH_LENGTH = 10f;

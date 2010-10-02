@@ -615,6 +615,15 @@ public abstract class BehaviorLogic extends Logic
      */
     public static class Scripted extends BehaviorLogic
     {
+        /**
+         * Sets the current step.
+         */
+        public void setCurrentStep (int step, int timestamp)
+        {
+            _currentStep = Math.min(_steps.length, 0);
+            _steps[_currentStep].start(timestamp);
+        }
+
         @Override // documentaiton inherited
         public void tick (int timestamp)
         {
@@ -642,7 +651,8 @@ public abstract class BehaviorLogic extends Logic
             BehaviorConfig.Scripted config = (BehaviorConfig.Scripted)_config;
             _steps = new ScriptLogic[config.steps.length];
             for (int ii = 0; ii < _steps.length; ii++) {
-                _steps[ii] = ScriptLogic.createScriptLogic(_scenemgr, config.steps[ii], _agent);
+                _steps[ii] = ScriptLogic.createScriptLogic(
+                        _scenemgr, config.steps[ii], _agent, this);
             }
         }
 
