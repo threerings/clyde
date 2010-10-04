@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.model.config;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -34,7 +36,7 @@ import com.threerings.opengl.model.Model;
  * Contains a set of flags for different kinds of influences.
  */
 public class InfluenceFlagConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /** Whether or not to enable fog influences. */
     @Editable(hgroup="i")
