@@ -782,20 +782,17 @@ public class Sounder extends SimpleScope
             return new TransformedStream(wfile.file, false, _config.stack) {
                 @Override protected void update (float time) {
                     super.update(time);
-                    if (_remaining == Float.MAX_VALUE || _transitioning) {
+                    if (_remaining == Float.MAX_VALUE || _fadeMode == FadeMode.OUT_DISPOSE) {
                         return;
                     }
                     if ((_remaining -= time) <= _config.crossFade) {
                         startNextStream(Math.max(_remaining, 0f));
-                        _transitioning = true;
                     }
                 }
                 @Override protected float getCombinedGain () {
                     return super.getCombinedGain() * wfile.gain;
                 }
-                @Override protected int populateBuffer (ByteBuffer buf)
-                    throws IOException
-                {
+                @Override protected int populateBuffer (ByteBuffer buf) throws IOException {
                     int read = super.populateBuffer(buf);
                     if (read < buf.capacity() && _remaining == Float.MAX_VALUE) {
                         // compute the amount of time remaining
@@ -808,7 +805,6 @@ public class Sounder extends SimpleScope
                     return read;
                 }
                 protected float _remaining = Float.MAX_VALUE;
-                protected boolean _transitioning;
             };
         }
 
