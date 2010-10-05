@@ -782,11 +782,13 @@ public class Sounder extends SimpleScope
             return new TransformedStream(wfile.file, false, _config.stack) {
                 @Override protected void update (float time) {
                     super.update(time);
-                    if (_remaining == Float.MAX_VALUE || _fadeMode == FadeMode.OUT_DISPOSE) {
+                    if (_remaining == Float.MAX_VALUE || _transitioning ||
+                            _fadeMode == FadeMode.OUT_DISPOSE) {
                         return;
                     }
                     if ((_remaining -= time) <= _config.crossFade) {
                         startNextStream(Math.max(_remaining, 0f));
+                        _transitioning = true;
                     }
                 }
                 @Override protected float getCombinedGain () {
@@ -805,6 +807,7 @@ public class Sounder extends SimpleScope
                     return read;
                 }
                 protected float _remaining = Float.MAX_VALUE;
+                protected boolean _transitioning;
             };
         }
 
