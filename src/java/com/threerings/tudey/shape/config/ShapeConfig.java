@@ -52,7 +52,7 @@ import com.threerings.tudey.shape.Shape;
 @EditorTypes({
     ShapeConfig.Point.class, ShapeConfig.Segment.class, ShapeConfig.Rectangle.class,
     ShapeConfig.Circle.class, ShapeConfig.Capsule.class, ShapeConfig.Polygon.class,
-    ShapeConfig.Compound.class, ShapeConfig.None.class, ShapeConfig.Global.class  })
+    ShapeConfig.Compound.class, ShapeConfig.Global.class  })
 public abstract class ShapeConfig extends DeepObject
     implements Exportable, Streamable
 {
