@@ -28,6 +28,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.io.Streamable;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 
@@ -45,7 +46,7 @@ public class CompoundConfig extends ModelConfig.Implementation
      * Represents one of the models that makes up the compound.
      */
     public static class ComponentModel extends DeepObject
-        implements Exportable
+        implements Exportable, Streamable
     {
         /** The model reference. */
         @Editable(nullable=true)
