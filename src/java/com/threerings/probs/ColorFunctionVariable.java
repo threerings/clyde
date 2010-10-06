@@ -24,6 +24,8 @@
 
 package com.threerings.probs;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -40,7 +42,7 @@ import com.threerings.opengl.effect.ColorFunction;
     ColorFunctionVariable.VariableConstant.class,
     ColorFunctionVariable.VariableLinear.class }, label="mode")
 public abstract class ColorFunctionVariable extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Simply returns the same function.

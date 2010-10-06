@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.effect;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -37,7 +39,7 @@ import com.threerings.util.DeepObject;
     Easing.None.class, Easing.QuadraticIn.class,
     Easing.QuadraticOut.class, Easing.QuadraticInAndOut.class })
 public abstract class Easing extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Performs no easing.

@@ -295,7 +295,7 @@ public abstract class ColorFunction extends DeepObject
          * A single point to blend between.
          */
         public static class Point
-            implements Exportable
+            implements Exportable, Streamable
         {
             /** The color of the point. */
             @Editable(mode=Editable.INHERIT_STRING)
