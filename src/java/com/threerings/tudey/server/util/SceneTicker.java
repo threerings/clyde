@@ -206,6 +206,16 @@ public abstract class SceneTicker
         // compute the elapsed time since the last tick
         long now = System.currentTimeMillis();
         int elapsed = (int)(now - _lastTick);
+
+        // note when we enter or leave a period of overlong ticking
+        if (elapsed >= _targetInterval*4 && !_lastLong) {
+            log.info("Overlong ticking started.", "elapsed", elapsed, "target", _targetInterval);
+            _lastLong = true;
+        } else if (elapsed <= _targetInterval*3 && _lastLong) {
+            log.info("Overlong ticking stopped.", "elapsed", elapsed, "target", _targetInterval);
+            _lastLong = false;
+        }
+
         _lastTick = now;
         _intervalAverage.record(elapsed);
         _actualInterval = _intervalAverage.value();
@@ -247,6 +257,9 @@ public abstract class SceneTicker
 
     /** The time of the last tick. */
     protected long _lastTick;
+
+    /** Whether the last tick was considered "long." */
+    protected boolean _lastLong;
 
     /** The trailing average of the actual intervals. */
     protected TruncatedAverage _intervalAverage = new TruncatedAverage();
