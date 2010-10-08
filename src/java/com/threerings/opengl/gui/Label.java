@@ -172,12 +172,6 @@ public class Label extends TextComponent
         return _label.getText();
     }
 
-    @Override
-    protected boolean changeCursor ()
-    {
-        return false; // Labels should not change the cursor, no matter the style
-    }
-
     @Override // documentation inherited
     protected String getDefaultStyleConfig ()
     {
