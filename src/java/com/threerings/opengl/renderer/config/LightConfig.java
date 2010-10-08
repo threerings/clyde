@@ -271,6 +271,7 @@ public abstract class LightConfig extends DeepObject
         light.ambient.set(colors.ambient);
         light.diffuse.set(colors.diffuse);
         light.specular.set(colors.specular);
+        light.position.set(0f, 0f, 0f, 0f);
         updaters.add(createUpdater(ctx, scope, light));
         return light;
     }
