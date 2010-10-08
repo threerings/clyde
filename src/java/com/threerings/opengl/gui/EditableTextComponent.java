@@ -26,6 +26,7 @@ package com.threerings.opengl.gui;
 
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.CursorConfig;
 import com.threerings.opengl.gui.config.StyleConfig;
 
 /**
@@ -33,14 +34,6 @@ import com.threerings.opengl.gui.config.StyleConfig;
  */
 public abstract class EditableTextComponent extends TextComponent
 {
-    /**
-     * Set the cursor to use in an editable text component to hint that the text is editable.
-     */
-    public static void setTextCursor (Cursor textCursor)
-    {
-        _textCursor = textCursor;
-    }
-
     /**
      * For subclasses.
      */
@@ -56,10 +49,10 @@ public abstract class EditableTextComponent extends TextComponent
 
         // utilize the text cursor if none other defined
         if ((state == DEFAULT) && (_cursor == null)) {
-            _cursor = _textCursor;
+            CursorConfig textCursor = _ctx.getConfigManager().getConfig(CursorConfig.class, "Text");
+            if (textCursor != null) {
+                _cursor = textCursor.getCursor(_ctx);
+            }
         }
     }
-
-    /** A Cursor to use in any editable text component unless otherwise overridden. */
-    protected static Cursor _textCursor;
 }
