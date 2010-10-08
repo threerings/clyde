@@ -55,7 +55,7 @@ import com.threerings.opengl.gui.util.Rectangle;
 /**
  * Displays and allows for the editing of a single line of text.
  */
-public class TextField extends TextComponent
+public class TextField extends EditableTextComponent
     implements EditCommands, Document.Listener
 {
     /**
