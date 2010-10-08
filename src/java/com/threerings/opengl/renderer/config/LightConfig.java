@@ -122,6 +122,7 @@ public abstract class LightConfig extends DeepObject
             light.constantAttenuation = attenuation.constant;
             light.linearAttenuation = attenuation.linear;
             light.quadraticAttenuation = attenuation.quadratic;
+            light.position.w = 1f;
             return light;
         }
 
