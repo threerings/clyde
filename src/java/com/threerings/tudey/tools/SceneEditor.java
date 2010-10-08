@@ -850,7 +850,8 @@ public class SceneEditor extends TudeyTool
     // documentation inherited from interface MouseListener
     public void mouseClicked (MouseEvent event)
     {
-        if (mouseCameraEnabled() && event.getClickCount() == 2) {
+        if (mouseCameraEnabled() && event.getButton() == MouseEvent.BUTTON1 &&
+                event.getClickCount() == 2) {
             editMouseEntry();
         }
     }
