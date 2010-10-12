@@ -358,7 +358,7 @@ public class TudeySceneManager extends SceneManager
         ActorConfig config = _cfgmgr.getConfig(ActorConfig.class, ref);
         ActorConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
         if (original == null) {
-            log.warning("Failed to resolve actor config.", "actor", ref);
+            log.warning("Failed to resolve actor config.", "actor", ref, "where", where());
             return null;
         }
 
@@ -423,7 +423,7 @@ public class TudeySceneManager extends SceneManager
         EffectConfig config = _cfgmgr.getConfig(EffectConfig.class, ref);
         EffectConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
         if (original == null) {
-            log.warning("Failed to resolve effect config.", "effect", ref);
+            log.warning("Failed to resolve effect config.", "effect", ref, "where", where());
             return null;
         }
 
