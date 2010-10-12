@@ -349,6 +349,11 @@ public class TudeySceneManager extends SceneManager
     public ActorLogic spawnActor (
         int timestamp, Vector2f translation, float rotation, ConfigReference<ActorConfig> ref)
     {
+        // return immediately if the place has shut down
+        if (!_plobj.isActive()) {
+            return null;
+        }
+
         // attempt to resolve the implementation
         ActorConfig config = _cfgmgr.getConfig(ActorConfig.class, ref);
         ActorConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
@@ -409,6 +414,11 @@ public class TudeySceneManager extends SceneManager
         int timestamp, Logic target, Vector2f translation, float rotation,
         ConfigReference<EffectConfig> ref)
     {
+        // return immediately if the place has shut down
+        if (!_plobj.isActive()) {
+            return null;
+        }
+
         // attempt to resolve the implementation
         EffectConfig config = _cfgmgr.getConfig(EffectConfig.class, ref);
         EffectConfig.Original original = (config == null) ? null : config.getOriginal(_cfgmgr);
@@ -1067,13 +1077,15 @@ public class TudeySceneManager extends SceneManager
         _actorSpace.dispose();
         _sensorSpace.dispose();
 
-        // remove all actors
+        // destroy/remove all actors
         ActorLogic[] actors = _actors.values().toArray(new ActorLogic[_actors.size()]);
+        int timestamp = getNextTimestamp();
         for (ActorLogic logic : actors) {
+            logic.destroy(timestamp, logic);
             logic.remove();
         }
 
-        // and all scene entries
+        // remove all scene entries
         for (EntryLogic logic : _entries.values()) {
             logic.removed();
         }
