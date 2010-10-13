@@ -24,6 +24,7 @@
 
 package com.threerings.editor.swing.editors;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -177,8 +178,10 @@ public class ConfigReferenceEditor extends PropertyEditor
         ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, name);
         if (!(config instanceof ParameterizedConfig)) {
             _arguments.removeAll();
+            _config.setForeground(Color.red);
             return;
         }
+        _config.setForeground(_content.getForeground());
 
         // store the existing editors mapped by name in case we want to reuse their values
         int ocount = _arguments.getComponentCount();
