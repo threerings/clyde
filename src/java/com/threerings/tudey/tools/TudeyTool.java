@@ -73,7 +73,7 @@ public abstract class TudeyTool extends GlCanvasTool
         // create the various directors
         _locdir = new LocationDirector(this);
         _occdir = new OccupantDirector(this);
-        _chatdir = new ChatDirector(this, _msgmgr, "chat");
+        _chatdir = new ChatDirector(this, "chat");
 
         // create a fake repository that stores nothing
         SceneRepository screp = new SceneRepository() {
