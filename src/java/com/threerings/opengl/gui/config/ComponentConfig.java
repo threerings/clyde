@@ -63,15 +63,15 @@ import com.threerings.opengl.util.GlContext;
 @EditorTypes({
     ComponentConfig.Button.class, ComponentConfig.ChatOverlay.class,
     ComponentConfig.CheckBox.class, ComponentConfig.ColorPicker.class,
-    ComponentConfig.ComboBox.class, ComponentConfig.Container.class,
-    ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
-    ComponentConfig.List.class, ComponentConfig.PasswordField.class,
-    ComponentConfig.RenderableView.class, ComponentConfig.ScrollBar.class,
-    ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
-    ComponentConfig.Spacer.class, ComponentConfig.StatusLabel.class,
-    ComponentConfig.TabbedPane.class, ComponentConfig.TextArea.class,
-    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
-    ComponentConfig.UserInterface.class })
+    ComponentConfig.ComboBox.class, ComponentConfig.CommandButton.class,
+    ComponentConfig.Container.class, ComponentConfig.HTMLView.class,
+    ComponentConfig.Label.class, ComponentConfig.List.class,
+    ComponentConfig.PasswordField.class, ComponentConfig.RenderableView.class,
+    ComponentConfig.ScrollBar.class, ComponentConfig.ScrollPane.class,
+    ComponentConfig.Slider.class, ComponentConfig.Spacer.class,
+    ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
+    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
+    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -216,6 +216,30 @@ public abstract class ComponentConfig extends DeepObject
             StyleConfig config = comp.getStyleConfigs()[Component.DEFAULT];
             StyleConfig.Original original = (config == null) ? null : config.getOriginal(ctx);
             return (original == null || original.icon == null);
+        }
+    }
+
+    /**
+     * A command button.
+     */
+    public static class CommandButton extends Button
+    {
+        @Editable(hgroup="a", nullable=true)
+        public Object argument;
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.CommandButton.class) ?
+                comp : new com.threerings.opengl.gui.CommandButton(ctx, "");
+        }
+
+        @Override // documentation inherited
+        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            super.configure(ctx, scope, msgs, comp);
+            ((com.threerings.opengl.gui.CommandButton)comp).setArgument(argument);
         }
     }
 
