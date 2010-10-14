@@ -16,7 +16,6 @@
     <include name="samskivert.jar"/>
     <include name="narya-base.jar"/>
     <include name="narya-distrib.jar"/>
-    <include name="narya-tools.jar"/>
     <include name="nenya-media.jar"/>
     <include name="nenya-rsrc.jar"/>
     <include name="nenya-openal.jar"/>
