@@ -27,6 +27,7 @@ package com.threerings.opengl.gui;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ActionEvent;
+import com.threerings.opengl.gui.event.CommandEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
@@ -60,11 +61,21 @@ public class MenuItem extends Label
      */
     public MenuItem (GlContext ctx, String text, Icon icon, String action)
     {
+        this(ctx, text, icon, action, null);
+    }
+
+    /**
+     * Creates a menu item with the specified text and icon that will generate
+     * a {@link CommandEvent} with the specified action and argument when selected.
+     */
+    public MenuItem (GlContext ctx, String text, Icon icon, String action, Object argument)
+    {
         super(ctx, text);
         if (icon != null) {
             setIcon(icon);
         }
         _action = action;
+        _argument = argument;
     }
 
     /**
@@ -73,6 +84,14 @@ public class MenuItem extends Label
     public String getAction ()
     {
         return _action;
+    }
+
+    /**
+     * Returns the argument of the action for this menu item.
+     */
+    public Object getArgument ()
+    {
+        return _argument;
     }
 
     // documentation inherited
@@ -136,5 +155,6 @@ public class MenuItem extends Label
     }
 
     protected String _action;
+    protected Object _argument;
     protected boolean _armed, _pressed;
 }

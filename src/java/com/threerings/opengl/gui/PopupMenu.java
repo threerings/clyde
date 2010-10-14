@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.event.ActionEvent;
+import com.threerings.opengl.gui.event.CommandEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.layout.GroupLayout;
@@ -193,7 +193,7 @@ public class PopupMenu extends PopupWindow
      */
     protected void itemSelected (MenuItem item, long when, int modifiers)
     {
-        emitEvent(new ActionEvent(item, when, modifiers, item.getAction()));
+        emitEvent(new CommandEvent(item, when, modifiers, item.getAction(), item.getArgument()));
         dismiss();
     }
 
