@@ -31,6 +31,7 @@ import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
+import com.threerings.opengl.gui.event.CommandEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
@@ -67,7 +68,7 @@ public class Button extends Label
 
     /**
      * Creates a button with the specified label and action. The action will be
-     * dispatched via an {@link ActionEvent} to the specified {@link
+     * dispatched via an {@link CommandEvent} to the specified {@link
      * ActionListener} when the button is clicked.
      */
     public Button (GlContext ctx, String text, ActionListener listener, String action)
@@ -107,7 +108,16 @@ public class Button extends Label
      */
     public void setAction (String action)
     {
+        setAction(action, null);
+    }
+
+    /**
+     * Configures the action and argument to be generated when this button is clicked.
+     */
+    public void setAction (String action, Object argument)
+    {
         _action = action;
+        _argument = argument;
     }
 
     /**
@@ -116,6 +126,14 @@ public class Button extends Label
     public String getAction ()
     {
         return _action;
+    }
+
+    /**
+     * Returns the argument associated with the action.
+     */
+    public Object getArgument ()
+    {
+        return _argument;
     }
 
     /**
@@ -267,7 +285,7 @@ public class Button extends Label
     protected void fireAction (long when, int modifiers)
     {
         playFeedbackSound();
-        emitEvent(new ActionEvent(this, when, modifiers, _action));
+        emitEvent(new CommandEvent(this, when, modifiers, _action, _argument));
     }
 
     /**
@@ -287,6 +305,7 @@ public class Button extends Label
     protected boolean _pressed;
     protected long _releasedWhen;
     protected String _action;
+    protected Object _argument;
 
     protected String[] _feedbackSounds = new String[getStateCount()];
 
