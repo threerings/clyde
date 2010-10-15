@@ -58,21 +58,15 @@ the library is available here:
 
   http://code.google.com/p/clyde/
 
-Contribution
-------------
-
-Contributions to Clyde are welcome. Read-only access to the subversion
-repository is available at:
-
-http://clyde.googlecode.com/svn/trunk
-
-Patches can be mailed to Andrzej Kapolka <andrzej@threerings.net>.
-
-Contact Information
--------------------
+Contributions and Contact Information
+-------------------------------------
 
 Clyde is actively developed by the scurvy dogs at Three Rings Design, Inc.
-Contact Andrzej Kapolka <andrzej@threerings.net> with questions, comments and other
-wordly endeavors.
+Contributions are welcome.
+
+Questions, comments, contributions, and other worldly endeavors can be
+handled in the Google Group for Three Rings libraries:
+
+  http://groups.google.com/group/ooo-libs
 
 $Id$
