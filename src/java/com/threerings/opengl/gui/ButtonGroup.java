@@ -180,7 +180,7 @@ public class ButtonGroup
                 button.setSelected(false);
             }
         }
-        ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, button);
+        ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
         for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
             event.dispatch(_listeners.get(ii));
         }
