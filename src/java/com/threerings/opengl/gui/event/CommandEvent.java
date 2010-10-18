@@ -26,7 +26,9 @@ package com.threerings.opengl.gui.event;
 
 /**
  * Extends {@link ActionEvent} to provide a generic argument.
+ * @deprecated Merged into ActionEvent.
  */
+@Deprecated
 public class CommandEvent extends ActionEvent
 {
     /**
@@ -34,25 +36,6 @@ public class CommandEvent extends ActionEvent
      */
     public CommandEvent (Object source, long when, int modifiers, String action, Object argument)
     {
-        super(source, when, modifiers, action);
-        _argument = argument;
+        super(source, when, modifiers, action, argument);
     }
-
-    /**
-     * Returns the argument associated with this event.
-     */
-    public Object getArgument ()
-    {
-        return _argument;
-    }
-
-    @Override // documentation inherited
-    protected void toString (StringBuilder buf)
-    {
-        super.toString(buf);
-        buf.append(", argument=").append(_argument);
-    }
-
-    /** The argument of the command. */
-    protected Object _argument;
 }

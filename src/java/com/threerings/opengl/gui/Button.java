@@ -52,7 +52,7 @@ public class Button extends Label
      */
     public Button (GlContext ctx, String text)
     {
-        this(ctx, text, "");
+        this(ctx, text, null, null, null);
     }
 
     /**
@@ -62,7 +62,15 @@ public class Button extends Label
      */
     public Button (GlContext ctx, String text, String action)
     {
-        this(ctx, text, null, action);
+        this(ctx, text, null, action, null);
+    }
+
+    /**
+     * Creates a button with the specified label, action, and argument.
+     */
+    public Button (GlContext ctx, String text, String action, Object argument)
+    {
+        this(ctx, text, null, action, argument);
     }
 
     /**
@@ -72,8 +80,18 @@ public class Button extends Label
      */
     public Button (GlContext ctx, String text, ActionListener listener, String action)
     {
+        this(ctx, text, listener, action, null);
+    }
+
+    /**
+     * Creates a button with the specified label, action, and argument.
+     */
+    public Button (
+        GlContext ctx, String text, ActionListener listener, String action, Object argument)
+    {
         super(ctx, text);
         _action = action;
+        _argument = argument;
         if (listener != null) {
             addListener(listener);
         }
@@ -85,7 +103,15 @@ public class Button extends Label
      */
     public Button (GlContext ctx, Icon icon, String action)
     {
-        this(ctx, icon, null, action);
+        this(ctx, icon, null, action, null);
+    }
+
+    /**
+     * Creates a button with the specified icon, action, and argument.
+     */
+    public Button (GlContext ctx, Icon icon, String action, Object argument)
+    {
+        this(ctx, icon, null, action, argument);
     }
 
     /**
@@ -95,8 +121,18 @@ public class Button extends Label
      */
     public Button (GlContext ctx, Icon icon, ActionListener listener, String action)
     {
+        this(ctx, icon, listener, action, null);
+    }
+
+    /**
+     * Creates a button with the specified icon, action, and argument.
+     */
+    public Button (
+        GlContext ctx, Icon icon, ActionListener listener, String action, Object argument)
+    {
         super(ctx, icon);
         _action = action;
+        _argument = argument;
         if (listener != null) {
             addListener(listener);
         }
@@ -116,6 +152,22 @@ public class Button extends Label
     public String getAction ()
     {
         return _action;
+    }
+
+    /**
+     * Set the argument dispatched by this button.
+     */
+    public void setArgument (Object argument)
+    {
+        _argument = argument;
+    }
+
+    /**
+     * Get the argument dispatched by this button.
+     */
+    public Object getArgument ()
+    {
+        return _argument;
     }
 
     /**
@@ -267,7 +319,7 @@ public class Button extends Label
     protected void fireAction (long when, int modifiers)
     {
         playFeedbackSound();
-        emitEvent(new ActionEvent(this, when, modifiers, _action));
+        emitEvent(new ActionEvent(this, when, modifiers, _action, _argument));
     }
 
     /**
@@ -287,6 +339,7 @@ public class Button extends Label
     protected boolean _pressed;
     protected long _releasedWhen;
     protected String _action;
+    protected Object _argument;
 
     protected String[] _feedbackSounds = new String[getStateCount()];
 

@@ -27,7 +27,6 @@ package com.threerings.opengl.gui;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ActionEvent;
-import com.threerings.opengl.gui.event.CommandEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
@@ -66,7 +65,7 @@ public class MenuItem extends Label
 
     /**
      * Creates a menu item with the specified text and icon that will generate
-     * a {@link CommandEvent} with the specified action and argument when selected.
+     * an {@link ActionEvent} with the specified action and argument when selected.
      */
     public MenuItem (GlContext ctx, String text, Icon icon, String action, Object argument)
     {

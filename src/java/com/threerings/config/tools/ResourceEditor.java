@@ -49,7 +49,6 @@ import javax.swing.filechooser.FileFilter;
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
 
-import com.samskivert.swing.event.CommandEvent;
 import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.media.image.ColorPository;

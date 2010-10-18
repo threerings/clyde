@@ -32,8 +32,14 @@ public class ActionEvent extends InputEvent
 {
     public ActionEvent (Object source, long when, int modifiers, String action)
     {
+        this(source, when, modifiers, action, null);
+    }
+
+    public ActionEvent (Object source, long when, int modifiers, String action, Object argument)
+    {
         super(source, when, modifiers);
         _action = action;
+        _argument = argument;
     }
 
     /**
@@ -42,6 +48,14 @@ public class ActionEvent extends InputEvent
     public String getAction ()
     {
         return _action;
+    }
+
+    /**
+     * Returns the argument associated with this event.
+     */
+    public Object getArgument ()
+    {
+        return _argument;
     }
 
     // documentation inherited
@@ -63,7 +77,9 @@ public class ActionEvent extends InputEvent
     {
         super.toString(buf);
         buf.append(", action=").append(_action);
+        buf.append(", argument=").append(_argument);
     }
 
     protected String _action;
+    protected Object _argument;
 }

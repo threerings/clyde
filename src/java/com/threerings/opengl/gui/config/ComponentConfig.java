@@ -195,6 +195,10 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(hgroup="a")
         public String action = "";
 
+        /** The argument associated with the action. */
+        @Editable(hgroup="a", nullable=true)
+        public Object argument;
+
         @Override // documentation inherited
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
@@ -208,6 +212,7 @@ public abstract class ComponentConfig extends DeepObject
         {
             super.configure(ctx, scope, msgs, comp);
             ((com.threerings.opengl.gui.Button)comp).setAction(action);
+            ((com.threerings.opengl.gui.Button)comp).setArgument(argument);
         }
 
         @Override // documentation inherited
@@ -221,26 +226,13 @@ public abstract class ComponentConfig extends DeepObject
 
     /**
      * A command button.
+     *
+     * @deprecated Just use Button.
      */
+    @Deprecated
     public static class CommandButton extends Button
     {
-        @Editable(hgroup="a", nullable=true)
-        public Object argument;
-
-        @Override // documentation inherited
-        protected Component maybeRecreate (
-            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
-        {
-            return (getClass(comp) == com.threerings.opengl.gui.CommandButton.class) ?
-                comp : new com.threerings.opengl.gui.CommandButton(ctx, "");
-        }
-
-        @Override // documentation inherited
-        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
-        {
-            super.configure(ctx, scope, msgs, comp);
-            ((com.threerings.opengl.gui.CommandButton)comp).setArgument(argument);
-        }
+        // TODO: Remove
     }
 
     /**

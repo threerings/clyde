@@ -27,12 +27,14 @@ package com.threerings.opengl.gui;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ActionListener;
-import com.threerings.opengl.gui.event.CommandEvent;
 import com.threerings.opengl.gui.icon.Icon;
 
 /**
  * A button that fires a {@link CommandEvent} when clicked.
+ *
+ * @deprecated Just use Button.
  */
+@Deprecated
 public class CommandButton extends Button
 {
     /**
@@ -40,7 +42,7 @@ public class CommandButton extends Button
      */
     public CommandButton (GlContext ctx, String text)
     {
-        this(ctx, text, "", null);
+        super(ctx, text);
     }
 
     /**
@@ -49,7 +51,7 @@ public class CommandButton extends Button
      */
     public CommandButton (GlContext ctx, String text, String action, Object argument)
     {
-        this(ctx, text, null, action, null);
+        super(ctx, text, action, argument);
     }
 
     /**
@@ -60,8 +62,7 @@ public class CommandButton extends Button
     public CommandButton (
         GlContext ctx, String text, ActionListener listener, String action, Object argument)
     {
-        super(ctx, text, listener, action);
-        _argument = argument;
+        super(ctx, text, listener, action, argument);
     }
 
     /**
@@ -71,7 +72,7 @@ public class CommandButton extends Button
     public CommandButton (
         GlContext ctx, Icon icon, String action, Object argument)
     {
-        this(ctx, icon, null, action, null);
+        super(ctx, icon, action, argument);
     }
 
     /**
@@ -82,32 +83,6 @@ public class CommandButton extends Button
     public CommandButton (
         GlContext ctx, Icon icon, ActionListener listener, String action, Object argument)
     {
-        super(ctx, icon, listener, action);
-        _argument = argument;
+        super(ctx, icon, listener, action, argument);
     }
-
-    /**
-     * Configures the argument to be generated when this button is clicked.
-     */
-    public void setArgument (Object argument)
-    {
-        _argument = argument;
-    }
-
-    /**
-     * Returns the argument generated when this button is clicked.
-     */
-    public Object getArgument ()
-    {
-        return _argument;
-    }
-
-    @Override // documentation inherited
-    protected void fireAction (long when, int modifiers)
-    {
-        emitEvent(new CommandEvent(this, when, modifiers, _action, _argument));
-    }
-
-    /** The argument generated when the button is clicked. */
-    protected Object _argument;
 }

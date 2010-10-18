@@ -27,7 +27,6 @@ package com.threerings.opengl.gui.util;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
-import com.threerings.opengl.gui.event.CommandEvent;
 
 import com.samskivert.swing.Controller;
 import com.samskivert.swing.ControllerProvider;
@@ -51,15 +50,15 @@ public class ControllerUtil
      */
     public static void postAction (Component source, String action)
     {
-        postAction(new ActionEvent(source, 0L, 0, action));
+        postAction(source, action, null);
     }
 
     /**
-     * Posts a new {@link CommandEvent} with the supplied parameters to the controller hierarchy.
+     * Posts a new {@link ActionEvent} with the supplied parameters to the controller hierarchy.
      */
     public static void postAction (Component source, String action, Object argument)
     {
-        postAction(new CommandEvent(source, 0L, 0, action, argument));
+        postAction(new ActionEvent(source, 0L, 0, action, argument));
     }
 
     /**
@@ -76,8 +75,7 @@ public class ControllerUtil
             return;
         }
         String action = event.getAction();
-        Object argument = (event instanceof CommandEvent) ?
-            ((CommandEvent)event).getArgument() : null;
+        Object argument = event.getArgument();
         for (Component comp = (Component)source; comp != null; comp = comp.getParent()) {
             if (!(comp instanceof ControllerProvider)) {
                 continue;
