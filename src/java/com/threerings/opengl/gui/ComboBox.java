@@ -313,7 +313,7 @@ public class ComboBox extends Label
         } else {
             setText(item == null ? "" : item.toString());
         }
-        emitEvent(new ActionEvent(this, when, modifiers, "selectionChanged"));
+        emitEvent(new ActionEvent(this, when, modifiers, "selectionChanged", item));
     }
 
     protected void clearCache ()

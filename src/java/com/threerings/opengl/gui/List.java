@@ -163,7 +163,8 @@ public class List extends Container
                 ((ToggleButton)_children.get(_selidx)).setSelected(false);
             }
             _selidx = _children.indexOf(e.getSource());
-            emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(), SELECT));
+            emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
+                SELECT, getSelectedValue()));
         }
     };
 }

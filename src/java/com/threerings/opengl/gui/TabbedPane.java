@@ -362,7 +362,7 @@ public class TabbedPane extends Container
         _selidx = tabidx;
 
         // emit an action event
-        emitEvent(new ActionEvent(this, when, modifiers, "selectionChanged"));
+        emitEvent(new ActionEvent(this, when, modifiers, "selectionChanged", tab.component));
     }
 
     /**

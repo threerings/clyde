@@ -154,7 +154,8 @@ public class ColorPicker extends Component
                 return super.dispatchEvent(event);
             }
             if (_sidx != oidx) {
-                emitEvent(new ActionEvent(this, mev.getWhen(), mev.getModifiers(), SELECT));
+                emitEvent(new ActionEvent(this, mev.getWhen(), mev.getModifiers(),
+                    SELECT, getSelectedColor()));
             }
             return true;
         }

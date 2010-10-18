@@ -262,7 +262,7 @@ public class TextField extends EditableTextComponent
 
                 case ACTION:
                     emitEvent(new ActionEvent(
-                                  this, kev.getWhen(), kev.getModifiers(), ""));
+                                  this, kev.getWhen(), kev.getModifiers(), "", getText()));
                     break;
 
                 case RELEASE_FOCUS:
