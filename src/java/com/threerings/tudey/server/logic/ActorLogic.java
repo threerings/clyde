@@ -232,20 +232,29 @@ public class ActorLogic extends Logic
     {
         // set the warp flag and clear it on the next tick
         _actor.set(Actor.WARP);
+        float oldX = _actor.getTranslation().x;
+        float oldY = _actor.getTranslation().y;
+        float oldR = _actor.getRotation();
         if (tx != x || ty != y) {
             rotation = FloatMath.atan2(ty - y, tx - x);
         }
         move(x, y, rotation);
         if (adjust && _config.spawnMask != 0) {
             _scenemgr.getActorSpace().remove(_shape);
-            if (_scenemgr.collides(_config.spawnMask, getShape(), _scenemgr.getTimestamp())) {
+            if (_scenemgr.collides(_config.spawnMask, getShape(), _scenemgr.getTimestamp()) ||
+                    _scenemgr.getPathfinder().getEntryPath(
+                        this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) == null) {
                 adjustSpawnPoint(tx, ty);
-                if (tx != x || ty != y) {
+                if (_scenemgr.getPathfinder().getEntryPath(
+                            this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) == null) {
+                    move(oldX, oldY, oldR);
+                } else if (tx != x || ty != y) {
                     Vector2f trans = _actor.getTranslation();
                     _actor.setRotation(FloatMath.atan2(ty - trans.y, tx - trans.x));
                     updateShape();
                 }
             }
+
             _scenemgr.getActorSpace().add(_shape);
         }
         _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
