@@ -600,45 +600,46 @@ public class TudeySceneController extends SceneController
      * @param hold if true and the key is pressed and released in the same frame, hold the release
      * event until the next frame so that we have a chance to process the press.
      */
-    protected void addKeyObserver (final int key, final PseudoKeys.Observer observer, boolean hold)
+    protected void addKeyObserver (final int key, PseudoKeys.Observer observer, boolean hold)
     {
-        if (!hold) {
-            ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
-            if (list == null) {
-                _keyObservers.put(key, list = ObserverList.newFastUnsafe());
-            }
-            list.add(observer);
-            return;
-        }
-        class Holder implements PseudoKeys.Observer, Runnable {
-            public void keyPressed (long when, int key, float amount) {
-                observer.keyPressed(when, key, amount);
-                _pressTick = (_pressTick == 0) ? _tickCount : _pressTick;
-                _released = 0L;
-            }
-            public void keyReleased (long when, int key) {
-                if (_tickCount == _pressTick) {
-                    _released = when;
-                    if (!_posted) {
-                        _ctx.getClient().getRunQueue().postRunnable(this);
-                        _posted = true;
+        if (hold) {
+            final PseudoKeys.Observer obs = observer;
+            class Holder implements PseudoKeys.Observer, Runnable {
+                public void keyPressed (long when, int key, float amount) {
+                    obs.keyPressed(when, key, amount);
+                    _pressTick = (_pressTick == 0) ? _tickCount : _pressTick;
+                    _released = 0L;
+                }
+                public void keyReleased (long when, int key) {
+                    if (_tickCount == _pressTick) {
+                        _released = when;
+                        if (!_posted) {
+                            _ctx.getClient().getRunQueue().postRunnable(this);
+                            _posted = true;
+                        }
+                    } else {
+                        obs.keyReleased(when, key);
                     }
-                } else {
-                    observer.keyReleased(when, key);
+                    _pressTick = 0;
                 }
-                _pressTick = 0;
-            }
-            public void run () {
-                if (_released > 0L) {
-                    observer.keyReleased(_released, key);
+                public void run () {
+                    if (_released > 0L) {
+                        obs.keyReleased(_released, key);
+                    }
+                    _posted = false;
                 }
-                _posted = false;
+                protected int _pressTick;
+                protected long _released;
+                protected boolean _posted;
             }
-            protected int _pressTick;
-            protected long _released;
-            protected boolean _posted;
+            observer = new Holder();
         }
-        addKeyObserver(key, new Holder(), false);
+
+        ObserverList<PseudoKeys.Observer> list = _keyObservers.get(key);
+        if (list == null) {
+            _keyObservers.put(key, list = ObserverList.newFastUnsafe());
+        }
+        list.add(observer);
     }
 
     /**
