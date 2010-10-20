@@ -133,7 +133,7 @@ public class PseudoKeys
         // documentation inherited from interface KeyListener
         public void keyPressed (KeyEvent event)
         {
-            if (!event.isConsumed()) {
+            if (!(event.isConsumed() || event.isRepeat())) {
                 keyPressed(event.getWhen(), event.getKeyCode(), 1f);
             }
         }
