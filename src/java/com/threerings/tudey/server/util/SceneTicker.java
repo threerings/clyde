@@ -209,10 +209,10 @@ public abstract class SceneTicker
 
         // note when we enter or leave a period of overlong ticking
         if (elapsed >= _targetInterval*5 && !_lastLong) {
-            log.info("Overlong ticking started.", "elapsed", elapsed, "target", _targetInterval);
+            log.debug("Overlong ticking started.", "elapsed", elapsed, "target", _targetInterval);
             _lastLong = true;
         } else if (elapsed <= _targetInterval*2 && _lastLong) {
-            log.info("Overlong ticking stopped.", "elapsed", elapsed, "target", _targetInterval);
+            log.debug("Overlong ticking stopped.", "elapsed", elapsed, "target", _targetInterval);
             _lastLong = false;
         }
 
