@@ -59,7 +59,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     /**
      * Instantiates a {@link ScrollingList} with an initial value collection.
      */
-    public ScrollingList (GlContext ctx, Collection<V> values)
+    public ScrollingList (GlContext ctx, Collection<? extends V> values)
     {
         super(ctx, new BorderLayout(0, 0));
 
@@ -99,7 +99,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     /**
      * Inserts a collection of values into our list.
      */
-    public void addValues (Collection<V> values)
+    public void addValues (Collection<? extends V> values)
     {
         addValues(_values.size(), values);
     }
@@ -107,7 +107,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     /**
      * Inserts a collection of values into our list starting at the specified position.
      */
-    public void addValues (int index, Collection<V> values)
+    public void addValues (int index, Collection<? extends V> values)
     {
         for (V value : values) {
             _values.add(index++, new Entry<V, C>(value));
