@@ -127,16 +127,45 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     }
 
     /**
+     * Returns the index of a value.
+     */
+    public int getIndex (V value)
+    {
+        for (int ii = 0, nn = _values.size(); ii < nn; ii++) {
+            if (_values.get(ii).value == value) {
+                return ii;
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Removes values from the top of the list.
      */
     public void removeValuesFromTop (int num)
     {
-        num = Math.min(num, _values.size());
-        for (int ii = 0; ii < num; ii++) {
-            Entry<V, C> value = _values.remove(0);
+        removeValuesAt(0, num);
+    }
+
+    /**
+     * Removes values starting at a specific index.
+     */
+    public void removeValuesAt (int index, int num)
+    {
+        num = Math.min(index + num, _values.size());
+        for (int ii = index; ii < num; ii++) {
+            Entry<V, C> value = _values.remove(index);
             _vport.remove(value.component);
         }
         _vport.invalidate();
+    }
+
+    /**
+     * Snaps the view so the value is at the top.
+     */
+    public void snapToValue (V value)
+    {
+        _vport.invalidateAndSnapTo(value);
     }
 
     /**
@@ -184,6 +213,15 @@ public abstract class ScrollingList<V, C extends Component> extends Container
         {
             _snap =
                 _model.getValue() + _model.getExtent() >= _model.getMaximum();
+            invalidate();
+        }
+
+        /**
+         * Recomputes our layout and snaps to the specified value.
+         */
+        public void invalidateAndSnapTo (V value)
+        {
+            _snapValue = value;
             invalidate();
         }
 
@@ -236,6 +274,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             // first make sure all of our entries have been measured and
             // compute our total height and extent
             int totheight = 0;
+            int snapheight = 0;
             for (Entry<V, C> entry : _values) {
                 if (entry.height < 0) {
                     if (entry.component == null) {
@@ -252,6 +291,9 @@ public abstract class ScrollingList<V, C extends Component> extends Container
                         remove(entry.component);
                     }
                 }
+                if (entry.value == _snapValue) {
+                    snapheight = totheight;
+                }
                 totheight += entry.height;
             }
             if (_values.size() > 1) {
@@ -261,8 +303,14 @@ public abstract class ScrollingList<V, C extends Component> extends Container
 
             // if our most recent value was added with _snap then we scroll to
             // the bottom on this layout and clear our snappy flag
-            int value = _snap ? (totheight-extent) : _model.getValue();
-            _snap = false;
+            int value = _model.getValue();
+            if (_snap) {
+                value = totheight-extent;
+                _snap = false;
+            } else if (_snapValue != null) {
+                _snapValue = null;
+                value = Math.min(totheight - extent, snapheight);
+            }
 
             // if our extent or total height have changed, update the model
             // (because we're currently invalid, the resulting call to
@@ -381,6 +429,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
 
         protected int _offset;
         protected boolean _snap;
+        protected V _snapValue;
         protected Rectangle _srect = new Rectangle();
     }
 
