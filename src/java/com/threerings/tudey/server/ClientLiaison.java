@@ -159,6 +159,11 @@ public class ClientLiaison
      */
     public void enqueueInput (int acknowledge, int ping, InputFrame[] frames)
     {
+        // ignore input send after disconnect
+        if (!_receiving) {
+            return;
+        }
+
         // remove all tick records up to the acknowledgement
         while (acknowledge > _records.get(0).getTimestamp()) {
             _records.remove(0);
