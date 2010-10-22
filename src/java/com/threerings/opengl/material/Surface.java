@@ -165,7 +165,7 @@ public class Surface extends SimpleScope
             BLANK_TECHNIQUE : _materialConfig.getTechnique(_ctx, scheme);
         if (technique == null) {
             log.warning("No technique available to render material.",
-                "material", _materialConfig.getName(), "scheme", scheme);
+                "material", _materialConfig.getReference(), "scheme", scheme);
             technique = BLANK_TECHNIQUE;
         }
         if (technique.receivesProjections) {

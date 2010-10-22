@@ -57,6 +57,16 @@ public class ParameterizedConfig extends ManagedConfig
     }
 
     @Override // documentation inherited
+    public ConfigReference<? extends ManagedConfig> getReference ()
+    {
+        ConfigReference<? extends ManagedConfig> ref = super.getReference();
+        if (_args != null) {
+            _args.copy(ref.getArguments());
+        }
+        return ref;
+    }
+
+    @Override // documentation inherited
     public ParameterizedConfig getInstance (Scope scope, ArgumentMap args)
     {
         if (args == null || args.isEmpty() || parameters.length == 0) {
@@ -86,9 +96,11 @@ public class ParameterizedConfig extends ManagedConfig
         }
         ParameterizedConfig instance = _derived.get(args);
         if (instance == null) {
-            _derived.put(args.clone(), instance = (ParameterizedConfig)clone());
+            ArgumentMap cargs = args.clone();
+            _derived.put(cargs, instance = (ParameterizedConfig)clone());
             instance.init(_cfgmgr);
             instance._base = this;
+            instance._args = cargs;
             applyArguments(instance, args);
         }
         return instance.getBound(scope);
@@ -189,6 +201,10 @@ public class ParameterizedConfig extends ManagedConfig
      * from being garbage-collected). */
     @DeepOmit
     protected transient ParameterizedConfig _base;
+
+    /** The arguments applied to the configuration, if any. */
+    @DeepOmit
+    protected transient ArgumentMap _args;
 
     /** Maps arguments to derived instances. */
     @DeepOmit

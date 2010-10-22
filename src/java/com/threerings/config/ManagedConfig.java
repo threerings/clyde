@@ -70,6 +70,14 @@ public abstract class ManagedConfig extends DeepObject
     }
 
     /**
+     * Returns a reference to this configuration based on its name and arguments.
+     */
+    public ConfigReference<? extends ManagedConfig> getReference ()
+    {
+        return new ConfigReference<ManagedConfig>(_name);
+    }
+
+    /**
      * Returns a reference to the config manager to use when resolving references within this
      * config.
      */
