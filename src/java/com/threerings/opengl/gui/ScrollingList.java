@@ -275,7 +275,8 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             // compute our total height and extent
             int totheight = 0;
             int snapheight = 0;
-            for (Entry<V, C> entry : _values) {
+            for (int ii = 0, nn = _values.size(); ii < nn; ii++) {
+                Entry<V, C> entry = _values.get(ii);
                 if (entry.height < 0) {
                     if (entry.component == null) {
                         entry.component = createComponent(entry.value);
@@ -292,7 +293,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
                     }
                 }
                 if (entry.value == _snapValue) {
-                    snapheight = totheight;
+                    snapheight = totheight + gap * ii;
                 }
                 totheight += entry.height;
             }
@@ -310,6 +311,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             } else if (_snapValue != null) {
                 _snapValue = null;
                 value = Math.min(totheight - extent, snapheight);
+                _model.setValue(value);
             }
 
             // if our extent or total height have changed, update the model
