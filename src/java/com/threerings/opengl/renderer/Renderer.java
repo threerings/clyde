@@ -148,6 +148,7 @@ public class Renderer
         _readBuffer = buf.get(0);
 
         // to make things easier for texture loading, we just keep this at one (default is four)
+        GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
         GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
 
         // initialize the viewport
