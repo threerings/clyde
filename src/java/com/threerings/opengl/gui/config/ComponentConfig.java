@@ -225,15 +225,6 @@ public abstract class ComponentConfig extends DeepObject
     }
 
     /**
-     * @deprecated Just use Button.
-     */
-    @Deprecated
-    public static class CommandButton extends Button
-    {
-        // TODO: Remove
-    }
-
-    /**
      * A toggle button.
      */
     public static class ToggleButton extends Button
