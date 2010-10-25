@@ -319,6 +319,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             // invalidate() will have no effect)
             if (extent != _model.getExtent() ||
                 totheight != _model.getMaximum()) {
+                value = Math.min(value, totheight - extent);
                 _model.setRange(0, value, extent, totheight);
             }
 

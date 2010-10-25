@@ -229,6 +229,13 @@ public class BoundedRangeModel
         };
     }
 
+    @Override // documentation inherited
+    public String toString ()
+    {
+        return "Bounded Range (min:" + _min + ", max:" + _max + ", value:" + _value +
+            ", extent:" + _extent + ")";
+    }
+
     protected int _min, _max;
     protected int _value, _extent;
     protected ArrayList<ChangeListener> _listeners = new ArrayList<ChangeListener>();
