@@ -41,6 +41,7 @@ import com.samskivert.util.SoftCache;
 
 import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Shader;
+import com.threerings.opengl.renderer.ShaderObject;
 
 import static com.threerings.opengl.Log.*;
 
@@ -103,9 +104,25 @@ public class ShaderCache extends ResourceCache
                     "fragment", fragment, "log", program.getInfoLog());
                 return null;
             }
+            maybeCheckLog(program, "vertex", vertex, "fragment", fragment);
             _programs.put(key, program);
         }
         return program;
+    }
+
+    /**
+     * If so configured, checks the specified log for the dreaded "software" keyword.
+     */
+    protected static void maybeCheckLog (ShaderObject object, Object... args)
+    {
+        if (!CHECK_LOGS) {
+            return;
+        }
+        String infolog = object.getInfoLog();
+        if (infolog.length() > 80 || infolog.toLowerCase().contains("software")) {
+            log.warning("Possibly handling shader in software.",
+                ArrayUtil.concatenate(args, new Object[] { "log", infolog }));
+        }
     }
 
     /**
@@ -190,6 +207,7 @@ public class ShaderCache extends ResourceCache
                     key.ddefs, "path", path, "log", shader.getInfoLog());
                 return null;
             }
+            maybeCheckLog(shader, "defs", key.defs, "ddefs", key.ddefs, "path", path);
             return shader;
         }
         protected String getResourcePath (ShaderKey key) {
@@ -233,4 +251,7 @@ public class ShaderCache extends ResourceCache
         _types.put("vert", ARBVertexShader.GL_VERTEX_SHADER_ARB);
         _types.put("frag", ARBFragmentShader.GL_FRAGMENT_SHADER_ARB);
     }
+
+    /** Whether or not we should check the logs even if the shader compiles/links successfully. */
+    protected static final boolean CHECK_LOGS = true;
 }
