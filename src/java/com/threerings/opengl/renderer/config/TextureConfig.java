@@ -39,6 +39,7 @@ import org.lwjgl.opengl.ARBTextureCompression;
 import org.lwjgl.opengl.ARBTextureMirroredRepeat;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+import org.lwjgl.opengl.GL14;
 import org.lwjgl.opengl.GLContext;
 
 import com.google.common.collect.Lists;
@@ -241,9 +242,19 @@ public class TextureConfig extends ParameterizedConfig
                 return GLContext.getCapabilities().GL_ARB_texture_border_clamp || fallback;
             }
         },
-        MIRRORED_REPEAT(ARBTextureMirroredRepeat.GL_MIRRORED_REPEAT_ARB) {
+        MIRRORED_REPEAT(GL14.GL_MIRRORED_REPEAT) {
+            public int getConstant () {
+                if (GLContext.getCapabilities().OpenGL14) {
+                    return _constant;
+                } else if (GLContext.getCapabilities().GL_ARB_texture_mirrored_repeat) {
+                    return ARBTextureMirroredRepeat.GL_MIRRORED_REPEAT_ARB;
+                } else {
+                    return GL11.GL_REPEAT;
+                }
+            }
             public boolean isSupported (boolean fallback) {
-                return GLContext.getCapabilities().GL_ARB_texture_mirrored_repeat;
+                return GLContext.getCapabilities().OpenGL14 ||
+                    GLContext.getCapabilities().GL_ARB_texture_mirrored_repeat || fallback;
             }
         };
 
