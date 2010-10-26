@@ -795,7 +795,12 @@ public class TudeySceneManager extends SceneManager
         TudeyBodyObject tbody = (TudeyBodyObject)body;
         if (tbody.pawnId != 0) {
             ActorLogic logic = _actors.get(tbody.pawnId);
-            logic.bodyWillLeave(body);
+            if (logic != null) {
+                logic.bodyWillLeave(body);
+            } else {
+                log.warning("Missing pawn for leaving body.", "pawnId", tbody.pawnId,
+                    "who", tbody.who(), "where", where());
+            }
             tbody.setPawnId(0);
         }
     }
