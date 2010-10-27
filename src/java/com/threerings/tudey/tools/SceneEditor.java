@@ -81,8 +81,6 @@ import javax.swing.undo.UndoableEditSupport;
 import org.lwjgl.opengl.GL11;
 
 import com.apple.eawt.Application;
-import com.apple.eawt.ApplicationAdapter;
-import com.apple.eawt.ApplicationEvent;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -402,6 +400,9 @@ public class SceneEditor extends TudeyTool
     /**
      * Configure Mac support, if we're running on a Mac.
      */
+    // ApplicationAdapter and friends are deprecated, but the replacements are only present
+    // in the latest Apple Java. I'm sure we could update at some point.
+    @SuppressWarnings("deprecation")
     protected void setupMacSupport ()
     {
         Application app = Application.getApplication();
@@ -413,8 +414,8 @@ public class SceneEditor extends TudeyTool
         app.removeAboutMenuItem();
 
         // add a listener to gracefully shut down
-        app.addApplicationListener(new ApplicationAdapter() {
-            @Override public void handleQuit (ApplicationEvent event) {
+        app.addApplicationListener(new com.apple.eawt.ApplicationAdapter() {
+            @Override public void handleQuit (com.apple.eawt.ApplicationEvent event) {
                 // always reject the quit, and just call shutdown()
                 event.setHandled(false);
                 shutdown();
