@@ -175,6 +175,29 @@ public abstract class ScrollingList<V, C extends Component> extends Container
     protected abstract C createComponent (V value);
 
     /**
+     * Calculates the height of an entry.
+     */
+    protected void computeHeight (Entry<V, C> entry, Container container)
+    {
+        if (entry.height < 0) {
+            if (entry.component == null) {
+                entry.component = createComponent(entry.value);
+            }
+            boolean remove = false;
+            if (!entry.component.isAdded()) {
+                container.add(entry.component);
+                remove = true;
+            }
+            int twidth = container.getWidth() - container.getInsets().getHorizontal();
+            entry.height =
+                entry.component.getPreferredSize(twidth, 0).height;
+            if (remove) {
+                remove(entry.component);
+            }
+        }
+    }
+
+    /**
      * Adds a value to the list and snaps to the bottom of the list if desired.
      */
     protected void addValue (int index, V value, boolean snap)
@@ -266,9 +289,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
         @Override // from Component
         public void layout ()
         {
-            Insets insets = getInsets();
-            int twidth = getWidth() - insets.getHorizontal();
-            int theight = getHeight() - insets.getVertical();
+            int theight = getHeight() - getInsets().getVertical();
             int gap = ((GroupLayout)getLayoutManager()).getGap();
 
             // first make sure all of our entries have been measured and
@@ -277,21 +298,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             int snapheight = 0;
             for (int ii = 0, nn = _values.size(); ii < nn; ii++) {
                 Entry<V, C> entry = _values.get(ii);
-                if (entry.height < 0) {
-                    if (entry.component == null) {
-                        entry.component = createComponent(entry.value);
-                    }
-                    boolean remove = false;
-                    if (!entry.component.isAdded()) {
-                        add(entry.component);
-                        remove = true;
-                    }
-                    entry.height =
-                        entry.component.getPreferredSize(twidth, 0).height;
-                    if (remove) {
-                        remove(entry.component);
-                    }
-                }
+                computeHeight(entry, this);
                 if (entry.value == _snapValue) {
                     snapheight = totheight + gap * ii;
                 }
