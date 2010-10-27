@@ -62,10 +62,14 @@ public abstract class ShaderObject
         ARBShaderObjects.glGetObjectParameterARB(
             _id, ARBShaderObjects.GL_OBJECT_INFO_LOG_LENGTH_ARB, ibuf);
 
-        // then the log itself
-        ByteBuffer bbuf = BufferUtils.createByteBuffer(ibuf.get(0));
+        // then the log itself (if the length is greater than zero)
+        int length = ibuf.get(0);
+        if (length <= 0) {
+            return "";
+        }
+        ByteBuffer bbuf = BufferUtils.createByteBuffer(length);
         ARBShaderObjects.glGetInfoLogARB(_id, ibuf, bbuf);
-        bbuf.limit(ibuf.get(0));
+        bbuf.limit(length);
 
         // convert from ASCII and return
         return ASCII_CHARSET.decode(bbuf).toString();
