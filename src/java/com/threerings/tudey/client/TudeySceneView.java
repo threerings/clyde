@@ -1124,8 +1124,9 @@ public class TudeySceneView extends DynamicScope
     // documentation inherited from interface ChatDisplay
     public boolean displayMessage (ChatMessage msg, boolean alreadyDisplayed)
     {
-        if (!(msg instanceof UserMessage && chatType().equals(msg.localtype)) ||
-                msg instanceof TellFeedbackMessage) {
+        if (!(msg instanceof UserMessage) || msg instanceof TellFeedbackMessage ||
+                !(ChatCodes.PLACE_CHAT_TYPE.equals(msg.localtype) ||
+                    getChatType().equals(msg.localtype))) {
             return false;
         }
         UserMessage umsg = (UserMessage)msg;
@@ -1442,9 +1443,9 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
-     * The valid chat type for this view.
+     * Returns the valid chat type for this view.
      */
-    protected String chatType ()
+    protected String getChatType ()
     {
         return ChatCodes.PLACE_CHAT_TYPE;
     }
