@@ -164,9 +164,14 @@ public class ClientLiaison
             return;
         }
 
-        // remove all tick records up to the acknowledgement
+        // remove all tick records up to (but not including) the acknowledgement
         while (acknowledge > _records.get(0).getTimestamp()) {
-            _records.remove(0);
+            if (_records.size() > 1) {
+                _records.remove(0);
+            } else {
+                log.warning("Received invalid acknowledgement.", "who", _bodyobj.who(),
+                    "acknowledge", acknowledge, "last", _records.get(0).getTimestamp());
+            }
         }
 
         // remember ping
