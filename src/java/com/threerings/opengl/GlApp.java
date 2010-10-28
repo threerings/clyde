@@ -120,6 +120,26 @@ public abstract class GlApp extends DynamicScope
     }
 
     /**
+     * Enables or disables compatibility mode, which disables certain features for maximum
+     * compatibility.
+     */
+    public void setCompatibilityMode (boolean enabled)
+    {
+        if (_compatibilityMode != enabled) {
+            _compatibilityMode = enabled;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Checks whether compatibility mode is enabled.
+     */
+    public boolean getCompatibilityMode ()
+    {
+        return _compatibilityMode;
+    }
+
+    /**
      * Returns a reference to the stream gain.
      */
     public MutableFloat getStreamGain ()
@@ -456,6 +476,10 @@ public abstract class GlApp extends DynamicScope
     /** The base render scheme (used to select material techniques). */
     @Scoped
     protected String _renderScheme;
+
+    /** Controls whether certain features are disabled for maximum compatibility. */
+    @Scoped
+    protected boolean _compatibilityMode;
 
     /** A scoped reference to the root view transform. */
     @Scoped

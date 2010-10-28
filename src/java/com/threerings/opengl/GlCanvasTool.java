@@ -285,8 +285,9 @@ public abstract class GlCanvasTool extends GlCanvasApp
             // set the background color
             _compositor.getDefaultBackgroundColor().set(getPref("background_color", Color4f.GRAY));
 
-            // and the render scheme
+            // and the render scheme/compatibility mode
             _renderScheme = _prefs.get("render_scheme", null);
+            _compatibilityMode = _prefs.getBoolean("compatibility_mode", false);
         }
 
         /**
@@ -395,6 +396,25 @@ public abstract class GlCanvasTool extends GlCanvasApp
         public String getRenderScheme ()
         {
             return _renderScheme;
+        }
+
+        /**
+         * Sets whether or not to enable compatibility mode.
+         */
+        @Editable(weight=6)
+        public void setCompatibilityMode (boolean enabled)
+        {
+            GlCanvasTool.this.setCompatibilityMode(enabled);
+            _prefs.putBoolean("compatibility_mode", enabled);
+        }
+
+        /**
+         * Returns the active compatibility mode setting.
+         */
+        @Editable
+        public boolean getCompatibilityMode ()
+        {
+            return _compatibilityMode;
         }
 
         /**

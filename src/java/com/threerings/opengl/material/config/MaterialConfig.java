@@ -151,7 +151,8 @@ public class MaterialConfig extends ParameterizedConfig
          */
         protected ArrayList<TechniqueConfig> getProcessedTechniques (GlContext ctx)
         {
-            if (_processedTechniques == null) {
+            boolean compatibility = ctx.getApp().getCompatibilityMode();
+            if (_processedTechniques == null || _compatibilityMode != compatibility) {
                 _processedTechniques = new ArrayList<TechniqueConfig>(techniques.length);
                 ArrayList<TechniqueConfig> fallbacks = new ArrayList<TechniqueConfig>(0);
                 for (TechniqueConfig technique : techniques) {
@@ -167,6 +168,7 @@ public class MaterialConfig extends ParameterizedConfig
                     }
                 }
                 _processedTechniques.addAll(fallbacks);
+                _compatibilityMode = compatibility;
             }
             return _processedTechniques;
         }
@@ -174,6 +176,10 @@ public class MaterialConfig extends ParameterizedConfig
         /** The cached list of supported techniques. */
         @DeepOmit
         protected transient ArrayList<TechniqueConfig> _processedTechniques;
+
+        /** The compatibility mode setting when the techniques were processed. */
+        @DeepOmit
+        protected transient boolean _compatibilityMode;
     }
 
     /**

@@ -1733,7 +1733,7 @@ public class SceneEditor extends TudeyTool
         /**
          * Sets the refresh interval.
          */
-        @Editable(weight=6)
+        @Editable(weight=7)
         public void setDebugRegions (boolean debug)
         {
             _prefs.putBoolean("debug_regions", debug);

@@ -102,7 +102,8 @@ public abstract class ShaderStateConfig extends DeepObject
         public boolean isSupported (GlContext ctx, boolean fallback)
         {
             return (vertex == null || GLContext.getCapabilities().GL_ARB_vertex_shader) &&
-                (fragment == null || GLContext.getCapabilities().GL_ARB_fragment_shader);
+                (fragment == null || GLContext.getCapabilities().GL_ARB_fragment_shader) &&
+                    !ctx.getApp().getCompatibilityMode();
         }
 
         @Override // documentation inherited

@@ -146,7 +146,7 @@ public abstract class ModelTool extends GlCanvasTool
         /**
          * Sets the environment models to include in the scene.
          */
-        @Editable(weight=6)
+        @Editable(weight=7)
         public void setEnvironmentModels (EnvironmentModel[] models)
         {
             putPref("environment_models", _environmentModels = models);
