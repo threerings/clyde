@@ -870,7 +870,7 @@ public class TudeySceneManager extends SceneManager
             client.setTarget((PawnLogic)target);
         } else {
             log.warning("User tried to target non-pawn.", "who",
-                caller.who(), "actor", target.getActor());
+                caller.who(), "actor", (target == null) ? null : target.getActor());
         }
     }
 
