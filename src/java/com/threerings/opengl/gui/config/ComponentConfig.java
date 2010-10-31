@@ -68,10 +68,10 @@ import com.threerings.opengl.util.GlContext;
     ComponentConfig.List.class, ComponentConfig.PasswordField.class,
     ComponentConfig.RenderableView.class, ComponentConfig.ScrollBar.class,
     ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
-    ComponentConfig.Spacer.class, ComponentConfig.StatusLabel.class,
-    ComponentConfig.TabbedPane.class, ComponentConfig.TextArea.class,
-    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
-    ComponentConfig.UserInterface.class })
+    ComponentConfig.Spacer.class, ComponentConfig.Spinner.class,
+    ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
+    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
+    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -603,6 +603,39 @@ public abstract class ComponentConfig extends DeepObject
         {
             return (getClass(comp) == com.threerings.opengl.gui.Spacer.class) ?
                 comp : new com.threerings.opengl.gui.Spacer(ctx);
+        }
+    }
+
+    public static class Spinner extends ComponentConfig
+    {
+        /** The style for the editor, if non-default. */
+        @Editable(nullable=true)
+        public ConfigReference<StyleConfig> editorStyle;
+
+        /** The style for the next button, if non-default. */
+        @Editable(nullable=true)
+        public ConfigReference<StyleConfig> nextStyle;
+
+        /** The style for the previous button, if non-default. */
+        @Editable(nullable=true)
+        public ConfigReference<StyleConfig> previousStyle;
+
+        @Override
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.Spinner.class) ?
+                comp : new com.threerings.opengl.gui.Spinner(ctx);
+        }
+
+        @Override
+        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            super.configure(ctx, scope, msgs, comp);
+            com.threerings.opengl.gui.Spinner spinner = (com.threerings.opengl.gui.Spinner)comp;
+            spinner.setEditorStyleConfig(editorStyle);
+            spinner.setNextStyleConfig(nextStyle);
+            spinner.setPreviousStyleConfig(previousStyle);
         }
     }
 
