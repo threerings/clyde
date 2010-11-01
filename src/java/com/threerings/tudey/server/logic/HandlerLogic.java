@@ -110,6 +110,8 @@ public abstract class HandlerLogic extends Logic
         {
             HandlerConfig.Timer config = (HandlerConfig.Timer)_config;
             _limit = (config.limit == 0) ? Integer.MAX_VALUE : config.limit;
+            // offset -> initialDelay: makes offset 0 behave as before and effects negative offsets.
+            float initialDelay = config.interval + config.offset;
             (_interval = new Interval(_scenemgr) {
                 public void expired () {
                     execute(_scenemgr.getTimestamp());
@@ -117,7 +119,7 @@ public abstract class HandlerLogic extends Logic
                         _interval.cancel();
                     }
                 }
-            }).schedule((long)(config.interval * 1000f), true);
+            }).schedule((long)(initialDelay * 1000f), (long)(config.interval * 1000f));
         }
 
         @Override // documentation inherited

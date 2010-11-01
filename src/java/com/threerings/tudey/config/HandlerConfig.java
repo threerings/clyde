@@ -97,6 +97,10 @@ public abstract class HandlerConfig extends DeepObject
         @Strippable
         public float interval = 1f;
 
+        /** The offset, in seconds. */
+        @Editable(step=0.1, hgroup="i")
+        public float offset = 0f;
+
         /** The number of times to fire the timer (or zero for unlimited). */
         @Editable(min=0, hgroup="i")
         @Strippable
