@@ -598,7 +598,8 @@ public class TudeySceneView extends DynamicScope
      * Requests to prespawn an actor.
      */
     public ActorSprite prespawnActor (
-        int timestamp, Vector2f translation, float rotation, ConfigReference<ActorConfig> ref)
+        int timestamp, ActorSprite source, Vector2f translation,
+        float rotation, ConfigReference<ActorConfig> ref)
     {
         // attempt to resolve the implementation
         ConfigManager cfgmgr = _ctx.getConfigManager();
@@ -611,6 +612,9 @@ public class TudeySceneView extends DynamicScope
         int id = -timestamp;
         Actor actor = original.createActor(ref, id, timestamp, translation, rotation);
         actor.init(cfgmgr);
+        if (actor instanceof Prespawnable && source != null) {
+            ((Prespawnable)actor).noteSource(source.getActor());
+        }
         ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
         _actorSprites.put(id, sprite);
         return sprite;

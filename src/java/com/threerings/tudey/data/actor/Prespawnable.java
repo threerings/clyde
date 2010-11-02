@@ -31,6 +31,12 @@ package com.threerings.tudey.data.actor;
 public interface Prespawnable
 {
     /**
+     * Notes the source of the prespawn.  Whether or not this changes the actor's state is
+     * implemention-dependent.
+     */
+    public void noteSource (Actor actor);
+
+    /**
      * Sets the oid of the client that (may have) prespawned the actor, or zero for none.
      */
     public void setClientOid (int clientOid);
