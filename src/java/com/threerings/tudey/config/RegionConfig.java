@@ -52,6 +52,12 @@ public abstract class RegionConfig extends DeepObject
         /** The location to use. */
         @Editable
         public TargetConfig location = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            location.invalidate();
+        }
     }
 
     /**
@@ -88,6 +94,7 @@ public abstract class RegionConfig extends DeepObject
         @Override // documentation inherited
         public void invalidate ()
         {
+            super.invalidate();
             shape.invalidate();
         }
     }
