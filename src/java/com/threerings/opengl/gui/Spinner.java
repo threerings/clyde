@@ -71,7 +71,7 @@ public class Spinner extends Container
             if (isAdded()) {
                 oldModel.removeChangeListener(_modelListener);
                 newModel.addChangeListener(_modelListener);
-                valueChanged();
+                valueChanged(true);
             }
         }
     }
@@ -107,7 +107,7 @@ public class Spinner extends Container
         super.wasAdded();
 
         _model.addChangeListener(_modelListener);
-        valueChanged();
+        valueChanged(false);
     }
 
     @Override
@@ -164,13 +164,13 @@ public class Spinner extends Container
      * The state of the model has changed: update our subcomponents and fire an action
      * if applicable.
      */
-    protected void valueChanged ()
+    protected void valueChanged (boolean notify)
     {
         _next.setEnabled(null != _model.getNextValue());
         _prev.setEnabled(null != _model.getPreviousValue());
         _editor.setText(String.valueOf(_model.getValue()));
 
-        if (isAdded()) {
+        if (notify && isAdded()) {
             Root root = getWindow().getRoot();
             fireAction(root.getTickStamp(), root.getModifiers());
         }
@@ -211,7 +211,7 @@ public class Spinner extends Container
     /** Listens for changes to the model and updates our state. */
     protected ChangeListener _modelListener = new ChangeListener() {
         public void stateChanged (ChangeEvent e) {
-            valueChanged();
+            valueChanged(true);
         }
     };
 
