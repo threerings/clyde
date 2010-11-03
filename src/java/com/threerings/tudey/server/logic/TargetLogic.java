@@ -26,6 +26,7 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 
 import com.google.common.collect.Lists;
@@ -440,6 +441,33 @@ public abstract class TargetLogic extends Logic
 
         /** Holds the excluded targets during processing. */
         protected ArrayList<Logic> _excluded = Lists.newArrayList();
+    }
+
+    /**
+     * Logic class for randomized target.
+     */
+    public static class Randomized extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            _target.resolve(activator, _targets);
+            Collections.shuffle(_targets);
+            results.addAll(_targets);
+            _targets.clear();
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((TargetConfig.Randomized)_config).target, _source);
+        }
+
+        /** The contained target. */
+        protected TargetLogic _target;
+
+        /** Holds the targets during processing. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
     }
 
     /**

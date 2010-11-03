@@ -41,7 +41,8 @@ import com.threerings.util.DeepObject;
     TargetConfig.Intersecting.class, TargetConfig.RandomSubset.class,
     TargetConfig.NearestSubset.class, TargetConfig.FarthestSubset.class,
     TargetConfig.Conditional.class, TargetConfig.Compound.class,
-    TargetConfig.Behavior.class, TargetConfig.Excluding.class })
+    TargetConfig.Behavior.class, TargetConfig.Excluding.class,
+    TargetConfig.Randomized.class })
 @Strippable
 public abstract class TargetConfig extends DeepObject
     implements Exportable, Streamable
@@ -302,6 +303,28 @@ public abstract class TargetConfig extends DeepObject
         {
             target.invalidate();
             excluding.invalidate();
+        }
+    }
+
+    /**
+     * Randomizes the order of targets.
+     */
+    public static class Randomized extends TargetConfig
+    {
+        /** The contained target. */
+        @Editable
+        public TargetConfig target = new Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$Randomized";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
