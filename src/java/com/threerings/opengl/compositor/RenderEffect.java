@@ -283,7 +283,7 @@ public class RenderEffect extends DynamicScope
 
         // find a technique to render the effect
         String scheme = ScopeUtil.resolve(_parentScope, "renderScheme", (String)null);
-        Technique technique = (_config == null) ?
+        Technique technique = (_config == null || !_ctx.getApp().getRenderEffects()) ?
             NOOP_TECHNIQUE : _config.getTechnique(_ctx, scheme);
         if (technique == null) {
             log.warning("No technique available to render effect.",

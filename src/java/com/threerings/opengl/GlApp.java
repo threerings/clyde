@@ -140,6 +140,25 @@ public abstract class GlApp extends DynamicScope
     }
 
     /**
+     * Enables or disables render effects.
+     */
+    public void setRenderEffects (boolean enabled)
+    {
+        if (_renderEffects != enabled) {
+            _renderEffects = enabled;
+            wasUpdated();
+        }
+    }
+
+    /**
+     * Checks whether render effects are enabled.
+     */
+    public boolean getRenderEffects ()
+    {
+        return _renderEffects;
+    }
+
+    /**
      * Returns a reference to the stream gain.
      */
     public MutableFloat getStreamGain ()
@@ -480,6 +499,10 @@ public abstract class GlApp extends DynamicScope
     /** Controls whether certain features are disabled for maximum compatibility. */
     @Scoped
     protected boolean _compatibilityMode;
+
+    /** Controls whether render effects are enabled. */
+    @Scoped
+    protected boolean _renderEffects = true;
 
     /** A scoped reference to the root view transform. */
     @Scoped

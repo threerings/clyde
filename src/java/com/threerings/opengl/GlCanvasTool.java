@@ -285,9 +285,10 @@ public abstract class GlCanvasTool extends GlCanvasApp
             // set the background color
             _compositor.getDefaultBackgroundColor().set(getPref("background_color", Color4f.GRAY));
 
-            // and the render scheme/compatibility mode
+            // and the render scheme, compatibility mode, etc.
             _renderScheme = _prefs.get("render_scheme", null);
             _compatibilityMode = _prefs.getBoolean("compatibility_mode", false);
+            _renderEffects = _prefs.getBoolean("render_effects", true);
         }
 
         /**
@@ -415,6 +416,25 @@ public abstract class GlCanvasTool extends GlCanvasApp
         public boolean getCompatibilityMode ()
         {
             return _compatibilityMode;
+        }
+
+        /**
+         * Sets whether or not to enable render effects.
+         */
+        @Editable(weight=7)
+        public void setRenderEffects (boolean enabled)
+        {
+            GlCanvasTool.this.setRenderEffects(enabled);
+            _prefs.putBoolean("render_effects", enabled);
+        }
+
+        /**
+         * Returns the active render effects setting.
+         */
+        @Editable
+        public boolean getRenderEffects ()
+        {
+            return _renderEffects;
         }
 
         /**
