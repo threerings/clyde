@@ -16,6 +16,7 @@ import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.layout.HGroupLayout;
+import com.threerings.opengl.gui.layout.GroupLayout;
 import com.threerings.opengl.gui.layout.VGroupLayout;
 
 /**
@@ -41,7 +42,7 @@ public class Spinner extends Container
      */
     public Spinner (GlContext ctx, SpinnerModel model)
     {
-        super(ctx, new HGroupLayout());
+        super(ctx);
         _model = model;
 
         // create our subcomponents
@@ -53,11 +54,12 @@ public class Spinner extends Container
         _prev.setStyleConfig(getDefaultStyleConfig() + "Prev");
         _prev.addListener(_buttonListener);
 
-        Container buttons = new Container(ctx, new VGroupLayout());
-        buttons.add(_next);
-        buttons.add(_prev);
+        // lay everything out
+        setLayoutManager(GroupLayout.makeHoriz(
+            GroupLayout.STRETCH, GroupLayout.RIGHT, GroupLayout.EQUALIZE));
         add(_editor);
-        add(buttons);
+        add(GroupLayout.makeVBox(ctx, GroupLayout.CENTER, _next, _prev),
+            GroupLayout.FIXED);
     }
 
     /**
@@ -122,7 +124,7 @@ public class Spinner extends Container
     public void setStyleConfig (String name)
     {
         super.setStyleConfig(name);
-        _editor.setStyleConfig(name);
+        _editor.setStyleConfig(name + "Editor");
         _next.setStyleConfig(name + "Next");
         _prev.setStyleConfig(name + "Prev");
     }
@@ -193,6 +195,7 @@ public class Spinner extends Container
     @Override
     protected void updateFromStyleConfig (int state, StyleConfig.Original config)
     {
+        // errr, ahhh
         super.updateFromStyleConfig(state, config);
     }
 
