@@ -881,22 +881,28 @@ public class TudeySceneController extends SceneController
             _input.remove(0);
         }
 
-        // estimate the size of the transmission
-        InputFrame[] input = _input.toArray(new InputFrame[_input.size()]);
-        int size = 64; // various headers
-        for (InputFrame frame : input) {
-            size += frame.getApproximateSize();
+        // if we know we can't send datagrams, we know it will be received
+        if (!_ctx.getClient().getTransmitDatagrams()) {
+            _tsobj.tudeySceneService.enqueueInputReliable(
+                _ctx.getClient(), _lastDelta, smoothedTime,
+                _input.toArray(new InputFrame[_input.size()]));
+            _input.clear();
+            return;
         }
 
-        // transmit as datagram if we know we can and the size is under the threshold
-        if (_ctx.getClient().getTransmitDatagrams() && size <= Client.MAX_DATAGRAM_SIZE) {
-            _tsobj.tudeySceneService.enqueueInputUnreliable(
-                _ctx.getClient(), _lastDelta, smoothedTime, input);
-        } else {
-            _tsobj.tudeySceneService.enqueueInputReliable(
-                _ctx.getClient(), _lastDelta, smoothedTime, input);
-            _input.clear();
+        // estimate the size of the transmission
+        int size = 64; // various headers
+        for (int ii = 0, nn = _input.size(); ii < nn; ii++) {
+            size += _input.get(ii).getApproximateSize();
         }
+
+        // remove frames until it's small enough to fit in a single datagram
+        while (size > Client.MAX_DATAGRAM_SIZE) {
+            size -= _input.remove(0).getApproximateSize();
+        }
+        _tsobj.tudeySceneService.enqueueInputUnreliable(
+            _ctx.getClient(), _lastDelta, smoothedTime,
+            _input.toArray(new InputFrame[_input.size()]));
     }
 
     /**
