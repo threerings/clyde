@@ -1630,11 +1630,16 @@ public class TudeySceneModel extends SceneModel
     /**
      * Add a new layer to the model.
      */
-    public int addLayer (String name)
+    public int addLayer (String name, int position)
     {
+        // position must be between 1 and the size of layers + 1
         Preconditions.checkNotNull(name);
-        _layers.add(name);
-        return _layers.size();
+        _layers.add(position - 1, name);
+        return position; // assume it worked
+    }
+    @Deprecated public int addLayer (String n)
+    {
+        return addLayer(n, _layers.size() + 1);
     }
 
     /**

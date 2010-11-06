@@ -181,14 +181,14 @@ public class Layers extends EditorTool
     /** An action for adding a new layer. */
     protected Action _addLayerAction = new AbstractAction("+") {
         public void actionPerformed (ActionEvent e) {
-            int newLayer = _scene.getLayers().size();
-            _tableModel.addLayer("Layer " + newLayer);
-            // immediately select it
-            setSelectedLayer(newLayer);
+            int newLayer = getSelectedLayer() + 1;
+            String layerName = (_layerChar++) + " Layer " + newLayer;;
+            setSelectedLayer(_tableModel.addLayer(layerName, newLayer));
         }
         { // initializer
             putValue(Action.SHORT_DESCRIPTION, "Add a new layer");
         }
+        protected char _layerChar = 'a';
     };
 
     /** An action for removing the currently selected layer. */
@@ -264,11 +264,12 @@ class LayerTableModel extends AbstractTableModel
         fireTableDataChanged();
     }
 
-    public void addLayer (String name)
+    public int addLayer (String name, int position)
     {
-        int newLayer = _scene.addLayer(name);
-        _vis.add(Boolean.TRUE);
+        int newLayer = _scene.addLayer(name, position);
+        _vis.add(newLayer, Boolean.TRUE);
         fireTableRowsInserted(newLayer, newLayer);
+        return newLayer;
     }
 
     public void removeLayer (int layer)
