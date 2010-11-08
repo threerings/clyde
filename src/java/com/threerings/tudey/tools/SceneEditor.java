@@ -83,8 +83,10 @@ import org.lwjgl.opengl.GL11;
 import com.apple.eawt.Application;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -95,6 +97,7 @@ import com.samskivert.swing.HGroupLayout;
 import com.samskivert.swing.Spacer;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayUtil;
+import com.samskivert.util.CollectionUtil;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.media.image.ImageUtil;
@@ -227,6 +230,7 @@ public class SceneEditor extends TudeyTool
         menubar.add(file);
         file.add(createMenuItem("new", KeyEvent.VK_N, KeyEvent.VK_N));
         file.add(createMenuItem("open", KeyEvent.VK_O, KeyEvent.VK_O));
+        file.add(_recents = new JMenu(_msgs.get("m.recent")));
         file.addSeparator();
         file.add(createMenuItem("save", KeyEvent.VK_S, KeyEvent.VK_S));
         file.add(createMenuItem("save_as", KeyEvent.VK_A, KeyEvent.VK_A));
@@ -1503,6 +1507,27 @@ public class SceneEditor extends TudeyTool
         _file = file;
         _revert.setEnabled(file != null);
         updateTitle();
+
+        // update recents
+        if (file != null) {
+            String name = file.getPath();
+            _recentFiles.remove(name);
+            _recentFiles.add(0, name);
+            CollectionUtil.limit(_recentFiles, MAX_RECENT_FILES);
+            _prefs.put("recent_files", Joiner.on('\n').join(_recentFiles));
+        }
+        // always update the recent menu
+        _recents.removeAll();
+        for (String recent : _recentFiles) {
+            final File recentFile = new File(recent);
+            Action action = new AbstractAction(recentFile.getName()) {
+                public void actionPerformed (ActionEvent e) {
+                    open(recentFile);
+                }
+            };
+            action.putValue(Action.SHORT_DESCRIPTION, recentFile.getPath());
+            _recents.add(new JMenuItem(action));
+        }
     }
 
     /**
@@ -1773,6 +1798,9 @@ public class SceneEditor extends TudeyTool
     /** The edit menu actions. */
     protected Action _cut, _copy, _paste, _delete;
 
+    /** The recently-opened files. */
+    protected JMenu _recents;
+
     /** The rotate menu items. */
     protected JMenuItem _rotateCW, _rotateCCW;
 
@@ -1917,6 +1945,13 @@ public class SceneEditor extends TudeyTool
 
     /** The application preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(SceneEditor.class);
+
+    /** Recently opened files. */
+    protected static List<String> _recentFiles = Lists.newArrayList(
+        Splitter.on('\n').omitEmptyStrings().split(_prefs.get("recent_files", "")));
+
+    /** The maximum number of recently opened files to show. */
+    protected static final int MAX_RECENT_FILES = 6;
 
     /** The size of the tool buttons. */
     protected static final Dimension TOOL_BUTTON_SIZE = new Dimension(28, 28);
