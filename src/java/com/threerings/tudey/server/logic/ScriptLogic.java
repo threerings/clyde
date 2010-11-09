@@ -107,7 +107,7 @@ public abstract class ScriptLogic extends Logic
                     _agent.stopMoving();
                     _path = null;
                     if (completedPath) {
-                        return;
+                        return true;
                     }
                     createPath();
                     completedPath = true;
