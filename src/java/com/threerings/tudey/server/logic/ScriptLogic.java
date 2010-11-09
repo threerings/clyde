@@ -105,7 +105,12 @@ public abstract class ScriptLogic extends Logic
             while (_path[_pidx].distance(trans) <= getReachRadius()) {
                 if (++_pidx == _path.length) {
                     _agent.stopMoving();
+                    _path = null;
+                    if (completedPath) {
+                        return;
+                    }
                     createPath();
+                    completedPath = true;
                 }
                 if (_path == null) {
                     return true;
