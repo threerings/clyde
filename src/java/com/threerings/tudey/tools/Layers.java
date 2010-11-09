@@ -181,13 +181,12 @@ public class Layers extends EditorTool
     /** An action for adding a new layer. */
     protected Action _addLayerAction = new AbstractAction("+") {
         public void actionPerformed (ActionEvent e) {
-            String layerName = "Layer " + (++_layerCount);
-            setSelectedLayer(_tableModel.addLayer(layerName, getSelectedLayer() + 1));
+            int newLayer = _scene.getLayers().size();
+            setSelectedLayer(_tableModel.addLayer("Layer " + newLayer, newLayer));
         }
         { // initializer
             putValue(Action.SHORT_DESCRIPTION, "Add a new layer");
         }
-        protected int _layerCount;
     };
 
     /** An action for removing the currently selected layer. */
