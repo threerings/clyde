@@ -68,6 +68,26 @@ public class Introspector
     }
 
     /**
+     * Returns an array containing both the static and the dynamic properties of the specified
+     * object.
+     */
+    public static Property[] getProperties (Object object)
+    {
+        Property[] sprops = getProperties(object.getClass());
+        if (!(object instanceof DynamicallyEditable)) {
+            return sprops;
+        }
+        Property[] dprops = ((DynamicallyEditable)object).getDynamicProperties();
+        if (sprops.length == 0) {
+            return dprops;
+        } else if (dprops.length == 0) {
+            return sprops;
+        } else {
+            return ArrayUtil.concatenate(sprops, dprops);
+        }
+    }
+
+    /**
      * Returns an array containing the editable properties of the supplied class.
      */
     public static Property[] getProperties (Class clazz)

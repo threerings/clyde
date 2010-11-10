@@ -205,7 +205,7 @@ public class PropertyUtil
             }
             return;
         }
-        for (Property property : Introspector.getProperties(object.getClass())) {
+        for (Property property : Introspector.getProperties(object)) {
             getReferences(cfgmgr, object, property, configs, resources);
         }
     }
@@ -317,7 +317,7 @@ public class PropertyUtil
             }
             return;
         }
-        for (Property property : Introspector.getProperties(object.getClass())) {
+        for (Property property : Introspector.getProperties(object)) {
             Object value = property.get(object);
             if (value == null) {
                 continue;
