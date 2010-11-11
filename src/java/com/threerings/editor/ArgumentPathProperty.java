@@ -48,9 +48,9 @@ public class ArgumentPathProperty extends PathProperty
      */
     public ArgumentPathProperty (
         ConfigManager cfgmgr, String name, Object reference, String... paths)
-        throws InvalidPathsException
+            throws InvalidPathsException
     {
-        super(cfgmgr, name, reference, paths);
+        super(cfgmgr, name, reference, 1, paths);
         _reference = reference;
     }
 

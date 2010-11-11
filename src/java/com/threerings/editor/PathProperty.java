@@ -101,8 +101,26 @@ public class PathProperty extends Property
      * @param paths the list of paths.
      * @throws InvalidPathsException if none of the supplied paths are valid.
      */
-    public PathProperty (ConfigManager cfgmgr, String name, Object reference, String... paths)
-        throws InvalidPathsException
+    public PathProperty (
+        ConfigManager cfgmgr, String name, Object reference, String... paths)
+            throws InvalidPathsException
+    {
+        this(cfgmgr, name, reference, Integer.MAX_VALUE, paths);
+    }
+
+    /**
+     * Creates a new path property.
+     *
+     * @param cfgmgr the config manager to use when resolving references.
+     * @param name the name of the property.
+     * @param reference the reference object from which we derive our property chains.
+     * @param plimit the maximum number of valid paths desired.
+     * @param paths the list of paths.
+     * @throws InvalidPathsException if none of the supplied paths are valid.
+     */
+    public PathProperty (
+        ConfigManager cfgmgr, String name, Object reference, int plimit, String... paths)
+            throws InvalidPathsException
     {
         _name = name;
 
@@ -113,6 +131,9 @@ public class PathProperty extends Property
             Property[] props = createPath(cfgmgr, reference, path);
             if (props != null && props[props.length - 1].getAnnotation() != null) {
                 list.add(props);
+                if (list.size() >= plimit) {
+                    break;
+                }
             }
         }
         if (list.isEmpty()) {

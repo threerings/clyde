@@ -77,8 +77,7 @@ public abstract class Parameter extends DeepObject
         {
             try {
                 return new ArgumentPathProperty(
-                    reference.getConfigManager(), name, reference,
-                    (paths.length > 1) ? new String[] { paths[0] } : paths);
+                    reference.getConfigManager(), name, reference, paths);
             } catch (InvalidPathsException e) {
                 return null;
             } catch (Exception e) {
