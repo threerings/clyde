@@ -32,6 +32,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -178,7 +179,10 @@ public class ConfigReferenceEditor extends PropertyEditor
         ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, name);
         if (!(config instanceof ParameterizedConfig)) {
             _arguments.removeAll();
-            _config.setForeground(Color.red);
+            value.getArguments().clear();
+            if (config == null) {
+                _config.setForeground(Color.red);
+            }
             return;
         }
         _config.setForeground(_content.getForeground());
@@ -239,6 +243,13 @@ public class ConfigReferenceEditor extends PropertyEditor
         // remove the remaining editors
         while (ocount > idx) {
             _arguments.remove(--ocount);
+        }
+
+        // clear out any arguments that don't correspond to parameters
+        for (Iterator<String> it = value.getArguments().keySet().iterator(); it.hasNext(); ) {
+            if (pconfig.getParameter(it.next()) == null) {
+                it.remove();
+            }
         }
     }
 
