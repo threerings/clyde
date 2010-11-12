@@ -221,8 +221,14 @@ public class Spinner extends Container
     /** Listens to our buttons and updates the model when they're pressed. */
     protected ActionListener _buttonListener = new ActionListener() {
         public void actionPerformed (ActionEvent e) {
-            _model.setValue(
-                "next".equals(e.getAction()) ? _model.getNextValue() : _model.getPreviousValue());
+            // our buttons should be disabled in such a way as to prevent going past
+            // the end of the model, but in case they aren't...
+            Object newValue = "next".equals(e.getAction())
+                ? _model.getNextValue()
+                : _model.getPreviousValue();
+            if (newValue != null) {
+                _model.setValue(newValue);
+            }
         }
     };
 }
