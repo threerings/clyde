@@ -410,6 +410,7 @@ public class SceneMap
         buf.rewind();
         Texture2D texture = new Texture2D(_ctx.getRenderer());
         texture.setFilters(GL11.GL_NEAREST, GL11.GL_NEAREST);
+        texture.setWrap(GL11.GL_CLAMP, GL11.GL_CLAMP);
         texture.setImage(
             0, GL11.GL_RGBA, TEXTURE_SIZE, TEXTURE_SIZE, false,
             GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, buf);
