@@ -104,6 +104,17 @@ public class Spinner extends Container
     }
 
     @Override
+    public void setEnabled (boolean enabled)
+    {
+        // TODO: since we are a Container, when we're enabled all our children are enabled as well.
+        // We need to ensure that our buttons are disabled when they should be
+        super.setEnabled(enabled);
+        if (enabled) {
+            valueChanged(false); // possibly re-disable our child buttons
+        }
+    }
+
+    @Override
     public void wasAdded ()
     {
         super.wasAdded();
@@ -221,14 +232,8 @@ public class Spinner extends Container
     /** Listens to our buttons and updates the model when they're pressed. */
     protected ActionListener _buttonListener = new ActionListener() {
         public void actionPerformed (ActionEvent e) {
-            // our buttons should be disabled in such a way as to prevent going past
-            // the end of the model, but in case they aren't...
-            Object newValue = "next".equals(e.getAction())
-                ? _model.getNextValue()
-                : _model.getPreviousValue();
-            if (newValue != null) {
-                _model.setValue(newValue);
-            }
+            _model.setValue(
+                "next".equals(e.getAction()) ? _model.getNextValue() : _model.getPreviousValue());
         }
     };
 }
