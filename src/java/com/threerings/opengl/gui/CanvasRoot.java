@@ -47,7 +47,7 @@ public class CanvasRoot extends Root
     {
         super(ctx);
         _canvas = canvas;
-        _clipboard = canvas.getToolkit().getSystemSelection();
+        _clipboard = canvas.getToolkit().getSystemClipboard();
 
         // we want to hear about mouse movement, clicking, and keys
         canvas.addMouseListener(this);

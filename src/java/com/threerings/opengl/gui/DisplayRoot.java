@@ -50,7 +50,7 @@ public class DisplayRoot extends Root
     public DisplayRoot (GlContext ctx)
     {
         super(ctx);
-        _clipboard = Toolkit.getDefaultToolkit().getSystemSelection();
+        _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     }
 
     /**
