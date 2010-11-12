@@ -108,6 +108,14 @@ public final class Rect
     }
 
     /**
+     * Returns the length of the rectangle's shortest edge.
+     */
+    public float getShortestEdge ()
+    {
+        return Math.min(_maxExtent.x - _minExtent.x, _maxExtent.y - _minExtent.y);
+    }
+
+    /**
      * Returns the width of the rectangle.
      */
     public float getWidth ()

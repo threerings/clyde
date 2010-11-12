@@ -81,8 +81,15 @@ public class MobileAdvancer extends ActorAdvancer
         mobileStep(elapsed, timestamp);
 
         // make sure we actually moved
-        if (_mobile.getTranslation().equals(_otrans)) {
+        Vector2f translation = _mobile.getTranslation();
+        if (translation.equals(_otrans)) {
             return;
+
+        // make sure we didn't move too far
+        } else if (translation.distanceSquared(_otrans) > _mobile.getMaxStepSquared()) {
+            Vector2f step = translation.subtract(_otrans).normalizeLocal().
+                multLocal(_mobile.getMaxStep());
+            _otrans.add(step, translation);
         }
         _mobile.setDirty(true);
 

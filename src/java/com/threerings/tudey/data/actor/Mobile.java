@@ -81,6 +81,33 @@ public class Mobile extends Actor
     }
 
     /**
+     * Sets the max step amount.
+     */
+    public void setMaxStep (float maxStep)
+    {
+        if (maxStep != _maxStep) {
+            _maxStep = maxStep;
+            setDirty(true);
+        }
+    }
+
+    /**
+     * Returns the max translation amount.
+     */
+    public float getMaxStep ()
+    {
+        return _maxStep;
+    }
+
+    /**
+     * Returns the max translation amount squared.
+     */
+    public float getMaxStepSquared ()
+    {
+        return _maxStep * _maxStep;
+    }
+
+    /**
      * Returns the direction of rotation (+1 if counterclockwise, -1 if clockwise, 0 if none).
      */
     public int getTurnDirection ()
@@ -212,6 +239,9 @@ public class Mobile extends Actor
 
     /** The step limiters. */
     protected StepLimiter[] _limiters;
+
+    /** The maximum translation we allow in a substep. */
+    protected float _maxStep;
 
     /** The direction of motion. */
     @DeepOmit

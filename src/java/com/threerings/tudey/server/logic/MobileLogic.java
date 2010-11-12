@@ -25,6 +25,7 @@
 package com.threerings.tudey.server.logic;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
@@ -185,6 +186,15 @@ public class MobileLogic extends ActorLogic
     protected void penetratedEnvironment (Vector2f penetration)
     {
         // nothing by default
+    }
+
+    @Override // documentation inherited
+    protected void updateShape ()
+    {
+        super.updateShape();
+        Rect bounds = _shape.getBounds();
+        float step = bounds.getShortestEdge() / 2;
+        ((Mobile)getActor()).setMaxStep(step);
     }
 
     /** Used to advance the state of the actor. */
