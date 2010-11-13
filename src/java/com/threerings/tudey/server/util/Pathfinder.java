@@ -58,6 +58,8 @@ import com.threerings.tudey.space.Space;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.CoordIntMap;
 
+import static com.threerings.tudey.Log.*;
+
 /**
  * A helper class for pathfinding.  Currently the pathfinding strategy is to divide the world up
  * into unit cells and track the collision flags of all scene entries and actors whose shapes
@@ -239,7 +241,8 @@ public class Pathfinder
             // simpler predicate for the common case of 1x1 actors
             pred = new AStarPathUtil.TraversalPred() {
                 public boolean canTraverse (Object traverser, int x, int y) {
-                    if (actor.canCollide(_entryFlags.get(x/SUBDIVISION, y/SUBDIVISION))) {
+                    if (actor.canCollide(_entryFlags.get(
+                                    floorDiv(x, SUBDIVISION), floorDiv(y, SUBDIVISION)))) {
                         return false;
                     }
                     return !collideActor || !actor.canCollide(_actorFlags.get(x, y));
@@ -253,7 +256,8 @@ public class Pathfinder
                 public boolean canTraverse (Object traverser, int x, int y) {
                     for (int yy = y - bottom, yymax = y + top; yy <= yymax; yy++) {
                         for (int xx = x - left, xxmax = x + right; xx <= xxmax; xx++) {
-                            if (actor.canCollide(_entryFlags.get(xx/SUBDIVISION, yy/SUBDIVISION))) {
+                            if (actor.canCollide(_entryFlags.get(floorDiv(xx, SUBDIVISION),
+                                            floorDiv(yy, SUBDIVISION)))) {
                                 return false;
                             } else if (collideActor && actor.canCollide(_actorFlags.get(xx, yy))) {
                                 return false;
@@ -562,6 +566,16 @@ public class Pathfinder
 
         // store the combined flags
         _actorFlags.put(x, y, flags);
+    }
+
+    /**
+     * Floored integer divison.
+     */
+    protected static int floorDiv (int dividend, int divisor)
+    {
+        return ((dividend >= 0) == (divisor >= 0)) ?
+            dividend / divisor : (divisor >= 0 ?
+                    (dividend - divisor + 1) / divisor : (dividend - divisor - 1) / divisor);
     }
 
     /** The owning scene manager. */
