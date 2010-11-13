@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.media.util.AStarPathUtil;
+import com.threerings.media.util.MathUtil;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.math.FloatMath;
@@ -242,7 +243,8 @@ public class Pathfinder
             pred = new AStarPathUtil.TraversalPred() {
                 public boolean canTraverse (Object traverser, int x, int y) {
                     if (actor.canCollide(_entryFlags.get(
-                                    floorDiv(x, SUBDIVISION), floorDiv(y, SUBDIVISION)))) {
+                                    MathUtil.floorDiv(x, SUBDIVISION),
+                                    MathUtil.floorDiv(y, SUBDIVISION)))) {
                         return false;
                     }
                     return !collideActor || !actor.canCollide(_actorFlags.get(x, y));
@@ -256,8 +258,8 @@ public class Pathfinder
                 public boolean canTraverse (Object traverser, int x, int y) {
                     for (int yy = y - bottom, yymax = y + top; yy <= yymax; yy++) {
                         for (int xx = x - left, xxmax = x + right; xx <= xxmax; xx++) {
-                            if (actor.canCollide(_entryFlags.get(floorDiv(xx, SUBDIVISION),
-                                            floorDiv(yy, SUBDIVISION)))) {
+                            if (actor.canCollide(_entryFlags.get(MathUtil.floorDiv(xx, SUBDIVISION),
+                                            MathUtil.floorDiv(yy, SUBDIVISION)))) {
                                 return false;
                             } else if (collideActor && actor.canCollide(_actorFlags.get(xx, yy))) {
                                 return false;
@@ -566,16 +568,6 @@ public class Pathfinder
 
         // store the combined flags
         _actorFlags.put(x, y, flags);
-    }
-
-    /**
-     * Floored integer divison.
-     */
-    protected static int floorDiv (int dividend, int divisor)
-    {
-        return ((dividend >= 0) == (divisor >= 0)) ?
-            dividend / divisor : (divisor >= 0 ?
-                    (dividend - divisor + 1) / divisor : (dividend - divisor - 1) / divisor);
     }
 
     /** The owning scene manager. */
