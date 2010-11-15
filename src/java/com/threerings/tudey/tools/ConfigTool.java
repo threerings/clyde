@@ -84,7 +84,7 @@ public abstract class ConfigTool<T extends ManagedConfig> extends EditorTool
     public void valueChanged (TreeSelectionEvent event)
     {
         ConfigTreeNode node = _tree.getSelectedNode();
-        String name = (node == null) ? null : node.getName();
+        String name = (node == null || node.getConfig() == null) ? null : node.getName();
         ConfigReference<T> ref = (name == null) ? null : new ConfigReference<T>(name);
         _eref.setReference(ref);
         _epanel.update();
