@@ -542,9 +542,20 @@ public class ActorSprite extends Sprite
                     }
                 }
             }
-            float angle = FloatMath.getAngularDifference(
-                actor.getDirection(), actor.getRotation()) + FloatMath.PI;
-            Animation movement = movements[idx][Math.round(angle / FloatMath.HALF_PI) % 4];
+            // include a bias towards the lateral directions so that we're sure to use them
+            // when travelling diagonally
+            float angle = (FloatMath.getAngularDifference(
+                actor.getDirection(), actor.getRotation())/FloatMath.HALF_PI + 2.5f) % 4f;
+            Animation movement;
+            if (angle <= 0.01f || angle >= 2.99f) {
+                movement = movements[idx][3];
+            } else if (angle < 0.99f) {
+                movement = movements[idx][0];
+            } else if (angle <= 2.01f) {
+                movement = movements[idx][1];
+            } else {
+                movement = movements[idx][2];
+            }
             movement.setSpeed(sspeed / sets[idx].speed);
             return movement;
         }
