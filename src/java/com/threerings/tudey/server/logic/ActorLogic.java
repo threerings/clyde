@@ -436,8 +436,13 @@ public class ActorLogic extends Logic
      */
     protected void adjustSpawnPoint ()
     {
+        boolean warp = _actor.isSet(Actor.WARP);
+        _actor.set(Actor.WARP);
         Vector2f translation = _actor.getTranslation();
         adjustSpawnPoint(translation.x, translation.y);
+        if (!warp) {
+            _actor.clear(Actor.WARP);
+        }
     }
 
     /**
@@ -503,7 +508,7 @@ public class ActorLogic extends Logic
         }
 
         // make sure we can reach the original translation, ignoring actors
-        return _scenemgr.getPathfinder().getEntryPath(
+        return _scenemgr.getPathfinder().getPath(
             this, MAX_ADJUSTMENT_PATH_LENGTH, ox, oy, false, false) != null;
     }
 

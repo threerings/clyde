@@ -129,6 +129,12 @@ public class ActorConfig extends ParameterizedConfig
         @Strippable
         public int spawnMask;
 
+        /** Used as the collision mask when adjusting a spawn point and determining if it's
+         * reachable from the original spawn point. */
+        @Editable(editor="mask", mode="collision", hgroup="d")
+        @Strippable
+        public int spawnAdjustMask = 0x03;
+
         /** Determines which collision categories the actor belongs to. */
         @Editable(editor="mask", mode="collision", hgroup="c")
         public int collisionFlags = 0x01;

@@ -332,7 +332,7 @@ public class Actor extends DeepObject
      */
     public int getCollisionMask ()
     {
-        return _original.collisionMask;
+        return isSet(WARP) ? _original.spawnAdjustMask : _original.collisionMask;
     }
 
     /**
