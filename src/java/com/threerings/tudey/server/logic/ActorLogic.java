@@ -242,10 +242,10 @@ public class ActorLogic extends Logic
         if (adjust && _config.spawnMask != 0) {
             _scenemgr.getActorSpace().remove(_shape);
             if (_scenemgr.collides(_config.spawnMask, getShape(), _scenemgr.getTimestamp()) ||
-                    _scenemgr.getPathfinder().getEntryPath(
+                    _scenemgr.getPathfinder().getPath(
                         this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) == null) {
                 adjustSpawnPoint(tx, ty);
-                if (_scenemgr.getPathfinder().getEntryPath(
+                if (_scenemgr.getPathfinder().getPath(
                             this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) == null) {
                     move(oldX, oldY, oldR);
                 } else if (tx != x || ty != y) {
