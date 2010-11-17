@@ -1045,15 +1045,15 @@ public class TudeySceneManager extends SceneManager
         // create the pathfinder
         _pathfinder = new Pathfinder(this);
 
+        // get a reference to the ticker
+        _ticker = getTicker();
+
         // create logic objects for scene entries and listen for changes
         createEntryLogics(sceneModel);
         sceneModel.addObserver(this);
 
         // register and fill in our tudey scene service
         _tsobj.setTudeySceneService(addDispatcher(new TudeySceneDispatcher(this)));
-
-        // get a reference to the ticker
-        _ticker = getTicker();
     }
 
     /**
@@ -1097,6 +1097,7 @@ public class TudeySceneManager extends SceneManager
 
         // remove from the ticker
         _ticker.remove(this);
+        _ticker = null;
 
         // shut down the pathfinder
         _pathfinder.shutdown();
