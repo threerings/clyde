@@ -306,10 +306,10 @@ public class TextField extends EditableTextComponent
                     break;
 
                 default:
-                    // insert printable and shifted printable characters
+                    // insert printable and shifted/alted printable characters
                     char c = kev.getKeyChar();
-                    if ((modifiers & ~KeyEvent.SHIFT_DOWN_MASK) == 0 && Character.isDefined(c) &&
-                            !Character.isISOControl(c)) {
+                    if ((modifiers & ~(KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) == 0 &&
+                            Character.isDefined(c) && !Character.isISOControl(c)) {
                         replaceSelectedText(String.valueOf(c),
                             Character.isLetterOrDigit(c) ?
                                 CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
