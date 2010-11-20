@@ -406,7 +406,8 @@ public class PathProperty extends Property
                     return (ConfigReference<ManagedConfig>)base.get(object);
                 }
                 protected Property getArgumentProperty (ConfigReference<ManagedConfig> ref) {
-                    ManagedConfig config = cfgmgr.getConfig(clazz, ref);
+                    ManagedConfig config = (ref == null) ?
+                        null : cfgmgr.getConfig(clazz, ref.getName());
                     if (!(config instanceof ParameterizedConfig)) {
                         return null;
                     }
