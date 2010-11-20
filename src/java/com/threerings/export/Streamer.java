@@ -396,10 +396,13 @@ public abstract class Streamer<T>
                 }
             }
             public FloatBuffer read (DataInputStream in) throws IOException {
-                FloatBuffer value = BufferUtils.createFloatBuffer(in.readInt());
-                for (int ii = 0, nn = value.limit(); ii < nn; ii++) {
-                    value.put(ii, in.readFloat());
-                }
+                // first read into byte array, then copy byte array to buffer (as opposed to
+                // calling readFloat repeatedly for vertex data, which showed up as a hot spot)
+                int size = in.readInt();
+                byte[] buf = new byte[size * 4];
+                in.readFully(buf);
+                FloatBuffer value = BufferUtils.createFloatBuffer(size);
+                value.put(ByteBuffer.wrap(buf).asFloatBuffer()).rewind();
                 return value;
             }
         });
