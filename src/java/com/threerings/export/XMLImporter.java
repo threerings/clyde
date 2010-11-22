@@ -253,15 +253,13 @@ public class XMLImporter extends Importer
             Object value = null;
             try {
                 if ((value = stringifier.fromString(string)) == null) {
-                    log.warning("Failed to parse string [string=" + string + ", class=" +
-                        cclazz + "].");
+                    log.warning("Failed to parse string.", "string", string, "class", cclazz);
                 }
             } catch (Exception e) {
-                log.warning("Failed to parse string [string=" + string + ", class=" +
-                    cclazz + "].", e);
+                log.warning("Failed to parse string.", "string", string, "class", cclazz, e);
             }
             if (id.length() > 0 && value != null) {
-                _objects.put(id, value);
+                putObject(id, value);
             }
             return value;
         }
@@ -277,7 +275,7 @@ public class XMLImporter extends Importer
                     ReflectionUtil.isInner(cclazz) ? read("outer", null, Object.class) : null);
             }
             if (id.length() > 0) {
-                _objects.put(id, value);
+                putObject(id, value);
             }
             if (value instanceof Exportable) {
                 readFields((Exportable)value);
@@ -296,6 +294,17 @@ public class XMLImporter extends Importer
 
         } finally {
             _element = oelement;
+        }
+    }
+
+    /**
+     * Stores an object in the map, logging a warning if we overwrite an existing entry.
+     */
+    protected void putObject (String id, Object value)
+    {
+        Object ovalue = _objects.put(id, value);
+        if (ovalue != null) {
+            log.warning("Duplicate id detected.", "id", id, "ovalue", ovalue, "nvalue", value);
         }
     }
 
