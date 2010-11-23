@@ -25,8 +25,6 @@
 package com.threerings.tudey.server;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
-
 import com.threerings.config.ConfigManager;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
@@ -45,7 +43,7 @@ import com.threerings.tudey.util.TudeySceneFactory;
 public abstract class TudeyServer extends WhirledServer
 {
     /** Configures dependencies needed by the Tudey services. */
-    public static class Module extends WhirledServer.Module
+    public static class TudeyModule extends WhirledModule
     {
         @Override protected void configure () {
             super.configure();

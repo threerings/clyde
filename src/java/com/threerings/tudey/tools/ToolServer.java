@@ -45,7 +45,6 @@ import com.threerings.crowd.server.CrowdClientResolver;
 import com.threerings.whirled.data.SceneModel;
 import com.threerings.whirled.server.SceneRegistry;
 import com.threerings.whirled.server.WhirledSession;
-import com.threerings.whirled.server.persist.DummySceneRepository;
 import com.threerings.whirled.server.persist.SceneRepository;
 
 import com.threerings.config.ConfigManager;
@@ -65,7 +64,7 @@ import static com.threerings.tudey.Log.*;
 public class ToolServer extends TudeyServer
 {
     /** Configures dependencies needed by the local server. */
-    public static class Module extends TudeyServer.Module
+    public static class ToolModule extends TudeyModule
     {
         @Override protected void configure () {
             super.configure();

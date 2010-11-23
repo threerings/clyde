@@ -222,7 +222,7 @@ public abstract class TudeyTool extends GlCanvasTool
     protected static void createServer ()
         throws Exception
     {
-        Injector injector = Guice.createInjector(new ToolServer.Module());
+        Injector injector = Guice.createInjector(new ToolServer.ToolModule());
         _server = injector.getInstance(ToolServer.class);
         _server.init(injector);
     }
