@@ -257,6 +257,7 @@ public class ConfigGroup<T extends ManagedConfig>
             return;
         }
         @SuppressWarnings("unchecked") T[] nconfigs = (T[])array;
+        validateOuters(nconfigs);
         load(Arrays.asList(nconfigs), merge, false);
     }
 
@@ -326,6 +327,9 @@ public class ConfigGroup<T extends ManagedConfig>
         try {
             Importer in = xml ? new XMLImporter(stream) : new BinaryImporter(stream);
             @SuppressWarnings("unchecked") T[] configs = (T[])in.readObject();
+            if (xml) {
+                validateOuters(configs);
+            }
             initConfigs(configs);
             in.close();
             return true;
@@ -362,6 +366,16 @@ public class ConfigGroup<T extends ManagedConfig>
     protected String getConfigPath (boolean xml)
     {
         return _cfgmgr.getConfigPath() + _name + (xml ? ".xml" : ".dat");
+    }
+
+    /**
+     * Validates the outer object references of the supplied configs.
+     */
+    protected void validateOuters (T[] configs)
+    {
+        for (T config : configs) {
+            config.validateOuters(_name + ":" + config.getName());
+        }
     }
 
     /**

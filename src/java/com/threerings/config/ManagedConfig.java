@@ -198,6 +198,14 @@ public abstract class ManagedConfig extends DeepObject
         PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
     }
 
+    /**
+     * Validates the outer object references in this config.
+     */
+    public void validateOuters (String where)
+    {
+        // nothing by default
+    }
+
     // documentation inherited from interface ConfigUpdateListener
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {

@@ -42,6 +42,7 @@ import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Inner;
+import com.threerings.util.ReflectionUtil;
 
 import static com.threerings.ClydeLog.*;
 
@@ -111,6 +112,18 @@ public abstract class Parameter extends DeepObject
                 _outer.applyArguments(instance, _arguments, directs);
             }
 
+            /**
+             * Validates the outer object references in this option.
+             */
+            public void validateOuters (String where, Choice outer)
+            {
+                if (Choice.this != outer) {
+                    ReflectionUtil.setOuter(this, outer);
+                    log.warning("Fixed invalid outer reference.", "where", where,
+                        "parameter", outer.name, "option", name);
+                }
+            }
+
             // documentation inherited from interface DynamicallyEditable
             public Property[] getDynamicProperties ()
             {
@@ -170,6 +183,18 @@ public abstract class Parameter extends DeepObject
                 direct.invalidateProperties();
             }
             _optionProperties = null;
+        }
+
+        @Override // documentation inherited
+        public void validateOuters (String where, ParameterizedConfig outer)
+        {
+            if (_outer != outer) {
+                _outer = outer;
+                log.warning("Fixed invalid outer reference.", "where", where, "parameter", name);
+            }
+            for (Option option : options) {
+                option.validateOuters(where, this);
+            }
         }
 
         @Override // documentation inherited
@@ -322,6 +347,14 @@ public abstract class Parameter extends DeepObject
     public void invalidateProperties ()
     {
         _property = _argumentProperty = INVALID_PROPERTY;
+    }
+
+    /**
+     * Validates the parameter's outer object references.
+     */
+    public void validateOuters (String where, ParameterizedConfig outer)
+    {
+        // nothing by default
     }
 
     /**

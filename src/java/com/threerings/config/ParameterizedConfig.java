@@ -139,6 +139,14 @@ public class ParameterizedConfig extends ManagedConfig
     }
 
     @Override // documentation inherited
+    public void validateOuters (String where)
+    {
+        for (Parameter parameter : parameters) {
+            parameter.validateOuters(where, this);
+        }
+    }
+
+    @Override // documentation inherited
     protected void maybeFireOnConfigManager ()
     {
         // only fire for the base config
