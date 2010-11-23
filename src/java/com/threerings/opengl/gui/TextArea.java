@@ -55,9 +55,6 @@ public class TextArea extends Container
     /** A font style constant. */
     public static final int ITALIC = 2;
 
-    /** A font style constant. */
-    public static final int UNDERLINE = 3;
-
     public TextArea (GlContext ctx)
     {
         this(ctx, null);
@@ -200,8 +197,17 @@ public class TextArea extends Container
      */
     public TextFactory getTextFactory ()
     {
-        TextFactory textfact = _textfacts[getState()];
-        return (textfact != null) ? textfact : _textfacts[DEFAULT];
+        return getTextFactory(PLAIN);
+    }
+
+    /**
+     * Returns a text factory suitable for creating text in the style defined by the component's
+     * current state.
+     */
+    public TextFactory getTextFactory (int style)
+    {
+        TextFactory[] textfacts = _textfacts[getState()];
+        return (textfacts != null) ? textfacts[style] : _textfacts[DEFAULT][style];
     }
 
     /**
@@ -269,8 +275,11 @@ public class TextArea extends Container
 
         FontConfig fconfig = _ctx.getConfigManager().getConfig(
             FontConfig.class, config.font);
-        _textfacts[state] = (fconfig == null ? FontConfig.NULL : fconfig).getTextFactory(
-            _ctx, config.fontStyle, config.fontSize);
+        fconfig = (fconfig == null) ? FontConfig.NULL : fconfig;
+        _textfacts[state] = new TextFactory[] {
+            fconfig.getTextFactory(_ctx, config.fontStyle, config.fontSize),
+            fconfig.getTextFactory(_ctx, FontConfig.Style.BOLD, config.fontSize),
+            fconfig.getTextFactory(_ctx, FontConfig.Style.ITALIC, config.fontSize) };
     }
 
     // documentation inherited
@@ -369,7 +378,7 @@ public class TextArea extends Container
             int offset = 0;
             Color4f color = (run.color == null) ? getColor() : run.color;
             while ((offset = current.addRun(
-                        getTextFactory(), run, color, getTextEffect(),
+                        getTextFactory(run.style), run, color, getTextEffect(),
                         getEffectSize(), getEffectColor(), maxWidth, offset)) >= 0) {
                 _lines.add(current = new Line());
             }
@@ -499,7 +508,7 @@ public class TextArea extends Container
     protected int[] _teffects = new int[getStateCount()];
     protected int[] _effsizes = new int[getStateCount()];
     protected Color4f[] _effcols = new Color4f[getStateCount()];
-    protected TextFactory[] _textfacts = new TextFactory[getStateCount()];
+    protected TextFactory[][] _textfacts = new TextFactory[getStateCount()][];
 
     protected BoundedRangeModel _model = new BoundedRangeModel(0, 0, 0, 0);
     protected int _prefWidth = -1;
