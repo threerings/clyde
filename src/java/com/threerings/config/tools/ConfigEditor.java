@@ -74,6 +74,7 @@ import com.samskivert.util.QuickSort;
 
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
+import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.MessageManager;
 
 import com.threerings.editor.swing.EditorPanel;
@@ -160,6 +161,8 @@ public class ConfigEditor extends BaseConfigEditor
         edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
         edit.add(new JMenuItem(
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+        edit.addSeparator();
+        edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
         edit.addSeparator();
         edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
         edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_F));
@@ -265,6 +268,8 @@ public class ConfigEditor extends BaseConfigEditor
             item.pasteNode();
         } else if (action.equals("delete")) {
             item.deleteNode();
+        } else if (action.equals("validate_refs")) {
+            validateReferences();
         } else if (action.equals("resources")) {
             showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
         } else if (action.equals("save_all")) {
@@ -306,6 +311,17 @@ public class ConfigEditor extends BaseConfigEditor
         return JOptionPane.showConfirmDialog(this, _msgs.get("m.cant_undo"),
                 _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE) == 0;
+    }
+
+    /**
+     * Validates the references.
+     */
+    protected void validateReferences ()
+    {
+        PrintStreamDialog dialog = new PrintStreamDialog(
+            this, _msgs.get("m.validate_refs"), _msgs.get("m.ok"));
+        _cfgmgr.validateReferences("", dialog.getPrintStream());
+        dialog.maybeShow();
     }
 
     /**

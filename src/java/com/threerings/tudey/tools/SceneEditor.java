@@ -120,6 +120,7 @@ import com.threerings.math.Transform2D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
+import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.GlCanvasTool;
@@ -278,6 +279,7 @@ public class SceneEditor extends TudeyTool
         edit.add(_saveToPalette = createMenuItem("save_to_palette", KeyEvent.VK_V, KeyEvent.VK_L));
         _saveToPalette.setEnabled(false);
         edit.addSeparator();
+        edit.add(createMenuItem("validate_refs", KeyEvent.VK_I, -1));
         edit.add(createMenuItem("delete_errors", KeyEvent.VK_E, -1));
         edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_N, KeyEvent.VK_G));
@@ -1034,6 +1036,8 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("save_to_palette")) {
             setActiveTool(_palette);
             _palette.add(_selection);
+        } else if (action.equals("validate_refs")) {
+            validateReferences();
         } else if (action.equals("delete_errors")) {
             deleteErrors();
         } else if (action.equals("configs")) {
@@ -1665,6 +1669,17 @@ public class SceneEditor extends TudeyTool
         Clipboard clipboard = _frame.getToolkit().getSystemClipboard();
         clipboard.setContents(new ToolUtil.WrappedTransfer(selection), this);
         _paste.setEnabled(true);
+    }
+
+    /**
+     * Validates the scene's references.
+     */
+    protected void validateReferences ()
+    {
+        PrintStreamDialog dialog = new PrintStreamDialog(
+            _frame, _msgs.get("m.validate_refs"), _msgs.get("m.ok"));
+        _scene.validateReferences("", dialog.getPrintStream());
+        dialog.maybeShow();
     }
 
     /**
