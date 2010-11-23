@@ -43,14 +43,13 @@ public class ArgumentPathProperty extends PathProperty
      * @param name the name of the property.
      * @param reference the reference object from which we derive our property chains and default
      * values.
-     * @param paths the list of paths.
-     * @throws InvalidPathsException if none of the supplied paths are valid.
+     * @param path the path.
+     * @throws InvalidPathsException if the path is invalid.
      */
-    public ArgumentPathProperty (
-        ConfigManager cfgmgr, String name, Object reference, String... paths)
-            throws InvalidPathsException
+    public ArgumentPathProperty (ConfigManager cfgmgr, String name, Object reference, String path)
+        throws InvalidPathsException
     {
-        super(cfgmgr, name, reference, 1, paths);
+        super(cfgmgr, name, reference, path);
         _reference = reference;
     }
 

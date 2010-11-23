@@ -76,9 +76,12 @@ public abstract class Parameter extends DeepObject
         @Override // documentation inherited
         protected Property createArgumentProperty (ParameterizedConfig reference)
         {
+            if (paths.length == 0) {
+                return null;
+            }
             try {
                 return new ArgumentPathProperty(
-                    reference.getConfigManager(), name, reference, paths);
+                    reference.getConfigManager(), name, reference, paths[0]);
             } catch (InvalidPathsException e) {
                 return null;
             } catch (Exception e) {
