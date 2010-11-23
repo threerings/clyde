@@ -150,7 +150,7 @@ public class LogPanel extends JPanel
      */
     protected void maybeAddHandler ()
     {
-        if (!Boolean.getBoolean("no_log_redir")) {
+        if (!(Boolean.getBoolean("no_log_redir") || _panels.contains(this))) {
             LogManager.getLogManager().getLogger("").addHandler(_handler);
             _panels.add(this);
         }
