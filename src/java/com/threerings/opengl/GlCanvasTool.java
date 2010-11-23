@@ -83,11 +83,11 @@ public abstract class GlCanvasTool extends GlCanvasApp
         _eprefs = createEditablePrefs();
         _eprefs.init(_rsrcmgr);
 
+        // add the log status panel
+        _frame.add(new LogPanel(_msgmgr, true), BorderLayout.SOUTH);
+
         // initialize the configuration manager now that we have configured the resource dir
         _cfgmgr.init();
-
-        // add the log status panel
-        _frame.add(new LogPanel(_msgmgr), BorderLayout.SOUTH);
     }
 
     // documentation inherited from interface ActionListener

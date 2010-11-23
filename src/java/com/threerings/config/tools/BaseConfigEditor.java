@@ -99,10 +99,11 @@ public abstract class BaseConfigEditor extends JFrame
         _eprefs.init(_rsrcmgr);
 
         // add the log status panel
-        add(new LogPanel(_msgmgr), BorderLayout.SOUTH);
+        boolean first = !cfgmgr.isInitialized();
+        add(new LogPanel(_msgmgr, first), BorderLayout.SOUTH);
 
         // initialize the configuration manager if not yet initialized
-        if (!cfgmgr.isInitialized()) {
+        if (first) {
             cfgmgr.init();
         }
     }

@@ -64,8 +64,11 @@ public class LogPanel extends JPanel
 {
     /**
      * Default constructor.
+     *
+     * @param addHandler if true, add the log handler immediately
+     * (don't wait until the component is added).
      */
-    public LogPanel (MessageManager msgmgr)
+    public LogPanel (MessageManager msgmgr, boolean addHandler)
     {
         super(new HGroupLayout(GroupLayout.STRETCH));
         _msgs = msgmgr.getBundle("swing");
@@ -101,6 +104,9 @@ public class LogPanel extends JPanel
             }
         };
         _handler.setLevel(Level.WARNING);
+        if (addHandler) {
+            maybeAddHandler();
+        }
     }
 
     // documentation inherited from interface ActionListener
@@ -127,10 +133,7 @@ public class LogPanel extends JPanel
     public void addNotify ()
     {
         super.addNotify();
-        if (!Boolean.getBoolean("no_log_redir")) {
-            LogManager.getLogManager().getLogger("").addHandler(_handler);
-            _panels.add(this);
-        }
+        maybeAddHandler();
     }
 
     @Override // documentation inherited
@@ -140,6 +143,17 @@ public class LogPanel extends JPanel
         LogManager.getLogManager().getLogger("").removeHandler(_handler);
         _panels.remove(this);
         clear();
+    }
+
+    /**
+     * Adds the handler if appropriate and not already added.
+     */
+    protected void maybeAddHandler ()
+    {
+        if (!Boolean.getBoolean("no_log_redir")) {
+            LogManager.getLogManager().getLogger("").addHandler(_handler);
+            _panels.add(this);
+        }
     }
 
     /**
