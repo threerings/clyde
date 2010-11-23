@@ -339,7 +339,7 @@ public class PathProperty extends Property
                 log.warning("No config manager available.", "ref", value);
                 return null;
             }
-            ManagedConfig config = cfgmgr.getConfig(clazz, ref);
+            ManagedConfig config = (ref == null) ? null : cfgmgr.getConfig(clazz, ref.getName());
             if (!(config instanceof ParameterizedConfig)) {
                 return null;
             }
