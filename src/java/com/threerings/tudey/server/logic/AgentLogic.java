@@ -87,7 +87,7 @@ public class AgentLogic extends ActiveLogic
     public void face (Logic logic, boolean force)
     {
         float rotation = _actor.getTranslation().direction(logic.getTranslation());
-        if (force) {
+        if (force && canRotate()) {
             _actor.setRotation(rotation);
             clearTargetRotation();
         } else {
