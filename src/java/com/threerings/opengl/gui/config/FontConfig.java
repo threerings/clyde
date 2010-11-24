@@ -100,7 +100,15 @@ public class FontConfig extends ManagedConfig
      */
     public TextFactory getTextFactory (GlContext ctx, Style style, int size)
     {
-        return CharacterTextFactory.getInstance(getFont(ctx, style.getFlags(), size), antialias);
+        return getTextFactory(ctx, style.getFlags(), size);
+    }
+
+    /**
+     * Returns the text factory for this font with the specified style and point size.
+     */
+    public TextFactory getTextFactory (GlContext ctx, int style, int size)
+    {
+        return CharacterTextFactory.getInstance(getFont(ctx, style, size), antialias);
     }
 
     @Override // documentation inherited

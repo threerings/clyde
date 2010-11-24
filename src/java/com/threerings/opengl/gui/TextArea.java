@@ -24,6 +24,8 @@
 
 package com.threerings.opengl.gui;
 
+import java.awt.Font;
+
 import java.util.ArrayList;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -276,10 +278,11 @@ public class TextArea extends Container
         FontConfig fconfig = _ctx.getConfigManager().getConfig(
             FontConfig.class, config.font);
         fconfig = (fconfig == null) ? FontConfig.NULL : fconfig;
+        int style = config.fontStyle.getFlags();
         _textfacts[state] = new TextFactory[] {
-            fconfig.getTextFactory(_ctx, config.fontStyle, config.fontSize),
-            fconfig.getTextFactory(_ctx, FontConfig.Style.BOLD, config.fontSize),
-            fconfig.getTextFactory(_ctx, FontConfig.Style.ITALIC, config.fontSize) };
+            fconfig.getTextFactory(_ctx, style, config.fontSize),
+            fconfig.getTextFactory(_ctx, style | Font.BOLD, config.fontSize),
+            fconfig.getTextFactory(_ctx, style | Font.ITALIC, config.fontSize) };
     }
 
     // documentation inherited
