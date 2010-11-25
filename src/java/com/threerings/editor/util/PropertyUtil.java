@@ -212,25 +212,31 @@ public class PropertyUtil
 
     /**
      * Valides the supplied sets of configs and resources.
+     *
+     * @return true if the references are valid
      */
-    public static void validateReferences (
+    public static boolean validateReferences (
         String where, ConfigManager cfgmgr, Set<Tuple<Class, String>> configs,
         Set<String> resources, PrintStream out)
     {
+        boolean result = true;
         for (Tuple<Class, String> tuple : configs) {
             @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
                 (Class<ManagedConfig>)tuple.left;
             if (cfgmgr.getConfig(cclass, tuple.right) == null) {
                 out.println(where + " references missing config of type " +
                     ConfigGroup.getName(cclass) + ": " + tuple.right);
+                result = false;
             }
         }
         ResourceManager rsrcmgr = cfgmgr.getResourceManager();
         for (String resource : resources) {
             if (!rsrcmgr.getResourceFile(resource).exists()) {
                 out.println(where + " references missing resource: " + resource);
+                result = false;
             }
         }
+        return result;
     }
 
     /**

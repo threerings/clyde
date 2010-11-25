@@ -48,6 +48,8 @@ public class SceneValidatorTask extends Task
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
         cfgmgr.init();
 
+        boolean valid = true;
+
         for (FileSet fs : _filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             File fromDir = fs.getDir(getProject());
@@ -57,7 +59,7 @@ public class SceneValidatorTask extends Task
                     TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
                         new FileInputStream(source)).readObject();
                     model.getConfigManager().init("scene", cfgmgr);
-                    model.validateReferences(file, System.err);
+                    valid = model.validateReferences(file, System.err) && valid;
 
                 } catch (Exception e) { // IOException, ClassCastException
                     log.warning("Failed to read scene.", "file", source, e);

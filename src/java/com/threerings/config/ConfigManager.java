@@ -487,15 +487,19 @@ public class ConfigManager
 
     /**
      * Validates the references of all configs managed by this manager.
+     *
+     * @return true if the references are valid
      */
-    public void validateReferences (String where, PrintStream out)
+    public boolean validateReferences (String where, PrintStream out)
     {
+        boolean result = true;
         for (ConfigGroup<?> group : getGroups()) {
             String gwhere = where + group.getName() + ":";
             for (ManagedConfig config : group.getConfigs()) {
-                config.validateReferences(gwhere + config.getName(), out);
+                result = config.validateReferences(gwhere + config.getName(), out) && result;
             }
         }
+        return result;
     }
 
     /**

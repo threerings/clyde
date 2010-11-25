@@ -189,13 +189,15 @@ public abstract class ManagedConfig extends DeepObject
 
     /**
      * Validates the references in this config.
+     *
+     * @return true if the references are valid
      */
-    public void validateReferences (String where, PrintStream out)
+    public boolean validateReferences (String where, PrintStream out)
     {
         Set<Tuple<Class, String>> configs = Sets.newHashSet();
         Set<String> resources = Sets.newHashSet();
         PropertyUtil.getReferences(_cfgmgr, this, configs, resources);
-        PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
+        return PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
     }
 
     /**

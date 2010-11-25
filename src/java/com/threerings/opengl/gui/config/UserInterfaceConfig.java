@@ -234,10 +234,10 @@ public class UserInterfaceConfig extends ParameterizedConfig
     }
 
     @Override // documentation inherited
-    public void validateReferences (String where, PrintStream out)
+    public boolean validateReferences (String where, PrintStream out)
     {
-        super.validateReferences(where, out);
-        _configs.validateReferences(where + ":", out);
+        boolean valid = super.validateReferences(where, out);
+        return _configs.validateReferences(where + ":", out) && valid;
     }
 
     @Override // documentation inherited

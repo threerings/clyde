@@ -36,13 +36,14 @@ public class ConfigValidatorTask extends Task
     public void execute ()
         throws BuildException
     {
+        boolean valid = true;
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         rsrcmgr.initResourceDir("rsrc/");
         ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
         cfgmgr.init();
 
         // validate the base configs
-        cfgmgr.validateReferences("", System.err);
+        valid = cfgmgr.validateReferences("", System.err) && valid;
 
         // validate the resource configs
         for (FileSet fs : _filesets) {
@@ -53,9 +54,13 @@ public class ConfigValidatorTask extends Task
                 String path = rsrcmgr.getResourcePath(source);
                 ManagedConfig config = (path == null) ? null : cfgmgr.getResourceConfig(path);
                 if (config != null) {
-                    config.validateReferences(path, System.err);
+                    valid = config.validateReferences(path, System.err) && valid;
                 }
             }
+        }
+
+        if (!valid) {
+            throw new BuildException();
         }
     }
 

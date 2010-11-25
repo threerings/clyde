@@ -1806,15 +1806,16 @@ public class TudeySceneModel extends SceneModel
     /**
      * Validates the references in the scene.
      */
-    public void validateReferences (String where, PrintStream out)
+    public boolean validateReferences (String where, PrintStream out)
     {
+        boolean valid = true;
         Set<Tuple<Class, String>> configs = Sets.newHashSet();
         Set<String> resources = Sets.newHashSet();
         for (Entry entry : getEntries()) {
             PropertyUtil.getReferences(_cfgmgr, entry, configs, resources);
         }
-        PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
-        _cfgmgr.validateReferences(where + ":", out);
+        valid = PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out) && valid;
+        return _cfgmgr.validateReferences(where + ":", out) && valid;
     }
 
     /**
