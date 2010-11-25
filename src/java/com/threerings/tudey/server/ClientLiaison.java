@@ -180,8 +180,8 @@ public class ClientLiaison
         // if we do not control the target, we do not process the input
         if (_controlled == null) {
             if (frames.length > 0) {
-                log.warning("Got input frames for non-controlled pawn.",
-                    "who", _bodyobj.who(), "actor", _target.getActor());
+                log.warning("Got input frames for non-controlled pawn.", "who", _bodyobj.who(),
+                    "actor", (_target == null) ? null : _target.getActor());
             }
             return;
         }
@@ -226,7 +226,8 @@ public class ClientLiaison
         }
 
         // translate the local interest bounds based on the actor translation
-        Vector2f translation = _target.getActor().getTranslation();
+        Vector2f translation = (_target == null) ?
+            Vector2f.ZERO : _target.getActor().getTranslation();
         _localInterest.getMinimumExtent().add(translation, _worldInterest.getMinimumExtent());
         _localInterest.getMaximumExtent().add(translation, _worldInterest.getMaximumExtent());
 

@@ -493,7 +493,7 @@ public class TudeySceneManager extends SceneManager
         _actorSpace.getElements(bounds, _elements);
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
             ActorLogic actor = (ActorLogic)_elements.get(ii).getUserObject();
-            if (!actor.isStatic() && actor.isVisible(target)) {
+            if (!actor.isStatic() && (target == null || actor.isVisible(target))) {
                 results.add(actor);
             }
         }
