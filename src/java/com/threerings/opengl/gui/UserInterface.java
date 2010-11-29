@@ -25,9 +25,14 @@
 package com.threerings.opengl.gui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 
 import com.threerings.config.ConfigEvent;
@@ -166,11 +171,8 @@ public class UserInterface extends Container
      */
     public void setEnabled (String tag, boolean enabled)
     {
-        List<Component> comps = getComponents(tag);
-        if (comps != null) {
-            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
-                comps.get(ii).setEnabled(enabled);
-            }
+        for (Component comp : getComponents(tag)) {
+            comp.setEnabled(enabled);
         }
     }
 
@@ -180,11 +182,8 @@ public class UserInterface extends Container
      */
     public void setVisible (String tag, boolean visible)
     {
-        List<Component> comps = getComponents(tag);
-        if (comps != null) {
-            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
-                comps.get(ii).setVisible(visible);
-            }
+        for (Component comp : getComponents(tag)) {
+            comp.setVisible(visible);
         }
     }
 
@@ -194,14 +193,8 @@ public class UserInterface extends Container
      */
     public void setText (String tag, String text)
     {
-        List<Component> comps = getComponents(tag);
-        if (comps != null) {
-            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
-                Component comp = comps.get(ii);
-                if (comp instanceof TextComponent) {
-                    ((TextComponent)comp).setText(text);
-                }
-            }
+        for (TextComponent comp : getComponents(tag, TextComponent.class)) {
+            comp.setText(text);
         }
     }
 
@@ -210,13 +203,16 @@ public class UserInterface extends Container
      */
     public String getText (String tag)
     {
-        Component comp = getComponent(tag);
-        if (comp instanceof TextComponent) {
-            return ((TextComponent)comp).getText();
-        } else {
-            log.warning("Not a text component.", "tag", tag, "component", comp);
-            return "";
+        // first look for an editable field...
+        TextComponent comp = getComponent(tag, EditableTextComponent.class);
+        if (comp == null) {
+            comp = getComponent(tag, TextComponent.class);
+            if (comp == null) {
+                log.warning("Not a text component.", "tag", tag, "components", getComponents(tag));
+                return "";
+            }
         }
+        return comp.getText();
     }
 
     /**
@@ -224,13 +220,12 @@ public class UserInterface extends Container
      */
     public boolean isSelected (String tag)
     {
-        Component comp = getComponent(tag);
-        if (comp instanceof ToggleButton) {
-            return ((ToggleButton)comp).isSelected();
-        } else {
-            log.warning("Not a toggle button.", "tag", tag, "component", comp);
+        ToggleButton comp = getComponent(tag, ToggleButton.class);
+        if (comp == null) {
+            log.warning("Not a toggle button.", "tag", tag, "component", getComponent(tag));
             return false;
         }
+        return comp.isSelected();
     }
 
     /**
@@ -238,11 +233,8 @@ public class UserInterface extends Container
      */
     public void addListener (String tag, ComponentListener listener)
     {
-        List<Component> comps = getComponents(tag);
-        if (comps != null) {
-            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
-                comps.get(ii).addListener(listener);
-            }
+        for (Component comp : getComponents(tag)) {
+            comp.addListener(listener);
         }
     }
 
@@ -251,11 +243,8 @@ public class UserInterface extends Container
      */
     public void removeListener (String tag, ComponentListener listener)
     {
-        List<Component> comps = getComponents(tag);
-        if (comps != null) {
-            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
-                comps.get(ii).removeListener(listener);
-            }
+        for (Component comp : getComponents(tag)) {
+            comp.removeListener(listener);
         }
     }
 
@@ -264,11 +253,8 @@ public class UserInterface extends Container
      */
     public void removeAllListeners (String tag)
     {
-        List<Component> comps = getComponents(tag);
-        if (comps != null) {
-            for (int ii = 0, nn = comps.size(); ii < nn; ii++) {
-                comps.get(ii).removeAllListeners();
-            }
+        for (Component comp : getComponents(tag)) {
+            comp.removeAllListeners();
         }
     }
 
@@ -278,32 +264,54 @@ public class UserInterface extends Container
      */
     public Component getComponent (String tag)
     {
-        List<Component> comps = getComponents(tag);
-        return (comps == null) ? null : comps.get(0);
+        return Iterables.getFirst(getComponents(tag), null);
     }
 
     /**
-     * Returns a reference to the list of components registered with the specified tag,
-     * or <code>null</code> if there are no such components.
+     * Returns a reference to the first component registered with the specified tag and
+     * implementing the specified class or interface, or <code>null</code> if there are
+     * no such components.
      */
-    public List<Component> getComponents (String tag)
+    public <C extends Component> C getComponent (String tag, Class<C> clazz)
+    {
+        return Iterables.getFirst(getComponents(tag, clazz), null);
+    }
+
+    /**
+     * Returns the Components registered with the specified tag.
+     */
+    public <C extends Component> Iterable<C> getComponents (String tag, Class<C> clazz)
+    {
+        return Iterables.filter(getComponents(tag), clazz);
+    }
+
+    /**
+     * Returns the Components registered with the specified tag.
+     */
+    public Iterable<Component> getComponents (String tag)
     {
         // parse simple paths
         int idx = tag.indexOf('/');
         if (idx == -1) {
             return _tagged.get(tag);
         }
-        Component first = getComponent(tag.substring(0, idx));
-        return (first instanceof UserInterface) ?
-            ((UserInterface)first).getComponents(tag.substring(idx + 1)) : null;
+        // assemble all components in all sub-trees that have the correct path
+        final String nextpath = tag.substring(idx + 1);
+        tag = tag.substring(0, idx);
+        return Iterables.concat(Iterables.transform(getComponents(tag, UserInterface.class),
+            new Function<UserInterface, Iterable<Component>>() {
+                public Iterable<Component> apply (UserInterface comp) {
+                    return comp.getComponents(nextpath);
+                }
+            }));
     }
 
     /**
      * Returns a reference to the tagged component map.
      */
-    public Map<String, List<Component>> getTagged ()
+    public Map<String, Collection<Component>> getTagged ()
     {
-        return _tagged;
+        return _tagged.asMap();
     }
 
     /**
@@ -311,16 +319,13 @@ public class UserInterface extends Container
      */
     public boolean replace (String tag, Component newc)
     {
-        Component oldc = getComponent(tag);
-        if (oldc.getParent().replace(oldc, newc)) {
-            List<Component> list = _tagged.get(tag);
-            for (int ii = 0, ll = list.size(); ii < ll; ii++) {
-                if (oldc == list.get(ii)) {
-                    list.set(ii, newc);
-                    break;
-                }
+        List<Component> list = _tagged.get(tag);
+        if (!list.isEmpty()) {
+            Component oldc = list.get(0);
+            if (oldc.getParent().replace(oldc, newc)) {
+                list.set(0, newc);
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -388,15 +393,10 @@ public class UserInterface extends Container
      * Registers a group of components mapped by tag.
      */
     @Scoped
-    protected void registerComponents (Map<String, List<Component>> tagged)
+    protected void registerComponents (Map<String, Collection<Component>> tagged)
     {
-        for (Map.Entry<String, List<Component>> entry : tagged.entrySet()) {
-            String tag = entry.getKey();
-            List<Component> comps = _tagged.get(tag);
-            if (comps == null) {
-                _tagged.put(tag, comps = new ArrayList<Component>());
-            }
-            comps.addAll(entry.getValue());
+        for (Map.Entry<String, Collection<Component>> entry : tagged.entrySet()) {
+            _tagged.get(entry.getKey()).addAll(entry.getValue());
         }
     }
 
@@ -406,11 +406,7 @@ public class UserInterface extends Container
     @Scoped
     protected void registerComponent (String tag, Component comp)
     {
-        List<Component> comps = _tagged.get(tag);
-        if (comps == null) {
-            _tagged.put(tag, comps = new ArrayList<Component>());
-        }
-        comps.add(comp);
+        _tagged.put(tag, comp);
     }
 
     /** The user interface scope. */
@@ -420,7 +416,7 @@ public class UserInterface extends Container
     protected UserInterfaceConfig _config;
 
     /** The sets of components registered under each tag. */
-    protected Map<String, List<Component>> _tagged = Maps.newHashMap();
+    protected ListMultimap<String, Component> _tagged = ArrayListMultimap.create();
 
     /** The root to which we were added. */
     protected Root _root;
