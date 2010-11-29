@@ -24,7 +24,6 @@
 
 package com.threerings.opengl.gui;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
 
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigManager;
@@ -293,6 +291,7 @@ public class UserInterface extends Container
         // parse simple paths
         int idx = tag.indexOf('/');
         if (idx == -1) {
+            //return Iterables.unmodifiableIterable(_tagged.get(tag));
             return _tagged.get(tag);
         }
         // assemble all components in all sub-trees that have the correct path
