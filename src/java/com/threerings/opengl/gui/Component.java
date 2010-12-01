@@ -639,11 +639,7 @@ public class Component
      */
     public boolean removeListener (ComponentListener listener)
     {
-        if (_listeners != null) {
-            return _listeners.remove(listener);
-        } else {
-            return false;
-        }
+        return (_listeners != null) && _listeners.remove(listener);
     }
 
     /**
