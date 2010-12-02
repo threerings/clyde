@@ -24,6 +24,8 @@
 
 package com.threerings.config;
 
+import java.io.PrintStream;
+
 import java.lang.ref.SoftReference;
 
 import java.util.Iterator;
@@ -136,6 +138,17 @@ public class ParameterizedConfig extends ManagedConfig
         if (_derived.getMap().isEmpty()) {
             _derived = null;
         }
+    }
+
+    @Override // documentation inherited
+    public boolean validateReferences (String where, PrintStream out)
+    {
+        // validate the parameter paths, too
+        boolean result = super.validateReferences(where, out);
+        for (Parameter parameter : parameters) {
+            /* result &= */ parameter.validatePaths(where, this, out);
+        }
+        return result;
     }
 
     @Override // documentation inherited

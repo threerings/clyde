@@ -24,6 +24,8 @@
 
 package com.threerings.config;
 
+import java.io.PrintStream;
+
 import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 
@@ -62,6 +64,21 @@ public abstract class Parameter extends DeepObject
          * path determines the type and default value. */
         @Editable(width=40, editor="paths")
         public String[] paths = new String[0];
+
+        @Override // documentation inherited
+        public boolean validatePaths (String where, ParameterizedConfig reference, PrintStream out)
+        {
+            boolean result = true;
+            for (String path : paths) {
+                try {
+                    new PathProperty(reference.getConfigManager(), name, reference, path);
+                } catch (InvalidPathsException e) {
+                    out.println(where + ":" + name + " has invalid path: " + path);
+                    result = false;
+                }
+            }
+            return result;
+        }
 
         @Override // documentation inherited
         protected Property createProperty (ParameterizedConfig reference)
@@ -186,6 +203,17 @@ public abstract class Parameter extends DeepObject
                 direct.invalidateProperties();
             }
             _optionProperties = null;
+        }
+
+        @Override // documentation inherited
+        public boolean validatePaths (String where, ParameterizedConfig reference, PrintStream out)
+        {
+            where += (":" + name);
+            boolean result = true;
+            for (Direct direct : directs) {
+                result &= direct.validatePaths(where, reference, out);
+            }
+            return result;
         }
 
         @Override // documentation inherited
@@ -351,6 +379,14 @@ public abstract class Parameter extends DeepObject
     {
         _property = _argumentProperty = INVALID_PROPERTY;
     }
+
+    /**
+     * Validates the parameter's paths.
+     *
+     * @return true if the paths are valid.
+     */
+    public abstract boolean validatePaths (
+        String where, ParameterizedConfig reference, PrintStream out);
 
     /**
      * Validates the parameter's outer object references.
