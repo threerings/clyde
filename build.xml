@@ -157,4 +157,17 @@
     </genservice>
   </target>
 
+  <property name="maven.deploy.repo" value="file://${user.home}/.m2/repository"/>
+  <target name="maven-deploy" depends="dist,tests" 
+          description="Deploys our build artifacts to a Maven repository.">
+    <artifact:deploy file="${deploy.dir}/${ant.project.name}.jar" uniqueVersion="false">
+      <remoteRepository url="${maven.deploy.repo}"/>
+      <pom refid="pom"/>
+    </artifact:deploy>
+    <artifact:pom id="as-pom" file="as-pom.xml"/>
+    <artifact:deploy file="${deploy.dir}/${ant.project.name}lib.swc" uniqueVersion="false">
+      <remoteRepository url="${maven.deploy.repo}"/>
+      <pom refid="as-pom"/>
+    </artifact:deploy>
+  </target>
 </project>
