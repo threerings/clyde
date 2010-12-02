@@ -72,6 +72,15 @@
       <compilerarg value="-Xlint"/>
       <compilerarg value="-Xlint:-serial"/>
     </javac>
+
+    <mkdir dir="${tclasses.dir}"/>
+    <copy todir="${tclasses.dir}"><fileset dir="src/test/resources" includes="**"/></copy>
+    <javac srcdir="${tsrc.dir}" destdir="${tclasses.dir}" includeAntRuntime="false"
+           debug="on" optimize="${build.optimize}" source="1.5" target="1.5"
+           encoding="utf-8" classpathref="test.classpath">
+      <compilerarg value="-Xlint"/>
+      <compilerarg value="-Xlint:-serial"/>
+    </javac>
   </target>
 
   <target name="javadoc" depends="-prepare" description="Builds the Java documentation">
@@ -91,9 +100,28 @@
     </javadoc>
   </target>
 
-  <!-- builds the various tests -->
-  <target name="tests">
-    <ant dir="tests" target="compile"/>
+  <target name="-colorpos">
+    <taskdef name="confcomp" classpathref="compile.classpath"
+             classname="com.threerings.tools.CompiledConfigTask"/>
+    <confcomp dest="${deploy.dir}" parser="com.threerings.media.image.tools.xml.ColorPositoryParser"
+              configdef="src/test/resources/rsrc/config/media/colordefs.xml"/>
+  </target>
+
+  <property name="test" value=""/>
+  <target name="tests" depends="compile,-colorpos"
+          description="Runs unit tests. Use -Dtest=Foo to run only FooTest.">
+    <taskdef name="unit" classpathref="test.classpath"
+      classname="org.apache.tools.ant.taskdefs.optional.junit.JUnitTask"/>
+    <mkdir dir="${deploy.dir}/test-reports"/>
+    <unit printsummary="off" haltonfailure="yes">
+      <classpath refid="test.classpath"/>
+      <sysproperty key="test_dir" value="${tclasses.dir}"/>
+      <formatter type="brief" usefile="false"/>
+      <formatter type="xml"/>
+      <batchtest todir="${deploy.dir}/test-reports">
+        <fileset dir="${tsrc.dir}" includes="**/*${test}*Test.java"/>
+      </batchtest>
+    </unit>
   </target>
 
   <!-- a target for rebuilding everything -->
