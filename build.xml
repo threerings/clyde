@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="yes"?>
 <project name="clyde" default="compile" basedir="." xmlns:artifact="urn:maven-artifact-ant">
-  <property name="src.dir"      value="src/java"/>
+  <property name="src.dir"      value="src/main/java"/>
   <property name="tsrc.dir"     value="src/test/java"/>
   <property name="deploy.dir"   value="dist"/>
   <property name="classes.dir"  value="${deploy.dir}/classes"/>
@@ -43,21 +43,14 @@
     <taskdef resource="com/threerings/presents/tools.properties" classpathref="compile.classpath"/>
   </target>
 
-  <!-- cleans out the intermediate build files -->
-  <target name="clean" depends="common-clean">
+  <target name="clean" description="Cleans out build results">
     <delete dir="${deploy.dir}/classes"/>
     <delete dir="${deploy.dir}/docs"/>
     <delete failonerror="false"><fileset dir="${deploy.dir}" includes="*.jar"/></delete>
   </target>
 
-  <!-- wipes the entire build directory clean -->
-  <target name="distclean" depends="common-clean">
+  <target name="distclean" description="Scorched earth clean">
     <delete dir="${deploy.dir}"/>
-  </target>
-
-  <!-- common clean tasks -->
-  <target name="common-clean">
-    <ant dir="tests" target="clean"/>
   </target>
 
   <target name="compile" depends="-prepare" description="Builds the Java code.">
@@ -137,7 +130,7 @@
   <target name="gendobj" depends="-preptools"
           description="Generates additional methods for distributed object classes">
     <!-- make sure the dobject class files are all compiled -->
-    <javac srcdir="src/java" destdir="${classes.dir}" includeAntRuntime="false"
+    <javac srcdir="${src.dir}" destdir="${classes.dir}" includeAntRuntime="false"
            debug="on" optimize="${build.optimize}" deprecation="on"
            source="1.5" target="1.5">
       <classpath refid="compile.classpath"/>
