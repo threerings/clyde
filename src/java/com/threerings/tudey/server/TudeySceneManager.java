@@ -258,6 +258,14 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns the amount of time spent processing the last tick.
+     */
+    public long getTickDuration ()
+    {
+        return _tickDuration;
+    }
+
+    /**
      * Returns the list of logic objects with the supplied tag, or <code>null</code> for none.
      */
     public ArrayList<Logic> getTagged (String tag)
@@ -1294,6 +1302,9 @@ public class TudeySceneManager extends SceneManager
         _staticActorsUpdated.clear();
         _staticActorsRemoved.clear();
         _effectsFired.clear();
+
+        // note how long the tick took
+        _tickDuration = (RunAnywhere.currentTimeMillis() - _lastTick);
     }
 
     /**
@@ -1384,6 +1395,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The system time of the last tick. */
     protected long _lastTick;
+
+    /** The duration of processing for the last tick. */
+    protected long _tickDuration;
 
     /** The timestamp of the current and previous ticks. */
     protected int _timestamp, _previousTimestamp;

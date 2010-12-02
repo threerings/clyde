@@ -234,10 +234,28 @@ public abstract class SceneTicker
                 log.warning("Exception thrown in scene tick.", "where", scenemgr.where(), e);
             }
         }
+
+
+        // find out how long we just spent ticking.  if it's longer than 500ms, the omgr will give
+        // us a warning, so let's break it down by scene manager
+        long duration = System.currentTimeMillis() - _lastTick;
+        if (duration >= 500L) {
+            StringBuilder buf = new StringBuilder();
+            for (TudeySceneManager scenemgr : _sarray) {
+                if (scenemgr == null) {
+                    break;
+                }
+                if (buf.length() > 0) {
+                    buf.append(", ");
+                }
+                buf.append(scenemgr.where()).append(": ").append(scenemgr.getTickDuration());
+            }
+            log.warning("Long tick detected.", "durations", buf);
+        }
         Arrays.fill(_sarray, null);
 
         // return the amount of time remaining until the next tick
-        return _targetInterval - (System.currentTimeMillis() - _lastTick);
+        return _targetInterval - duration;
     }
 
     /** The event thread run queue. */
