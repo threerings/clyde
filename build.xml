@@ -164,10 +164,5 @@
       <remoteRepository url="${maven.deploy.repo}"/>
       <pom refid="pom"/>
     </artifact:deploy>
-    <artifact:pom id="as-pom" file="as-pom.xml"/>
-    <artifact:deploy file="${deploy.dir}/${ant.project.name}lib.swc" uniqueVersion="false">
-      <remoteRepository url="${maven.deploy.repo}"/>
-      <pom refid="as-pom"/>
-    </artifact:deploy>
   </target>
 </project>
