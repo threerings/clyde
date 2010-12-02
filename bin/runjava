@@ -30,7 +30,9 @@ if (defined $libpath) {
 }
 
 # put everything in our class path
-my $classpath = "-classpath $root/dist/test-classes:$root/dist/classes";
+my $mvnpath = `mvn dependency:build-classpath | grep -v INFO`;
+chomp($mvnpath);
+my $classpath = "-classpath $mvnpath:$root/dist/test-classes:$root/dist/classes";
 
 # add zip and jar files from our lib/ directory and the global Java
 # libraries directory
