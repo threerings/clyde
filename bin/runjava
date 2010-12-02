@@ -12,10 +12,6 @@ chomp($location = `dirname $0`);
 pop(@parts);
 my $root = join("/", @parts);
 
-# but we're in the test directory, so we want up one
-$realroot = $root;
-$root = "$root/..";
-
 # determine our machine architecture
 my $ostype = `uname -s`;
 my $machtype = `uname -m`;
@@ -34,7 +30,7 @@ if (defined $libpath) {
 }
 
 # put everything in our class path
-my $classpath = "-classpath $root/tests/dist/classes:$root/dist/classes";
+my $classpath = "-classpath $root/dist/test-classes:$root/dist/classes";
 
 # add zip and jar files from our lib/ directory and the global Java
 # libraries directory
@@ -55,8 +51,8 @@ foreach $dir (@dirs) {
 $classpath = "$classpath";
 
 # specify our server root (this is for server code)
-my $rootarg = "-Dno_unpack_resources=true -Dresource_dir=$realroot/dist/rsrc " .
-  "-Drsrc_cache_dir=/tmp -Dno_log_redir=true -Dtest_dir=$realroot";
+my $rootarg = "-Dno_unpack_resources=true -Dresource_dir=$root/dist/rsrc " .
+  "-Drsrc_cache_dir=/tmp -Dno_log_redir=true -Dtest_dir=$root";
 
 my $pid_file = undef;
 my $i = 0;
