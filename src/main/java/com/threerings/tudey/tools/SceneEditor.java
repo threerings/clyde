@@ -98,6 +98,7 @@ import com.samskivert.swing.Spacer;
 import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.CollectionUtil;
+import com.samskivert.util.RunAnywhere;
 
 import com.threerings.crowd.client.PlaceView;
 import com.threerings.media.image.ImageUtil;
@@ -204,7 +205,10 @@ public class SceneEditor extends TudeyTool
     {
         super("scene");
 
-        setupMacSupport();
+        if (RunAnywhere.isMacOS()) {
+            setupMacSupport();
+        }
+
         // we override shutdown() and may want to abort a close
         _frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
