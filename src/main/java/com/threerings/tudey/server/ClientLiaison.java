@@ -334,7 +334,7 @@ public class ClientLiaison
         // if we know that we can't transmit datagrams, we may as well send the delta as reliable
         // and immediately consider it received
         Transport transport = Transport.UNRELIABLE_UNORDERED;
-        if (!_session.getTransmitDatagrams()) {
+        if (_session == null || !_session.getTransmitDatagrams()) {
             transport = Transport.RELIABLE_ORDERED;
             _records.subList(0, _records.size() - 1).clear();
         }

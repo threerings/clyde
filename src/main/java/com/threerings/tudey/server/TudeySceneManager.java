@@ -1120,10 +1120,6 @@ public class TudeySceneManager extends SceneManager
         // create and map the client liaison
         BodyObject bodyobj = (BodyObject)_omgr.getObject(bodyOid);
         CrowdSession session = (CrowdSession)_clmgr.getClient(bodyobj.username);
-        if (session == null) {
-            log.warning("Missing session for entering body.", "who", bodyobj.who());
-            return;
-        }
         _clients.put(bodyOid, createClientLiaison(bodyobj, session));
 
         // register with the ticker when the first occupant enters
