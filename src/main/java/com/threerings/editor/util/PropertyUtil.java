@@ -26,10 +26,14 @@ package com.threerings.editor.util;
 
 import java.io.PrintStream;
 
+import java.lang.reflect.Array;
+
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import com.samskivert.util.Tuple;
@@ -47,6 +51,9 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
+import com.threerings.editor.Strippable;
+import com.threerings.export.Exportable;
+import com.threerings.export.ObjectMarshaller;
 
 /**
  * Some general utility methods relating to editable properties.
@@ -249,6 +256,134 @@ public class PropertyUtil
     }
 
     /**
+     * Strips and returns a single object.
+     */
+    public static Object strip (ConfigManager cfgmgr, Object object)
+    {
+        if (object == null) {
+            return null;
+        }
+        if (object instanceof Object[]) {
+            List<Object> list = Lists.newArrayList();
+            Object[] oarray = (Object[])object;
+            for (Object element : oarray) {
+                if (!isStrippable(element)) {
+                    list.add(strip(cfgmgr, element));
+                }
+            }
+            int nsize = list.size();
+            return list.toArray(oarray.length == nsize ?
+                oarray : (Object[])Array.newInstance(oarray.getClass().getComponentType(), nsize));
+        }
+        if (object instanceof List) {
+            @SuppressWarnings("unchecked") List<Object> list = (List<Object>)object;
+            for (int ii = list.size() - 1; ii >= 0; ii--) {
+                Object element = list.get(ii);
+                if (isStrippable(element)) {
+                    list.remove(ii);
+                } else {
+                    list.set(ii, strip(cfgmgr, element));
+                }
+            }
+            return list;
+        }
+        if (!(object instanceof Exportable)) {
+            return object;
+        }
+        Class<?> clazz = object.getClass();
+        Object prototype = ObjectMarshaller.getObjectMarshaller(clazz).getPrototype();
+        for (Property property : Introspector.getProperties(clazz)) {
+            Object result = strip(cfgmgr, object, property);
+            property.set(object, result == STRIP_OUT ? property.get(prototype) : result);
+        }
+        return object;
+    }
+
+    /**
+     * Strips a single property of an object.
+     */
+    protected static Object strip (ConfigManager cfgmgr, Object object, Property property)
+    {
+        Object value = property.get(object);
+        if (isStrippable(property) || isStrippable(value)) {
+            return STRIP_OUT;
+        }
+        if (value == null) {
+            return null;
+
+        } else if (property.getType().equals(ConfigReference.class)) {
+            @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
+                (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+            @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
+                (ConfigReference<ManagedConfig>)value;
+            ArgumentMap args = ref.getArguments();
+            if (args.isEmpty()) {
+                return ref;
+            }
+            ManagedConfig config = cfgmgr.getConfig(cclass, ref.getName());
+            if (!(config instanceof ParameterizedConfig)) {
+                args.clear();
+                return ref;
+            }
+            ParameterizedConfig pconfig = (ParameterizedConfig)config;
+            for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
+                    it.hasNext(); ) {
+                Map.Entry<String, Object> entry = it.next();
+                Parameter param = pconfig.getParameter(entry.getKey());
+                if (param == null) {
+                    it.remove();
+                    continue;
+                }
+                Property prop = param.getArgumentProperty(pconfig);
+                if (prop == null) {
+                    it.remove();
+                    continue;
+                }
+                Object result = strip(cfgmgr, args, prop);
+                if (result == STRIP_OUT) {
+                    it.remove();
+                } else {
+                    entry.setValue(result);
+                }
+            }
+            return ref;
+
+        } else {
+            return strip(cfgmgr, value);
+        }
+    }
+
+    /**
+     * Checks whether the specified property is strippable.
+     */
+    protected static boolean isStrippable (Property property)
+    {
+        Class<?> type = property.getType();
+        return property.isAnnotationPresent(Strippable.class) ||
+            isStrippable(type) || isStrippable(property.getComponentType()) ||
+            ConfigReference.class.isAssignableFrom(type) &&
+                isStrippable(property.getArgumentType(ConfigReference.class));
+    }
+
+    /**
+     * Checks whether the specified object itself is strippable.
+     */
+    protected static boolean isStrippable (Object object)
+    {
+        return object != null && isStrippable(object.getClass());
+    }
+
+    /**
+     * Checks whether the specified class or its component type or any of its superclasses are
+     * flagged as strippable.
+     */
+    protected static boolean isStrippable (Class<?> clazz)
+    {
+        return clazz != null && (clazz.isAnnotationPresent(Strippable.class) ||
+            isStrippable(clazz.getComponentType()) || isStrippable(clazz.getSuperclass()));
+    }
+
+    /**
      * Finds all configs and resources referenced by the supplied property of the supplied object
      * and places them in the given sets.
      */
@@ -369,5 +504,8 @@ public class PropertyUtil
             }
         }
     }
+
+    /** Signifies that a property should be stripped out completely. */
+    protected static final Object STRIP_OUT = new Object() { };
 }
 
