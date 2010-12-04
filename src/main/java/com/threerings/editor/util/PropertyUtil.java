@@ -506,6 +506,5 @@ public class PropertyUtil
     }
 
     /** Signifies that a property should be stripped out completely. */
-    protected static final Object STRIP_OUT = new Object() { };
+    protected static final Object STRIP_OUT = new Object();
 }
-
