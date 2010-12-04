@@ -47,7 +47,7 @@ public interface GlCanvas
     public void makeCurrent ();
 
     /**
-     * Destroys the canvas.
+     * Shuts down the canvas.
      */
-    public void destroy ();
+    public void shutdown ();
 }

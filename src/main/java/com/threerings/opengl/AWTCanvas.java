@@ -66,7 +66,7 @@ public class AWTCanvas extends AWTGLCanvas
     }
 
     // documentation inherited from interface GlCanvas
-    public void destroy ()
+    public void shutdown ()
     {
         // no-op
     }

@@ -169,7 +169,7 @@ public class DisplayCanvas extends JPanel
     }
 
     // documentation inherited from interface GlCanvas
-    public void destroy ()
+    public void shutdown ()
     {
         Keyboard.destroy();
         Mouse.destroy();
