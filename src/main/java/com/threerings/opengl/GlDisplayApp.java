@@ -234,6 +234,35 @@ public abstract class GlDisplayApp extends GlApp
      */
     protected boolean createDisplay ()
     {
+        // try with the current settings
+        if (attemptCreateDisplay()) {
+            return true;
+        }
+
+        // switch to/from fullscreen mode and try again
+        boolean fullscreen = !Display.isFullscreen();
+        log.info("Couldn't create display; switching fullscreen mode.", "fullscreen", fullscreen);
+        try {
+            Display.setFullscreen(fullscreen);
+        } catch (LWJGLException e) {
+            log.warning("Failed to switch fullscreen mode.", e);
+            return false;
+        }
+        if (attemptCreateDisplay()) {
+            return true;
+        }
+
+        log.warning("Couldn't find valid pixel format.");
+        return false;
+    }
+
+    /**
+     * Tries each pixel format in sequence until we find one that works.
+     *
+     * @return true if successful, false if we couldn't find a valid pixel format.
+     */
+    protected boolean attemptCreateDisplay ()
+    {
         for (PixelFormat format : PIXEL_FORMATS) {
             try {
                 Display.create(format);
@@ -242,20 +271,6 @@ public abstract class GlDisplayApp extends GlApp
                 // proceed to next format
             }
         }
-        log.warning("Couldn't find valid pixel format.");
-
-        // if we're in fullscreen mode, try switching to windowed mode and trying again
-        if (Display.isFullscreen()) {
-            try {
-                Display.setFullscreen(false);
-                log.info("Trying again in windowed mode.");
-                return createDisplay();
-
-            } catch (LWJGLException e) {
-                log.warning("Failed to disable fullscreen mode.", e);
-            }
-        }
-
         return false;
     }
 
