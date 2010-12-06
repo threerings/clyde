@@ -51,10 +51,6 @@
       <id>ooo-maven-repo</id>
       <url>http://ooo-maven.googlecode.com/hg/repository</url>
     </repository>
-    <repository>
-      <id>ooo-repo</id>
-      <url>http://build.earth.threerings.net/maven-repository</url>
-    </repository>
   </repositories>
 
   <dependencies>
