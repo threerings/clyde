@@ -196,7 +196,7 @@ public class TabbedPane extends Container
         if (idx != -1) {
             removeTab(idx);
         } else {
-            log.warning("Requested to remove non-added tab [pane=" + this + ", tab=" + tab + "].");
+            log.warning("Requested to remove non-added tab", "pane", this, "tab", tab);
         }
     }
 
