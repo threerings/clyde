@@ -136,7 +136,7 @@ public class ComboBox extends Label
     /**
      * Replaces any existing items in this combo box with the supplied items.
      */
-    public void setItems (Object... items)
+    public void setItems (Object[] items)
     {
         setItems(Arrays.asList(items));
     }
