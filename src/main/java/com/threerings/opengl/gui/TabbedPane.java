@@ -44,6 +44,10 @@ import static com.threerings.opengl.gui.Log.log;
  */
 public class TabbedPane extends Container
 {
+    /** ActionEvent action String fired when the tab selection changes; argument is the
+     * component of the new tab. */
+    public static final String SELECTION_CHANGED = "selectionChanged";
+
     /**
      * Creates a tabbed pane with left justified buttons.
      */
@@ -362,7 +366,7 @@ public class TabbedPane extends Container
         _selidx = tabidx;
 
         // emit an action event
-        emitEvent(new ActionEvent(this, when, modifiers, "selectionChanged", tab.component));
+        emitEvent(new ActionEvent(this, when, modifiers, SELECTION_CHANGED, tab.component));
     }
 
     /**
