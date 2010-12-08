@@ -35,10 +35,10 @@ import com.threerings.opengl.gui.event.ActionListener;
  * Manages a group of {@link ToggleButton}s, ensuring that only one is selected at any given time.
  */
 public class ButtonGroup
-    implements ActionListener
+    implements ActionListener, Selectable<ToggleButton>
 {
-    /** The action fired when the list selection changes. */
-    public static final String SELECT = "select";
+    @Deprecated
+    public static final String SELECT = SELECTION_CHANGED;
 
     /**
      * Creates a new button group.
@@ -107,6 +107,18 @@ public class ButtonGroup
     public int getButtonCount ()
     {
         return _buttons.size();
+    }
+
+    // from Selectable<ToggleButton>
+    public ToggleButton getSelected ()
+    {
+        return getSelectedButton();
+    }
+
+    // from Selectable<ToggleButton>
+    public void setSelected (ToggleButton button)
+    {
+        setSelectedButton(button);
     }
 
     /**
@@ -180,7 +192,7 @@ public class ButtonGroup
                 button.setSelected(false);
             }
         }
-        ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
+        ActionEvent event = new ActionEvent(this, when, modifiers, SELECTION_CHANGED, selected);
         for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
             event.dispatch(_listeners.get(ii));
         }

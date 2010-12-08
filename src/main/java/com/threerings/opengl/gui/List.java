@@ -38,9 +38,11 @@ import com.threerings.opengl.gui.layout.GroupLayout;
  * supplied values.
  */
 public class List extends Container
+    implements Selectable<Object>
 {
     /** The action fired when the list selection changes. */
-    public static final String SELECT = "select";
+    @Deprecated
+    public static final String SELECT = SELECTION_CHANGED;
 
     /**
      * Creates an empty list.
@@ -114,6 +116,18 @@ public class List extends Container
         return true;
     }
 
+    // from Selectable<Object>
+    public Object getSelected ()
+    {
+        return getSelectedValue();
+    }
+
+    // from Selectable<Object>
+    public void setSelected (Object value)
+    {
+        setSelectedValue(value);
+    }
+
     /**
      * Returns the currently selected value.
      *
@@ -164,7 +178,7 @@ public class List extends Container
             }
             _selidx = _children.indexOf(e.getSource());
             emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
-                SELECT, getSelectedValue()));
+                SELECTION_CHANGED, getSelectedValue()));
         }
     };
 }

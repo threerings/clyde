@@ -24,7 +24,10 @@
 
 package com.threerings.opengl.gui;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
@@ -41,6 +44,7 @@ import com.threerings.opengl.gui.util.Insets;
  * Displays a selected value and allows that value to be changed by selecting from a popup menu.
  */
 public class ComboBox extends Label
+    implements Selectable<Object>
 {
     /** Used for displaying a label that is associated with a particular non-displayable value. */
     public static class Item
@@ -132,12 +136,21 @@ public class ComboBox extends Label
     /**
      * Replaces any existing items in this combo box with the supplied items.
      */
-    public void setItems (Object[] items)
+    public void setItems (Object... items)
     {
-        clearItems();
-        for (int ii = 0; ii < items.length; ii++) {
-            addItem(items[ii]);
-        }
+        setItems(Arrays.asList(items));
+    }
+
+    // from Selectable<Object>
+    public Object getSelected ()
+    {
+        return getSelectedItem();
+    }
+
+    // from Selectable<Object>
+    public void setSelected (Object item)
+    {
+        selectItem(item);
     }
 
     /**
@@ -313,7 +326,7 @@ public class ComboBox extends Label
         } else {
             setText(item == null ? "" : item.toString());
         }
-        emitEvent(new ActionEvent(this, when, modifiers, "selectionChanged", item));
+        emitEvent(new ActionEvent(this, when, modifiers, SELECTION_CHANGED, item));
     }
 
     protected void clearCache ()
@@ -385,7 +398,7 @@ public class ComboBox extends Label
     protected int _selidx = -1;
 
     /** The list of items in this combo box. */
-    protected ArrayList<ComboMenuItem> _items = new ArrayList<ComboMenuItem>();
+    protected List<ComboMenuItem> _items = Lists.newArrayList();
 
     /** A cached popup menu containing our items. */
     protected ComboPopupMenu _menu;

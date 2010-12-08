@@ -43,11 +43,8 @@ import static com.threerings.opengl.gui.Log.log;
  * Displays one of a set of components (tabs) depending on which tab is selected.
  */
 public class TabbedPane extends Container
+    implements Selectable<Component>
 {
-    /** ActionEvent action String fired when the tab selection changes; argument is the
-     * component of the new tab. */
-    public static final String SELECTION_CHANGED = "selectionChanged";
-
     /**
      * Creates a tabbed pane with left justified buttons.
      */
@@ -266,6 +263,18 @@ public class TabbedPane extends Container
     public int getTabCount ()
     {
         return _tabs.size();
+    }
+
+    // from Selectable<Component>
+    public Component getSelected ()
+    {
+        return getSelectedTab();
+    }
+
+    // from Selectable<Component>
+    public void setSelected (Component tab)
+    {
+        selectTab(tab);
     }
 
     /**
