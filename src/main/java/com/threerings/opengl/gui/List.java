@@ -40,7 +40,6 @@ import com.threerings.opengl.gui.layout.GroupLayout;
 public class List extends Container
     implements Selectable<Object>
 {
-    /** The action fired when the list selection changes. */
     @Deprecated
     public static final String SELECT = SELECTION_CHANGED;
 

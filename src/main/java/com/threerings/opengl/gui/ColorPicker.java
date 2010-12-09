@@ -28,9 +28,10 @@ import com.threerings.opengl.util.GlContext;
  * Allows the selection of a single color from a set of swatches.
  */
 public class ColorPicker extends Component
+    implements Selectable<ColorRecord>
 {
-    /** The action fired when the color selection changes. */
-    public static final String SELECT = "select";
+    @Deprecated
+    public static final String SELECT = SELECTION_CHANGED;
 
     /**
      * Creates a new color picker.
@@ -100,6 +101,18 @@ public class ColorPicker extends Component
         _swatchHeight = swatchHeight;
     }
 
+    // from Selectable<ColorRecord>
+    public ColorRecord getSelected ()
+    {
+        return getSelectedColor();
+    }
+
+    // from Selectable<ColorRecord>
+    public void setSelected (ColorRecord color)
+    {
+        setSelectedColor(color);
+    }
+
     /**
      * Sets the selected color record.
      */
@@ -155,7 +168,7 @@ public class ColorPicker extends Component
             }
             if (_sidx != oidx) {
                 emitEvent(new ActionEvent(this, mev.getWhen(), mev.getModifiers(),
-                    SELECT, getSelectedColor()));
+                    SELECTION_CHANGED, getSelectedColor()));
             }
             return true;
         }
