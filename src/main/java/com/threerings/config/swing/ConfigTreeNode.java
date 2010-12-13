@@ -26,7 +26,7 @@ package com.threerings.config.swing;
 
 import java.io.IOException;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -205,14 +205,29 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     /**
      * Puts all of the configurations under this node into the supplied list.
      */
-    public void getConfigs (ArrayList<ManagedConfig> configs)
+    public void getConfigs (List<ManagedConfig> configs)
+    {
+        getConfigs(configs, false);
+    }
+
+    /**
+     * Puts all of the configurations under this node into the supplied list.
+     */
+    public void getConfigs (List<ManagedConfig> configs, boolean immediate)
     {
         if (_config != null) {
             configs.add(_config);
 
         } else if (children != null) {
             for (Object child : children) {
-                ((ConfigTreeNode)child).getConfigs(configs);
+                if (immediate) {
+                    ManagedConfig config = ((ConfigTreeNode)child).getConfig();
+                    if (config != null) {
+                        configs.add(config);
+                    }
+                } else {
+                    ((ConfigTreeNode)child).getConfigs(configs);
+                }
             }
         }
     }
