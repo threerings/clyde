@@ -68,7 +68,7 @@ public class ReflectionUtil
      *
      * @param clazz the class to instantiate.
      */
-    public static Object newInstance (Class clazz)
+    public static Object newInstance (Class<?> clazz)
     {
         return newInstance(clazz, null);
     }
@@ -82,7 +82,7 @@ public class ReflectionUtil
      * @return the newly created object, or <code>null</code> if there was some error
      * (in which case a message will be logged).
      */
-    public static Object newInstance (Class clazz, Object outer)
+    public static Object newInstance (Class<?> clazz, Object outer)
     {
         if (!isInner(clazz)) {
             outer = null;
@@ -90,7 +90,7 @@ public class ReflectionUtil
         Constructor ctor = _ctors.get(clazz);
         if (ctor == null) {
             for (Constructor octor : clazz.getDeclaredConstructors()) {
-                Class[] ptypes = octor.getParameterTypes();
+                Class<?>[] ptypes = octor.getParameterTypes();
                 if (outer == null ? (ptypes.length == 0) :
                         (ptypes.length == 1 && ptypes[0].isInstance(outer))) {
                     ctor = octor;
@@ -98,7 +98,7 @@ public class ReflectionUtil
                 }
             }
             if (ctor == null) {
-                log.warning("Class has no default constructor.", "class", clazz);
+                log.warning("Class<?> has no default constructor.", "class", clazz);
                 return null;
             }
             ctor.setAccessible(true);
@@ -117,7 +117,7 @@ public class ReflectionUtil
      */
     public static void setOuter (Object object, Object outer)
     {
-        Class clazz = object.getClass();
+        Class<?> clazz = object.getClass();
         if (!isInner(clazz)) {
             return;
         }
@@ -138,7 +138,7 @@ public class ReflectionUtil
      */
     public static Object getOuter (Object object)
     {
-        Class clazz = object.getClass();
+        Class<?> clazz = object.getClass();
         if (!isInner(clazz)) {
             return null;
         }
@@ -156,7 +156,7 @@ public class ReflectionUtil
      * Returns the outer class for the given inner class (or <code>null</code> if not an inner
      * class).
      */
-    public static Class getOuterClass (Class clazz)
+    public static Class<?> getOuterClass (Class<?> clazz)
     {
         if (!isInner(clazz)) {
             return null;
@@ -164,10 +164,10 @@ public class ReflectionUtil
         if (!Inner.class.isAssignableFrom(clazz)) {
             return clazz.getDeclaringClass();
         }
-        Class outer = _oclasses.get(clazz);
+        Class<?> outer = _oclasses.get(clazz);
         if (outer == null) {
             for (Constructor ctor : clazz.getDeclaredConstructors()) {
-                Class[] ptypes = ctor.getParameterTypes();
+                Class<?>[] ptypes = ctor.getParameterTypes();
                 if (ptypes.length > 0) {
                     _oclasses.put(clazz, outer = ptypes[0]);
                     break;
@@ -180,7 +180,7 @@ public class ReflectionUtil
     /**
      * Determines whether the specified class is a non-static inner class.
      */
-    public static boolean isInner (Class clazz)
+    public static boolean isInner (Class<?> clazz)
     {
         return (clazz.getDeclaringClass() != null && !Modifier.isStatic(clazz.getModifiers())) ||
             Inner.class.isAssignableFrom(clazz);
@@ -189,11 +189,11 @@ public class ReflectionUtil
     /**
      * Returns a reference to the outer class reference field.
      */
-    protected static Field getOuterField (Class clazz)
+    protected static Field getOuterField (Class<?> clazz)
     {
         Field field = _outers.get(clazz);
         if (field == null) {
-            Class dclazz = clazz.getDeclaringClass();
+            Class<?> dclazz = clazz.getDeclaringClass();
             for (Field ofield : clazz.getDeclaredFields()) {
                 if (ofield.isSynthetic() && ofield.getType() == dclazz &&
                         ofield.getName().startsWith("this")) {
@@ -208,11 +208,11 @@ public class ReflectionUtil
     }
 
     /** Maps inner classes to their outer class reference fields. */
-    protected static HashMap<Class, Field> _outers = new HashMap<Class, Field>();
+    protected static HashMap<Class<?>, Field> _outers = new HashMap<Class<?>, Field>();
 
     /** Maps {@link Inner} classes to their outer classes. */
-    protected static HashMap<Class, Class> _oclasses = new HashMap<Class, Class>();
+    protected static HashMap<Class<?>, Class<?>> _oclasses = new HashMap<Class<?>, Class<?>>();
 
     /** Maps classes to their default constructors. */
-    protected static HashMap<Class, Constructor> _ctors = new HashMap<Class, Constructor>();
+    protected static HashMap<Class<?>, Constructor> _ctors = new HashMap<Class<?>, Constructor>();
 }

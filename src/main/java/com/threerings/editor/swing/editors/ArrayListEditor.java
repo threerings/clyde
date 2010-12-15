@@ -59,8 +59,8 @@ public abstract class ArrayListEditor extends PropertyEditor
     public void actionPerformed (ActionEvent event)
     {
         if (event.getSource() == _add) {
-            Class[] types = _property.getComponentSubtypes();
-            Class type = (types[0] == null) ? types[1] : types[0];
+            Class<?>[] types = _property.getComponentSubtypes();
+            Class<?> type = (types[0] == null) ? types[1] : types[0];
             addValue(getDefaultInstance(type, _object));
         }
     }
@@ -145,7 +145,7 @@ public abstract class ArrayListEditor extends PropertyEditor
      */
     protected void addValue (Object value)
     {
-        Class type = _property.getType();
+        Class<?> type = _property.getType();
         if (type.isArray()) {
             Object ovalues = _property.get(_object);
             int olength = (ovalues == null) ? 0 : Array.getLength(ovalues);
@@ -179,7 +179,7 @@ public abstract class ArrayListEditor extends PropertyEditor
      */
     protected void copyValue (int idx)
     {
-        Class type = _property.getType();
+        Class<?> type = _property.getType();
         if (type.isArray()) {
             Object ovalues = _property.get(_object);
             int olength = Array.getLength(ovalues);
@@ -204,7 +204,7 @@ public abstract class ArrayListEditor extends PropertyEditor
      */
     protected void removeValue (int idx)
     {
-        Class type = _property.getType();
+        Class<?> type = _property.getType();
         if (type.isArray()) {
             Object ovalues = _property.get(_object);
             int olength = Array.getLength(ovalues);

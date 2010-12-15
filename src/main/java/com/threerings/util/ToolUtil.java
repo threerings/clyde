@@ -217,7 +217,7 @@ public class ToolUtil
     /**
      * Creates a data flavor for transferring local references to objects of the specified class.
      */
-    public static DataFlavor createLocalFlavor (Class clazz)
+    public static DataFlavor createLocalFlavor (Class<?> clazz)
     {
         try {
             return new DataFlavor(

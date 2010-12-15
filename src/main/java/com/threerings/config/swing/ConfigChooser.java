@@ -69,7 +69,7 @@ public abstract class ConfigChooser extends JPanel
      * Creates a new configuration chooser for the specified config class.
      */
     public static ConfigChooser createInstance (
-        MessageManager msgmgr, ConfigManager cfgmgr, Class clazz)
+        MessageManager msgmgr, ConfigManager cfgmgr, Class<?> clazz)
     {
         return createInstance(msgmgr, cfgmgr, clazz, null);
     }
@@ -80,7 +80,7 @@ public abstract class ConfigChooser extends JPanel
      * @param config the initial selected configuration.
      */
     public static ConfigChooser createInstance (
-        MessageManager msgmgr, ConfigManager cfgmgr, Class clazz, String config)
+        MessageManager msgmgr, ConfigManager cfgmgr, Class<?> clazz, String config)
     {
         ConfigChooser chooser = cfgmgr.isResourceClass(clazz) ?
             new ResourceChooser(msgmgr, cfgmgr.getResourceManager(), clazz) :
@@ -111,7 +111,7 @@ public abstract class ConfigChooser extends JPanel
     /**
      * Returns the label for the specified class.
      */
-    protected String getLabel (MessageManager msgmgr, Class clazz, String type)
+    protected String getLabel (MessageManager msgmgr, Class<?> clazz, String type)
     {
         MessageBundle msgs = msgmgr.getBundle(Introspector.getMessageBundle(clazz));
         String key = "m." + type;
@@ -123,7 +123,7 @@ public abstract class ConfigChooser extends JPanel
      */
     protected static class ResourceChooser extends ConfigChooser
     {
-        public ResourceChooser (final MessageManager msgmgr, ResourceManager rsrcmgr, Class clazz)
+        public ResourceChooser (final MessageManager msgmgr, ResourceManager rsrcmgr, Class<?> clazz)
         {
             _rsrcmgr = rsrcmgr;
             final MessageBundle msgs = msgmgr.getBundle("config");
@@ -179,7 +179,7 @@ public abstract class ConfigChooser extends JPanel
      */
     protected static class TreeChooser extends ConfigChooser
     {
-        public TreeChooser (MessageManager msgmgr, ConfigManager cfgmgr, Class clazz)
+        public TreeChooser (MessageManager msgmgr, ConfigManager cfgmgr, Class<?> clazz)
         {
             _msgs = msgmgr.getBundle("config");
             _label = getLabel(msgmgr, clazz, ConfigGroup.getName(clazz));

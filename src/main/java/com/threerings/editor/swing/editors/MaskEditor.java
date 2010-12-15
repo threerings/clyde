@@ -186,7 +186,7 @@ public class MaskEditor extends PropertyEditor
      */
     protected Number fromLong (long value)
     {
-        Class type = _property.getType();
+        Class<?> type = _property.getType();
         if (type == Byte.TYPE || type == Byte.class) {
             return (byte)value;
         } else if (type == Integer.TYPE || type == Integer.class) {

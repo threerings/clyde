@@ -45,7 +45,7 @@ public class ObjectMarshaller
     /**
      * Retrieves or creates a marshaller for objects of the specified class.
      */
-    public static ObjectMarshaller getObjectMarshaller (Class clazz)
+    public static ObjectMarshaller getObjectMarshaller (Class<?> clazz)
     {
         ObjectMarshaller marshaller = _marshallers.get(clazz);
         if (marshaller == null) {
@@ -168,10 +168,10 @@ public class ObjectMarshaller
     /**
      * Places all of the given class's exportable fields into the supplied list.
      */
-    protected static void getExportableFields (Class clazz, ArrayList<Field> fields)
+    protected static void getExportableFields (Class<?> clazz, ArrayList<Field> fields)
     {
         // prepend the superclass fields, if any
-        Class sclazz = clazz.getSuperclass();
+        Class<?> sclazz = clazz.getSuperclass();
         if (Exportable.class.isAssignableFrom(sclazz)) {
             getExportableFields(sclazz, fields);
         }
@@ -240,6 +240,6 @@ public class ObjectMarshaller
     protected Object _prototype;
 
     /** Maps classes to created marshallers. */
-    protected static HashMap<Class, ObjectMarshaller> _marshallers =
-        new HashMap<Class, ObjectMarshaller>();
+    protected static HashMap<Class<?>, ObjectMarshaller> _marshallers =
+        new HashMap<Class<?>, ObjectMarshaller>();
 }

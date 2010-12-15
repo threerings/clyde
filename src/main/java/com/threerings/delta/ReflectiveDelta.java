@@ -116,7 +116,7 @@ public class ReflectiveDelta extends Delta
         throws IOException, ClassNotFoundException
     {
         // read the class reference
-        _clazz = (Class)_classStreamer.createObject(in);
+        _clazz = (Class<?>)_classStreamer.createObject(in);
 
         // read the bitmask
         ClassMapping cmap = getClassMapping(_clazz);
@@ -237,7 +237,7 @@ public class ReflectiveDelta extends Delta
     /**
      * Returns the class mapping for the specified class.
      */
-    protected static ClassMapping getClassMapping (Class clazz)
+    protected static ClassMapping getClassMapping (Class<?> clazz)
     {
         ClassMapping cmap = _classes.get(clazz);
         if (cmap == null) {
@@ -250,10 +250,10 @@ public class ReflectiveDelta extends Delta
      * Collects all appropriate fields of the specified class (and its superclasses) and places
      * them in the provided results object.
      */
-    protected static void collectFields (Class clazz, List<Field> fields)
+    protected static void collectFields (Class<?> clazz, List<Field> fields)
     {
         // add those of the superclass, if any
-        Class sclazz = clazz.getSuperclass();
+        Class<?> sclazz = clazz.getSuperclass();
         if (sclazz != Object.class) {
             collectFields(sclazz, fields);
         }
@@ -276,7 +276,7 @@ public class ReflectiveDelta extends Delta
         /**
          * Creates a new mapping for the specified class.
          */
-        public ClassMapping (Class clazz)
+        public ClassMapping (Class<?> clazz)
         {
             List<Field> fields = Lists.newArrayList();
             collectFields(clazz, fields);
@@ -435,7 +435,7 @@ public class ReflectiveDelta extends Delta
     }
 
     /** The object class. */
-    protected Class _clazz;
+    protected Class<?> _clazz;
 
     /** The mask indicating which fields have changed. */
     protected BareArrayMask _mask;
@@ -445,10 +445,10 @@ public class ReflectiveDelta extends Delta
     protected Object[] _values;
 
     /** Cached mappings for deltable classes. */
-    protected static Map<Class, ClassMapping> _classes = Maps.newHashMap();
+    protected static Map<Class<?>, ClassMapping> _classes = Maps.newHashMap();
 
     /** Field handlers for primitive fields mapped by class. */
-    protected static final Map<Class, FieldHandler> PRIMITIVE_FIELD_HANDLERS = Maps.newHashMap();
+    protected static final Map<Class<?>, FieldHandler> PRIMITIVE_FIELD_HANDLERS = Maps.newHashMap();
     static {
         PRIMITIVE_FIELD_HANDLERS.put(Boolean.TYPE, new FieldHandler() {
             @Override public void populate (
@@ -780,7 +780,7 @@ public class ReflectiveDelta extends Delta
     }
 
     /** Field handlers for final primitive fields mapped by class. */
-    protected static final Map<Class, FieldHandler> FINAL_PRIMITIVE_FIELD_HANDLERS =
+    protected static final Map<Class<?>, FieldHandler> FINAL_PRIMITIVE_FIELD_HANDLERS =
         Maps.newHashMap();
     static {
         FINAL_PRIMITIVE_FIELD_HANDLERS.put(Boolean.TYPE, new FinalFieldHandler() {

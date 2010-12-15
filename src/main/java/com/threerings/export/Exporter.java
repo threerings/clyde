@@ -685,7 +685,7 @@ public abstract class Exporter
      * Gets the actual class of the specified value, performing some slight modifications for
      * buffer instances and enums.
      */
-    protected static Class getClass (Object value)
+    protected static Class<?> getClass (Object value)
     {
         if (value instanceof ByteBuffer) {
             return ByteBuffer.class;

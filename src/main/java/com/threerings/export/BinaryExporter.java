@@ -70,7 +70,7 @@ public class BinaryExporter extends Exporter
 
     /** We seed the class map with these class references.
      * NOTE: Do not remove any entries or change their order. */
-    public static final Class[] BOOTSTRAP_CLASSES = {
+    public static final Class<?>[] BOOTSTRAP_CLASSES = {
         Boolean.TYPE, Byte.TYPE, Character.TYPE, Double.TYPE,
         Float.TYPE, Integer.TYPE, Long.TYPE, Short.TYPE };
 
@@ -93,7 +93,7 @@ public class BinaryExporter extends Exporter
         _compress = compress;
 
         // populate the class map with the bootstrap classes
-        for (Class clazz : BOOTSTRAP_CLASSES) {
+        for (Class<?> clazz : BOOTSTRAP_CLASSES) {
             _classIds.put(clazz, ++_lastClassId);
         }
     }
@@ -123,63 +123,63 @@ public class BinaryExporter extends Exporter
     public void write (String name, boolean value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Boolean.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Boolean.TYPE));
     }
 
     @Override // documentation inherited
     public void write (String name, byte value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Byte.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Byte.TYPE));
     }
 
     @Override // documentation inherited
     public void write (String name, char value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Character.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Character.TYPE));
     }
 
     @Override // documentation inherited
     public void write (String name, double value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Double.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Double.TYPE));
     }
 
     @Override // documentation inherited
     public void write (String name, float value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Float.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Float.TYPE));
     }
 
     @Override // documentation inherited
     public void write (String name, int value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Integer.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Integer.TYPE));
     }
 
     @Override // documentation inherited
     public void write (String name, long value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Long.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Long.TYPE));
     }
 
     @Override // documentation inherited
     public void write (String name, short value)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, Short.TYPE));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, Short.TYPE));
     }
 
     @Override // documentation inherited
     public <T> void write (String name, T value, Class<T> clazz)
         throws IOException
     {
-        _fields.put(name, new Tuple<Object, Class>(value, clazz));
+        _fields.put(name, new Tuple<Object, Class<?>>(value, clazz));
     }
 
     @Override // documentation inherited
@@ -203,7 +203,7 @@ public class BinaryExporter extends Exporter
     /**
      * Writes out an object of the specified class.
      */
-    protected void write (Object value, Class clazz)
+    protected void write (Object value, Class<?> clazz)
         throws IOException
     {
         // write primitive types out directly
@@ -229,11 +229,11 @@ public class BinaryExporter extends Exporter
     /**
      * Writes the value of an object of the specified class.
      */
-    protected void writeValue (Object value, Class clazz)
+    protected void writeValue (Object value, Class<?> clazz)
         throws IOException
     {
         // write the class unless we can determine that implicitly
-        Class cclazz = getClass(value);
+        Class<?> cclazz = getClass(value);
         if (!Modifier.isFinal(clazz.getModifiers())) {
             writeClass(cclazz);
         }
@@ -273,7 +273,7 @@ public class BinaryExporter extends Exporter
      * as a normal object, we keep a separate id space for object/field classes in order to keep
      * the ids small.
      */
-    protected void writeClass (Class clazz)
+    protected void writeClass (Class<?> clazz)
         throws IOException
     {
         // see if we've written it before
@@ -298,13 +298,14 @@ public class BinaryExporter extends Exporter
         throws IOException
     {
         // populate the field map
-        HashMap<String, Tuple<Object, Class>> fields = new HashMap<String, Tuple<Object, Class>>();
+        HashMap<String, Tuple<Object, Class<?>>> fields =
+            new HashMap<String, Tuple<Object, Class<?>>>();
         _fields = fields;
         super.writeFields(object);
         _fields = null;
 
         // write out the values
-        Class clazz = object.getClass();
+        Class<?> clazz = object.getClass();
         ClassData cdata = _classData.get(clazz);
         if (cdata == null) {
             _classData.put(clazz, cdata = new ClassData());
@@ -351,7 +352,7 @@ public class BinaryExporter extends Exporter
     /**
      * Returns the inmost component type of the specified class.
      */
-    protected static Class getInmostComponentType (Class clazz)
+    protected static Class<?> getInmostComponentType (Class<?> clazz)
     {
         while (clazz.isArray()) {
             clazz = clazz.getComponentType();
@@ -362,7 +363,7 @@ public class BinaryExporter extends Exporter
     /**
      * Returns the class flags for the specified class.
      */
-    protected static byte getFlags (Class clazz)
+    protected static byte getFlags (Class<?> clazz)
     {
         byte flags = 0;
         int mods = clazz.getModifiers();
@@ -390,12 +391,12 @@ public class BinaryExporter extends Exporter
         /**
          * Writes out the field values in the supplied map.
          */
-        public void writeFields (HashMap<String, Tuple<Object, Class>> fields)
+        public void writeFields (HashMap<String, Tuple<Object, Class<?>>> fields)
             throws IOException
         {
             _out.writeInt(fields.size());
-            for (Map.Entry<String, Tuple<Object, Class>> entry : fields.entrySet()) {
-                Tuple<Object, Class> value = entry.getValue();
+            for (Map.Entry<String, Tuple<Object, Class<?>>> entry : fields.entrySet()) {
+                Tuple<Object, Class<?>> value = entry.getValue();
                 writeField(entry.getKey(), value.left, value.right);
             }
         }
@@ -403,10 +404,10 @@ public class BinaryExporter extends Exporter
         /**
          * Writes out a single field value.
          */
-        protected void writeField (String name, Object value, Class clazz)
+        protected void writeField (String name, Object value, Class<?> clazz)
             throws IOException
         {
-            Tuple<String, Class> field = new Tuple<String, Class>(name, clazz);
+            Tuple<String, Class<?>> field = new Tuple<String, Class<?>>(name, clazz);
             Integer fieldId = _fieldIds.get(field);
             if (fieldId == null) {
                 _fieldIdWriter.write(++_lastFieldId);
@@ -420,8 +421,8 @@ public class BinaryExporter extends Exporter
         }
 
         /** Maps field name/class pairs to field ids. */
-        protected HashMap<Tuple<String, Class>, Integer> _fieldIds =
-            new HashMap<Tuple<String, Class>, Integer>();
+        protected HashMap<Tuple<String, Class<?>>, Integer> _fieldIds =
+            new HashMap<Tuple<String, Class<?>>, Integer>();
 
         /** Used to write field ids. */
         protected IDWriter _fieldIdWriter = new IDWriter();
@@ -482,7 +483,7 @@ public class BinaryExporter extends Exporter
     protected int _lastObjectId;
 
     /** Maps classes written to their integer ids. */
-    protected HashMap<Class, Integer> _classIds = new HashMap<Class, Integer>();
+    protected HashMap<Class<?>, Integer> _classIds = new HashMap<Class<?>, Integer>();
 
     /** Used to write class ids. */
     protected IDWriter _classIdWriter = new IDWriter();
@@ -491,8 +492,8 @@ public class BinaryExporter extends Exporter
     protected int _lastClassId;
 
     /** Field values associated with the current object. */
-    protected HashMap<String, Tuple<Object, Class>> _fields;
+    protected HashMap<String, Tuple<Object, Class<?>>> _fields;
 
-    /** Class data. */
-    protected HashMap<Class, ClassData> _classData = new HashMap<Class, ClassData>();
+    /** Class<?> data. */
+    protected HashMap<Class<?>, ClassData> _classData = new HashMap<Class<?>, ClassData>();
 }

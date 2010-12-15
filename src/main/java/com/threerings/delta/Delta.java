@@ -49,8 +49,8 @@ public abstract class Delta
      */
     public static boolean checkDeltable (Object original, Object revised)
     {
-        Class oclazz = (original == null) ? null : original.getClass();
-        Class rclazz = (revised == null) ? null : revised.getClass();
+        Class<?> oclazz = (original == null) ? null : original.getClass();
+        Class<?> rclazz = (revised == null) ? null : revised.getClass();
         return oclazz == rclazz && (original instanceof Deltable || oclazz.isArray());
     }
 
@@ -81,7 +81,7 @@ public abstract class Delta
                 throw new RuntimeException("Error invoking custom delta method " + creator, e);
             }
         }
-        Class clazz = original.getClass();
+        Class<?> clazz = original.getClass();
         if (clazz.isArray()) {
             return new ArrayDelta(original, revised);
         } else {
@@ -104,7 +104,7 @@ public abstract class Delta
     public abstract Delta merge (Delta other);
 
     /** Custom creator methods mapped by class. */
-    protected static HashMap<Class, Method> _creators = new HashMap<Class, Method>();
+    protected static HashMap<Class<?>, Method> _creators = new HashMap<Class<?>, Method>();
 
     /** Irrelevant method used to indicate that the class has no custom creator. */
     protected static Method _none;
@@ -120,7 +120,7 @@ public abstract class Delta
     protected static Streamer _classStreamer;
 
     /** Maps primitive types to {@link Streamer} instances for corresponding wrappers. */
-    protected static HashMap<Class, Streamer> _wrapperStreamers = Maps.newHashMap();
+    protected static HashMap<Class<?>, Streamer> _wrapperStreamers = Maps.newHashMap();
     static {
         try {
             _classStreamer = Streamer.getStreamer(Class.class);

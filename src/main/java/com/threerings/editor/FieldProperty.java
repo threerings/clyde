@@ -53,7 +53,7 @@ public class FieldProperty extends Property
     }
 
     @Override // documentation inherited
-    public Class getType ()
+    public Class<?> getType ()
     {
         return _field.getType();
     }

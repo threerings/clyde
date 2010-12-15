@@ -1124,7 +1124,7 @@ public abstract class ComponentConfig extends DeepObject
     /**
      * Returns the class of the specified object, or <code>null</code> if the reference is null.
      */
-    protected static Class getClass (Object object)
+    protected static Class<?> getClass (Object object)
     {
         return (object == null) ? null : object.getClass();
     }

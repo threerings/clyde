@@ -201,7 +201,7 @@ public class XMLExporter extends Exporter
     /**
      * Writes an object to the specified element.
      */
-    protected void write (Element element, Object value, Class clazz)
+    protected void write (Element element, Object value, Class<?> clazz)
         throws IOException
     {
         if (value == null) {
@@ -209,7 +209,7 @@ public class XMLExporter extends Exporter
         }
         // to help readability, always write the values for certain (immutable) types
         if (value instanceof Boolean || value instanceof Byte || value instanceof Character ||
-            value instanceof Class || value instanceof Double || value instanceof Enum ||
+            value instanceof Class<?> || value instanceof Double || value instanceof Enum ||
             value instanceof Float || value instanceof Integer || value instanceof Long ||
             value instanceof Short || value instanceof String || value instanceof File) {
             writeValue(element, value, clazz);
@@ -232,11 +232,11 @@ public class XMLExporter extends Exporter
     /**
      * Writes the value of an object to the specified element.
      */
-    protected void writeValue (Element element, Object value, Class clazz)
+    protected void writeValue (Element element, Object value, Class<?> clazz)
         throws IOException
     {
         // write the class unless we can determine that implicitly
-        Class cclazz = getClass(value);
+        Class<?> cclazz = getClass(value);
         if (cclazz != clazz) {
             element.setAttribute("class", cclazz.getName());
         }

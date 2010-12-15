@@ -59,7 +59,7 @@ public abstract class BaseConfigEditor extends JFrame
     /**
      * Utility method to create an editor for the identified config.
      */
-    public static BaseConfigEditor createEditor (EditorContext ctx, Class clazz, String name)
+    public static BaseConfigEditor createEditor (EditorContext ctx, Class<?> clazz, String name)
     {
         MessageManager msgmgr = ctx.getMessageManager();
         ConfigManager cfgmgr = ctx.getConfigManager();
@@ -235,7 +235,7 @@ public abstract class BaseConfigEditor extends JFrame
     /**
      * Returns the label for the specified class.
      */
-    protected String getLabel (Class clazz, String type)
+    protected String getLabel (Class<?> clazz, String type)
     {
         MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(clazz));
         String key = "m." + type;

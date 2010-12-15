@@ -95,7 +95,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
             log.warning("Missing custom editor class [name=" + name + "].");
         }
         // then by type
-        Class type = property.getType();
+        Class<?> type = property.getType();
         PropertyEditor editor;
         if (clazz != null || (clazz = _classesByType.get(type)) != null) {
             try {
@@ -109,7 +109,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         } else if (type.isArray() || List.class.isAssignableFrom(type)) {
             // use the table editor when the array components are primitives (or similar, or
             // arrays thereof)
-            Class ctype = property.getComponentType();
+            Class<?> ctype = property.getComponentType();
             if (isTableCellType(ctype) ||
                     (ctype.isArray() && isTableCellType(ctype.getComponentType()))) {
                 editor = new TableArrayListEditor();
@@ -126,7 +126,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     /**
      * Adds a custom editor class for properties of the given type.
      */
-    public static void registerEditorClass (Class type, Class<? extends PropertyEditor> clazz)
+    public static void registerEditorClass (Class<?> type, Class<? extends PropertyEditor> clazz)
     {
         _classesByType.put(type, clazz);
     }
@@ -281,7 +281,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     /**
      * Checks whether the supplied type can be edited in the cell of a table.
      */
-    protected static boolean isTableCellType (Class type)
+    protected static boolean isTableCellType (Class<?> type)
     {
         return type.isPrimitive() || Number.class.isAssignableFrom(type) ||
             type == Boolean.class || type == Character.class ||
@@ -292,7 +292,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
      * Returns a default instance for the supplied type, either by instantiating it with its no-arg
      * constructor or by obtaining some type-specific default;
      */
-    protected static Object getDefaultInstance (Class type, Object outer)
+    protected static Object getDefaultInstance (Class<?> type, Object outer)
     {
         if (type == Boolean.class || type == Boolean.TYPE) {
             return Boolean.valueOf(false);
@@ -338,8 +338,8 @@ public abstract class PropertyEditor extends BasePropertyEditor
         new HashMap<String, Class<? extends PropertyEditor>>();
 
     /** Maps types to editor classes. */
-    protected static HashMap<Class, Class<? extends PropertyEditor>> _classesByType =
-        new HashMap<Class, Class<? extends PropertyEditor>>();
+    protected static HashMap<Class<?>, Class<? extends PropertyEditor>> _classesByType =
+        new HashMap<Class<?>, Class<? extends PropertyEditor>>();
     static {
         registerEditorClass("choice", ChoiceEditor.class);
         registerEditorClass("colorization", ColorizationEditor.class);

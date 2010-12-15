@@ -194,7 +194,7 @@ public abstract class ManagedConfig extends DeepObject
      */
     public boolean validateReferences (String where, PrintStream out)
     {
-        Set<Tuple<Class, String>> configs = Sets.newHashSet();
+        Set<Tuple<Class<?>, String>> configs = Sets.newHashSet();
         Set<String> resources = Sets.newHashSet();
         PropertyUtil.getReferences(_cfgmgr, this, configs, resources);
         return PropertyUtil.validateReferences(where, _cfgmgr, configs, resources, out);
@@ -276,7 +276,7 @@ public abstract class ManagedConfig extends DeepObject
         ConfigReferenceSet refs = new ConfigReferenceSet();
         getUpdateReferences(refs);
         _updateConfigs = new ArrayList<ManagedConfig>(refs.size());
-        for (Tuple<Class, ConfigReference> ref : refs) {
+        for (Tuple<Class<?>, ConfigReference> ref : refs) {
             @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
                 (Class<ManagedConfig>)ref.left;
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> mref =

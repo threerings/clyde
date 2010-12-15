@@ -397,7 +397,7 @@ public class ScopeUtil
     /**
      * Retrieves the list of the specified class's bound fields.
      */
-    protected static Field[] getBound (Class clazz)
+    protected static Field[] getBound (Class<?> clazz)
     {
         Field[] fields = _bound.get(clazz);
         if (fields == null) {
@@ -409,11 +409,11 @@ public class ScopeUtil
     /**
      * Creates the list of bound fields for the specified class.
      */
-    protected static Field[] createBound (Class clazz)
+    protected static Field[] createBound (Class<?> clazz)
     {
         // add the superclass fields
         ArrayList<Field> fields = new ArrayList<Field>();
-        Class sclazz = clazz.getSuperclass();
+        Class<?> sclazz = clazz.getSuperclass();
         if (sclazz != null) {
             Collections.addAll(fields, getBound(sclazz));
         }
@@ -431,7 +431,7 @@ public class ScopeUtil
      * Retrieves the mapping from name to member for all scoped members of the specified
      * class.
      */
-    protected static HashMap<String, Member> getScoped (Class clazz)
+    protected static HashMap<String, Member> getScoped (Class<?> clazz)
     {
         HashMap<String, Member> members = _scoped.get(clazz);
         if (members == null) {
@@ -444,11 +444,11 @@ public class ScopeUtil
      * Creates the mapping from name to member for all scoped members of the specified
      * class.
      */
-    protected static HashMap<String, Member> createScoped (Class clazz)
+    protected static HashMap<String, Member> createScoped (Class<?> clazz)
     {
         // add the superclass members
         HashMap<String, Member> members = new HashMap<String, Member>();
-        Class sclazz = clazz.getSuperclass();
+        Class<?> sclazz = clazz.getSuperclass();
         if (sclazz != null) {
             members.putAll(getScoped(sclazz));
         }
@@ -478,8 +478,8 @@ public class ScopeUtil
     }
 
     /** Cached bound fields. */
-    protected static HashMap<Class, Field[]> _bound = Maps.newHashMap();
+    protected static HashMap<Class<?>, Field[]> _bound = Maps.newHashMap();
 
     /** Cached scoped members. */
-    protected static HashMap<Class, HashMap<String, Member>> _scoped = Maps.newHashMap();
+    protected static HashMap<Class<?>, HashMap<String, Member>> _scoped = Maps.newHashMap();
 }

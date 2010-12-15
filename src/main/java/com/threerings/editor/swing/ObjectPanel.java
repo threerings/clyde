@@ -67,7 +67,7 @@ public class ObjectPanel extends BasePropertyEditor
      * @param outer the outer object to use when instantiating inner classes.
      */
     public ObjectPanel (
-        EditorContext ctx, String tlabel, Class[] types, Property[] ancestors, Object outer)
+        EditorContext ctx, String tlabel, Class<?>[] types, Property[] ancestors, Object outer)
     {
         this(ctx, tlabel, types, ancestors, outer, false);
     }
@@ -82,7 +82,7 @@ public class ObjectPanel extends BasePropertyEditor
      * @param omitColumns if true, do not add editors for the properties flagged as columns.
      */
     public ObjectPanel (
-        EditorContext ctx, String tlabel, Class[] types,
+        EditorContext ctx, String tlabel, Class<?>[] types,
         Property[] ancestors, Object outer, boolean omitColumns)
     {
         _ctx = ctx;
@@ -163,7 +163,7 @@ public class ObjectPanel extends BasePropertyEditor
         // switch to a different type
         int idx = _box.getSelectedIndex();
         Object value = null;
-        Class type = _types[idx];
+        Class<?> type = _types[idx];
         if (type != null) {
             value = _values[idx];
             if (value == null) {
@@ -203,7 +203,7 @@ public class ObjectPanel extends BasePropertyEditor
      */
     protected int getTypeIndex (Object value)
     {
-        Class type = (value == null) ? null : value.getClass();
+        Class<?> type = (value == null) ? null : value.getClass();
         for (int ii = 0; ii < _types.length; ii++) {
             if (_types[ii] == type) {
                 return ii;
@@ -215,13 +215,13 @@ public class ObjectPanel extends BasePropertyEditor
     /**
      * Creates a new instance of the specified type.
      */
-    protected Object newInstance (Class type)
+    protected Object newInstance (Class<?> type)
         throws Exception
     {
         // find the most specific constructor that can take the last value
         if (_lvalue != null) {
             boolean inner = ReflectionUtil.isInner(type);
-            Class ltype = _lvalue.getClass();
+            Class<?> ltype = _lvalue.getClass();
             Constructor cctor = null;
             Class<?> cptype = null;
             for (Constructor ctor : type.getConstructors()) {
@@ -258,7 +258,7 @@ public class ObjectPanel extends BasePropertyEditor
     protected Object _outer;
 
     /** The list of available types. */
-    protected Class[] _types;
+    protected Class<?>[] _types;
 
     /** Stored values for each type. */
     protected Object[] _values;

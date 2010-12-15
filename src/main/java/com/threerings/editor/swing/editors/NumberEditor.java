@@ -99,7 +99,7 @@ public class NumberEditor extends PropertyEditor
      */
     protected Number fromDouble (double value)
     {
-        Class type = _property.getType();
+        Class<?> type = _property.getType();
         if (type == Byte.TYPE || type == Byte.class) {
             return (byte)value;
         } else if (type == Double.TYPE || type == Double.class) {

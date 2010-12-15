@@ -1809,7 +1809,7 @@ public class TudeySceneModel extends SceneModel
     public boolean validateReferences (String where, PrintStream out)
     {
         boolean valid = true;
-        Set<Tuple<Class, String>> configs = Sets.newHashSet();
+        Set<Tuple<Class<?>, String>> configs = Sets.newHashSet();
         Set<String> resources = Sets.newHashSet();
         for (Entry entry : getEntries()) {
             PropertyUtil.getReferences(_cfgmgr, entry, configs, resources);

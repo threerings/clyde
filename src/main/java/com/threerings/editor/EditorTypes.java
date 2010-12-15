@@ -43,7 +43,7 @@ public @interface EditorTypes
     public static final String DEFAULT_LABEL = "type";
 
     /** The subtypes from which to choose. */
-    Class[] value ();
+    Class<?>[] value ();
 
     /** An optional configuration key whose value represents other available classes. */
     String key () default "";

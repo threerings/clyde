@@ -305,7 +305,7 @@ public abstract class Parameter extends DeepObject
                         public Object getMemberObject (Object object) {
                             return aprop.getMemberObject(object);
                         }
-                        public Class getType () {
+                        public Class<?> getType () {
                             return aprop.getType();
                         }
                         public Type getGenericType () {
@@ -418,7 +418,7 @@ public abstract class Parameter extends DeepObject
     /** Indicates that a property field is invalid and should be (re)created. */
     protected static final Property INVALID_PROPERTY = new Property() {
         public Member getMember () { return null; }
-        public Class getType () { return null; }
+        public Class<?> getType () { return null; }
         public Type getGenericType () { return null; }
         public Object get (Object object) { return null; }
         public void set (Object object, Object value) { }

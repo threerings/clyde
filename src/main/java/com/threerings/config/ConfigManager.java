@@ -107,11 +107,11 @@ public class ConfigManager
         _resources = new SoftCache<String, ManagedConfig>();
 
         // register the global groups
-        Class[] classes = _classes.get("global");
+        Class<?>[] classes = _classes.get("global");
         if (classes == null) {
             return;
         }
-        for (Class clazz : classes) {
+        for (Class<?> clazz : classes) {
             @SuppressWarnings("unchecked") Class<? extends ManagedConfig> cclass =
                     (Class<? extends ManagedConfig>)clazz;
             registerGroup(cclass);
@@ -130,13 +130,13 @@ public class ConfigManager
         _classes = parent._classes;
 
         // copy the groups over (any group not in the list will be silently discarded)
-        HashMap<Class, ConfigGroup> ogroups = _groups;
-        _groups = new HashMap<Class, ConfigGroup>();
-        Class[] classes = _classes.get(type);
+        HashMap<Class<?>, ConfigGroup> ogroups = _groups;
+        _groups = new HashMap<Class<?>, ConfigGroup>();
+        Class<?>[] classes = _classes.get(type);
         if (classes == null) {
             return;
         }
-        for (Class clazz : classes) {
+        for (Class<?> clazz : classes) {
             ConfigGroup group = ogroups.get(clazz);
             if (group == null) {
                 @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
@@ -193,7 +193,7 @@ public class ConfigManager
      * Determines whether configurations of the specified class are loaded from individual
      * resources.
      */
-    public boolean isResourceClass (Class clazz)
+    public boolean isResourceClass (Class<?> clazz)
     {
         return ListUtil.contains(getResourceClasses(), clazz);
     }
@@ -201,7 +201,7 @@ public class ConfigManager
     /**
      * Returns the array of classes representing configurations loaded from individual resources.
      */
-    public Class[] getResourceClasses ()
+    public Class<?>[] getResourceClasses ()
     {
         return _classes.get("resource");
     }
@@ -549,7 +549,7 @@ public class ConfigManager
         ConfigManager other = (dest instanceof ConfigManager) ?
             (ConfigManager)dest : new ConfigManager();
         for (ConfigGroup group : _groups.values()) {
-            Class clazz = group.getConfigClass();
+            Class<?> clazz = group.getConfigClass();
             ConfigGroup ogroup = other._groups.get(clazz);
             other._groups.put(clazz, (ConfigGroup)group.copy(ogroup));
         }
@@ -566,13 +566,13 @@ public class ConfigManager
         props.load(_rsrcmgr.getResource(_configPath + "manager.properties"));
 
         // initialize the types
-        _classes = new HashMap<String, Class[]>();
+        _classes = new HashMap<String, Class<?>[]>();
         String[] types = StringUtil.parseStringArray(props.getProperty("types", ""));
         types = ArrayUtil.append(types, "resource");
         for (String type : types) {
             Properties tprops = PropertiesUtil.getSubProperties(props, type);
             String[] names = StringUtil.parseStringArray(tprops.getProperty("classes", ""));
-            Class[] classes = new Class[names.length];
+            Class<?>[] classes = new Class<?>[names.length];
             for (int ii = 0; ii < names.length; ii++) {
                 try {
                     classes[ii] = Class.forName(names[ii]);
@@ -624,13 +624,13 @@ public class ConfigManager
     protected String _configPath;
 
     /** Registered configuration groups mapped by config class. */
-    protected HashMap<Class, ConfigGroup> _groups = new HashMap<Class, ConfigGroup>();
+    protected HashMap<Class<?>, ConfigGroup> _groups = new HashMap<Class<?>, ConfigGroup>();
 
     /** Resource-loaded configs mapped by path. */
     protected SoftCache<String, ManagedConfig> _resources;
 
     /** Maps manager types to their classes (as read from the manager properties). */
-    protected HashMap<String, Class[]> _classes;
+    protected HashMap<String, Class<?>[]> _classes;
 
     /** Config update listeners. */
     protected ObserverList<ConfigUpdateListener<ManagedConfig>> _updateListeners;

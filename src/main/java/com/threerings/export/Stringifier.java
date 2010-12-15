@@ -49,20 +49,20 @@ public abstract class Stringifier<T>
     /**
      * Returns the stringifier, if any, for the specified class.
      */
-    public static Stringifier getStringifier (final Class clazz)
+    public static Stringifier getStringifier (final Class<?> clazz)
     {
         // look for a specific one
         Stringifier stringifier = _stringifiers.get(clazz);
         if (stringifier == null) {
             // create custom stringifiers for enums and encodable types
             if (clazz.isEnum()) {
-                _stringifiers.put(clazz, stringifier = new Stringifier<Enum>() {
-                    public String toString (Enum value) {
+                _stringifiers.put(clazz, stringifier = new Stringifier<Enum<Dummy>>() {
+                    public String toString (Enum<Dummy> value) {
                         return value.name();
                     }
-                    public Enum fromString (String string) {
-                        @SuppressWarnings("unchecked") Enum value = Enum.valueOf(clazz, string);
-                        return value;
+                    public Enum<Dummy> fromString (String string) {
+                        @SuppressWarnings("unchecked") Class<Dummy> eclazz = (Class<Dummy>)clazz;
+                        return Enum.valueOf(eclazz, string);
                     }
                 });
             } else if (Encodable.class.isAssignableFrom(clazz)) {
@@ -93,8 +93,12 @@ public abstract class Stringifier<T>
     public abstract T fromString (String string)
         throws Exception;
 
+    /** Used to satisfy the type system. */
+    protected static enum Dummy {}
+
     /** Registered stringifiers. */
-    protected static HashMap<Class, Stringifier> _stringifiers = new HashMap<Class, Stringifier>();
+    protected static HashMap<Class<?>, Stringifier> _stringifiers =
+        new HashMap<Class<?>, Stringifier>();
     static {
         // register basic stringifiers for wrapper types, primitive arrays
         _stringifiers.put(Boolean.class, new Stringifier<Boolean>() {
@@ -121,11 +125,11 @@ public abstract class Stringifier<T>
                 return Character.valueOf(string.charAt(0));
             }
         });
-        _stringifiers.put(Class.class, new Stringifier<Class>() {
-            public String toString (Class value) {
+        _stringifiers.put(Class.class, new Stringifier<Class<?>>() {
+            public String toString (Class<?> value) {
                 return value.getName();
             }
-            public Class fromString (String string) throws Exception {
+            public Class<?> fromString (String string) throws Exception {
                 return Class.forName(string);
             }
         });

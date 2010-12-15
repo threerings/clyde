@@ -146,7 +146,7 @@ public class TableArrayListEditor extends ArrayListEditor
         Object source = event.getSource();
         if (source == _add && is2DArray()) {
             // create a new row of the required type, populated with default instances
-            Class cctype = _property.getComponentType().getComponentType();
+            Class<?> cctype = _property.getComponentType().getComponentType();
             Object value = Array.newInstance(cctype, _columns.length);
             for (int ii = 0; ii < _columns.length; ii++) {
                 Array.set(value, ii, getDefaultInstance(cctype, _object));
@@ -205,7 +205,7 @@ public class TableArrayListEditor extends ArrayListEditor
         super.didInit();
 
         // determine the column model
-        final Class ctype = _property.getComponentType();
+        final Class<?> ctype = _property.getComponentType();
         boolean showHeader = true;
         if (is2DArray()) {
             _columns = new Column[0]; // actual columns will be created on update
@@ -218,7 +218,7 @@ public class TableArrayListEditor extends ArrayListEditor
                 public String getPathComponent () {
                     return "";
                 }
-                public Class getColumnClass () {
+                public Class<?> getColumnClass () {
                     return ClassUtil.objectEquivalentOf(ctype);
                 }
                 public Object getColumnValue (int row) {
@@ -250,7 +250,7 @@ public class TableArrayListEditor extends ArrayListEditor
                         public String getPathComponent () {
                             return "." + property.getName();
                         }
-                        public Class getColumnClass () {
+                        public Class<?> getColumnClass () {
                             return ClassUtil.objectEquivalentOf(property.getType());
                         }
                         public Object getColumnValue (int row) {
@@ -275,7 +275,7 @@ public class TableArrayListEditor extends ArrayListEditor
                     public String getPathComponent () {
                         return "";
                     }
-                    public Class getColumnClass () {
+                    public Class<?> getColumnClass () {
                         return String.class;
                     }
                     public boolean isEditable () {
@@ -294,7 +294,7 @@ public class TableArrayListEditor extends ArrayListEditor
                 }};
                 showHeader = false;
             }
-            Class[] types = _property.getComponentSubtypes();
+            Class<?>[] types = _property.getComponentSubtypes();
             _opanel = new ObjectPanel(
                 _ctx, _property.getComponentTypeLabel(), types, _lineage, _object, ncols > 0);
             _opanel.addChangeListener(this);
@@ -453,7 +453,7 @@ public class TableArrayListEditor extends ArrayListEditor
         _columns = ArrayUtil.append(_columns, createArrayColumn(_columns.length));
 
         // expand all rows to include the new column
-        Class cctype = _property.getComponentType().getComponentType();
+        Class<?> cctype = _property.getComponentType().getComponentType();
         for (int ii = 0, nn = getLength(); ii < nn; ii++) {
             Object ovalue = getValue(ii);
             Object nvalue = Array.newInstance(cctype, _columns.length);
@@ -483,7 +483,7 @@ public class TableArrayListEditor extends ArrayListEditor
 
         // expand all rows to include the new column
         int idx = column + 1;
-        Class cctype = _property.getComponentType().getComponentType();
+        Class<?> cctype = _property.getComponentType().getComponentType();
         for (int ii = 0, nn = getLength(); ii < nn; ii++) {
             Object ovalue = getValue(ii);
             Object nvalue = Array.newInstance(cctype, _columns.length);
@@ -513,7 +513,7 @@ public class TableArrayListEditor extends ArrayListEditor
         _columns = ArrayUtil.splice(_columns, _columns.length - 1);
 
         // remove the column from all rows
-        Class cctype = _property.getComponentType().getComponentType();
+        Class<?> cctype = _property.getComponentType().getComponentType();
         for (int ii = 0, nn = getLength(); ii < nn; ii++) {
             Object ovalue = getValue(ii);
             Object nvalue = Array.newInstance(cctype, _columns.length);
@@ -548,7 +548,7 @@ public class TableArrayListEditor extends ArrayListEditor
      */
     protected boolean is2DArray ()
     {
-        Class ctype = _property.getComponentType();
+        Class<?> ctype = _property.getComponentType();
         return ctype.isArray() && isTableCellType(ctype.getComponentType());
     }
 
@@ -569,7 +569,7 @@ public class TableArrayListEditor extends ArrayListEditor
      */
     protected Column createArrayColumn (final int column)
     {
-        final Class cctype = _property.getComponentType().getComponentType();
+        final Class<?> cctype = _property.getComponentType().getComponentType();
         return new Column() {
             public String getName () {
                 return Integer.toString(column);
@@ -577,7 +577,7 @@ public class TableArrayListEditor extends ArrayListEditor
             public String getPathComponent () {
                 return "[" + column + "]";
             }
-            public Class getColumnClass () {
+            public Class<?> getColumnClass () {
                 return ClassUtil.objectEquivalentOf(cctype);
             }
             public Object getColumnValue (int row) {
@@ -789,7 +789,7 @@ public class TableArrayListEditor extends ArrayListEditor
         /**
          * Returns the class of this column.
          */
-        public abstract Class getColumnClass ();
+        public abstract Class<?> getColumnClass ();
 
         /**
          * Determines whether cells in this column are editable.

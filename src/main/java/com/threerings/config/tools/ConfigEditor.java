@@ -120,7 +120,7 @@ public class ConfigEditor extends BaseConfigEditor
      */
     public ConfigEditor (
         MessageManager msgmgr, ConfigManager cfgmgr, ColorPository colorpos,
-        Class clazz, String name)
+        Class<?> clazz, String name)
     {
         super(msgmgr, cfgmgr, colorpos, "config");
         setSize(850, 600);
@@ -293,7 +293,7 @@ public class ConfigEditor extends BaseConfigEditor
     /**
      * Selects a configuration.
      */
-    protected void select (Class clazz, String name)
+    protected void select (Class<?> clazz, String name)
     {
         for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
             ManagerPanel panel = (ManagerPanel)_tabs.getComponentAt(ii);
@@ -378,7 +378,7 @@ public class ConfigEditor extends BaseConfigEditor
              */
             public void newConfig ()
             {
-                Class clazz = group.getConfigClass();
+                Class<?> clazz = group.getConfigClass();
                 try {
                     newNode((ManagedConfig)clazz.newInstance());
                 } catch (Exception e) {
@@ -641,7 +641,7 @@ public class ConfigEditor extends BaseConfigEditor
         /**
          * Attempts to select the specified config.
          */
-        public boolean select (Class clazz, String name)
+        public boolean select (Class<?> clazz, String name)
         {
             for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
                 GroupItem item = (GroupItem)gbox.getItemAt(ii);
@@ -727,5 +727,5 @@ public class ConfigEditor extends BaseConfigEditor
     protected JTabbedPane _tabs;
 
     /** The class of the clipboard selection. */
-    protected Class _clipclass;
+    protected Class<?> _clipclass;
 }

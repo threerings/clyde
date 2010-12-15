@@ -255,7 +255,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
      * Verifies that if this node contains any actual configurations, they're instances of
      * the supplied class.
      */
-    public boolean verifyConfigClass (Class clazz)
+    public boolean verifyConfigClass (Class<?> clazz)
     {
         if (_config != null) {
             return clazz.isInstance(_config);

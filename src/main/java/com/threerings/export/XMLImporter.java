@@ -214,7 +214,7 @@ public class XMLImporter extends Importer
     /**
      * Reads an object of the supplied type from the given element.
      */
-    protected Object read (Element element, Class clazz)
+    protected Object read (Element element, Class<?> clazz)
         throws IOException
     {
         String ref = element.getAttribute("ref");
@@ -241,7 +241,7 @@ public class XMLImporter extends Importer
             try {
                 cclazz = Class.forName(cstr);
             } catch (ClassNotFoundException e) {
-                log.warning("Class not found.", e);
+                log.warning("Class<?> not found.", e);
                 return null;
             }
         } else {

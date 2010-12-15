@@ -154,7 +154,7 @@ public class PathProperty extends Property
     }
 
     @Override // documentation inherited
-    public Class getType ()
+    public Class<?> getType ()
     {
         Property[] path = _paths[0];
         return path[path.length - 1].getType();
@@ -254,7 +254,7 @@ public class PathProperty extends Property
         String name = tok.sval;
 
         // first search the (cached) editable properties
-        Class clazz = object.getClass();
+        Class<?> clazz = object.getClass();
         Property[] props = Introspector.getProperties(clazz);
         for (Property prop : props) {
             if (prop.getName().equals(name)) {
@@ -363,7 +363,7 @@ public class PathProperty extends Property
                     Property prop = getArgumentProperty(ref);
                     return (prop == null) ? null : prop.getMemberObject(ref.getArguments());
                 }
-                public Class getType () {
+                public Class<?> getType () {
                     return aprop.getType();
                 }
                 public Type getGenericType () {
@@ -410,7 +410,7 @@ public class PathProperty extends Property
     /**
      * Coerces the supplied value to the given type.
      */
-    protected static Object coerce (Object value, Class type)
+    protected static Object coerce (Object value, Class<?> type)
     {
         if (type.isPrimitive()) {
             type = ClassUtil.objectEquivalentOf(type);
@@ -499,7 +499,7 @@ public class PathProperty extends Property
         }
 
         @Override // documentation inherited
-        public Class getType ()
+        public Class<?> getType ()
         {
             return _base.getComponentType();
         }

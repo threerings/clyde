@@ -248,7 +248,7 @@ public abstract class ExpressionBinding extends DeepObject
      * @param type the required type.
      */
     protected Tuple<Property, Object>[] getTargets (
-        ConfigManager cfgmgr, Object object, Class type)
+        ConfigManager cfgmgr, Object object, Class<?> type)
     {
         if (_paths == null) {
             _paths = createPaths(cfgmgr, object, paths, type);
@@ -273,7 +273,7 @@ public abstract class ExpressionBinding extends DeepObject
      * @param type the required end type.
      */
     protected Property[][] createPaths (
-        ConfigManager cfgmgr, Object reference, String[] paths, Class type)
+        ConfigManager cfgmgr, Object reference, String[] paths, Class<?> type)
     {
         ArrayList<Property[]> list = new ArrayList<Property[]>(paths.length);
         for (String path : paths) {

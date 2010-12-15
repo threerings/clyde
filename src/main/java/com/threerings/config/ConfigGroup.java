@@ -64,7 +64,7 @@ public class ConfigGroup<T extends ManagedConfig>
     /**
      * Returns the group name for the specified config class.
      */
-    public static String getName (Class clazz)
+    public static String getName (Class<?> clazz)
     {
         String cstr = clazz.getName();
         cstr = cstr.substring(Math.max(cstr.lastIndexOf('.'), cstr.lastIndexOf('$')) + 1);

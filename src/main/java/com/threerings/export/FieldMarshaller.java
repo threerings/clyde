@@ -66,8 +66,8 @@ public abstract class FieldMarshaller
         throws IOException, IllegalAccessException;
 
     /** Field marshallers mapped by class. */
-    protected static HashMap<Class, FieldMarshaller> _marshallers =
-        new HashMap<Class, FieldMarshaller>();
+    protected static HashMap<Class<?>, FieldMarshaller> _marshallers =
+        new HashMap<Class<?>, FieldMarshaller>();
     static {
         // create the basic type marshallers
         _marshallers.put(Boolean.TYPE, new FieldMarshaller() {

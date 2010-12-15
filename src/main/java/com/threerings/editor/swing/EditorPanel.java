@@ -198,8 +198,8 @@ public class EditorPanel extends BasePropertyEditor
         }
 
         // if the object is the same class as the current object, we can reuse the existing editors
-        Class oclazz = (_object == null) ? null : _object.getClass();
-        Class nclazz = (object == null) ? null : object.getClass();
+        Class<?> oclazz = (_object == null) ? null : _object.getClass();
+        Class<?> nclazz = (object == null) ? null : object.getClass();
         _object = object;
         if (oclazz == nclazz) {
             for (PropertyEditor editor : _editors) {
@@ -219,7 +219,7 @@ public class EditorPanel extends BasePropertyEditor
             repaint();
             return;
         }
-        Class clazz = _object.getClass();
+        Class<?> clazz = _object.getClass();
         Property[] props = Introspector.getProperties(clazz);
         final String[] cats = getFilteredCategories(clazz, props);
         MessageBundle cmsgs = _msgmgr.getBundle(Introspector.getMessageBundle(clazz));
@@ -366,7 +366,7 @@ public class EditorPanel extends BasePropertyEditor
     /**
      * Returns the list of categories, minus any made empty by omission.
      */
-    protected String[] getFilteredCategories (Class clazz, Property[] props)
+    protected String[] getFilteredCategories (Class<?> clazz, Property[] props)
     {
         String[] cats = Introspector.getCategories(clazz);
         if (!_omitColumns) {

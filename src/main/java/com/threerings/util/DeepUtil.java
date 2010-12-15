@@ -78,7 +78,7 @@ public class DeepUtil
         if (source == null) {
             return null;
         }
-        Class clazz = source.getClass();
+        Class<?> clazz = source.getClass();
         if (dest != null && dest.getClass() != clazz) {
             dest = null;
         }
@@ -114,7 +114,7 @@ public class DeepUtil
      */
     public static <T> T transfer (T source, T dest, Object outer)
     {
-        Class clazz = source.getClass();
+        Class<?> clazz = source.getClass();
         while (clazz != null && !clazz.isInstance(dest)) {
             clazz = clazz.getSuperclass();
         }
@@ -136,8 +136,8 @@ public class DeepUtil
         if (o1 == o2) {
             return true;
         }
-        Class c1 = (o1 == null) ? null : o1.getClass();
-        Class c2 = (o2 == null) ? null : o2.getClass();
+        Class<?> c1 = (o1 == null) ? null : o1.getClass();
+        Class<?> c2 = (o2 == null) ? null : o2.getClass();
         if (c1 != c2) {
             return false;
         }
@@ -172,7 +172,7 @@ public class DeepUtil
     /**
      * Retrieves the handler for the supplied class.
      */
-    protected static ObjectHandler getObjectHandler (Class clazz)
+    protected static ObjectHandler getObjectHandler (Class<?> clazz)
     {
         ObjectHandler handler = _objectHandlers.get(clazz);
         if (handler == null) {
@@ -189,10 +189,10 @@ public class DeepUtil
     /**
      * Populates the supplied list with the copyable/comparable fields of the given class.
      */
-    protected static void getInstanceFields (Class clazz, ArrayList<Field> fields)
+    protected static void getInstanceFields (Class<?> clazz, ArrayList<Field> fields)
     {
         // add those of the superclass, if any
-        Class sclazz = clazz.getSuperclass();
+        Class<?> sclazz = clazz.getSuperclass();
         if (sclazz != Object.class) {
             getInstanceFields(sclazz, fields);
         }
@@ -237,7 +237,7 @@ public class DeepUtil
      */
     protected static class ReflectiveObjectHandler extends ObjectHandler<Object>
     {
-        public ReflectiveObjectHandler (Class clazz)
+        public ReflectiveObjectHandler (Class<?> clazz)
         {
             ArrayList<Field> fields = new ArrayList<Field>();
             getInstanceFields(clazz, fields);
@@ -245,7 +245,7 @@ public class DeepUtil
             _handlers = new FieldHandler[_fields.length];
             for (int ii = 0; ii < _fields.length; ii++) {
                 Field field = _fields[ii];
-                Class type = field.getType();
+                Class<?> type = field.getType();
                 if (type.isPrimitive()) {
                     _handlers[ii] = PRIMITIVE_FIELD_HANDLERS.get(type);
                 } else if (field.getAnnotation(Deep.class) != null) {
@@ -352,7 +352,7 @@ public class DeepUtil
     };
 
     /** Object handlers mapped by class. */
-    protected static final HashMap<Class, ObjectHandler> _objectHandlers = Maps.newHashMap();
+    protected static final HashMap<Class<?>, ObjectHandler> _objectHandlers = Maps.newHashMap();
     static {
         _objectHandlers.put(boolean[].class, new ObjectHandler<boolean[]>() {
             public boolean[] copy (boolean[] source, boolean[] dest, Object outer)
@@ -563,7 +563,7 @@ public class DeepUtil
     };
 
     /** Handlers for primitive fields mapped by class. */
-    protected static final HashMap<Class, FieldHandler> PRIMITIVE_FIELD_HANDLERS =
+    protected static final HashMap<Class<?>, FieldHandler> PRIMITIVE_FIELD_HANDLERS =
         Maps.newHashMap();
     static {
         PRIMITIVE_FIELD_HANDLERS.put(Boolean.TYPE, new FieldHandler() {

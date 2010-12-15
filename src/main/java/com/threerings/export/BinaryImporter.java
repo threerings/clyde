@@ -224,7 +224,7 @@ public class BinaryImporter extends Importer
     /**
      * Reads in an object of the specified class.
      */
-    protected Object read (Class clazz)
+    protected Object read (Class<?> clazz)
         throws IOException
     {
         return read(getClassWrapper(clazz));
@@ -263,14 +263,14 @@ public class BinaryImporter extends Importer
             cclazz = readClass();
         }
         // see if we can stream the value directly
-        Class wclazz = cclazz.getWrappedClass();
+        Class<?> wclazz = cclazz.getWrappedClass();
         Streamer streamer = (wclazz == null) ? null : Streamer.getStreamer(wclazz);
         if (streamer != null) {
             Object value = null;
             try {
                 value = streamer.read(_in);
             } catch (ClassNotFoundException e) {
-                log.warning("Class not found.", e);
+                log.warning("Class<?> not found.", e);
             }
             if (value != null && objectId != -1) {
                 _objects.put(objectId, value);
@@ -377,7 +377,7 @@ public class BinaryImporter extends Importer
         ClassWrapper wrapper = _wrappersByName.get(name);
         if (wrapper == null) {
             _wrappersByName.put(name, wrapper = new ClassWrapper(name, flags));
-            Class clazz = wrapper.getWrappedClass();
+            Class<?> clazz = wrapper.getWrappedClass();
             if (clazz != null) {
                 _wrappersByClass.put(clazz, wrapper);
             }
@@ -388,7 +388,7 @@ public class BinaryImporter extends Importer
     /**
      * Returns a shared class wrapper instance.
      */
-    protected ClassWrapper getClassWrapper (Class clazz)
+    protected ClassWrapper getClassWrapper (Class<?> clazz)
     {
         ClassWrapper wrapper = _wrappersByClass.get(clazz);
         if (wrapper == null) {
@@ -434,7 +434,7 @@ public class BinaryImporter extends Importer
             }
         }
 
-        public ClassWrapper (Class clazz)
+        public ClassWrapper (Class<?> clazz)
         {
             _name = clazz.getName();
             _flags = BinaryExporter.getFlags(clazz);
@@ -511,7 +511,7 @@ public class BinaryImporter extends Importer
         /**
          * Returns the wrapped class, if it could be resolved.
          */
-        public Class getWrappedClass ()
+        public Class<?> getWrappedClass ()
         {
             return _clazz;
         }
@@ -538,7 +538,7 @@ public class BinaryImporter extends Importer
         protected ClassWrapper _componentType;
 
         /** The class reference, if it could be resolved. */
-        protected Class _clazz;
+        protected Class<?> _clazz;
     }
 
     /**
@@ -635,7 +635,7 @@ public class BinaryImporter extends Importer
     protected HashMap<String, ClassWrapper> _wrappersByName = new HashMap<String, ClassWrapper>();
 
     /** Maps class objects to wrapper objects (for classes identified by reference). */
-    protected HashMap<Class, ClassWrapper> _wrappersByClass = new HashMap<Class, ClassWrapper>();
+    protected HashMap<Class<?>, ClassWrapper> _wrappersByClass = new HashMap<Class<?>, ClassWrapper>();
 
     /** The wrapper for the object class. */
     protected ClassWrapper _objectClass;
@@ -649,7 +649,7 @@ public class BinaryImporter extends Importer
     /** Used to read class ids. */
     protected IDReader _classIdReader = new IDReader();
 
-    /** Class data. */
+    /** Class<?> data. */
     protected HashMap<ClassWrapper, ClassData> _classData = new HashMap<ClassWrapper, ClassData>();
 
     /** Signifies a null entry in the object map. */

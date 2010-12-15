@@ -46,7 +46,7 @@ public class Introspector
      * Returns an array containing the categories to which the supplied class's properties are
      * assigned.
      */
-    public static String[] getCategories (Class clazz)
+    public static String[] getCategories (Class<?> clazz)
     {
         String[] categories = _categories.get(clazz);
         if (categories == null) {
@@ -90,7 +90,7 @@ public class Introspector
     /**
      * Returns an array containing the editable properties of the supplied class.
      */
-    public static Property[] getProperties (Class clazz)
+    public static Property[] getProperties (Class<?> clazz)
     {
         Property[] properties = _properties.get(clazz);
         if (properties == null) {
@@ -102,7 +102,7 @@ public class Introspector
     /**
      * Returns the message bundle to use when translating the supplied class's properties.
      */
-    public static String getMessageBundle (Class clazz)
+    public static String getMessageBundle (Class<?> clazz)
     {
         while (clazz.isArray()) {
             clazz = clazz.getComponentType();
@@ -126,7 +126,7 @@ public class Introspector
         if (annotation != null) {
             return annotation.value();
         }
-        Class eclazz = clazz.getEnclosingClass();
+        Class<?> eclazz = clazz.getEnclosingClass();
         if (eclazz != null) {
             return getMessageBundle(eclazz);
         }
@@ -186,10 +186,10 @@ public class Introspector
     /**
      * Retrieves all {@link Editable} properties of the specified class.
      */
-    protected static void createProperties (Class clazz, ArrayList<Property> properties)
+    protected static void createProperties (Class<?> clazz, ArrayList<Property> properties)
     {
         // prepend the superclass properties
-        Class sclazz = clazz.getSuperclass();
+        Class<?> sclazz = clazz.getSuperclass();
         if (sclazz != null) {
             Collections.addAll(properties, getProperties(sclazz));
         }
@@ -221,8 +221,8 @@ public class Introspector
             if (omethod != null) {
                 Method gmethod = getter ? method : omethod;
                 Method smethod = getter ? omethod : method;
-                Class rtype = gmethod.getReturnType();
-                Class[] ptypes = smethod.getParameterTypes();
+                Class<?> rtype = gmethod.getReturnType();
+                Class<?>[] ptypes = smethod.getParameterTypes();
                 if (ptypes.length != 1 || ptypes[0] != rtype) {
                     log.warning("Mismatched types on getter/setter [class=" + clazz +
                         ", getter=" + gmethod + ", setter=" + smethod + "].");
@@ -247,13 +247,13 @@ public class Introspector
     }
 
     /** Cached category lists. */
-    protected static HashMap<Class, String[]> _categories = new HashMap<Class, String[]>();
+    protected static HashMap<Class<?>, String[]> _categories = new HashMap<Class<?>, String[]>();
 
     /** Cached property lists. */
-    protected static HashMap<Class, Property[]> _properties = new HashMap<Class, Property[]>();
+    protected static HashMap<Class<?>, Property[]> _properties = new HashMap<Class<?>, Property[]>();
 
     /** Cached editor bundle mappings. */
-    protected static HashMap<Class, String> _bundles = new HashMap<Class, String>();
+    protected static HashMap<Class<?>, String> _bundles = new HashMap<Class<?>, String>();
 
     /** Sorts properties by increasing weight. */
     protected static final Comparator<Property> WEIGHT_COMP = new Comparator<Property>() {

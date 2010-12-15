@@ -51,21 +51,20 @@ public abstract class Streamer<T>
     /**
      * Returns the streamer, if any, for the specified class.
      */
-    public static Streamer getStreamer (final Class clazz)
+    public static Streamer getStreamer (final Class<?> clazz)
     {
         // look for a specific one
         Streamer streamer = _streamers.get(clazz);
         if (streamer == null) {
             // create custom streamers for enums and encodable types
             if (clazz.isEnum()) {
-                _streamers.put(clazz, streamer = new Streamer<Enum>() {
+                _streamers.put(clazz, streamer = new Streamer<Enum<Dummy>>() {
                     public void write (Enum value, DataOutputStream out) throws IOException {
                         out.writeUTF(value.name());
                     }
-                    public Enum read (DataInputStream in) throws IOException {
-                        @SuppressWarnings("unchecked") Enum value =
-                            Enum.valueOf(clazz, in.readUTF());
-                        return value;
+                    public Enum<Dummy> read (DataInputStream in) throws IOException {
+                        @SuppressWarnings("unchecked") Class<Dummy> eclass = (Class<Dummy>)clazz;
+                        return Enum.valueOf(eclass, in.readUTF());
                     }
                 });
             } else if (Encodable.class.isAssignableFrom(clazz)) {
@@ -102,8 +101,11 @@ public abstract class Streamer<T>
     public abstract T read (DataInputStream in)
         throws IOException, ClassNotFoundException;
 
+    /** Used to satisfy the type system. */
+    protected static enum Dummy {}
+
     /** Registered streamers. */
-    protected static HashMap<Class, Streamer> _streamers = new HashMap<Class, Streamer>();
+    protected static HashMap<Class<?>, Streamer> _streamers = new HashMap<Class<?>, Streamer>();
     static {
         // register basic streamers for wrapper types, primitive arrays
         Streamer streamer = new Streamer<Boolean>() {
@@ -139,11 +141,11 @@ public abstract class Streamer<T>
         _streamers.put(Character.class, streamer);
         _streamers.put(Character.TYPE, streamer);
 
-        _streamers.put(Class.class, new Streamer<Class>() {
-            public void write (Class value, DataOutputStream out) throws IOException {
+        _streamers.put(Class.class, new Streamer<Class<?>>() {
+            public void write (Class<?> value, DataOutputStream out) throws IOException {
                 out.writeUTF(value.getName());
             }
-            public Class read (DataInputStream in) throws IOException, ClassNotFoundException {
+            public Class<?> read (DataInputStream in) throws IOException, ClassNotFoundException {
                 return Class.forName(in.readUTF());
             }
         });

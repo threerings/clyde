@@ -117,7 +117,7 @@ public class ArrayDelta extends Delta
         throws IOException, ClassNotFoundException
     {
         // read the class reference
-        _clazz = (Class)_classStreamer.createObject(in);
+        _clazz = (Class<?>)_classStreamer.createObject(in);
 
         // read the length
         _length = in.readInt();
@@ -127,7 +127,7 @@ public class ArrayDelta extends Delta
         _mask.readFrom(in);
 
         // read the changed elements
-        Class ctype = _clazz.getComponentType();
+        Class<?> ctype = _clazz.getComponentType();
         Streamer streamer = ctype.isPrimitive() ? _wrapperStreamers.get(ctype) : null;
         List<Object> values = Lists.newArrayList();
         for (int ii = 0; ii < _length; ii++) {
@@ -233,7 +233,7 @@ public class ArrayDelta extends Delta
     }
 
     /** The object class. */
-    protected Class _clazz;
+    protected Class<?> _clazz;
 
     /** The length of the array. */
     protected int _length;

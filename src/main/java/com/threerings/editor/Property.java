@@ -84,7 +84,7 @@ public abstract class Property extends DeepObject
     /**
      * Returns an array containing the available subtypes of this type.
      */
-    public Class[] getSubtypes ()
+    public Class<?>[] getSubtypes ()
     {
         return getSubtypes(getType());
     }
@@ -93,7 +93,7 @@ public abstract class Property extends DeepObject
      * Returns an array containing the available subtypes for components of this (array or
      * collection) type.
      */
-    public Class[] getComponentSubtypes ()
+    public Class<?>[] getComponentSubtypes ()
     {
         return getSubtypes(getComponentType());
     }
@@ -141,7 +141,7 @@ public abstract class Property extends DeepObject
     /**
      * Returns the property type.
      */
-    public abstract Class getType ();
+    public abstract Class<?> getType ();
 
     /**
      * Returns the generic property type.
@@ -151,9 +151,9 @@ public abstract class Property extends DeepObject
     /**
      * Returns the component type of this (array or collection) type.
      */
-    public Class getComponentType ()
+    public Class<?> getComponentType ()
     {
-        Class type = getType();
+        Class<?> type = getType();
         if (type.isArray()) {
             return type.getComponentType();
 
@@ -168,7 +168,7 @@ public abstract class Property extends DeepObject
      */
     public Type getGenericComponentType ()
     {
-        Class type = getType();
+        Class<?> type = getType();
         Type gtype = getGenericType();
         if (gtype instanceof GenericArrayType) {
             return ((GenericArrayType)gtype).getGenericComponentType();
@@ -190,9 +190,9 @@ public abstract class Property extends DeepObject
      * @return the first argument of the generic class or interface, or <code>null</code> if not
      * found.
      */
-    public Class getArgumentType (Class clazz)
+    public Class<?> getArgumentType (Class<?> clazz)
     {
-        Class[] types = getArgumentTypes(clazz);
+        Class<?>[] types = getArgumentTypes(clazz);
         return (types == null || types.length == 0) ? null : types[0];
     }
 
@@ -203,16 +203,16 @@ public abstract class Property extends DeepObject
      *
      * @return the arguments of the generic class or interface, or <code>null</code> if not found.
      */
-    public Class[] getArgumentTypes (Class clazz)
+    public Class<?>[] getArgumentTypes (Class<?> clazz)
     {
         if (_argumentTypes == null) {
-            _argumentTypes = new HashMap<Class, Class[]>(0);
+            _argumentTypes = new HashMap<Class<?>, Class<?>[]>(0);
         }
-        Class[] classes = _argumentTypes.get(clazz);
+        Class<?>[] classes = _argumentTypes.get(clazz);
         if (classes == null) {
             Type[] types = getGenericArgumentTypes(clazz);
             if (types != null) {
-                _argumentTypes.put(clazz, classes = new Class[types.length]);
+                _argumentTypes.put(clazz, classes = new Class<?>[types.length]);
                 for (int ii = 0; ii < classes.length; ii++) {
                     classes[ii] = getTypeClass(types[ii]);
                 }
@@ -229,7 +229,7 @@ public abstract class Property extends DeepObject
      * @return the first argument of the generic class or interface, or <code>null</code> if not
      * found.
      */
-    public Type getGenericArgumentType (Class clazz)
+    public Type getGenericArgumentType (Class<?> clazz)
     {
         Type[] types = getGenericArgumentTypes(clazz);
         return (types == null || types.length == 0) ? null : types[0];
@@ -242,10 +242,10 @@ public abstract class Property extends DeepObject
      *
      * @return the arguments of the generic class or interface, or <code>null</code> if not found.
      */
-    public Type[] getGenericArgumentTypes (Class clazz)
+    public Type[] getGenericArgumentTypes (Class<?> clazz)
     {
         if (_genericArgumentTypes == null) {
-            _genericArgumentTypes = new HashMap<Class, Type[]>(0);
+            _genericArgumentTypes = new HashMap<Class<?>, Type[]>(0);
         }
         Type[] types = _genericArgumentTypes.get(clazz);
         if (types == null) {
@@ -259,7 +259,7 @@ public abstract class Property extends DeepObject
      */
     public boolean isLegalValue (Object value)
     {
-        Class type = getType();
+        Class<?> type = getType();
         if (type.isPrimitive()) {
             if (value == null) {
                 return false;
@@ -523,9 +523,9 @@ public abstract class Property extends DeepObject
      * Returns an array containing the available subtypes of the specified type, first looking to
      * subtypes listed in the annotation, then attempting to find a method using reflection.
      */
-    protected Class[] getSubtypes (Class<?> type)
+    protected Class<?>[] getSubtypes (Class<?> type)
     {
-        ArrayList<Class> types = new ArrayList<Class>();
+        ArrayList<Class<?>> types = new ArrayList<Class<?>>();
 
         // start with the null class, if allowed
         boolean nullable = getAnnotation().nullable();
@@ -551,7 +551,7 @@ public abstract class Property extends DeepObject
                 key = type.getName();
             }
         }
-        Class[] ctypes = _configTypes.get(key);
+        Class<?>[] ctypes = _configTypes.get(key);
         if (ctypes != null) {
             Collections.addAll(types, ctypes);
         }
@@ -562,7 +562,7 @@ public abstract class Property extends DeepObject
         }
 
         // convert to array, return
-        return types.toArray(new Class[types.size()]);
+        return types.toArray(new Class<?>[types.size()]);
     }
 
     /**
@@ -582,15 +582,15 @@ public abstract class Property extends DeepObject
      *
      * @return the arguments of the generic class or interface, or <code>null</code> if not found.
      */
-    protected static Type[] getTypeArguments (Type type, Class clazz)
+    protected static Type[] getTypeArguments (Type type, Class<?> clazz)
     {
         if (type instanceof ParameterizedType) {
             ParameterizedType ptype = (ParameterizedType)type;
             return getTypeArguments(
-                (Class)ptype.getRawType(), ptype.getActualTypeArguments(), clazz);
+                (Class<?>)ptype.getRawType(), ptype.getActualTypeArguments(), clazz);
 
-        } else if (type instanceof Class) {
-            return getTypeArguments((Class)type, null, clazz);
+        } else if (type instanceof Class<?>) {
+            return getTypeArguments((Class<?>)type, null, clazz);
         }
         return null;
     }
@@ -603,7 +603,7 @@ public abstract class Property extends DeepObject
      * @param clazz the generic class or interface of interest.
      * @return the arguments of the generic class or interface, or <code>null</code> if not found.
      */
-    protected static Type[] getTypeArguments (Class type, Type[] args, Class clazz)
+    protected static Type[] getTypeArguments (Class<?> type, Type[] args, Class<?> clazz)
     {
         if (type == clazz) {
             return args;
@@ -629,7 +629,7 @@ public abstract class Property extends DeepObject
      * not found.
      */
     protected static Type[] getTypeArguments (
-        Type type, TypeVariable[] params, Type[] values, Class clazz)
+        Type type, TypeVariable[] params, Type[] values, Class<?> clazz)
     {
         if (type instanceof ParameterizedType) {
             ParameterizedType ptype = (ParameterizedType)type;
@@ -643,10 +643,10 @@ public abstract class Property extends DeepObject
                     }
                 }
             }
-            return getTypeArguments((Class)ptype.getRawType(), args, clazz);
+            return getTypeArguments((Class<?>)ptype.getRawType(), args, clazz);
 
-        } else if (type instanceof Class) {
-            return getTypeArguments((Class)type, null, clazz);
+        } else if (type instanceof Class<?>) {
+            return getTypeArguments((Class<?>)type, null, clazz);
         }
         return null;
     }
@@ -654,17 +654,17 @@ public abstract class Property extends DeepObject
     /**
      * Returns the underlying class of the supplied type.
      */
-    protected Class getTypeClass (Type type)
+    protected Class<?> getTypeClass (Type type)
     {
-        if (type instanceof Class) {
-            return (Class)type;
+        if (type instanceof Class<?>) {
+            return (Class<?>)type;
 
         } else if (type instanceof ParameterizedType) {
-            return (Class)((ParameterizedType)type).getRawType();
+            return (Class<?>)((ParameterizedType)type).getRawType();
 
         } else if (type instanceof GenericArrayType) {
             // TODO: is there a better way to do this?
-            Class cclass = getTypeClass(((GenericArrayType)type).getGenericComponentType());
+            Class<?> cclass = getTypeClass(((GenericArrayType)type).getGenericComponentType());
             return Array.newInstance(cclass, 0).getClass();
         }
         return null;
@@ -673,7 +673,7 @@ public abstract class Property extends DeepObject
     /**
      * Adds the subtypes listed in the provided annotation to the supplied list.
      */
-    protected static void addSubtypes (EditorTypes annotation, Collection<Class> types)
+    protected static void addSubtypes (EditorTypes annotation, Collection<Class<?>> types)
     {
         for (Class<?> sclazz : annotation.value()) {
             // handle the case where the annotation includes the annotated class
@@ -690,7 +690,7 @@ public abstract class Property extends DeepObject
      * {@link EditorTypes} annotation, the classes therein will be added; otherwise, the
      * class itself will be added.
      */
-    protected static void addSubtypes (Class<?> clazz, Collection<Class> types)
+    protected static void addSubtypes (Class<?> clazz, Collection<Class<?>> types)
     {
         EditorTypes annotation = clazz.getAnnotation(EditorTypes.class);
         if (annotation == null) {
@@ -705,21 +705,21 @@ public abstract class Property extends DeepObject
 
     /** Cached argument types. */
     @DeepOmit
-    protected HashMap<Class, Class[]> _argumentTypes;
+    protected HashMap<Class<?>, Class<?>[]> _argumentTypes;
 
     /** Cached generic argument types. */
     @DeepOmit
-    protected HashMap<Class, Type[]> _genericArgumentTypes;
+    protected HashMap<Class<?>, Type[]> _genericArgumentTypes;
 
-    /** Class lists read from the type configuration. */
-    protected static HashMap<String, Class[]> _configTypes = new HashMap<String, Class[]>();
+    /** Class<?> lists read from the type configuration. */
+    protected static HashMap<String, Class<?>[]> _configTypes = new HashMap<String, Class<?>[]>();
 
     static {
         // load the types from the configuration
         Config config = new Config("/rsrc/config/editor/type");
         for (Iterator<String> it = config.keys(); it.hasNext(); ) {
             String key = it.next();
-            ArrayList<Class> classes = new ArrayList<Class>();
+            ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
             for (String cname : config.getValue(key, new String[0])) {
                 try {
                     addSubtypes(Class.forName(cname), classes);
@@ -727,7 +727,7 @@ public abstract class Property extends DeepObject
                     log.warning("Missing type config class.", "class", cname, e);
                 }
             }
-            _configTypes.put(key, classes.toArray(new Class[classes.size()]));
+            _configTypes.put(key, classes.toArray(new Class<?>[classes.size()]));
         }
     }
 }

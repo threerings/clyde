@@ -194,7 +194,7 @@ public class PropertyUtil
      */
     public static void getReferences (
         ConfigManager cfgmgr, Object object,
-        Set<Tuple<Class, String>> configs, Set<String> resources)
+        Set<Tuple<Class<?>, String>> configs, Set<String> resources)
     {
         if (object == null) {
             return;
@@ -223,11 +223,11 @@ public class PropertyUtil
      * @return true if the references are valid
      */
     public static boolean validateReferences (
-        String where, ConfigManager cfgmgr, Set<Tuple<Class, String>> configs,
+        String where, ConfigManager cfgmgr, Set<Tuple<Class<?>, String>> configs,
         Set<String> resources, PrintStream out)
     {
         boolean result = true;
-        for (Tuple<Class, String> tuple : configs) {
+        for (Tuple<Class<?>, String> tuple : configs) {
             @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
                 (Class<ManagedConfig>)tuple.left;
             if (cfgmgr.getConfig(cclass, tuple.right) == null) {
@@ -389,7 +389,7 @@ public class PropertyUtil
      */
     protected static void getReferences (
         ConfigManager cfgmgr, Object object, Property property,
-        Set<Tuple<Class, String>> configs, Set<String> resources)
+        Set<Tuple<Class<?>, String>> configs, Set<String> resources)
     {
         Object value = property.get(object);
         if (value == null) {
@@ -403,14 +403,14 @@ public class PropertyUtil
         } else if (editor.equals("config")) {
             ConfigGroup group = cfgmgr.getGroup(annotation.mode());
             if (group != null) {
-                configs.add(new Tuple<Class, String>(group.getConfigClass(), (String)value));
+                configs.add(new Tuple<Class<?>, String>(group.getConfigClass(), (String)value));
             }
         } else if (property.getType().equals(ConfigReference.class)) {
             @SuppressWarnings("unchecked") Class<ManagedConfig> cclass =
                 (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> ref =
                 (ConfigReference<ManagedConfig>)value;
-            configs.add(new Tuple<Class, String>(cclass, ref.getName()));
+            configs.add(new Tuple<Class<?>, String>(cclass, ref.getName()));
             ArgumentMap args = ref.getArguments();
             if (args.isEmpty()) {
                 return;

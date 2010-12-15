@@ -148,7 +148,7 @@ public class ResourceEditor extends BaseConfigEditor
         Set<Character> mnems = Sets.newHashSet();
         mnems.add('w');
         int idx = 0;
-        for (final Class clazz : cfgmgr.getResourceClasses()) {
+        for (final Class<?> clazz : cfgmgr.getResourceClasses()) {
             String label = getLabel(clazz, ConfigGroup.getName(clazz));
             JMenuItem item = new JMenuItem(label);
             for (int ii = 0, nn = label.length(); ii < nn; ii++) {
@@ -284,7 +284,7 @@ public class ResourceEditor extends BaseConfigEditor
     /**
      * Creates a new configuration of the specified class.
      */
-    protected void newConfig (Class clazz)
+    protected void newConfig (Class<?> clazz)
     {
         try {
             ManagedConfig config = (ManagedConfig)clazz.newInstance();
