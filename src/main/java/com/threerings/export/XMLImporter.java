@@ -241,7 +241,7 @@ public class XMLImporter extends Importer
             try {
                 cclazz = Class.forName(cstr);
             } catch (ClassNotFoundException e) {
-                log.warning("Class<?> not found.", e);
+                log.warning("Class not found.", e);
                 return null;
             }
         } else {

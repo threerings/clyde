@@ -270,7 +270,7 @@ public class BinaryImporter extends Importer
             try {
                 value = streamer.read(_in);
             } catch (ClassNotFoundException e) {
-                log.warning("Class<?> not found.", e);
+                log.warning("Class not found.", e);
             }
             if (value != null && objectId != -1) {
                 _objects.put(objectId, value);
