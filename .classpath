@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry excluding="**/.svn/" kind="src" path="src/main/java"/>
+	<classpathentry excluding="**/.svn/" kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/vilya"/>
 	<classpathentry kind="output" path="dist/classes"/>
+	<classpathentry kind="var" path="M2_REPO/com/apple/applejavaextensions/1.5.4/applejavaextensions-1.5.4.jar"></classpathentry>
 </classpath>
