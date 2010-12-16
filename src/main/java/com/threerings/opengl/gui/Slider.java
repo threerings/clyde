@@ -108,7 +108,7 @@ public class Slider extends Component
             int mx = mev.getX() - getAbsoluteX(), my = mev.getY() - getAbsoluteY();
             switch (mev.getType()) {
             case MouseEvent.MOUSE_PRESSED:
-                if (mev.getButton() == 0) {
+                if (mev.getButton() == MouseEvent.BUTTON1) {
                     // move the slider based on the current mouse position
                     updateValue(mx, my);
                 }

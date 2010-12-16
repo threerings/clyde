@@ -239,7 +239,7 @@ public class Button extends Label
                 return super.dispatchEvent(event);
 
             case MouseEvent.MOUSE_PRESSED:
-                if (mev.getButton() == 0) {
+                if (mev.getButton() == MouseEvent.BUTTON1) {
                     _pressed = true;
                 }
                 break;

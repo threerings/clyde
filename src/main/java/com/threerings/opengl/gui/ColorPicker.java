@@ -154,7 +154,7 @@ public class ColorPicker extends Component
             int midx = (mev.getX() - getAbsoluteX()) / _swatchWidth;
             switch (mev.getType()) {
             case MouseEvent.MOUSE_PRESSED:
-                if (mev.getButton() == 0) {
+                if (mev.getButton() == MouseEvent.BUTTON1) {
                     setSelectedIndex(midx);
                 }
                 break;
