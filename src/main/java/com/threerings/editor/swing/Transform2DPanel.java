@@ -104,7 +104,7 @@ public class Transform2DPanel extends BasePropertyEditor
     {
         value.update(Transform2D.UNIFORM);
         _tpanel.setValue(value.getTranslation());
-        _rspinner.setValue(value.getRotation());
+        _rspinner.setValue(FloatMath.toDegrees(value.getRotation()));
         if (_mode == Mode.UNIFORM) {
             _sspinner.setValue(value.getScale());
         }
