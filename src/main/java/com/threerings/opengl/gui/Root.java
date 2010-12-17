@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.google.common.annotations.Beta;
+
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.HashIntMap;
@@ -466,6 +468,24 @@ public abstract class Root extends SimpleOverlay
     public void setMousePosition (int x, int y)
     {
         mouseMoved(_tickStamp, x, y, false);
+    }
+
+    /**
+     * Sets the mouse as being pressed at the current position.
+     */
+    @Beta
+    public void setMouseDown (int button)
+    {
+        mousePressed(_tickStamp, button, _mouseX, _mouseY, false);
+    }
+
+    /**
+     * Sets the mouse as being released at the current position.
+     */
+    @Beta
+    public void setMouseUp (int button)
+    {
+        mouseReleased(_tickStamp, button, _mouseX, _mouseY, false);
     }
 
     /**
