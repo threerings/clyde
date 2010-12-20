@@ -804,6 +804,9 @@ public abstract class Root extends SimpleOverlay
             event.consume();
         }
         dispatchMouseEvent(getTargetComponent(), event);
+
+        // calculate our new hover component
+        updateHoverComponent(_mouseX, _mouseY);
     }
 
     /**
