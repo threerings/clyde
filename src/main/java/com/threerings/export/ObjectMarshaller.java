@@ -71,17 +71,9 @@ public class ObjectMarshaller
         if (_reader != null && useReader) {
             try {
                 _reader.invoke(object, importer);
-            } catch (InvocationTargetException ite) {
-                Throwable t = ite.getTargetException();
-                if (t instanceof IOException) {
-                    throw (IOException)t;
-                } else if (t instanceof RuntimeException) {
-                    throw (RuntimeException)t;
-                } else {
-                    throw new IOException("Error invoking custom read method [error=" + t + "].");
-                }
-            } catch (IllegalAccessException iae) {
-                throw new IOException("Error invoking custom read method [error=" + iae + "].");
+            } catch (Exception e) {
+                throw (IOException)new IOException(
+                    "Error invoking custom read method.").initCause(e);
             }
         } else {
             try {
@@ -89,7 +81,7 @@ public class ObjectMarshaller
                     field.read(object, importer);
                 }
             } catch (IllegalAccessException iae) {
-                throw new IOException("Error reading field [error=" + iae + "].");
+                throw (IOException)new IOException("Error reading field.").initCause(iae);
             }
         }
     }
@@ -103,10 +95,9 @@ public class ObjectMarshaller
         if (_writer != null && useWriter) {
             try {
                 _writer.invoke(object, exporter);
-            } catch (InvocationTargetException ite) {
-                throw (IOException)ite.getTargetException();
-            } catch (IllegalAccessException iae) {
-                throw new IOException("Error invoking custom write method [error=" + iae + "].");
+            } catch (Exception e) { // InvocationTargetException, IllegalAccessException
+                throw (IOException)new IOException(
+                    "Error invoking custom write method.").initCause(e);
             }
         } else {
             try {
@@ -114,7 +105,7 @@ public class ObjectMarshaller
                     field.write(object, exporter);
                 }
             } catch (IllegalAccessException iae) {
-                throw new IOException("Error writing field [error=" + iae + "].");
+                throw (IOException)new IOException("Error writing field.").initCause(iae);
             }
         }
     }
@@ -160,8 +151,8 @@ public class ObjectMarshaller
                 _prototype = ReflectionUtil.newInstance(clazz, oproto);
             }
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to create object prototype [class=" +
-                clazz + ", error=" + e + "].");
+            throw (IllegalArgumentException)new IllegalArgumentException(
+                "Failed to create object prototype [class=" + clazz + "].").initCause(e);
         }
     }
 
