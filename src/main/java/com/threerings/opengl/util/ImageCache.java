@@ -133,12 +133,15 @@ public class ImageCache extends ResourceCache
             if (key.zations.length > 0) {
                 return ImageUtil.recolorImage(getBufferedImage(key.path), key.zations);
             }
+            BufferedImage image = null;
             try {
-                return _ctx.getResourceManager().getImageResource(key.path);
+                if ((image = _ctx.getResourceManager().getImageResource(key.path)) == null) {
+                    log.warning("Unknown image format.", "path", key.path);
+                }
             } catch (IOException e) {
                 log.warning("Failed to read image.", "path", key.path, e);
-                return ImageUtil.createErrorImage(64, 64);
             }
+            return (image == null) ? ImageUtil.createErrorImage(64, 64) : image;
         }
         protected String getResourcePath (ImageKey key) {
             return key.path;
