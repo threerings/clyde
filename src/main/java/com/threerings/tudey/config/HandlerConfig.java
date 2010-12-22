@@ -43,6 +43,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
 @EditorTypes({
     HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
     HandlerConfig.Tick.class, HandlerConfig.Timer.class,
+    HandlerConfig.WarnTimer.class,
     HandlerConfig.Signal.class, HandlerConfig.SignalStart.class,
     HandlerConfig.SignalStop.class, HandlerConfig.Intersection.class,
     HandlerConfig.IntersectionStart.class, HandlerConfig.IntersectionStop.class,
@@ -110,6 +111,28 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$Timer";
+        }
+    }
+
+    /**
+     * A timer with a warning action.
+     */
+    public static class WarnTimer extends Timer
+    {
+        /** The warning interval, in seconds. */
+        @Editable(min=0.0, step=0.1)
+        @Strippable
+        public float warn = 0f;
+
+        /** The action to perform when warning goes off. */
+        @Editable(nullable=true)
+        @Strippable
+        public ActionConfig warnAction;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$WarnTimer";
         }
     }
 

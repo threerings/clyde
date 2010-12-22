@@ -136,6 +136,57 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
+     * Handles the warn timer event.
+     */
+    public static class WarnTimer extends Timer
+    {
+        @Override // documentation inherited
+        public void startup (int timestamp)
+        {
+            super.startup(timestamp);
+            HandlerConfig.WarnTimer config = (HandlerConfig.WarnTimer)_config;
+            // offset -> initialDelay: makes offset 0 behave as before and effects negative offsets.
+            if (config.warn == 0 || config.warn > config.interval) {
+                return;
+            }
+            float initialDelay = config.interval - config.warn + config.offset;
+            (_warnInterval = new Interval(_scenemgr) {
+                public void expired () {
+                    _warnAction.execute(_scenemgr.getTimestamp(), _source);
+                    if (_limit <= 1) {
+                        _warnInterval.cancel();
+                    }
+                }
+            }).schedule((long)(initialDelay * 1000f), (long)(config.interval * 1000f));
+        }
+
+        @Override // documentation inherited
+        public void shutdown (int timestamp, Logic activator)
+        {
+            super.shutdown(timestamp, activator);
+            if (_warnInterval != null) {
+                _warnInterval.cancel();
+            }
+        }
+
+        @Override // documentation inherited
+        public void didInit ()
+        {
+            super.didInit();
+            HandlerConfig.WarnTimer config = (HandlerConfig.WarnTimer) _config;
+            if (config.warnAction != null) {
+                _warnAction = createAction(config.warnAction, _source);
+            }
+        }
+
+        /** The warning action. */
+        protected ActionLogic _warnAction;
+
+        /** The warning interval. */
+        protected Interval _warnInterval;
+    }
+
+    /**
      * Handles a signal event.
      */
     public static class Signal extends HandlerLogic
