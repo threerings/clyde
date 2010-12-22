@@ -117,6 +117,14 @@ public class ClientLiaison
     }
 
     /**
+     * Returns a reference to the client's target.
+     */
+    public PawnLogic getTarget ()
+    {
+        return _target;
+    }
+
+    /**
      * Sets the client's camera parameters.
      */
     public void setCameraParams (CameraConfig config, float aspect)

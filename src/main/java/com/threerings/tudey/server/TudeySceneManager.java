@@ -558,6 +558,15 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Returns a reference to the target of the specified client, if any.
+     */
+    public PawnLogic getTarget (ClientObject clobj)
+    {
+        ClientLiaison client = _clients.get(clobj.getOid());
+        return (client == null) ? null : client.getTarget();
+    }
+
+    /**
      * Removes the logic mapping for the actor with the given id.
      */
     public void removeActorLogic (int id)
@@ -864,13 +873,6 @@ public class TudeySceneManager extends SceneManager
                 "who", caller.who(), "where", where());
             return;
         }
-
-        // make sure they're not controlling a pawn of their own
-        //if (_tsobj.getPawnId(cloid) > 0) {
-        //    log.warning("User with pawn tried to set target.",
-        //        "who", caller.who(), "pawnId", pawnId);
-        //    return;
-        //}
 
         // retrieve the actor and ensure it's a pawn
         ActorLogic target = _actors.get(pawnId);
