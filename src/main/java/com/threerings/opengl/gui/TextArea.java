@@ -28,6 +28,8 @@ import java.awt.Font;
 
 import java.util.ArrayList;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
@@ -469,7 +471,7 @@ public class TextArea extends Container
             // things down into multiple lines for us
             Text[] text = tfact.wrapText(
                 rtext, color, effect, effectSize, effectColor, maxWidth-dx);
-            if (text[0].getLength() == 0 && !rtext.isEmpty()) {
+            if (text[0].getLength() == 0 && !StringUtil.isBlank(rtext)) {
                 return offset;
             }
             segments.add(text[0]);
