@@ -469,7 +469,7 @@ public class TextArea extends Container
             // things down into multiple lines for us
             Text[] text = tfact.wrapText(
                 rtext, color, effect, effectSize, effectColor, maxWidth-dx);
-            if (text[0].getLength() == 0) {
+            if (text[0].getLength() == 0 && !rtext.isEmpty()) {
                 return offset;
             }
             segments.add(text[0]);
