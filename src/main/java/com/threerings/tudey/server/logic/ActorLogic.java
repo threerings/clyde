@@ -283,9 +283,10 @@ public class ActorLogic extends Logic
     public void destroy (int timestamp, Logic activator)
     {
         // make sure we're not already destroyed
-        if (isDestroyed()) {
+        if (_destroyed) {
             return;
         }
+        _destroyed = true;
 
         // set the destroyed time and remove on the next tick
         _actor.setDestroyed(timestamp);
@@ -625,6 +626,9 @@ public class ActorLogic extends Logic
 
     /** Optional references to the spawning and activating logic objects for the actor. */
     protected Logic _source, _activator;
+
+    /** Set when the actor has been destroyed. */
+    protected boolean _destroyed;
 
     /** Used to notify observers when the shape is about to change. */
     protected ObserverList.ObserverOp<ShapeObserver> _shapeWillChangeOp =
