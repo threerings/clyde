@@ -288,6 +288,12 @@ public class TextField extends EditableTextComponent
                 case PASTE:
                     String clip = getWindow().getRoot().getClipboardText();
                     if (clip != null) {
+                        // we can only paste up to the first newline
+                        int idx = clip.indexOf('\n');
+                        if (idx != -1) {
+                            clip = clip.substring(0, idx);
+                        }
+
                         // this works even if nothing is selected
                         replaceSelectedText(clip, null);
                     }
