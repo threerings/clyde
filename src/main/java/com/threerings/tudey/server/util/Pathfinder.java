@@ -2,7 +2,8 @@
 // $Id$
 //
 // Clyde library - tools for developing networked games
-// Copyright (C) 2005-2010 Three Rings Design, Inc.
+// Copyright (C) 2005-2011 Three Rings Design, Inc.
+// http://code.google.com/p/clyde/
 //
 // Redistribution and use in source and binary forms, with or without modification, are permitted
 // provided that the following conditions are met:
