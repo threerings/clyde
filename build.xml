@@ -40,7 +40,10 @@
   </target>
 
   <target name="-preptools" depends="-prepare">
-    <taskdef resource="com/threerings/presents/tools.properties" classpathref="compile.classpath"/>
+    <artifact:dependencies pathId="tools.classpath">
+      <dependency groupId="com.threerings" artifactId="narya-tools" version="1.4-SNAPSHOT"/>
+    </artifact:dependencies>
+    <taskdef resource="com/threerings/presents/tools.properties" classpathref="tools.classpath"/>
   </target>
 
   <target name="clean" description="Cleans out build results">
@@ -158,7 +161,7 @@
   </target>
 
   <property name="maven.deploy.repo" value="file://${user.home}/.m2/repository"/>
-  <target name="maven-deploy" depends="dist,tests" 
+  <target name="maven-deploy" depends="dist,tests"
           description="Deploys our build artifacts to a Maven repository.">
     <artifact:deploy file="${deploy.dir}/${ant.project.name}.jar" uniqueVersion="false">
       <remoteRepository url="${maven.deploy.repo}"/>

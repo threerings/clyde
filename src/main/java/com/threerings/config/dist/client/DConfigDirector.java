@@ -226,7 +226,6 @@ public class DConfigDirector extends BasicDirector
         }
         _lastTransmit = now;
         _cfgobj.dconfigService.updateConfigs(
-            _ctx.getClient(),
             _added.values().toArray(new ConfigEntry[_added.size()]),
             _updated.values().toArray(new ConfigEntry[_updated.size()]),
             _removed.toArray(new ConfigKey[_removed.size()]));

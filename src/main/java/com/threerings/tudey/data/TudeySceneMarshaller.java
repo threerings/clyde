@@ -27,7 +27,6 @@ package com.threerings.tudey.data;
 
 import javax.annotation.Generated;
 
-import com.threerings.presents.client.Client;
 import com.threerings.presents.data.InvocationMarshaller;
 import com.threerings.presents.net.Transport;
 import com.threerings.tudey.client.TudeySceneService;
@@ -49,10 +48,10 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int ENQUEUE_INPUT_RELIABLE = 1;
 
     // from interface TudeySceneService
-    public void enqueueInputReliable (Client arg1, int arg2, int arg3, InputFrame[] arg4)
+    public void enqueueInputReliable (int arg1, int arg2, InputFrame[] arg3)
     {
-        sendRequest(arg1, ENQUEUE_INPUT_RELIABLE, new Object[] {
-            Integer.valueOf(arg2), Integer.valueOf(arg3), arg4
+        sendRequest(ENQUEUE_INPUT_RELIABLE, new Object[] {
+            Integer.valueOf(arg1), Integer.valueOf(arg2), arg3
         });
     }
 
@@ -60,10 +59,10 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int ENQUEUE_INPUT_UNRELIABLE = 2;
 
     // from interface TudeySceneService
-    public void enqueueInputUnreliable (Client arg1, int arg2, int arg3, InputFrame[] arg4)
+    public void enqueueInputUnreliable (int arg1, int arg2, InputFrame[] arg3)
     {
-        sendRequest(arg1, ENQUEUE_INPUT_UNRELIABLE, new Object[] {
-            Integer.valueOf(arg2), Integer.valueOf(arg3), arg4
+        sendRequest(ENQUEUE_INPUT_UNRELIABLE, new Object[] {
+            Integer.valueOf(arg1), Integer.valueOf(arg2), arg3
         }, Transport.getInstance(Transport.Type.UNRELIABLE_UNORDERED, 0));
     }
 
@@ -71,19 +70,20 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int ENTERED_PLACE = 3;
 
     // from interface TudeySceneService
-    public void enteredPlace (Client arg1)
+    public void enteredPlace ()
     {
-        sendRequest(arg1, ENTERED_PLACE, new Object[] {});
+        sendRequest(ENTERED_PLACE, new Object[] {
+        });
     }
 
     /** The method id used to dispatch {@link #setCameraParams} requests. */
     public static final int SET_CAMERA_PARAMS = 4;
 
     // from interface TudeySceneService
-    public void setCameraParams (Client arg1, CameraConfig arg2, float arg3)
+    public void setCameraParams (CameraConfig arg1, float arg2)
     {
-        sendRequest(arg1, SET_CAMERA_PARAMS, new Object[] {
-            arg2, Float.valueOf(arg3)
+        sendRequest(SET_CAMERA_PARAMS, new Object[] {
+            arg1, Float.valueOf(arg2)
         });
     }
 
@@ -91,10 +91,10 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int SET_TARGET = 5;
 
     // from interface TudeySceneService
-    public void setTarget (Client arg1, int arg2)
+    public void setTarget (int arg1)
     {
-        sendRequest(arg1, SET_TARGET, new Object[] {
-            Integer.valueOf(arg2)
+        sendRequest(SET_TARGET, new Object[] {
+            Integer.valueOf(arg1)
         });
     }
 
@@ -102,10 +102,10 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int SUBMIT_ACTOR_REQUEST = 6;
 
     // from interface TudeySceneService
-    public void submitActorRequest (Client arg1, int arg2, String arg3)
+    public void submitActorRequest (int arg1, String arg2)
     {
-        sendRequest(arg1, SUBMIT_ACTOR_REQUEST, new Object[] {
-            Integer.valueOf(arg2), arg3
+        sendRequest(SUBMIT_ACTOR_REQUEST, new Object[] {
+            Integer.valueOf(arg1), arg2
         });
     }
 
@@ -113,10 +113,10 @@ public class TudeySceneMarshaller extends InvocationMarshaller
     public static final int SUBMIT_ENTRY_REQUEST = 7;
 
     // from interface TudeySceneService
-    public void submitEntryRequest (Client arg1, Object arg2, String arg3)
+    public void submitEntryRequest (Object arg1, String arg2)
     {
-        sendRequest(arg1, SUBMIT_ENTRY_REQUEST, new Object[] {
-            arg2, arg3
+        sendRequest(SUBMIT_ENTRY_REQUEST, new Object[] {
+            arg1, arg2
         });
     }
 }

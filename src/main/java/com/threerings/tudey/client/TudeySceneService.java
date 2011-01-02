@@ -26,7 +26,6 @@
 package com.threerings.tudey.client;
 
 import com.threerings.presents.annotation.TransportHint;
-import com.threerings.presents.client.Client;
 import com.threerings.presents.client.InvocationService;
 import com.threerings.presents.net.Transport;
 
@@ -43,7 +42,7 @@ public interface TudeySceneService extends InvocationService
     /**
      * Notifies the server that the client has successfully entered the place.
      */
-    public void enteredPlace (Client client);
+    public void enteredPlace ();
 
     /**
      * Requests to enqueue a batch of input frames recorded on the client (reliable version).
@@ -51,8 +50,7 @@ public interface TudeySceneService extends InvocationService
      * @param acknowledge the timestamp of the last delta received by the client.
      * @param smoothedTime the client's smoothed server time estimate.
      */
-    public void enqueueInputReliable (
-        Client client, int acknowledge, int smoothedTime, InputFrame[] frames);
+    public void enqueueInputReliable (int acknowledge, int smoothedTime, InputFrame[] frames);
 
     /**
      * Requests to enqueue a batch of input frames recorded on the client (unreliable version).
@@ -61,27 +59,26 @@ public interface TudeySceneService extends InvocationService
      * @param smoothedTime the client's smoothed server time estimate.
      */
     @TransportHint(type=Transport.Type.UNRELIABLE_UNORDERED)
-    public void enqueueInputUnreliable (
-        Client client, int acknowledge, int smoothedTime, InputFrame[] frames);
+    public void enqueueInputUnreliable (int acknowledge, int smoothedTime, InputFrame[] frames);
 
     /**
      * Requests to track the specified pawn.  This is only valid for clients that do not control
      * a pawn of their own.
      */
-    public void setTarget (Client client, int pawnId);
+    public void setTarget (int pawnId);
 
     /**
      * Requests to change the client's camera parameters (which affect its area of interest).
      */
-    public void setCameraParams (Client client, CameraConfig config, float aspect);
+    public void setCameraParams (CameraConfig config, float aspect);
 
     /**
      * Submits a request related to the identified scene entry.
      */
-    public void submitEntryRequest (Client client, Object key, String request);
+    public void submitEntryRequest (Object key, String request);
 
     /**
      * Submits a request related to the identified actor.
      */
-    public void submitActorRequest (Client client, int actorId, String request);
+    public void submitActorRequest (int actorId, String request);
 }

@@ -207,10 +207,10 @@ public class TudeySceneController extends SceneController
     {
         if (source instanceof ActorSprite) {
             _tsobj.tudeySceneService.submitActorRequest(
-                _ctx.getClient(), ((ActorSprite)source).getActor().getId(), name);
+                ((ActorSprite)source).getActor().getId(), name);
         } else if (source instanceof EntrySprite) {
             _tsobj.tudeySceneService.submitEntryRequest(
-                _ctx.getClient(), ((EntrySprite)source).getEntry().getKey(), name);
+                ((EntrySprite)source).getEntry().getKey(), name);
         } else {
             log.warning("Tried to submit request from unknown sprite type.",
                 "source", source, "name", name);
@@ -432,7 +432,7 @@ public class TudeySceneController extends SceneController
         bindKeys();
 
         // notify the server that we're in (it will start sending updates)
-        _tsobj.tudeySceneService.enteredPlace(_ctx.getClient());
+        _tsobj.tudeySceneService.enteredPlace();
     }
 
     @Override // documentation inherited
@@ -885,8 +885,7 @@ public class TudeySceneController extends SceneController
         // if we know we can't send datagrams, we know it will be received
         if (!_ctx.getClient().getTransmitDatagrams()) {
             _tsobj.tudeySceneService.enqueueInputReliable(
-                _ctx.getClient(), _lastDelta, smoothedTime,
-                _input.toArray(new InputFrame[_input.size()]));
+                _lastDelta, smoothedTime, _input.toArray(new InputFrame[_input.size()]));
             _input.clear();
             return;
         }
@@ -902,8 +901,7 @@ public class TudeySceneController extends SceneController
             size -= _input.remove(0).getApproximateSize();
         }
         _tsobj.tudeySceneService.enqueueInputUnreliable(
-            _ctx.getClient(), _lastDelta, smoothedTime,
-            _input.toArray(new InputFrame[_input.size()]));
+            _lastDelta, smoothedTime, _input.toArray(new InputFrame[_input.size()]));
     }
 
     /**
@@ -938,7 +936,7 @@ public class TudeySceneController extends SceneController
         if (_targetId == pawnId) {
             return;
         }
-        _tsobj.tudeySceneService.setTarget(_ctx.getClient(), _targetId = pawnId);
+        _tsobj.tudeySceneService.setTarget(_targetId = pawnId);
         _tsview.updateTargetSprite();
     }
 

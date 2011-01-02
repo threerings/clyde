@@ -28,7 +28,6 @@ package com.threerings.config.dist.data;
 import javax.annotation.Generated;
 
 import com.threerings.config.dist.client.DConfigService;
-import com.threerings.presents.client.Client;
 import com.threerings.presents.data.InvocationMarshaller;
 
 /**
@@ -47,10 +46,10 @@ public class DConfigMarshaller extends InvocationMarshaller
     public static final int UPDATE_CONFIGS = 1;
 
     // from interface DConfigService
-    public void updateConfigs (Client arg1, ConfigEntry[] arg2, ConfigEntry[] arg3, ConfigKey[] arg4)
+    public void updateConfigs (ConfigEntry[] arg1, ConfigEntry[] arg2, ConfigKey[] arg3)
     {
-        sendRequest(arg1, UPDATE_CONFIGS, new Object[] {
-            arg2, arg3, arg4
+        sendRequest(UPDATE_CONFIGS, new Object[] {
+            arg1, arg2, arg3
         });
     }
 }
