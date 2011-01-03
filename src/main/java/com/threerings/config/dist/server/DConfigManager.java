@@ -25,6 +25,8 @@
 
 package com.threerings.config.dist.server;
 
+import java.util.Arrays;
+
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -69,11 +71,19 @@ public class DConfigManager
         return _cfgobj;
     }
 
+    @Deprecated
+    public void updateConfigs (
+        int cloid, ConfigEntry[] add, ConfigEntry[] update, ConfigKey[] remove)
+    {
+        updateConfigs(cloid, Arrays.asList(add), Arrays.asList(update), Arrays.asList(remove));
+    }
+
     /**
      * Performs a set of updates without checking if the identified client has the proper access.
      */
     public void updateConfigs (
-        int cloid, ConfigEntry[] add, ConfigEntry[] update, ConfigKey[] remove)
+        int cloid, Iterable<ConfigEntry> add, Iterable<ConfigEntry> update,
+        Iterable<ConfigKey> remove)
     {
         _cfgobj.startTransaction();
         try {
@@ -140,7 +150,8 @@ public class DConfigManager
     {
         // make sure they're an admin
         if (((BodyObject)caller).getTokens().isAdmin()) {
-            updateConfigs(caller.getOid(), add, update, remove);
+            updateConfigs(caller.getOid(),
+                Arrays.asList(add), Arrays.asList(update), Arrays.asList(remove));
         } else {
             log.warning("Non-admin tried to update configs.", "who", caller.who());
         }
