@@ -27,8 +27,8 @@ package com.threerings.opengl.gui;
 
 import java.nio.IntBuffer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
@@ -629,7 +629,7 @@ public class Component
     public void addListener (ComponentListener listener)
     {
         if (_listeners == null) {
-            _listeners = new ArrayList<ComponentListener>();
+            _listeners = new CopyOnWriteArrayList<ComponentListener>();
         }
         _listeners.add(listener);
     }
@@ -874,8 +874,8 @@ public class Component
 
         // dispatch this event to our listeners
         if (_listeners != null) {
-            for (int ii = 0, ll = _listeners.size(); ii < ll; ii++) {
-                event.dispatch(_listeners.get(ii));
+            for (ComponentListener listener : _listeners) {
+                event.dispatch(listener);
             }
         }
 
@@ -1197,7 +1197,7 @@ public class Component
     protected Container _parent;
     protected Dimension _preferredSize;
     protected int _x, _y, _width, _height;
-    protected ArrayList<ComponentListener> _listeners;
+    protected CopyOnWriteArrayList<ComponentListener> _listeners;
     protected HashMap<String, Object> _properties;
     protected String _tiptext;
     protected boolean _tipmouse;
