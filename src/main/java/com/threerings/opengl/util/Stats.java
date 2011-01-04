@@ -81,7 +81,15 @@ public class Stats extends SimpleOverlay
     @Override // documentation inherited
     protected void draw ()
     {
-        _stats.render(_ctx.getRenderer(), 16, 16, 1f);
+        _stats.render(_ctx.getRenderer(), 16, getY(), 1f);
+    }
+
+    /**
+     * Returns the y coordinate at which to render the stats.
+     */
+    protected int getY ()
+    {
+        return 16;
     }
 
     /** Used to create text objects. */
