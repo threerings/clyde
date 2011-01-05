@@ -80,8 +80,13 @@ public class Spinner extends Container
         setLayoutManager(GroupLayout.makeHoriz(
             GroupLayout.STRETCH, GroupLayout.RIGHT, GroupLayout.EQUALIZE));
         add(_editor);
-        add(GroupLayout.makeVBox(ctx, GroupLayout.CENTER, _next, _prev),
-            GroupLayout.FIXED);
+
+        // TODO: have the gap be settable in the style
+        GroupLayout butLayout = GroupLayout.makeVert(GroupLayout.CENTER).setGap(0);
+        Container butBox = new Container(ctx, butLayout);
+        butBox.add(_next);
+        butBox.add(_prev);
+        add(butBox, GroupLayout.FIXED);
     }
 
     /**
