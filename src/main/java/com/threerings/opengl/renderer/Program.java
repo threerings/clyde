@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.renderer;
 
-import java.io.UnsupportedEncodingException;
-
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -44,8 +42,6 @@ import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
-
-import static com.threerings.opengl.Log.*;
 
 /**
  * Contains a shader program.

@@ -34,9 +34,6 @@ import javax.swing.JButton;
 
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.swing.BasePropertyEditor;
-import com.threerings.editor.swing.PropertyEditor;
-
-import static com.threerings.editor.Log.*;
 
 /**
  * A property editor that simply returns the path to the current property.

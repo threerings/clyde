@@ -143,7 +143,7 @@ public class MaskEditor extends PropertyEditor
         // this generates two documents events: first a remove, then an add.  we don't want to
         // fire a state change, so we remove ourselves as a document listener when updating
         _field.getDocument().removeDocumentListener(this);
-        _field.setValue((Number)_property.get(_object));
+        _field.setValue(_property.get(_object));
         _field.getDocument().addDocumentListener(this);
     }
 

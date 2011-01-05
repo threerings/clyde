@@ -387,7 +387,7 @@ public class ConfigTreeNode extends DefaultMutableTreeNode
     public void remove (int index)
     {
         ConfigTreeNode child = (ConfigTreeNode)children.get(index);
-        _childrenByName.remove((String)child.getUserObject());
+        _childrenByName.remove(child.getUserObject());
         if (_childrenByName.isEmpty()) {
             _childrenByName = null;
         }

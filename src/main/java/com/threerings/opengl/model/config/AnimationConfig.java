@@ -234,7 +234,6 @@ public class AnimationConfig extends ParameterizedConfig
             if (_parser == null) {
                 _parser = new AnimationParser();
             }
-            AnimationDef def;
             try {
                 updateFromSource(_parser.parseAnimation(
                     ctx.getResourceManager().getResource(_source)));

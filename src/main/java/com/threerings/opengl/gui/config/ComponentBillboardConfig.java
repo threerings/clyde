@@ -25,7 +25,6 @@
 
 package com.threerings.opengl.gui.config;
 
-import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.expr.Scope;
 

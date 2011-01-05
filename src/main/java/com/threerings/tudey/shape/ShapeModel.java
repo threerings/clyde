@@ -27,7 +27,6 @@ package com.threerings.tudey.shape;
 
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
-import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;

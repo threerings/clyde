@@ -40,7 +40,6 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.renderer.Batch;

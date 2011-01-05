@@ -564,7 +564,7 @@ public abstract class FloatExpression extends DeepObject
                     throws Exception {
                 if (arity == 1) {
                     if (operator.equals("+")) {
-                        return (FloatExpression)_output.pop();
+                        return _output.pop();
 
                     } else if (operator.equals("-")) {
                         Negate negate = new Negate();

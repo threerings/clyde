@@ -38,12 +38,12 @@ public class MergedIcon extends Icon
     public MergedIcon (Icon...icons)
     {
         _icons = icons;
-        for (int ii = 0; ii < _icons.length; ii++) {
-            if (_icons[ii].getWidth() > _maxWidth) {
-                _maxWidth = _icons[ii].getWidth();
+        for (Icon icon : _icons) {
+            if (icon.getWidth() > _maxWidth) {
+                _maxWidth = icon.getWidth();
             }
-            if (_icons[ii].getHeight() > _maxHeight) {
-                _maxHeight = _icons[ii].getHeight();
+            if (icon.getHeight() > _maxHeight) {
+                _maxHeight = icon.getHeight();
             }
         }
     }
@@ -63,8 +63,8 @@ public class MergedIcon extends Icon
     @Override // documentation inherited
     public void render (Renderer renderer, int x, int y, float alpha)
     {
-        for (int ii = 0; ii < _icons.length; ii++) {
-            _icons[ii].render(renderer, x, y, alpha);
+        for (Icon icon : _icons) {
+            icon.render(renderer, x, y, alpha);
         }
     }
 

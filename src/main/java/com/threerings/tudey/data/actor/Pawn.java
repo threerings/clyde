@@ -28,7 +28,6 @@ package com.threerings.tudey.data.actor;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Vector2f;
 
-import com.threerings.tudey.client.TudeySceneController;
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.util.ActorAdvancer;

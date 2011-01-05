@@ -25,14 +25,7 @@
 
 package com.threerings.opengl.gui.config;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
-
 import com.samskivert.util.StringUtil;
-
-import com.threerings.media.image.ColorPository.ClassRecord;
-import com.threerings.media.image.ColorPository.ColorRecord;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;

@@ -51,7 +51,7 @@ public abstract class Variable
             protected boolean _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -73,7 +73,7 @@ public abstract class Variable
             protected byte _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -95,7 +95,7 @@ public abstract class Variable
             protected char _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -117,7 +117,7 @@ public abstract class Variable
             protected double _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -139,7 +139,7 @@ public abstract class Variable
             protected float _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -161,7 +161,7 @@ public abstract class Variable
             protected int _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -183,7 +183,7 @@ public abstract class Variable
             protected long _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -205,7 +205,7 @@ public abstract class Variable
             protected short _value = value;
         };
     }
-    
+
     /**
      * Creates a new variable with the given initial value.
      */
@@ -221,7 +221,7 @@ public abstract class Variable
             protected Object _value = value;
         };
     }
-    
+
     /**
      * Retrieves the value of the variable as a boolean.
      */
@@ -229,7 +229,7 @@ public abstract class Variable
     {
         return (Boolean)get();
     }
-    
+
     /**
      * Retrieves the value of the variable as a byte.
      */
@@ -237,7 +237,7 @@ public abstract class Variable
     {
         return (Byte)get();
     }
-    
+
     /**
      * Retrieves the value of the variable as a char.
      */
@@ -245,7 +245,7 @@ public abstract class Variable
     {
         return (Character)get();
     }
-    
+
     /**
      * Retrieves the value of the variable as a double.
      */
@@ -253,7 +253,7 @@ public abstract class Variable
     {
         return (Double)get();
     }
-    
+
     /**
      * Retrieves the value of the variable as a float.
      */
@@ -261,7 +261,7 @@ public abstract class Variable
     {
         return (Float)get();
     }
-    
+
     /**
      * Retrieves the value of the variable as an integer.
      */
@@ -269,7 +269,7 @@ public abstract class Variable
     {
         return (Integer)get();
     }
-    
+
     /**
      * Retrieves the value of the variable as a long.
      */
@@ -277,7 +277,7 @@ public abstract class Variable
     {
         return (Long)get();
     }
-    
+
     /**
      * Retrieves the value of the variable as a short.
      */
@@ -285,12 +285,12 @@ public abstract class Variable
     {
         return (Short)get();
     }
-    
+
     /**
      * Retrieves the value of the variable.
      */
     public abstract Object get ();
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -298,7 +298,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -306,7 +306,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -314,7 +314,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -322,7 +322,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -330,7 +330,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -338,7 +338,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -346,7 +346,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable as a boolean.
      */
@@ -354,7 +354,7 @@ public abstract class Variable
     {
         set(value);
     }
-    
+
     /**
      * Sets the value of the variable.
      */

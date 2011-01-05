@@ -132,8 +132,8 @@ public class BorderLayout extends LayoutManager
         Dimension psize = new Dimension();
         int horizComps = 0, vertComps = 0;
         Component comp;
-        for (int cidx = 0; cidx < VERTS.length; cidx++) {
-            comp = _components[VERTS[cidx].intValue()];
+        for (Integer vert : VERTS) {
+            comp = _components[vert.intValue()];
             if (comp != null && comp.isVisible()) {
                 Dimension cpsize = comp.getPreferredSize(whint, -1);
                 psize.width = Math.max(psize.width, cpsize.width);
@@ -146,8 +146,8 @@ public class BorderLayout extends LayoutManager
         }
 
         int centerWidth = 0, centerHeight = 0;
-        for (int cidx = 0; cidx < HORIZS.length; cidx++) {
-            comp = _components[HORIZS[cidx].intValue()];
+        for (Integer horiz : HORIZS) {
+            comp = _components[horiz.intValue()];
             if (comp != null && comp.isVisible()) {
                 Dimension cpsize = comp.getPreferredSize(-1, hhint);
                 centerWidth += cpsize.width;

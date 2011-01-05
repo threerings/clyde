@@ -423,8 +423,6 @@ public abstract class Texture
     {
         int iwidth = image.getWidth(), iheight = image.getHeight();
         int ncomps = image.getColorModel().getNumComponents();
-        int format = FORMATS[ncomps - 1];
-
         // create a compatible color model
         boolean hasAlpha = (ncomps == 2 || ncomps == 4);
         ComponentColorModel cmodel = new ComponentColorModel(

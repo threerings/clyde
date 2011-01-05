@@ -36,8 +36,6 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 
 import java.io.File;
-import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -47,7 +45,6 @@ import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -343,7 +340,7 @@ public class ConfigEditor extends BaseConfigEditor
             public GroupItem (ConfigGroup group)
             {
                 @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig> mgroup =
-                    (ConfigGroup<ManagedConfig>)group;
+                    group;
                 this.group = mgroup;
                 _label = getLabel(group.getConfigClass(), group.getName());
             }

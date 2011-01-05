@@ -27,12 +27,6 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 
-import com.threerings.config.ConfigReference;
-import com.threerings.math.Vector2f;
-
-import com.threerings.tudey.config.ActorConfig;
-import com.threerings.tudey.data.actor.Actor;
-import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.server.ClientLiaison;
 import com.threerings.tudey.util.ActorAdvancer;

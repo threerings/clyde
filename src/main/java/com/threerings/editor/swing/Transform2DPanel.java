@@ -28,7 +28,6 @@ package com.threerings.editor.swing;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.JSpinner;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -86,7 +85,7 @@ public class Transform2DPanel extends BasePropertyEditor
         spanel.setBackground(null);
         rscont.add(spanel);
         spanel.add(new JLabel(getLabel("scale") + ":"));
-        spanel.add(_sspinner = new DraggableSpinner(0f, (Comparable)0f, null, step));
+        spanel.add(_sspinner = new DraggableSpinner(0f, 0f, null, step));
         _sspinner.addChangeListener(this);
     }
 

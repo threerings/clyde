@@ -26,7 +26,6 @@
 package com.threerings.tudey.data.actor;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepOmit;
 

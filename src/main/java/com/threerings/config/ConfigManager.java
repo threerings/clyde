@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.collect.Lists;
@@ -361,7 +360,7 @@ public class ConfigManager
             }
         }
         @SuppressWarnings("unchecked") ConfigGroup<T>[] array =
-            (ConfigGroup<T>[])new ConfigGroup[groups.size()];
+            new ConfigGroup[groups.size()];
         return groups.toArray(array);
     }
 
@@ -370,7 +369,7 @@ public class ConfigManager
      */
     public <T extends ManagedConfig> ConfigGroup<T> getGroup (Class<T> clazz)
     {
-        @SuppressWarnings("unchecked") ConfigGroup<T> group = (ConfigGroup<T>)_groups.get(clazz);
+        @SuppressWarnings("unchecked") ConfigGroup<T> group = _groups.get(clazz);
         return group;
     }
 
@@ -430,7 +429,7 @@ public class ConfigManager
             _updateListeners = ObserverList.newFastUnsafe();
         }
         @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
-            (ConfigUpdateListener<ManagedConfig>)listener;
+            listener;
         _updateListeners.add(mlistener);
     }
 

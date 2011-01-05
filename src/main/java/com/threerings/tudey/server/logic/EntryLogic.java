@@ -29,7 +29,6 @@ import java.util.ArrayList;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
-import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.model.config.ModelConfig;

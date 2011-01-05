@@ -44,13 +44,10 @@ import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ArticulatedConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.SimpleBatch;
-import com.threerings.opengl.renderer.state.AlphaState;
-import com.threerings.opengl.renderer.state.DepthState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.SimpleRenderable;
 
 /**
  * A component billboard model implementation.

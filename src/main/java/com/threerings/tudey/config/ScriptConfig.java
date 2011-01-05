@@ -25,9 +25,6 @@
 
 package com.threerings.tudey.config;
 
-import com.threerings.config.ConfigManager;
-import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;

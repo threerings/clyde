@@ -28,11 +28,6 @@ package com.threerings.export;
 import java.io.Closeable;
 import java.io.IOException;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.DoubleBuffer;
@@ -41,17 +36,12 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
-import java.util.HashMap;
-
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.opengl.renderer.Color4f;
-
-import static java.util.logging.Level.*;
-import static com.threerings.export.Log.*;
 
 /**
  * Used to read {@link Exportable} objects.  Other common object types are supported as well

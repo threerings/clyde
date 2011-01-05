@@ -25,7 +25,6 @@
 
 package com.threerings.editor.swing.editors;
 
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -38,11 +37,8 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
-import com.samskivert.util.ObjectUtil;
-
 import com.threerings.util.MessageBundle;
 
-import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;
 import com.threerings.editor.swing.PropertyEditor;
 
@@ -118,7 +114,6 @@ public class FileEditor extends PropertyEditor
         add(new JLabel(getPropertyLabel() + ":"));
         add(_file = new JButton(" "));
         _file.addActionListener(this);
-        String mode = getMode();
         if (_property.getAnnotation().nullable()) {
             add(_clear = new JButton(_msgs.get("m.clear")));
             _clear.addActionListener(this);

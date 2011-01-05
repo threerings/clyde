@@ -26,8 +26,6 @@
 package com.threerings.config.swing;
 
 import java.util.HashSet;
-import java.util.Collection;
-
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 
@@ -63,7 +61,7 @@ public class ConfigBox extends JComboBox
     {
         _msgs = msgs;
         @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups =
-            (ConfigGroup<ManagedConfig>[])groups;
+            groups;
         _groups = mgroups;
         _nullable = nullable;
 

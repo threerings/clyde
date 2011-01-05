@@ -36,7 +36,6 @@ import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderEffect;
-import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.renderer.config.TextureConfig;
 import com.threerings.opengl.util.GlContext;

@@ -37,7 +37,6 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
-import com.threerings.opengl.compositor.RenderEffect;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;

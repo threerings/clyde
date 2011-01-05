@@ -57,7 +57,6 @@ import com.samskivert.swing.util.SwingUtil;
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
-import com.threerings.editor.Property;
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.util.ChangeBlock;
@@ -66,8 +65,6 @@ import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.ModelObserver;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.scene.SimpleScene;
-import com.threerings.opengl.util.DebugBounds;
 
 /**
  * A simple model viewer application.

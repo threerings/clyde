@@ -53,7 +53,6 @@ import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.ModelAdapter;
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Tickable;

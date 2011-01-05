@@ -28,7 +28,6 @@ package com.threerings.tudey.server;
 import javax.annotation.Generated;
 
 import com.threerings.presents.data.ClientObject;
-import com.threerings.presents.net.Transport;
 import com.threerings.presents.server.InvocationProvider;
 import com.threerings.tudey.client.TudeySceneService;
 import com.threerings.tudey.config.CameraConfig;

@@ -27,13 +27,10 @@ package com.threerings.opengl.effect.config;
 
 import java.io.IOException;
 
-import com.threerings.config.ConfigReference;
-import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
-import com.threerings.expr.Scope;
 import com.threerings.math.Transform3D;
 import com.threerings.probs.ColorFunctionVariable;
 import com.threerings.probs.FloatFunctionVariable;
@@ -46,12 +43,9 @@ import com.threerings.util.Shallow;
 import com.threerings.opengl.effect.AlphaMode;
 import com.threerings.opengl.effect.ColorFunction;
 import com.threerings.opengl.effect.FloatFunction;
-import com.threerings.opengl.effect.MetaParticleSystem;
-import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
-import com.threerings.opengl.util.GlContext;
 
 /**
  * Base class for {@link ParticleSystemConfig} and {@link MetaParticleSystemConfig}.

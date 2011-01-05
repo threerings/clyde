@@ -27,7 +27,6 @@ package com.threerings.tudey.shape;
 
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
-import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.shape.config.ShapeConfig;

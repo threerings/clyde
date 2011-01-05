@@ -25,7 +25,6 @@
 
 package com.threerings.openal;
 
-import java.io.File;
 import java.io.IOException;
 
 import java.nio.ByteBuffer;
@@ -49,7 +48,6 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
-import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 

@@ -25,7 +25,6 @@
 
 package com.threerings.tudey.tools;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.undo.AbstractUndoableEdit;

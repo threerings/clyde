@@ -30,16 +30,13 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.util.Dimension;
-import com.threerings.opengl.gui.util.Insets;
 
 /**
  * Displays a selected value and allows that value to be changed by selecting from a popup menu.

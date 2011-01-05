@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 
 import com.samskivert.util.Tuple;
 
-import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -164,7 +163,7 @@ public abstract class SceneInfluenceConfig extends DeepObject
                 list.add(Tuple.newTuple(definition.name, definition.getValue(scope, updaters)));
             }
             @SuppressWarnings("unchecked") Tuple<String, Object>[] array =
-                (Tuple<String, Object>[])new Tuple[list.size()];
+                new Tuple[list.size()];
             return new DefinerInfluence(list.toArray(array));
         }
     }

@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
 import com.threerings.editor.Editable;

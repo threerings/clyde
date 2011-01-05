@@ -82,7 +82,6 @@ public class SceneResourcesTask extends Task
 
         // get all scene resources
         Set<String> resources = Sets.newHashSet();
-        String baseDir = getProject().getBaseDir().getPath();
         for (FileSet fs : _filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             File fromDir = fs.getDir(getProject());

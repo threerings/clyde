@@ -31,7 +31,6 @@ import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.IntTuple;
 
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 

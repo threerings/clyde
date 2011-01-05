@@ -26,9 +26,6 @@
 package com.threerings.tudey.client.sprite;
 
 import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.IntMap;
@@ -1137,7 +1134,7 @@ public class ActorSprite extends Sprite
         _impl.update(_actor);
     }
 
-    @Override // documentation inherited
+    // documentation inherited
     public Actor getActor ()
     {
         return _actor;

@@ -25,16 +25,11 @@
 
 package com.threerings.opengl.gui;
 
-import com.threerings.config.ConfigReference;
-
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.icon.Icon;
-import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Dimension;
-import com.threerings.opengl.gui.util.Insets;
 
 /**
  * A simple component for displaying a textual label.

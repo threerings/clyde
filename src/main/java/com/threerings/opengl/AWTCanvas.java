@@ -27,9 +27,6 @@ package com.threerings.opengl;
 
 import java.awt.AWTEvent;
 import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.GraphicsDevice;
-
 import java.lang.reflect.Field;
 
 import javax.swing.JPopupMenu;

@@ -25,8 +25,6 @@
 
 package com.threerings.tudey.config;
 
-import com.samskivert.util.StringUtil;
-
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;

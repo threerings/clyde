@@ -48,7 +48,6 @@ import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.Dependency;
-import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;

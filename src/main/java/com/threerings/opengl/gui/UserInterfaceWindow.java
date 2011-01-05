@@ -32,7 +32,6 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.config.UserInterfaceConfig;
-import com.threerings.opengl.gui.event.ComponentListener;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
 /**

@@ -27,7 +27,6 @@ package com.threerings.util;
 
 import java.lang.ref.WeakReference;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
@@ -108,7 +107,7 @@ public class WeakObserverSet<T>
         if (_dirty) {
             if (_snap == null || _snap.length < ocount || _snap.length > (ocount << 3)) {
                 @SuppressWarnings("unchecked") ObserverRef<T>[] snap =
-                    (ObserverRef<T>[])new ObserverRef[ocount];
+                    new ObserverRef[ocount];
                 _snap = snap;
             }
             int idx = 0;

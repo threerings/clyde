@@ -28,11 +28,6 @@ package com.threerings.export;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Modifier;
-
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -44,15 +39,11 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.Text;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 
 import com.threerings.util.ReflectionUtil;
-
-import static java.util.logging.Level.*;
-import static com.threerings.export.Log.*;
 
 /**
  * Exports to an XML format.
@@ -243,7 +234,7 @@ public class XMLExporter extends Exporter
         }
         // see if we can convert the value to a string
         @SuppressWarnings("unchecked") Stringifier<Object> stringifier =
-            (Stringifier<Object>)Stringifier.getStringifier(cclazz);
+            Stringifier.getStringifier(cclazz);
         if (stringifier != null) {
             // because empty text nodes are removed, we must include a comment to
             // signify an empty string

@@ -26,7 +26,6 @@
 package com.threerings.opengl.util;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import com.google.common.collect.Lists;

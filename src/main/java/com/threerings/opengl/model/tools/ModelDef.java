@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -46,7 +45,6 @@ import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ListUtil;
-import com.samskivert.util.PropertiesUtil;
 import com.samskivert.util.StringUtil;
 import com.samskivert.util.QuickSort;
 

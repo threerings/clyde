@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.gui.border;
 
-import com.threerings.opengl.renderer.Renderer;
-
 import com.threerings.opengl.gui.util.Insets;
 
 /**

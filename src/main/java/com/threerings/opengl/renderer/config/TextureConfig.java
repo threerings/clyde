@@ -48,8 +48,6 @@ import com.google.common.collect.Lists;
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 
-import com.threerings.io.Streamable;
-
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
@@ -67,7 +65,6 @@ import com.threerings.math.Plane;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.media.image.Colorization;
-import com.threerings.media.image.ImageUtil;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 

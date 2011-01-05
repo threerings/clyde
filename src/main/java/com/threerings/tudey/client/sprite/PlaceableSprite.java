@@ -39,7 +39,6 @@ import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.Scene;
 

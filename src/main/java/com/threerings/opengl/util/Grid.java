@@ -31,7 +31,6 @@ import org.lwjgl.BufferUtils;
 
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.renderer.Color4f;
-import com.threerings.opengl.renderer.SimpleBatch;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.RenderState;
 import com.threerings.opengl.renderer.util.BatchFactory;

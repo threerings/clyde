@@ -35,32 +35,32 @@ public class MutableFloat
 
     /**
      * Creates a mutable float with the supplied value.
-     */    
+     */
     public MutableFloat (float value)
     {
         this.value = value;
     }
-    
+
     /**
      * Creates a mutable float with a value of zero.
      */
     public MutableFloat ()
     {
     }
-    
+
     @Override // documentation inherited
     public int hashCode ()
     {
         return Float.floatToIntBits(value);
     }
-    
+
     @Override // documentation inherited
     public boolean equals (Object other)
     {
         return other instanceof MutableFloat &&
             Float.floatToIntBits(((MutableFloat)other).value) == Float.floatToIntBits(value);
     }
-    
+
     @Override // documentation inherited
     public String toString ()
     {

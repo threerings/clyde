@@ -25,8 +25,6 @@
 
 package com.threerings.tudey.tools;
 
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -39,26 +37,15 @@ import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.TransferHandler;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-
 import com.samskivert.swing.GroupLayout;
-import com.samskivert.util.ListUtil;
-
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
-import com.threerings.export.util.ExportUtil;
 import com.threerings.swing.PrefsTree;
 import com.threerings.swing.PrefsTreeNode;
 import com.threerings.util.DeepUtil;

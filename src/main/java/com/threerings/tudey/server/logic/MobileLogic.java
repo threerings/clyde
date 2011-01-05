@@ -25,7 +25,6 @@
 
 package com.threerings.tudey.server.logic;
 
-import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
@@ -37,7 +36,6 @@ import com.threerings.tudey.data.actor.StepLimiter;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActorAdvancer;
-import com.threerings.tudey.util.MobileAdvancer;
 
 /**
  * Controls the state of a mobile actor.

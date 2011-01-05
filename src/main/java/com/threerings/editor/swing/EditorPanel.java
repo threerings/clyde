@@ -56,7 +56,6 @@ import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
-import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.util.MessageBundle;
@@ -67,8 +66,6 @@ import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
-
-import static com.threerings.editor.Log.*;
 
 /**
  * Allows editing properties of an object as determined through reflection.

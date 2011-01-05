@@ -38,11 +38,9 @@ import com.threerings.config.ConfigReference;
 import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.config.GroundConfig;
-import com.threerings.tudey.config.PaintableConfig;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.config.WallConfig;
 import com.threerings.tudey.data.TudeySceneModel;
-import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.Paint;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 

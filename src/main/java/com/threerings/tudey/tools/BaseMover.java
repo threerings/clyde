@@ -39,7 +39,6 @@ import com.threerings.math.Vector3f;
 import com.threerings.tudey.client.cursor.SelectionCursor;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
-import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**

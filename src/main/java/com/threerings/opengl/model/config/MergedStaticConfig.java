@@ -49,13 +49,10 @@ import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.geometry.config.TransformedGeometry;
 import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.material.config.MaterialConfig;
-import com.threerings.opengl.model.Articulated;
 import com.threerings.opengl.model.CollisionMesh;
-import com.threerings.opengl.model.Compound;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.Static;
 import com.threerings.opengl.model.config.CompoundConfig.ComponentModel;
-import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.StaticConfig.Resolved;
@@ -156,7 +153,6 @@ public class MergedStaticConfig extends ModelConfig.Implementation
             }
             ModelConfig.Imported imported = (ModelConfig.Imported)original;
             for (VisibleMesh mesh : mset.visible) {
-                String key = mesh.texture + "|" + mesh.tag;
                 MaterialConfig material = Model.getMaterialConfig(
                     ctx, mesh.texture, mesh.tag, imported.materialMappings, mmap);
                 List<TransformedGeometry> glist = glists.get(material);

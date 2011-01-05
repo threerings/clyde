@@ -68,7 +68,7 @@ public class Transform3DEditor extends PropertyEditor
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
-        Editable annotation = _property.getAnnotation();
+        _property.getAnnotation();
         String mstr = getMode();
         Transform3DPanel.Mode mode = Transform3DPanel.Mode.UNIFORM;
         try {

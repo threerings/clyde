@@ -26,19 +26,13 @@
 package com.threerings.opengl.model;
 
 import java.util.List;
-import java.util.Map;
-
 import com.threerings.expr.Scope;
 import com.threerings.math.Box;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
-import com.threerings.opengl.material.config.MaterialConfig;
-import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
-import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
-import com.threerings.opengl.util.GlContext;
 
 /**
  * A wrapper around a model implementation.

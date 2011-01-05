@@ -28,11 +28,7 @@ package com.threerings.tudey.server.util;
 import java.awt.Point;
 
 import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
-
-import com.samskivert.util.StringUtil;
 
 import com.threerings.media.util.AStarPathUtil;
 import com.threerings.media.util.MathUtil;
@@ -55,12 +51,8 @@ import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.Logic;
 import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Shape;
-import com.threerings.tudey.shape.ShapeElement;
-import com.threerings.tudey.space.Space;
 import com.threerings.tudey.space.SpaceElement;
 import com.threerings.tudey.util.CoordIntMap;
-
-import static com.threerings.tudey.Log.*;
 
 /**
  * A helper class for pathfinding.  Currently the pathfinding strategy is to divide the world up

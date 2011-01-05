@@ -285,7 +285,6 @@ public abstract class GroupLayout extends LayoutManager
         if (_policy == STRETCH) {
             if (horiz) {
                 if (whint > 0) {
-                    int owhint = whint;
                     whint -= (info.fixwid + _gap * (info.count-1));
                     whint /= (info.count - info.numfix);
                 }

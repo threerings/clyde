@@ -45,7 +45,6 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.renderer.Color4f;
 
-import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;

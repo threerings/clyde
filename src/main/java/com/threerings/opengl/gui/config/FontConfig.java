@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import com.samskivert.util.IntTuple;
-import com.samskivert.util.SoftCache;
-
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.FileConstraints;

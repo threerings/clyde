@@ -26,11 +26,8 @@
 package com.threerings.opengl.model;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import com.google.common.base.Objects;
 
 import com.samskivert.util.ObserverList;
@@ -42,8 +39,6 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scope;
-import com.threerings.expr.ScopeEvent;
-import com.threerings.expr.ScopeUpdateListener;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
@@ -61,16 +56,11 @@ import com.threerings.opengl.model.config.AnimationConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
 import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
-import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.FogState;
 import com.threerings.opengl.renderer.state.LightState;
-import com.threerings.opengl.scene.AmbientLightInfluence;
-import com.threerings.opengl.scene.FogInfluence;
-import com.threerings.opengl.scene.LightInfluence;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.SceneElement;
-import com.threerings.opengl.scene.SceneInfluence;
 import com.threerings.opengl.scene.SceneInfluenceSet;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.GlContextWrapper;

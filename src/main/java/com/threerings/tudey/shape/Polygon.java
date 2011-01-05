@@ -38,8 +38,6 @@ import com.threerings.math.Vector2f;
 import com.threerings.tudey.shape.config.ShapeConfig;
 import com.threerings.tudey.space.SpaceElement;
 
-import static com.threerings.tudey.Log.*;
-
 /**
  * A convex polygon.
  */

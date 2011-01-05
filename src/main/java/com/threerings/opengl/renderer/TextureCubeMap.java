@@ -210,11 +210,11 @@ public class TextureCubeMap extends Texture
             _size = size;
         }
         _renderer.setTexture(this);
-        int ib = border ? 1 : 0, ib2 = ib*2;
-        int bsize = size + ib2;
-        for (int ii = 0; ii < FACE_TARGETS.length; ii++) {
-            // TODO
-        }
+        // TODO
+//        int ib = border ? 1 : 0, ib2 = ib*2;
+//        int bsize = size + ib2;
+//        for (int target : FACE_TARGETS) {
+//        }
     }
 
     @Override // documentation inherited

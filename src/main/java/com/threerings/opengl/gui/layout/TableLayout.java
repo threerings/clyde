@@ -30,7 +30,6 @@ import java.util.HashMap;
 
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.Container;
-import com.threerings.opengl.gui.Log;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 
@@ -282,8 +281,8 @@ public class TableLayout extends LayoutManager
     protected int sum (int[] values)
     {
         int total = 0;
-        for (int ii = 0; ii < values.length; ii++) {
-            total += values[ii];
+        for (int value : values) {
+            total += value;
         }
         return total;
     }

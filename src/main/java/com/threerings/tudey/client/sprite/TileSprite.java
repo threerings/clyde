@@ -34,7 +34,6 @@ import com.threerings.expr.SimpleScope;
 import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.model.Model;
-import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.Scene;
 
 import com.threerings.tudey.client.TudeySceneView;

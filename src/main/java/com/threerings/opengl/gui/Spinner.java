@@ -37,9 +37,7 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
-import com.threerings.opengl.gui.layout.HGroupLayout;
 import com.threerings.opengl.gui.layout.GroupLayout;
-import com.threerings.opengl.gui.layout.VGroupLayout;
 
 /**
  * Displays a value with little next and previous buttons.

@@ -25,11 +25,6 @@
 
 package com.threerings.opengl.renderer;
 
-import com.threerings.opengl.renderer.state.ArrayState;
-import com.threerings.opengl.renderer.state.RenderState;
-import com.threerings.opengl.renderer.state.ShaderState;
-import com.threerings.opengl.renderer.state.TextureState;
-
 /**
  * A geometry batch that can be queued for rendering.
  */

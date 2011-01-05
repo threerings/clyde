@@ -27,9 +27,6 @@ package com.threerings.opengl.compositor;
 
 import java.lang.ref.SoftReference;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,8 +39,6 @@ import com.samskivert.util.QuickSort;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
-import com.threerings.opengl.compositor.config.RenderQueueConfig;
-import com.threerings.opengl.compositor.config.RenderSchemeConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.state.ColorMaskState;

@@ -48,8 +48,6 @@ import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 
-import static com.threerings.tudey.Log.*;
-
 /**
  * Controls the state of an actor on the server.
  */
@@ -325,7 +323,7 @@ public class ActorLogic extends Logic
         wasRemoved();
     }
 
-    @Override // documentation inherited
+    // documentation inherited
     public Actor getActor ()
     {
         return _actor;

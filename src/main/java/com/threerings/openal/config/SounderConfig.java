@@ -41,8 +41,6 @@ import com.threerings.util.DeepObject;
 import com.threerings.openal.Sounder;
 import com.threerings.openal.util.AlContext;
 
-import static com.threerings.openal.Log.*;
-
 /**
  * The configuration of a sounder.
  */

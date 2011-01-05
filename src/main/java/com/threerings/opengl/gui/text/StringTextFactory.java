@@ -42,15 +42,9 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.text.AttributedString;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-
-import org.lwjgl.opengl.GL11;
-
 import com.samskivert.util.StringUtil;
 
 import com.threerings.opengl.renderer.Color4f;
@@ -238,7 +232,7 @@ public class StringTextFactory extends TextFactory
                     gfx.setColor(new Color(effectColor.r, effectColor.g, effectColor.b,
                                            effectColor.a));
                     Stroke oldstroke = gfx.getStroke();
-                    gfx.setStroke(new BasicStroke((float)effectSize, BasicStroke.CAP_ROUND,
+                    gfx.setStroke(new BasicStroke(effectSize, BasicStroke.CAP_ROUND,
                                                   BasicStroke.JOIN_ROUND));
                     gfx.draw(layout.getOutline(null));
                     gfx.setStroke(oldstroke);
@@ -536,8 +530,8 @@ public class StringTextFactory extends TextFactory
             if (run.styles == null) {
                 continue; // ignore runs we failed to parse
             }
-            for (int ss = 0; ss < run.styles.length; ss++) {
-                switch (run.styles[ss]) {
+            for (char runStyle : run.styles) {
+                switch (runStyle) {
                 case '#':
                     if (run.color != null) {
                         string.addAttribute(TextAttribute.FOREGROUND, run.color,
@@ -572,7 +566,7 @@ public class StringTextFactory extends TextFactory
 
                 default:
                     log.info("Invalid style command [text=" + text +
-                             ", command=" + run.styles[ss] + ", run=" + run + "].");
+                             ", command=" + runStyle + ", run=" + run + "].");
                     break;
                 }
             }
@@ -590,9 +584,9 @@ public class StringTextFactory extends TextFactory
 
         public String toString () {
             StringBuilder buf = new StringBuilder();
-            for (int ii = 0; ii < styles.length; ii++) {
-                if (styles[ii] > 0) {
-                    buf.append(styles[ii]);
+            for (char style : styles) {
+                if (style > 0) {
+                    buf.append(style);
                 }
             }
             if (color != null) {

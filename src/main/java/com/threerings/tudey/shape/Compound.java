@@ -25,8 +25,6 @@
 
 package com.threerings.tudey.shape;
 
-import org.lwjgl.opengl.GL11;
-
 import com.samskivert.util.StringUtil;
 
 import com.threerings.math.FloatMath;

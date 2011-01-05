@@ -27,7 +27,6 @@ package com.threerings.opengl.gui.config;
 
 import java.util.HashSet;
 
-import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;

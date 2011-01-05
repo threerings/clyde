@@ -43,10 +43,6 @@ import com.threerings.whirled.client.SceneDirector;
 import com.threerings.whirled.client.persist.SceneRepository;
 import com.threerings.whirled.data.SceneModel;
 import com.threerings.whirled.util.NoSuchSceneException;
-import com.threerings.whirled.util.SceneFactory;
-
-import com.threerings.config.ConfigManager;
-
 import com.threerings.opengl.GlCanvasTool;
 import com.threerings.opengl.GlView;
 import com.threerings.opengl.gui.Root;

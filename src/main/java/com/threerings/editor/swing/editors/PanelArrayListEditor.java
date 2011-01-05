@@ -26,21 +26,13 @@
 package com.threerings.editor.swing.editors;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-
-import java.lang.reflect.Array;
-
-import java.util.List;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -51,8 +43,6 @@ import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.Spacer;
 import com.samskivert.util.ListUtil;
-
-import com.threerings.media.image.ImageUtil;
 
 import com.threerings.editor.swing.ObjectPanel;
 

@@ -84,7 +84,6 @@ import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.renderer.state.RenderState;
-import com.threerings.opengl.util.DebugBounds;
 import com.threerings.opengl.util.SimpleTransformable;
 
 import static com.threerings.opengl.Log.*;

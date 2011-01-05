@@ -193,7 +193,7 @@ public class ArgumentMap extends AbstractMap<String, Object>
                 if (!(o instanceof Map.Entry<?,?>)) {
                     return false;
                 }
-                return containsKey((String) ((Map.Entry<?,?>)o).getKey());
+                return containsKey(((Map.Entry<?,?>)o).getKey());
             }
             @Override public Iterator<Map.Entry<String, Object>> iterator () {
                 return _entries.iterator();

@@ -46,7 +46,6 @@ import com.threerings.config.ConfigManager;
 import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
-import com.threerings.export.Exportable;
 
 /**
  * Strips classes and properties flagged as strippable from exported files.

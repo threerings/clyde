@@ -35,7 +35,6 @@ import com.google.common.collect.Sets;
 
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.WeakObserverList;
-import com.samskivert.util.StringUtil;
 import com.samskivert.util.Tuple;
 
 import com.threerings.resource.ResourceManager;
@@ -138,7 +137,7 @@ public abstract class ManagedConfig extends DeepObject
             addUpdateDependencies();
         }
         @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
-            (ConfigUpdateListener<ManagedConfig>)listener;
+            listener;
         _listeners.add(mlistener);
     }
 
@@ -281,7 +280,7 @@ public abstract class ManagedConfig extends DeepObject
             @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
                 (Class<ManagedConfig>)ref.left;
             @SuppressWarnings("unchecked") ConfigReference<ManagedConfig> mref =
-                (ConfigReference<ManagedConfig>)ref.right;
+                ref.right;
             ManagedConfig config = _cfgmgr.getConfig(mclass, mref);
             if (config != null) {
                 config.addListener(this);

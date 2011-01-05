@@ -31,7 +31,6 @@ import com.threerings.config.ConfigReferenceSet;
 import com.threerings.editor.Editable;
 
 import com.threerings.opengl.model.config.ModelConfig;
-import com.threerings.opengl.util.GlContext;
 
 /**
  * A model config wrapper for using an actor's model config.

@@ -25,7 +25,6 @@
 
 package com.threerings.tudey.client.sprite;
 
-import com.threerings.opengl.model.Model;
 import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.tudey.client.TudeySceneView;

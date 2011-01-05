@@ -38,8 +38,6 @@ import com.threerings.opengl.gui.event.MouseWheelListener;
 import com.threerings.opengl.gui.event.ChangeListener;
 import com.threerings.opengl.gui.event.ChangeEvent;
 import com.threerings.opengl.gui.layout.BorderLayout;
-import com.threerings.opengl.gui.layout.LayoutManager;
-import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.gui.layout.GroupLayout;

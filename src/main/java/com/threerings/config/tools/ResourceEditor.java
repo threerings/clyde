@@ -55,7 +55,6 @@ import com.samskivert.swing.util.SwingUtil;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.ChangeBlock;
-import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 
 import com.threerings.editor.swing.EditorPanel;

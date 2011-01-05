@@ -29,13 +29,11 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Frame;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.io.File;
 
-import java.util.ArrayList;
 import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
@@ -48,7 +46,6 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 
-import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.resource.ResourceManager;

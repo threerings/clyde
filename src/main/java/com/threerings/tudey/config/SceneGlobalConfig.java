@@ -25,8 +25,6 @@
 
 package com.threerings.tudey.config;
 
-import com.samskivert.util.StringUtil;
-
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigReferenceSet;
@@ -35,8 +33,6 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
-import com.threerings.math.FloatMath;
-import com.threerings.math.SphereCoords;
 import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
 

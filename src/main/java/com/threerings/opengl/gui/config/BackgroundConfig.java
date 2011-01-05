@@ -40,7 +40,6 @@ import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.background.BlankBackground;
 import com.threerings.opengl.gui.background.ImageBackground;
 import com.threerings.opengl.gui.background.TintedBackground;
-import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.config.ColorizationConfig;
 import com.threerings.opengl.util.GlContext;

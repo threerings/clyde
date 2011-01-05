@@ -29,12 +29,9 @@ import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.ARBTextureCubeMap;
-import org.lwjgl.opengl.ARBTextureRectangle;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import com.samskivert.util.HashIntMap;
 
 /**
  * An OpenGL frame buffer object.

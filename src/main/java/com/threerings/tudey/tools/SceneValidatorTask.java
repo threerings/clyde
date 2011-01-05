@@ -40,12 +40,9 @@ import com.google.common.collect.Lists;
 import com.threerings.resource.ResourceManager;
 
 import com.threerings.config.ConfigManager;
-import com.threerings.editor.util.PropertyUtil;
 import com.threerings.export.BinaryImporter;
 
 import com.threerings.tudey.data.TudeySceneModel;
-import com.threerings.tudey.data.TudeySceneModel.Entry;
-
 import static com.threerings.tudey.Log.*;
 
 /**

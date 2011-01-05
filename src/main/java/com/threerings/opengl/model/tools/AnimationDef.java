@@ -28,12 +28,7 @@ package com.threerings.opengl.model.tools;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Properties;
-
-import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
-import com.threerings.math.Vector3f;
-
 import com.threerings.opengl.model.config.AnimationConfig;
 
 /**

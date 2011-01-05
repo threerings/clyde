@@ -40,8 +40,6 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
 import com.threerings.tudey.client.cursor.PlaceableCursor;
-import com.threerings.tudey.client.sprite.PlaceableSprite;
-import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;

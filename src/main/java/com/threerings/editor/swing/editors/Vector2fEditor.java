@@ -66,7 +66,7 @@ public class Vector2fEditor extends PropertyEditor
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
-        Editable annotation = _property.getAnnotation();
+        _property.getAnnotation();
         String mstr = getMode();
         Vector2fPanel.Mode mode = Vector2fPanel.Mode.CARTESIAN;
         try {

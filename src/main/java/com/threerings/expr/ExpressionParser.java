@@ -33,11 +33,9 @@ import java.io.StreamTokenizer;
 import java.io.StringReader;
 
 import java.util.EmptyStackException;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**

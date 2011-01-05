@@ -46,7 +46,6 @@ import com.threerings.opengl.effect.ParticleSystem;
 import com.threerings.opengl.geometry.Geometry;
 import com.threerings.opengl.geometry.config.DeformerConfig;
 import com.threerings.opengl.geometry.config.GeometryConfig;
-import com.threerings.opengl.geometry.config.GeometryConfig.IndexedStored;
 import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.model.Model;

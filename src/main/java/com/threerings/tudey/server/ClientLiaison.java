@@ -41,7 +41,6 @@ import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.server.CrowdSession;
 
 import com.threerings.math.Rect;
-import com.threerings.math.SphereCoords;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.CameraConfig;

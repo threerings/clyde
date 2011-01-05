@@ -25,7 +25,6 @@
 
 package com.threerings.opengl.compositor.config;
 
-import java.util.List;
 import java.util.Map;
 
 import org.lwjgl.opengl.GL11;
@@ -42,7 +41,6 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.Dependency;
-import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.compositor.RenderQueue;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.material.Surface;

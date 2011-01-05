@@ -40,7 +40,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import com.samskivert.util.HashIntMap;
-import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Queue;
@@ -62,7 +61,6 @@ import com.threerings.whirled.server.SceneManager;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Rect;
-import com.threerings.math.SphereCoords;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
@@ -79,7 +77,6 @@ import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.effect.Effect;
-import com.threerings.tudey.dobj.ActorDelta;
 import com.threerings.tudey.server.logic.ActorLogic;
 import com.threerings.tudey.server.logic.EffectLogic;
 import com.threerings.tudey.server.logic.EntryLogic;
@@ -723,7 +720,6 @@ public class TudeySceneManager extends SceneManager
      */
     public void staticActorUpdated (ActorLogic logic)
     {
-        int id = logic.getActor().getId();
         if (!_staticActorsAdded.contains(logic)) {
             _staticActorsUpdated.add(logic);
         }

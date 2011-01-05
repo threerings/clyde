@@ -33,7 +33,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.prefs.Preferences;
 
@@ -193,7 +192,7 @@ public class GlobalEditor extends EditorTool
         EditableGlobals editable = new EditableGlobals();
         editable.globals = _globals.values().toArray(new GlobalEntry[_globals.size()]);
         QuickSort.sort(editable.globals);
-        _epanel.setObject((EditableGlobals)editable.clone());
+        _epanel.setObject(editable.clone());
     }
 
     @Override // documentation inherited

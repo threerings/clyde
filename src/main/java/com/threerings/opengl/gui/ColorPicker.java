@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.gui;
 
-import java.awt.Color;
-
 import java.util.Comparator;
 
 import org.lwjgl.opengl.GL11;

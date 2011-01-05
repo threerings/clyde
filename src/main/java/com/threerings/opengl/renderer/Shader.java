@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.renderer;
 
-import java.io.UnsupportedEncodingException;
-
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 

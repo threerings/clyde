@@ -53,7 +53,6 @@ import com.threerings.util.DeepObject;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
-import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.geometry.config.PassDescriptor;
@@ -62,7 +61,6 @@ import com.threerings.opengl.renderer.Program;
 import com.threerings.opengl.renderer.Program.FloatUniform;
 import com.threerings.opengl.renderer.Program.IntegerUniform;
 import com.threerings.opengl.renderer.Program.Vector2fUniform;
-import com.threerings.opengl.renderer.Program.Vector3fUniform;
 import com.threerings.opengl.renderer.Program.Vector4fUniform;
 import com.threerings.opengl.renderer.Program.Matrix4fUniform;
 import com.threerings.opengl.renderer.Program.Uniform;

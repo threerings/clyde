@@ -26,7 +26,6 @@
 package com.threerings.export.tools;
 
 import java.io.EOFException;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -38,8 +37,6 @@ import org.apache.tools.ant.DirectoryScanner;
 import com.google.common.collect.Lists;
 
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.FileUtil;
-
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 

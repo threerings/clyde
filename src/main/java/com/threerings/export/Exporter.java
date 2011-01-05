@@ -38,10 +38,6 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
 import java.util.Arrays;
-import java.util.HashMap;
-
-import org.lwjgl.BufferUtils;
-
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector2f;
@@ -49,9 +45,6 @@ import com.threerings.math.Vector3f;
 import com.threerings.math.Quaternion;
 
 import com.threerings.opengl.renderer.Color4f;
-
-import static java.util.logging.Level.*;
-import static com.threerings.export.Log.*;
 
 /**
  * Used to write {@link Exportable} objects.  Other common object types are supported as well:

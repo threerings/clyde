@@ -40,7 +40,6 @@ import com.threerings.expr.util.ScopeUtil;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.compositor.config.RenderEffectConfig.Technique;
 import com.threerings.opengl.compositor.config.TargetConfig;
-import com.threerings.opengl.gui.util.Rectangle;
 import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.util.GlContext;
 

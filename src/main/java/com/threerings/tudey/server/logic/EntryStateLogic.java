@@ -25,11 +25,6 @@
 
 package com.threerings.tudey.server.logic;
 
-import com.threerings.config.ConfigReference;
-import com.threerings.math.Vector2f;
-
-import com.threerings.tudey.config.ActorConfig;
-import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.EntryState;
 
 /**

@@ -29,8 +29,6 @@ import com.threerings.presents.annotation.TransportHint;
 import com.threerings.presents.client.InvocationService;
 import com.threerings.presents.net.Transport;
 
-import com.threerings.math.SphereCoords;
-
 import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.data.InputFrame;
 

@@ -40,11 +40,7 @@ import com.google.common.collect.Maps;
 import com.threerings.io.ArrayMask;
 import com.threerings.io.ObjectInputStream;
 import com.threerings.io.ObjectOutputStream;
-import com.threerings.io.Streamer;
-
 import com.threerings.expr.MutableInteger;
-
-import static com.threerings.ClydeLog.*;
 
 /**
  * A delta object that uses reflection to compare and modify the objects' fields.  Note that

@@ -37,7 +37,6 @@ import com.threerings.expr.Scope;
 import com.threerings.util.DeepOmit;
 import com.threerings.util.Shallow;
 
-import com.threerings.opengl.material.config.GeometryMaterial;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.Static;
 import com.threerings.opengl.model.config.ModelConfig.MeshSet;

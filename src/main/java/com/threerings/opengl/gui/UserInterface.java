@@ -39,7 +39,6 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.expr.DynamicScope;
-import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 
 import com.threerings.opengl.gui.config.UserInterfaceConfig;

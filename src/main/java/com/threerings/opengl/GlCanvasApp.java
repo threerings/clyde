@@ -27,8 +27,6 @@ package com.threerings.opengl;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Container;
-import java.awt.Graphics;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.ComponentAdapter;
@@ -49,7 +47,6 @@ import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
 
-import com.threerings.media.ManagedJFrame;
 import com.threerings.util.KeyboardManager;
 import com.threerings.util.KeyTranslatorImpl;
 
@@ -57,8 +54,6 @@ import com.threerings.math.Ray3D;
 
 import com.threerings.opengl.gui.CanvasRoot;
 import com.threerings.opengl.gui.Root;
-import com.threerings.opengl.renderer.Renderer;
-
 import static com.threerings.opengl.Log.*;
 
 /**

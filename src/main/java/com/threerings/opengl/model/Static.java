@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.model;
 
-import java.util.HashMap;
-
 import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
@@ -37,11 +35,6 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.material.Surface;
-import com.threerings.opengl.material.config.GeometryMaterial;
-import com.threerings.opengl.material.config.MaterialConfig;
-import com.threerings.opengl.model.config.ModelConfig.MeshSet;
-import com.threerings.opengl.model.config.ModelConfig.VisibleMesh;
-import com.threerings.opengl.model.config.ModelConfig.Imported.MaterialMapping;
 import com.threerings.opengl.model.config.StaticConfig;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.TransformState;

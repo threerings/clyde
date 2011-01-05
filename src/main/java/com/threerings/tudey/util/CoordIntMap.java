@@ -343,7 +343,7 @@ public class CoordIntMap extends AbstractMap<Coord, Integer>
     @Override // documentation inherited
     public Set<Entry<Coord, Integer>> entrySet ()
     {
-        Set<?> cset = (Set)coordIntEntrySet();
+        Set<?> cset = coordIntEntrySet();
         @SuppressWarnings("unchecked") Set<Entry<Coord, Integer>> set =
             (Set<Entry<Coord, Integer>>)cset;
         return set;

@@ -28,7 +28,6 @@ package com.threerings.util;
 import java.io.File;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -37,8 +36,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import com.google.common.collect.Maps;
-
-import com.samskivert.util.ObjectUtil;
 
 import static com.threerings.ClydeLog.*;
 
@@ -84,7 +81,7 @@ public class DeepUtil
             dest = null;
         }
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
-            (ObjectHandler<T>)getObjectHandler(clazz);
+            getObjectHandler(clazz);
         try {
             return handler.copy(source, dest, outer);
         } catch (IllegalAccessException e) {
@@ -120,7 +117,7 @@ public class DeepUtil
             clazz = clazz.getSuperclass();
         }
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
-            (ObjectHandler<T>)getObjectHandler(clazz);
+            getObjectHandler(clazz);
         try {
             return handler.copy(source, dest, outer);
         } catch (IllegalAccessException e) {
@@ -143,7 +140,7 @@ public class DeepUtil
             return false;
         }
         @SuppressWarnings("unchecked") ObjectHandler<T> handler =
-            (ObjectHandler<T>)getObjectHandler(c1);
+            getObjectHandler(c1);
         try {
             return handler.equals(o1, o2);
         } catch (IllegalAccessException e) {
@@ -161,7 +158,7 @@ public class DeepUtil
             return 0;
         }
         @SuppressWarnings("unchecked") ObjectHandler<Object> handler =
-            (ObjectHandler<Object>)getObjectHandler(object.getClass());
+            getObjectHandler(object.getClass());
         try {
             return handler.hashCode(object);
         } catch (IllegalAccessException e) {

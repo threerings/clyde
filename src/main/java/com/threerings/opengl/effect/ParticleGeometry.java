@@ -54,7 +54,6 @@ import com.threerings.opengl.effect.config.ParticleSystemConfig.Alignment;
 import com.threerings.opengl.geometry.DynamicGeometry;
 import com.threerings.opengl.geometry.config.GeometryConfig;
 import com.threerings.opengl.geometry.config.PassDescriptor;
-import com.threerings.opengl.geometry.config.PassSummary;
 import com.threerings.opengl.geometry.util.GeometryUtil;
 import com.threerings.opengl.renderer.BufferObject;
 import com.threerings.opengl.renderer.ClientArray;
@@ -814,7 +813,7 @@ public abstract class ParticleGeometry extends DynamicGeometry
             int stride = _stride, sourceStride = _sourceStride;
             Transform3D xform = _xform;
             Quaternion vrot = _vrot, rotation = _rotation;
-            Vector3f s = _s, t = _t, r = _r, n = _n, view = _view;
+            Vector3f s = _s, t = _t, r = _r, view = _view;
             boolean normals = (_normalOffset >= 0);
 
             // figure out the texture coordinate parameters

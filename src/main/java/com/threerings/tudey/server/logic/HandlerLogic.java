@@ -42,9 +42,6 @@ import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
-import com.threerings.tudey.space.HashSpace;
-
-import static com.threerings.tudey.Log.*;
 
 /**
  * Handles the server-side processing for an event handler type.

@@ -219,7 +219,7 @@ public class ConfigTree extends JTree
     protected ConfigTree (ConfigGroup[] groups, boolean editable)
     {
         @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] mgroups =
-            (ConfigGroup<ManagedConfig>[])groups;
+            groups;
         _groups = mgroups;
         setModel(new DefaultTreeModel(new ConfigTreeNode(null, null), true) {
             public void valueForPathChanged (TreePath path, Object newValue) {

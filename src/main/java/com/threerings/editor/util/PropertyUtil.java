@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 import com.samskivert.util.Tuple;
 
 import com.threerings.resource.ResourceManager;
@@ -476,7 +474,7 @@ public class PropertyUtil
                         continue;
                     }
                     @SuppressWarnings("unchecked") Class<ManagedConfig> mclass =
-                        (Class<ManagedConfig>)group.getConfigClass();
+                        group.getConfigClass();
                     cclass = mclass;
                     ref = new ConfigReference<ManagedConfig>((String)value);
                 } else {

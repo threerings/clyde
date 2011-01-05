@@ -29,8 +29,6 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.Scope;
-import com.threerings.expr.Bound;
-import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 
 import com.threerings.opengl.compositor.Compositable;

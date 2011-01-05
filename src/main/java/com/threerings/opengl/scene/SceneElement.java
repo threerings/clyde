@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.scene;
 
-import com.threerings.math.Box;
-
 import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.util.Intersectable;
 import com.threerings.opengl.util.Tickable;

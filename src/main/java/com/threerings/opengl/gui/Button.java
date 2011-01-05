@@ -25,18 +25,14 @@
 
 package com.threerings.opengl.gui;
 
-import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.event.Event;
 import com.threerings.opengl.gui.event.MouseEvent;
 import com.threerings.opengl.gui.icon.Icon;
-import com.threerings.opengl.gui.util.Dimension;
-import com.threerings.opengl.gui.util.Insets;
 
 /**
  * Displays a simple button that can be depressed and which generates an action

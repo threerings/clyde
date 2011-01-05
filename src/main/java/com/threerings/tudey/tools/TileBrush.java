@@ -32,14 +32,11 @@ import java.util.ArrayList;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
-import com.threerings.math.FloatMath;
 import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.gui.util.Rectangle;
 
 import com.threerings.tudey.client.cursor.TileCursor;
-import com.threerings.tudey.client.sprite.TileSprite;
-import com.threerings.tudey.client.sprite.Sprite;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.util.Coord;

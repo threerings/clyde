@@ -320,7 +320,7 @@ public abstract class ActionLogic extends Logic
             _location.resolve(activator, _targets);
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
-                EffectLogic logic = _scenemgr.fireEffect(
+                _scenemgr.fireEffect(
                     timestamp, target, target.getTranslation(), target.getRotation(), effect);
             }
             _targets.clear();
@@ -698,7 +698,7 @@ public abstract class ActionLogic extends Logic
                 public void expired () {
                     _action.execute(_scenemgr.getTimestamp(), activator);
                 }
-            }).schedule((long)((ActionConfig.Delayed)_config).delay);
+            }).schedule(((ActionConfig.Delayed)_config).delay);
             return true;
         }
 

@@ -31,10 +31,8 @@ import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.BehaviorConfig;
-import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Agent;
 import com.threerings.tudey.data.actor.Mobile;
-import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActiveAdvancer;
 
 /**

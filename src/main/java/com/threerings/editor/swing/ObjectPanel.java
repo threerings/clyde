@@ -30,8 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
-
 import java.util.Arrays;
 
 import javax.swing.JComboBox;
@@ -42,8 +40,6 @@ import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
-import com.samskivert.util.ListUtil;
-
 import com.threerings.util.DeepUtil;
 import com.threerings.util.ReflectionUtil;
 
@@ -222,7 +218,7 @@ public class ObjectPanel extends BasePropertyEditor
         // find the most specific constructor that can take the last value
         if (_lvalue != null) {
             boolean inner = ReflectionUtil.isInner(type);
-            Class<?> ltype = _lvalue.getClass();
+            _lvalue.getClass();
             Constructor cctor = null;
             Class<?> cptype = null;
             for (Constructor ctor : type.getConstructors()) {

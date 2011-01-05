@@ -25,7 +25,6 @@
 
 package com.threerings.tudey.client;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,7 +54,6 @@ import com.threerings.crowd.data.PlaceObject;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
-import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
@@ -65,7 +63,6 @@ import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.GlView;
 import com.threerings.opengl.camera.OrbitCameraHandler;
-import com.threerings.opengl.compositor.Compositable;
 import com.threerings.opengl.effect.Easing;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.StretchWindow;
@@ -76,8 +73,6 @@ import com.threerings.opengl.model.config.MergedStaticConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.HashScene;
 import com.threerings.opengl.scene.SceneElement;
-import com.threerings.opengl.util.GlContext;
-import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 import com.threerings.opengl.util.Tickable;
 
@@ -87,20 +82,16 @@ import com.threerings.tudey.client.sprite.ActorSprite;
 import com.threerings.tudey.client.sprite.EffectSprite;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.client.sprite.Sprite;
-import com.threerings.tudey.client.sprite.PlaceableSprite;
-import com.threerings.tudey.client.sprite.TileSprite;
 import com.threerings.tudey.client.util.TimeSmoother;
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.config.CameraConfig;
 import com.threerings.tudey.config.EffectConfig;
-import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
-import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Prespawnable;

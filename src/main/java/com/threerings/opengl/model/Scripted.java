@@ -30,11 +30,9 @@ import com.threerings.expr.Executor;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.math.Box;
-import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 
 import com.threerings.opengl.model.config.ScriptedConfig;
-import com.threerings.opengl.model.config.ScriptedConfig.TimeAction;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 

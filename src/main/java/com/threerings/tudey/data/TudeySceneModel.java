@@ -35,7 +35,6 @@ import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -407,7 +406,7 @@ public class TudeySceneModel extends SceneModel
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<TileConfig> ref =
-                (ConfigReference<TileConfig>)reference;
+                reference;
             tile = ref;
         }
 
@@ -602,7 +601,7 @@ public class TudeySceneModel extends SceneModel
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<SceneGlobalConfig> ref =
-                (ConfigReference<SceneGlobalConfig>)reference;
+                reference;
             sceneGlobal = ref;
         }
 
@@ -679,7 +678,7 @@ public class TudeySceneModel extends SceneModel
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<PlaceableConfig> ref =
-                (ConfigReference<PlaceableConfig>)reference;
+                reference;
             placeable = ref;
         }
 
@@ -837,7 +836,7 @@ public class TudeySceneModel extends SceneModel
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<PathConfig> ref =
-                (ConfigReference<PathConfig>)reference;
+                reference;
             path = ref;
         }
 
@@ -1003,7 +1002,7 @@ public class TudeySceneModel extends SceneModel
         public void setReference (ConfigReference reference)
         {
             @SuppressWarnings("unchecked") ConfigReference<AreaConfig> ref =
-                (ConfigReference<AreaConfig>)reference;
+                reference;
             area = ref;
         }
 

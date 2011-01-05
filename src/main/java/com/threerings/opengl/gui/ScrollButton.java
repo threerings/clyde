@@ -25,15 +25,10 @@
 
 package com.threerings.opengl.gui;
 
-import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
-import com.threerings.opengl.gui.event.ChangeEvent;
-import com.threerings.opengl.gui.event.ChangeListener;
-
-import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.layout.BorderLayout;
 
 /**

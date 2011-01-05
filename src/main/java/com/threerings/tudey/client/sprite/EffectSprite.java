@@ -37,7 +37,6 @@ import com.threerings.opengl.model.Model;
 import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.config.EffectSpriteConfig;
-import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.effect.Effect;
 import com.threerings.tudey.util.TudeyContext;
 

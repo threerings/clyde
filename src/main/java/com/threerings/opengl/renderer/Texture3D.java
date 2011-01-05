@@ -138,7 +138,7 @@ public class Texture3D extends Texture
             _depth = depth;
         }
         _renderer.setTexture(this);
-        int ib = border ? 1 : 0, ib2 = ib*2;
+        int ib = border ? 1 : 0;
         // TODO
     }
 

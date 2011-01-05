@@ -51,7 +51,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
-import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.ClassUtil;
 import com.samskivert.util.IntTuple;
@@ -239,8 +238,7 @@ public class TableArrayListEditor extends ArrayListEditor
             if (!_property.getAnnotation().nullable()) {
                 ArrayList<Column> columns = new ArrayList<Column>();
                 final MessageBundle msgs = _msgmgr.getBundle(Introspector.getMessageBundle(ctype));
-                for (int ii = 0; ii < properties.length; ii++) {
-                    final Property property = properties[ii];
+                for (final Property property : properties) {
                     if (!property.getAnnotation().column()) {
                         continue;
                     }

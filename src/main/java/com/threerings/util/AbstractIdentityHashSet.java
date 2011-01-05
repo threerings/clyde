@@ -26,7 +26,6 @@
 package com.threerings.util;
 
 import java.util.AbstractSet;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 

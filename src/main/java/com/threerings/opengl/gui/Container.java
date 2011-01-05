@@ -32,8 +32,6 @@ import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
-import com.threerings.opengl.gui.util.Insets;
-
 import static com.threerings.opengl.gui.Log.*;
 
 /**

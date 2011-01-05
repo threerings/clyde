@@ -32,7 +32,6 @@ import com.threerings.expr.Bound;
 import com.threerings.expr.Scope;
 import com.threerings.expr.SimpleScope;
 
-import com.threerings.opengl.camera.OrbitCameraHandler;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.scene.Scene;
 
@@ -42,7 +41,6 @@ import com.threerings.tudey.config.SceneGlobalConfig;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneModel.GlobalEntry;
 import com.threerings.tudey.util.TudeyContext;
-import com.threerings.tudey.util.TudeySceneMetrics;
 
 /**
  * Represents a global entry.
@@ -95,7 +93,7 @@ public class GlobalSprite extends EntrySprite
         {
             super(ctx, parentScope);
             _scene.add(_model = new Model(ctx));
-            _model.setUserObject((GlobalSprite)parentScope);
+            _model.setUserObject(parentScope);
             setConfig(config);
         }
 

@@ -26,7 +26,6 @@
 package com.threerings.tudey.server.logic;
 
 import com.threerings.config.ConfigReference;
-import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 

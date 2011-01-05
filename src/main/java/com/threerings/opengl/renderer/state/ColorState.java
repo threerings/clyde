@@ -92,8 +92,7 @@ public class ColorState extends RenderState
     @Override // documentation inherited
     public boolean equals (Object other)
     {
-        ColorState ostate;
-        return other instanceof ColorState && _color.equals((ostate = (ColorState)other)._color);
+        return other instanceof ColorState && _color.equals(((ColorState)other)._color);
     }
 
     /** The draw color. */

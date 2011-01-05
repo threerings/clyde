@@ -28,8 +28,6 @@ package com.threerings.swing;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -39,8 +37,6 @@ import javax.swing.JTextArea;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-
-import com.samskivert.swing.util.SwingUtil;
 
 /**
  * Provides a {@link PrintStream} that writes to a buffer.  If the buffer is non-empty when
@@ -87,7 +83,7 @@ public class PrintStreamDialog extends JDialog
         JPanel bpanel = new JPanel();
         add(bpanel, BorderLayout.SOUTH);
         bpanel.add(new JButton(new AbstractAction(_close) {
-            @Override public void actionPerformed (ActionEvent event) {
+            public void actionPerformed (ActionEvent event) {
                 dispose();
             }
         }));

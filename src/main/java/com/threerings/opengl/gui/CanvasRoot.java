@@ -26,14 +26,11 @@
 package com.threerings.opengl.gui;
 
 import java.awt.Component;
-import java.awt.EventQueue;
-
 import org.lwjgl.input.Keyboard;
 
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.event.InputEvent;
-import com.threerings.opengl.gui.event.KeyEvent;
 import com.threerings.opengl.gui.event.MouseEvent;
 
 /**

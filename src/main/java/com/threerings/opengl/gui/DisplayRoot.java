@@ -39,8 +39,6 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.gui.event.ControllerEvent;
 import com.threerings.opengl.gui.event.InputEvent;
 import com.threerings.opengl.gui.event.KeyEvent;
-import com.threerings.opengl.gui.event.MouseEvent;
-
 import static com.threerings.opengl.gui.Log.*;
 
 /**

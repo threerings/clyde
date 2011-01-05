@@ -74,7 +74,7 @@ public class NumberEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        Editable annotation = _property.getAnnotation();
+        _property.getAnnotation();
         double min = getMinimum();
         double max = getMaximum();
         _step = getStep();

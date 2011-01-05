@@ -225,7 +225,6 @@ public class Frustum
             // determine how many vertices fall inside/outside the plane
             int inside = 0;
             Plane plane = _planes[ii];
-            Vector3f normal = plane.getNormal();
             for (int jj = 0; jj < 8; jj++) {
                 if (plane.getDistance(box.getVertex(jj, _vertex)) <= 0f) {
                     inside++;

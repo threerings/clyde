@@ -31,8 +31,6 @@ import java.io.IOException;
 
 import java.util.Arrays;
 
-import javax.imageio.ImageIO;
-
 import com.threerings.media.image.Colorization;
 import com.threerings.media.image.ImageUtil;
 

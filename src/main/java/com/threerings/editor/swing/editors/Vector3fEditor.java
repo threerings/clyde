@@ -35,7 +35,6 @@ import com.samskivert.util.StringUtil;
 
 import com.threerings.math.Vector3f;
 
-import com.threerings.editor.Editable;
 import com.threerings.editor.swing.PropertyEditor;
 import com.threerings.editor.swing.Vector3fPanel;
 
@@ -66,7 +65,6 @@ public class Vector3fEditor extends PropertyEditor
     {
         setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
         setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
-        Editable annotation = _property.getAnnotation();
         String mstr = getMode();
         Vector3fPanel.Mode mode = Vector3fPanel.Mode.CARTESIAN;
         try {

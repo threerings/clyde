@@ -27,10 +27,8 @@ package com.threerings.opengl.gui;
 
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
-import com.threerings.opengl.gui.util.Insets;
 
 /**
  * A window defines the top-level of a component hierarchy. It must be created with a stylesheet

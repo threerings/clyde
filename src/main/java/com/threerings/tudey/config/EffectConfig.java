@@ -36,10 +36,8 @@ import com.threerings.expr.Scope;
 import com.threerings.math.Vector2f;
 import com.threerings.util.DeepObject;
 
-import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
-import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EffectSprite;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.effect.Effect;

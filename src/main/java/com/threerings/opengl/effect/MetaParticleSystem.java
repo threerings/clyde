@@ -27,7 +27,6 @@ package com.threerings.opengl.effect;
 
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
-import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
@@ -41,7 +40,6 @@ import com.threerings.opengl.effect.config.MetaParticleSystemConfig.Alignment;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.renderer.state.ColorState;
-import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.util.GlContext;
 
 /**

@@ -31,7 +31,6 @@ import java.util.Collection;
 import com.google.common.base.Predicate;
 
 import com.threerings.math.Box;
-import com.threerings.math.Frustum;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Vector3f;
 

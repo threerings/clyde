@@ -36,9 +36,7 @@ import com.samskivert.util.ListUtil;
 
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
-import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector3f;
 import com.threerings.util.DeepObject;

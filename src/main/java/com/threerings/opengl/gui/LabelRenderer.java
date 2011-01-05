@@ -27,8 +27,6 @@ package com.threerings.opengl.gui;
 
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
 

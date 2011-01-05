@@ -35,13 +35,10 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.expr.Scope;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.compositor.config.RenderSchemeConfig;
-import com.threerings.opengl.geometry.config.GeometryConfig;
-import com.threerings.opengl.geometry.config.PassDescriptor;
 import com.threerings.opengl.util.GlContext;
 
 /**

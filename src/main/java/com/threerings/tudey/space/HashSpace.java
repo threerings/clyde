@@ -377,7 +377,7 @@ public class HashSpace extends Space
             return new InternalNode<T>(levels);
         }
         @SuppressWarnings("unchecked") InternalNode<T> node =
-            (InternalNode<T>)_internalNodePool.remove(size - 1);
+            _internalNodePool.remove(size - 1);
         node.reinit(levels);
         return node;
     }
@@ -392,7 +392,7 @@ public class HashSpace extends Space
             return new LeafNode<T>();
         }
         @SuppressWarnings("unchecked") LeafNode<T> node =
-            (LeafNode<T>)_leafNodePool.remove(size - 1);
+            _leafNodePool.remove(size - 1);
         return node;
     }
 
@@ -692,7 +692,7 @@ public class HashSpace extends Space
 
         /** The children of the node. */
         @SuppressWarnings("unchecked")
-        public Node<T>[] _children = (Node<T>[])new Node[4];
+        public Node<T>[] _children = new Node[4];
     }
 
     /**

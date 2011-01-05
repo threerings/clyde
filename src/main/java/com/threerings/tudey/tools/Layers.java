@@ -58,9 +58,6 @@ import com.google.common.primitives.Ints;
 
 import com.samskivert.swing.GroupLayout;
 
-import com.threerings.opengl.model.Model;
-
-import com.threerings.tudey.client.TudeySceneView;
 import com.threerings.tudey.client.sprite.EntrySprite;
 import com.threerings.tudey.data.TudeySceneModel;
 
@@ -134,7 +131,7 @@ public class Layers extends EditorTool
     /**
      * Get a <b>view</b> of layer visibility.
      *
-     * @return a view of layer visibility, with each 
+     * @return a view of layer visibility, with each
      */
     public List<Boolean> getLayerVisibility ()
     {
@@ -170,8 +167,6 @@ public class Layers extends EditorTool
         // remove the first layer and call that the "mergeTo" layer
         int mergeTo = visible.remove(0); // remove first value, not value 0!
 
-        // move all entries in the merged layers to the mergeTo layer
-        TudeySceneView view = _editor.getView();
         for (TudeySceneModel.Entry entry : _scene.getEntries()) {
             Object key = entry.getKey();
             if (visible.contains(_scene.getLayer(key))) {

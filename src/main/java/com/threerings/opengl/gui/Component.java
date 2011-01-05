@@ -25,12 +25,9 @@
 
 package com.threerings.opengl.gui;
 
-import java.nio.IntBuffer;
-
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -56,8 +53,6 @@ import com.threerings.opengl.gui.text.HTMLView;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
-
-import static com.threerings.opengl.gui.Log.*;
 
 /**
  * The basic entity in the UI user interface system. A hierarchy of components and component

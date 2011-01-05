@@ -30,10 +30,7 @@ import java.util.ArrayList;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
-import com.threerings.math.Transform3D;
 import com.threerings.util.DeepObject;
-
-import com.threerings.opengl.renderer.Color4f;
 
 /**
  * The superclass of the expression definitions.

@@ -66,7 +66,7 @@ public class KeyEvent extends InputEvent
     {
         // TEMP: This is a hack to get around a bug in lwjgl's handling of
         // numpad keys in windows
-        if ((int)_keyChar == 0) {
+        if (_keyChar == 0) {
             switch (_keyCode) {
             case Keyboard.KEY_NUMPAD1: return '1';
             case Keyboard.KEY_NUMPAD2: return '2';

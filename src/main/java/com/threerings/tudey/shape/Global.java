@@ -25,8 +25,6 @@
 
 package com.threerings.tudey.shape;
 
-import org.lwjgl.opengl.GL11;
-
 import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
