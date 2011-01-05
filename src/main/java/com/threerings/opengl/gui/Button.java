@@ -27,6 +27,7 @@ package com.threerings.opengl.gui;
 
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.config.CursorConfig;
 import com.threerings.opengl.gui.config.StyleConfig;
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
@@ -306,6 +307,14 @@ public class Button extends Label
         }
 
         _feedbackSounds[state] = config.feedbackSound;
+
+        // use the hand cursor if none other defined
+        if (state != DISABLED && (_cursor == null)) {
+            CursorConfig handCursor = _ctx.getConfigManager().getConfig(CursorConfig.class, "Hand");
+            if (handCursor != null) {
+                _cursor = handCursor.getCursor(_ctx);
+            }
+        }
     }
 
     /**
