@@ -45,6 +45,7 @@ import com.threerings.opengl.gui.layout.GroupLayout;
 // TODO: This should be a Component, since we don't want to expose add(), etc.
 //       Create a CompoundComponent that extends Component but has a Container inside it
 //       so that it can add its own subcomponents, privately.
+//       (Maybe: Container extends CompoundComponent and just makes all the methods public)
 public class Spinner extends Container
     implements UIConstants
 {
@@ -63,16 +64,16 @@ public class Spinner extends Container
     public Spinner (GlContext ctx, SpinnerModel model)
     {
         super(ctx);
-        _model = model;
 
         // create our subcomponents
         _editor = createEditor(model);
         _next = new Button(ctx, "+", "next");
         _next.setStyleConfig(getDefaultStyleConfig() + "Next");
-        _next.addListener(_buttonListener);
         _prev = new Button(ctx, "-", "prev");
         _prev.setStyleConfig(getDefaultStyleConfig() + "Prev");
-        _prev.addListener(_buttonListener);
+
+        _logic = new SpinnerLogic(_editor, _next, _prev, model);
+        model.addChangeListener(_modelListener);
 
         // lay everything out
         setLayoutManager(GroupLayout.makeHoriz(
@@ -92,15 +93,11 @@ public class Spinner extends Container
      */
     public void setModel (SpinnerModel newModel)
     {
-        if (!newModel.equals(_model)) { // will NPE if newModel is null
-            SpinnerModel oldModel = _model;
-            _model = newModel;
-            if (isAdded()) {
-                oldModel.removeChangeListener(_modelListener);
-                newModel.addChangeListener(_modelListener);
-                valueChanged(true);
-            }
-        }
+        SpinnerModel oldModel = _logic.getModel();
+        _logic.setModel(newModel);
+        oldModel.removeChangeListener(_modelListener);
+        newModel.addChangeListener(_modelListener);
+        valueChanged();
     }
 
     /**
@@ -108,7 +105,7 @@ public class Spinner extends Container
      */
     public SpinnerModel getModel ()
     {
-        return _model;
+        return _logic.getModel();
     }
 
     /**
@@ -134,26 +131,7 @@ public class Spinner extends Container
         // TODO: since we are a Container, when we're enabled all our children are enabled as well.
         // We need to ensure that our buttons are disabled when they should be
         super.setEnabled(enabled);
-        if (enabled) {
-            valueChanged(false); // possibly re-disable our child buttons
-        }
-    }
-
-    @Override
-    public void wasAdded ()
-    {
-        super.wasAdded();
-
-        _model.addChangeListener(_modelListener);
-        valueChanged(false);
-    }
-
-    @Override
-    public void wasRemoved ()
-    {
-        super.wasRemoved();
-
-        _model.removeChangeListener(_modelListener);
+        _logic.setEnabled(enabled);
     }
 
     @Override
@@ -199,16 +177,11 @@ public class Spinner extends Container
     }
 
     /**
-     * The state of the model has changed: update our subcomponents and fire an action
-     * if applicable.
+     * The state of the model has changed: fire an action if applicable.
      */
-    protected void valueChanged (boolean notify)
+    protected void valueChanged ()
     {
-        _next.setEnabled(null != _model.getNextValue());
-        _prev.setEnabled(null != _model.getPreviousValue());
-        _editor.setText(String.valueOf(_model.getValue()));
-
-        if (notify && isAdded()) {
+        if (isAdded()) {
             Root root = getWindow().getRoot();
             fireAction(root.getTickStamp(), root.getModifiers());
         }
@@ -219,7 +192,7 @@ public class Spinner extends Container
      */
     protected void fireAction (long when, int modifiers)
     {
-        emitEvent(new ActionEvent(this, when, modifiers, _action, _model.getValue()));
+        emitEvent(new ActionEvent(this, when, modifiers, _action, _logic.getValue()));
     }
 
     @Override
@@ -228,37 +201,22 @@ public class Spinner extends Container
         return "Default/Spinner";
     }
 
-    @Override
-    protected void updateFromStyleConfig (int state, StyleConfig.Original config)
-    {
-        // errr, ahhh
-        super.updateFromStyleConfig(state, config);
-    }
-
-    /** Our model. */
-    protected SpinnerModel _model;
+    /** Spinner logic. */
+    protected SpinnerLogic _logic;
 
     /** Our action string. */
     protected String _action;
 
-    /** The next and previous buttons. */
-    protected Button _next, _prev;
-
-    /** Displays and allows direct editing of the value. */
+    /** Our label. */
     protected TextComponent _editor;
+
+    /** Our buttons. */
+    protected Button _next, _prev;
 
     /** Listens for changes to the model and updates our state. */
     protected ChangeListener _modelListener = new ChangeListener() {
         public void stateChanged (ChangeEvent e) {
-            valueChanged(true);
-        }
-    };
-
-    /** Listens to our buttons and updates the model when they're pressed. */
-    protected ActionListener _buttonListener = new ActionListener() {
-        public void actionPerformed (ActionEvent e) {
-            _model.setValue(
-                "next".equals(e.getAction()) ? _model.getNextValue() : _model.getPreviousValue());
+            valueChanged();
         }
     };
 }
