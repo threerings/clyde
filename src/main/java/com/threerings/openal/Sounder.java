@@ -48,9 +48,11 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.ScopeEvent;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 
+import com.threerings.openal.Listener;
 import com.threerings.openal.SoundGroup;
 import com.threerings.openal.Source;
 import com.threerings.openal.config.SounderConfig;
@@ -618,7 +620,20 @@ public class Sounder extends SimpleScope
              */
             protected float getCombinedGain ()
             {
-                return _config.gain * _streamGain.value;
+                float base = _config.gain * _streamGain.value;
+                if (!_config.attenuate) {
+                    return base;
+                }
+                Listener listener = _ctx.getSoundManager().getListener();
+                _transform.update(Transform3D.RIGID);
+                Vector3f translation = _transform.getTranslation();
+                float dx = listener.getPositionX() - translation.x;
+                float dy = listener.getPositionY() - translation.y;
+                float dz = listener.getPositionZ() - translation.z;
+                float ref = _config.referenceDistance;
+                float dist = FloatMath.clamp(FloatMath.sqrt(dx*dx + dy*dy + dz*dz),
+                    ref, _config.maxDistance);
+                return base * ref / (ref + _config.rolloffFactor * (dist - ref));
             }
 
             /**

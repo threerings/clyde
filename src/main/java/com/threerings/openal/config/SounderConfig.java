@@ -248,7 +248,12 @@ public class SounderConfig extends ParameterizedConfig
 
         /** Wether we push onto the stack. */
         @Editable(hgroup="s")
-        public boolean push = false;
+        public boolean push;
+
+        /** Whether to attenuate based on distance (used to provide
+         * pseudo-spatialization for stereo streams). */
+        @Editable
+        public boolean attenuate;
     }
 
     /**
