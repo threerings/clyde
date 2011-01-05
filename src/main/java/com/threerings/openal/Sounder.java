@@ -624,6 +624,8 @@ public class Sounder extends SimpleScope
                 if (!_config.attenuate) {
                     return base;
                 }
+                // the attenuation formula is the Inverse Distance Clamped Model described in
+                // the OpenAL 1.1 specification (section 3.4.2)
                 Listener listener = _ctx.getSoundManager().getListener();
                 _transform.update(Transform3D.RIGID);
                 Vector3f translation = _transform.getTranslation();
