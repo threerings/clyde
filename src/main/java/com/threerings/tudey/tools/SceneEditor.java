@@ -192,9 +192,6 @@ public class SceneEditor extends TudeyTool
     public static void main (String[] args)
         throws Exception
     {
-        // start up our local server
-        createServer();
-
         // start up the scene editor app
         new SceneEditor(args.length > 0 ? args[0] : null).startup();
     }

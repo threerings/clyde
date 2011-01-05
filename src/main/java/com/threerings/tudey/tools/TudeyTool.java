@@ -68,9 +68,6 @@ public abstract class TudeyTool extends GlCanvasTool
     {
         super(msgs);
 
-        // create the Presents client
-        _client = new Client(null, getRunQueue());
-
         // create the various directors
         _locdir = new LocationDirector(this);
         _occdir = new OccupantDirector(this);
@@ -158,6 +155,18 @@ public abstract class TudeyTool extends GlCanvasTool
     @Override // documentation inherited
     protected void initSharedManagers ()
     {
+        // create the Presents client
+        _client = new Client(null, getRunQueue());
+
+        // create the tool server
+        Injector injector = Guice.createInjector(new ToolServer.ToolModule(_client));
+        _server = injector.getInstance(ToolServer.class);
+        try {
+            _server.init(injector);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize server.", e);
+        }
+
         // get references to the server managers
         _rsrcmgr = _server.getResourceManager();
         _cfgmgr = _server.getConfigManager();
@@ -170,7 +179,7 @@ public abstract class TudeyTool extends GlCanvasTool
         super.didInit();
 
         // log on to our local server
-        _server.startStandaloneClient(_client, new Name("editor"));
+        _server.startStandaloneClient(new Name("editor"));
     }
 
     @Override // documentation inherited
@@ -179,7 +188,7 @@ public abstract class TudeyTool extends GlCanvasTool
         super.willShutdown();
 
         // log off of our local server
-        _server.stopStandaloneClient(_client);
+        _server.stopStandaloneClient();
     }
 
     @Override // documentation inherited
@@ -217,22 +226,14 @@ public abstract class TudeyTool extends GlCanvasTool
         }
     }
 
-    /**
-     * Creates and initializes the local tool server.
-     */
-    protected static void createServer ()
-        throws Exception
-    {
-        Injector injector = Guice.createInjector(new ToolServer.ToolModule());
-        _server = injector.getInstance(ToolServer.class);
-        _server.init(injector);
-    }
-
     /** The tool configuration. */
     protected Config _config = new Config("tool");
 
     /** The Presents client. */
     protected Client _client;
+
+    /** The tool server. */
+    protected ToolServer _server;
 
     /** Handles requests to change location. */
     protected LocationDirector _locdir;
@@ -251,7 +252,4 @@ public abstract class TudeyTool extends GlCanvasTool
 
     /** The current view, if any. */
     protected GlView _view;
-
-    /** The tool server. */
-    protected static ToolServer _server;
 }

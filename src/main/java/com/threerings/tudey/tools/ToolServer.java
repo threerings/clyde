@@ -67,10 +67,17 @@ public class ToolServer extends TudeyServer
     /** Configures dependencies needed by the local server. */
     public static class ToolModule extends TudeyModule
     {
-        @Override protected void configure () {
+        public ToolModule (Client client)
+        {
+            _client = client;
+        }
+
+        @Override protected void configure ()
+        {
             super.configure();
             bind(TudeyServer.class).to(ToolServer.class);
             bind(PresentsDObjectMgr.class).to(LocalDObjectMgr.class);
+            bind(Client.class).toInstance(_client);
             bind(SceneRepository.class).to(ToolSceneRepository.class);
             bind(SceneRegistry.ConfigFactory.class).toInstance(new SceneRegistry.ConfigFactory() {
                 public PlaceConfig createPlaceConfig (SceneModel model) {
@@ -84,6 +91,8 @@ public class ToolServer extends TudeyServer
         {
             return false; // will be configured on application init
         }
+
+        protected Client _client;
     }
 
     /**
@@ -138,13 +147,13 @@ public class ToolServer extends TudeyServer
     /**
      * Called to cause the standalone client to "logon."
      */
-    public void startStandaloneClient (final Client client, Name username)
+    public void startStandaloneClient (Name username)
     {
         // create our client object
         ClientResolutionListener clr = new ClientResolutionListener() {
             public void clientResolved (Name username, ClientObject clobj) {
                 // flag the client as standalone
-                String[] groups = client.prepareStandaloneLogon();
+                String[] groups = _client.prepareStandaloneLogon();
 
                 // fake up a bootstrap; I need to expose the mechanisms in Presents that create it
                 // in a network environment
@@ -153,7 +162,7 @@ public class ToolServer extends TudeyServer
                 data.services = _invmgr.getBootstrapServices(groups);
 
                 // and configure the client to use the server's distributed object manager
-                client.standaloneLogon(
+                _client.standaloneLogon(
                     data, ((LocalDObjectMgr)_omgr).getClientDObjectMgr(clobj.getOid()));
             }
             public void resolutionFailed (Name username, Exception cause) {
@@ -166,9 +175,9 @@ public class ToolServer extends TudeyServer
     /**
      * Called to cause the standalone client to "logoff."
      */
-    public void stopStandaloneClient (Client client)
+    public void stopStandaloneClient ()
     {
-        client.standaloneLogoff();
+        _client.standaloneLogoff();
     }
 
     /**
@@ -182,6 +191,9 @@ public class ToolServer extends TudeyServer
             return new TudeyBodyObject();
         }
     }
+
+    /** The standalone client. */
+    @Inject protected Client _client;
 
     /** The server's resource manager. */
     @Inject protected ResourceManager _rsrcmgr;
