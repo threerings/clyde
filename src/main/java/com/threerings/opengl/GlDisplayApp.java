@@ -71,6 +71,23 @@ public abstract class GlDisplayApp extends GlApp
     }
 
     /**
+     * Sets the display mode and fullscreen setting at the same time.
+     */
+    public void setDisplayModeAndFullscreen (DisplayMode mode, boolean fullscreen)
+    {
+        if (!fullscreen) {
+            setDisplayMode(mode);
+            setFullscreen(fullscreen);
+            return;
+        }
+        try {
+            Display.setDisplayModeAndFullscreen(mode);
+        } catch (LWJGLException e) {
+            log.warning("Failed to set display mode/fullscreen.", "mode", mode, e);
+        }
+    }
+
+    /**
      * Sets the display mode and updates the viewport if the display is created.
      */
     public void setDisplayMode (DisplayMode mode)
@@ -85,6 +102,18 @@ public abstract class GlDisplayApp extends GlApp
             }
         } catch (LWJGLException e) {
             log.warning("Failed to set display mode.", "mode", mode, e);
+        }
+    }
+
+    /**
+     * Sets the fullscreen mode.
+     */
+    public void setFullscreen (boolean fullscreen)
+    {
+        try {
+            Display.setFullscreen(fullscreen);
+        } catch (LWJGLException e) {
+            log.warning("Failed to set fullscreen mode.", "fullscreen", fullscreen, e);
         }
     }
 
@@ -111,18 +140,6 @@ public abstract class GlDisplayApp extends GlApp
             icons[ii] = buf;
         }
         Display.setIcon(icons);
-    }
-
-    /**
-     * Sets the fullscreen mode.
-     */
-    public void setFullscreen (boolean fullscreen)
-    {
-        try {
-            Display.setFullscreen(fullscreen);
-        } catch (LWJGLException e) {
-            log.warning("Failed to set fullscreen mode.", "fullscreen", fullscreen, e);
-        }
     }
 
     // documentation inherited from interface GlContext
