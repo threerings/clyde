@@ -33,6 +33,7 @@ import com.google.common.base.Preconditions;
 
 import com.threerings.opengl.gui.event.ActionEvent;
 import com.threerings.opengl.gui.event.ActionListener;
+import com.threerings.opengl.gui.event.InputEvent;
 
 /**
  * Contains the logic for a spinner, allowing the hook-up of any buttons/label.
@@ -114,6 +115,18 @@ public class SpinnerLogic
         _prev.setEnabled(_enabled && (null != _model.getPreviousValue()));
     }
 
+    /**
+     * Get the number of times to rotate the spinner...
+     */
+    protected int getRotationCount (ActionEvent event)
+    {
+        // 10 rotations if shift/ctrl is pressed...
+        return
+            (0 == (event.getModifiers() & (InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK)))
+            ? 1
+            : 10;
+    }
+
     /** The next and previous buttons. */
     protected Button _next, _prev;
 
@@ -136,8 +149,14 @@ public class SpinnerLogic
     /** Listens to our buttons and updates the model when they're pressed. */
     protected ActionListener _buttonListener = new ActionListener() {
         public void actionPerformed (ActionEvent e) {
-            _model.setValue(
-                (e.getSource() == _next) ? _model.getNextValue() : _model.getPreviousValue());
+            for (int ii = getRotationCount(e); ii > 0; ii--) {
+                Object newValue =
+                    (e.getSource() == _next) ? _model.getNextValue() : _model.getPreviousValue();
+                if (newValue == null) {
+                    break;
+                }
+                _model.setValue(newValue);
+            }
         }
     };
 }
