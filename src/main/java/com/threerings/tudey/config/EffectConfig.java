@@ -106,8 +106,12 @@ public class EffectConfig extends ParameterizedConfig
         public ActionConfig action;
 
         /** The lifespan of the effect. */
-        @Editable(min=0)
+        @Editable(min=0, hgroup="l")
         public int lifespan = 1000;
+
+        /** If true, only show the effect to its target. */
+        @Editable(hgroup="l")
+        public boolean targetOnly;
 
         /**
          * Returns the name of the server-side logic class to use for the effect.

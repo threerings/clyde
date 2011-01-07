@@ -78,6 +78,12 @@ public class EffectLogic extends Logic
     }
 
     @Override // documentation inherited
+    public boolean isVisible (ActorLogic actor)
+    {
+        return !_config.targetOnly || _target == actor;
+    }
+
+    @Override // documentation inherited
     public Vector2f getTranslation ()
     {
         return _effect.getTranslation();
