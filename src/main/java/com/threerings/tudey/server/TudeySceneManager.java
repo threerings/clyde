@@ -542,11 +542,12 @@ public class TudeySceneManager extends SceneManager
      * Returns an array containing all effects fired on the current tick whose influence regions
      * intersect the provided bounds.
      */
-    public Effect[] getEffectsFired (Rect bounds)
+    public Effect[] getEffectsFired (PawnLogic target, Rect bounds)
     {
         for (int ii = 0, nn = _effectsFired.size(); ii < nn; ii++) {
             EffectLogic logic = _effectsFired.get(ii);
-            if (logic.getShape().getBounds().intersects(bounds)) {
+            if (logic.getShape().getBounds().intersects(bounds) &&
+                    (target == null || logic.isVisible(target))) {
                 _effects.add(logic.getEffect());
             }
         }

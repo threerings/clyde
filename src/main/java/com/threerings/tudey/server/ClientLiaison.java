@@ -289,7 +289,7 @@ public class ClientLiaison
             _actorsAdded.toArray(new Actor[_actorsAdded.size()]),
             _actorsUpdated.toArray(new ActorDelta[_actorsUpdated.size()]),
             _actorsRemoved.toArray(new Actor[_actorsRemoved.size()]),
-            _scenemgr.getEffectsFired(_worldInterest));
+            _scenemgr.getEffectsFired(_target, _worldInterest));
         _records.add(record);
         _actorsAdded.clear();
         _actorsUpdated.clear();
