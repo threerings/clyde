@@ -144,10 +144,16 @@ public abstract class ViewerEffectConfig extends DeepObject
         public Vector3f translationOrigin = new Vector3f();
 
         @Override // documentation inherited
-        public ViewerEffect getViewerEffect (final GlContext ctx, Scope scope, ViewerEffect effect)
+        public ViewerEffect getViewerEffect (
+            final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
             class SkyboxEffect extends ViewerEffect {
-                public Model model = new Model(ctx, Skybox.this.model);
+                public Model model = new Model(ctx, Skybox.this.model) {
+                    @Override public void completed (Model.Implementation impl) {
+                        super.completed(impl);
+                        ((Model)scope.getParentScope()).completed((Model.Implementation)scope);
+                    }
+                };
                 public void activate (Scene scene) {
                     (_scene = scene).add(model);
                 }
@@ -160,6 +166,9 @@ public abstract class ViewerEffectConfig extends DeepObject
                     translationOrigin.subtract(_translation, trans).multLocal(translationScale);
                     trans.addLocal(_translation);
                     model.updateBounds();
+                }
+                public boolean hasCompleted () {
+                    return model.hasCompleted();
                 }
                 public void reset () {
                     model.reset();
@@ -187,10 +196,16 @@ public abstract class ViewerEffectConfig extends DeepObject
         public ConfigReference<ModelConfig> model;
 
         @Override // documentation inherited
-        public ViewerEffect getViewerEffect (final GlContext ctx, Scope scope, ViewerEffect effect)
+        public ViewerEffect getViewerEffect (
+            final GlContext ctx, final Scope scope, ViewerEffect effect)
         {
             class ParticlesEffect extends ViewerEffect {
-                public Model model = new Model(ctx, Particles.this.model);
+                public Model model = new Model(ctx, Particles.this.model) {
+                    @Override public void completed (Model.Implementation impl) {
+                        super.completed(impl);
+                        ((Model)scope.getParentScope()).completed((Model.Implementation)scope);
+                    }
+                };
                 public void activate (Scene scene) {
                     (_scene = scene).add(model);
                 }
@@ -200,6 +215,9 @@ public abstract class ViewerEffectConfig extends DeepObject
                 }
                 public void update () {
                     model.setLocalTransform(_transform);
+                }
+                public boolean hasCompleted () {
+                    return model.hasCompleted();
                 }
                 public void reset () {
                     model.reset();

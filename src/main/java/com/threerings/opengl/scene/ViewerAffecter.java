@@ -62,6 +62,12 @@ public class ViewerAffecter extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public boolean hasCompleted ()
+    {
+        return _effect.hasCompleted();
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
         _effect.reset();

@@ -70,6 +70,14 @@ public abstract class ViewerEffect extends ShallowObject
     }
 
     /**
+     * Determines whether the effect has completed.
+     */
+    public boolean hasCompleted ()
+    {
+        return false;
+    }
+
+    /**
      * Resets the effect.
      */
     public void reset ()
