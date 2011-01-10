@@ -220,6 +220,14 @@ public abstract class ScrollingList<V, C extends Component> extends Container
         }
 
         /**
+         * Sets the gap.
+         */
+        public void setGap (int gap)
+        {
+            ((GroupLayout)getLayoutManager()).setGap(gap);
+        }
+
+        /**
          * Returns a reference to the vertical scroll bar.
          */
         public ScrollBar getVerticalScrollBar ()
