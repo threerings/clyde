@@ -813,7 +813,8 @@ public abstract class ActionLogic extends Logic
                         actor.set(flag.getInt(actor), config.on);
                         ret = true;
                     } catch (NoSuchFieldException e) {
-                        log.warning("Flag field not found in class for Set Flag Action.", e);
+                        // that's ok; just fall through
+
                     } catch (IllegalAccessException e) {
                         log.warning("Cannot access flag field for Set Flag Action.", e);
                     }
