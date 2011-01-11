@@ -40,6 +40,7 @@ import com.threerings.crowd.data.BodyObject;
 import com.threerings.config.ConfigManager;
 import com.threerings.config.dist.data.ConfigEntry;
 import com.threerings.config.dist.data.ConfigKey;
+import com.threerings.config.dist.data.DConfigMarshaller;
 import com.threerings.config.dist.data.DConfigObject;
 import com.threerings.config.dist.util.ConfigUpdater;
 
@@ -59,7 +60,7 @@ public class DConfigManager
         ConfigManager cfgmgr, PresentsDObjectMgr omgr, InvocationManager invmgr)
     {
         omgr.registerObject(_cfgobj = new DConfigObject());
-        _cfgobj.dconfigService = invmgr.registerDispatcher(new DConfigDispatcher(this));
+        _cfgobj.dconfigService = invmgr.registerProvider(this, DConfigMarshaller.class);
         new ConfigUpdater(cfgmgr).init(_cfgobj);
     }
 

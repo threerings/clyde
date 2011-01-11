@@ -72,6 +72,7 @@ import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeyCodes;
 import com.threerings.tudey.data.TudeySceneConfig;
+import com.threerings.tudey.data.TudeySceneMarshaller;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -1061,7 +1062,7 @@ public class TudeySceneManager extends SceneManager
         sceneModel.addObserver(this);
 
         // register and fill in our tudey scene service
-        _tsobj.setTudeySceneService(addDispatcher(new TudeySceneDispatcher(this)));
+        _tsobj.setTudeySceneService(addProvider(this, TudeySceneMarshaller.class));
     }
 
     /**
