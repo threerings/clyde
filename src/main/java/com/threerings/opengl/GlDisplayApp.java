@@ -73,13 +73,8 @@ public abstract class GlDisplayApp extends GlApp
     /**
      * Sets the display mode and fullscreen setting at the same time.
      */
-    public void setDisplayModeAndFullscreen (DisplayMode mode, boolean fullscreen)
+    public void setDisplayModeAndFullscreen (DisplayMode mode)
     {
-        if (!fullscreen) {
-            setDisplayMode(mode);
-            setFullscreen(fullscreen);
-            return;
-        }
         try {
             Display.setDisplayModeAndFullscreen(mode);
         } catch (LWJGLException e) {
