@@ -52,6 +52,20 @@ public abstract class ColorizationConfig extends DeepObject
     implements Exportable, Streamable
 {
     /**
+     * Creates a coloriation config
+     */
+    public static ColorizationConfig createConfig (
+            int clazz, float hue, float saturation, float value)
+    {
+        ColorizationConfig.CustomOffsets config = new ColorizationConfig.CustomOffsets();
+        config.clazz = clazz;
+        config.offsets.hue = hue;
+        config.offsets.saturation = saturation;
+        config.offsets.value = value;
+        return config;
+    }
+
+    /**
      * A reference to a pository colorization.
      */
     public static class Normal extends ColorizationConfig
@@ -87,6 +101,7 @@ public abstract class ColorizationConfig extends DeepObject
             return (crec == null) ? null : new CustomOffsetsColorization(
                 clazz, crec.source, crec.range, offsets.getValues());
         }
+
     }
 
     /**
