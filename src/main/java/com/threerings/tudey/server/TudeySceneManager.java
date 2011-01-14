@@ -1180,15 +1180,15 @@ public class TudeySceneManager extends SceneManager
      *
      * @param notify whether or not to notify the logic that it has been added.
      */
-    protected void addLogic (Entry entry, boolean notify)
+    protected EntryLogic addLogic (Entry entry, boolean notify)
     {
         String cname = entry.getLogicClassName(_cfgmgr);
         if (cname == null) {
-            return;
+            return null;
         }
         EntryLogic logic = (EntryLogic)createLogic(cname);
         if (logic == null) {
-            return;
+            return null;
         }
         logic.init(this, entry);
         _entries.put(entry.getKey(), logic);
@@ -1196,6 +1196,7 @@ public class TudeySceneManager extends SceneManager
         if (notify) {
             logic.added();
         }
+        return logic;
     }
 
     /**
