@@ -59,19 +59,25 @@ public class ActorLogic extends Logic
      */
     public void init (
         TudeySceneManager scenemgr, ConfigReference<ActorConfig> ref,
-        ActorConfig.Original config, int id, int timestamp, Vector2f translation, float rotation)
+        ActorConfig.Original config, int id, int timestamp, Vector2f translation,
+        float rotation, Actor actor)
     {
         super.init(scenemgr);
         _config = config;
         _entityKey = new EntityKey.Actor(id);
-        _actor = createActor(ref, id, timestamp, translation, rotation);
-        _actor.init(scenemgr.getConfigManager());
+        if (actor == null) {
+            _actor = createActor(ref, id, timestamp, translation, rotation);
+            _actor.init(scenemgr.getConfigManager());
+        } else {
+            _actor = (Actor)actor.clone();
+        }
         _shape = new ShapeElement(config.shape);
         _shape.setUserObject(this);
         updateShape();
 
         // if specified, attempt to find a non-colliding spawn point
-        if (config.spawnMask != 0 && scenemgr.collides(config.spawnMask, getShape(), timestamp)) {
+        if (config.spawnMask != 0 && scenemgr.collides(config.spawnMask, getShape(), timestamp) &&
+                actor == null) {
             adjustSpawnPoint();
         }
         _scenemgr.getActorSpace().add(_shape);
@@ -81,7 +87,9 @@ public class ActorLogic extends Logic
         for (HandlerConfig hconfig : config.handlers) {
             HandlerLogic handler = createHandler(hconfig, this);
             if (handler != null) {
-                handler.startup(timestamp);
+                if (actor == null) {
+                    handler.startup(timestamp);
+                }
                 handlers.add(handler);
             }
         }

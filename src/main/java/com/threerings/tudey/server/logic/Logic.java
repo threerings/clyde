@@ -244,6 +244,22 @@ public abstract class Logic extends ShallowObject
     }
 
     /**
+     * Transfers state from the specified source logic.
+     */
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        if (source._variables == null) {
+            return;
+        }
+        if (_variables == null) {
+            _variables = Maps.newHashMap();
+        }
+        for (Map.Entry<String, Object> entry : source._variables.entrySet()) {
+            _variables.put(entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
      * Creates a handler with the supplied configuration and source.
      */
     protected HandlerLogic createHandler (HandlerConfig config, Logic source)

@@ -356,6 +356,18 @@ public class TudeySceneManager extends SceneManager
     public ActorLogic spawnActor (
         int timestamp, Vector2f translation, float rotation, ConfigReference<ActorConfig> ref)
     {
+        return spawnActor(timestamp, translation, rotation, ref, null);
+    }
+
+    /**
+     * Spawns an actor with the referenced configuration.
+     *
+     * @param actor if non-null, the already-created actor object.
+     */
+    public ActorLogic spawnActor (
+        int timestamp, Vector2f translation, float rotation,
+        ConfigReference<ActorConfig> ref, Actor actor)
+    {
         // return immediately if the place has shut down
         if (!_plobj.isActive()) {
             return null;
@@ -376,8 +388,8 @@ public class TudeySceneManager extends SceneManager
         }
 
         // initialize the logic and add it to the map
-        int id = ++_lastActorId;
-        logic.init(this, ref, original, id, timestamp, translation, rotation);
+        int id = (actor == null) ? ++_lastActorId : actor.getId();
+        logic.init(this, ref, original, id, timestamp, translation, rotation, actor);
         _actors.put(id, logic);
         addMappings(logic);
 
