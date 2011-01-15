@@ -26,6 +26,7 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.samskivert.util.ObserverList;
 
@@ -298,12 +299,7 @@ public class ActorLogic extends Logic
         // set the destroyed time and remove on the next tick
         _actor.setDestroyed(timestamp);
         wasUpdated();
-        _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
-            public boolean tick (int timestamp) {
-                remove();
-                return false;
-            }
-        });
+        removeOnNextTick();
 
         // notify handlers
         for (HandlerLogic handler : _handlers) {
@@ -427,6 +423,38 @@ public class ActorLogic extends Logic
         for (HandlerLogic handler : _handlers) {
             handler.request(timestamp, source, name);
         }
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+
+        // transfer the handler state
+        ActorLogic sactor = (ActorLogic)source;
+        HandlerLogic[] shandlers = sactor._handlers;
+        for (int ii = 0; ii < _handlers.length; ii++) {
+            _handlers[ii].transfer(shandlers[ii], refs);
+        }
+
+        _source = (Logic)refs.get(sactor._source);
+        _activator = (Logic)refs.get(sactor._activator);
+        if (_destroyed = sactor._destroyed) {
+            removeOnNextTick();
+        }
+    }
+
+    /**
+     * Adds a tick participant to remove the actor.
+     */
+    protected void removeOnNextTick ()
+    {
+        _scenemgr.addTickParticipant(new TudeySceneManager.TickParticipant() {
+            public boolean tick (int timestamp) {
+                remove();
+                return false;
+            }
+        });
     }
 
     /**

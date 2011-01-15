@@ -100,6 +100,14 @@ public class ActorAdvancer
     }
 
     /**
+     * Transfers state from the specified source advancer.
+     */
+    public void transfer (ActorAdvancer source)
+    {
+        _timestamp = source._timestamp;
+    }
+
+    /**
      * Advances the actor to the specified timestamp.
      */
     public void advance (int timestamp)

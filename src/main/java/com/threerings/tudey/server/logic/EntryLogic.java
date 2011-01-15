@@ -26,6 +26,7 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
@@ -76,6 +77,13 @@ public class EntryLogic extends Logic
      */
     public static class StatefulProp extends EntryLogic
     {
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _actor = (ActorLogic)refs.get(((StatefulProp)source)._actor);
+        }
+
         @Override // documentation inherited
         protected void wasAdded ()
         {
@@ -247,6 +255,18 @@ public class EntryLogic extends Logic
     {
         for (HandlerLogic handler : _handlers) {
             handler.request(timestamp, source, name);
+        }
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+
+        // transfer the handler state
+        HandlerLogic[] shandlers = ((EntryLogic)source)._handlers;
+        for (int ii = 0; ii < _handlers.length; ii++) {
+            _handlers[ii].transfer(shandlers[ii], refs);
         }
     }
 

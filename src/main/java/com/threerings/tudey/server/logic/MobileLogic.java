@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Map;
+
 import com.threerings.math.Rect;
 import com.threerings.math.Vector2f;
 
@@ -128,6 +130,25 @@ public class MobileLogic extends ActorLogic
             leftStasis();
         }
         return super.getSnapshot();
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+
+        MobileLogic msource = (MobileLogic)source;
+        _advancer.transfer(msource._advancer);
+        if (_inStasis == msource._inStasis) {
+            return;
+        }
+        if (_inStasis = msource._inStasis) {
+            _scenemgr.removeTickParticipant(this);
+            enteredStasis();
+        } else {
+            _scenemgr.addTickParticipant(this);
+            leftStasis();
+        }
     }
 
     @Override // documentation inherited

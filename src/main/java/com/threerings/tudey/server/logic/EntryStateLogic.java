@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Map;
+
 import com.threerings.tudey.data.actor.EntryState;
 
 /**
@@ -39,6 +41,13 @@ public class EntryStateLogic extends ActorLogic
     {
         _entry = entry;
         ((EntryState)_actor).setKey(entry.getEntry().getKey());
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+        _entry = (EntryLogic)refs.get(((EntryStateLogic)source)._entry);
     }
 
     /**
