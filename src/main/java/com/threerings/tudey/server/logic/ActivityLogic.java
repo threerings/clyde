@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Map;
+
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.data.EntityKey;
@@ -82,6 +84,13 @@ public abstract class ActivityLogic extends Logic
     public float getRotation ()
     {
         return _source.getRotation();
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+        _started = ((ActivityLogic)source)._started;
     }
 
     /**

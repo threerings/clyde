@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Map;
+
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
 
@@ -41,6 +43,18 @@ public class ActiveLogic extends MobileLogic
     public int getActivityAdvance ()
     {
         return 0;
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+
+        ActiveLogic asource = (ActiveLogic)source;
+        for (IntMap.IntEntry<ActivityLogic> entry : asource._activities.intEntrySet()) {
+            _activities.get(entry.getIntKey()).transfer(entry.getValue(), refs);
+        }
+        _lastActivityStarted = asource._lastActivityStarted;
     }
 
     @Override // documentation inherited

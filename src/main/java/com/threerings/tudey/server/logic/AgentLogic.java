@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.server.logic;
 
+import java.util.Map;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
@@ -196,6 +198,18 @@ public class AgentLogic extends ActiveLogic
         // initialize, return the logic
         logic.init(_scenemgr, original, this);
         return logic;
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+
+        AgentLogic asource = (AgentLogic)source;
+        _targetRotation = asource._targetRotation;
+        _turnRate = asource._turnRate;
+        _timestamp = asource._timestamp;
+        _behavior.transfer(asource._behavior, refs);
     }
 
     @Override // documentation inherited

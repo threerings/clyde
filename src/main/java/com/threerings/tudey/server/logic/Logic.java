@@ -244,7 +244,8 @@ public abstract class Logic extends ShallowObject
     }
 
     /**
-     * Transfers state from the specified source logic.
+     * Transfers state from the specified source logic.  Where relevant, this also takes the place
+     * of addition/startup notification.
      */
     public void transfer (Logic source, Map<Object, Object> refs)
     {

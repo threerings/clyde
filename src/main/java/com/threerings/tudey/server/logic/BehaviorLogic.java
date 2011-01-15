@@ -26,6 +26,7 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.google.common.collect.Lists;
 
@@ -72,6 +73,13 @@ public abstract class BehaviorLogic extends Logic
         public void startup ()
         {
             advanceEvaluation();
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _nextEvaluation = ((Evaluating)source)._nextEvaluation;
         }
 
         @Override // documentation inherited
@@ -131,6 +139,18 @@ public abstract class BehaviorLogic extends Logic
             super.startup();
             _startRotating = Integer.MAX_VALUE;
             _startMoving = Integer.MAX_VALUE;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Wander wsource = (Wander)source;
+            _origin.set(wsource._origin);
+            _startRotating = wsource._startRotating;
+            _rotation = wsource._rotation;
+            _startMoving = wsource._startMoving;
         }
 
         @Override // documentation inherited

@@ -92,6 +92,13 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _scenemgr.addTickParticipant(this);
+        }
+
+        @Override // documentation inherited
         public void shutdown (int timestamp, Logic activator)
         {
             _scenemgr.removeTickParticipant(this);
@@ -356,6 +363,13 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            startup(0);
+        }
+
+        @Override // documentation inherited
         public void shutdown (int timestamp, Logic activator)
         {
             if (_shape != null) {
@@ -471,6 +485,16 @@ public abstract class HandlerLogic extends Logic
         public BaseIntersectionCount ()
         {
             super(false, false);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            BaseIntersectionCount bsource = (BaseIntersectionCount)source;
+            _condition.transfer(bsource._condition, refs);
+            _lastCount = bsource._lastCount;
         }
 
         @Override // documentation inherited
@@ -605,6 +629,13 @@ public abstract class HandlerLogic extends Logic
             _lastCount = _targets.size();
             _targets.clear();
             _scenemgr.addActorObserver(this);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            startup(0);
         }
 
         @Override // documentation inherited
