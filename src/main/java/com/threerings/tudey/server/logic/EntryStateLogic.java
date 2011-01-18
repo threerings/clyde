@@ -47,7 +47,7 @@ public class EntryStateLogic extends ActorLogic
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         super.transfer(source, refs);
-        _entry = (EntryLogic)refs.get(((EntryStateLogic)source)._entry);
+        setEntry((EntryLogic)refs.get(((EntryStateLogic)source)._entry));
     }
 
     /**
