@@ -67,6 +67,22 @@ import static com.threerings.tudey.Log.*;
 public abstract class ActionLogic extends Logic
 {
     /**
+     * Simple base class for actions with targets.
+     */
+    public static abstract class Targeted extends ActionLogic
+    {
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Targeted)source)._target, refs);
+        }
+
+        /** The target actor. */
+        protected TargetLogic _target;
+    }
+
+    /**
      * Handles a spawn actor action.
      */
     public static class SpawnActor extends ActionLogic
@@ -209,7 +225,7 @@ public abstract class ActionLogic extends Logic
     /**
      * Handles a destroy actor action.
      */
-    public static class DestroyActor extends ActionLogic
+    public static class DestroyActor extends Targeted
     {
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
@@ -228,26 +244,16 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((DestroyActor)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.DestroyActor)_config).target, _source);
         }
-
-        /** The target actor. */
-        protected TargetLogic _target;
     }
 
     /**
      * Handles a warp actor action.
      */
-    public static class WarpActor extends ActionLogic
+    public static class WarpActor extends Targeted
     {
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
@@ -276,10 +282,7 @@ public abstract class ActionLogic extends Logic
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
-
-            WarpActor wsource = (WarpActor)source;
-            _target.transfer(wsource._target, refs);
-            _location.transfer(wsource._location, refs);
+            _location.transfer(((WarpActor)source)._location, refs);
         }
 
         /**
@@ -298,9 +301,6 @@ public abstract class ActionLogic extends Logic
             _target = createTarget(config.target, _source);
             _location = createTarget(config.location, _source);
         }
-
-        /** The target actor. */
-        protected TargetLogic _target;
 
         /** The location to which the actor will be warped. */
         protected TargetLogic _location;
@@ -372,7 +372,7 @@ public abstract class ActionLogic extends Logic
     /**
      * Handles a signal action.
      */
-    public static class Signal extends ActionLogic
+    public static class Signal extends Targeted
     {
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
@@ -387,20 +387,10 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((Signal)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.Signal)_config).target, _source);
         }
-
-        /** The target entity. */
-        protected TargetLogic _target;
     }
 
     /**
@@ -844,7 +834,7 @@ public abstract class ActionLogic extends Logic
     /**
      * Handles a step limit mobile action.
      */
-    public static class StepLimitMobile extends ActionLogic
+    public static class StepLimitMobile extends Targeted
     {
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
@@ -867,26 +857,16 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((StepLimitMobile)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.StepLimitMobile)_config).target, _source);
         }
-
-        /** The target Mobile. */
-        protected TargetLogic _target;
     }
 
     /**
      * Handles a set variable action.
      */
-    public static class SetVariable extends ActionLogic
+    public static class SetVariable extends Targeted
     {
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
@@ -903,22 +883,12 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((SetVariable)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             ActionConfig.SetVariable config = (ActionConfig.SetVariable)_config;
             _target = createTarget(config.target, _source);
             _value = createExpression(config.value, _source);
         }
-
-        /** The target logic. */
-        protected TargetLogic _target;
 
         /** The value logic. */
         protected ExpressionLogic _value;
@@ -927,7 +897,7 @@ public abstract class ActionLogic extends Logic
     /**
      * Handles a set flag action.
      */
-    public static class SetFlag extends ActionLogic
+    public static class SetFlag extends Targeted
     {
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
@@ -956,26 +926,16 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((SetFlag)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.SetFlag)_config).target, _source);
         }
-
-        /** The target logic. */
-        protected TargetLogic _target;
     }
 
     /**
      * Handles a force client action... action.
      */
-    public static class ForceClientAction extends ActionLogic
+    public static class ForceClientAction extends Targeted
     {
         @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
@@ -1002,20 +962,10 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((ForceClientAction)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.ForceClientAction)_config).target, _source);
         }
-
-        /** The target logic. */
-        protected TargetLogic _target;
 
         /** The distributed object manager. */
         @Inject protected PresentsDObjectMgr _omgr;
