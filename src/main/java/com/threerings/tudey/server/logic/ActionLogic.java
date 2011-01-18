@@ -27,6 +27,7 @@ package com.threerings.tudey.server.logic;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Objects;
@@ -84,6 +85,13 @@ public abstract class ActionLogic extends Logic
             }
             _targets.clear();
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _location.transfer(((SpawnActor)source)._location, refs);
         }
 
         @Override // documentation inherited
@@ -220,6 +228,13 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((DestroyActor)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.DestroyActor)_config).target, _source);
@@ -255,6 +270,16 @@ public abstract class ActionLogic extends Logic
             }
             _targets.clear();
             return success;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            WarpActor wsource = (WarpActor)source;
+            _target.transfer(wsource._target, refs);
+            _location.transfer(wsource._location, refs);
         }
 
         /**
@@ -328,6 +353,13 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _location.transfer(((FireEffect)source)._location, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _location = createTarget(((ActionConfig.FireEffect)_config).location, _source);
@@ -352,6 +384,13 @@ public abstract class ActionLogic extends Logic
             }
             _targets.clear();
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Signal)source)._target, refs);
         }
 
         @Override // documentation inherited
@@ -414,6 +453,13 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((MoveBody)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.MoveBody)_config).target, _source);
@@ -453,6 +499,19 @@ public abstract class ActionLogic extends Logic
                 return _elseAction.execute(timestamp, activator);
             }
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Conditional csource = (Conditional)source;
+            _condition.transfer(csource._condition, refs);
+            _action.transfer(csource._action, refs);
+            if (_elseAction != null) {
+                _elseAction.transfer(csource._elseAction, refs);
+            }
         }
 
         @Override // documentation inherited
@@ -502,6 +561,21 @@ public abstract class ActionLogic extends Logic
                 return _defaultAction.execute(timestamp, activator);
             }
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Switch ssource = (Switch)source;
+            for (int ii = 0; ii < _conditions.length; ii++) {
+                _conditions[ii].transfer(ssource._conditions[ii], refs);
+                _actions[ii].transfer(ssource._actions[ii], refs);
+            }
+            if (_defaultAction != null) {
+                _defaultAction.transfer(ssource._defaultAction, refs);
+            }
         }
 
         @Override // documentation inherited
@@ -558,6 +632,20 @@ public abstract class ActionLogic extends Logic
                 return _defaultAction.execute(timestamp, activator);
             }
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            ExpressionSwitch esource = (ExpressionSwitch)source;
+            for (int ii = 0; ii < _actions.length; ii++) {
+                _actions[ii].transfer(esource._actions[ii], refs);
+            }
+            if (_defaultAction != null) {
+                _defaultAction.transfer(esource._defaultAction, refs);
+            }
         }
 
         @Override // documentation inherited
@@ -619,6 +707,17 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            ActionLogic[] sactions = ((Compound)source)._actions;
+            for (int ii = 0; ii < _actions.length; ii++) {
+                _actions[ii].transfer(sactions[ii], refs);
+            }
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             ArrayList<ActionLogic> actions = new ArrayList<ActionLogic>();
@@ -656,6 +755,17 @@ public abstract class ActionLogic extends Logic
                 return _actions[idx].execute(timestamp, activator);
             }
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            ActionLogic[] sactions = ((Random)source)._actions;
+            for (int ii = 0; ii < _actions.length; ii++) {
+                _actions[ii].transfer(sactions[ii], refs);
+            }
         }
 
         @Override // documentation inherited
@@ -700,6 +810,13 @@ public abstract class ActionLogic extends Logic
                 }
             }).schedule(((ActionConfig.Delayed)_config).delay);
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _action.transfer(((Delayed)source)._action, refs);
         }
 
         @Override // documentation inherited
@@ -750,6 +867,13 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((StepLimitMobile)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.StepLimitMobile)_config).target, _source);
@@ -776,6 +900,13 @@ public abstract class ActionLogic extends Logic
             }
             _targets.clear();
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((SetVariable)source)._target, refs);
         }
 
         @Override // documentation inherited
@@ -825,6 +956,13 @@ public abstract class ActionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((SetFlag)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.SetFlag)_config).target, _source);
@@ -861,6 +999,13 @@ public abstract class ActionLogic extends Logic
             }
             _targets.clear();
             return success;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((ForceClientAction)source)._target, refs);
         }
 
         @Override // documentation inherited

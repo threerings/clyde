@@ -76,19 +76,19 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _nextEvaluation = ((Evaluating)source)._nextEvaluation;
-        }
-
-        @Override // documentation inherited
         public void tick (int timestamp)
         {
             // if scheduled to do so, evaluate
             if (_agent.canThink() && timestamp >= _nextEvaluation) {
                 evaluate();
             }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _nextEvaluation = ((Evaluating)source)._nextEvaluation;
         }
 
         /**
@@ -139,18 +139,6 @@ public abstract class BehaviorLogic extends Logic
             super.startup();
             _startRotating = Integer.MAX_VALUE;
             _startMoving = Integer.MAX_VALUE;
-        }
-
-        @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-
-            Wander wsource = (Wander)source;
-            _origin.set(wsource._origin);
-            _startRotating = wsource._startRotating;
-            _rotation = wsource._rotation;
-            _startMoving = wsource._startMoving;
         }
 
         @Override // documentation inherited
@@ -211,6 +199,18 @@ public abstract class BehaviorLogic extends Logic
                     angle - FloatMath.getAngularDifference(rotation, angle));
             }
             changeDirection(rotation);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Wander wsource = (Wander)source;
+            _origin.set(wsource._origin);
+            _startRotating = wsource._startRotating;
+            _rotation = wsource._rotation;
+            _startMoving = wsource._startMoving;
         }
 
         @Override // documentation inherited
@@ -314,6 +314,16 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Pathing psource = (Pathing)source;
+            _path = psource._path;
+            _pidx = psource._pidx;
+        }
+
         /**
          * Sets the path to follow.
          */
@@ -380,6 +390,16 @@ public abstract class BehaviorLogic extends Logic
         public Logic getCurrentTarget ()
         {
             return _currentTarget;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Patrol psource = (Patrol)source;
+            _target.transfer(psource._target, refs);
+            _currentTarget = (Logic)refs.get(psource._currentTarget);
         }
 
         @Override // documentation inherited
@@ -496,6 +516,13 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Follow)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((BehaviorConfig.Follow)_config).target, _agent);
@@ -595,6 +622,19 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            BehaviorLogic[] sbehaviors = ((Random)source)._behaviors;
+            for (int ii = 0; ii < _behaviors.length; ii++) {
+                if (_behaviors[ii] != null) {
+                    _behaviors[ii].transfer(sbehaviors[ii], refs);
+                }
+            }
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             WeightedBehavior[] wbehaviors = ((BehaviorConfig.Random)_config).behaviors;
@@ -662,6 +702,19 @@ public abstract class BehaviorLogic extends Logic
         public void reachedTargetRotation ()
         {
             _steps[_currentStep].reachedTargetRotation();
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Scripted ssource = (Scripted)source;
+            for (int ii = 0; ii < _steps.length; ii++) {
+                _steps[ii].transfer(ssource._steps[ii], refs);
+            }
+            _currentStep = ssource._currentStep;
+            _start = ssource._start;
         }
 
         @Override // documentation inherited
@@ -758,6 +811,20 @@ public abstract class BehaviorLogic extends Logic
                 target = _second.getCurrentTarget();
             }
             return target;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Combined csource = (Combined)source;
+            if (_first != null) {
+                _first.transfer(csource._first, refs);
+            }
+            if (_second != null) {
+                _second.transfer(csource._second, refs);
+            }
         }
 
         @Override // documentation inherited

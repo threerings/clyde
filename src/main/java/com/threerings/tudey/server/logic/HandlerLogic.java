@@ -133,6 +133,15 @@ public abstract class HandlerLogic extends Logic
             _interval.cancel();
         }
 
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            startup(0);
+            _limit = ((Timer)source)._limit;
+        }
+
         /** The number of times remaining to fire. */
         protected int _limit;
 
@@ -184,6 +193,15 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            if (_warnAction != null) {
+                _warnAction.transfer(((WarnTimer)source)._warnAction, refs);
+            }
+        }
+
         /** The warning action. */
         protected ActionLogic _warnAction;
 
@@ -204,6 +222,13 @@ public abstract class HandlerLogic extends Logic
                 execute(timestamp, source);
                 _minTimestamp = Math.round(timestamp + config.refractoryPeriod * 1000f);
             }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _minTimestamp = ((Signal)source)._minTimestamp;
         }
 
         /** The earliest time at which we may execute. */
@@ -415,6 +440,13 @@ public abstract class HandlerLogic extends Logic
             }
         }
 
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _minTimestamp = ((Intersection)source)._minTimestamp;
+        }
+
         /** The earliest time at which we may execute. */
         protected int _minTimestamp;
     }
@@ -488,16 +520,6 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-
-            BaseIntersectionCount bsource = (BaseIntersectionCount)source;
-            _condition.transfer(bsource._condition, refs);
-            _lastCount = bsource._lastCount;
-        }
-
-        @Override // documentation inherited
         public void didInit ()
         {
             _condition = createCondition(
@@ -531,6 +553,16 @@ public abstract class HandlerLogic extends Logic
             return _lastCount != 0;
         }
 
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            BaseIntersectionCount bsource = (BaseIntersectionCount)source;
+            _condition.transfer(bsource._condition, refs);
+            _lastCount = bsource._lastCount;
+        }
+
         /**
          * Called when the intersection count changes.
          */
@@ -556,6 +588,15 @@ public abstract class HandlerLogic extends Logic
                 (HandlerConfig.ThresholdIntersectionCount) _config;
             if (config.underAction != null) {
                 _underAction = createAction(config.underAction, _source);
+            }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            if (_underAction != null) {
+                _underAction.transfer(((ThresholdIntersectionCount)source)._underAction, refs);
             }
         }
 
@@ -635,6 +676,7 @@ public abstract class HandlerLogic extends Logic
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
+            _target.transfer(((ActorRemoved)source)._target, refs);
             startup(0);
         }
 
@@ -744,6 +786,13 @@ public abstract class HandlerLogic extends Logic
     public float getRotation ()
     {
         return _source.getRotation();
+    }
+
+    @Override // documentation inherited
+    public void transfer (Logic source, Map<Object, Object> refs)
+    {
+        super.transfer(source, refs);
+        _action.transfer(((HandlerLogic)source)._action, refs);
     }
 
     /**

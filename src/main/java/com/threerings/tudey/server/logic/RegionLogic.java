@@ -27,6 +27,7 @@ package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import com.google.common.collect.Lists;
 
@@ -54,6 +55,13 @@ public abstract class RegionLogic extends Logic
             _location.resolve(activator, _locations);
             getShapes(results);
             _locations.clear();
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _location.transfer(((Located)source)._location, refs);
         }
 
         @Override // documentation inherited

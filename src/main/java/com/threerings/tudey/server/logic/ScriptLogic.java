@@ -26,6 +26,7 @@
 package com.threerings.tudey.server.logic;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.google.common.collect.Lists;
 
@@ -75,6 +76,13 @@ public abstract class ScriptLogic extends Logic
         public boolean tick (int timestamp)
         {
             return timestamp - _started > ((ScriptConfig.Wait)_config).wait;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _started = ((Wait)source)._started;
         }
 
         /** When the wait started. */
@@ -128,6 +136,18 @@ public abstract class ScriptLogic extends Logic
                 _agent.startMoving();
             }
             return false;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Move msource = (Move)source;
+            _target.transfer(msource._target, refs);
+            _path = msource._path;
+            _pidx = msource._pidx;
+            _finalTarget = (Logic)refs.get(msource._finalTarget);
         }
 
         /**
@@ -217,8 +237,15 @@ public abstract class ScriptLogic extends Logic
             return _complete;
         }
 
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _complete = ((Rotate)source)._complete;
+        }
+
         /** If we're done. */
-        protected boolean _complete = false;
+        protected boolean _complete;
     }
 
     /**
@@ -237,6 +264,13 @@ public abstract class ScriptLogic extends Logic
         public boolean tick (int timestamp)
         {
             return _condition.isSatisfied(_agent);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _condition.transfer(((Condition)source)._condition, refs);
         }
 
         @Override // documentation inherited

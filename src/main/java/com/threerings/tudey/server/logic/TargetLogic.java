@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Map;
 
 import com.google.common.collect.Lists;
 
@@ -165,6 +166,13 @@ public abstract class TargetLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _region.transfer(((Intersecting)source)._region, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _region = createRegion(((TargetConfig.Intersecting)_config).region, _source);
@@ -196,6 +204,13 @@ public abstract class TargetLogic extends Logic
                 selectSubset(size, activator, results);
             }
             _targets.clear();
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Subset)source)._target, refs);
         }
 
         @Override // documentation inherited
@@ -244,6 +259,13 @@ public abstract class TargetLogic extends Logic
         {
             super.didInit();
             _location = createTarget(((TargetConfig.DistanceSubset)_config).location, _source);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _location.transfer(((DistanceSubset)source)._location, refs);
         }
 
         @Override // documentation inherited
@@ -323,6 +345,16 @@ public abstract class TargetLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Conditional csource = (Conditional)source;
+            _condition.transfer(csource._condition, refs);
+            _target.transfer(csource._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             TargetConfig.Conditional config = (TargetConfig.Conditional)_config;
@@ -350,6 +382,17 @@ public abstract class TargetLogic extends Logic
         {
             for (TargetLogic target : _targets) {
                 target.resolve(activator, results);
+            }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            TargetLogic[] stargets = ((Compound)source)._targets;
+            for (int ii = 0; ii < _targets.length; ii++) {
+                _targets[ii].transfer(stargets[ii], refs);
             }
         }
 
@@ -392,6 +435,13 @@ public abstract class TargetLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Behavior)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((TargetConfig.Behavior)_config).target, _source);
@@ -423,6 +473,17 @@ public abstract class TargetLogic extends Logic
             }
             _targets.clear();
         }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Excluding esource = (Excluding)source;
+            _target.transfer(esource._target, refs);
+            _excluding.transfer(esource._excluding, refs);
+        }
+
         @Override // documentation inherited
         protected void didInit ()
         {
@@ -456,6 +517,13 @@ public abstract class TargetLogic extends Logic
             Collections.shuffle(_targets);
             results.addAll(_targets);
             _targets.clear();
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Randomized)source)._target, refs);
         }
 
         @Override // documentation inherited

@@ -26,7 +26,9 @@
 package com.threerings.tudey.server.logic;
 
 import java.lang.reflect.Field;
+
 import java.util.ArrayList;
+import java.util.Map;
 
 import com.google.common.collect.Lists;
 
@@ -72,6 +74,13 @@ public abstract class ConditionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Tagged)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ConditionConfig.Tagged)_config).target, _source);
@@ -105,6 +114,13 @@ public abstract class ConditionLogic extends Logic
             } finally {
                 _targets.clear();
             }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((InstanceOf)source)._target, refs);
         }
 
         @Override // documentation inherited
@@ -153,6 +169,16 @@ public abstract class ConditionLogic extends Logic
                 _firsts.clear();
                 _seconds.clear();
             }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            Intersecting isource = (Intersecting)source;
+            _first.transfer(isource._first, refs);
+            _second.transfer(isource._second, refs);
         }
 
         @Override // documentation inherited
@@ -208,6 +234,16 @@ public abstract class ConditionLogic extends Logic
                 _firsts.clear();
                 _seconds.clear();
             }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            DistanceWithin dsource = (DistanceWithin)source;
+            _first.transfer(dsource._first, refs);
+            _second.transfer(dsource._second, refs);
         }
 
         @Override // documentation inherited
@@ -270,6 +306,13 @@ public abstract class ConditionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _limit = ((Limit)source)._limit;
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _limit = ((ConditionConfig.Limit)_config).limit;
@@ -293,6 +336,17 @@ public abstract class ConditionLogic extends Logic
                 }
             }
             return true;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            ConditionLogic[] sconditions = ((All)source)._conditions;
+            for (int ii = 0; ii < _conditions.length; ii++) {
+                _conditions[ii].transfer(sconditions[ii], refs);
+            }
         }
 
         @Override // documentation inherited
@@ -326,6 +380,17 @@ public abstract class ConditionLogic extends Logic
                 }
             }
             return false;
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            ConditionLogic[] sconditions = ((Any)source)._conditions;
+            for (int ii = 0; ii < _conditions.length; ii++) {
+                _conditions[ii].transfer(sconditions[ii], refs);
+            }
         }
 
         @Override // documentation inherited
@@ -380,6 +445,13 @@ public abstract class ConditionLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((FlagSet)source)._target, refs);
+        }
+
+        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ConditionConfig.FlagSet)_config).target, _source);
@@ -408,6 +480,13 @@ public abstract class ConditionLogic extends Logic
             return false;
         }
 
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _nextTimestamp = ((Cooldown)source)._nextTimestamp;
+        }
+
         /** The next timestamp before we'll be satisfied. */
         protected int _nextTimestamp = -1;
     }
@@ -421,6 +500,13 @@ public abstract class ConditionLogic extends Logic
         public boolean isSatisfied (Logic activator)
         {
             return !_condition.isSatisfied(activator);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _condition.transfer(((Not)source)._condition, refs);
         }
 
         @Override // documentation inherited
@@ -476,6 +562,13 @@ public abstract class ConditionLogic extends Logic
         public boolean isSatisfied (Logic activator)
         {
             return _action.execute(_scenemgr.getTimestamp(), activator);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _action.transfer(((Action)source)._action, refs);
         }
 
         @Override // documentation inherited
