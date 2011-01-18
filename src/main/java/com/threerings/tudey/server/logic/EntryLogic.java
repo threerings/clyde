@@ -81,7 +81,9 @@ public class EntryLogic extends Logic
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
-            _actor = (ActorLogic)refs.get(((StatefulProp)source)._actor);
+            if ((_actor = (ActorLogic)refs.get(((StatefulProp)source)._actor)) != null) {
+                ((EntryStateLogic)_actor).setEntry(this);
+            }
         }
 
         @Override // documentation inherited
