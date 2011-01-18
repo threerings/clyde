@@ -78,6 +78,13 @@ public class EntryLogic extends Logic
     public static class StatefulProp extends EntryLogic
     {
         @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _actor = (ActorLogic)refs.get(((StatefulProp)source)._actor);
+        }
+
+        @Override // documentation inherited
         protected void wasAdded ()
         {
             PlaceableEntry pentry = (PlaceableEntry)_entry;
