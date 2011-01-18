@@ -51,9 +51,25 @@ import static com.threerings.tudey.Log.*;
 public abstract class ConditionLogic extends Logic
 {
     /**
+     * Simple base class for conditions with targets.
+     */
+    public static abstract class Targeted extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((Targeted)source)._target, refs);
+        }
+
+        /** The target logic. */
+        protected TargetLogic _target;
+    }
+
+    /**
      * Evaluates the tagged condition.
      */
-    public static class Tagged extends ConditionLogic
+    public static class Tagged extends Targeted
     {
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
@@ -74,20 +90,10 @@ public abstract class ConditionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((Tagged)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ConditionConfig.Tagged)_config).target, _source);
         }
-
-        /** The target to check. */
-        protected TargetLogic _target;
 
         /** Holds targets during evaluation. */
         protected ArrayList<Logic> _targets = Lists.newArrayList();
@@ -96,7 +102,7 @@ public abstract class ConditionLogic extends Logic
     /**
      * Evaluates the instance of condition.
      */
-    public static class InstanceOf extends ConditionLogic
+    public static class InstanceOf extends Targeted
     {
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
@@ -117,13 +123,6 @@ public abstract class ConditionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((InstanceOf)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             ConditionConfig.InstanceOf config = (ConditionConfig.InstanceOf)_config;
@@ -138,9 +137,6 @@ public abstract class ConditionLogic extends Logic
 
         /** The test class. */
         protected Class<?> _logicClass;
-
-        /** The target to check. */
-        protected TargetLogic _target;
 
         /** Holds targets during evaluation. */
         protected ArrayList<Logic> _targets = Lists.newArrayList();
@@ -413,7 +409,7 @@ public abstract class ConditionLogic extends Logic
     /**
      * Evaluates the flag set condition.
      */
-    public static class FlagSet extends ConditionLogic
+    public static class FlagSet extends Targeted
     {
         @Override // documentation inherited
         public boolean isSatisfied (Logic activator)
@@ -445,20 +441,10 @@ public abstract class ConditionLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            _target.transfer(((FlagSet)source)._target, refs);
-        }
-
-        @Override // documentation inherited
         protected void didInit ()
         {
             _target = createTarget(((ConditionConfig.FlagSet)_config).target, _source);
         }
-
-        /** The target to check. */
-        protected TargetLogic _target;
 
         /** Holds targets during evaluation. */
         protected ArrayList<Logic> _targets = Lists.newArrayList();
