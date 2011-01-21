@@ -26,13 +26,17 @@
 package com.threerings.opengl.model;
 
 import com.threerings.expr.Bound;
+import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
+
+import com.samskivert.util.StringUtil;
 
 import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.model.config.CompoundConfig;
@@ -218,12 +222,15 @@ public class Compound extends Model.Implementation
         Scene scene = ((Model)_parentScope).getScene(this);
         Model[] omodels = _models;
         _models = new Model[_config.models.length];
+        Function getNodeFn = ScopeUtil.resolve(this, "getNode", Function.NULL);
         for (int ii = 0; ii < _models.length; ii++) {
             boolean create = (omodels == null || omodels.length <= ii);
             Model model = create ? new Model(_ctx) : omodels[ii];
             _models[ii] = model;
             ComponentModel component = _config.models[ii];
-            model.setParentScope(this);
+            Scope node = StringUtil.isBlank(component.node) ?
+                null : (Scope)getNodeFn.call(component.node);
+            model.setParentScope(node == null ? this : node);
             model.setConfig(component.model);
             model.getLocalTransform().set(component.transform);
             if (create && scene != null) {

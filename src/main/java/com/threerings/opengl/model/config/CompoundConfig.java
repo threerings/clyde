@@ -49,6 +49,10 @@ public class CompoundConfig extends ModelConfig.Implementation
     public static class ComponentModel extends DeepObject
         implements Exportable, Streamable
     {
+        /** A node to attach the model to, if present. */
+        @Editable
+        public String node = "";
+
         /** The model reference. */
         @Editable(nullable=true)
         public ConfigReference<ModelConfig> model;
