@@ -161,6 +161,7 @@ public class ConfigEditor extends BaseConfigEditor
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
         edit.addSeparator();
         edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
+        addEditMenuItems(edit);
         edit.addSeparator();
         edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
         edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_F));
@@ -320,6 +321,13 @@ public class ConfigEditor extends BaseConfigEditor
             this, _msgs.get("m.validate_refs"), _msgs.get("m.ok"));
         _cfgmgr.validateReferences("", dialog.getPrintStream());
         dialog.maybeShow();
+    }
+
+    /**
+     * Used to add addition items to the edit menu.
+     */
+    protected void addEditMenuItems (JMenu edit)
+    {
     }
 
     /**
