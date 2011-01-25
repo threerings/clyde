@@ -30,14 +30,22 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Point;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 import java.io.IOException;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -62,6 +70,7 @@ import static com.threerings.editor.Log.*;
  * Abstract base class for {@link PropertyEditor} and {@link EditorPanel}.
  */
 public abstract class BasePropertyEditor extends CollapsiblePanel
+    implements ActionListener
 {
     public BasePropertyEditor ()
     {
@@ -138,6 +147,20 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         return (pt == null) ? "" : getMousePath(pt);
     }
 
+    // documentation inherited from interface ActionListener
+    public void actionPerformed (ActionEvent event)
+    {
+        Object source = event.getSource();
+        if (source == _highlight) {
+            _highlighted = !_highlighted;
+            updateBorder(((TitledBorder)getBorder()).getTitle());
+            invalidate();
+
+        } else {
+            super.actionPerformed(event);
+        }
+    }
+
     /**
      * Returns the path of the property under the mouse cursor relative to this property.
      *
@@ -194,7 +217,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     /**
      * Adds the collapsible button to the panel.
      */
-    protected void makeCollapsible (EditorContext ctx)
+    protected void makeCollapsible (EditorContext ctx, final String title)
     {
         VGroupLayout gl = new VGroupLayout(VGroupLayout.NONE);
         gl.setOffAxisPolicy(VGroupLayout.STRETCH);
@@ -207,6 +230,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         if (_expandIcon == null) {
             _expandIcon = loadIcon("expand", ctx);
             _collapseIcon = loadIcon("collapse", ctx);
+            _highlightIcon = loadIcon("highlight", ctx);
         }
 
         JPanel tcont = GroupLayout.makeHBox(
@@ -214,6 +238,8 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         tcont.setOpaque(false);
         JButton expand = createButton(_expandIcon);
         tcont.add(expand);
+        tcont.add(_highlight = createButton(_highlightIcon));
+        _highlight.addActionListener(this);
 
         setTrigger(expand, _expandIcon, _collapseIcon);
         expand.setHorizontalAlignment(JButton.CENTER);
@@ -222,6 +248,19 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         setGap(5);
         setCollapsed(false);
         getContent().setBackground(null);
+
+        addMouseListener(new MouseAdapter() {
+            public void mouseClicked (MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+                    _highlighted = !_highlighted;
+                    updateBorder(title);
+                }
+            }
+        });
+
+        _content.setLayout(
+                new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
+        updateBorder(title);
     }
 
     /**
@@ -333,6 +372,17 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         }
     }
 
+    /**
+     * Updates the border.
+     */
+    protected void updateBorder (String title)
+    {
+        Border border = _highlighted ?  BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.black, 2), title) :
+            BorderFactory.createTitledBorder(title);
+        setBorder(border);
+    }
+
     /** Provides access to common services. */
     protected EditorContext _ctx;
 
@@ -342,8 +392,14 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     /** The default message bundle. */
     protected MessageBundle _msgs;
 
+    /** The highlight button. */
+    protected JButton _highlight;
+
+    /** If the border should be highlighted. */
+    protected boolean _highlighted;
+
     /** Collapse/expand icons. */
-    protected static Icon _expandIcon, _collapseIcon;
+    protected static Icon _expandIcon, _collapseIcon, _highlightIcon;
 
     /** The base background value that we darken to indicate nesting. */
     protected static final int BASE_BACKGROUND = 0xEE;

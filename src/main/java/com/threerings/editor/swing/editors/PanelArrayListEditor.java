@@ -25,11 +25,14 @@
 
 package com.threerings.editor.swing.editors;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -95,13 +98,13 @@ public class PanelArrayListEditor extends ArrayListEditor
     {
         super.didInit();
 
-        add(_panels = GroupLayout.makeVBox(
+        _content.add(_panels = GroupLayout.makeVBox(
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         _panels.setBackground(null);
 
         JPanel bpanel = new JPanel();
         bpanel.setBackground(null);
-        add(bpanel);
+        _content.add(bpanel);
         bpanel.add(_add = new JButton(getActionLabel("new")));
         _add.addActionListener(this);
     }
@@ -183,6 +186,7 @@ public class PanelArrayListEditor extends ArrayListEditor
             if (_expandIcon == null) {
                 _expandIcon = loadIcon("expand", _ctx);
                 _collapseIcon = loadIcon("collapse", _ctx);
+                _highlightIcon = loadIcon("highlight", _ctx);
             }
             if (_raiseIcon == null) {
                 _raiseIcon = loadIcon("raise", _ctx);
@@ -196,6 +200,8 @@ public class PanelArrayListEditor extends ArrayListEditor
             tcont.setOpaque(false);
             JButton expand = createButton(_expandIcon);
             tcont.add(expand);
+            tcont.add(_highlight = createButton(_highlightIcon));
+            _highlight.addActionListener(this);
             tcont.add(_raise = createButton(_raiseIcon));
             _raise.addActionListener(this);
             tcont.add(_lower = createButton(_lowerIcon));
@@ -205,9 +211,7 @@ public class PanelArrayListEditor extends ArrayListEditor
 
             // initialize
             _title = BorderFactory.createTitledBorder("");
-            setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createEmptyBorder(8, 0, 0, 0),
-                _title));
+            updateBorder();
             setBackground(null);
             setTrigger(expand, _expandIcon, _collapseIcon);
             expand.setHorizontalAlignment(JButton.CENTER);
@@ -215,6 +219,16 @@ public class PanelArrayListEditor extends ArrayListEditor
             setTriggerContainer(tcont, opanel);
             setGap(5);
             setCollapsed(false);
+
+            // add a border toggling mouse adapter
+            addMouseListener(new MouseAdapter() {
+                public void mouseClicked (MouseEvent e) {
+                    if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
+                        _highlighted = !_highlighted;
+                        updateBorder();
+                    }
+                }
+            });
         }
 
         /**
@@ -235,7 +249,7 @@ public class PanelArrayListEditor extends ArrayListEditor
             _raise.setEnabled(idx > 0);
             _lower.setEnabled(idx < count - 1);
             _delete.setEnabled(count > _min);
-            _title.setTitle(PanelArrayListEditor.this.getPropertyLabel() + " (" + idx + ")");
+            updateBorder();
         }
 
         // documentation inherited from interface ActionListener
@@ -250,6 +264,9 @@ public class PanelArrayListEditor extends ArrayListEditor
                 swapValues(idx, idx + 1);
             } else if (source == _delete) {
                 removeValue(getIndex());
+            } else if (source == _highlight) {
+                _highlighted = !_highlighted;
+                updateBorder();
             } else { // source == _trigger
                 super.actionPerformed(event);
             }
@@ -269,8 +286,21 @@ public class PanelArrayListEditor extends ArrayListEditor
             return ListUtil.indexOfRef(_panels.getComponents(), this);
         }
 
+        protected void updateBorder ()
+        {
+            String title = PanelArrayListEditor.this.getPropertyLabel() + " (" + getIndex() + ")";
+            _title = _highlighted ?  BorderFactory.createTitledBorder(
+                    BorderFactory.createLineBorder(Color.black, 2), title) :
+                BorderFactory.createTitledBorder(title);
+            setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(8, 0, 0, 0), _title));
+        }
+
         /** The action buttons. */
-        protected JButton _raise, _lower, _delete;
+        protected JButton _raise, _lower, _delete, _highlight;
+
+        /** The highlighted state. */
+        protected boolean _highlighted;
 
         /** The titled border. */
         protected TitledBorder _title;

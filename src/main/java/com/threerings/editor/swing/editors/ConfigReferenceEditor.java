@@ -113,10 +113,7 @@ public class ConfigReferenceEditor extends PropertyEditor
     @Override // documentation inherited
     protected void didInit ()
     {
-        makeCollapsible(_ctx);
-        _content.setLayout(
-                new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+        makeCollapsible(_ctx, getPropertyLabel());
 
         JPanel cpanel = new JPanel();
         _content.add(cpanel);

@@ -63,6 +63,8 @@ public abstract class ArrayListEditor extends PropertyEditor
             Class<?>[] types = _property.getComponentSubtypes();
             Class<?> type = (types[0] == null) ? types[1] : types[0];
             addValue(getDefaultInstance(type, _object));
+        } else {
+            super.actionPerformed(event);
         }
     }
 
@@ -72,8 +74,7 @@ public abstract class ArrayListEditor extends PropertyEditor
         _min = getMinSize();
         _max = getMaxSize();
 
-        setLayout(new VGroupLayout(GroupLayout.NONE, GroupLayout.STRETCH, 5, GroupLayout.TOP));
-        setBorder(BorderFactory.createTitledBorder(getPropertyLabel()));
+        makeCollapsible(_ctx, getPropertyLabel());
     }
 
     /**

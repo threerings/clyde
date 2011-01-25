@@ -301,7 +301,7 @@ public class TableArrayListEditor extends ArrayListEditor
 
         JPanel outer = new JPanel();
         outer.setBackground(null);
-        add(outer);
+        _content.add(outer);
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(null);
         outer.add(panel);
@@ -382,7 +382,7 @@ public class TableArrayListEditor extends ArrayListEditor
 
         JPanel bpanel = new JPanel();
         bpanel.setBackground(null);
-        add(bpanel);
+        _content.add(bpanel);
         bpanel.add(_add = new JButton(is2DArray() ?
             getActionLabel("new", "row") : _msgs.get("m.new")));
         _add.addActionListener(this);
@@ -396,7 +396,7 @@ public class TableArrayListEditor extends ArrayListEditor
         _delete.addActionListener(this);
 
         if (_opanel != null) {
-            add(_opanel);
+            _content.add(_opanel);
         }
     }
 
