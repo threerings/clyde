@@ -277,7 +277,10 @@ public abstract class BaseConfigEditor extends JFrame
     /**
      * Returns the editor panel we'll be finding on.
      */
-    protected abstract EditorPanel getFindEditorPanel ();
+    protected EditorPanel getFindEditorPanel ()
+    {
+        return null;
+    }
 
     /** The resource manager. */
     protected ResourceManager _rsrcmgr;
