@@ -452,6 +452,9 @@ public class TudeySceneManager extends SceneManager
             return null;
         }
 
+        // clamp the timestamp to the acceptable range
+        timestamp = Math.min(Math.max(timestamp, _previousTimestamp + 1), _timestamp);
+
         // initialize the logic and add it to the list
         logic.init(this, ref, original, timestamp, target, translation, rotation);
         _effectsFired.add(logic);
