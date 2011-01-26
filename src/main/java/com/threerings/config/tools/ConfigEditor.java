@@ -135,7 +135,7 @@ public class ConfigEditor extends BaseConfigEditor
         file.add(nmenu);
         nmenu.add(createMenuItem("window", KeyEvent.VK_W, KeyEvent.VK_N));
         nmenu.addSeparator();
-        Action nconfig = createAction("config", KeyEvent.VK_C, KeyEvent.VK_F);
+        Action nconfig = createAction("config", KeyEvent.VK_C, KeyEvent.VK_O);
         nmenu.add(new JMenuItem(nconfig));
         Action nfolder = createAction("folder", KeyEvent.VK_F, KeyEvent.VK_D);
         nmenu.add(new JMenuItem(nfolder));
@@ -159,12 +159,13 @@ public class ConfigEditor extends BaseConfigEditor
         edit.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P, KeyEvent.VK_V)));
         edit.add(new JMenuItem(
             _delete = createAction("delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+        addFindMenu(edit);
         edit.addSeparator();
         edit.add(createMenuItem("validate_refs", KeyEvent.VK_V, -1));
         addEditMenuItems(edit);
         edit.addSeparator();
         edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
-        edit.add(createMenuItem("preferences", KeyEvent.VK_F, KeyEvent.VK_F));
+        edit.add(createMenuItem("preferences", KeyEvent.VK_F, -1));
 
         JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
         menubar.add(gmenu);
@@ -328,6 +329,12 @@ public class ConfigEditor extends BaseConfigEditor
      */
     protected void addEditMenuItems (JMenu edit)
     {
+    }
+
+    @Override // documentation inherited
+    protected EditorPanel getFindEditorPanel ()
+    {
+        return ((ManagerPanel)_tabs.getSelectedComponent()).getEditorPanel();
     }
 
     /**
@@ -666,6 +673,14 @@ public class ConfigEditor extends BaseConfigEditor
             for (int ii = 0, nn = gbox.getItemCount(); ii < nn; ii++) {
                 ((GroupItem)gbox.getItemAt(ii)).dispose();
             }
+        }
+
+        /**
+         * Returns the editor panel.
+         */
+        public EditorPanel getEditorPanel ()
+        {
+            return _epanel;
         }
 
         // documentation inherited from interface EditorContext

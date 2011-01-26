@@ -28,6 +28,7 @@ package com.threerings.config.tools;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 import java.util.prefs.Preferences;
 
@@ -46,6 +47,7 @@ import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.Introspector;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.swing.FindDialog;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.swing.LogPanel;
 
@@ -147,6 +149,15 @@ public abstract class BaseConfigEditor extends JFrame
                     this, this, _msgs.get("t.preferences"), _eprefs);
             }
             _pdialog.setVisible(true);
+        } else if (action.equals("find")) {
+            if (_fdialog == null) {
+                _fdialog = FindDialog.createDialog(this, this);
+            }
+            _fdialog.show(getFindEditorPanel());
+        } else if (action.equals("find_next")) {
+            if (_fdialog != null) {
+                _fdialog.find(getFindEditorPanel());
+            }
         }
     }
 
@@ -252,6 +263,22 @@ public abstract class BaseConfigEditor extends JFrame
         frame.setVisible(true);
     }
 
+    /**
+     * Adds the find functionality to a menu.
+     */
+    protected void addFindMenu (JMenu menu)
+    {
+        menu.addSeparator();
+        menu.add(new JMenuItem(_find = createAction("find", KeyEvent.VK_F, KeyEvent.VK_F)));
+        menu.add(new JMenuItem(_findNext = createAction(
+                        "find_next", KeyEvent.VK_N, KeyEvent.VK_F3, 0)));
+    }
+
+    /**
+     * Returns the editor panel we'll be finding on.
+     */
+    protected abstract EditorPanel getFindEditorPanel ();
+
     /** The resource manager. */
     protected ResourceManager _rsrcmgr;
 
@@ -272,6 +299,12 @@ public abstract class BaseConfigEditor extends JFrame
 
     /** The preferences dialog. */
     protected JDialog _pdialog;
+
+    /** The find dialog. */
+    protected FindDialog _fdialog;
+
+    /** The find menu actions. */
+    protected Action _find, _findNext;
 
     /** The package preferences. */
     protected static Preferences _prefs = Preferences.userNodeForPackage(BaseConfigEditor.class);

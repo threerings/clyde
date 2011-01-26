@@ -140,6 +140,7 @@ public class ResourceEditor extends BaseConfigEditor
         JMenu edit = createMenu("edit", KeyEvent.VK_E);
         menubar.add(edit);
         edit.add(createMenuItem("update", KeyEvent.VK_U, KeyEvent.VK_U));
+        addFindMenu(edit);
         edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
         edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
@@ -448,6 +449,12 @@ public class ResourceEditor extends BaseConfigEditor
         return JOptionPane.showConfirmDialog(this, _msgs.get("m.cant_undo"),
                 _msgs.get("t.cant_undo"), JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.WARNING_MESSAGE) == 0;
+    }
+
+    @Override // documentation inherited
+    protected EditorPanel getFindEditorPanel ()
+    {
+        return _epanel;
     }
 
     /** The file menu items. */
