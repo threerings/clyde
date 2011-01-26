@@ -792,7 +792,7 @@ public class TudeySceneView extends DynamicScope
         if (fired != null) {
             int last = _records.get(_records.size() - 2).getTimestamp();
             for (Effect effect : fired) {
-                if (effect.getTimestamp() > last && !(effect instanceof Prefireable &&
+                if (effect.getTimestamp() >= last && !(effect instanceof Prefireable &&
                         ((Prefireable)effect).getClientOid() == _ctx.getClient().getClientOid())) {
                     effect.init(_ctx.getConfigManager());
                     new EffectSprite(_ctx, this, effect);
