@@ -148,6 +148,8 @@ public class FindDialog extends JDialog
             _term = term;
         }
         _viewport = null;
+        _first = testTerm(_first);
+        _last = testTerm(_last);
         goFind(_epanel);
         _status.setText("");
         if (_last == null) {
@@ -200,34 +202,11 @@ public class FindDialog extends JDialog
         if (_viewport == null) {
             if (comp instanceof JScrollPane) {
                 _viewport = ((JScrollPane)comp).getViewport();
+                _first = testViewport(_first);
+                _last = testViewport(_last);
             }
         } else {
-            JComponent found = null;
-            if (comp instanceof JTextComponent) {
-                String text = ((JTextComponent)comp).getText().toLowerCase();
-                //log.info("Found text component", "text", text);
-                if (text.contains(_term)) {
-                    found = (JComponent)comp;
-                }
-            } else if (comp instanceof AbstractButton) {
-                String text = ((AbstractButton)comp).getText().toLowerCase();
-                //log.info("Found button", "text", text);
-                if (text.contains(_term)) {
-                    found = (JComponent)comp;
-                }
-            } else if (comp instanceof JTable) {
-                JTable table = (JTable)comp;
-                OUTER:
-                for (int ii = 0, nn = table.getRowCount(); ii < nn; ii++) {
-                    for (int jj = 0, mm = table.getColumnCount(); jj < mm; jj++) {
-                        Object obj = table.getValueAt(ii, jj);
-                        if (obj != null && obj.toString().toLowerCase().contains(_term)) {
-                            found = table;
-                            break OUTER;
-                        }
-                    }
-                }
-            }
+            JComponent found = testTerm(comp);
             if (found != null && found(found)) {
                 return true;
             }
@@ -241,6 +220,57 @@ public class FindDialog extends JDialog
             }
         }
         return false;
+    }
+
+    /**
+     * Returns the component if it's a child of the viewport.
+     */
+    protected JComponent testViewport (JComponent comp)
+    {
+        if (comp == null) {
+            return null;
+        }
+        Component parent = comp.getParent();
+        for (; parent != null; parent = parent.getParent()) {
+            if (parent == _viewport) {
+                break;
+            }
+        }
+        return (parent == null) ? null : comp;
+    }
+
+    /**
+     * Returns the component if it's still valid for the search term.
+     */
+    protected JComponent testTerm (Component comp)
+    {
+        JComponent found = null;
+        if (comp instanceof JTextComponent) {
+            String text = ((JTextComponent)comp).getText().toLowerCase();
+            //log.info("Found text component", "text", text);
+            if (text.contains(_term)) {
+                found = (JComponent)comp;
+            }
+        } else if (comp instanceof AbstractButton) {
+            String text = ((AbstractButton)comp).getText().toLowerCase();
+            //log.info("Found button", "text", text);
+            if (text.contains(_term)) {
+                found = (JComponent)comp;
+            }
+        } else if (comp instanceof JTable) {
+            JTable table = (JTable)comp;
+            OUTER:
+            for (int ii = 0, nn = table.getRowCount(); ii < nn; ii++) {
+                for (int jj = 0, mm = table.getColumnCount(); jj < mm; jj++) {
+                    Object obj = table.getValueAt(ii, jj);
+                    if (obj != null && obj.toString().toLowerCase().contains(_term)) {
+                        found = table;
+                        break OUTER;
+                    }
+                }
+            }
+        }
+        return found;
     }
 
     /**
