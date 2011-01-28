@@ -74,6 +74,14 @@ public abstract class ResourceCache
         }
 
         /**
+         * Clears the subcache, forcing all resources to be reloaded.
+         */
+        public void clear ()
+        {
+            _resources.clear();
+        }
+
+        /**
          * Loads the resource corresponding to the specified key.
          */
         protected abstract V loadResource (K key);

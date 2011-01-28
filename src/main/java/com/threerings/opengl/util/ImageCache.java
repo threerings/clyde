@@ -74,6 +74,15 @@ public class ImageCache extends ResourceCache
     }
 
     /**
+     * Clears the cache, forcing resources to be reloaded.
+     */
+    public void clear ()
+    {
+        _images.clear();
+        _buffered.clear();
+    }
+
+    /**
      * Identifies a cached image.
      */
     protected static class ImageKey
