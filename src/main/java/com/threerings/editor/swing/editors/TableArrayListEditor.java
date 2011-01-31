@@ -403,7 +403,8 @@ public class TableArrayListEditor extends ArrayListEditor
     @Override // documentation inherited
     protected String getMousePath (Point pt)
     {
-        if (_content.getComponentAt(pt) == _opanel) {
+        Point cpt = SwingUtilities.convertPoint(this, pt, _content);
+        if (_content.getComponentAt(cpt) == _opanel) {
             return "[" + _table.getSelectedRow() + "]" + _opanel.getMousePath();
         }
         pt = SwingUtilities.convertPoint(this, pt, _table);
