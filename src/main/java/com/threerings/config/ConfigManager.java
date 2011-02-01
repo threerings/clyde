@@ -29,6 +29,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import java.lang.ref.SoftReference;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -503,6 +505,47 @@ public class ConfigManager
     }
 
     /**
+     * Refreshes all configurations of the specified class.
+     */
+    public void refresh (Class<? extends ManagedConfig> clazz)
+    {
+        // look for groups first
+        @SuppressWarnings("unchecked") ConfigGroup<ManagedConfig>[] groups =
+            (ConfigGroup<ManagedConfig>[])getGroups(clazz);
+        if (groups.length > 0) {
+            for (ConfigGroup<ManagedConfig> group : groups) {
+                for (ManagedConfig config : group.getConfigs()) {
+                    refresh(config);
+                }
+            }
+            return;
+        }
+
+        // otherwise, refresh the resource configs
+        for (SoftReference<ManagedConfig> ref : _resources.getMap().values()) {
+            ManagedConfig oconfig = ref.get();
+            if (!clazz.isInstance(oconfig)) {
+                continue;
+            }
+            String name = oconfig.getName();
+            ManagedConfig nconfig;
+            try {
+                BinaryImporter in = new BinaryImporter(_rsrcmgr.getResource(name));
+                nconfig = (ManagedConfig)in.readObject();
+                nconfig.setName(name);
+                nconfig.init(getRoot());
+                in.close();
+
+            } catch (Exception e) { // IOException, ClassCastException
+                log.warning("Failed to refresh config from resource.", "name", name, e);
+                continue;
+            }
+            nconfig.copy(oconfig);
+            refresh(oconfig);
+        }
+    }
+
+    /**
      * Writes the fields of this object.
      */
     public void writeFields (Exporter out)
@@ -595,11 +638,25 @@ public class ConfigManager
     }
 
     /**
+     * Refreshes the specified configuration by simulating an update without firing a global
+     * update event.
+     */
+    protected void refresh (ManagedConfig config)
+    {
+        _ignoreUpdates = true;
+        try {
+            config.wasUpdated();
+        } finally {
+            _ignoreUpdates = false;
+        }
+    }
+
+    /**
      * Fires a configuration updated event.
      */
     protected void fireConfigUpdated (ManagedConfig config)
     {
-        if (_updateListeners != null) {
+        if (_updateListeners != null && !_ignoreUpdates) {
             final ConfigEvent<ManagedConfig> event = new ConfigEvent<ManagedConfig>(this, config);
             _updateListeners.apply(
                 new ObserverList.ObserverOp<ConfigUpdateListener<ManagedConfig>>() {
@@ -634,4 +691,7 @@ public class ConfigManager
 
     /** Config update listeners. */
     protected ObserverList<ConfigUpdateListener<ManagedConfig>> _updateListeners;
+
+    /** Set when we should ignore config updates because we're refreshing. */
+    protected boolean _ignoreUpdates;
 }
