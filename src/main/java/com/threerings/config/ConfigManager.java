@@ -522,7 +522,7 @@ public class ConfigManager
         }
 
         // otherwise, refresh the resource configs
-        for (SoftReference<ManagedConfig> ref : _resources.getMap().values()) {
+        for (SoftReference<ManagedConfig> ref : Lists.newArrayList(_resources.getMap().values())) {
             ManagedConfig oconfig = ref.get();
             if (!clazz.isInstance(oconfig)) {
                 continue;
