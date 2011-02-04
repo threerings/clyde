@@ -140,7 +140,7 @@ public class Sounder extends SimpleScope
     }
 
     /**
-     * Base class for {@link Clip} and {@link MetaClip}.
+     * Base class for {@link Clip}, {@link MetaClip}, and {@link VariableClip}.
      */
     public static abstract class BaseClip extends Implementation
     {
@@ -155,15 +155,9 @@ public class Sounder extends SimpleScope
         /**
          * (Re)configures the implementation.
          */
-        public void setConfig (SounderConfig.BaseClip config)
+        public void setConfig (SounderConfig.Original config)
         {
             _config = config;
-        }
-
-        @Override // documentation inherited
-        public boolean loops ()
-        {
-            return _config.loop;
         }
 
         @Override // documentation inherited
@@ -209,10 +203,10 @@ public class Sounder extends SimpleScope
                 updateSoundTransform();
                 SoundClipManager clipmgr = ScopeUtil.resolve(
                     _parentScope, "clipmgr", null, SoundClipManager.class);
-                if (clipmgr != null && !_config.loop) {
+                if (clipmgr != null && !loops()) {
                     clipmgr.playSound(_sound, gain);
                 } else {
-                    _sound.play(null, _config.loop);
+                    _sound.play(null, loops());
                 }
             }
         }
@@ -258,14 +252,14 @@ public class Sounder extends SimpleScope
                 sound = (file == null || group == null) ? null : group.getSound(file);
             }
             if (sound != null) {
-                sound.setGain(gain * _config.gain);
+                sound.setGain(gain * _config.getGain());
                 sound.setSourceRelative(_config.sourceRelative);
                 sound.setMinGain(_config.minGain);
                 sound.setMaxGain(_config.maxGain);
                 sound.setReferenceDistance(_config.referenceDistance);
                 sound.setRolloffFactor(_config.rolloffFactor);
                 sound.setMaxDistance(_config.maxDistance);
-                sound.setPitch(pitch * _config.pitch);
+                sound.setPitch(pitch * _config.getPitch());
                 sound.setConeInnerAngle(_config.coneInnerAngle);
                 sound.setConeOuterAngle(_config.coneOuterAngle);
                 sound.setConeOuterGain(_config.coneOuterGain);
@@ -274,7 +268,7 @@ public class Sounder extends SimpleScope
         }
 
         /** The implementation configuration. */
-        protected SounderConfig.BaseClip _config;
+        protected SounderConfig.Original _config;
 
         /** The (currently playing) sound. */
         protected Sound _sound;
@@ -304,6 +298,12 @@ public class Sounder extends SimpleScope
         {
             super.setConfig(_config = config);
             updateFromConfig();
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            return _config.loop;
         }
 
         @Override // documentation inherited
@@ -350,6 +350,12 @@ public class Sounder extends SimpleScope
         }
 
         @Override // documentation inherited
+        public boolean loops ()
+        {
+            return _config.loop;
+        }
+
+        @Override // documentation inherited
         public void start ()
         {
             int idx = RandomUtil.getWeightedIndex(_weights);
@@ -391,6 +397,60 @@ public class Sounder extends SimpleScope
 
         /** The weights. */
         protected float[] _weights;
+    }
+
+    /**
+     * Plays a clip with variable parameters.
+     */
+    public static class VariableClip extends BaseClip
+    {
+        /**
+         * Creates a new clip implementation.
+         */
+        public VariableClip (AlContext ctx, Scope parentScope, SounderConfig.VariableClip config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.VariableClip config)
+        {
+            super.setConfig(_config = config);
+            updateFromConfig();
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            return _config.loop;
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            float gain = _config.gain.getValue();
+            if (_sound != null) {
+                _sound.setGain(gain);
+                _sound.setPitch(_config.pitch.getValue());
+            }
+            playSound(gain);
+        }
+
+        @Override // documentation inherited
+        protected void updateFromConfig ()
+        {
+            boolean wasPlaying = isPlaying();
+            _sound = getSound(_config.file, _sound);
+            if ((wasPlaying || _started.value && _config.loop) && !isPlaying()) {
+                start();
+            }
+        }
+
+        /** The implementation configuration. */
+        protected SounderConfig.VariableClip _config;
     }
 
     /**

@@ -36,6 +36,7 @@ import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.expr.BooleanExpression;
 import com.threerings.expr.Scope;
+import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
@@ -50,8 +51,8 @@ public class SounderConfig extends ParameterizedConfig
      * Contains the actual implementation of the sounder.
      */
     @EditorTypes({
-        Clip.class, MetaClip.class, Stream.class, MetaStream.class, Conditional.class,
-        Compound.class, Scripted.class, Random.class, Derived.class })
+        Clip.class, MetaClip.class, VariableClip.class, Stream.class, MetaStream.class,
+        Conditional.class, Compound.class, Scripted.class, Random.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -98,20 +99,12 @@ public class SounderConfig extends ParameterizedConfig
     public static abstract class Original extends Implementation
     {
         /** Whether or not the position of the sound is relative to the listener. */
-        @Editable(hgroup="s")
+        @Editable(hgroup="s", weight=-2)
         public boolean sourceRelative;
 
         /** Whether or not the sound is directional. */
-        @Editable(hgroup="s")
+        @Editable(hgroup="s", weight=-2)
         public boolean directional;
-
-        /** The base gain (volume). */
-        @Editable(min=0, step=0.01, hgroup="g")
-        public float gain = 1f;
-
-        /** The pitch multiplier. */
-        @Editable(min=0, step=0.01, hgroup="g")
-        public float pitch = 1f;
 
         /** The minimum gain for the source. */
         @Editable(min=0, max=1, step=0.01, hgroup="m")
@@ -145,15 +138,77 @@ public class SounderConfig extends ParameterizedConfig
         /** The outer angle of the sound cone. */
         @Editable(min=-360, max=+360, hgroup="c")
         public float coneOuterAngle = 360f;
+
+        /**
+         * Returns the base gain (volume).
+         */
+        public abstract float getGain ();
+
+        /**
+         * Returns the pitch multiplier.
+         */
+        public abstract float getPitch ();
+    }
+
+    /**
+     * An original config with fixed fields.
+     */
+    public static abstract class Fixed extends Original
+    {
+        /** The base gain (volume). */
+        @Editable(min=0, step=0.01, hgroup="g", weight=-1)
+        public float gain = 1f;
+
+        /** The pitch multiplier. */
+        @Editable(min=0, step=0.01, hgroup="g", weight=-1)
+        public float pitch = 1f;
+
+        @Override // documentation inherited
+        public float getGain ()
+        {
+            return gain;
+        }
+
+        @Override // documentation inherited
+        public float getPitch ()
+        {
+            return pitch;
+        }
+    }
+
+    /**
+     * An original config with variable fields.
+     */
+    public static abstract class Variable extends Original
+    {
+        /** The base gain (volume). */
+        @Editable(min=0, step=0.01, weight=-1)
+        public FloatVariable gain = new FloatVariable.Constant(1f);
+
+        /** The pitch multiplier. */
+        @Editable(min=0, step=0.01, weight=-1)
+        public FloatVariable pitch = new FloatVariable.Constant(1f);
+
+        @Override // documentation inherited
+        public float getGain ()
+        {
+            return gain.getValue();
+        }
+
+        @Override // documentation inherited
+        public float getPitch ()
+        {
+            return pitch.getValue();
+        }
     }
 
     /**
      * Base class for {@link Clip} and {@link MetaClip}.
      */
-    public static abstract class BaseClip extends Original
+    public static abstract class BaseClip extends Fixed
     {
         /** Whether or not the sound loops. */
-        @Editable(weight=-1, hgroup="f")
+        @Editable(weight=-3, hgroup="f")
         public boolean loop;
     }
 
@@ -163,7 +218,7 @@ public class SounderConfig extends ParameterizedConfig
     public static class Clip extends BaseClip
     {
         /** The sound resource from which to load the clip. */
-        @Editable(editor="resource", nullable=true, weight=-1, hgroup="f")
+        @Editable(editor="resource", nullable=true, weight=-3, hgroup="f")
         @FileConstraints(
             description="m.sound_files_desc",
             extensions={".ogg"},
@@ -200,7 +255,7 @@ public class SounderConfig extends ParameterizedConfig
     public static class MetaClip extends BaseClip
     {
         /** The files from which to choose. */
-        @Editable(weight=-1)
+        @Editable(weight=-3)
         public PitchWeightedFile[] files = new PitchWeightedFile[0];
 
         @Override // documentation inherited
@@ -230,9 +285,50 @@ public class SounderConfig extends ParameterizedConfig
     }
 
     /**
+     * Plays a clip with variable parameters.
+     */
+    public static class VariableClip extends Variable
+    {
+        /** Whether or not the sound loops. */
+        @Editable(weight=-3, hgroup="f")
+        public boolean loop;
+
+        /** The sound resource from which to load the clip. */
+        @Editable(editor="resource", nullable=true, weight=-3, hgroup="f")
+        @FileConstraints(
+            description="m.sound_files_desc",
+            extensions={".ogg"},
+            directory="sound_dir")
+        public String file;
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            if (file != null) {
+                paths.add(file);
+            }
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (file == null) {
+                return null;
+            }
+            if (impl instanceof Sounder.VariableClip) {
+                ((Sounder.VariableClip)impl).setConfig(this);
+            } else {
+                impl = new Sounder.VariableClip(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
      * Base class for {@link Stream} and {@link MetaStream}.
      */
-    public static abstract class BaseStream extends Original
+    public static abstract class BaseStream extends Fixed
     {
         /** The interval over which to fade in the stream. */
         @Editable(min=0, step=0.01, hgroup="f")
@@ -262,7 +358,7 @@ public class SounderConfig extends ParameterizedConfig
     public static class Stream extends BaseStream
     {
         /** The files to enqueue in the stream. */
-        @Editable(weight=-1)
+        @Editable(weight=-3)
         public QueuedFile[] queue = new QueuedFile[0];
 
         /**
@@ -329,7 +425,7 @@ public class SounderConfig extends ParameterizedConfig
     public static class MetaStream extends BaseStream
     {
         /** The files from which to choose. */
-        @Editable(weight=-1)
+        @Editable(weight=-3)
         public WeightedFile[] files = new WeightedFile[0];
 
         /** The cross-fade between tracks. */
