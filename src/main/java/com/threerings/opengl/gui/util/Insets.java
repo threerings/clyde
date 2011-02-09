@@ -98,12 +98,21 @@ public class Insets
         }
     }
 
-    // documentation inherited
+    @Override
     public boolean equals (Object other)
     {
+        if (!(other instanceof Insets)) {
+            return false;
+        }
         Insets oi = (Insets)other;
         return (left == oi.left) && (top == oi.top) &&
             (right == oi.right) && (bottom == oi.bottom);
+    }
+
+    @Override
+    public int hashCode ()
+    {
+        return left ^ top ^ right ^ bottom;
     }
 
     public String toString ()
