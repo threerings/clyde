@@ -145,21 +145,10 @@ public class TextField extends EditableTextComponent
     }
 
     @Override
-    protected void recreateGlyphs ()
+    protected void createGlyphs ()
     {
-        clearGlyphs();
-
-        // if we have no text, clear out all our internal markers
-        if (_text.getLength() == 0) {
-            _txoff = _cursp = _cursx = _selp = _selx = 0;
-            return;
-        }
-
-        // format our text and determine how much of it we can display
         _glyphs = getTextFactory().createText(
-            getDisplayText(), getColor(), UIConstants.PLAIN,
-            UIConstants.DEFAULT_SIZE, null, true);
-        setSelection(_cursp, _selp);
+            getDisplayText(), getColor(), UIConstants.PLAIN, UIConstants.DEFAULT_SIZE, null, true);
     }
 
     @Override
@@ -183,7 +172,7 @@ public class TextField extends EditableTextComponent
 
         } else {
             _cursx = _glyphs.getCursorPos(_cursp);
-            _selx = _glyphs.getCursorPos(_selp);
+            _selx = (_cursp == _selp) ? _cursx : _glyphs.getCursorPos(_selp);
         }
 
         // scroll our text left or right as necessary

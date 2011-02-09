@@ -533,19 +533,35 @@ public abstract class EditableTextComponent extends TextComponent
     }
 
     /**
+     * Recreates the entity that we use to render our text.
+     */
+    protected void recreateGlyphs ()
+    {
+        clearGlyphs();
+
+        if (_text.getLength() == 0) {
+            setSelection(0, 0);
+
+        } else {
+            createGlyphs();
+            setSelection(_cursp, _selp);
+        }
+    }
+
+    /**
      * Do we have glyphs computed?
      */
     protected abstract boolean hasGlyphs ();
 
     /**
-     * Recreates the entity that we use to render our text.
-     */
-    protected abstract void recreateGlyphs ();
-
-    /**
      * Clears out our text textures and other related bits.
      */
     protected abstract void clearGlyphs ();
+
+    /**
+     * Create the entity that we use to render our text.
+     */
+    protected abstract void createGlyphs ();
 
     /**
      * Get the position in our document, given the mouse local mouse coordinates that have
