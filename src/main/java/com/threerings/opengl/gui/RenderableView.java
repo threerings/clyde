@@ -327,6 +327,7 @@ public class RenderableView extends Component
             if (!_static) {
                 renderer.setMatrixMode(GL11.GL_MODELVIEW);
                 GL11.glPushMatrix();
+                renderer.invalidateTransformState();
                 renderer.setState(TransformState.IDENTITY);
             }
 
