@@ -69,17 +69,21 @@ public class BinaryToXMLConverter
     public static void convert (String pattern)
         throws IOException
     {
+        log.info("Starting conversion", "pattern", pattern, "pwd", new File(".").getCanonicalPath());
         DirectoryScanner scanner = new DirectoryScanner();
         scanner.setBasedir(".");
         scanner.setIncludes(new String[] { pattern });
         scanner.scan();
+        int count = 0;
         for (String source : scanner.getIncludedFiles()) {
             try {
                 convert(source, FileUtil.resuffix(new File(source), ".dat", ".xml"));
-            } catch (IOException e) {
+                count++;
+            } catch (Exception e) {
                 log.warning("Error converting file.", "file", source, e);
             }
         }
+        log.info("Finished conversion", "count", count);
     }
 
     /**
