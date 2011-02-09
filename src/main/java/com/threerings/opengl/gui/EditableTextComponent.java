@@ -27,8 +27,11 @@ package com.threerings.opengl.gui;
 
 import javax.swing.undo.UndoManager;
 
+import org.lwjgl.opengl.GL11;
+
 import com.samskivert.util.IntTuple;
 
+import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
@@ -389,6 +392,7 @@ public abstract class EditableTextComponent extends TextComponent
     protected void wasRemoved ()
     {
         super.wasRemoved();
+
         clearGlyphs();
     }
 
@@ -437,11 +441,24 @@ public abstract class EditableTextComponent extends TextComponent
     }
 
     /**
+     * Helper method to render the cursor.
+     */
+    protected void renderCursor (Renderer renderer, int x, int y, int height)
+    {
+        renderer.setColorState(getColor());
+        renderer.setTextureState(null);
+        GL11.glBegin(GL11.GL_LINE_STRIP);
+        GL11.glVertex2f(x, y);
+        GL11.glVertex2f(x, y + height);
+        GL11.glEnd();
+    }
+
+    /**
      * Checks whether the selection is empty.
      */
     protected boolean selectionIsEmpty ()
     {
-        return _cursp == _selp;
+        return (_cursp == _selp);
     }
 
     /**
@@ -501,6 +518,21 @@ public abstract class EditableTextComponent extends TextComponent
     }
 
     /**
+     * Updates the selection.
+     */
+    protected void setSelection (int cursorPos, int selectPos)
+    {
+        // this breaks up any compound edits
+        _lastCompoundType = null;
+
+        // note the new selection
+        _cursp = cursorPos;
+        _selp = selectPos;
+
+        selectionWasSet();
+    }
+
+    /**
      * Do we have glyphs computed?
      */
     protected abstract boolean hasGlyphs ();
@@ -516,14 +548,15 @@ public abstract class EditableTextComponent extends TextComponent
     protected abstract void clearGlyphs ();
 
     /**
-     * Get the position in our document, given the mouse local mouse coordinates.
+     * Get the position in our document, given the mouse local mouse coordinates that have
+     * already had the insets taken into account.
      */
     protected abstract int getPosition (int mouseX, int mouseY);
 
     /**
-     * Updates the selection.
+     * Update any internal positions after the selection is set.
      */
-    protected abstract void setSelection (int cursorPos, int selectPos);
+    protected abstract void selectionWasSet ();
 
     /**
      * Returns an undo operation id.

@@ -25,8 +25,6 @@
 
 package com.threerings.opengl.gui;
 
-import org.lwjgl.opengl.GL11;
-
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
@@ -90,6 +88,7 @@ public class TextField extends EditableTextComponent
         super.renderComponent(renderer);
 
         Insets insets = getInsets();
+        int lineHeight = getTextFactory().getHeight();
 
         // render the selection background if appropriate
         if (_showCursor && _cursx != _selx) {
@@ -100,8 +99,7 @@ public class TextField extends EditableTextComponent
                     _width - insets.getHorizontal() - 1);
                 int x1 = Math.min(cx, sx), x2 = Math.max(cx, sx);
                 background.render(
-                    renderer, insets.left + x1, insets.bottom,
-                    x2 - x1 + 1, getTextFactory().getHeight(), _alpha);
+                    renderer, insets.left + x1, insets.bottom, x2 - x1 + 1, lineHeight, _alpha);
             }
         }
 
@@ -115,8 +113,8 @@ public class TextField extends EditableTextComponent
                 _width - insets.getHorizontal(),
                 _height - insets.getVertical());
             try {
-                _glyphs.render(renderer, insets.left - _txoff,
-                               insets.bottom, _alpha);
+                _glyphs.render(renderer, insets.left - _txoff, insets.bottom, _alpha);
+
             } finally {
                 renderer.setScissor(oscissor);
             }
@@ -124,14 +122,7 @@ public class TextField extends EditableTextComponent
 
         // render the cursor if we have focus
         if (_showCursor && _cursx == _selx) {
-            int cx = insets.left - _txoff + _cursx;
-            renderer.setColorState(getColor());
-            renderer.setTextureState(null);
-            GL11.glBegin(GL11.GL_LINE_STRIP);
-            GL11.glVertex2f(cx, insets.bottom);
-            int cheight = getTextFactory().getHeight();
-            GL11.glVertex2f(cx, insets.bottom + cheight);
-            GL11.glEnd();
+            renderCursor(renderer, insets.left - _txoff + _cursx, insets.bottom, lineHeight);
         }
     }
 
@@ -184,32 +175,27 @@ public class TextField extends EditableTextComponent
     }
 
     @Override
-    protected void setSelection (final int cursorPos, final int selectPos)
+    protected void selectionWasSet ()
     {
-        // by default, this breaks up any compound edits
-        _lastCompoundType = null;
-
-        // note the new selection
-        _cursp = cursorPos;
-        _selp = selectPos;
-
         // compute the new screen positions
-        if (_glyphs != null) {
-            _cursx = _glyphs.getCursorPos(cursorPos);
-            _selx = _glyphs.getCursorPos(selectPos);
-        } else {
+        if (_glyphs == null) {
             _cursx = _selx = 0;
+
+        } else {
+            _cursx = _glyphs.getCursorPos(_cursp);
+            _selx = _glyphs.getCursorPos(_selp);
         }
 
         // scroll our text left or right as necessary
         if (_cursx < _txoff) {
             _txoff = _cursx;
+
         } else if (_width > 0) { // make sure we're laid out
             int avail = getWidth() - getInsets().getHorizontal();
             if (_cursx > _txoff + avail) {
                 _txoff = _cursx - avail;
-            } else if (_glyphs != null &&
-                    _glyphs.getSize().width - _txoff < avail) {
+
+            } else if (_glyphs != null && _glyphs.getSize().width - _txoff < avail) {
                 _txoff = Math.max(0, _cursx - avail);
             }
         }
