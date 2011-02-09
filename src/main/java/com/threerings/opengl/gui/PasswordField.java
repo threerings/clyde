@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.gui;
 
+import com.samskivert.util.StringUtil;
+
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -59,12 +61,9 @@ public class PasswordField extends TextField
         String text = super.getDisplayText();
         if (text == null) {
             return null;
+
         } else if (_stars == null || _stars.length() != text.length()) {
-            StringBuilder stars = new StringBuilder();
-            for (int ii = 0; ii < text.length(); ii++) {
-                stars.append("*");
-            }
-            _stars = stars.toString();
+            _stars = StringUtil.fill('*', text.length());
         }
         return _stars;
     }
