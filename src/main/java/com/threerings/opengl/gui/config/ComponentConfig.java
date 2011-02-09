@@ -64,8 +64,9 @@ import com.threerings.opengl.util.GlContext;
     ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
     ComponentConfig.Spacer.class, ComponentConfig.Spinner.class,
     ComponentConfig.StatusLabel.class, ComponentConfig.TabbedPane.class,
-    ComponentConfig.TextArea.class, ComponentConfig.TextField.class,
-    ComponentConfig.ToggleButton.class, ComponentConfig.UserInterface.class })
+    ComponentConfig.TextArea.class, ComponentConfig.TextEditor.class,
+    ComponentConfig.TextField.class, ComponentConfig.ToggleButton.class,
+    ComponentConfig.UserInterface.class })
 public abstract class ComponentConfig extends DeepObject
     implements Exportable
 {
@@ -368,7 +369,7 @@ public abstract class ComponentConfig extends DeepObject
             }
             box.setItems(objects);
             box.setPreferredDimensions(rows, columns);
-            box.selectItem(selected);
+            box.setSelected(selected);
         }
     }
 
@@ -403,7 +404,7 @@ public abstract class ComponentConfig extends DeepObject
                 values[ii] = getMessage(msgs, items[ii]);
             }
             list.setValues(values);
-            list.setSelectedValue(selected < values.length ? values[selected] : null);
+            list.setSelected(selected < values.length ? values[selected] : null);
         }
     }
 
@@ -445,8 +446,22 @@ public abstract class ComponentConfig extends DeepObject
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
              // setMaxLength must be called before setText
-            ((com.threerings.opengl.gui.TextField)comp).setMaxLength(maxLength);
+            ((com.threerings.opengl.gui.EditableTextComponent)comp).setMaxLength(maxLength);
             super.configure(ctx, scope, msgs, comp);
+        }
+    }
+
+    /**
+     * A multi-line text editor.
+     */
+    public static class TextEditor extends TextField
+    {
+        @Override
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.TextEditor.class) ?
+                comp : new com.threerings.opengl.gui.TextEditor(ctx);
         }
     }
 
@@ -581,7 +596,7 @@ public abstract class ComponentConfig extends DeepObject
                     tab.styleOverride == null ? tabStyle : tab.styleOverride);
             }
             if (selected < tabs.length) {
-                pane.selectTab(selected);
+                pane.setSelectedIndex(selected);
             }
         }
     }
