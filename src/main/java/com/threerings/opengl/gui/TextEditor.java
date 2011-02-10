@@ -6,6 +6,7 @@ package com.threerings.opengl.gui;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Dimension;
@@ -45,15 +46,54 @@ public class TextEditor extends EditableTextComponent
 
         Insets insets = getInsets();
         int lineHeight = getTextFactory().getHeight();
-        int x = insets.left;
-        int y = _height - insets.top - lineHeight;
 
         if (_showCursor && (_cursp != _selp)) {
-            // TODO: background
+            Background bkg = getSelectionBackground();
+            if (bkg != null) {
+                // TODO Pre-calculate this?
+                int startP = Math.min(_cursp, _selp);
+                int endP = Math.max(_cursp, _selp);
+                Point startLoc = (startP == _cursp) ? _curs : _sel;
+                Point endLoc = (startP == _cursp) ? _sel : _curs;
+                if (startLoc.y == endLoc.y) {
+                    bkg.render(renderer,
+                        insets.left + startLoc.x, insets.bottom + startLoc.y,
+                        endLoc.x - startLoc.x + 1, lineHeight, _alpha);
+                } else {
+                    int pos = 0;
+                    boolean started = false;
+                    int y = _height - insets.top - lineHeight;
+                    for (Text text : _glyphs) {
+                        int length = text.getLength();
+                        if (started) {
+                            if (endP < (pos + length)) {
+                                bkg.render(renderer,
+                                    insets.left, insets.bottom + endLoc.y,
+                                    endLoc.x + 1, lineHeight, _alpha);
+                                break;
+                            }
+                            bkg.render(renderer,
+                                insets.left, y, text.getSize().width + 1, lineHeight, _alpha);
+
+                        } else {
+                            if (startP < (pos + length)) {
+                                bkg.render(renderer,
+                                    insets.left + startLoc.x, insets.bottom + startLoc.y,
+                                    text.getSize().width - startLoc.x, lineHeight, _alpha);
+                                started = true;
+                            }
+                        }
+                        pos += length;
+                        y -= lineHeight;
+                    }
+                }
+            }
         }
 
         if (_glyphs != null) {
             // TODO: scissoring
+            int x = insets.left;
+            int y = _height - insets.top - lineHeight;
             for (Text text : _glyphs) {
                 text.render(renderer, x, y, _alpha);
                 y -= lineHeight;
@@ -84,11 +124,10 @@ public class TextEditor extends EditableTextComponent
             return super.processCommand(cmd);
 
         case CURSOR_UP:
-            setCursorPos(getPosition(_curs.x, _curs.y + getTextFactory().getHeight()));
-            break;
-
         case CURSOR_DOWN:
-            setCursorPos(getPosition(_curs.x, _curs.y - getTextFactory().getHeight()));
+            int lineHeight = getTextFactory().getHeight();
+            setCursorPos(getPosition(
+                _curs.x, _curs.y + (lineHeight/2) + (((cmd == CURSOR_UP) ? 1 : -1) * lineHeight)));
             break;
         }
 
@@ -107,6 +146,12 @@ public class TextEditor extends EditableTextComponent
         _glyphs = getTextFactory().wrapText(
             getDisplayText(), getColor(), UIConstants.PLAIN, UIConstants.DEFAULT_SIZE, null,
             _width - getInsets().getHorizontal());
+
+        // if the number of lines changed, invalidate
+        if (_glyphs.length != _lines) {
+            _lines = _glyphs.length;
+            invalidate();
+        }
     }
 
     @Override
@@ -133,7 +178,7 @@ public class TextEditor extends EditableTextComponent
                 pos += text.getLength() + 1;
             }
         }
-        return pos;
+        return Math.min(pos, _text.getText().length());
     }
 
     @Override
@@ -171,6 +216,9 @@ public class TextEditor extends EditableTextComponent
 
     /** Our lines of text. */
     protected Text[] _glyphs;
+
+    /** The number of lines at the last time we created our glyphs. */
+    protected int _lines;
 
     /** A mutable Point containing the inset coordiantes of the cursor. */
     protected Point _curs = new Point();
