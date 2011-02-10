@@ -232,7 +232,8 @@ public class CharacterTextFactory extends TextFactory
                 }
                 lines.add(createText(
                     line.toString(), color, effect, effectSize, effectColor, true));
-                line = new StringBuilder(extra);
+                line.setLength(0);
+                line.append(extra);
                 width = 0;
                 for (int jj = 0, ll = extra.length(); jj < ll; jj++) {
                     width += getGlyph(extra.charAt(jj)).width;
@@ -242,13 +243,8 @@ public class CharacterTextFactory extends TextFactory
                 width += glyph.width;
             }
         }
-        if (line.length() > 0) {
-            lines.add(createText(line.toString(), color, effect, effectSize, effectColor, true));
-        }
-        if (lines.isEmpty()) {
-            // never return an empty array; instead, return an array containing an empty string
-            lines.add(createText("", color, effect, effectSize, effectColor, true));
-        }
+        // add the final line
+        lines.add(createText(line.toString(), color, effect, effectSize, effectColor, true));
         return lines.toArray(new Text[lines.size()]);
     }
 
