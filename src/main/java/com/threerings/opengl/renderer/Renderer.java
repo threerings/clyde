@@ -67,6 +67,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.renderer.state.RenderState;
+import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
@@ -1150,27 +1151,25 @@ public class Renderer
                 GL11.glLight(lname, GL11.GL_SPECULAR, _vbuf);
             }
             if (!lrec.position.equals(light.position)) {
-                // transform by inverse of modelview matrix to negate OpenGL's multiplying the
-                // direction by the modelview matrix
-                Matrix4f mat = getModelviewInverseMatrix();
-                Vector4f pos = lrec.position.set(light.position);
-                _vbuf.put(pos.x*mat.m00 + pos.y*mat.m10 + pos.z*mat.m20 + pos.w*mat.m30);
-                _vbuf.put(pos.x*mat.m01 + pos.y*mat.m11 + pos.z*mat.m21 + pos.w*mat.m31);
-                _vbuf.put(pos.x*mat.m02 + pos.y*mat.m12 + pos.z*mat.m22 + pos.w*mat.m32);
-                _vbuf.put(pos.w).rewind();
+                // OpenGL multiplies by the modelview matrix, so we have to clear it first
+                setMatrixMode(GL11.GL_MODELVIEW);
+                GL11.glPushMatrix();
+                GL11.glLoadIdentity();
+                lrec.position.set(light.position).get(_vbuf).rewind();
                 GL11.glLight(lname, GL11.GL_POSITION, _vbuf);
+                GL11.glPopMatrix();
             }
             if (light.position.w == 0f) {
                 continue; // light is directional; the rest does not apply
             }
             if (light.spotCutoff != 180f && !lrec.spotDirection.equals(light.spotDirection)) {
-                // as with the position, transform by inverse of modelview
-                Matrix4f mat = getModelviewInverseMatrix();
-                Vector3f dir = lrec.spotDirection.set(light.spotDirection);
-                _vbuf.put(dir.x*mat.m00 + dir.y*mat.m10 + dir.z*mat.m20);
-                _vbuf.put(dir.x*mat.m01 + dir.y*mat.m11 + dir.z*mat.m21);
-                _vbuf.put(dir.x*mat.m02 + dir.y*mat.m12 + dir.z*mat.m22).rewind();
+                // as with the position, clear the modelview matrix
+                setMatrixMode(GL11.GL_MODELVIEW);
+                GL11.glPushMatrix();
+                GL11.glLoadIdentity();
+                lrec.spotDirection.set(light.spotDirection).get(_vbuf).rewind();
                 GL11.glLight(lname, GL11.GL_SPOT_DIRECTION, _vbuf);
+                GL11.glPopMatrix();
             }
             if (lrec.spotExponent != light.spotExponent) {
                 GL11.glLightf(lname, GL11.GL_SPOT_EXPONENT,
@@ -1850,7 +1849,6 @@ public class Renderer
             // invalidate associated state
             _states[RenderState.TRANSFORM_STATE] = null;
             _modelviewMatrixValid = false;
-            _modelviewInverse.setType(-1);
         }
     }
 
@@ -1862,7 +1860,6 @@ public class Renderer
         _modelview.setType(-1);
         _states[RenderState.TRANSFORM_STATE] = null;
         _modelviewMatrixValid = false;
-        _modelviewInverse.setType(-1);
     }
 
     /**
@@ -2064,19 +2061,6 @@ public class Renderer
             _modelviewMatrixValid = true;
         }
         return _modelview.getMatrix();
-    }
-
-    /**
-     * Returns a reference to the matrix of the inverse of the modelview transform, ensuring that
-     * it is up-to-date.
-     */
-    protected Matrix4f getModelviewInverseMatrix ()
-    {
-        if (_modelviewInverse.getType() == -1) {
-            _modelview.invert(_modelviewInverse);
-            _modelviewInverse.update(Transform3D.AFFINE);
-        }
-        return _modelviewInverse.getMatrix();
     }
 
     /**
@@ -2963,9 +2947,6 @@ public class Renderer
 
     /** The current modelview transform. */
     protected Transform3D _modelview = new Transform3D();
-
-    /** The lazily computed modelview transform inverse. */
-    protected Transform3D _modelviewInverse = new Transform3D(-1);
 
     /** Whether or not the modelview matrix is valid. */
     protected boolean _modelviewMatrixValid;
