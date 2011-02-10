@@ -2053,6 +2053,7 @@ public class Renderer
     protected void maybeRestoreModelview (boolean cleared)
     {
         if (cleared) {
+            setMatrixMode(GL11.GL_MODELVIEW);
             GL11.glPopMatrix();
         }
     }
