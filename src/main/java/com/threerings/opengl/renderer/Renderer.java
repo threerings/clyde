@@ -67,7 +67,6 @@ import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.renderer.state.RenderState;
-import com.threerings.opengl.renderer.state.TransformState;
 import com.threerings.opengl.gui.util.Rectangle;
 
 /**
