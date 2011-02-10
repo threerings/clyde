@@ -78,10 +78,6 @@ public class TextField extends EditableTextComponent
     public TextField (GlContext ctx, String text, int maxLength)
     {
         super(ctx, text, maxLength);
-
-        // map return/enter to ACTION
-        _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_RETURN, EditCommands.ACTION);
-        _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_NUMPADENTER, EditCommands.ACTION);
     }
 
     @Override // documentation inherited
@@ -210,4 +206,10 @@ public class TextField extends EditableTextComponent
     protected Text _glyphs;
 
     protected int _cursx, _selx, _txoff;
+
+    { // initializer
+        // map return/enter to ACTION
+        _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_RETURN, EditCommands.ACTION);
+        _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_NUMPADENTER, EditCommands.ACTION);
+    }
 }
