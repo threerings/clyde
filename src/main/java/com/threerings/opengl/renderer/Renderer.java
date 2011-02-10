@@ -591,6 +591,7 @@ public class Renderer
     {
         // update the union of the requested planes and the ones already set
         int numPlanes = (planes == null) ? 0 : planes.length;
+        boolean cleared = false;
         for (int ii = 0, nn = Math.max(_clipPlaneEnd, numPlanes); ii < nn; ii++) {
             ClipPlaneRecord prec = _clipPlanes[ii];
             Plane plane = (ii < numPlanes) ? planes[ii] : null;
@@ -603,19 +604,14 @@ public class Renderer
                 continue;
             }
             if (!prec.equals(plane)) {
-                // transform by transpose of modelview matrix to negate OpenGL's multiplying by
-                // inverse
-                Matrix4f mat = getModelviewMatrix();
-                Vector3f normal = prec.set(plane).getNormal();
-                _dbuf.put(normal.x*mat.m00 + normal.y*mat.m01 + normal.z*mat.m02);
-                _dbuf.put(normal.x*mat.m10 + normal.y*mat.m11 + normal.z*mat.m12);
-                _dbuf.put(normal.x*mat.m20 + normal.y*mat.m21 + normal.z*mat.m22);
-                _dbuf.put(normal.x*mat.m30 + normal.y*mat.m31 + normal.z*mat.m32 + prec.constant);
-                _dbuf.rewind();
+                // OpenGL multiplies by the modelview matrix inverse, so we have to clear it first
+                cleared = maybeClearModelview(cleared);
+                prec.set(plane).get(_dbuf).rewind();
                 GL11.glClipPlane(pname, _dbuf);
             }
         }
         _clipPlaneEnd = numPlanes;
+        maybeRestoreModelview(cleared);
     }
 
     /**
@@ -1121,6 +1117,7 @@ public class Renderer
         }
         // update the union of the requested lights and the ones already set
         int numLights = (lights == null) ? 0 : lights.length;
+        boolean cleared = false;
         for (int ii = 0, nn = Math.max(_lightEnd, numLights); ii < nn; ii++) {
             LightRecord lrec = _lights[ii];
             Light light = (ii < numLights) ? lights[ii] : null;
@@ -1151,24 +1148,18 @@ public class Renderer
             }
             if (!lrec.position.equals(light.position)) {
                 // OpenGL multiplies by the modelview matrix, so we have to clear it first
-                setMatrixMode(GL11.GL_MODELVIEW);
-                GL11.glPushMatrix();
-                GL11.glLoadIdentity();
+                cleared = maybeClearModelview(cleared);
                 lrec.position.set(light.position).get(_vbuf).rewind();
                 GL11.glLight(lname, GL11.GL_POSITION, _vbuf);
-                GL11.glPopMatrix();
             }
             if (light.position.w == 0f) {
                 continue; // light is directional; the rest does not apply
             }
             if (light.spotCutoff != 180f && !lrec.spotDirection.equals(light.spotDirection)) {
                 // as with the position, clear the modelview matrix
-                setMatrixMode(GL11.GL_MODELVIEW);
-                GL11.glPushMatrix();
-                GL11.glLoadIdentity();
+                cleared = maybeClearModelview(cleared);
                 lrec.spotDirection.set(light.spotDirection).get(_vbuf).rewind();
                 GL11.glLight(lname, GL11.GL_SPOT_DIRECTION, _vbuf);
-                GL11.glPopMatrix();
             }
             if (lrec.spotExponent != light.spotExponent) {
                 GL11.glLightf(lname, GL11.GL_SPOT_EXPONENT,
@@ -1192,6 +1183,7 @@ public class Renderer
             }
         }
         _lightEnd = numLights;
+        maybeRestoreModelview(cleared);
 
         if (!_globalAmbient.equals(globalAmbient)) {
             _globalAmbient.set(globalAmbient).get(_vbuf).rewind();
@@ -1492,6 +1484,7 @@ public class Renderer
 
         // update the union of the requested units and the ones already set
         int numUnits = (units == null) ? 0 : units.length;
+        boolean cleared = false;
         for (int ii = 0, nn = Math.max(_unitEnd, numUnits); ii < nn; ii++) {
             TextureUnitRecord urec = _units[ii];
             TextureUnit unit = (ii < numUnits) ? units[ii] : null;
@@ -1722,7 +1715,8 @@ public class Renderer
                 } else if (unit.genModeS == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneS.equals(unit.genPlaneS)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneS.set(unit.genPlaneS), _vbuf);
+                        maybeClearModelview(cleared);
+                        urec.genEyePlaneS.set(unit.genPlaneS).get(_vbuf).rewind();
                         GL11.glTexGen(GL11.GL_S, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1747,7 +1741,8 @@ public class Renderer
                 } else if (unit.genModeT == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneT.equals(unit.genPlaneT)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneT.set(unit.genPlaneT), _vbuf);
+                        maybeClearModelview(cleared);
+                        urec.genEyePlaneT.set(unit.genPlaneT).get(_vbuf).rewind();
                         GL11.glTexGen(GL11.GL_T, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1772,7 +1767,8 @@ public class Renderer
                 } else if (unit.genModeR == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneR.equals(unit.genPlaneR)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneR.set(unit.genPlaneR), _vbuf);
+                        maybeClearModelview(cleared);
+                        urec.genEyePlaneR.set(unit.genPlaneR).get(_vbuf).rewind();
                         GL11.glTexGen(GL11.GL_R, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1797,7 +1793,8 @@ public class Renderer
                 } else if (unit.genModeQ == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneQ.equals(unit.genPlaneQ)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneQ.set(unit.genPlaneQ), _vbuf);
+                        maybeClearModelview(cleared);
+                        urec.genEyePlaneQ.set(unit.genPlaneQ).get(_vbuf).rewind();
                         GL11.glTexGen(GL11.GL_Q, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1809,6 +1806,7 @@ public class Renderer
             }
         }
         _unitEnd = numUnits;
+        maybeRestoreModelview(cleared);
     }
 
     /**
@@ -1847,7 +1845,6 @@ public class Renderer
 
             // invalidate associated state
             _states[RenderState.TRANSFORM_STATE] = null;
-            _modelviewMatrixValid = false;
         }
     }
 
@@ -1858,7 +1855,6 @@ public class Renderer
     {
         _modelview.setType(-1);
         _states[RenderState.TRANSFORM_STATE] = null;
-        _modelviewMatrixValid = false;
     }
 
     /**
@@ -2037,29 +2033,28 @@ public class Renderer
     }
 
     /**
-     * Transforms a vector by the transpose of the modelview matrix and stores it in the supplied
-     * buffer.
+     * Clears the modelview matrix if it hasn't already been.
+     *
+     * @return the new value for the cleared flag (true).
      */
-    protected void transposeTransform (Vector4f vector, FloatBuffer result)
+    protected boolean maybeClearModelview (boolean cleared)
     {
-        Matrix4f mat = getModelviewMatrix();
-        result.put(vector.x*mat.m00 + vector.y*mat.m01 + vector.z*mat.m02);
-        result.put(vector.x*mat.m10 + vector.y*mat.m11 + vector.z*mat.m12);
-        result.put(vector.x*mat.m20 + vector.y*mat.m21 + vector.z*mat.m22);
-        result.put(vector.x*mat.m30 + vector.y*mat.m31 + vector.z*mat.m32 + vector.w);
-        result.rewind();
+        if (!cleared) {
+            setMatrixMode(GL11.GL_MODELVIEW);
+            GL11.glPushMatrix();
+            GL11.glLoadIdentity();
+        }
+        return true;
     }
 
     /**
-     * Returns a reference to the modelview matrix, ensuring that it is up-to-date.
+     * Restores the stored modelview matrix if it was previously cleared.
      */
-    protected Matrix4f getModelviewMatrix ()
+    protected void maybeRestoreModelview (boolean cleared)
     {
-        if (!_modelviewMatrixValid) {
-            _modelview.update(Transform3D.AFFINE);
-            _modelviewMatrixValid = true;
+        if (cleared) {
+            GL11.glPopMatrix();
         }
-        return _modelview.getMatrix();
     }
 
     /**
@@ -2946,9 +2941,6 @@ public class Renderer
 
     /** The current modelview transform. */
     protected Transform3D _modelview = new Transform3D();
-
-    /** Whether or not the modelview matrix is valid. */
-    protected boolean _modelviewMatrixValid;
 
     /** The currently bound frame buffer. */
     protected Framebuffer _framebuffer;
