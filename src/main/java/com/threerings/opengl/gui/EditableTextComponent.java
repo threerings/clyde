@@ -196,119 +196,31 @@ public abstract class EditableTextComponent extends TextComponent
         if (event instanceof KeyEvent) {
             KeyEvent kev = (KeyEvent)event;
             if (kev.getType() == KeyEvent.KEY_PRESSED) {
-                int modifiers = kev.getModifiers(), keyCode = kev.getKeyCode();
-                switch (_keymap.lookupMapping(modifiers, keyCode)) {
-                case BACKSPACE:
-                    if (!selectionIsEmpty()) {
-                        deleteSelectedText();
-                    } else if (_cursp > 0 && _text.getLength() > 0) {
-                        int pos = _cursp-1;
-                        if (_text.remove(pos, 1, nextUndoId(CompoundType.BACKSPACE))) {
-                            setCursorPos(pos);
-                            _lastCompoundType = CompoundType.BACKSPACE;
-                        }
-                    }
-                    break;
-
-                case DELETE:
-                    if (!selectionIsEmpty()) {
-                        deleteSelectedText();
-                    } else if (_cursp < _text.getLength()) {
-                        _text.remove(_cursp, 1, nextUndoId(CompoundType.DELETE));
-                        _lastCompoundType = CompoundType.DELETE;
-                    }
-                    break;
-
-                case CURSOR_LEFT:
-                    setCursorPos(Math.max(0, _cursp-1));
-                    break;
-
-                case CURSOR_RIGHT:
-                    setCursorPos(Math.min(_text.getLength(), _cursp+1));
-                    break;
-
-                case WORD_LEFT:
-                    setCursorPos(_text.lastIndexOfWordStart(_cursp));
-                    break;
-
-                case WORD_RIGHT:
-                    setCursorPos(_text.indexOfWordEnd(_cursp));
-                    break;
-
-                case START_OF_LINE:
-                    setCursorPos(0);
-                    break;
-
-                case END_OF_LINE:
-                    setCursorPos(_text.getLength());
-                    break;
-
-                case ACTION:
-                    emitEvent(new ActionEvent(
-                                  this, kev.getWhen(), kev.getModifiers(), "", getText()));
-                    break;
-
-                case RELEASE_FOCUS:
-                    getWindow().requestFocus(null);
-                    break;
-
-                case CLEAR:
-                    _text.setText("", nextUndoId(null));
-                    break;
-
-                case CUT:
-                    if (!selectionIsEmpty()) {
-                        getWindow().getRoot().setClipboardText(deleteSelectedText());
-                    }
-                    break;
-
-                case COPY:
-                    if (!selectionIsEmpty()) {
-                        getWindow().getRoot().setClipboardText(getSelectedText());
-                    }
-                    break;
-
-                case PASTE:
-                    String clip = getWindow().getRoot().getClipboardText();
-                    if (clip != null) {
-                        // we can only paste up to the first newline
-                        int idx = clip.indexOf('\n');
-                        if (idx != -1) {
-                            clip = clip.substring(0, idx);
-                        }
-
-                        // this works even if nothing is selected
-                        replaceSelectedText(clip, null);
-                    }
-                    break;
-
-                case UNDO:
-                    if (_undomgr.canUndo()) {
-                        _undomgr.undo();
-                    }
-                    break;
-
-                case REDO:
-                    if (_undomgr.canRedo()) {
-                        _undomgr.redo();
-                    }
-                    break;
-
-                default:
-                    // insert printable and shifted/alted printable characters
+                int modifiers = kev.getModifiers();
+                int cmd = _keymap.lookupMapping(modifiers, kev.getKeyCode());
+                switch (cmd) {
+                case KeyMap.NO_MAPPING:
                     char c = kev.getKeyChar();
+                    // if otherwise unprocessed, insert printable and shifted/alted printable chars
                     if ((modifiers & ~(KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) == 0 &&
-                            Character.isDefined(c) && !Character.isISOControl(c)) {
+                            Character.isDefined(c) && ((c == '\n') || !Character.isISOControl(c))) {
                         replaceSelectedText(String.valueOf(c),
                             Character.isLetterOrDigit(c) ?
                                 CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
-                    } else {
-                        return super.dispatchEvent(event);
+                        return true;
+                    }
+                    break;
+
+                case ACTION:
+                    emitEvent(new ActionEvent(this, event.getWhen(), modifiers, "", getText()));
+                    return true;
+
+                default:
+                    if (processCommand(cmd)) {
+                        return true;
                     }
                     break;
                 }
-
-                return true; // we've consumed these events
             }
 
         } else if (event instanceof MouseEvent &&
@@ -357,6 +269,115 @@ public abstract class EditableTextComponent extends TextComponent
         }
 
         return super.dispatchEvent(event);
+    }
+
+    /**
+     * Process the specified edit command, returning true if it was handled.
+     */
+    protected boolean processCommand (int cmd)
+    {
+        switch (cmd) {
+        default:
+            return false;
+
+        case BACKSPACE:
+            if (!selectionIsEmpty()) {
+                deleteSelectedText();
+            } else if (_cursp > 0 && _text.getLength() > 0) {
+                int pos = _cursp-1;
+                if (_text.remove(pos, 1, nextUndoId(CompoundType.BACKSPACE))) {
+                    setCursorPos(pos);
+                    _lastCompoundType = CompoundType.BACKSPACE;
+                }
+            }
+            break;
+
+        case DELETE:
+            if (!selectionIsEmpty()) {
+                deleteSelectedText();
+            } else if (_cursp < _text.getLength()) {
+                _text.remove(_cursp, 1, nextUndoId(CompoundType.DELETE));
+                _lastCompoundType = CompoundType.DELETE;
+            }
+            break;
+
+        case CURSOR_LEFT:
+            setCursorPos(Math.max(0, _cursp-1));
+            break;
+
+        case CURSOR_RIGHT:
+            setCursorPos(Math.min(_text.getLength(), _cursp+1));
+            break;
+
+        case WORD_LEFT:
+            setCursorPos(_text.lastIndexOfWordStart(_cursp));
+            break;
+
+        case WORD_RIGHT:
+            setCursorPos(_text.indexOfWordEnd(_cursp));
+            break;
+
+        case START_OF_LINE:
+            setCursorPos(0);
+            break;
+
+        case END_OF_LINE:
+            setCursorPos(_text.getLength());
+            break;
+
+        case RELEASE_FOCUS:
+            getWindow().requestFocus(null);
+            break;
+
+        case CLEAR:
+            _text.setText("", nextUndoId(null));
+            break;
+
+        case CUT:
+            if (!selectionIsEmpty()) {
+                getWindow().getRoot().setClipboardText(deleteSelectedText());
+            }
+            break;
+
+        case COPY:
+            if (!selectionIsEmpty()) {
+                getWindow().getRoot().setClipboardText(getSelectedText());
+            }
+            break;
+
+        case PASTE:
+            String clip = getWindow().getRoot().getClipboardText();
+            if (clip != null) {
+                clip = validatePaste(clip);
+                if (clip != null) {
+                    // this works even if nothing is selected
+                    replaceSelectedText(clip, null);
+                }
+            }
+            break;
+
+        case UNDO:
+            if (_undomgr.canUndo()) {
+                _undomgr.undo();
+            }
+            break;
+
+        case REDO:
+            if (_undomgr.canRedo()) {
+                _undomgr.redo();
+            }
+            break;
+        }
+        return true;
+    }
+
+    /**
+     * Validate the pasted text. Return null to reject the paste event altogether, or the pasted
+     * text may be modified...
+     */
+    protected String validatePaste (String pasted)
+    {
+        return pasted;
     }
 
     @Override // documentation inherited

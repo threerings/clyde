@@ -77,6 +77,25 @@ public class TextEditor extends EditableTextComponent
     }
 
     @Override
+    protected boolean processCommand (int cmd)
+    {
+        switch (cmd) {
+        default:
+            return super.processCommand(cmd);
+
+        case CURSOR_UP:
+            setCursorPos(getPosition(_curs.x, _curs.y + getTextFactory().getHeight()));
+            break;
+
+        case CURSOR_DOWN:
+            setCursorPos(getPosition(_curs.x, _curs.y - getTextFactory().getHeight()));
+            break;
+        }
+
+        return true;
+    }
+
+    @Override
     protected boolean hasGlyphs ()
     {
         return (_glyphs != null);

@@ -25,10 +25,14 @@
 
 package com.threerings.opengl.gui;
 
+import org.lwjgl.input.Keyboard;
+
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.util.GlContext;
 
 import com.threerings.opengl.gui.background.Background;
+import com.threerings.opengl.gui.text.EditCommands;
+import com.threerings.opengl.gui.text.KeyMap;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
@@ -74,6 +78,10 @@ public class TextField extends EditableTextComponent
     public TextField (GlContext ctx, String text, int maxLength)
     {
         super(ctx, text, maxLength);
+
+        // map return/enter to ACTION
+        _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_RETURN, EditCommands.ACTION);
+        _keymap.addMapping(KeyMap.ANY_MODIFIER, Keyboard.KEY_NUMPADENTER, EditCommands.ACTION);
     }
 
     @Override // documentation inherited
@@ -136,6 +144,14 @@ public class TextField extends EditableTextComponent
             d.width = _prefWidth;
         }
         return d;
+    }
+
+    @Override
+    protected String validatePaste (String pasted)
+    {
+        // only paste up to the first newline
+        int idx = pasted.indexOf('\n');
+        return (idx == -1) ? pasted : pasted.substring(0, idx);
     }
 
     @Override

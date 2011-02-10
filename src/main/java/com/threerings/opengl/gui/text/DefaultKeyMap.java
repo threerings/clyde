@@ -36,8 +36,6 @@ public class DefaultKeyMap extends KeyMap
 {
     public DefaultKeyMap ()
     {
-        addMapping(ANY_MODIFIER, Keyboard.KEY_RETURN, EditCommands.ACTION);
-        addMapping(ANY_MODIFIER, Keyboard.KEY_NUMPADENTER, EditCommands.ACTION);
         addMapping(ANY_MODIFIER, Keyboard.KEY_BACK, EditCommands.BACKSPACE);
         addMapping(ANY_MODIFIER, Keyboard.KEY_DELETE, EditCommands.DELETE);
 
