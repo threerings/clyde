@@ -143,6 +143,25 @@ public class TextField extends EditableTextComponent
     }
 
     @Override
+    protected boolean processCommand (int cmd)
+    {
+        switch (cmd) {
+        default:
+            return super.processCommand(cmd);
+
+        case START_OF_LINE:
+            setCursorPos(0);
+            break;
+
+        case END_OF_LINE:
+            setCursorPos(_text.getLength());
+            break;
+        }
+
+        return true;
+    }
+
+    @Override
     protected String validatePaste (String pasted)
     {
         // only paste up to the first newline

@@ -317,14 +317,6 @@ public abstract class EditableTextComponent extends TextComponent
             setCursorPos(_text.indexOfWordEnd(_cursp));
             break;
 
-        case START_OF_LINE:
-            setCursorPos(0);
-            break;
-
-        case END_OF_LINE:
-            setCursorPos(_text.getLength());
-            break;
-
         case RELEASE_FOCUS:
             getWindow().requestFocus(null);
             break;
@@ -368,6 +360,7 @@ public abstract class EditableTextComponent extends TextComponent
             }
             break;
         }
+
         return true;
     }
 

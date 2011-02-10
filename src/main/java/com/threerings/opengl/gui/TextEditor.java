@@ -11,6 +11,7 @@ import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Point;
+import com.threerings.opengl.gui.util.Rectangle;
 
 /**
  * A multiline text-editing widget.
@@ -47,6 +48,7 @@ public class TextEditor extends EditableTextComponent
         Insets insets = getInsets();
         int lineHeight = getTextFactory().getHeight();
 
+        // draw the selection background if there is a selection
         if (_showCursor && (_cursp != _selp)) {
             Background bkg = getSelectionBackground();
             if (bkg != null) {
@@ -77,16 +79,27 @@ public class TextEditor extends EditableTextComponent
             }
         }
 
+        // draw the glyphs
         if (_glyphs != null) {
-            // TODO: scissoring
-            int x = insets.left;
-            int y = _height - insets.top - lineHeight;
-            for (Text text : _glyphs) {
-                text.render(renderer, x, y, _alpha);
-                y -= lineHeight;
+            Rectangle oscissor = intersectScissor(
+                renderer, _srect,
+                getAbsoluteX() + insets.left,
+                getAbsoluteY() + insets.bottom,
+                _width - insets.getHorizontal(),
+                _height - insets.getVertical());
+            try {
+                int x = insets.left;
+                int y = _height - insets.top - lineHeight;
+                for (Text text : _glyphs) {
+                    text.render(renderer, x, y, _alpha);
+                    y -= lineHeight;
+                }
+            } finally {
+                renderer.setScissor(oscissor);
             }
         }
 
+        // draw the cursor
         if (_showCursor && (_cursp == _selp)) {
             renderCursor(renderer, insets.left + _curs.x, insets.bottom + _curs.y, lineHeight);
         }
@@ -110,9 +123,29 @@ public class TextEditor extends EditableTextComponent
 
         case CURSOR_UP:
         case CURSOR_DOWN:
+        case START_OF_LINE:
+        case END_OF_LINE:
             int lineHeight = getTextFactory().getHeight();
-            setCursorPos(getPosition(
-                _curs.x, _curs.y + (lineHeight/2) + (((cmd == CURSOR_UP) ? 1 : -1) * lineHeight)));
+            int x = _curs.x;
+            int y = _curs.y + (lineHeight/2);
+            switch (cmd) {
+            case CURSOR_UP:
+                y += lineHeight;
+                break;
+
+            case CURSOR_DOWN:
+                y -= lineHeight;
+                break;
+
+            case START_OF_LINE:
+                x = 0;
+                break;
+
+            case END_OF_LINE:
+                x = Integer.MAX_VALUE;
+                break;
+            }
+            setCursorPos(getPosition(x, y));
             break;
         }
 
