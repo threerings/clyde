@@ -50,7 +50,7 @@ public class TextEditor extends EditableTextComponent
         if (_showCursor && (_cursp != _selp)) {
             Background bkg = getSelectionBackground();
             if (bkg != null) {
-                // TODO Pre-calculate this?
+                // TODO Pre-calculate a List of rectangles when the selection is set?
                 int startP = Math.min(_cursp, _selp);
                 int endP = Math.max(_cursp, _selp);
                 Point startLoc = (startP == _cursp) ? _curs : _sel;
@@ -59,33 +59,20 @@ public class TextEditor extends EditableTextComponent
                     bkg.render(renderer,
                         insets.left + startLoc.x, insets.bottom + startLoc.y,
                         endLoc.x - startLoc.x + 1, lineHeight, _alpha);
-                } else {
-                    int pos = 0;
-                    boolean started = false;
-                    int y = _height - insets.top - lineHeight;
-                    for (Text text : _glyphs) {
-                        int length = text.getLength();
-                        if (started) {
-                            if (endP < (pos + length)) {
-                                bkg.render(renderer,
-                                    insets.left, insets.bottom + endLoc.y,
-                                    endLoc.x + 1, lineHeight, _alpha);
-                                break;
-                            }
-                            bkg.render(renderer,
-                                insets.left, y, text.getSize().width + 1, lineHeight, _alpha);
 
-                        } else {
-                            if (startP < (pos + length)) {
-                                bkg.render(renderer,
-                                    insets.left + startLoc.x, insets.bottom + startLoc.y,
-                                    text.getSize().width - startLoc.x, lineHeight, _alpha);
-                                started = true;
-                            }
-                        }
-                        pos += length;
-                        y -= lineHeight;
+                } else {
+                    int idx = ((_height - insets.getVertical() - startLoc.y) / lineHeight) - 1;
+                    bkg.render(renderer,
+                        insets.left + startLoc.x, insets.bottom + startLoc.y,
+                        _glyphs[idx].getSize().width - startLoc.x + 1, lineHeight, _alpha);
+                    for (int y = startLoc.y - lineHeight; y > endLoc.y; y -= lineHeight) {
+                        bkg.render(renderer,
+                            insets.left, insets.bottom + y,
+                            _glyphs[++idx].getSize().width + 1, lineHeight, _alpha);
                     }
+                    bkg.render(renderer,
+                        insets.left, insets.bottom + endLoc.y,
+                        endLoc.x + 1, lineHeight, _alpha);
                 }
             }
         }
@@ -109,11 +96,9 @@ public class TextEditor extends EditableTextComponent
     protected Dimension computePreferredSize (int whint, int hhint)
     {
         Insets insets = getInsets();
-        int height = getTextFactory().getHeight();
+        int lineHeight = getTextFactory().getHeight();
         int width = (_prefWidth == -1) ? insets.getHorizontal() : _prefWidth;
-        return (_glyphs == null)
-            ? new Dimension(width, height)
-            : new Dimension(width, (height * _glyphs.length) + insets.getVertical());
+        return new Dimension(width, (_lines * lineHeight) + insets.getVertical());
     }
 
     @Override
@@ -135,6 +120,19 @@ public class TextEditor extends EditableTextComponent
     }
 
     @Override
+    protected void recreateGlyphs ()
+    {
+        super.recreateGlyphs();
+
+        // our preferred size may have changed
+        int lines = (_glyphs == null) ? 1 : _glyphs.length;
+        if (_lines != lines) {
+            _lines = lines;
+            invalidate();
+        }
+    }
+
+    @Override
     protected boolean hasGlyphs ()
     {
         return (_glyphs != null);
@@ -146,12 +144,6 @@ public class TextEditor extends EditableTextComponent
         _glyphs = getTextFactory().wrapText(
             getDisplayText(), getColor(), UIConstants.PLAIN, UIConstants.DEFAULT_SIZE, null,
             _width - getInsets().getHorizontal());
-
-        // if the number of lines changed, invalidate
-        if (_glyphs.length != _lines) {
-            _lines = _glyphs.length;
-            invalidate();
-        }
     }
 
     @Override
@@ -217,8 +209,8 @@ public class TextEditor extends EditableTextComponent
     /** Our lines of text. */
     protected Text[] _glyphs;
 
-    /** The number of lines at the last time we created our glyphs. */
-    protected int _lines;
+    /** The number of lines of glyphs we have, or 1. */
+    protected int _lines = 1;
 
     /** A mutable Point containing the inset coordiantes of the cursor. */
     protected Point _curs = new Point();
