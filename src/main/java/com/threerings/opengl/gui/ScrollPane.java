@@ -352,15 +352,17 @@ public class ScrollPane extends Container
         @Override
         public void scrollRectToVisible (int x, int y, int w, int h)
         {
+            Insets insets = getInsets();
             if (_vmodel != null) {
                 int dy = positionAdjustment(_vmodel.getExtent(), h,
-                    (_vmodel.getMaximum() - y - h) - _vmodel.getValue());
+                    (_vmodel.getMaximum() - (y - insets.bottom) - h) - _vmodel.getValue());
                 if (dy != 0) {
                     _vmodel.setValue(_vmodel.getValue() + dy);
                 }
             }
             if (_hmodel != null) {
-                int dx = positionAdjustment(_hmodel.getExtent(), w, x - _hmodel.getValue());
+                int dx = positionAdjustment(_hmodel.getExtent(), w,
+                    x - insets.left - _hmodel.getValue());
                 if (dx != 0) {
                     _hmodel.setValue(_hmodel.getValue() + dx);
                 }
