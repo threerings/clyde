@@ -227,11 +227,17 @@ public abstract class EditableTextComponent extends TextComponent
                 // don't adjust the cursor/selection if we have no text
                 _text.getLength() > 0 && hasGlyphs()) {
             MouseEvent mev = (MouseEvent)event;
+            int type = mev.getType();
+            if (type != MouseEvent.MOUSE_PRESSED &&
+                    type != MouseEvent.MOUSE_DRAGGED &&
+                    type != MouseEvent.MOUSE_CLICKED) {
+                // avoid calculating the position on every mouse move
+                return super.dispatchEvent(event);
+            }
             Insets insets = getInsets();
             int mx = mev.getX() - getAbsoluteX() - insets.left,
                 my = mev.getY() - getAbsoluteY() - insets.bottom;
             int pos = getPosition(mx, my);
-            int type = mev.getType();
             if (type == MouseEvent.MOUSE_PRESSED) {
                 // if pressed inside the selection, wait for click
                 if (!selectionContains(pos)) {
