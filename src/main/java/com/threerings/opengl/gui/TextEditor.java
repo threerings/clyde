@@ -194,13 +194,17 @@ public class TextEditor extends EditableTextComponent
         }
         int lineHeight = getTextFactory().getHeight();
         int pos = 0;
+        String docText = _text.getText();
         for (Text text : _glyphs) {
             y -= lineHeight;
             if (mouseY > y) {
                 return pos + text.getHitPos(mouseX, mouseY - y);
 
             } else {
-                pos += text.getLength() + 1;
+                pos += text.getLength();
+                if (pos < docText.length() && Character.isWhitespace(docText.charAt(pos))) {
+                    pos++;
+                }
             }
         }
         return Math.min(pos, _text.getText().length());
@@ -218,10 +222,16 @@ public class TextEditor extends EditableTextComponent
         }
 
         // scroll so that the cursor is visible (plus some)
-        Insets insets = getInsets();
-        int lineHeight = getTextFactory().getHeight();
-        scrollRectToVisible(
-            _curs.x, _curs.y, insets.getHorizontal() + 1, lineHeight + insets.getVertical() + 1);
+        if (_showCursor) {
+            Insets insets = getInsets();
+            int lineHeight = getTextFactory().getHeight();
+            scrollRectToVisible(
+                // _curs needs to be offset by insets, but we pad it with our insets so we
+                // subtract them back out again, giving the plain value...
+                // (_curs.x + insets.bottom) - insets.bottom
+                _curs.x, _curs.y,
+                insets.getHorizontal() + 1, lineHeight + insets.getVertical() + 1);
+        }
     }
 
     /**
@@ -232,13 +242,20 @@ public class TextEditor extends EditableTextComponent
         int lineHeight = getTextFactory().getHeight();
         int y = _height - getInsets().getVertical() - lineHeight;
         if (_glyphs != null) {
+            String docText = _text.getText();
+            int docPos = 0;
             for (Text text : _glyphs) {
                 int len = text.getLength();
                 if (pos <= len) {
                     loc.set(text.getCursorPos(pos), y);
                     return;
                 }
-                pos -= len + 1;
+                docPos += len;
+                pos -= len;
+                if (docPos < docText.length() && Character.isWhitespace(docText.charAt(docPos))) {
+                    docPos++;
+                    pos--;
+                }
                 y -= lineHeight;
             }
         }
