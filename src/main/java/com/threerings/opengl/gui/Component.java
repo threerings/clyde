@@ -814,6 +814,19 @@ public class Component
     }
 
     /**
+     * Request to have the specified rectangle, in this component's coordinate space,
+     * scrolled into view. This request will be repeatedly forwarded to parent containers
+     * until one can handle the request. If no ScrollPane's viewport contains this component
+     * then this request is unlikely to do anything.
+     */
+    public void scrollRectToVisible (int x, int y, int w, int h)
+    {
+        if (_parent != null) {
+            _parent.scrollRectToVisible(x + _x, y + _y, w, h);
+        }
+    }
+
+    /**
      * Instructs this component to process the supplied event. If the event is not processed, it
      * will be passed up to its parent component for processing. Derived classes should thus only
      * call <code>super.dispatchEvent</code> for events that they did not "consume".

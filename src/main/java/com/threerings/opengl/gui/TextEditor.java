@@ -216,6 +216,12 @@ public class TextEditor extends EditableTextComponent
         } else {
             calculatePosition(_selp, _sel);
         }
+
+        // scroll so that the cursor is visible (plus some)
+        Insets insets = getInsets();
+        int lineHeight = getTextFactory().getHeight();
+        scrollRectToVisible(
+            _curs.x, _curs.y, insets.getHorizontal() + 1, lineHeight + insets.getVertical() + 1);
     }
 
     /**

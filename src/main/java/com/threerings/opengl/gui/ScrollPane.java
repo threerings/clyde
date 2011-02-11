@@ -349,6 +349,74 @@ public class ScrollPane extends Container
             return this;
         }
 
+        @Override
+        public void scrollRectToVisible (int x, int y, int w, int h)
+        {
+            if (_vmodel != null) {
+                int dy = positionAdjustment(_vmodel.getExtent(), h,
+                    (_vmodel.getMaximum() - y - h) - _vmodel.getValue());
+                if (dy != 0) {
+                    _vmodel.setValue(_vmodel.getValue() + dy);
+                }
+            }
+            if (_hmodel != null) {
+                int dx = positionAdjustment(_hmodel.getExtent(), w, x - _hmodel.getValue());
+                if (dx != 0) {
+                    _hmodel.setValue(_hmodel.getValue() + dx);
+                }
+            }
+        }
+
+        /**
+         * Helper for scrollRectToVisible, pretty much copied from JViewport.java.
+         */
+        protected int positionAdjustment (int parentExtent, int childExtent, int childPos)
+        {
+            //   +-----+
+            //   | --- |     No Change
+            //   +-----+
+            if (childPos >= 0 && childExtent + childPos <= parentExtent)    {
+                return 0;
+            }
+
+            //   +-----+
+            //  ---------   No Change
+            //   +-----+
+            if (childPos <= 0 && childExtent + childPos >= parentExtent) {
+                return 0;
+            }
+
+            //   +-----+          +-----+
+            //   |   ----    ->   | ----|
+            //   +-----+          +-----+
+            if (childPos > 0 && childExtent <= parentExtent)    {
+                return childPos - parentExtent + childExtent;
+            }
+
+            //   +-----+             +-----+
+            //   |  --------  ->     |--------
+            //   +-----+             +-----+
+            if (childPos >= 0 && childExtent >= parentExtent)   {
+                return childPos;
+            }
+
+            //   +-----+          +-----+
+            // ----    |     ->   |---- |
+            //   +-----+          +-----+
+            if (childPos <= 0 && childExtent <= parentExtent)   {
+                return childPos;
+            }
+
+            //   +-----+             +-----+
+            //-------- |      ->   --------|
+            //   +-----+             +-----+
+            if (childPos < 0 && childExtent >= parentExtent)    {
+                return childPos - parentExtent + childExtent;
+            }
+
+            return 0;
+        }
+
         // documentation inherited
         protected void wasAdded ()
         {
