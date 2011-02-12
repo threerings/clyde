@@ -96,15 +96,12 @@ public class ClientLiaison
     public void bodyUpdated (OccupantInfo info)
     {
         if (info.status == OccupantInfo.DISCONNECTED) {
+            // if they reconnect, they'll have to start again from the zero reference time
             _records.clear();
+            _records.add(new TickRecord());
             _previousVisibleActors.clear();
             _visibleActors.clear();
             _receiving = false;
-        } else {
-            if (_records.isEmpty()) {
-                // start again from the zero reference time
-                _records.add(new TickRecord());
-            }
         }
     }
 
