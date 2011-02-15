@@ -202,12 +202,14 @@ public abstract class EditableTextComponent extends TextComponent
                 case KeyMap.NO_MAPPING:
                     char c = kev.getKeyChar();
                     // if otherwise unprocessed, insert printable and shifted/alted printable chars
-                    if ((modifiers & ~(KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) == 0 &&
-                            Character.isDefined(c) && ((c == '\n') || !Character.isISOControl(c))) {
-                        replaceSelectedText(String.valueOf(c),
-                            Character.isLetterOrDigit(c) ?
-                                CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
-                        return true;
+                    if ((modifiers & ~(KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) == 0) {
+                        c = insertChar(c);
+                        if (c != 0) {
+                            replaceSelectedText(String.valueOf(c),
+                                Character.isLetterOrDigit(c) ?
+                                    CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
+                            return true;
+                        }
                     }
                     break;
 
@@ -275,6 +277,24 @@ public abstract class EditableTextComponent extends TextComponent
         }
 
         return super.dispatchEvent(event);
+    }
+
+    /**
+     * Given the provided character, return the character to insert, or 0 to nix the insertion.
+     */
+    protected char insertChar (char c)
+    {
+        switch (c) {
+        case '\n':
+        case '\r':
+            return '\n';
+
+        default:
+            if (!Character.isDefined(c) || Character.isISOControl(c)) {
+                return 0;
+            }
+            return c;
+        }
     }
 
     /**
