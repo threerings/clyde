@@ -453,7 +453,7 @@ public class TudeySceneManager extends SceneManager
         }
 
         // clamp the timestamp to the acceptable range
-        timestamp = Math.min(Math.max(timestamp, _previousTimestamp + 1), _timestamp);
+        timestamp = Math.max(timestamp, _previousTimestamp + 1);
 
         // initialize the logic and add it to the list
         logic.init(this, ref, original, timestamp, target, translation, rotation);
@@ -623,7 +623,6 @@ public class TudeySceneManager extends SceneManager
     public int triggerSensors (
         Class<? extends Sensor> type, int timestamp, Shape shape, int flags, ActorLogic actor)
     {
-
         return triggerSensors(type, timestamp, ImmutableList.of(shape), flags, actor);
     }
 
