@@ -481,6 +481,12 @@ public abstract class ActionLogic extends Logic
     public static class Conditional extends ActionLogic
     {
         @Override // documentation inherited
+        public boolean shouldExecute (Logic activator)
+        {
+            return _elseAction != null || _condition.isSatisfied(activator);
+        }
+
+        @Override // documentation inherited
         public boolean execute (int timestamp, Logic activator)
         {
             if (_condition.isSatisfied(activator)) {
@@ -996,7 +1002,7 @@ public abstract class ActionLogic extends Logic
     /**
      * Provides a hint as to whether this action should be executed.
      */
-    public boolean shouldExecute ()
+    public boolean shouldExecute (Logic activator)
     {
         return true;
     }
