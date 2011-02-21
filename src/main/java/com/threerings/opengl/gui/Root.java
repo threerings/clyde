@@ -105,7 +105,10 @@ public abstract class Root extends SimpleOverlay
      */
     public Sound getSound (String path)
     {
-        return _soundGroup.getSound(path);
+        // make the sound source-relative to avoid distance attenuation for mono sounds
+        Sound sound = _soundGroup.getSound(path);
+        sound.setSourceRelative(true);
+        return sound;
     }
 
     /**
