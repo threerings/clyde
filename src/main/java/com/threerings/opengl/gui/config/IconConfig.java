@@ -41,13 +41,16 @@ import com.threerings.util.DeepOmit;
 import com.threerings.opengl.gui.icon.BlankIcon;
 import com.threerings.opengl.gui.icon.Icon;
 import com.threerings.opengl.gui.icon.ImageIcon;
+import com.threerings.opengl.gui.icon.RotatedIcon;
 import com.threerings.opengl.renderer.config.ColorizationConfig;
 import com.threerings.opengl.util.GlContext;
 
 /**
  * Contains an icon configuration.
  */
-@EditorTypes({ IconConfig.Image.class, IconConfig.ColorizedImage.class, IconConfig.Blank.class })
+@EditorTypes({
+    IconConfig.Image.class, IconConfig.ColorizedImage.class,
+    IconConfig.Rotated.class, IconConfig.Blank.class })
 public abstract class IconConfig extends DeepObject
     implements Exportable
 {
@@ -100,6 +103,27 @@ public abstract class IconConfig extends DeepObject
         public com.threerings.opengl.gui.Image getImage (GlContext ctx)
         {
             return getImage(ctx, file, colorizations);
+        }
+    }
+
+    /**
+     * A rotated icon.
+     */
+    public static class Rotated extends IconConfig
+    {
+        /** The amount of rotation. */
+        @Editable(min=-180, max=+180)
+        public float rotation;
+
+        /** The sub-icon to rotate. */
+        @Editable(nullable=true)
+        public IconConfig icon;
+
+        @Override // documentation inherited
+        protected Icon createIcon (GlContext ctx)
+        {
+            return (icon == null) ? new BlankIcon(1, 1) :
+                new RotatedIcon(icon.createIcon(ctx), rotation);
         }
     }
 
