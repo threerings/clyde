@@ -222,6 +222,16 @@ public class ChatOverlay extends Container
         _end.setEnabled(more);
     }
 
+    @Override
+    protected void wasAdded ()
+    {
+        super.wasAdded();
+
+        // there was a bug where chat would not scroll into view when we weren't on screen.
+        // This seems to fix it.
+        _area.invalidate();
+    }
+
     /** The bundle we use to translate messages. */
     protected MessageBundle _msgs;
 
