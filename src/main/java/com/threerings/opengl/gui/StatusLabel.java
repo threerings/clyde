@@ -65,15 +65,15 @@ public class StatusLabel extends Label
      */
     public void setStatus (String message, boolean flash)
     {
-        setText(message);
+        super.setText(message);
+        if (_flashAlert != null) {
+            _flashAlert.cancel();
+        }
+        final Icon alert = _icons[getState()];
+        final BlankIcon blank = (alert == null) ?
+            null : new BlankIcon(alert.getWidth(), alert.getHeight());
+        setIcon(flash ? alert : blank);
         if (flash) {
-            final Icon alert = _icons[getState()];
-            final BlankIcon blank = (alert == null) ?
-                null : new BlankIcon(alert.getWidth(), alert.getHeight());
-            setIcon(alert);
-            if (_flashAlert != null) {
-                _flashAlert.cancel();
-            }
             (_flashAlert = new Interval(_ctx.getApp().getRunQueue()) {
                 public void expired () {
                     _flashCount++;
@@ -85,6 +85,12 @@ public class StatusLabel extends Label
                 protected int _flashCount = 0;
             }).schedule(FLASH_DELAY, true);
         }
+    }
+
+    @Override
+    public void setText (String text)
+    {
+        setStatus(text, false);
     }
 
     @Override // documentation inherited
