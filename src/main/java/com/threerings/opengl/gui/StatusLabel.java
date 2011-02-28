@@ -90,7 +90,13 @@ public class StatusLabel extends Label
     @Override
     public void setText (String text)
     {
-        setStatus(text, false);
+        if (_icons == null) {
+            // not yet initialized
+            super.setText(text);
+
+        } else {
+            setStatus(text, false);
+        }
     }
 
     @Override // documentation inherited
