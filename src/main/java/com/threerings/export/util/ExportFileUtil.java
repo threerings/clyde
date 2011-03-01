@@ -51,8 +51,8 @@ public class ExportFileUtil
             return clazz.cast(in.readObject());
 
         } catch (ClassCastException cce) {
-            throw new IOException("File " + file + " doesn't contain a " + clazz, cce);
-
+            String msg = "File " + file + " doesn't contain a " + clazz;
+            throw (IOException)new IOException(msg).initCause(cce);
         } finally {
             Closeables.closeQuietly(in);
         }
