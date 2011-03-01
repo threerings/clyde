@@ -30,6 +30,8 @@ import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.gui.Image;
 import com.threerings.opengl.gui.util.Insets;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * Supports image backgrounds in a variety of ways. Specifically:
  *
@@ -72,6 +74,9 @@ public class ImageBackground extends Background
     public static final int FRAME_XY = 9;
     public static final int FRAME_X = 10;
     public static final int FRAME_Y = 11;
+
+    public static final int ASPECT_INNER = 12;
+    public static final int ASPECT_OUTER = 13;
 
     public static final int ANCHOR_LL = 0;
     public static final int ANCHOR_LR = 1;
@@ -157,6 +162,10 @@ public class ImageBackground extends Background
 
         case FRAME:
             renderFramed(renderer, x, y, width, height, alpha);
+            break;
+
+        case ASPECT:
+            renderAspectScaled(renderer, x, y, width, height, alpha);
             break;
         }
     }
@@ -286,6 +295,37 @@ public class ImageBackground extends Background
                       x+_frame.left, y+_frame.bottom, gwmiddle, ghmiddle, alpha);
     }
 
+    protected void renderAspectScaled (
+        Renderer renderer, int x, int y, int width, int height, float alpha)
+    {
+        int sx = 0;
+        int sy = 0;
+        int swidth = _image.getWidth();
+        int sheight = _image.getHeight();
+        float x_aspect = (float)width / swidth;
+        float y_aspect = (float)height / sheight;
+        if (_mode == ASPECT_INNER) {
+            if (x_aspect > y_aspect) {
+                sheight = height * swidth / width;
+                sy = (_image.getHeight() - sheight) / 2;
+            } else if (y_aspect > x_aspect) {
+                swidth = width * sheight / height;
+                sx = (_image.getWidth() - swidth) / 2;
+            }
+        } else {
+            if (x_aspect < y_aspect) {
+                int nheight = (int)(sheight * x_aspect);
+                y = (height - nheight) / 2;
+                height = nheight;
+            } else if (y_aspect < x_aspect) {
+                int nwidth = (int)(swidth * y_aspect);
+                x = (width - nwidth) / 2;
+                width = nwidth;
+            }
+        }
+        _image.render(renderer, sx, sy, swidth, sheight, x, y, width, height, alpha);
+    }
+
     protected int _mode;
     protected int _anchor;
     protected Image _image;
@@ -295,4 +335,5 @@ public class ImageBackground extends Background
     protected static final int SCALE = 1;
     protected static final int TILE = 2;
     protected static final int FRAME = 3;
+    protected static final int ASPECT = 4;
 }

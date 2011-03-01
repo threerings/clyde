@@ -91,7 +91,10 @@ public abstract class BackgroundConfig extends DeepObject
 
             FRAME_XY(ImageBackground.FRAME_XY, true),
             FRAME_X(ImageBackground.FRAME_X, true),
-            FRAME_Y(ImageBackground.FRAME_Y, true);
+            FRAME_Y(ImageBackground.FRAME_Y, true),
+
+            ASPECT_INNER(ImageBackground.ASPECT_INNER),
+            ASPECT_OUTER(ImageBackground.ASPECT_OUTER);
 
             /**
              * Returns the corresponding {@link ImageBackground} constant.
