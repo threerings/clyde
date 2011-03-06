@@ -83,7 +83,7 @@ public class UserInterfaceWindow extends Window
     {
         super(ctx, new BorderLayout());
         _scope.setParentScope(ctx.getScope());
-        _interface = new UserInterface(ctx);
+        _interface = createInterface();
         _interface.getScope().setParentScope(_scope);
         _interface.setConfig(ref);
         add(_interface, BorderLayout.CENTER);
@@ -140,6 +140,14 @@ public class UserInterfaceWindow extends Window
         if (_stretch) {
             _ctx.getRenderer().removeObserver(this);
         }
+    }
+
+    /**
+     * Creates the user interface for the window.
+     */
+    protected UserInterface createInterface ()
+    {
+        return new UserInterface(_ctx);
     }
 
     /** The window scope. */
