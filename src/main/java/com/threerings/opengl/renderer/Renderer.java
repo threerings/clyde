@@ -141,6 +141,12 @@ public class Renderer
             _maxVertexAttribs = 0;
         }
 
+        // determine the vendor
+        String vendor = GL11.glGetString(GL11.GL_VENDOR).toLowerCase();
+        _nvidia = vendor.contains("nvidia");
+        _ati = vendor.contains("ati");
+        _intel = vendor.contains("intel");
+
         // get the initial draw/read buffers
         GL11.glGetInteger(GL11.GL_DRAW_BUFFER, buf);
         _drawBuffer = buf.get(0);
@@ -1488,6 +1494,7 @@ public class Renderer
 
         // update the union of the requested units and the ones already set
         int numUnits = (units == null) ? 0 : units.length;
+        boolean cleared = false;
         for (int ii = 0, nn = Math.max(_unitEnd, numUnits); ii < nn; ii++) {
             TextureUnitRecord urec = _units[ii];
             TextureUnit unit = (ii < numUnits) ? units[ii] : null;
@@ -1718,7 +1725,8 @@ public class Renderer
                 } else if (unit.genModeS == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneS.equals(unit.genPlaneS)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneS.set(unit.genPlaneS), _vbuf);
+                        cleared = clearModelviewOrTransposeTransform(
+                            cleared, urec.genEyePlaneS.set(unit.genPlaneS), _vbuf);
                         GL11.glTexGen(GL11.GL_S, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1743,7 +1751,8 @@ public class Renderer
                 } else if (unit.genModeT == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneT.equals(unit.genPlaneT)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneT.set(unit.genPlaneT), _vbuf);
+                        cleared = clearModelviewOrTransposeTransform(
+                            cleared, urec.genEyePlaneT.set(unit.genPlaneT), _vbuf);
                         GL11.glTexGen(GL11.GL_T, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1768,7 +1777,8 @@ public class Renderer
                 } else if (unit.genModeR == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneR.equals(unit.genPlaneR)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneR.set(unit.genPlaneR), _vbuf);
+                        cleared = clearModelviewOrTransposeTransform(
+                            cleared, urec.genEyePlaneR.set(unit.genPlaneR), _vbuf);
                         GL11.glTexGen(GL11.GL_R, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1793,7 +1803,8 @@ public class Renderer
                 } else if (unit.genModeQ == GL11.GL_EYE_LINEAR) {
                     if (!urec.genEyePlaneQ.equals(unit.genPlaneQ)) {
                         setActiveUnit(ii);
-                        transposeTransform(urec.genEyePlaneQ.set(unit.genPlaneQ), _vbuf);
+                        cleared = clearModelviewOrTransposeTransform(
+                            cleared, urec.genEyePlaneQ.set(unit.genPlaneQ), _vbuf);
                         GL11.glTexGen(GL11.GL_Q, GL11.GL_EYE_PLANE, _vbuf);
                     }
                 }
@@ -1805,6 +1816,7 @@ public class Renderer
             }
         }
         _unitEnd = numUnits;
+        maybeRestoreModelview(cleared);
     }
 
     /**
@@ -2029,6 +2041,28 @@ public class Renderer
             if (scale != 1f) {
                 GL11.glScalef(scale, scale, scale);
             }
+        }
+    }
+
+    /**
+     * On Intel cards, this clears the modelview matrix and loads the plane coefficients into
+     * the supplied buffer.  On non-Intel cards, it multiplies the coefficients by the transpose
+     * of the modelview matrix and stores them in the buffer.  It's a workaround for dueling
+     * issues with the ATI and Intel drivers.
+     *
+     * @return true if we cleared the modelview matrix.
+     */
+    protected boolean clearModelviewOrTransposeTransform (
+        boolean cleared, Vector4f vector, FloatBuffer result)
+    {
+        if (_intel) {
+            maybeClearModelview(cleared);
+            vector.get(result).rewind();
+            return true;
+
+        } else {
+            transposeTransform(vector, result);
+            return false;
         }
     }
 
@@ -2683,6 +2717,9 @@ public class Renderer
 
     /** The maximum number of vertex attributes available to vertex shaders. */
     protected int _maxVertexAttribs;
+
+    /** Vendor flags for special casery. */
+    protected boolean _nvidia, _ati, _intel;
 
     /** The number of texture changes in the current frame. */
     protected int _textureChangeCount;
