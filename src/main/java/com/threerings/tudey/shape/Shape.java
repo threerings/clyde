@@ -404,6 +404,69 @@ public abstract class Shape
         }
     }
 
+    protected static void getOutsideLinePenetration (
+        Vector2f start, Vector2f end, float radius, Vector2f point, Vector2f result)
+    {
+        nearestPointOnSegment(start, end, point, result);
+        radius = Math.max(0f, radius);
+        Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
+        Vector2f line = result.subtract(point);
+        float sign = Math.signum(perp.dot(line));
+        if (sign > 0 && result.lengthSquared() > radius * radius) {
+            result.set(Vector2f.ZERO);
+        } else {
+            result.addLocal(line.normalizeLocal().multLocal(sign * -radius));
+        }
+    }
+
+    /**
+     * Calculates the minimum distance to the origin for the A polygon edges in the convex
+     * hull of the Minkowski difference of the A and B polygons.
+     */
+    protected Vector2f getMinMinkowskyDifference (
+            Vector2f[] A, Vector2f[] B, float radius, Vector2f minDistance)
+    {
+        if (Vector2f.ZERO.equals(minDistance)) {
+            return minDistance;
+        }
+        boolean flip = minDistance != null;
+        for (int ii = 0, nn = A.length; ii < nn; ii++) {
+            Vector2f start = A[ii];
+            Vector2f end = A[(ii + 1) % nn];
+            Vector2f sprime = Vector2f.ZERO;
+            Vector2f eprime = Vector2f.ZERO;
+            Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
+            float dot = Float.NEGATIVE_INFINITY;
+            for (int jj = 0, mm = B.length; jj < mm; jj++) {
+                float odot = perp.dot(B[jj]);
+                if (odot > dot) {
+                    dot = odot;
+                    sprime = B[jj];
+                    eprime = sprime;
+                } else if (odot == dot) {
+                    eprime = B[jj];
+                }
+            }
+            if (flip) {
+                sprime = sprime.subtract(start);
+                eprime = eprime.subtract(end);
+            } else {
+                sprime = start.subtract(sprime);
+                eprime = end.subtract(eprime);
+            }
+            Vector2f distance = new Vector2f();
+            getOutsideLinePenetration(sprime, eprime, radius, Vector2f.ZERO, distance);
+            if (minDistance == null || minDistance.distanceSquared(Vector2f.ZERO) >
+                    distance.distanceSquared(Vector2f.ZERO)) {
+                minDistance = distance;
+                if (minDistance.equals(Vector2f.ZERO)) {
+                    break;
+                }
+            }
+        }
+        return minDistance;
+    }
+
     /** The bounds of the shape. */
     protected Rect _bounds = new Rect();
 

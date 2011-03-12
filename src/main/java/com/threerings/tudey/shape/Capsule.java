@@ -305,19 +305,44 @@ public class Capsule extends Shape
     @Override // documentation inherited
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        Vector2f[] cv = new Vector2f[2];
+        cv[0] = _start;
+        cv[1] = _end;
+        Vector2f[] sv = new Vector2f[2];
+        sv[0] = segment.getStart();
+        sv[1] = segment.getEnd();
+        Vector2f minDistance = getMinMinkowskyDifference(cv, sv, radius, null);
+        minDistance = getMinMinkowskyDifference(sv, cv, radius, minDistance);
+        return result.set(minDistance);
     }
 
     @Override // documentation inherited
     public Vector2f getPenetration (Circle circle, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        Vector2f center = circle.getCenter();
+        Vector2f D = center.subtract(_start);
+        Vector2f axis = _end.subtract(_start);
+        float d = D.dot(axis);
+        d = FloatMath.clamp(d, 0, 1);
+        _start.add(axis.multLocal(d), D);
+        float dist = center.distance(D);
+        return (dist == 0f) ? result.set(Vector2f.ZERO) :
+            center.subtract(D, result).multLocal((circle.radius + radius) / dist - 1f);
     }
 
     @Override // documentation inherited
     public Vector2f getPenetration (Capsule capsule, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        Vector2f[] cv = new Vector2f[2];
+        cv[0] = _start;
+        cv[1] = _end;
+        Vector2f[] ov = new Vector2f[2];
+        ov[0] = capsule.getStart();
+        ov[1] = capsule.getEnd();
+        float rad = radius + capsule.radius;
+        Vector2f minDistance = getMinMinkowskyDifference(cv, ov, rad, null);
+        minDistance = getMinMinkowskyDifference(ov, cv, rad, minDistance);
+        return result.set(minDistance);
     }
 
     @Override // documentation inherited
