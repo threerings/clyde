@@ -633,9 +633,9 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
-     * Handles a actor removed event.
+     * Base class for {@link ActorAdded} and {@link ActorRemoved}.
      */
-    public static class ActorRemoved extends HandlerLogic
+    public static abstract class BaseActorObserver extends HandlerLogic
         implements TudeySceneManager.ActorObserver
     {
         // documentation inherited from interface TudeySceneManager.ActorObserver
@@ -644,6 +644,7 @@ public abstract class HandlerLogic extends Logic
             _target.resolve(logic, _targets);
             int count = _targets.size();
             if (count > _lastCount) {
+                targetActorAdded(logic);
                 _lastCount = count;
             }
             _targets.clear();
@@ -655,10 +656,10 @@ public abstract class HandlerLogic extends Logic
             if (_lastCount > 0) {
                 _target.resolve(logic, _targets);
                 int count = _targets.size();
-                if (((HandlerConfig.ActorRemoved)_config).all ? count == 0 : count < _lastCount) {
-                    execute(_scenemgr.getTimestamp(), logic);
+                if (count < _lastCount) {
+                    targetActorRemoved(logic);
+                    _lastCount = count;
                 }
-                _lastCount = count;
                 _targets.clear();
             }
         }
@@ -676,7 +677,7 @@ public abstract class HandlerLogic extends Logic
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
-            _target.transfer(((ActorRemoved)source)._target, refs);
+            _target.transfer(((BaseActorObserver)source)._target, refs);
             startup(0);
         }
 
@@ -689,7 +690,23 @@ public abstract class HandlerLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
-            _target = createTarget(((HandlerConfig.ActorRemoved)_config).target, _source);
+            _target = createTarget(((HandlerConfig.BaseActorObserver)_config).target, _source);
+        }
+
+        /**
+         * Called when a new target has appeared.
+         */
+        protected void targetActorAdded (ActorLogic logic)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Called when a target has been removed.
+         */
+        protected void targetActorRemoved (ActorLogic logic)
+        {
+            // nothing by default
         }
 
         /** The target actors. */
@@ -700,6 +717,32 @@ public abstract class HandlerLogic extends Logic
 
         /** The number of relevant actors at last count. */
         protected int _lastCount;
+    }
+
+    /**
+     * Handles an actor added event.
+     */
+    public static class ActorAdded extends BaseActorObserver
+    {
+        @Override // documentation inherited
+        protected void targetActorAdded (ActorLogic logic)
+        {
+            execute(_scenemgr.getTimestamp(), logic);
+        }
+    }
+
+    /**
+     * Handles an actor removed event.
+     */
+    public static class ActorRemoved extends BaseActorObserver
+    {
+        @Override // documentation inherited
+        protected void targetActorRemoved (ActorLogic logic)
+        {
+            if (_lastCount == 1 || !((HandlerConfig.ActorRemoved)_config).all) {
+                execute(_scenemgr.getTimestamp(), logic);
+            }
+        }
     }
 
     /**

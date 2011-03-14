@@ -42,14 +42,13 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  * Configurations for server-side event handlers.
  */
 @EditorTypes({
-    HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
-    HandlerConfig.Tick.class, HandlerConfig.Timer.class,
-    HandlerConfig.WarnTimer.class,
-    HandlerConfig.Signal.class, HandlerConfig.SignalStart.class,
-    HandlerConfig.SignalStop.class, HandlerConfig.Intersection.class,
-    HandlerConfig.IntersectionStart.class, HandlerConfig.IntersectionStop.class,
-    HandlerConfig.ThresholdIntersectionCount.class, HandlerConfig.Request.class,
-    HandlerConfig.ActorRemoved.class, HandlerConfig.VariableChanged.class })
+    HandlerConfig.Startup.class, HandlerConfig.Shutdown.class, HandlerConfig.Tick.class,
+    HandlerConfig.Timer.class, HandlerConfig.WarnTimer.class, HandlerConfig.Signal.class,
+    HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
+    HandlerConfig.Intersection.class, HandlerConfig.IntersectionStart.class,
+    HandlerConfig.IntersectionStop.class, HandlerConfig.ThresholdIntersectionCount.class,
+    HandlerConfig.Request.class, HandlerConfig.ActorAdded.class, HandlerConfig.ActorRemoved.class,
+    HandlerConfig.VariableChanged.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable
 {
@@ -345,14 +344,38 @@ public abstract class HandlerConfig extends DeepObject
     }
 
     /**
-     * An actor is removed event handler.
+     * Base class for {@link ActorAdded} and {@link ActorRemoved}.
      */
-    public static class ActorRemoved extends HandlerConfig
+    public static abstract class BaseActorObserver extends HandlerConfig
     {
         /** The targets we're observering. */
         @Editable
         public TargetConfig target = new TargetConfig.Tagged();
 
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
+    }
+
+    /**
+     * The actor added event handler.
+     */
+    public static class ActorAdded extends BaseActorObserver
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$ActorAdded";
+        }
+    }
+
+    /**
+     * An actor is removed event handler.
+     */
+    public static class ActorRemoved extends BaseActorObserver
+    {
         /** If we're waiting for them all to be removed. */
         @Editable
         @Strippable
@@ -362,12 +385,6 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$ActorRemoved";
-        }
-
-        @Override // documentation inherited
-        public void invalidate ()
-        {
-            target.invalidate();
         }
     }
 
