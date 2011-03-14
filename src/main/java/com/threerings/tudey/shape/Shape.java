@@ -408,14 +408,15 @@ public abstract class Shape
         Vector2f start, Vector2f end, float radius, Vector2f point, Vector2f result)
     {
         nearestPointOnSegment(start, end, point, result);
-        radius = Math.max(0f, radius);
-        Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
-        Vector2f line = result.subtract(point);
-        float sign = Math.signum(perp.dot(line));
-        if (sign > 0 && result.lengthSquared() > radius * radius) {
-            result.set(Vector2f.ZERO);
-        } else {
-            result.addLocal(line.normalizeLocal().multLocal(sign * -radius));
+        if (radius > 0) {
+            Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
+            Vector2f line = result.subtract(point);
+            float sign = Math.signum(perp.dot(line));
+            if (sign > 0 && result.lengthSquared() > radius * radius) {
+                result.set(Vector2f.ZERO);
+            } else {
+                result.addLocal(line.normalizeLocal().multLocal(sign * -radius));
+            }
         }
     }
 

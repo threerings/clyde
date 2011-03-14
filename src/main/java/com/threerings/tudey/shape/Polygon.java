@@ -179,8 +179,56 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public Shape sweep (Vector2f translation, Shape result)
     {
-        // TODO: may require computing the convex hull
-        return new Polygon(_vertices);
+        Vector2f[] vertices;
+        if (Vector2f.ZERO.equals(translation)) {
+            vertices = _vertices;
+        } else {
+            vertices = new Vector2f[_vertices.length + 2];
+            Float odot = null;
+            int sidx = -1;
+            int eidx = -1;
+            for (int ii = 0, nn = _vertices.length; ii < nn + 1; ii++) {
+                Vector2f start = _vertices[ii % nn];
+                Vector2f end = _vertices[(ii + 1) % nn];
+                Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
+                float dot = perp.dot(translation) > 0 ? 1 : -1;
+                if (odot == null) {
+                    odot = new Float(dot);
+                } else if (odot != dot) {
+                    if (dot < 0) {
+                        sidx = ii % nn;
+                    } else {
+                        eidx = ii % nn;
+                    }
+                    if (sidx >= 0 && eidx >= 0) {
+                        break;
+                    }
+                    odot = dot;
+                }
+            }
+            boolean add = sidx > eidx;
+            for (int ii = 0, nn = _vertices.length, jj = 0; ii < nn; ii++, jj++) {
+                vertices[jj] = new Vector2f(_vertices[ii]);
+                if (ii == sidx) {
+                    add = true;
+                    vertices[++jj] = new Vector2f(_vertices[ii]);
+                }
+                if (add) {
+                    vertices[jj].addLocal(translation);
+                }
+                if (ii == eidx) {
+                    add = false;
+                    vertices[++jj] = new Vector2f(_vertices[ii]);
+                }
+            }
+        }
+        Polygon poly = (result instanceof Polygon) ? (Polygon)result : null;
+        if (poly != null) {
+            poly._vertices = vertices;
+        } else {
+            poly = new Polygon(vertices);
+        }
+        return poly;
     }
 
     @Override // documentation inherited
@@ -414,7 +462,12 @@ public class Polygon extends Shape
     @Override // documentation inherited
     public Vector2f getPenetration (Segment segment, Vector2f result)
     {
-        return result.set(Vector2f.ZERO);
+        Vector2f[] cv = new Vector2f[2];
+        cv[0] = segment.getStart();
+        cv[1] = segment.getEnd();
+        Vector2f minDistance = getMinMinkowskyDifference(_vertices, cv, 0f, null);
+        minDistance = getMinMinkowskyDifference(cv, _vertices, 0f, minDistance);
+        return result.set(minDistance);
     }
 
     @Override // documentation inherited
