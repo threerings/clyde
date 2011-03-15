@@ -1118,6 +1118,127 @@ public class Sounder extends SimpleScope
     }
 
     /**
+     * Plays multiple sub-sounders in sequence.
+     */
+    public static class Sequential extends Implementation
+    {
+        /**
+         * Creates a new compound implementation.
+         */
+        public Sequential (AlContext ctx, Scope parentScope, SounderConfig.Sequential config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        /**
+         * (Re)configures the implementation.
+         */
+        public void setConfig (SounderConfig.Sequential config)
+        {
+            boolean wasPlaying = (_sounders != null && isPlaying());
+            _config = config;
+
+            // create the component sounders
+            Sounder[] osounders = _sounders;
+            _sounders = new Sounder[config.sounders.length];
+            for (int ii = 0; ii < _sounders.length; ii++) {
+                Sounder sounder = (osounders == null || osounders.length <= ii) ?
+                    new Sounder(_ctx, this, _transform) : osounders[ii];
+                _sounders[ii] = sounder;
+                sounder.setConfig(config.sounders[ii].sounder);
+            }
+            if (osounders != null) {
+                for (int ii = _sounders.length; ii < osounders.length; ii++) {
+                    osounders[ii].dispose();
+                }
+            }
+
+            // restart if appropriate
+            if ((wasPlaying || _started.value && loops()) && !isPlaying()) {
+                start();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean loops ()
+        {
+            if (_config.loop) {
+                return true;
+            }
+            for (Sounder sounder : _sounders) {
+                if (sounder.loops()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override // documentation inherited
+        public void start ()
+        {
+            _sounders[_sidx = 0].start();
+            _completed = false;
+        }
+
+        @Override // documentation inherited
+        public void stop ()
+        {
+            for (Sounder sounder : _sounders) {
+                sounder.stop();
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean isPlaying ()
+        {
+            for (Sounder sounder : _sounders) {
+                if (sounder.isPlaying()) {
+                    return true;
+                }
+            }
+            return _started.value && !_completed;
+        }
+
+        @Override // documentation inherited
+        public void update ()
+        {
+            if (_completed) {
+                return;
+            }
+            _sounders[_sidx].update();
+            if (_sounders[_sidx].isPlaying()) {
+                return;
+            }
+            _sidx++;
+
+            // check for loop or completion
+            if (_sidx >= _sounders.length) {
+                if (_config.loop) {
+                    _sidx %= _sounders.length;
+                } else {
+                    _sidx = _sidx - 1;
+                    _completed = true;
+                    return;
+                }
+            }
+            _sounders[_sidx].start();
+        }
+
+        /** The implementation config. */
+        protected SounderConfig.Sequential _config;
+
+        /** The component sounders. */
+        protected Sounder[] _sounders;
+
+        /** The index of the current sounder. */
+        protected int _sidx;
+
+        /** If true, the script has completed. */
+        protected boolean _completed;
+    }
+
+    /**
      * Plays a scripted sequence of sounders.
      */
     public static class Scripted extends Implementation

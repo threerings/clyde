@@ -51,8 +51,9 @@ public class SounderConfig extends ParameterizedConfig
      * Contains the actual implementation of the sounder.
      */
     @EditorTypes({
-        Clip.class, MetaClip.class, VariableClip.class, Stream.class, MetaStream.class,
-        Conditional.class, Compound.class, Scripted.class, Random.class, Derived.class })
+        Clip.class, MetaClip.class, VariableClip.class, Stream.class,
+        MetaStream.class, Conditional.class, Compound.class, Sequential.class,
+        Scripted.class, Random.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -577,6 +578,43 @@ public class SounderConfig extends ParameterizedConfig
                 ((Sounder.Compound)impl).setConfig(this);
             } else {
                 impl = new Sounder.Compound(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * Plays multiple sounders in sequence.
+     */
+    public static class Sequential extends Implementation
+    {
+        /** Whether to loop the entire sequence. */
+        @Editable
+        public boolean loop;
+
+        /** The component sounders. */
+        @Editable
+        public ComponentSounder[] sounders = new ComponentSounder[0];
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            for (ComponentSounder comp : sounders) {
+                refs.add(SounderConfig.class, comp.sounder);
+            }
+        }
+
+        @Override // documentation inherited
+        public Sounder.Implementation getSounderImplementation (
+            AlContext ctx, Scope scope, Sounder.Implementation impl)
+        {
+            if (sounders.length == 0) {
+                return null;
+            }
+            if (impl instanceof Sounder.Sequential) {
+                ((Sounder.Sequential)impl).setConfig(this);
+            } else {
+                impl = new Sounder.Sequential(ctx, scope, this);
             }
             return impl;
         }
