@@ -85,6 +85,15 @@ public abstract class ViewerEffect extends ShallowObject
         // nothing by default
     }
 
+    /**
+     * A hint indicating taht we should omit this effect while loading (used for sounds, to prevent
+     * them from playing until we're fully loaded).
+     */
+    public boolean omitWhileLoading ()
+    {
+        return false;
+    }
+
     // documentation inherited from interface SceneObject
     public Box getBounds ()
     {

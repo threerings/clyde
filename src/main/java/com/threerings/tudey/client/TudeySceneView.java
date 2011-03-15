@@ -155,9 +155,14 @@ public class TudeySceneView extends DynamicScope
             new TudeySceneConfig() : (TudeySceneConfig)ctrl.getPlaceConfig();
         _scene = new HashScene(ctx, 64f, 6) {
             @Override public void getEffects (Box bounds, Collection<ViewerEffect> results) {
-                // postpone the viewer effects (particularly any music) until we're done loading
-                if (_loadingWindow == null) {
-                    super.getEffects(bounds, results);
+                // remove any effects that desire to be omitted when loading
+                super.getEffects(bounds, results);
+                if (_loadingWindow != null) {
+                    for (Iterator<ViewerEffect> it = results.iterator(); it.hasNext(); ) {
+                        if (it.next().omitWhileLoading()) {
+                            it.remove();
+                        }
+                    }
                 }
             }
         };

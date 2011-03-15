@@ -78,21 +78,24 @@ public abstract class ViewerEffectConfig extends DeepObject
                 public Sounder sounder = new Sounder(
                     ctx, scope, ScopeUtil.resolve(scope, "worldTransform", new Transform3D()),
                     Sound.this.sounder);
-                public void activate (Scene scene) {
+                @Override public void activate (Scene scene) {
                     _activated = true;
                     sounder.start();
                 }
-                public void deactivate () {
+                @Override public void deactivate () {
                     sounder.stop();
                     _activated = false;
                 }
-                public void update () {
+                @Override public void update () {
                     sounder.update();
                 }
-                public void reset () {
+                @Override public void reset () {
                     if (_activated) {
                         sounder.start();
                     }
+                }
+                @Override public boolean omitWhileLoading () {
+                    return true;
                 }
                 protected boolean _activated;
             }
