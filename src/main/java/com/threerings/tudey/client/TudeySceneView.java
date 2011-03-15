@@ -55,6 +55,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
+import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Transform3D;
@@ -73,6 +74,7 @@ import com.threerings.opengl.model.config.MergedStaticConfig;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.scene.HashScene;
 import com.threerings.opengl.scene.SceneElement;
+import com.threerings.opengl.scene.ViewerEffect;
 import com.threerings.opengl.util.PreloadableSet;
 import com.threerings.opengl.util.Tickable;
 
@@ -151,7 +153,14 @@ public class TudeySceneView extends DynamicScope
         _ctrl = ctrl;
         _placeConfig = (ctrl == null) ?
             new TudeySceneConfig() : (TudeySceneConfig)ctrl.getPlaceConfig();
-        _scene = new HashScene(ctx, 64f, 6);
+        _scene = new HashScene(ctx, 64f, 6) {
+            @Override public void getEffects (Box bounds, Collection<ViewerEffect> results) {
+                // postpone the viewer effects (particularly any music) until we're done loading
+                if (_loadingWindow == null) {
+                    super.getEffects(bounds, results);
+                }
+            }
+        };
         _scene.setParentScope(this);
 
         // create and initialize the camera handler
