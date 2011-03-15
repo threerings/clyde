@@ -374,7 +374,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         @Editable
         public boolean getVSyncEnabled ()
         {
-            return _prefs.getBoolean("vsync_enabled", false);
+            return _prefs.getBoolean("vsync_enabled", true);
         }
 
         /**
