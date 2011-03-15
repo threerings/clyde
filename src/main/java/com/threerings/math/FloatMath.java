@@ -35,8 +35,8 @@ public class FloatMath
     /** The ratio of a circle's circumference to its diameter. */
     public static final float PI = (float)Math.PI;
 
-    /** Pi times two. */
-    public static final float TWO_PI = PI * 2f;
+    /** The circle constant, tau (&#964;) http://tauday.com/ */
+    public static final float TWO_PI = (float)(Math.PI * 2);
 
     /** Pi times one half. */
     public static final float HALF_PI = PI * 0.5f;
