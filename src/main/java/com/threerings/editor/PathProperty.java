@@ -237,8 +237,16 @@ public class PathProperty extends Property
             }
             // use some simple coercion rules on the paths after the first
             Property plast = path[last];
-            plast.set(obj, ii == 0 ? value : coerce(value, plast.getType()));
+            setProperty(obj, value, path[last], ii == 0);
         }
+    }
+
+    /**
+     * Sets the property value.
+     */
+    protected void setProperty (Object obj, Object value, Property prop, boolean coerce)
+    {
+        prop.set(obj, coerce ? value : coerce(value, prop.getType()));
     }
 
     /**

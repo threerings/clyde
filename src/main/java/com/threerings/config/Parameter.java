@@ -41,6 +41,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.InvalidPathsException;
 import com.threerings.editor.PathProperty;
 import com.threerings.editor.Property;
+import com.threerings.editor.TranslatedPathProperty;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
@@ -52,7 +53,7 @@ import static com.threerings.ClydeLog.*;
 /**
  * A single configuration parameter.
  */
-@EditorTypes({ Parameter.Direct.class, Parameter.Choice.class })
+@EditorTypes({ Parameter.Direct.class, Parameter.Choice.class, Parameter.Translated.class })
 public abstract class Parameter extends DeepObject
     implements Exportable
 {
@@ -104,6 +105,27 @@ public abstract class Parameter extends DeepObject
                 return null;
             } catch (Exception e) {
                 log.warning("Failed to create argument property.", "name", name, e);
+                return null;
+            }
+        }
+    }
+
+    /**
+     * A parameter that translates its values.
+     */
+    public static class Translated extends Direct
+    {
+        /** The translation bundle. */
+        @Editable
+        public String bundle = "";
+
+        @Override // documentation inherited
+        protected Property createProperty (ParameterizedConfig reference)
+        {
+            try {
+                return new TranslatedPathProperty(
+                        reference.getConfigManager(), name, bundle, reference, paths);
+            } catch (InvalidPathsException e) {
                 return null;
             }
         }

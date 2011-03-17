@@ -82,7 +82,7 @@ public class StripTask extends Task
     {
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         rsrcmgr.initResourceDir("rsrc/");
-        _cfgmgr = new ConfigManager(rsrcmgr, "config/");
+        _cfgmgr = new ConfigManager(rsrcmgr, null, "config/");
         _cfgmgr.init();
 
         for (FileSet fs : _filesets) {

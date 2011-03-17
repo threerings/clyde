@@ -37,6 +37,7 @@ import org.apache.tools.ant.types.FileSet;
 import com.google.common.collect.Lists;
 
 import com.threerings.resource.ResourceManager;
+import com.threerings.util.MessageManager;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ManagedConfig;
@@ -60,8 +61,9 @@ public class ConfigValidatorTask extends Task
     {
         boolean valid = true;
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+        MessageManager msgmgr = new MessageManager("rsrc.i18n");
         rsrcmgr.initResourceDir("rsrc/");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
+        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
         cfgmgr.init();
 
         // validate the base configs

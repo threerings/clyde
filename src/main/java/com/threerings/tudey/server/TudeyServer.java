@@ -29,6 +29,7 @@ import com.google.inject.Inject;
 import com.threerings.config.ConfigManager;
 import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
+import com.threerings.util.MessageManager;
 
 import com.threerings.presents.server.PresentsServer;
 import com.threerings.whirled.server.SceneRegistry;
@@ -51,7 +52,9 @@ public abstract class TudeyServer extends WhirledServer
             bind(PresentsServer.class).to(TudeyServer.class);
             ResourceManager rsrcmgr = new ResourceManager("rsrc/");
             bind(ResourceManager.class).toInstance(rsrcmgr);
-            ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
+            MessageManager msgmgr = new MessageManager("rsrc.i18n");
+            bind(MessageManager.class).toInstance(msgmgr);
+            ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
             if (shouldInitConfigManager()) {
                 cfgmgr.init();
             }

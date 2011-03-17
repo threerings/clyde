@@ -85,8 +85,8 @@ public abstract class GlApp extends DynamicScope
         super("app");
         _renderer = new Renderer();
         _compositor = new Compositor(this);
-        initSharedManagers();
         _msgmgr = new MessageManager("rsrc.i18n");
+        initSharedManagers();
         _soundmgr = SoundManager.createSoundManager(getRunQueue());
         _clipprov = new ResourceClipProvider(_rsrcmgr);
         _imgcache = new ImageCache(this, shouldCheckTimestamps());
@@ -334,7 +334,7 @@ public abstract class GlApp extends DynamicScope
     protected void initSharedManagers ()
     {
         _rsrcmgr = new ResourceManager("rsrc/");
-        _cfgmgr = new ConfigManager(_rsrcmgr, "config/");
+        _cfgmgr = new ConfigManager(_rsrcmgr, _msgmgr, "config/");
         _colorpos = ColorPository.loadColorPository(_rsrcmgr);
     }
 

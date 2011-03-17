@@ -56,6 +56,7 @@ import com.threerings.export.Exporter;
 import com.threerings.export.Importer;
 import com.threerings.expr.Scope;
 import com.threerings.util.Copyable;
+import com.threerings.util.MessageManager;
 
 import static com.threerings.ClydeLog.*;
 
@@ -70,10 +71,11 @@ public class ConfigManager
      *
      * @param configPath the resource path of the configurations.
      */
-    public ConfigManager (ResourceManager rsrcmgr, String configPath)
+    public ConfigManager (ResourceManager rsrcmgr, MessageManager msgmgr, String configPath)
     {
         _type = "global";
         _rsrcmgr = rsrcmgr;
+        _msgmgr = msgmgr;
         _configPath = configPath + (configPath.endsWith("/") ? "" : "/");
     }
 
@@ -128,6 +130,7 @@ public class ConfigManager
         _type = type;
         _parent = parent;
         _rsrcmgr = parent._rsrcmgr;
+        _msgmgr = parent._msgmgr;
         _resources = parent._resources;
         _classes = parent._classes;
 
@@ -180,6 +183,14 @@ public class ConfigManager
     public ResourceManager getResourceManager ()
     {
         return _rsrcmgr;
+    }
+
+    /**
+     * Returns a reference to the message manager used to load configurations.
+     */
+    public MessageManager getMessageManager ()
+    {
+        return _msgmgr;
     }
 
     /**
@@ -676,6 +687,9 @@ public class ConfigManager
 
     /** The resource manager used to load configurations. */
     protected ResourceManager _rsrcmgr;
+
+    /** The message manager used to load configurations. */
+    protected MessageManager _msgmgr;
 
     /** The resource path of the managed configurations. */
     protected String _configPath;

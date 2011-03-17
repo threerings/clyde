@@ -86,7 +86,7 @@ public class ResourceEditor extends BaseConfigEditor
     {
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
         MessageManager msgmgr = new MessageManager("rsrc.i18n");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
+        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
         ColorPository colorpos = ColorPository.loadColorPository(rsrcmgr);
         new ResourceEditor(
             msgmgr, cfgmgr, colorpos, args.length > 0 ? args[0] : null).setVisible(true);

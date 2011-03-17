@@ -42,6 +42,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import com.threerings.resource.ResourceManager;
+import com.threerings.util.MessageManager;
 
 import com.threerings.config.ConfigGroup;
 import com.threerings.config.ConfigManager;
@@ -84,8 +85,9 @@ public class ConfigResourcesTask extends Task
         throws BuildException
     {
         ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+        MessageManager msgmgr = new MessageManager("rsrc.i18n");
         rsrcmgr.initResourceDir("rsrc/");
-        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, "config/");
+        ConfigManager cfgmgr = new ConfigManager(rsrcmgr, msgmgr, "config/");
         cfgmgr.init();
 
         // read the file containing the config names
