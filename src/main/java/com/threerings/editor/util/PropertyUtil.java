@@ -384,7 +384,8 @@ public class PropertyUtil
 
     /**
      * Finds all configs and resources referenced by the supplied property of the supplied object
-     * and places them in the given sets.
+     * and places them in the given sets.  This is not without side effects: when it finds
+     * arguments in references that don't correspond to matching parameters, it strips them out.
      */
     protected static void getReferences (
         ConfigManager cfgmgr, Object object, Property property,
@@ -419,9 +420,12 @@ public class PropertyUtil
                 return;
             }
             ParameterizedConfig pconfig = (ParameterizedConfig)config;
-            for (Map.Entry<String, Object> entry : args.entrySet()) {
+            for (Iterator<Map.Entry<String, Object>> it = args.entrySet().iterator();
+                    it.hasNext(); ) {
+                Map.Entry<String, Object> entry = it.next();
                 Parameter param = pconfig.getParameter(entry.getKey());
                 if (param == null) {
+                    it.remove(); // argument is obsolete; strip it out
                     continue;
                 }
                 Property prop = param.getArgumentProperty(pconfig);
