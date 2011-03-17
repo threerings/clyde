@@ -29,8 +29,6 @@ import com.threerings.config.ConfigManager;
 import com.threerings.util.MessageBundle;
 import com.threerings.util.MessageManager;
 
-import static com.threerings.editor.Log.*;
-
 /**
  * A property that
  */
@@ -51,19 +49,14 @@ public class TranslatedPathProperty extends PathProperty
     {
         super(cfgmgr, name, reference, paths);
         MessageManager msgmgr = cfgmgr.getMessageManager();
-        log.info("translated path property", "msgmgr", msgmgr, "bundle", bundle);
         _msgs = msgmgr == null ? new MessageBundle() : msgmgr.getBundle(bundle);
     }
 
     @Override // documentation inherited
     protected void setProperty (Object obj, Object value, Property prop, boolean coerce)
     {
-        if (value instanceof String) {
-            log.info("found property value", "value", (String)value);
-            if (_msgs.exists((String)value)) {
-                value = _msgs.get((String)value);
-                log.info("found translatable key", "value", (String)value);
-            }
+        if (value instanceof String && _msgs.exists((String)value)) {
+            value = _msgs.get((String)value);
         }
         super.setProperty(obj, value, prop, coerce);
     }
