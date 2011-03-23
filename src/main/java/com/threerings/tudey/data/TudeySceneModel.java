@@ -2045,6 +2045,11 @@ public class TudeySceneModel extends SceneModel
      */
     public boolean collides (int mask, Shape shape)
     {
+        // make sure we can actually collide against anything
+        if (mask == 0) {
+            return false;
+        }
+
         // check against locations
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();

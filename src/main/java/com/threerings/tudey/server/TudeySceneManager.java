@@ -688,6 +688,9 @@ public class TudeySceneManager extends SceneManager
     public int triggerSensors (Class<? extends Sensor> type, int timestamp,
             Collection<Shape> shapes, int flags, ActorLogic actor)
     {
+        if (flags == 0) {
+            return 0;
+        }
         Set<SpaceElement> elements = Sets.newHashSet();
         for (Shape shape : shapes) {
             _sensorSpace.getIntersecting(shape, elements);
@@ -766,6 +769,11 @@ public class TudeySceneManager extends SceneManager
      */
     public boolean collides (int mask, Shape shape, int timestamp)
     {
+        // make sure we can actually collide with anything
+        if (mask == 0) {
+            return false;
+        }
+
         // check the scene model
         if (((TudeySceneModel)_scene.getSceneModel()).collides(mask, shape)) {
             return true;
