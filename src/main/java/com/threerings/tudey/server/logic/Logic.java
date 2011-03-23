@@ -77,6 +77,14 @@ public abstract class Logic extends ShallowObject
     }
 
     /**
+     * Returns a reference to the scene manager that owns the logic.
+     */
+    public TudeySceneManager getSceneManager ()
+    {
+        return _scenemgr;
+    }
+
+    /**
      * Returns the tags for this logic, if any.
      */
     public String[] getTags ()

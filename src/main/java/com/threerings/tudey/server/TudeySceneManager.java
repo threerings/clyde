@@ -1447,6 +1447,20 @@ public class TudeySceneManager extends SceneManager
         } else {
             cname = StringUtil.shortClassName(participant);
         }
+        if (participant instanceof Logic) {
+            Logic logic = (Logic)participant;
+            participant = logic.getSceneManager().getLogic(logic.getEntityKey());
+        }
+        ConfigReference ref = null;
+        if (participant instanceof ActorLogic) {
+            ref = ((ActorLogic)participant).getActor().getConfig();
+        } else if (participant instanceof EntryLogic) {
+            ref = ((EntryLogic)participant).getEntry().getReference();
+        }
+        if (ref != null) {
+            String rname = ref.getName();
+            cname += ":" + rname.substring(rname.lastIndexOf('/') + 1);
+        }
         TickProfile tprof = _profiles.get(cname);
         if (tprof == null) {
             _profiles.put(cname, tprof = new TickProfile());
@@ -1526,6 +1540,7 @@ public class TudeySceneManager extends SceneManager
         {
             _totalElapsed += elapsed;
             _histo.addValue((int)elapsed);
+            _longest = Math.max(elapsed, _longest);
         }
 
         @Override
@@ -1533,10 +1548,10 @@ public class TudeySceneManager extends SceneManager
         {
             int count = _histo.size();
             return _totalElapsed + "us/" + count + " = " + (_totalElapsed/count) + "us avg " +
-                StringUtil.toString(_histo.getBuckets());
+                StringUtil.toString(_histo.getBuckets() + " " + _longest + "us longest");
         }
 
-        protected long _totalElapsed;
+        protected long _totalElapsed, _longest;
         protected Histogram _histo = new Histogram(0, 20000, 10);
     }
 
