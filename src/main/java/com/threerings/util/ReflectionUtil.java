@@ -154,37 +154,39 @@ public class ReflectionUtil
     }
 
     /**
+     * Determines whether the specified class is a non-static inner class.
+     */
+    public static boolean isInner (Class<?> clazz)
+    {
+        return getOuterClass(clazz) != null;
+    }
+
+    /**
      * Returns the outer class for the given inner class (or <code>null</code> if not an inner
      * class).
      */
     public static Class<?> getOuterClass (Class<?> clazz)
     {
-        if (!isInner(clazz)) {
-            return null;
-        }
-        if (!Inner.class.isAssignableFrom(clazz)) {
-            return clazz.getDeclaringClass();
-        }
-        Class<?> outer = _oclasses.get(clazz);
-        if (outer == null) {
-            for (Constructor ctor : clazz.getDeclaredConstructors()) {
-                Class<?>[] ptypes = ctor.getParameterTypes();
-                if (ptypes.length > 0) {
-                    _oclasses.put(clazz, outer = ptypes[0]);
-                    break;
-                }
-            }
-        }
-        return outer;
-    }
+        Class<?> oclazz = _oclasses.get(clazz);
+        if (oclazz == null) {
+            Class<?> dclazz = clazz.getDeclaringClass();
+            if (dclazz != null && !Modifier.isStatic(clazz.getModifiers())) {
+                oclazz = dclazz;
 
-    /**
-     * Determines whether the specified class is a non-static inner class.
-     */
-    public static boolean isInner (Class<?> clazz)
-    {
-        return (clazz.getDeclaringClass() != null && !Modifier.isStatic(clazz.getModifiers())) ||
-            Inner.class.isAssignableFrom(clazz);
+            } else if (Inner.class.isAssignableFrom(clazz)) {
+                for (Constructor ctor : clazz.getDeclaredConstructors()) {
+                    Class<?>[] ptypes = ctor.getParameterTypes();
+                    if (ptypes.length > 0) {
+                        oclazz = ptypes[0];
+                        break;
+                    }
+                }
+            } else {
+                oclazz = Void.class;
+            }
+            _oclasses.put(clazz, oclazz);
+        }
+        return (oclazz == Void.class) ? null : oclazz;
     }
 
     /**
@@ -211,7 +213,7 @@ public class ReflectionUtil
     /** Maps inner classes to their outer class reference fields. */
     protected static HashMap<Class<?>, Field> _outers = new HashMap<Class<?>, Field>();
 
-    /** Maps {@link Inner} classes to their outer classes. */
+    /** Maps classes to their outer classes, or to {@link Void} if they are not inner classes. */
     protected static HashMap<Class<?>, Class<?>> _oclasses = new HashMap<Class<?>, Class<?>>();
 
     /** Maps classes to their default constructors. */
