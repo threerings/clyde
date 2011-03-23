@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
@@ -40,12 +41,15 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import com.samskivert.util.HashIntMap;
+import com.samskivert.util.Histogram;
 import com.samskivert.util.IntMaps;
+import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
 import com.samskivert.util.Queue;
 import com.samskivert.util.RandomUtil;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
+import com.samskivert.util.StringUtil;
 
 import com.threerings.presents.data.ClientObject;
 import com.threerings.presents.server.ClientManager;
@@ -157,6 +161,58 @@ public class TudeySceneManager extends SceneManager
      */
     public interface IntersectionSensor extends Sensor
     {
+    }
+
+    /**
+     * Enables or disables tick participant profiling.
+     */
+    public static void setTickProfEnabled (boolean enabled)
+    {
+        _tickProfEnabled = enabled;
+    }
+
+    /**
+     * Checks whether tick profiling is enabled.
+     */
+    public static boolean isTickProfEnabled ()
+    {
+        return _tickProfEnabled;
+    }
+
+    /**
+     * Sets the frequency at which we sample tick participants.
+     */
+    public static void setTickProfInterval (int interval)
+    {
+        _tickProfInterval = interval;
+    }
+
+    /**
+     * Returns the tick profile interval.
+     */
+    public static int getTickProfInterval ()
+    {
+        return _tickProfInterval;
+    }
+
+    /**
+     * Dumps the current set of tick profiles to the log.
+     */
+    public static void dumpTickProfiles ()
+    {
+        StringBuilder buf = new StringBuilder();
+        for (Map.Entry<String, TickProfile> entry : _profiles.entrySet()) {
+            buf.append(entry.getKey() + " => " + entry.getValue() + "\n");
+        }
+        log.info(buf.toString());
+    }
+
+    /**
+     * Clears the current set of tick profiles.
+     */
+    public static void clearTickProfiles ()
+    {
+        _profiles.clear();
     }
 
     /**
@@ -1298,19 +1354,48 @@ public class TudeySceneManager extends SceneManager
         _timestamp += (int)(now - _lastTick);
         _lastTick = now;
 
-        // tick the participants
-        _tickOp.init(_timestamp);
-        _tickParticipants.apply(_tickOp);
+        if (_tickProfEnabled) {
+            // tick the participants
+            _profileTickOp.init(_timestamp);
+            _tickParticipants.apply(_profileTickOp);
 
-        // process the runnables in the queue
-        Runnable runnable;
-        while ((runnable = _runnables.getNonBlocking()) != null) {
-            runnable.run();
-        }
+            // process the runnables in the queue
+            Runnable runnable;
+            while ((runnable = _runnables.getNonBlocking()) != null) {
+                if (_tickParticipantCount++ % _tickProfInterval == 0) {
+                    long started = System.nanoTime();
+                    runnable.run();
+                    updateTickProfile(runnable, started);
+                } else {
+                    runnable.run();
+                }
+            }
 
-        // post deltas for all clients
-        for (ClientLiaison client : _clients.values()) {
-            client.postDelta();
+            // post deltas for all clients
+            for (ClientLiaison client : _clients.values()) {
+                if (_tickParticipantCount++ % _tickProfInterval == 0) {
+                    long started = System.nanoTime();
+                    client.postDelta();
+                    updateTickProfile(client, started);
+                } else {
+                    client.postDelta();
+                }
+            }
+        } else {
+            // tick the participants
+            _tickOp.init(_timestamp);
+            _tickParticipants.apply(_tickOp);
+
+            // process the runnables in the queue
+            Runnable runnable;
+            while ((runnable = _runnables.getNonBlocking()) != null) {
+                runnable.run();
+            }
+
+            // post deltas for all clients
+            for (ClientLiaison client : _clients.values()) {
+                client.postDelta();
+            }
         }
 
         // clear the lists
@@ -1350,6 +1435,26 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Updates the tick profile for the specified participant.
+     */
+    protected static void updateTickProfile (Object participant, long started)
+    {
+        long elapsed = System.nanoTime() - started;
+        String cname;
+        if (participant instanceof Interval.RunBuddy) {
+            cname = StringUtil.shortClassName(
+                ((Interval.RunBuddy)participant).getIntervalClassName());
+        } else {
+            cname = StringUtil.shortClassName(participant);
+        }
+        TickProfile tprof = _profiles.get(cname);
+        if (tprof == null) {
+            _profiles.put(cname, tprof = new TickProfile());
+        }
+        tprof.record(elapsed);
+    }
+
+    /**
      * (Re)used to tick the participants.
      */
     protected static class TickOp
@@ -1374,6 +1479,24 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Extends the tick op with profiling bits.
+     */
+    protected static class ProfileTickOp extends TickOp
+    {
+        @Override // documentation inherited
+        public boolean apply (TickParticipant participant)
+        {
+            if (_tickParticipantCount++ % _tickProfInterval != 0) {
+                return participant.tick(_timestamp);
+            }
+            long started = System.nanoTime();
+            boolean result = participant.tick(_timestamp);
+            updateTickProfile(participant, started);
+            return result;
+        }
+    }
+
+    /**
      * Base class for actor observer operations.
      */
     protected static abstract class ActorObserverOp
@@ -1392,6 +1515,29 @@ public class TudeySceneManager extends SceneManager
 
         /** The logic of the actor of interest. */
         protected ActorLogic _logic;
+    }
+
+    /**
+     * Records information about a tick participant.
+     */
+    protected static class TickProfile
+    {
+        public void record (long elapsed)
+        {
+            _totalElapsed += elapsed;
+            _histo.addValue((int)elapsed);
+        }
+
+        @Override
+        public String toString ()
+        {
+            int count = _histo.size();
+            return _totalElapsed + "us/" + count + " = " + (_totalElapsed/count) + "us avg " +
+                StringUtil.toString(_histo.getBuckets());
+        }
+
+        protected long _totalElapsed;
+        protected Histogram _histo = new Histogram(0, 20000, 10);
     }
 
     /** The injector that we use to create and initialize our logic objects. */
@@ -1490,6 +1636,9 @@ public class TudeySceneManager extends SceneManager
     /** Used to tick the participants. */
     protected TickOp _tickOp = new TickOp();
 
+    /** The tick op used when profiling. */
+    protected ProfileTickOp _profileTickOp = new ProfileTickOp();
+
     /** Used to notify observers of the addition of an actor. */
     protected ActorObserverOp _actorAddedOp = new ActorObserverOp() {
         public boolean apply (ActorObserver observer) {
@@ -1508,4 +1657,16 @@ public class TudeySceneManager extends SceneManager
 
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();
+
+    /** Whether or not we're profiling tick participants. */
+    protected static boolean _tickProfEnabled;
+
+    /** The frequency at which we take tick samples. */
+    protected static int _tickProfInterval = 100;
+
+    /** Used to profile our tick participants. */
+    protected static Map<String, TickProfile> _profiles = Maps.newHashMap();
+
+    /** Incremented on each participant tick when profiling. */
+    protected static long _tickParticipantCount;
 }
