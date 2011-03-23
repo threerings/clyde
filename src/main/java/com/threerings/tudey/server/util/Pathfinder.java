@@ -231,37 +231,62 @@ public class Pathfinder
         // create the traversal predicate
         AStarPathUtil.TraversalPred pred;
         final Actor actor = logic.getActor();
+        final int collisionMask = actor.getCollisionMask();
         if (width == 1 && height == 1) {
-            // simpler predicate for the common case of 1x1 actors
-            pred = new AStarPathUtil.TraversalPred() {
-                public boolean canTraverse (Object traverser, int x, int y) {
-                    if (actor.canCollide(_entryFlags.get(
-                                    MathUtil.floorDiv(x, SUBDIVISION),
-                                    MathUtil.floorDiv(y, SUBDIVISION)))) {
-                        return false;
+            // simpler predicates for the common case of 1x1 actors
+            if (collideActor) {
+                pred = new AStarPathUtil.TraversalPred() {
+                    public boolean canTraverse (Object traverser, int x, int y) {
+                        return (collisionMask & _entryFlags.get(
+                            MathUtil.floorDiv(x, SUBDIVISION),
+                            MathUtil.floorDiv(y, SUBDIVISION))) == 0 &&
+                                (collisionMask & _actorFlags.get(x, y)) == 0;
                     }
-                    return !collideActor || !actor.canCollide(_actorFlags.get(x, y));
-                    //return !actor.canCollide(flags.get(x, y));
-                }
-            };
+                };
+            } else {
+                pred = new AStarPathUtil.TraversalPred() {
+                    public boolean canTraverse (Object traverser, int x, int y) {
+                        return (collisionMask & _entryFlags.get(
+                            MathUtil.floorDiv(x, SUBDIVISION),
+                            MathUtil.floorDiv(y, SUBDIVISION))) == 0;
+                    }
+                };
+            }
         } else {
             final int left = width / 2, right = (width - 1) / 2;
             final int bottom = height / 2, top = (height - 1) / 2;
-            pred = new AStarPathUtil.TraversalPred() {
-                public boolean canTraverse (Object traverser, int x, int y) {
-                    for (int yy = y - bottom, yymax = y + top; yy <= yymax; yy++) {
-                        for (int xx = x - left, xxmax = x + right; xx <= xxmax; xx++) {
-                            if (actor.canCollide(_entryFlags.get(MathUtil.floorDiv(xx, SUBDIVISION),
-                                            MathUtil.floorDiv(yy, SUBDIVISION)))) {
-                                return false;
-                            } else if (collideActor && actor.canCollide(_actorFlags.get(xx, yy))) {
-                                return false;
+            if (collideActor) {
+                pred = new AStarPathUtil.TraversalPred() {
+                    public boolean canTraverse (Object traverser, int x, int y) {
+                        for (int yy = y - bottom, yymax = y + top; yy <= yymax; yy++) {
+                            for (int xx = x - left, xxmax = x + right; xx <= xxmax; xx++) {
+                                if ((collisionMask & _entryFlags.get(
+                                        MathUtil.floorDiv(xx, SUBDIVISION),
+                                        MathUtil.floorDiv(yy, SUBDIVISION))) != 0 ||
+                                            (collisionMask & _actorFlags.get(xx, yy)) != 0) {
+                                    return false;
+                                }
                             }
                         }
+                        return true;
                     }
-                    return true;
-                }
-            };
+                };
+            } else {
+                pred = new AStarPathUtil.TraversalPred() {
+                    public boolean canTraverse (Object traverser, int x, int y) {
+                        for (int yy = y - bottom, yymax = y + top; yy <= yymax; yy++) {
+                            for (int xx = x - left, xxmax = x + right; xx <= xxmax; xx++) {
+                                if ((collisionMask & _entryFlags.get(
+                                        MathUtil.floorDiv(xx, SUBDIVISION),
+                                        MathUtil.floorDiv(yy, SUBDIVISION))) != 0) {
+                                    return false;
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                };
+            }
         }
 
         // compute the offsets for converting to/from integer coordinates
