@@ -1548,7 +1548,7 @@ public class TudeySceneManager extends SceneManager
         {
             int count = _histo.size();
             return _totalElapsed + "us/" + count + " = " + (_totalElapsed/count) + "us avg " +
-                StringUtil.toString(_histo.getBuckets() + " " + _longest + "us longest");
+                StringUtil.toString(_histo.getBuckets()) + " " + _longest + "us longest";
         }
 
         protected long _totalElapsed, _longest;
