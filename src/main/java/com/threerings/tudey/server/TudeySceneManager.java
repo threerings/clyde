@@ -1439,7 +1439,7 @@ public class TudeySceneManager extends SceneManager
      */
     protected static void updateTickProfile (Object participant, long started)
     {
-        long elapsed = System.nanoTime() - started;
+        long elapsed = (System.nanoTime() - started) / 1000L;
         String cname;
         if (participant instanceof Interval.RunBuddy) {
             cname = StringUtil.shortClassName(
