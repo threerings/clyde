@@ -518,7 +518,7 @@ public class Pathfinder
                                 if (list == null) {
                                     continue;
                                 }
-                                list.remove(flags);
+                                list.remove((Integer)flags);
                                 int nsize = list.size();
                                 if (nsize == 0) {
                                     _actorFlagLists.remove(coord);
