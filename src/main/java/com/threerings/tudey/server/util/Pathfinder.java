@@ -210,7 +210,7 @@ public class Pathfinder
     // documentation inherited from interface ActorLogic.CollisionFlagObserver
     public void collisionFlagsChanged (ActorLogic logic, int oflags)
     {
-        int nflags = logic.getActor().getCollisionFlags();
+        int nflags = logic.getCollisionFlags();
         Shape shape = logic.getShape();
         Rect bounds = shape.getBounds();
         Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
@@ -361,7 +361,7 @@ public class Pathfinder
         // if the actor is in the space and can collide with its own flags,
         // remove them before we compute the path
         boolean remove = (!logic.isRemoved() && collideActor &&
-            actor.canCollide(actor.getCollisionFlags()));
+            actor.canCollide(logic.getCollisionFlags()));
         if (remove) {
             removeFlags(logic);
         }
@@ -481,7 +481,7 @@ public class Pathfinder
      */
     protected void addFlags (ActorLogic logic)
     {
-        addFlags(logic.getShape(), logic.getActor().getCollisionFlags(), false);
+        addFlags(logic.getShape(), logic.getCollisionFlags(), false);
     }
 
     /**
@@ -489,9 +489,7 @@ public class Pathfinder
      */
     protected void removeFlags (ActorLogic logic)
     {
-        removeFlags(
-            logic.getShape(), logic.getActor().getCollisionFlags(),
-            false, logic.getShapeElement());
+        removeFlags(logic.getShape(), logic.getCollisionFlags(), false, logic.getShapeElement());
     }
 
     /**

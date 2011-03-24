@@ -157,6 +157,14 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Returns the cached collision flags.
+     */
+    public int getCollisionFlags ()
+    {
+        return _collisionFlags;
+    }
+
+    /**
      * Adds a listener for changes to the actor's collision flags.
      */
     public void addCollisionFlagObserver (CollisionFlagObserver observer)
