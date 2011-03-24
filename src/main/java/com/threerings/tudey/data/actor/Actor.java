@@ -325,6 +325,16 @@ public class Actor extends DeepObject
      */
     public int getCollisionFlags ()
     {
+        return getCollisionFlags(false);
+    }
+
+    /**
+     * Returns the actor's collision flags.
+     *
+     * @param maximal Return the OR'd set of all possible collision flags.
+     */
+    public int getCollisionFlags (boolean maximal)
+    {
         return _original.collisionFlags;
     }
 

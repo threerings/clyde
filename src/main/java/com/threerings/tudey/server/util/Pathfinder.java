@@ -434,7 +434,7 @@ public class Pathfinder
     protected void removeFlags (ActorLogic logic)
     {
         removeFlags(
-            logic.getShape(), logic.getActor().getCollisionFlags(),
+            logic.getShape(), logic.getActor().getCollisionFlags(true),
             false, logic.getShapeElement());
     }
 
