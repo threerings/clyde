@@ -56,6 +56,17 @@ public class ActorLogic extends Logic
     implements HasActor
 {
     /**
+     * An interface for objects interested in updates to the actor's collision flags.
+     */
+    public interface CollisionFlagObserver
+    {
+        /**
+         * Notes that the actor's collision flags have changed.
+         */
+        public void collisionFlagsChanged (ActorLogic source, int oflags);
+    }
+
+    /**
      * Initializes the actor.
      */
     public void init (
@@ -75,6 +86,7 @@ public class ActorLogic extends Logic
         _shape = new ShapeElement(config.shape);
         _shape.setUserObject(this);
         updateShape();
+        updateCollisionFlags();
 
         // if specified, attempt to find a non-colliding spawn point
         if (config.spawnMask != 0 && scenemgr.collides(config.spawnMask, getShape(), timestamp) &&
@@ -142,6 +154,22 @@ public class ActorLogic extends Logic
     public Logic getActivator ()
     {
         return _activator;
+    }
+
+    /**
+     * Adds a listener for changes to the actor's collision flags.
+     */
+    public void addCollisionFlagObserver (CollisionFlagObserver observer)
+    {
+        _collisionFlagObservers.add(observer);
+    }
+
+    /**
+     * Removes a collision flag observer.
+     */
+    public void removeCollisionFlagObserver (CollisionFlagObserver observer)
+    {
+        _collisionFlagObservers.remove(observer);
     }
 
     /**
@@ -570,6 +598,25 @@ public class ActorLogic extends Logic
     }
 
     /**
+     * Updates the collision flags, notifying observers if they changed.
+     */
+    protected void updateCollisionFlags ()
+    {
+        int nflags = _actor.getCollisionFlags();
+        if (_collisionFlags == nflags) {
+            return;
+        }
+        final int oflags = _collisionFlags;
+        _collisionFlags = nflags;
+        _collisionFlagObservers.apply(new ObserverList.ObserverOp<CollisionFlagObserver>() {
+            public boolean apply (CollisionFlagObserver observer) {
+                observer.collisionFlagsChanged(ActorLogic.this, oflags);
+                return true;
+            }
+        });
+    }
+
+    /**
      * Updates the snapshot and snapshot delta.
      */
     protected void updateSnapshot ()
@@ -663,6 +710,13 @@ public class ActorLogic extends Logic
 
     /** The actor's shape observers. */
     protected ObserverList<ShapeObserver> _shapeObservers = ObserverList.newFastUnsafe();
+
+    /** The actor's collision flag observers. */
+    protected ObserverList<CollisionFlagObserver> _collisionFlagObservers =
+        ObserverList.newFastUnsafe();
+
+    /** The actor's stored collision flags. */
+    protected int _collisionFlags;
 
     /** Optional references to the spawning and activating logic objects for the actor. */
     protected Logic _source, _activator;

@@ -67,7 +67,8 @@ import com.threerings.tudey.util.CoordIntMap;
  * expensive than maintaining the collision map for all actors, but it's not entirely clear).
  */
 public class Pathfinder
-    implements TudeySceneModel.Observer, TudeySceneManager.ActorObserver, Logic.ShapeObserver
+    implements TudeySceneModel.Observer, TudeySceneManager.ActorObserver,
+        Logic.ShapeObserver, ActorLogic.CollisionFlagObserver
 {
     /**
      * Creates a new pathfinder.
@@ -183,6 +184,7 @@ public class Pathfinder
     {
         addFlags(logic);
         logic.addShapeObserver(this);
+        logic.addCollisionFlagObserver(this);
     }
 
     // documentation inherited from interface TudeySceneManager.ActorObserver
@@ -190,6 +192,7 @@ public class Pathfinder
     {
         removeFlags(logic);
         logic.removeShapeObserver(this);
+        logic.removeCollisionFlagObserver(this);
     }
 
     // documentation inherited from Logic.ShapeObserver
@@ -202,6 +205,59 @@ public class Pathfinder
     public void shapeDidChange (Logic logic)
     {
         addFlags((ActorLogic)logic);
+    }
+
+    // documentation inherited from interface ActorLogic.CollisionFlagObserver
+    public void collisionFlagsChanged (ActorLogic logic, int oflags)
+    {
+        int nflags = logic.getActor().getCollisionFlags();
+        Shape shape = logic.getShape();
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                for (int ys = 0; ys < SUBDIVISION; ys++) {
+                    for (int xs = 0; xs < SUBDIVISION; xs++) {
+                        updateQuadSubdivision(xx, yy, xs, ys);
+                        if (shape.intersects(_quad)) {
+                            // remove an entry from the flag list
+                            int sx = xx * SUBDIVISION + xs;
+                            int sy = yy * SUBDIVISION + ys;
+                            int coord = Coord.encode(sx, sy);
+                            List<Integer> list = _actorFlagLists.get(coord);
+                            if (oflags != 0 && list != null) {
+                                list.remove((Integer)oflags);
+                            }
+                            if (nflags != 0) {
+                                if (list == null) {
+                                    _actorFlagLists.put(coord,
+                                        list = Lists.newArrayListWithCapacity(1));
+                                }
+                                list.add(nflags);
+                            }
+                            if (list == null) {
+                                continue;
+                            }
+                            int nsize = list.size();
+                            if (nsize == 0) {
+                                _actorFlagLists.remove(coord);
+                                _actorFlags.remove(sx, sy);
+                                continue;
+                            }
+                            int combined = 0;
+                            for (int ii = 0; ii < nsize; ii++) {
+                                combined |= list.get(ii);
+                            }
+                            _actorFlags.put(sx, sy, combined);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -434,7 +490,7 @@ public class Pathfinder
     protected void removeFlags (ActorLogic logic)
     {
         removeFlags(
-            logic.getShape(), logic.getActor().getCollisionFlags(true),
+            logic.getShape(), logic.getActor().getCollisionFlags(),
             false, logic.getShapeElement());
     }
 
