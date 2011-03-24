@@ -473,7 +473,8 @@ public class Pathfinder
                                 int coord = Coord.encode(sx, sy);
                                 List<Integer> list = _actorFlagLists.get(coord);
                                 if (list == null) {
-                                    _actorFlagLists.put(coord, list = Lists.newArrayList(1));
+                                    _actorFlagLists.put(coord,
+                                        list = Lists.newArrayListWithCapacity(1));
                                 }
                                 list.add(flags);
                             }
