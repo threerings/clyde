@@ -28,7 +28,11 @@ package com.threerings.tudey.server.util;
 import java.awt.Point;
 
 import java.util.List;
+
 import com.google.common.collect.Lists;
+
+import com.samskivert.util.IntMap;
+import com.samskivert.util.IntMaps;
 
 import com.threerings.media.util.AStarPathUtil;
 import com.threerings.media.util.MathUtil;
@@ -52,6 +56,7 @@ import com.threerings.tudey.server.logic.Logic;
 import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.space.SpaceElement;
+import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 
 /**
@@ -459,8 +464,18 @@ public class Pathfinder
                         for (int xs = 0; xs < SUBDIVISION; xs++) {
                             updateQuadSubdivision(xx, yy, xs, ys);
                             if (shape.intersects(_quad)) {
-                                _actorFlags.setBits(
-                                        xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, flags);
+                                // set the bits in the combined flags
+                                int sx = xx * SUBDIVISION + xs;
+                                int sy = yy * SUBDIVISION + ys;
+                                _actorFlags.setBits(sx, sy, flags);
+
+                                // add an entry to the list of separate flags
+                                int coord = Coord.encode(sx, sy);
+                                List<Integer> list = _actorFlagLists.get(coord);
+                                if (list == null) {
+                                    _actorFlagLists.put(coord, list = Lists.newArrayList(1));
+                                }
+                                list.add(flags);
                             }
                         }
                     }
@@ -495,8 +510,26 @@ public class Pathfinder
                         for (int xs = 0; xs < SUBDIVISION; xs++) {
                             updateQuadSubdivision(xx, yy, xs, ys);
                             if (shape.intersects(_quad)) {
-                                updateActorFlags(
-                                        xx * SUBDIVISION + xs, yy * SUBDIVISION + ys, skip);
+                                // remove an entry from the flag list
+                                int sx = xx * SUBDIVISION + xs;
+                                int sy = yy * SUBDIVISION + ys;
+                                int coord = Coord.encode(sx, sy);
+                                List<Integer> list = _actorFlagLists.get(coord);
+                                if (list == null) {
+                                    continue;
+                                }
+                                list.remove(flags);
+                                int nsize = list.size();
+                                if (nsize == 0) {
+                                    _actorFlagLists.remove(coord);
+                                    _actorFlags.remove(sx, sy);
+                                    continue;
+                                }
+                                int combined = 0;
+                                for (int ii = 0; ii < nsize; ii++) {
+                                    combined |= list.get(ii);
+                                }
+                                _actorFlags.put(sx, sy, combined);
                             }
                         }
                     }
@@ -565,29 +598,6 @@ public class Pathfinder
         _entryFlags.put(x, y, flags);
     }
 
-    /**
-     * Updates the actor flags at the specified location ({@link #_quad} should be set to the cell
-     * boundaries).
-     *
-     * @param skip an element to skip, or null for none.
-     */
-    protected void updateActorFlags (int x, int y, SpaceElement skip)
-    {
-        int flags = 0;
-        // add the flags for the actors
-        _scenemgr.getActorSpace().getIntersecting(_quad, _elements);
-        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
-            SpaceElement element = _elements.get(ii);
-            if (element != skip) {
-                flags |= ((ActorLogic)element.getUserObject()).getActor().getCollisionFlags();
-            }
-        }
-        _elements.clear();
-
-        // store the combined flags
-        _actorFlags.put(x, y, flags);
-    }
-
     /** The owning scene manager. */
     protected TudeySceneManager _scenemgr;
 
@@ -596,6 +606,9 @@ public class Pathfinder
 
     /** The collision flags corresponding to the scene entries and the actors. */
     protected CoordIntMap _actorFlags = new CoordIntMap(3, 0);
+
+    /** Maps encoded coordinates to lists of separate sets of actor flags. */
+    protected IntMap<List<Integer>> _actorFlagLists = IntMaps.newHashIntMap();
 
     /** Used to store tile shapes for intersecting testing. */
     protected Polygon _quad = new Polygon(4);
