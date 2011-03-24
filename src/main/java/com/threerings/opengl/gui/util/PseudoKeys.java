@@ -353,6 +353,12 @@ public class PseudoKeys
     /** A special "key" mapping for negative movement on a controller pov y axis. */
     public static final int KEY_CONTROLLER_POV_Y_NEGATIVE = Keyboard.KEYBOARD_SIZE + 11;
 
+    /** A special "key" mapping for the 4th mouse button. */
+    public static final int KEY_BUTTON4 = Keyboard.KEYBOARD_SIZE + 12;
+
+    /** A special "key" mapping for the 5th mouse button. */
+    public static final int KEY_BUTTON5 = Keyboard.KEYBOARD_SIZE + 13;
+
     /**
      * Returns the "key" mapping for the identified mouse button.
      */
@@ -362,6 +368,8 @@ public class PseudoKeys
             case MouseEvent.BUTTON1: return KEY_BUTTON1;
             case MouseEvent.BUTTON2: return KEY_BUTTON2;
             case MouseEvent.BUTTON3: return KEY_BUTTON3;
+            case MouseEvent.BUTTON4: return KEY_BUTTON4;
+            case MouseEvent.BUTTON5: return KEY_BUTTON5;
             default: return Keyboard.KEY_NONE;
         }
     }
