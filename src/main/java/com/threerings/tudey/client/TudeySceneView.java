@@ -950,7 +950,8 @@ public class TudeySceneView extends DynamicScope
     {
         // if we are loading, preload the next batch of resources or
         // create the next batch of sprites
-        if (_loadingWindow != null && _preloads != null) {
+        if (_loadingWindow != null && _preloads != null && _ctx.getSceneDirector() != null &&
+                _ctx.getSceneDirector().getScene() != null) {
             float ppct = 0f, epct = 0f, mpct = 0f, apct = 0f;
             if ((ppct = _preloads.preloadBatch(BATCH_LOAD_DURATION)) == 1f) {
                 if ((epct = createEntrySpriteBatch()) == 1f) {
