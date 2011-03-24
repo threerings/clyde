@@ -1370,23 +1370,33 @@ public class TudeySceneManager extends SceneManager
             // process the runnables in the queue
             Runnable runnable;
             while ((runnable = _runnables.getNonBlocking()) != null) {
-                if (_tickParticipantCount++ % _tickProfInterval == 0) {
-                    long started = System.nanoTime();
-                    runnable.run();
-                    updateTickProfile(runnable, started);
-                } else {
-                    runnable.run();
+                try {
+                    if (_tickParticipantCount++ % _tickProfInterval == 0) {
+                        long started = System.nanoTime();
+                        runnable.run();
+                        updateTickProfile(runnable, started);
+                    } else {
+                        runnable.run();
+                    }
+                } catch (Throwable t) {
+                    log.warning("Caught throwable executing runnable.",
+                        "where", where(), "runnable", runnable, t);
                 }
             }
 
             // post deltas for all clients
             for (ClientLiaison client : _clients.values()) {
-                if (_tickParticipantCount++ % _tickProfInterval == 0) {
-                    long started = System.nanoTime();
-                    client.postDelta();
-                    updateTickProfile(client, started);
-                } else {
-                    client.postDelta();
+                try {
+                    if (_tickParticipantCount++ % _tickProfInterval == 0) {
+                        long started = System.nanoTime();
+                        client.postDelta();
+                        updateTickProfile(client, started);
+                    } else {
+                        client.postDelta();
+                    }
+                } catch (Throwable t) {
+                    log.warning("Caught throwable posting delta.",
+                        "where", where(), "client", client, t);
                 }
             }
         } else {
@@ -1397,12 +1407,22 @@ public class TudeySceneManager extends SceneManager
             // process the runnables in the queue
             Runnable runnable;
             while ((runnable = _runnables.getNonBlocking()) != null) {
-                runnable.run();
+                try {
+                    runnable.run();
+                } catch (Throwable t) {
+                    log.warning("Caught throwable executing runnable.",
+                        "where", where(), "runnable", runnable, t);
+                }
             }
 
             // post deltas for all clients
             for (ClientLiaison client : _clients.values()) {
-                client.postDelta();
+                try {
+                    client.postDelta();
+                } catch (Throwable t) {
+                    log.warning("Caught throwable posting delta.",
+                        "where", where(), "client", client, t);
+                }
             }
         }
 
@@ -1493,7 +1513,13 @@ public class TudeySceneManager extends SceneManager
         // documentation inherited from interface ObserverList.ObserverOp
         public boolean apply (TickParticipant participant)
         {
-            return participant.tick(_timestamp);
+            try {
+                return participant.tick(_timestamp);
+            } catch (Throwable t) {
+                log.warning("Caught throwable ticking participant.",
+                    "participant", participant, t);
+                return false;
+            }
         }
 
         /** The timestamp of the current tick. */
@@ -1512,9 +1538,15 @@ public class TudeySceneManager extends SceneManager
                 return participant.tick(_timestamp);
             }
             long started = System.nanoTime();
-            boolean result = participant.tick(_timestamp);
-            updateTickProfile(participant, started);
-            return result;
+            try {
+                boolean result = participant.tick(_timestamp);
+                updateTickProfile(participant, started);
+                return result;
+            } catch (Throwable t) {
+                log.warning("Caught throwable ticking participant.",
+                    "participant", participant, t);
+                return false;
+            }
         }
     }
 
