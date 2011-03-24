@@ -1534,14 +1534,15 @@ public class TudeySceneManager extends SceneManager
         @Override // documentation inherited
         public boolean apply (TickParticipant participant)
         {
-            if (_tickParticipantCount++ % _tickProfInterval != 0) {
-                return participant.tick(_timestamp);
-            }
-            long started = System.nanoTime();
             try {
+                if (_tickParticipantCount++ % _tickProfInterval != 0) {
+                    return participant.tick(_timestamp);
+                }
+                long started = System.nanoTime();
                 boolean result = participant.tick(_timestamp);
                 updateTickProfile(participant, started);
                 return result;
+
             } catch (Throwable t) {
                 log.warning("Caught throwable ticking participant.",
                     "participant", participant, t);
