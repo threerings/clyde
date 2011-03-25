@@ -258,14 +258,10 @@ public abstract class Logic extends ShallowObject
     public void transfer (Logic source, Map<Object, Object> refs)
     {
         if (source._variables == null) {
+            _variables = null;
             return;
         }
-        if (_variables == null) {
-            _variables = Maps.newHashMap();
-        }
-        for (Map.Entry<String, Object> entry : source._variables.entrySet()) {
-            _variables.put(entry.getKey(), entry.getValue());
-        }
+        _variables = Maps.newHashMap(source._variables);
     }
 
     /**
