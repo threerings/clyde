@@ -45,7 +45,6 @@ import com.samskivert.util.Histogram;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
-import com.samskivert.util.Queue;
 import com.samskivert.util.RandomUtil;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
@@ -1099,7 +1098,9 @@ public class TudeySceneManager extends SceneManager
     // documentation inherited from interface RunQueue
     public void postRunnable (Runnable runnable)
     {
-        _runnables.append(runnable);
+        synchronized (_runnables) {
+            _runnables.add(runnable);
+        }
     }
 
     // documentation inherited from interface RunQueue
@@ -1362,14 +1363,19 @@ public class TudeySceneManager extends SceneManager
         _timestamp += (int)(now - _lastTick);
         _lastTick = now;
 
+        // copy the runnables into another list and clear
+        synchronized (_runnables) {
+            _runlist.addAll(_runnables);
+            _runnables.clear();
+        }
         if (_tickProfEnabled) {
             // tick the participants
             _profileTickOp.init(_timestamp);
             _tickParticipants.apply(_profileTickOp);
 
-            // process the runnables in the queue
-            Runnable runnable;
-            while ((runnable = _runnables.getNonBlocking()) != null) {
+            // process the runnables in the list
+            for (int ii = 0, nn = _runlist.size(); ii < nn; ii++) {
+                Runnable runnable = _runlist.get(ii);
                 try {
                     if (_tickParticipantCount++ % _tickProfInterval == 0) {
                         long started = System.nanoTime();
@@ -1383,6 +1389,7 @@ public class TudeySceneManager extends SceneManager
                         "where", where(), "runnable", runnable, t);
                 }
             }
+            _runlist.clear();
 
             // post deltas for all clients
             for (ClientLiaison client : _clients.values()) {
@@ -1404,9 +1411,9 @@ public class TudeySceneManager extends SceneManager
             _tickOp.init(_timestamp);
             _tickParticipants.apply(_tickOp);
 
-            // process the runnables in the queue
-            Runnable runnable;
-            while ((runnable = _runnables.getNonBlocking()) != null) {
+            // process the runnables in the list
+            for (int ii = 0, nn = _runlist.size(); ii < nn; ii++) {
+                Runnable runnable = _runlist.get(ii);
                 try {
                     runnable.run();
                 } catch (Throwable t) {
@@ -1414,6 +1421,7 @@ public class TudeySceneManager extends SceneManager
                         "where", where(), "runnable", runnable, t);
                 }
             }
+            _runlist.clear();
 
             // post deltas for all clients
             for (ClientLiaison client : _clients.values()) {
@@ -1678,7 +1686,7 @@ public class TudeySceneManager extends SceneManager
     protected ArrayList<EffectLogic> _effectsFired = Lists.newArrayList();
 
     /** Runnables enqueued for the next tick. */
-    protected Queue<Runnable> _runnables = Queue.newQueue();
+    protected List<Runnable> _runnables = Lists.newArrayList();
 
     /** The default local interest region. */
     protected Rect _defaultLocalInterest = TudeySceneMetrics.getDefaultLocalInterest();
@@ -1688,6 +1696,9 @@ public class TudeySceneManager extends SceneManager
 
     /** Holds collected effects during queries. */
     protected ArrayList<Effect> _effects = Lists.newArrayList();
+
+    /** Holds runnables during tick. */
+    protected List<Runnable> _runlist = Lists.newArrayList();
 
     /** Used to tick the participants. */
     protected TickOp _tickOp = new TickOp();
