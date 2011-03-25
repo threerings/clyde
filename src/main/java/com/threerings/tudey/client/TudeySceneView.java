@@ -740,6 +740,7 @@ public class TudeySceneView extends DynamicScope
                 actor.getPreloads(cfgmgr, _preloads);
             }
             _loadingActors = Lists.newArrayList(actors.values());
+            addExtraPreloads();
             return true;
         }
 
@@ -1416,6 +1417,14 @@ public class TudeySceneView extends DynamicScope
         if (_preloads != null) {
             effect.getPreloads(_ctx.getConfigManager(), _preloads);
         }
+    }
+
+    /**
+     * Gives the view a chance to add any required additional preloads to the set.
+     */
+    protected void addExtraPreloads ()
+    {
+        // nothing by default
     }
 
     /**
