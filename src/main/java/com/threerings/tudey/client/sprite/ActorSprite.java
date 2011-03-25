@@ -991,9 +991,9 @@ public class ActorSprite extends Sprite
     /**
      * Spawns a transient model at the location (translation and rotation) of this sprite.
      */
-    public void spawnTransientModel (ConfigReference<ModelConfig> ref)
+    public Model spawnTransientModel (ConfigReference<ModelConfig> ref)
     {
-        spawnTransientModel(ref, true);
+        return spawnTransientModel(ref, true);
     }
 
     /**
@@ -1001,9 +1001,9 @@ public class ActorSprite extends Sprite
      *
      * @param rotate if true, match the rotation as well as the translation of the sprite.
      */
-    public void spawnTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
+    public Model spawnTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
     {
-        spawnOffsetTransientModel(ref, rotate, 0f);
+        return spawnOffsetTransientModel(ref, rotate, 0f);
     }
 
     /**
@@ -1011,9 +1011,9 @@ public class ActorSprite extends Sprite
      *
      * @param rotate if true, match the rotation as well as the translation of the sprite.
      */
-    public void spawnOffsetTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
+    public Model spawnOffsetTransientModel (ConfigReference<ModelConfig> ref, boolean rotate)
     {
-        spawnOffsetTransientModel(ref, rotate, getAttachedScale() - 1f);
+        return spawnOffsetTransientModel(ref, rotate, getAttachedScale() - 1f);
     }
 
     /**
@@ -1337,7 +1337,7 @@ public class ActorSprite extends Sprite
      *
      * @param rotate if true, match the rotation as well as the translation of the sprite.
      */
-    public void spawnOffsetTransientModel (
+    public Model spawnOffsetTransientModel (
             ConfigReference<ModelConfig> ref, boolean rotate, float offset)
     {
         if (ref != null) {
@@ -1350,8 +1350,9 @@ public class ActorSprite extends Sprite
             if (rotate) {
                 mxform.extractRotation(txform.getRotation());
             }
-            _view.getScene().spawnTransient(ref, txform);
+            return _view.getScene().spawnTransient(ref, txform);
         }
+        return null;
     }
 
     /**
