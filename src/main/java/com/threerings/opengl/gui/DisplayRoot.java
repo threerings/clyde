@@ -52,17 +52,28 @@ public class DisplayRoot extends Root
         _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     }
 
+    // TODO: check this: experimental: eat the first refocus mouse click
+    protected boolean _wasActive;
+
     /**
      * Polls the input system for events and dispatches them.
      */
     public void poll ()
     {
+        boolean isActive = Display.isActive();
+        boolean newActive = (!_wasActive && isActive);
+        _wasActive = isActive;
+
         // process mouse events
         while (Mouse.next()) {
             int button = Mouse.getEventButton();
             if (button != -1) {
                 boolean pressed = Mouse.getEventButtonState();
                 if (pressed) {
+                    // Don't let the focusing click through, it has the wrong coordinates
+                    if (newActive) {
+                        return;
+                    }
                     mousePressed(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
                 } else {
                     mouseReleased(_tickStamp, button, Mouse.getEventX(), Mouse.getEventY(), false);
@@ -92,7 +103,7 @@ public class DisplayRoot extends Root
         }
 
         // clear the modifiers and release keys if we don't have focus
-        if (!Display.isActive()) {
+        if (isActive) {
             if (!_pressedKeys.isEmpty()) {
                 for (KeyRecord record : _pressedKeys.values()) {
                     KeyEvent press = record.getPress();
