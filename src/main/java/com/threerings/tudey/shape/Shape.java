@@ -424,8 +424,8 @@ public abstract class Shape
      * Calculates the minimum distance to the origin for the A polygon edges in the convex
      * hull of the Minkowski difference of the A and B polygons.
      */
-    protected Vector2f getMinMinkowskyDifference (
-            Vector2f[] A, Vector2f[] B, float radius, Vector2f minDistance)
+    protected static Vector2f getMinMinkowskyDifference (
+        Vector2f[] A, Vector2f[] B, float radius, Vector2f minDistance)
     {
         if (Vector2f.ZERO.equals(minDistance)) {
             return minDistance;
