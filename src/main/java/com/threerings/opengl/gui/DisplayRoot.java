@@ -103,7 +103,7 @@ public class DisplayRoot extends Root
         }
 
         // clear the modifiers and release keys if we don't have focus
-        if (isActive) {
+        if (!isActive) {
             if (!_pressedKeys.isEmpty()) {
                 for (KeyRecord record : _pressedKeys.values()) {
                     KeyEvent press = record.getPress();
