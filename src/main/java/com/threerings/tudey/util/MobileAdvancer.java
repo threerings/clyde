@@ -61,6 +61,14 @@ public class MobileAdvancer extends ActorAdvancer
     @Override // documentation inherited
     protected void step (float elapsed)
     {
+        takeSubsteps(elapsed);
+    }
+
+    /**
+     * Executes the substeps required for the current step.
+     */
+    protected void takeSubsteps (float elapsed)
+    {
         while (elapsed > 0f) {
             float nelapsed = Math.max(elapsed - MAX_SUBSTEP, 0f);
             substep(elapsed - nelapsed, _timestamp - (int)(nelapsed*1000f));

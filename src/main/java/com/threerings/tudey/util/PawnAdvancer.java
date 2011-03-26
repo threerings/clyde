@@ -25,10 +25,13 @@
 
 package com.threerings.tudey.util;
 
+import com.threerings.math.Vector2f;
+
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.data.actor.Pawn;
 import com.threerings.tudey.data.InputFrame;
+import com.threerings.tudey.shape.Shape;
 
 /**
  * Used on the client and the server to advance the state of a pawn based on its inputs and
@@ -36,6 +39,8 @@ import com.threerings.tudey.data.InputFrame;
  */
 public class PawnAdvancer extends ActiveAdvancer
 {
+    public static boolean acceptInputTranslation;
+
     /**
      * Creates a new advancer for the supplied pawn.
      */
@@ -73,6 +78,46 @@ public class PawnAdvancer extends ActiveAdvancer
         }
     }
 
+    @Override // documentation inherited
+    protected void takeSubsteps (float elapsed)
+    {
+        // if the input frame provides a computed position, we shall attempt to validate
+        if (_frame == null || _timestamp != _frame.getTimestamp() ||
+                _frame.getTranslation() == null || !acceptInputTranslation) {
+            super.takeSubsteps(elapsed);
+            return;
+        }
+
+        // make sure this is cleared in case we don't take any mobile steps
+        if (!canMove()) {
+            _active.clear(Mobile.MOVING);
+        }
+
+        // make sure they haven't exceeded their speed
+        Vector2f ptrans = _pawn.getTranslation();
+        Vector2f ftrans = _frame.getTranslation();
+        float distance = ptrans.distance(ftrans);
+        if (distance == 0f) {
+            return; // no movement, no problem
+        }
+        if (distance > _pawn.getSpeed() * elapsed + 0.5f) {
+            super.takeSubsteps(elapsed);
+            return;
+        }
+
+        // make sure they didn't run into anything
+        updateShape();
+        _swept = _shape.sweep(ftrans.subtract(ptrans, _penetration), _swept);
+        if (_environment.collides(_pawn, _swept)) {
+            super.takeSubsteps(elapsed);
+            return;
+        }
+
+        // otherwise, assume validity
+        ptrans.set(ftrans);
+        _pawn.setDirty(true);
+    }
+
     /**
      * Updates the pawn's state based on the current input frame.
      */
@@ -98,4 +143,7 @@ public class PawnAdvancer extends ActiveAdvancer
 
     /** The most current input frame. */
     protected InputFrame _frame;
+
+    /** Holds the actor's swept shape. */
+    protected Shape _swept;
 }

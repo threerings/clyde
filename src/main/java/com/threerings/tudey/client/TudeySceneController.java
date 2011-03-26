@@ -767,6 +767,9 @@ public class TudeySceneController extends SceneController
             _advancer.advance(frame);
             ((PawnAdvancer)targetSprite.getAdvancer()).advance(frame);
 
+            // include the up-to-date translation in the input frame for use by the server
+            frame.setTranslation(new Vector2f(_advancer.getActor().getTranslation()));
+
             // record the state
             _states.add(new PawnState(frame, (Pawn)_advancer.getActor().clone()));
 
