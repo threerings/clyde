@@ -102,7 +102,7 @@ public class BinaryImporter extends Importer
             Boolean value = (Boolean)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to boolean.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -112,10 +112,10 @@ public class BinaryImporter extends Importer
         throws IOException
     {
         try {
-            Byte value = (Byte)_fields.get(name);
-            return (value == null) ? defvalue : value;
+            Number value = (Number)_fields.get(name);
+            return (value == null) ? defvalue : value.byteValue();
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to byte.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -128,7 +128,7 @@ public class BinaryImporter extends Importer
             Character value = (Character)_fields.get(name);
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to char.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -138,10 +138,10 @@ public class BinaryImporter extends Importer
         throws IOException
     {
         try {
-            Double value = (Double)_fields.get(name);
-            return (value == null) ? defvalue : value;
+            Number value = (Number)_fields.get(name);
+            return (value == null) ? defvalue : value.doubleValue();
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to double.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -151,10 +151,10 @@ public class BinaryImporter extends Importer
         throws IOException
     {
         try {
-            Float value = (Float)_fields.get(name);
-            return (value == null) ? defvalue : value;
+            Number value = (Number)_fields.get(name);
+            return (value == null) ? defvalue : value.floatValue();
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to float.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -164,10 +164,10 @@ public class BinaryImporter extends Importer
         throws IOException
     {
         try {
-            Integer value = (Integer)_fields.get(name);
-            return (value == null) ? defvalue : value;
+            Number value = (Number)_fields.get(name);
+            return (value == null) ? defvalue : value.intValue();
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to int.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -177,10 +177,10 @@ public class BinaryImporter extends Importer
         throws IOException
     {
         try {
-            Long value = (Long)_fields.get(name);
-            return (value == null) ? defvalue : value;
+            Number value = (Number)_fields.get(name);
+            return (value == null) ? defvalue : value.longValue();
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to long.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -190,10 +190,10 @@ public class BinaryImporter extends Importer
         throws IOException
     {
         try {
-            Short value = (Short)_fields.get(name);
-            return (value == null) ? defvalue : value;
+            Number value = (Number)_fields.get(name);
+            return (value == null) ? defvalue : value.shortValue();
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to short.", "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
@@ -206,7 +206,8 @@ public class BinaryImporter extends Importer
             T value = clazz.cast(_fields.get(name));
             return (value == null) ? defvalue : value;
         } catch (ClassCastException e) {
-            log.warning("Wrong value type [value=" + _fields.get(name) + "].", e);
+            log.warning("Can't cast to class.", "class", clazz.getName(),
+                "name", name, "value", _fields.get(name), e);
             return defvalue;
         }
     }
