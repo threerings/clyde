@@ -430,8 +430,10 @@ public class TudeySceneController extends SceneController
         // bind keys to actions
         bindKeys();
 
-        // notify the server that we're in (it will start sending updates)
-        _tsobj.tudeySceneService.enteredPlace();
+        if (_tsobj.tudeySceneService != null) { // will be null when testing
+            // notify the server that we're in (it will start sending updates)
+            _tsobj.tudeySceneService.enteredPlace();
+        }
     }
 
     @Override // documentation inherited
