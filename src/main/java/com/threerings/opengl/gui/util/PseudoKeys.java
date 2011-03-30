@@ -105,8 +105,17 @@ public class PseudoKeys
         /**
          * Constructor for subclasses.
          */
+        public Unifier (boolean consume)
+        {
+            _consume = consume;
+        }
+
+        /**
+         * Constructor for subclasses.
+         */
         public Unifier ()
         {
+            this(false);
         }
 
         /**
@@ -136,6 +145,9 @@ public class PseudoKeys
         {
             if (!(event.isConsumed() || event.isRepeat())) {
                 keyPressed(event.getWhen(), event.getKeyCode(), 1f);
+                if (_consume) {
+                    event.consume();
+                }
             }
         }
 
@@ -144,6 +156,9 @@ public class PseudoKeys
         {
             if (!event.isConsumed()) {
                 keyReleased(event.getWhen(), event.getKeyCode());
+                if (_consume) {
+                    event.consume();
+                }
             }
         }
 
@@ -162,6 +177,9 @@ public class PseudoKeys
                 keyPressed(when, KEY_WHEEL_DOWN, -delta);
                 keyReleased(when, KEY_WHEEL_DOWN);
             }
+            if (_consume) {
+                event.consume();
+            }
         }
 
         // documentation inherited from interface ControllerListener
@@ -170,6 +188,9 @@ public class PseudoKeys
             if (!event.isConsumed()) {
                 keyPressed(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
                     event.getController().getIndex(), event.getControlIndex()), 1f);
+                if (_consume) {
+                    event.consume();
+                }
             }
         }
 
@@ -179,6 +200,9 @@ public class PseudoKeys
             if (!event.isConsumed()) {
                 keyReleased(event.getWhen(), getControllerKey(KEY_CONTROLLER_BUTTON,
                     event.getController().getIndex(), event.getControlIndex()));
+                if (_consume) {
+                    event.consume();
+                }
             }
         }
 
@@ -220,6 +244,9 @@ public class PseudoKeys
                         okey, controllerIndex, axisIndex));
                 }
             }
+            if (_consume) {
+                event.consume();
+            }
         }
 
         // documentation inherited from interface ControllerListener
@@ -252,6 +279,9 @@ public class PseudoKeys
                 if (okey != null) {
                     keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
                 }
+            }
+            if (_consume) {
+                event.consume();
             }
         }
 
@@ -286,6 +316,9 @@ public class PseudoKeys
                     keyReleased(event.getWhen(), getControllerKey(okey, controllerIndex, 0));
                 }
             }
+            if (_consume) {
+                event.consume();
+            }
         }
 
         @Override // documentation inherited
@@ -293,6 +326,9 @@ public class PseudoKeys
         {
             if (!event.isConsumed()) {
                 keyPressed(event.getWhen(), getMouseKey(event.getButton()), 1f);
+                if (_consume) {
+                    event.consume();
+                }
             }
         }
 
@@ -301,6 +337,9 @@ public class PseudoKeys
         {
             if (!event.isConsumed()) {
                 keyReleased(event.getWhen(), getMouseKey(event.getButton()));
+                if (_consume) {
+                    event.consume();
+                }
             }
         }
 
@@ -315,6 +354,9 @@ public class PseudoKeys
 
         /** Stores the "keys" pressed for pov y. */
         protected Map<Integer, Integer> _povy = Maps.newHashMap();
+
+        /** If we consume all events. */
+        protected boolean _consume;
     }
 
     /** A special "key" mapping for the left mouse button. */
