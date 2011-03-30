@@ -44,6 +44,7 @@ import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
+import com.samskivert.swing.util.SwingUtil;
 
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
@@ -272,6 +273,8 @@ public class ConfigReferenceEditor extends PropertyEditor
         while (ocount > idx) {
             _arguments.remove(--ocount);
         }
+        // we may need to refresh the panel
+        SwingUtil.refresh(_arguments);
 
         // clear out any arguments that don't correspond to parameters
         for (Iterator<String> it = value.getArguments().keySet().iterator(); it.hasNext(); ) {
