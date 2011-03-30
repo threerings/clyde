@@ -45,7 +45,9 @@ import javax.swing.event.ChangeListener;
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
+import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.config.Parameter;
@@ -59,7 +61,7 @@ import com.threerings.editor.swing.PropertyEditor;
  * An editor for configuration references.
  */
 public class ConfigReferenceEditor extends PropertyEditor
-    implements ActionListener, ChangeListener
+    implements ActionListener, ChangeListener, ConfigUpdateListener<ManagedConfig>
 {
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
@@ -102,6 +104,30 @@ public class ConfigReferenceEditor extends PropertyEditor
     public void stateChanged (ChangeEvent event)
     {
         fireStateChanged();
+    }
+
+    // documentation inherited from interface ConfigUpdateListener
+    public void configUpdated (ConfigEvent<ManagedConfig> event)
+    {
+        update();
+    }
+
+    @Override // documentation inherited
+    public void addNotify ()
+    {
+        super.addNotify();
+        if (_listenee != null) {
+            update();
+        }
+    }
+
+    @Override // documentation inherited
+    public void removeNotify ()
+    {
+        super.removeNotify();
+        if (_listenee != null) {
+            _listenee.removeListener(this);
+        }
     }
 
     @Override // documentation inherited
@@ -153,6 +179,12 @@ public class ConfigReferenceEditor extends PropertyEditor
      */
     protected void update (ConfigReference value, boolean transfer)
     {
+        // make sure we're not listening to anything
+        if (_listenee != null) {
+            _listenee.removeListener(this);
+            _listenee = null;
+        }
+
         // update the button states
         boolean enable = (value != null);
         if (_edit != null) {
@@ -247,6 +279,9 @@ public class ConfigReferenceEditor extends PropertyEditor
                 it.remove();
             }
         }
+
+        // listen for parameter changes
+        (_listenee = pconfig).addListener(this);
     }
 
     /** The config button. */
@@ -260,4 +295,7 @@ public class ConfigReferenceEditor extends PropertyEditor
 
     /** The config chooser. */
     protected ConfigChooser _chooser;
+
+    /** The config that we're listening to, if any. */
+    protected ParameterizedConfig _listenee;
 }

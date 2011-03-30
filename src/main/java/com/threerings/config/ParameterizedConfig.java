@@ -124,8 +124,10 @@ public class ParameterizedConfig extends ManagedConfig
         if (_derived == null) {
             return;
         }
+        SoftCache<ArgumentMap, ParameterizedConfig> oderived = _derived;
+        _derived = new SoftCache<ArgumentMap, ParameterizedConfig>();
         for (Iterator<Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>>> it =
-                _derived.getMap().entrySet().iterator(); it.hasNext(); ) {
+                oderived.getMap().entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>> entry = it.next();
             ParameterizedConfig instance = entry.getValue().get();
             if (instance == null) {
@@ -136,6 +138,9 @@ public class ParameterizedConfig extends ManagedConfig
             applyArguments(instance, entry.getKey());
             instance.wasUpdated();
         }
+        // combine the original map with anything added in the meantime
+        oderived.getMap().putAll(_derived.getMap());
+        _derived = oderived;
         if (_derived.getMap().isEmpty()) {
             _derived = null;
         }
