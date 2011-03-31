@@ -30,6 +30,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
+import com.threerings.io.Streamable;
 import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
 
@@ -50,7 +51,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     HandlerConfig.Request.class, HandlerConfig.ActorAdded.class, HandlerConfig.ActorRemoved.class,
     HandlerConfig.VariableChanged.class })
 public abstract class HandlerConfig extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * The startup event handler.
