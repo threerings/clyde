@@ -52,9 +52,6 @@ public class DisplayRoot extends Root
         _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     }
 
-    // TODO: check this: experimental: eat the first refocus mouse click
-    protected boolean _wasActive;
-
     /**
      * Polls the input system for events and dispatches them.
      */
@@ -85,7 +82,7 @@ public class DisplayRoot extends Root
                 mouseWheeled(_tickStamp, Mouse.getEventX(), Mouse.getEventY(),
                     (delta > 0) ? +1 : -1, false);
             }
-            if (button == -1 && delta == 0) {
+            if (isActive && button == -1 && delta == 0) {
                 mouseMoved(_tickStamp, Mouse.getEventX(), Mouse.getEventY(), false);
             }
         }
@@ -295,4 +292,8 @@ public class DisplayRoot extends Root
             controller, when, _modifiers, ControllerEvent.CONTROLLER_POV_Y_MOVED, value);
         dispatchEvent(getFocus(), event);
     }
+
+    /** Track whether we were active during the last event poll, so that we can consume
+     * the mouse click that may arrive with focus. */
+    protected boolean _wasActive;
 }
