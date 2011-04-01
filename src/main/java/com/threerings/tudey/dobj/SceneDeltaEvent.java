@@ -49,18 +49,6 @@ public class SceneDeltaEvent extends DEvent
     public SceneDeltaEvent (
         int targetOid, int sceneOid, int acknowledge, short ping, int reference,
         int timestamp, short elapsed, Actor[] addedActors, ActorDelta[] updatedActorDeltas,
-        int[] removedActorIds, Effect[] effectsFired)
-    {
-        this(targetOid, sceneOid, acknowledge, ping, reference, timestamp, elapsed, addedActors,
-            updatedActorDeltas, removedActorIds, effectsFired, Transport.DEFAULT);
-    }
-
-    /**
-     * Creates a new delta event.
-     */
-    public SceneDeltaEvent (
-        int targetOid, int sceneOid, int acknowledge, short ping, int reference,
-        int timestamp, short elapsed, Actor[] addedActors, ActorDelta[] updatedActorDeltas,
         int[] removedActorIds, Effect[] effectsFired, Transport transport)
     {
         super(targetOid, transport);
@@ -74,13 +62,6 @@ public class SceneDeltaEvent extends DEvent
         _updatedActorDeltas = updatedActorDeltas;
         _removedActorIds = removedActorIds;
         _effectsFired = effectsFired;
-    }
-
-    /**
-     * No-arg constructor for deserialization.
-     */
-    public SceneDeltaEvent ()
-    {
     }
 
     /**

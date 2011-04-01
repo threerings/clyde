@@ -26,6 +26,7 @@
 package com.threerings.config.dist.data;
 
 import javax.annotation.Generated;
+
 import com.threerings.presents.dobj.DEvent;
 import com.threerings.presents.dobj.DObject;
 import com.threerings.presents.dobj.DSet;
@@ -33,6 +34,7 @@ import com.threerings.presents.dobj.EntryAddedEvent;
 import com.threerings.presents.dobj.EntryRemovedEvent;
 import com.threerings.presents.dobj.EntryUpdatedEvent;
 import com.threerings.presents.dobj.ObjectAccessException;
+import com.threerings.presents.net.Transport;
 
 import static com.threerings.ClydeLog.*;
 
@@ -53,13 +55,6 @@ public class DConfigObject extends DObject
         {
             super(toid, name, entry);
             _clientOid = clientOid;
-        }
-
-        /**
-         * No-arg constructor for deserialization.
-         */
-        public ClientEntryAddedEvent ()
-        {
         }
 
         /**
@@ -99,13 +94,6 @@ public class DConfigObject extends DObject
         }
 
         /**
-         * No-arg constructor for deserialization.
-         */
-        public ClientEntryRemovedEvent ()
-        {
-        }
-
-        /**
          * Returns the oid of the client that caused the event.
          */
         public int getClientOid ()
@@ -128,15 +116,8 @@ public class DConfigObject extends DObject
         @SuppressWarnings("unchecked")
         public ClientEntryUpdatedEvent (int toid, String name, T entry, int clientOid)
         {
-            super(toid, name, entry, (T)UNSET_OLD_ENTRY);
+            super(toid, name, entry, (T)UNSET_OLD_ENTRY, Transport.DEFAULT);
             _clientOid = clientOid;
-        }
-
-        /**
-         * No-arg constructor for deserialization.
-         */
-        public ClientEntryUpdatedEvent ()
-        {
         }
 
         /**
