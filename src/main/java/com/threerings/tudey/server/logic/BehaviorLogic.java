@@ -705,6 +705,13 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void startup ()
+        {
+            _currentStep = 0;
+            _start = true;
+        }
+
+        @Override // documentation inherited
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);

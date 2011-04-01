@@ -220,8 +220,14 @@ public abstract class ScriptLogic extends Logic
         @Override // documentation inherited
         public void start (int timestamp)
         {
+            ScriptConfig.Rotate config = (ScriptConfig.Rotate)_config;
             _agent.stopMoving();
-            _agent.setTargetRotation(((ScriptConfig.Rotate)_config).direction);
+            float rotation = config.direction +
+                FloatMath.random(-config.rotationVariance, config.rotationVariance);
+            if (config.relative) {
+                rotation += _agent.getRotation();
+            }
+            _agent.setTargetRotation(FloatMath.normalizeAnglePositive(rotation));
             _complete = false;
         }
 

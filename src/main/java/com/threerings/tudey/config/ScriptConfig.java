@@ -78,8 +78,16 @@ public abstract class ScriptConfig extends DeepObject
     public static class Rotate extends ScriptConfig
     {
         /** The target rotation. */
-        @Editable(min=0.0, max=360.0, scale=Math.PI/180.0)
+        @Editable(min=0.0, max=360.0, scale=Math.PI/180.0, hgroup="d")
         public float direction = 0;
+
+        /** The rotation variance. */
+        @Editable(min=0.0, max=360.0, scale=Math.PI/180.0, hgroup="d")
+        public float rotationVariance = 0;
+
+        /** If the rotation is relative. */
+        @Editable
+        public boolean relative;
 
         @Override // documentation inherited
         public String getLogicClassName ()
