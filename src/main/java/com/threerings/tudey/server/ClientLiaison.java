@@ -348,15 +348,16 @@ public class ClientLiaison
         int nadded = _added.size();
         int nupdated = _updated.size();
         int nfired = _fired.size();
-        _bodyobj.postEvent(record.event = new SceneDeltaEvent(
+        record.event = new SceneDeltaEvent(
             _bodyobj.getOid(), _tsobj.getOid(), _lastInput,
             (short)_ping, reference.getTimestamp(), timestamp,
             (short)(timestamp - _scenemgr.getPreviousTimestamp()),
             (nadded == 0) ? null : _added.values().toArray(new Actor[nadded]),
             (nupdated == 0) ? null : _updated.values().toArray(new ActorDelta[nupdated]),
             _removed.isEmpty() ? null : _removed.intKeySet().toIntArray(),
-            (nfired == 0) ? null : _fired.toArray(new Effect[nfired]),
-            transport));
+            (nfired == 0) ? null : _fired.toArray(new Effect[nfired]));
+        record.event.setTransport(transport);
+        _bodyobj.postEvent(record.event);
 
         // clear the arrays
         _added.clear();

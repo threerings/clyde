@@ -34,7 +34,6 @@ import com.threerings.presents.dobj.EntryAddedEvent;
 import com.threerings.presents.dobj.EntryRemovedEvent;
 import com.threerings.presents.dobj.EntryUpdatedEvent;
 import com.threerings.presents.dobj.ObjectAccessException;
-import com.threerings.presents.net.Transport;
 
 import static com.threerings.ClydeLog.*;
 
@@ -116,7 +115,7 @@ public class DConfigObject extends DObject
         @SuppressWarnings("unchecked")
         public ClientEntryUpdatedEvent (int toid, String name, T entry, int clientOid)
         {
-            super(toid, name, entry, (T)UNSET_OLD_ENTRY, Transport.DEFAULT);
+            super(toid, name, entry, (T)UNSET_OLD_ENTRY);
             _clientOid = clientOid;
         }
 

@@ -49,9 +49,9 @@ public class SceneDeltaEvent extends DEvent
     public SceneDeltaEvent (
         int targetOid, int sceneOid, int acknowledge, short ping, int reference,
         int timestamp, short elapsed, Actor[] addedActors, ActorDelta[] updatedActorDeltas,
-        int[] removedActorIds, Effect[] effectsFired, Transport transport)
+        int[] removedActorIds, Effect[] effectsFired)
     {
-        super(targetOid, transport);
+        super(targetOid);
         _sceneOid = sceneOid;
         _acknowledge = acknowledge;
         _ping = ping;
