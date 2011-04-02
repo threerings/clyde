@@ -156,6 +156,17 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * An interface for objects to notify when we shutdown.
+     */
+    public interface ShutdownObserver
+    {
+        /**
+         * Notes that we're shutting down.
+         */
+        public void didShutdown ();
+    }
+
+    /**
      * An interface for objects that should be notified when actors intersect them.
      */
     public interface IntersectionSensor extends Sensor
@@ -285,6 +296,22 @@ public class TudeySceneManager extends SceneManager
     public void removeActorObserver (ActorObserver observer)
     {
         _actorObservers.remove(observer);
+    }
+
+    /**
+     * Adds a shutdown observer.
+     */
+    public void addShutdownObserver (ShutdownObserver observer)
+    {
+        _shutdownObservers.add(observer);
+    }
+
+    /**
+     * Removes a shutdown observer.
+     */
+    public void removeShutdownObserver (ShutdownObserver observer)
+    {
+        _shutdownObservers.add(observer);
     }
 
     /**
@@ -1183,6 +1210,8 @@ public class TudeySceneManager extends SceneManager
             logic.removed();
         }
 
+        _shutdownObservers.apply(_shutdownOp);
+
         // remove from the ticker
         _ticker.remove(this);
         _ticker = null;
@@ -1646,6 +1675,9 @@ public class TudeySceneManager extends SceneManager
     /** The list of actor observers. */
     protected ObserverList<ActorObserver> _actorObservers = ObserverList.newFastUnsafe();
 
+    /** The list of shutdown observers. */
+    protected ObserverList<ShutdownObserver> _shutdownObservers = ObserverList.newFastUnsafe();
+
     /** Scene entry logic objects mapped by key. */
     protected HashMap<Object, EntryLogic> _entries = Maps.newHashMap();
 
@@ -1719,6 +1751,15 @@ public class TudeySceneManager extends SceneManager
         public boolean apply (ActorObserver observer) {
             observer.actorRemoved(_logic);
             return true;
+        }
+    };
+
+    /** Shutdown observer op. */
+    protected static ObserverList.ObserverOp<ShutdownObserver> _shutdownOp =
+        new ObserverList.ObserverOp<ShutdownObserver>() {
+        public boolean apply (ShutdownObserver observer) {
+            observer.didShutdown();
+            return false;
         }
     };
 
