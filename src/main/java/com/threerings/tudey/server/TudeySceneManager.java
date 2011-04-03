@@ -311,7 +311,7 @@ public class TudeySceneManager extends SceneManager
      */
     public void removeShutdownObserver (ShutdownObserver observer)
     {
-        _shutdownObservers.add(observer);
+        _shutdownObservers.remove(observer);
     }
 
     /**
