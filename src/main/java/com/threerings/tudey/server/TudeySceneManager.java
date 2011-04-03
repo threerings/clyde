@@ -1204,6 +1204,7 @@ public class TudeySceneManager extends SceneManager
             logic.destroy(timestamp, logic);
             logic.remove();
         }
+        _actors.clear();
 
         // remove all scene entries
         for (EntryLogic logic : _entries.values()) {
