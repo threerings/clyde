@@ -85,7 +85,6 @@ public class DConfigObject extends DObject
         /**
          * Default constructor.
          */
-        @SuppressWarnings("unchecked")
         public ClientEntryRemovedEvent (int toid, String name, Comparable<?> key, int clientOid)
         {
             super(toid, name, key);
@@ -112,7 +111,6 @@ public class DConfigObject extends DObject
         /**
          * Default constructor.
          */
-        @SuppressWarnings("unchecked")
         public ClientEntryUpdatedEvent (int toid, String name, T entry, int clientOid)
         {
             super(toid, name, entry);
