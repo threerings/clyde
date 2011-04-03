@@ -88,7 +88,7 @@ public class DConfigObject extends DObject
         @SuppressWarnings("unchecked")
         public ClientEntryRemovedEvent (int toid, String name, Comparable<?> key, int clientOid)
         {
-            super(toid, name, key, (T)UNSET_OLD_ENTRY);
+            super(toid, name, key);
             _clientOid = clientOid;
         }
 
@@ -115,7 +115,7 @@ public class DConfigObject extends DObject
         @SuppressWarnings("unchecked")
         public ClientEntryUpdatedEvent (int toid, String name, T entry, int clientOid)
         {
-            super(toid, name, entry, (T)UNSET_OLD_ENTRY);
+            super(toid, name, entry);
             _clientOid = clientOid;
         }
 
