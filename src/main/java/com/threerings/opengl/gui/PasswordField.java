@@ -59,10 +59,11 @@ public class PasswordField extends TextField
     protected String getDisplayText ()
     {
         String text = super.getDisplayText();
-        if (text == null) {
-            return null;
+        if (text == null || (!hasFocus() && usePlaceholder())) {
+            return text;
+        }
 
-        } else if (_stars == null || _stars.length() != text.length()) {
+        if (_stars == null || _stars.length() != text.length()) {
             _stars = StringUtil.fill('*', text.length());
         }
         return _stars;

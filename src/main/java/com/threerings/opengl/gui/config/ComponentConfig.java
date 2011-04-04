@@ -434,6 +434,9 @@ public abstract class ComponentConfig extends DeepObject
         @Editable(min=0, hgroup="t")
         public int maxLength;
 
+        @Editable(hgroup="t")
+        public String placeholder = "";
+
         @Override // documentation inherited
         protected Component maybeRecreate (
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
@@ -445,8 +448,11 @@ public abstract class ComponentConfig extends DeepObject
         @Override // documentation inherited
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
-             // setMaxLength must be called before setText
-            ((com.threerings.opengl.gui.EditableTextComponent)comp).setMaxLength(maxLength);
+            com.threerings.opengl.gui.EditableTextComponent ecomp =
+                (com.threerings.opengl.gui.EditableTextComponent)comp;
+            // setMaxLength must be called before setText
+            ecomp.setMaxLength(maxLength);
+            ecomp.setPlaceholder(getMessage(msgs, placeholder));
             super.configure(ctx, scope, msgs, comp);
         }
     }

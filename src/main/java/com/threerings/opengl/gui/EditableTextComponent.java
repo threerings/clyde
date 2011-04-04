@@ -27,6 +27,8 @@ package com.threerings.opengl.gui;
 
 import javax.swing.undo.UndoManager;
 
+import com.google.common.base.Strings;
+
 import org.lwjgl.opengl.GL11;
 
 import com.samskivert.util.IntTuple;
@@ -74,6 +76,17 @@ public abstract class EditableTextComponent extends TextComponent
         super(ctx);
         setMaxLength(maxLength);
         setText(text);
+    }
+
+    /**
+     * Set the placeholder text; shown when the field is unfocused and empty.
+     */
+    public void setPlaceholder (String placeholder)
+    {
+        _placeholder = Strings.nullToEmpty(placeholder);
+        if (isAdded() && !hasFocus() && "".equals(_text.getText())) {
+            recreateGlyphs();
+        }
     }
 
     /**
@@ -461,6 +474,11 @@ public abstract class EditableTextComponent extends TextComponent
     {
         _showCursor = true;
         setCursorPos(_cursp);
+
+        // perhaps hide the placeholder
+        if (usePlaceholder()) {
+            recreateGlyphs();
+        }
     }
 
     /**
@@ -470,6 +488,19 @@ public abstract class EditableTextComponent extends TextComponent
     {
         _showCursor = false;
         _undomgr.discardAllEdits();
+
+        // perhaps show the placeholder
+        if (usePlaceholder()) {
+            recreateGlyphs();
+        }
+    }
+
+    /**
+     * Would we want to use our placeholder text if we did not have focus?
+     */
+    protected boolean usePlaceholder ()
+    {
+        return !"".equals(_placeholder) && "".equals(_text.getText());
     }
 
     /**
@@ -479,6 +510,9 @@ public abstract class EditableTextComponent extends TextComponent
      */
     protected String getDisplayText ()
     {
+        if (!hasFocus() && usePlaceholder()) {
+            return _placeholder;
+        }
         return _text.getText();
     }
 
@@ -581,7 +615,7 @@ public abstract class EditableTextComponent extends TextComponent
     {
         clearGlyphs();
 
-        if (_text.getLength() == 0) {
+        if ("".equals(getDisplayText())) {
             setSelection(0, 0);
 
         } else {
@@ -638,6 +672,9 @@ public abstract class EditableTextComponent extends TextComponent
 
     protected Document _text;
     protected KeyMap _keymap = new DefaultKeyMap();
+
+    /** Placeholder text, shown when our regular document is empty. */
+    protected String _placeholder = "";
 
     protected int _prefWidth = -1;
     protected boolean _showCursor;
