@@ -202,7 +202,9 @@ public abstract class EditableTextComponent extends TextComponent
                 case KeyMap.NO_MAPPING:
                     char c = kev.getKeyChar();
                     // if otherwise unprocessed, insert printable and shifted/alted printable chars
-                    if ((modifiers & ~(KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) == 0) {
+                    // (the ctrl+alt combination is AltGr, used on international keyboards)
+                    if ((modifiers & ~(KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) == 0 ||
+                            modifiers == (KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) {
                         c = insertChar(c);
                         if (c != 0) {
                             replaceSelectedText(String.valueOf(c),
