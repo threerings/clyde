@@ -545,7 +545,7 @@ public class Component
      */
     public boolean hasFocus ()
     {
-        return isAdded() ? getWindow().getRoot().getFocus() == this : false;
+        return isAdded() && (getWindow().getRoot().getFocus() == this);
     }
 
     /**
