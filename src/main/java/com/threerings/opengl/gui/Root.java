@@ -954,10 +954,11 @@ public abstract class Root extends SimpleOverlay
 
         // if the focus is changing, dispatch an event to report it
         if (_focus != focus) {
-            if (_focus != null) {
-                _focus.dispatchEvent(new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_LOST));
-            }
+            Component oldFocus = _focus;
             _focus = focus;
+            if (oldFocus != null) {
+                oldFocus.dispatchEvent(new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_LOST));
+            }
             if (_focus != null) {
                 _focus.dispatchEvent(new FocusEvent(this, getTickStamp(), FocusEvent.FOCUS_GAINED));
             }
