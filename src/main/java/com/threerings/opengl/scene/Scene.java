@@ -57,6 +57,8 @@ import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.util.Tickable;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * Base class for scenes.
  */
@@ -379,6 +381,14 @@ public abstract class Scene extends DynamicScope
     public int getViewerEffectCount ()
     {
         return _effects.size();
+    }
+
+    /**
+     * Writes the set of active viewer effects out to the log.
+     */
+    public void dumpViewerEffects ()
+    {
+        log.info("Viewer effects: " + _effects);
     }
 
     /**

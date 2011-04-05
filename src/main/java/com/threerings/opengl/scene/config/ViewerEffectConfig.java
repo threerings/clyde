@@ -97,6 +97,9 @@ public abstract class ViewerEffectConfig extends DeepObject
                 @Override public boolean omitWhileLoading () {
                     return true;
                 }
+                @Override public String toString () {
+                    return "Sound:" + Sound.this.sounder;
+                }
                 protected boolean _activated;
             }
             if (effect instanceof SoundEffect) {
@@ -157,24 +160,27 @@ public abstract class ViewerEffectConfig extends DeepObject
                         ((Model)scope.getParentScope()).completed((Model.Implementation)scope);
                     }
                 };
-                public void activate (Scene scene) {
+                @Override public void activate (Scene scene) {
                     (_scene = scene).add(model);
                 }
-                public void deactivate () {
+                @Override public void deactivate () {
                     _scene.remove(model);
                     _scene = null;
                 }
-                public void update () {
+                @Override public void update () {
                     Vector3f trans = model.getLocalTransform().getTranslation();
                     translationOrigin.subtract(_translation, trans).multLocal(translationScale);
                     trans.addLocal(_translation);
                     model.updateBounds();
                 }
-                public boolean hasCompleted () {
+                @Override public boolean hasCompleted () {
                     return model.hasCompleted();
                 }
-                public void reset () {
+                @Override public void reset () {
                     model.reset();
+                }
+                @Override public String toString () {
+                    return "Skybox:" + Skybox.this.model;
                 }
                 protected Vector3f _translation =
                     ctx.getCompositor().getCamera().getWorldTransform().getTranslation();
@@ -209,21 +215,24 @@ public abstract class ViewerEffectConfig extends DeepObject
                         ((Model)scope.getParentScope()).completed((Model.Implementation)scope);
                     }
                 };
-                public void activate (Scene scene) {
+                @Override public void activate (Scene scene) {
                     (_scene = scene).add(model);
                 }
-                public void deactivate () {
+                @Override public void deactivate () {
                     _scene.remove(model);
                     _scene = null;
                 }
-                public void update () {
+                @Override public void update () {
                     model.setLocalTransform(_transform);
                 }
-                public boolean hasCompleted () {
+                @Override public boolean hasCompleted () {
                     return model.hasCompleted();
                 }
-                public void reset () {
+                @Override public void reset () {
                     model.reset();
+                }
+                @Override public String toString () {
+                    return "Particles:" + Particles.this.model;
                 }
                 protected Transform3D _transform =
                     ctx.getCompositor().getCamera().getWorldTransform();
@@ -254,11 +263,14 @@ public abstract class ViewerEffectConfig extends DeepObject
             class RenderEffectEffect extends ViewerEffect {
                 public com.threerings.opengl.compositor.RenderEffect reffect =
                     new com.threerings.opengl.compositor.RenderEffect(ctx, scope, renderEffect);
-                public void activate (Scene scene) {
+                @Override public void activate (Scene scene) {
                     ctx.getCompositor().addEffect(reffect);
                 }
-                public void deactivate () {
+                @Override public void deactivate () {
                     ctx.getCompositor().removeEffect(reffect);
+                }
+                @Override public String toString () {
+                    return "RenderEffect:" + renderEffect;
                 }
             }
             if (effect instanceof RenderEffectEffect) {
