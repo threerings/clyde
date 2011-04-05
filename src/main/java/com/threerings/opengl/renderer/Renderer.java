@@ -1162,15 +1162,6 @@ public class Renderer
                 lrec.position.set(light.position).get(_vbuf).rewind();
                 GL11.glLight(lname, GL11.GL_POSITION, _vbuf);
             }
-            if (light.position.w == 0f) {
-                continue; // light is directional; the rest does not apply
-            }
-            if (light.spotCutoff != 180f && !lrec.spotDirection.equals(light.spotDirection)) {
-                // as with the position, clear the modelview matrix
-                cleared = maybeClearModelview(cleared);
-                lrec.spotDirection.set(light.spotDirection).get(_vbuf).rewind();
-                GL11.glLight(lname, GL11.GL_SPOT_DIRECTION, _vbuf);
-            }
             if (lrec.spotExponent != light.spotExponent) {
                 GL11.glLightf(lname, GL11.GL_SPOT_EXPONENT,
                     lrec.spotExponent = light.spotExponent);
@@ -1178,6 +1169,15 @@ public class Renderer
             if (lrec.spotCutoff != light.spotCutoff) {
                 GL11.glLightf(lname, GL11.GL_SPOT_CUTOFF,
                     lrec.spotCutoff = light.spotCutoff);
+            }
+            if (light.spotCutoff != 180f && !lrec.spotDirection.equals(light.spotDirection)) {
+                // as with the position, clear the modelview matrix
+                cleared = maybeClearModelview(cleared);
+                lrec.spotDirection.set(light.spotDirection).get(_vbuf).rewind();
+                GL11.glLight(lname, GL11.GL_SPOT_DIRECTION, _vbuf);
+            }
+            if (light.position.w == 0f) {
+                continue; // light is directional; the rest does not apply
             }
             if (lrec.constantAttenuation != light.constantAttenuation) {
                 GL11.glLightf(lname, GL11.GL_CONSTANT_ATTENUATION,
