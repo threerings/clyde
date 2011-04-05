@@ -86,13 +86,21 @@ public abstract class ViewerEffectConfig extends DeepObject
                     sounder.stop();
                     _activated = false;
                 }
+                @Override public boolean hasCompleted () {
+                    return _completed;
+                }
                 @Override public void update () {
                     sounder.update();
+                    if (!(_completed || sounder.isPlaying())) {
+                        _completed = true;
+                        ((Model)scope.getParentScope()).completed((Model.Implementation)scope);
+                    }
                 }
                 @Override public void reset () {
                     if (_activated) {
                         sounder.start();
                     }
+                    _completed = false;
                 }
                 @Override public boolean omitWhileLoading () {
                     return true;
@@ -100,7 +108,7 @@ public abstract class ViewerEffectConfig extends DeepObject
                 @Override public String toString () {
                     return "Sound:" + Sound.this.sounder;
                 }
-                protected boolean _activated;
+                protected boolean _activated, _completed;
             }
             if (effect instanceof SoundEffect) {
                 ((SoundEffect)effect).sounder.setConfig(sounder);
