@@ -27,6 +27,8 @@ package com.threerings.opengl.gui;
 
 import java.awt.Toolkit;
 
+import java.util.Iterator;
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
@@ -99,8 +101,24 @@ public class DisplayRoot extends Root
             updateKeyModifier(key, pressed);
         }
 
-        // clear the modifiers and release keys if we don't have focus
-        if (!isActive) {
+        if (isActive) {
+            // make sure the pressed keys are really pressed
+            if (!_pressedKeys.isEmpty()) {
+                for (Iterator<KeyRecord> it = _pressedKeys.values().iterator(); it.hasNext(); ) {
+                    KeyRecord record = it.next();
+                    KeyEvent press = record.getPress();
+                    int key = press.getKeyCode();
+                    if (!Keyboard.isKeyDown(key)) {
+                        dispatchEvent(getFocus(), new KeyEvent(
+                            this, _tickStamp, _modifiers, KeyEvent.KEY_RELEASED,
+                            press.getKeyChar(), key, false));
+                        updateKeyModifier(key, false);
+                        it.remove();
+                    }
+                }
+            }
+        } else {
+            // clear all modifiers and release all keys
             if (!_pressedKeys.isEmpty()) {
                 for (KeyRecord record : _pressedKeys.values()) {
                     KeyEvent press = record.getPress();
