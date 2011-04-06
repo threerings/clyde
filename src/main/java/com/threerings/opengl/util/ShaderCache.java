@@ -120,7 +120,7 @@ public class ShaderCache extends ResourceCache
             return;
         }
         String infolog = object.getInfoLog();
-        if (infolog.length() > 80 || infolog.toLowerCase().contains("software")) {
+        if (infolog.length() > 255 || infolog.toLowerCase().contains("software")) {
             log.warning("Possibly handling shader in software.",
                 ArrayUtil.concatenate(args, new Object[] { "log", infolog }));
         }
