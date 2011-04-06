@@ -268,13 +268,14 @@ public abstract class HandlerLogic extends Logic
                     it.remove();
                 }
             }
-            return !_activated.isEmpty();
+            return (_added = !_activated.isEmpty());
         }
 
         @Override // documentation inherited
         public void shutdown (int timestamp, Logic activator)
         {
             _scenemgr.removeTickParticipant(this);
+            _added = false;
         }
 
         /**
@@ -282,11 +283,12 @@ public abstract class HandlerLogic extends Logic
          */
         protected void activate (int timestamp, Logic source)
         {
+            if (!_added) {
+                _scenemgr.addTickParticipant(this);
+                _added = true;
+            }
             Boolean value = _activated.get(source);
             if (value == null) {
-                if (_activated.isEmpty()) {
-                    _scenemgr.addTickParticipant(this);
-                }
                 if (_start) {
                     execute(timestamp, source);
                 }
@@ -296,6 +298,9 @@ public abstract class HandlerLogic extends Logic
 
         /** Whether or not to execute the action on start/stop. */
         protected boolean _start, _stop;
+
+        /** Whether or not we've been added as a tick participant. */
+        protected boolean _added;
 
         /** Whether or not each activator has activated on the current tick. */
         protected Map<Logic, Boolean> _activated = Maps.newIdentityHashMap();
