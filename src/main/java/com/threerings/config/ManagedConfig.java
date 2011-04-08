@@ -133,7 +133,7 @@ public abstract class ManagedConfig extends DeepObject
     public void addListener (ConfigUpdateListener listener)
     {
         if (_listeners == null) {
-            _listeners = WeakObserverList.newList(ObserverList.FAST_UNSAFE_NOTIFY, true);
+            _listeners = WeakObserverList.newFastUnsafe();
             addUpdateDependencies();
         }
         @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =

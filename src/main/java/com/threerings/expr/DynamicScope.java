@@ -186,7 +186,7 @@ public class DynamicScope
     public void addListener (ScopeUpdateListener listener)
     {
         if (_listeners == null) {
-            _listeners = WeakObserverList.newList(ObserverList.FAST_UNSAFE_NOTIFY, true);
+            _listeners = WeakObserverList.newFastUnsafe();
         }
         _listeners.add(listener);
     }
