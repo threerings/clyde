@@ -186,7 +186,8 @@ public class DynamicScope
     public void addListener (ScopeUpdateListener listener)
     {
         if (_listeners == null) {
-            _listeners = WeakObserverList.newFastUnsafe();
+            // we disable duplicate checking for performance; don't fuck up
+            _listeners = WeakObserverList.newFastUnsafe().setCheckDuplicates(false);
         }
         _listeners.add(listener);
     }

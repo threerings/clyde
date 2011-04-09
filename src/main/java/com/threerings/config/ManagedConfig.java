@@ -133,7 +133,8 @@ public abstract class ManagedConfig extends DeepObject
     public void addListener (ConfigUpdateListener listener)
     {
         if (_listeners == null) {
-            _listeners = WeakObserverList.newFastUnsafe();
+            // we disable duplicate checking for performance; don't fuck up
+            _listeners = WeakObserverList.newFastUnsafe().setCheckDuplicates(false);
             addUpdateDependencies();
         }
         @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
