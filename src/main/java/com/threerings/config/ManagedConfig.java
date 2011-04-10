@@ -134,7 +134,7 @@ public abstract class ManagedConfig extends DeepObject
     {
         if (_listeners == null) {
             // we disable duplicate checking for performance; don't fuck up
-            _listeners = WeakObserverList.newFastUnsafe().setCheckDuplicates(false);
+            (_listeners = WeakObserverList.newFastUnsafe()).setCheckDuplicates(false);
             addUpdateDependencies();
         }
         @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
@@ -148,7 +148,9 @@ public abstract class ManagedConfig extends DeepObject
     public void removeListener (ConfigUpdateListener listener)
     {
         if (_listeners != null) {
-            _listeners.remove(listener);
+            @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
+                listener;
+            _listeners.remove(mlistener);
             if (_listeners.isEmpty()) {
                 _listeners = null;
                 clearUpdateDependencies();

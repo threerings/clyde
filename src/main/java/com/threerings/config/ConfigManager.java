@@ -452,7 +452,9 @@ public class ConfigManager
     public void removeUpdateListener (ConfigUpdateListener listener)
     {
         if (_updateListeners != null) {
-            _updateListeners.remove(listener);
+            @SuppressWarnings("unchecked") ConfigUpdateListener<ManagedConfig> mlistener =
+                listener;
+            _updateListeners.remove(mlistener);
             if (_updateListeners.isEmpty()) {
                 _updateListeners = null;
             }
