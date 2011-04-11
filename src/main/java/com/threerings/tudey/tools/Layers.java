@@ -175,7 +175,7 @@ public class Layers extends EditorTool
         }
 
         // kill the layers, highest to lowest
-        for (Integer layer : Iterables.reverse(visible)) {
+        for (Integer layer : Lists.reverse(visible)) {
             _tableModel.removeLayer(layer);
         }
     }
