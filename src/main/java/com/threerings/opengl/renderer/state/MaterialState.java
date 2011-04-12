@@ -39,13 +39,13 @@ public class MaterialState extends RenderState
     public static final MaterialState DEFAULT = new MaterialState(
         Color4f.DARK_GRAY, Color4f.GRAY, Color4f.BLACK, Color4f.BLACK, 0f,
         Color4f.DARK_GRAY, Color4f.GRAY, Color4f.BLACK, Color4f.BLACK, 0f,
-        -1, GL11.GL_FRONT_AND_BACK, false, false, false, false);
+        -1, GL11.GL_FRONT, false, false, false, false);
 
     /** A simple white material. */
     public static final MaterialState WHITE = new MaterialState(
         Color4f.WHITE, Color4f.WHITE, Color4f.BLACK, Color4f.BLACK, 0f,
         Color4f.WHITE, Color4f.WHITE, Color4f.BLACK, Color4f.BLACK, 0f,
-        -1, GL11.GL_FRONT_AND_BACK, false, false, false, false);
+        -1, GL11.GL_FRONT, false, false, false, false);
 
     /**
      * If there is a shared instance with the supplied parameters, returns a reference to it;
@@ -58,7 +58,7 @@ public class MaterialState extends RenderState
         return getInstance(
             ambient, diffuse, specular, emission, shininess,
             ambient, diffuse, specular, emission, shininess,
-            colorMaterialMode, GL11.GL_FRONT_AND_BACK,
+            colorMaterialMode, GL11.GL_FRONT,
             false, localViewer, separateSpecular, flatShading);
     }
 
@@ -124,7 +124,7 @@ public class MaterialState extends RenderState
     {
         this(ambient, diffuse, specular, emission, shininess,
             ambient, diffuse, specular, emission, shininess,
-            colorMaterialMode, GL11.GL_FRONT_AND_BACK,
+            colorMaterialMode, GL11.GL_FRONT,
             false, localViewer, separateSpecular, flatShading);
     }
 
@@ -380,7 +380,7 @@ public class MaterialState extends RenderState
     protected int _colorMaterialMode = -1;
 
     /** The color material face. */
-    protected int _colorMaterialFace = GL11.GL_FRONT_AND_BACK;
+    protected int _colorMaterialFace = GL11.GL_FRONT;
 
     /** Whether or not to use two-sided lighting. */
     protected boolean _twoSide;
