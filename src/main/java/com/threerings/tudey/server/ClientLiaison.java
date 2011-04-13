@@ -176,6 +176,7 @@ public class ClientLiaison
             } else {
                 log.warning("Received invalid acknowledgement.", "who", _bodyobj.who(),
                     "acknowledge", acknowledge, "last", _records.get(0).getTimestamp());
+                break;
             }
         }
 
