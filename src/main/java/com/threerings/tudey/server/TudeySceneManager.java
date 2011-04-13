@@ -862,10 +862,11 @@ public class TudeySceneManager extends SceneManager
             Vector2f translation = Vector2f.ZERO;
             float rotation = 0f;
             Object portalKey = _entering.remove(body.getOid());
-            if (portalKey instanceof Logic) {
+            if (portalKey instanceof Logic || portalKey instanceof EntityKey.Actor) {
                 // make sure the logic is still active
-                Logic entrance = (Logic)portalKey;
-                if (entrance.isActive()) {
+                Logic entrance = (portalKey instanceof EntityKey.Actor) ?
+                    getActorLogic(((EntityKey.Actor)portalKey).getId()) : (Logic)portalKey;
+                if (entrance != null && entrance.isActive()) {
                     translation = entrance.getTranslation();
                     rotation = entrance.getRotation();
                 }
@@ -883,7 +884,9 @@ public class TudeySceneManager extends SceneManager
 
             } else if (portalKey != null) {
                 // get the translation/rotation from the entering portal
-                Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(portalKey);
+                Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(
+                    portalKey instanceof EntityKey.Entry ?
+                        ((EntityKey.Entry)portalKey).getKey() : portalKey);
                 if (entry != null) {
                     translation = entry.getTranslation(_cfgmgr);
                     rotation = entry.getRotation(_cfgmgr);
