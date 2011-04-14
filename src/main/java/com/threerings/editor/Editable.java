@@ -72,11 +72,11 @@ public @interface Editable
     /** A translatable string describing the units of the property, if any. */
     String units () default "";
 
-    /** For string properties, the width of the text field. */
+    /** For string properties, the width of the text editor. */
     int width () default 10;
 
-    /** For string properties with mode="multiline", the height of the text field. */
-    int height () default 4;
+    /** For string properties, the number of rows in the text editor. */
+    int height () default 1;
 
     /** For numeric properties, the minimum value. */
     double min () default -Double.MAX_VALUE;

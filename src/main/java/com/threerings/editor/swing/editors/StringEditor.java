@@ -81,7 +81,7 @@ public class StringEditor extends PropertyEditor
     {
         add(new JLabel(getPropertyLabel() + ":"));
         Editable annotation = _property.getAnnotation();
-        if ("multiline".equalsIgnoreCase(annotation.mode())) {
+        if (annotation.height() > 1) {
             JTextArea area = new JTextArea(annotation.height(), annotation.width());
             area.setLineWrap(true);
             add(new JScrollPane(area));
