@@ -94,14 +94,15 @@ public class SoundClipManager
                 }
             }
         }
+        _counts.add(path);
         sound.play(true, false, new Sound.StartObserver() {
             public void soundStarted (Sound sound) {
                 if (sound == null) {
+                    _counts.remove(path);
                     log.debug("Failed to start sound", "path", path);
                     return;
                 }
                 _sounds.add(new SoundEntry(sound, gain));
-                _counts.add(path);
                 int count = _counts.count(path);
                 sound.setGain(gain * getGainModifier(count));
                 log.debug("ClipManager play sound", "count", count, "path", path);
