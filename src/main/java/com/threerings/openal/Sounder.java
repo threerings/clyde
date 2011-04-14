@@ -61,6 +61,8 @@ import com.threerings.openal.config.SounderConfig.WeightedFile;
 import com.threerings.openal.config.SounderConfig.PitchWeightedFile;
 import com.threerings.openal.util.AlContext;
 
+import static com.threerings.openal.Log.*;
+
 /**
  * Plays a sound.
  */
