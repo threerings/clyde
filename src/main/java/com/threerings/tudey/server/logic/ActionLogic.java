@@ -27,6 +27,7 @@ package com.threerings.tudey.server.logic;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -800,11 +801,14 @@ public abstract class ActionLogic extends Logic
         @Override // documentation inherited
         public boolean execute (int timestamp, final Logic activator)
         {
-            (_interval = new Interval(_scenemgr) {
+            Interval interval = new Interval(_scenemgr) {
                 public void expired () {
+                    _intervals.remove(this);
                     _action.execute(_scenemgr.getTimestamp(), activator);
                 }
-            }).schedule(((ActionConfig.Delayed)_config).delay);
+            };
+            _intervals.add(interval);
+            interval.schedule(((ActionConfig.Delayed)_config).delay);
             return true;
         }
 
@@ -825,16 +829,17 @@ public abstract class ActionLogic extends Logic
         protected void wasRemoved ()
         {
             _action.removed();
-            if (_interval != null) {
-                _interval.cancel();
+            for (int ii = 0, nn = _intervals.size(); ii < nn; ii++) {
+                _intervals.get(ii).cancel();
             }
+            _intervals.clear();
         }
 
         /** The action. */
         protected ActionLogic _action;
 
-        /** The time interval. */
-        protected Interval _interval;
+        /** The time intervals. */
+        protected List<Interval> _intervals = Lists.newArrayList();
     }
 
     /**
