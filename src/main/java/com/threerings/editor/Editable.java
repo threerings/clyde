@@ -75,6 +75,9 @@ public @interface Editable
     /** For string properties, the width of the text field. */
     int width () default 10;
 
+    /** For string properties with mode="multiline", the height of the text field. */
+    int height () default 4;
+
     /** For numeric properties, the minimum value. */
     double min () default -Double.MAX_VALUE;
 

@@ -26,9 +26,12 @@
 package com.threerings.editor.swing.editors;
 
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JScrollPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
 
 import com.samskivert.util.StringUtil;
 
@@ -78,10 +81,19 @@ public class StringEditor extends PropertyEditor
     {
         add(new JLabel(getPropertyLabel() + ":"));
         Editable annotation = _property.getAnnotation();
-        add(_field = new JTextField(annotation.width()));
+        if ("multiline".equalsIgnoreCase(annotation.mode())) {
+            JTextArea area = new JTextArea(annotation.height(), annotation.width());
+            area.setLineWrap(true);
+            add(new JScrollPane(area));
+            _field = area;
+
+        } else {
+            _field = new JTextField(annotation.width());
+            add(_field);
+        }
         _field.getDocument().addDocumentListener(this);
     }
 
     /** The text field. */
-    protected JTextField _field;
+    protected JTextComponent _field;
 }
