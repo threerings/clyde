@@ -113,18 +113,18 @@ public abstract class HandlerLogic extends Logic
         @Override // documentation inherited
         public void startup (int timestamp)
         {
-            HandlerConfig.Timer config = (HandlerConfig.Timer)_config;
+            final HandlerConfig.Timer config = (HandlerConfig.Timer)_config;
             _limit = (config.limit == 0) ? Integer.MAX_VALUE : config.limit;
             // offset -> initialDelay: makes offset 0 behave as before and effects negative offsets.
             float initialDelay = config.interval + config.offset;
             (_interval = new Interval(_scenemgr) {
                 public void expired () {
                     execute(_scenemgr.getTimestamp());
-                    if (--_limit == 0) {
-                        _interval.cancel();
+                    if (--_limit > 0) {
+                        schedule((long)(config.interval * 1000f));
                     }
                 }
-            }).schedule((long)(initialDelay * 1000f), (long)(config.interval * 1000f));
+            }).schedule((long)(initialDelay * 1000f));
         }
 
         @Override // documentation inherited
@@ -158,7 +158,7 @@ public abstract class HandlerLogic extends Logic
         public void startup (int timestamp)
         {
             super.startup(timestamp);
-            HandlerConfig.WarnTimer config = (HandlerConfig.WarnTimer)_config;
+            final HandlerConfig.WarnTimer config = (HandlerConfig.WarnTimer)_config;
             // offset -> initialDelay: makes offset 0 behave as before and effects negative offsets.
             if (config.warn == 0 || config.warn > config.interval) {
                 return;
@@ -167,11 +167,11 @@ public abstract class HandlerLogic extends Logic
             (_warnInterval = new Interval(_scenemgr) {
                 public void expired () {
                     _warnAction.execute(_scenemgr.getTimestamp(), _source);
-                    if (_limit <= 1) {
-                        _warnInterval.cancel();
+                    if (_limit > 1) {
+                        schedule((long)(config.interval * 1000f));
                     }
                 }
-            }).schedule((long)(initialDelay * 1000f), (long)(config.interval * 1000f));
+            }).schedule((long)(initialDelay * 1000f));
         }
 
         @Override // documentation inherited
