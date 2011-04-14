@@ -49,13 +49,13 @@ public class SoundClipManager
     /**
      * Registers and plays a sound using the clip manager.
      */
-    public void playSound (Sound sound, float gain)
+    public void playSound (Sound sound, final float gain)
     {
         ClipBuffer buffer = sound.getBuffer();
         if (buffer == null) {
             return;
         }
-        String path = buffer.getPath();
+        final String path = buffer.getPath();
         int count = _counts.count(path);
         boolean canStop = false;
         if (sound.isPlaying() || count > 0) {
@@ -94,13 +94,20 @@ public class SoundClipManager
                 }
             }
         }
-        if (sound.play(true)) {
-            _sounds.add(new SoundEntry(sound, gain));
-            _counts.add(path);
-            count = _counts.count(path);
-            sound.setGain(gain * getGainModifier(count));
-            log.debug("ClipManager play sound", "count", count, "path", path);
-        }
+        sound.play(true, false, new Sound.StartObserver() {
+            public void soundStarted (Sound sound) {
+                if (sound == null) {
+                    log.debug("Failed to start sound", "path", path);
+                    return;
+                }
+                _sounds.add(new SoundEntry(sound, gain));
+                _counts.add(path);
+                int count = _counts.count(path);
+                sound.setGain(gain * getGainModifier(count));
+                log.debug("ClipManager play sound", "count", count, "path", path);
+            }
+            });
+
     }
 
     /**

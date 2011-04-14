@@ -61,8 +61,6 @@ import com.threerings.openal.config.SounderConfig.WeightedFile;
 import com.threerings.openal.config.SounderConfig.PitchWeightedFile;
 import com.threerings.openal.util.AlContext;
 
-import static com.threerings.openal.Log.*;
-
 /**
  * Plays a sound.
  */
@@ -171,7 +169,7 @@ public class Sounder extends SimpleScope
         @Override // documentation inherited
         public boolean isPlaying ()
         {
-            return _sound != null && _sound.isPlaying();
+            return _sound != null && (_sound.isPlaying() || _sound.isPending());
         }
 
         @Override // documentation inherited
