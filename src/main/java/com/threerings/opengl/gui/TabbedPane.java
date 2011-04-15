@@ -46,6 +46,9 @@ import static com.threerings.opengl.gui.Log.log;
 public class TabbedPane extends Container
     implements Selectable<Component>
 {
+    @Deprecated
+    public static final String SELECTION_CHANGED = SELECT;
+
     /**
      * Creates a tabbed pane with left justified buttons.
      */
@@ -269,45 +272,49 @@ public class TabbedPane extends Container
     // from Selectable<Component>
     public Component getSelected ()
     {
-        return getSelectedTab();
+        return (_selidx == -1) ? null : _tabs.get(_selidx).component;
     }
 
     // from Selectable<Component>
     public void setSelected (Component tab)
     {
-        selectTab(tab);
+        setSelectedIndex(indexOfTab(tab));
     }
 
-    /**
-     * Selects the specified tab.
-     */
-    public void selectTab (Component tab)
-    {
-        selectTab(indexOfTab(tab));
-    }
-
-    /**
-     * Selects the tab with the specified index.
-     */
-    public void selectTab (int tabidx)
-    {
-        selectTab(tabidx, -1L, 0);
-    }
-
-    /**
-     * Returns the selected tab component.
-     */
-    public Component getSelectedTab ()
-    {
-        return (_selidx == -1) ? null : _tabs.get(_selidx).component;
-    }
-
-    /**
-     * Returns the index of the selected tab.
-     */
-    public int getSelectedTabIndex ()
+    // from Selectable<Component>
+    public int getSelectedIndex ()
     {
         return _selidx;
+    }
+
+    // from Selectable<Component>
+    public void setSelectedIndex (int index)
+    {
+        selectTab(index, -1L, 0);
+    }
+
+    @Deprecated
+    public void selectTab (Component tab)
+    {
+        setSelected(tab);
+    }
+
+    @Deprecated
+    public void selectTab (int tabidx)
+    {
+        setSelectedIndex(tabidx);
+    }
+
+    @Deprecated
+    public Component getSelectedTab ()
+    {
+        return getSelected();
+    }
+
+    @Deprecated
+    public int getSelectedTabIndex ()
+    {
+        return getSelectedIndex();
     }
 
     /**
@@ -376,7 +383,7 @@ public class TabbedPane extends Container
         _selidx = tabidx;
 
         // emit an action event
-        emitEvent(new ActionEvent(this, when, modifiers, SELECTION_CHANGED, tab.component));
+        emitEvent(new ActionEvent(this, when, modifiers, SELECT, tab.component));
     }
 
     /**

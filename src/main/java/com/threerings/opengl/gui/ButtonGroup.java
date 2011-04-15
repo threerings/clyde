@@ -38,9 +38,6 @@ import com.threerings.opengl.gui.event.ActionListener;
 public class ButtonGroup
     implements ActionListener, Selectable<ToggleButton>
 {
-    @Deprecated
-    public static final String SELECT = SELECTION_CHANGED;
-
     /**
      * Creates a new button group.
      *
@@ -113,13 +110,17 @@ public class ButtonGroup
     // from Selectable<ToggleButton>
     public ToggleButton getSelected ()
     {
-        return getSelectedButton();
+        int idx = getSelectedIndex();
+        return (idx == -1) ? null : _buttons.get(idx);
     }
 
     // from Selectable<ToggleButton>
     public void setSelected (ToggleButton button)
     {
-        setSelectedButton(button);
+        if (!button.isSelected()) {
+            button.setSelected(true);
+            selectionChanged(button, 0L, 0);
+        }
     }
 
     /**
@@ -130,37 +131,25 @@ public class ButtonGroup
         return _buttons.get(idx);
     }
 
-    /**
-     * Sets the selected button.
-     */
+    @Deprecated
     public void setSelectedButton (ToggleButton button)
     {
-        if (!button.isSelected()) {
-            button.setSelected(true);
-            selectionChanged(button, 0L, 0);
-        }
+        setSelected(button);
     }
 
-    /**
-     * Returns a reference to the selected button, or <code>null</code> for none.
-     */
+    @Deprecated
     public ToggleButton getSelectedButton ()
     {
-        int idx = getSelectedIndex();
-        return (idx == -1) ? null : _buttons.get(idx);
+        return getSelected();
     }
 
-    /**
-     * Sets the selected index.
-     */
+    // from Selectable<ToggleButton>
     public void setSelectedIndex (int idx)
     {
         setSelectedButton(_buttons.get(idx));
     }
 
-    /**
-     * Returns the index of the selected button, or -1 for none.
-     */
+    // from Selectable<ToggleButton>
     public int getSelectedIndex ()
     {
         for (int ii = 0, nn = _buttons.size(); ii < nn; ii++) {
@@ -193,7 +182,7 @@ public class ButtonGroup
                 button.setSelected(false);
             }
         }
-        ActionEvent event = new ActionEvent(this, when, modifiers, SELECTION_CHANGED, selected);
+        ActionEvent event = new ActionEvent(this, when, modifiers, SELECT, selected);
         for (int ii = 0, nn = _listeners.size(); ii < nn; ii++) {
             event.dispatch(_listeners.get(ii));
         }

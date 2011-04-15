@@ -50,9 +50,6 @@ import com.threerings.opengl.util.GlContext;
 public class ColorPicker extends Component
     implements Selectable<ColorRecord>
 {
-    @Deprecated
-    public static final String SELECT = SELECTION_CHANGED;
-
     /**
      * Creates a new color picker.
      *
@@ -124,42 +121,34 @@ public class ColorPicker extends Component
     // from Selectable<ColorRecord>
     public ColorRecord getSelected ()
     {
-        return getSelectedColor();
+        return _colors[_sidx];
     }
 
     // from Selectable<ColorRecord>
     public void setSelected (ColorRecord color)
     {
-        setSelectedColor(color);
-    }
-
-    /**
-     * Sets the selected color record.
-     */
-    public void setSelectedColor (ColorRecord color)
-    {
         setSelectedIndex(ListUtil.indexOf(_colors, color));
     }
 
-    /**
-     * Returns a reference to the selected color record.
-     */
-    public ColorRecord getSelectedColor ()
+    @Deprecated
+    public void setSelectedColor (ColorRecord color)
     {
-        return _colors[_sidx];
+        setSelected(color);
     }
 
-    /**
-     * Sets the index of the selected color.
-     */
+    @Deprecated
+    public ColorRecord getSelectedColor ()
+    {
+        return getSelected();
+    }
+
+    // from Selectable<ColorRecord>
     public void setSelectedIndex (int sidx)
     {
         _sidx = Math.min(Math.max(sidx, 0), _colors.length - 1);
     }
 
-    /**
-     * Returns the index of the selected color.
-     */
+    // from Selectable<ColorRecord>
     public int getSelectedIndex ()
     {
         return _sidx;
@@ -188,7 +177,7 @@ public class ColorPicker extends Component
             }
             if (_sidx != oidx) {
                 emitEvent(new ActionEvent(this, mev.getWhen(), mev.getModifiers(),
-                    SELECTION_CHANGED, getSelectedColor()));
+                    SELECT, getSelectedColor()));
             }
             return true;
         }

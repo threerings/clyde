@@ -41,9 +41,6 @@ import com.threerings.opengl.gui.layout.GroupLayout;
 public class List extends Container
     implements Selectable<Object>
 {
-    @Deprecated
-    public static final String SELECT = SELECTION_CHANGED;
-
     /**
      * Creates an empty list.
      */
@@ -57,8 +54,7 @@ public class List extends Container
      */
     public List (GlContext ctx, Object[] values)
     {
-        super(ctx, GroupLayout.makeVert(GroupLayout.NONE, GroupLayout.TOP,
-            GroupLayout.STRETCH));
+        super(ctx, GroupLayout.makeVert(GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         setValues(values);
     }
 
@@ -119,43 +115,46 @@ public class List extends Container
     // from Selectable<Object>
     public Object getSelected ()
     {
-        return getSelectedValue();
+        return (_selidx == -1) ? null : _values.get(_selidx);
     }
 
     // from Selectable<Object>
     public void setSelected (Object value)
     {
-        setSelectedValue(value);
+        setSelectedIndex(_values.indexOf(value));
     }
 
-    /**
-     * Returns the currently selected value.
-     *
-     * @return the selected value, or <code>null</code> for none
-     */
-    public Object getSelectedValue ()
+    // from Selectable<Object>
+    public int getSelectedIndex ()
     {
-        return (_selidx == -1) ? null : _values.get(_selidx);
+        return _selidx;
     }
 
-    /**
-     * Sets the selected value.
-     *
-     * @param value the value to select, or <code>null</code> for none
-     */
-    public void setSelectedValue (Object value)
+    // from Selectable<Object>
+    public void setSelectedIndex (int index)
     {
-        int idx = (value == null) ? -1 : _values.indexOf(value);
-        if (idx == _selidx) {
+        if (index == _selidx) {
             return;
         }
         if (_selidx != -1) {
             ((ToggleButton)_children.get(_selidx)).setSelected(false);
         }
-        if (idx != -1) {
-            ((ToggleButton)_children.get(idx)).setSelected(true);
+        if (index != -1) {
+            ((ToggleButton)_children.get(index)).setSelected(true);
         }
-        _selidx = idx;
+        _selidx = index;
+    }
+
+    @Deprecated
+    public Object getSelectedValue ()
+    {
+        return getSelected();
+    }
+
+    @Deprecated
+    public void setSelectedValue (Object value)
+    {
+        setSelected(value);
     }
 
     @Override // documentation inherited
@@ -178,7 +177,7 @@ public class List extends Container
             }
             _selidx = _children.indexOf(e.getSource());
             emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
-                SELECTION_CHANGED, getSelectedValue()));
+                SELECT, getSelectedValue()));
         }
     };
 }

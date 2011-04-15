@@ -369,7 +369,7 @@ public abstract class ComponentConfig extends DeepObject
             }
             box.setItems(objects);
             box.setPreferredDimensions(rows, columns);
-            box.selectItem(selected);
+            box.setSelected(selected);
         }
     }
 
@@ -404,7 +404,7 @@ public abstract class ComponentConfig extends DeepObject
                 values[ii] = getMessage(msgs, items[ii]);
             }
             list.setValues(values);
-            list.setSelectedValue(selected < values.length ? values[selected] : null);
+            list.setSelected(selected < values.length ? values[selected] : null);
         }
     }
 
@@ -602,7 +602,7 @@ public abstract class ComponentConfig extends DeepObject
                     tab.styleOverride == null ? tabStyle : tab.styleOverride);
             }
             if (selected < tabs.length) {
-                pane.selectTab(selected);
+                pane.setSelectedIndex(selected);
             }
         }
     }

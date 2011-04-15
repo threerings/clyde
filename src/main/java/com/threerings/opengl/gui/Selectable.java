@@ -30,8 +30,8 @@ package com.threerings.opengl.gui;
  */
 public interface Selectable<T>
 {
-    /** ActionEvent action fired when the selection changes; arg is the selected item. */
-    public static final String SELECTION_CHANGED = "selectionChanged";
+    /** ActionEvent action fired when something is selected; the argument is the selected item. */
+    public static final String SELECT = "select";
 
     /**
      * Get the selected item, if any.
@@ -42,4 +42,14 @@ public interface Selectable<T>
      * Set the selected item.
      */
     void setSelected (T item);
+
+    /**
+     * Get the index of the selected item, or -1.
+     */
+    int getSelectedIndex ();
+
+    /**
+     * Set the index of the selected item.
+     */
+    void setSelectedIndex (int index);
 }

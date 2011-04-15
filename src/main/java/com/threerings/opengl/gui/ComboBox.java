@@ -142,29 +142,39 @@ public class ComboBox extends Label
     // from Selectable<Object>
     public Object getSelected ()
     {
-        return getSelectedItem();
+        return getItem(_selidx);
     }
 
     // from Selectable<Object>
     public void setSelected (Object item)
     {
-        selectItem(item);
+        int selidx = -1;
+        for (int ii = 0, ll = _items.size(); ii < ll; ii++) {
+            ComboMenuItem mitem = _items.get(ii);
+            if (mitem.item.equals(item)) {
+                selidx = ii;
+                break;
+            }
+        }
+        setSelectedIndex(selidx);
     }
 
-    /**
-     * Returns the index of the selected item or -1 if no item is selected.
-     */
+    // from Selectable<Object>
     public int getSelectedIndex ()
     {
         return _selidx;
     }
 
-    /**
-     * Returns the selected item or null if no item is selected.
-     */
+    // from Selectable<Object>
+    public void setSelectedIndex (int index)
+    {
+        selectItem(index, 0L, 0);
+    }
+
+    @Deprecated
     public Object getSelectedItem ()
     {
-        return getItem(_selidx);
+        return getSelected();
     }
 
     /**
@@ -176,29 +186,16 @@ public class ComboBox extends Label
         return getValue(_selidx);
     }
 
-    /**
-     * Selects the item with the specified index.
-     */
+    @Deprecated
     public void selectItem (int index)
     {
-        selectItem(index, 0L, 0);
+        setSelectedIndex(index);
     }
 
-    /**
-     * Selects the item with the specified index. <em>Note:</em> the supplied item is compared with
-     * the item list using {@link Object#equals}.
-     */
+    @Deprecated
     public void selectItem (Object item)
     {
-        int selidx = -1;
-        for (int ii = 0, ll = _items.size(); ii < ll; ii++) {
-            ComboMenuItem mitem = _items.get(ii);
-            if (mitem.item.equals(item)) {
-                selidx = ii;
-                break;
-            }
-        }
-        selectItem(selidx);
+        setSelected(item);
     }
 
     /**
@@ -324,7 +321,7 @@ public class ComboBox extends Label
         } else {
             setText(item == null ? "" : item.toString());
         }
-        emitEvent(new ActionEvent(this, when, modifiers, SELECTION_CHANGED, item));
+        emitEvent(new ActionEvent(this, when, modifiers, SELECT, item));
     }
 
     protected void clearCache ()
@@ -374,9 +371,9 @@ public class ComboBox extends Label
             d.width = Math.max(d.width, ComboBox.this.getWidth() - getInsets().getHorizontal());
             return d;
         }
-    };
+    }
 
-    protected class ComboMenuItem extends MenuItem
+    protected static class ComboMenuItem extends MenuItem
     {
         public Object item;
 
