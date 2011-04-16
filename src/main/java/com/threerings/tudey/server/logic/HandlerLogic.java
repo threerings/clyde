@@ -120,7 +120,7 @@ public abstract class HandlerLogic extends Logic
             (_interval = new Interval(_scenemgr) {
                 public void expired () {
                     execute(_scenemgr.getTimestamp());
-                    if (--_limit > 0) {
+                    if (--_limit > 0 && _interval != null) {
                         schedule((long)(config.interval * 1000f));
                     }
                 }
@@ -131,6 +131,7 @@ public abstract class HandlerLogic extends Logic
         public void shutdown (int timestamp, Logic activator)
         {
             _interval.cancel();
+            _interval = null;
         }
 
         @Override // documentation inherited
@@ -167,7 +168,7 @@ public abstract class HandlerLogic extends Logic
             (_warnInterval = new Interval(_scenemgr) {
                 public void expired () {
                     _warnAction.execute(_scenemgr.getTimestamp(), _source);
-                    if (_limit > 1) {
+                    if (_limit > 1 && _warnInterval != null) {
                         schedule((long)(config.interval * 1000f));
                     }
                 }
@@ -180,6 +181,7 @@ public abstract class HandlerLogic extends Logic
             super.shutdown(timestamp, activator);
             if (_warnInterval != null) {
                 _warnInterval.cancel();
+                _warnInterval = null;
             }
         }
 
