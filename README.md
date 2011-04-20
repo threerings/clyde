@@ -28,6 +28,12 @@ networked 3D games. Its packages include:
   * tudey.tools - scene editor
   * util - various utility classes, reflective deep copying/comparison/hashing
 
+Clyde depends on [Narya] for distributed object management and
+internationalization support; [Nenya] for resource management, image
+manipulation, and basic OpenAL functionality; [Vilya] for networked scene
+representation; and [LWJGL] for native bindings to OpenGL, OpenAL, and input
+devices.
+
 Documentation is somewhat sparse at the moment, but inspection of the code in
 the tests/ directory shows examples of use of many features of the library.
 
@@ -47,15 +53,20 @@ Distribution
 The Clyde library is released under the BSD license. The most recent version of
 the library is available here:
 
-  http://code.google.com/p/clyde/
+  http://github.com/threerings/clyde/
 
 Contributions and Contact Information
 -------------------------------------
 
 Clyde is actively developed by the scurvy dogs at Three Rings Design, Inc.
-Contributions are welcome.
+Contributions (in the form of bug reports, pull requests, etc.) are welcome.
 
-Questions, comments, contributions, and other worldly endeavors can be
-handled in the Google Group for Three Rings libraries:
+Questions, comments, and other communications can be directed to the Google
+Group for Three Rings libraries:
 
   http://groups.google.com/group/ooo-libs
+
+[Narya]: http://github.com/threerings/narya/
+[Nenya]: http://github.com/threerings/nenya/
+[Vilya]: http://github.com/threerings/vilya/
+[LWJGL]: http://www.lwjgl.org/
