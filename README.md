@@ -37,6 +37,8 @@ devices.
 Documentation is somewhat sparse at the moment, but inspection of the code in
 the tests/ directory shows examples of use of many features of the library.
 
+[Javadoc documentation](http://threerings.github.com/clyde/apidocs/) is provided.
+
 Building
 --------
 
