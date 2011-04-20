@@ -1,5 +1,5 @@
 The Clyde library
------------------
+=================
 
 The Clyde library provides various facilities for creating action-oriented
 networked 3D games. Its packages include:
@@ -34,21 +34,12 @@ the tests/ directory shows examples of use of many features of the library.
 Building
 --------
 
-Building the library is very simple. First ensure that the necessary third
-party jar files are available in the lib/ directory. See lib/README for a list
-of the necessary third party jar files and how to get them.
+The library is built using Ant. Invoke Ant with any of the following targets:
 
-The library is built using Ant, a modern build tool written in and for Java. If
-you aren't already using Ant for other projects, it can be found here:
-
-  http://ant.apache.org/
-
-Invoke ant with any of the following targets:
-
-  all: builds the distribution files and javadoc documentation
-  compile: builds only the class files (dist/classes)
-  javadoc: builds only the javadoc documentation (dist/docs)
-  dist: builds the distribution jar files (dist/*.jar)
+    all: builds the distribution files and javadoc documentation
+    compile: builds only the class files (dist/classes)
+    javadoc: builds only the javadoc documentation (dist/docs)
+    dist: builds the distribution jar files (dist/*.jar)
 
 Distribution
 ------------
@@ -68,5 +59,3 @@ Questions, comments, contributions, and other worldly endeavors can be
 handled in the Google Group for Three Rings libraries:
 
   http://groups.google.com/group/ooo-libs
-
-$Id$
