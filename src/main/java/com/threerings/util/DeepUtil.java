@@ -181,11 +181,13 @@ public class DeepUtil
                     ImmutableCollection.class.isAssignableFrom(clazz) ||
                     ImmutableMap.class.isAssignableFrom(clazz) ||
                     ImmutableMultimap.class.isAssignableFrom(clazz)) {
-                return IMMUTABLE_OBJECT_HANDLER;
+                handler = IMMUTABLE_OBJECT_HANDLER;
             } else if (clazz.isArray()) {
-                return ARRAY_OBJECT_HANDLER;
+                handler = ARRAY_OBJECT_HANDLER;
+            } else {
+                handler = new ReflectiveObjectHandler(clazz);
             }
-            _objectHandlers.put(clazz, handler = new ReflectiveObjectHandler(clazz));
+            _objectHandlers.put(clazz, handler);
         }
         return handler;
     }
