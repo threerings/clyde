@@ -35,6 +35,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
 
 import static com.threerings.ClydeLog.*;
@@ -174,7 +177,10 @@ public class DeepUtil
     {
         ObjectHandler handler = _objectHandlers.get(clazz);
         if (handler == null) {
-            if (Enum.class.isAssignableFrom(clazz)) {
+            if (Enum.class.isAssignableFrom(clazz) ||
+                    ImmutableCollection.class.isAssignableFrom(clazz) ||
+                    ImmutableMap.class.isAssignableFrom(clazz) ||
+                    ImmutableMultimap.class.isAssignableFrom(clazz)) {
                 return IMMUTABLE_OBJECT_HANDLER;
             } else if (clazz.isArray()) {
                 return ARRAY_OBJECT_HANDLER;
