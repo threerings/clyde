@@ -25,13 +25,15 @@
 
 package com.threerings.export;
 
+import java.lang.reflect.Array;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -41,6 +43,12 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import com.threerings.util.ReflectionUtil;
 
@@ -266,14 +274,31 @@ public class XMLImporter extends Importer
         _element = element;
         try {
             Object value;
+            boolean wasRead = false;
             if (cclazz.isArray()) {
                 value = Array.newInstance(cclazz.getComponentType(), countEntries());
+
+            } else if (cclazz == ImmutableList.class) {
+                value = ImmutableList.copyOf(readEntries(Lists.newArrayList()));
+                wasRead = true;
+
+            } else if (cclazz == ImmutableSet.class) {
+                value = ImmutableSet.copyOf(readEntries(Lists.newArrayList()));
+                wasRead = true;
+
+            } else if (cclazz == ImmutableMap.class) {
+                value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
+                wasRead = true;
+
             } else {
                 value = ReflectionUtil.newInstance(cclazz,
                     ReflectionUtil.isInner(cclazz) ? read("outer", null, Object.class) : null);
             }
             if (id.length() > 0) {
                 putObject(id, value);
+            }
+            if (wasRead) {
+                return value;
             }
             if (value instanceof Exportable) {
                 readFields((Exportable)value);
@@ -336,8 +361,10 @@ public class XMLImporter extends Importer
 
     /**
      * Populates the supplied collection with the entries under the current element.
+     *
+     * @return a reference to the collection passed, for chaining.
      */
-    protected void readEntries (Collection<Object> collection)
+    protected Collection<Object> readEntries (Collection<Object> collection)
         throws IOException
     {
         for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
@@ -345,12 +372,15 @@ public class XMLImporter extends Importer
                 collection.add(read((Element)node, Object.class));
             }
         }
+        return collection;
     }
 
     /**
      * Populates the supplied map with the entries under the current element.
+     *
+     * @return a reference to the map passed, for chaining.
      */
-    protected void readEntries (Map<Object, Object> map)
+    protected Map<Object, Object> readEntries (Map<Object, Object> map)
         throws IOException
     {
         for (Node node = _element.getFirstChild(); node != null; node = node.getNextSibling()) {
@@ -364,6 +394,7 @@ public class XMLImporter extends Importer
                 }
             }
         }
+        return map;
     }
 
     /**

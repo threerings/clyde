@@ -33,9 +33,16 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import java.util.zip.InflaterInputStream;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.Tuple;
@@ -279,6 +286,7 @@ public class BinaryImporter extends Importer
         // otherwise, create and populate the object
         Object value = null;
         int length = 0;
+        boolean wasRead = false;
         if (cclazz.isArray()) {
             length = _in.readInt();
             if (wclazz != null) {
@@ -287,10 +295,27 @@ public class BinaryImporter extends Importer
         } else {
             Object outer = cclazz.isInner() ? read(_objectClass) : null;
             if (wclazz != null) {
-                value = ReflectionUtil.newInstance(wclazz, outer);
+                if (wclazz == ImmutableList.class) {
+                    value = ImmutableList.copyOf(readEntries(Lists.newArrayList()));
+                    wasRead = true;
+
+                 } else if (wclazz == ImmutableSet.class) {
+                    value = ImmutableSet.copyOf(readEntries(Lists.newArrayList()));
+                    wasRead = true;
+
+                } else if (wclazz == ImmutableMap.class) {
+                    value = ImmutableMap.copyOf(readEntries(Maps.newHashMap()));
+                    wasRead = true;
+
+                } else {
+                    value = ReflectionUtil.newInstance(wclazz, outer);
+                }
             }
         }
         _objects.put(objectId, (value == null) ? NULL : value);
+        if (wasRead) {
+            return value;
+        }
         if (cclazz.isArray()) {
             readEntries(value == null ? new Object[length] : (Object[])value,
                 cclazz.getComponentType());
@@ -348,24 +373,30 @@ public class BinaryImporter extends Importer
 
     /**
      * Populates the supplied collection with the entries under the current element.
+     *
+     * @return a reference to the collection passed, for chaining.
      */
-    protected void readEntries (Collection<Object> collection)
+    protected Collection<Object> readEntries (Collection<Object> collection)
         throws IOException
     {
         for (int ii = 0, nn = _in.readInt(); ii < nn; ii++) {
             collection.add(read(_objectClass));
         }
+        return collection;
     }
 
     /**
      * Populates the supplied map with the entries under the current element.
+     *
+     * @return a reference to the map passed, for chaining.
      */
-    protected void readEntries (Map<Object, Object> map)
+    protected Map<Object, Object> readEntries (Map<Object, Object> map)
         throws IOException
     {
         for (int ii = 0, nn = _in.readInt(); ii < nn; ii++) {
             map.put(read(_objectClass), read(_objectClass));
         }
+        return map;
     }
 
     /**

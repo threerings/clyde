@@ -38,6 +38,11 @@ import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 
 import java.util.Arrays;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
 import com.threerings.math.Vector2f;
@@ -677,7 +682,7 @@ public abstract class Exporter
 
     /**
      * Gets the actual class of the specified value, performing some slight modifications for
-     * buffer instances and enums.
+     * buffer instances and enums, etc.
      */
     protected static Class<?> getClass (Object value)
     {
@@ -699,6 +704,12 @@ public abstract class Exporter
             return File.class;
         } else if (value instanceof Enum) {
             return ((Enum)value).getDeclaringClass();
+        } else if (value instanceof ImmutableList) {
+            return ImmutableList.class;
+        } else if (value instanceof ImmutableSet) {
+            return ImmutableSet.class;
+        } else if (value instanceof ImmutableMap) {
+            return ImmutableMap.class;
         } else {
             return value.getClass();
         }
