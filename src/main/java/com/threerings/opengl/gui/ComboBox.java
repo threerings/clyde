@@ -28,6 +28,7 @@ package com.threerings.opengl.gui;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 
 import com.threerings.opengl.util.GlContext;
@@ -44,6 +45,41 @@ import com.threerings.opengl.gui.util.Dimension;
 public class ComboBox extends Label
     implements Selectable<Object>
 {
+    /**
+     * Formats the items held in a ComboBox into their icon and label.
+     */
+    public interface Formatter
+    {
+        /**
+         * Get the icon (may be null) for the specified item.
+         */
+        Icon getIcon (Object o);
+
+        /**
+         * Get the label (may not be null) for the specified item.
+         */
+        String getText (Object o);
+    }
+
+    /**
+     * The default formatter for a ComboBox. May be extended for typical uses.
+     */
+    public static class DefaultFormatter
+        implements Formatter
+    {
+        // from Formatter
+        public Icon getIcon (Object o)
+        {
+            return (o instanceof Icon) ? (Icon)o : null;
+        }
+
+        // from Formatter
+        public String getText (Object o)
+        {
+            return ((o == null) || (o instanceof Icon)) ? "" : String.valueOf(o);
+        }
+    }
+
     /** Used for displaying a label that is associated with a particular non-displayable value. */
     public static class Item
         implements Comparable<Item>
@@ -101,6 +137,20 @@ public class ComboBox extends Label
     }
 
     /**
+     * Set the formatter that determines how items are labeled.
+     */
+    public void setFormatter (Formatter formatter)
+    {
+        if (formatter == null) {
+            formatter = new DefaultFormatter();
+        }
+        _formatter = formatter;
+
+        // reformat existing items
+        setItems(Lists.newArrayList(getItems()));
+    }
+
+    /**
      * Appends an item to our list of items. The result of {@link Object#toString} for the item
      * will be displayed in the list.
      */
@@ -116,7 +166,9 @@ public class ComboBox extends Label
      */
     public void addItem (int index, Object item)
     {
-        _items.add(index, new ComboMenuItem(_ctx, item));
+        ComboMenuItem menuItem = new ComboMenuItem(_ctx, item);
+        format(menuItem, item);
+        _items.add(index, menuItem);
         clearCache();
     }
 
@@ -148,15 +200,7 @@ public class ComboBox extends Label
     // from Selectable<Object>
     public void setSelected (Object item)
     {
-        int selidx = -1;
-        for (int ii = 0, ll = _items.size(); ii < ll; ii++) {
-            ComboMenuItem mitem = _items.get(ii);
-            if (mitem.item.equals(item)) {
-                selidx = ii;
-                break;
-            }
-        }
-        setSelectedIndex(selidx);
+        setSelectedIndex(getItems().indexOf(item));
     }
 
     // from Selectable<Object>
@@ -229,7 +273,8 @@ public class ComboBox extends Label
      */
     public Object getValue (int index)
     {
-        return (index < 0 || index >= _items.size()) ? null : ((Item)_items.get(index).item).value;
+        Object item = getItem(index);
+        return (item == null) ? null : ((Item)item).value;
     }
 
     /**
@@ -295,11 +340,8 @@ public class ComboBox extends Label
             _psize = new Dimension();
             LabelRenderer label = new LabelRenderer(this);
             for (ComboMenuItem mitem : _items) {
-                if (mitem.item instanceof Icon) {
-                    label.setIcon((Icon)mitem.item);
-                } else {
-                    label.setText(mitem.item == null ? "" : mitem.item.toString());
-                }
+                label.setIcon(mitem.getIcon());
+                label.setText(mitem.getText());
                 Dimension lsize = label.computePreferredSize(-1, -1);
                 _psize.width = Math.max(_psize.width, lsize.width);
                 _psize.height = Math.max(_psize.height, lsize.height);
@@ -316,11 +358,7 @@ public class ComboBox extends Label
 
         _selidx = index;
         Object item = getSelectedItem();
-        if (item instanceof Icon) {
-            setIcon((Icon)item);
-        } else {
-            setText(item == null ? "" : item.toString());
-        }
+        format(this, item);
         emitEvent(new ActionEvent(this, when, modifiers, SELECT, item));
     }
 
@@ -331,6 +369,27 @@ public class ComboBox extends Label
             _menu = null;
         }
         _psize = null;
+    }
+
+    /**
+     * Format the specified label.
+     */
+    protected void format (Label label, Object item)
+    {
+        label.setIcon(_formatter.getIcon(item));
+        label.setText(_formatter.getText(item));
+    }
+
+    /**
+     * Get the raw list of items.
+     */
+    protected List<Object> getItems ()
+    {
+        return Lists.transform(_items, new Function<ComboMenuItem, Object>() {
+            public Object apply (ComboMenuItem item) {
+                return item.item;
+            }
+        });
     }
 
     protected class ComboPopupMenu extends PopupMenu
@@ -380,14 +439,12 @@ public class ComboBox extends Label
         public ComboMenuItem (GlContext ctx, Object item)
         {
             super(ctx, null, null, "select");
-            if (item instanceof Icon) {
-                setIcon((Icon)item);
-            } else {
-                setText(item.toString());
-            }
             this.item = item;
         }
     }
+
+    /** Our item formatter. */
+    protected Formatter _formatter = new DefaultFormatter();
 
     /** The index of the currently selected item. */
     protected int _selidx = -1;
