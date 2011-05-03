@@ -1288,6 +1288,16 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
+     * Adds a logic to the default entrance if it has been marked as such.
+     */
+    protected void maybeAddDefaultEntrance (Logic logic)
+    {
+        if (logic.isDefaultEntrance()) {
+            _defaultEntrances.add(logic);
+        }
+    }
+
+    /**
      * Adds the logic object for the specified scene entry, if any.
      *
      * @param notify whether or not to notify the logic that it has been added.
@@ -1343,9 +1353,7 @@ public class TudeySceneManager extends SceneManager
             }
             list.add(logic);
         }
-        if (logic.isDefaultEntrance()) {
-            _defaultEntrances.add(logic);
-        }
+        maybeAddDefaultEntrance(logic);
     }
 
     /**
