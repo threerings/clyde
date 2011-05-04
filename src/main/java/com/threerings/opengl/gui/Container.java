@@ -129,7 +129,7 @@ public class Container extends Component
     public void remove (int index)
     {
     	Component child = getComponent(index);
-	    _children.remove(index);
+        _children.remove(index);
         if (_layout != null) {
             _layout.removeLayoutComponent(child);
         }
