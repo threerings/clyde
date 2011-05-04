@@ -64,7 +64,7 @@ public class TabbedPane extends Container
      */
     public TabbedPane (GlContext ctx, GroupLayout.Justification tabAlign)
     {
-    	this(ctx, tabAlign, GroupLayout.DEFAULT_GAP);
+        this(ctx, tabAlign, GroupLayout.DEFAULT_GAP);
     }
 
     /**

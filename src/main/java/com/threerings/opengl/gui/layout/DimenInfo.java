@@ -54,18 +54,18 @@ public class DimenInfo
 
     public String toString ()
     {
-	StringBuilder buf = new StringBuilder();
-	buf.append("[count=").append(count);
-	buf.append(", totwid=").append(totwid);
-	buf.append(", tothei=").append(tothei);
-	buf.append(", maxwid=").append(maxwid);
-	buf.append(", maxhei=").append(maxhei);
-	buf.append(", numfix=").append(numfix);
-	buf.append(", fixwid=").append(fixwid);
-	buf.append(", fixhei=").append(fixhei);
-	buf.append(", maxfreewid=").append(maxfreewid);
-	buf.append(", maxfreehei=").append(maxfreehei);
-	buf.append(", totweight=").append(totweight);
-	return buf.append("]").toString();
+        StringBuilder buf = new StringBuilder();
+        buf.append("[count=").append(count);
+        buf.append(", totwid=").append(totwid);
+        buf.append(", tothei=").append(tothei);
+        buf.append(", maxwid=").append(maxwid);
+        buf.append(", maxhei=").append(maxhei);
+        buf.append(", numfix=").append(numfix);
+        buf.append(", fixwid=").append(fixwid);
+        buf.append(", fixhei=").append(fixhei);
+        buf.append(", maxfreewid=").append(maxfreewid);
+        buf.append(", maxfreehei=").append(maxfreehei);
+        buf.append(", totweight=").append(totweight);
+        return buf.append("]").toString();
     }
 }

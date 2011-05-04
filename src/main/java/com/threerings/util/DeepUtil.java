@@ -629,7 +629,7 @@ public class DeepUtil
             public int hashCode (Field field, Object object)
                     throws IllegalAccessException {
                 long bits = Double.doubleToLongBits(field.getDouble(object));
-            	return (int)(bits ^ (bits >>> 32));
+                return (int)(bits ^ (bits >>> 32));
             }
         });
 

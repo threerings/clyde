@@ -336,11 +336,11 @@ public class HTMLView extends Component
 
         public Shape modelToView (int p0, Position.Bias b0, int p1, Position.Bias b1, Shape a)
             throws BadLocationException {
-	        return _target.modelToView(p0, b0, p1, b1, a);
+            return _target.modelToView(p0, b0, p1, b1, a);
         }
 
         public int viewToModel (float x, float y, Shape a, Position.Bias[] bias) {
-	        return _target.viewToModel(x, y, a, bias);
+            return _target.viewToModel(x, y, a, bias);
         }
 
         public Document getDocument () {
