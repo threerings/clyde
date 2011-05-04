@@ -412,8 +412,8 @@ public class UserInterface extends Container
 
         if (_controller != null && isAdded()) {
             _controller.wasRemoved();
-            _controller = null;
         }
+        _controller = null;
 
         Component ocomp = (getComponentCount() == 0) ? null : getComponent(0);
         Component ncomp = (_config == null) ? null : _config.getComponent(_ctx, _scope, ocomp);
