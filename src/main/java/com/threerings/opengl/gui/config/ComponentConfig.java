@@ -369,7 +369,7 @@ public abstract class ComponentConfig extends DeepObject
             }
             box.setItems(objects);
             box.setPreferredDimensions(rows, columns);
-            box.setSelected(selected);
+            box.setSelectedIndex(selected);
         }
     }
 
