@@ -103,8 +103,12 @@ public class UserInterfaceConfig extends ParameterizedConfig
     public static class Original extends Implementation
     {
         /** The message bundle to use for translations (or the empty string for the default). */
-        @Editable
+        @Editable(hgroup="a")
         public String bundle = "";
+
+        /** The controller class, if any. */
+        @Editable(hgroup="a")
+        public String controller = "";
 
         /** The root of the interface. */
         @Editable

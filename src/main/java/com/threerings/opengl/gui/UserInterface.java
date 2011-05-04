@@ -55,6 +55,29 @@ import static com.threerings.opengl.gui.Log.*;
 public class UserInterface extends Container
 {
     /**
+     * An interface that can be implemented by a controller class, specified by name
+     * in the UserInterfaceConfig, to automatically wire-up functionality to a UI.
+     */
+    public interface Controller
+    {
+        /**
+         * Initialize the controller and return true on success.
+         * Return false if the controller cannot be used due to being in the editor, or whatever.
+         */
+        boolean init (GlContext ctx, UserInterface ui);
+
+        /**
+         * Called when the user interface is added to the hierarchy.
+         */
+        void wasAdded ();
+
+        /**
+         * Called when the user interface is removed from the hierarchy. Clean up.
+         */
+        void wasRemoved ();
+    }
+
+    /**
      * Creates a new user interface.
      */
     public UserInterface (GlContext ctx)
@@ -350,10 +373,13 @@ public class UserInterface extends Container
         }
 
         // play the addition sound, if any
-        UserInterfaceConfig.Original original = (_config == null) ? null : _config.getOriginal();
-        String sound = (original == null) ? null : original.addSound;
+        String sound = getOriginal().addSound;
         if (sound != null) {
             _root.playSound(sound);
+        }
+
+        if (_controller != null) {
+            _controller.wasAdded();
         }
     }
 
@@ -365,9 +391,12 @@ public class UserInterface extends Container
             return;
         }
 
+        if (_controller != null) {
+            _controller.wasRemoved();
+        }
+
         // play the removal sound, if any
-        UserInterfaceConfig.Original original = (_config == null) ? null : _config.getOriginal();
-        String sound = (original == null) ? null : original.removeSound;
+        String sound = getOriginal().removeSound;
         if (sound != null) {
             _root.playSound(sound);
         }
@@ -380,12 +409,48 @@ public class UserInterface extends Container
     protected void updateFromConfig ()
     {
         _tagged.clear();
+
+        if (_controller != null && isAdded()) {
+            _controller.wasRemoved();
+            _controller = null;
+        }
+
         Component ocomp = (getComponentCount() == 0) ? null : getComponent(0);
         Component ncomp = (_config == null) ? null : _config.getComponent(_ctx, _scope, ocomp);
         removeAll();
         if (ncomp != null) {
             add(ncomp, BorderLayout.CENTER);
         }
+
+        String controller = getOriginal().controller;
+        if (!"".equals(controller)) {
+            try {
+                Controller c = (Controller)Class.forName(controller).newInstance();
+                if (c.init(_ctx.getApp(), this)) {
+                    if (isAdded()) {
+                        c.wasAdded();
+                    }
+                    _controller = c;
+                }
+            } catch (ClassNotFoundException cnfe) {
+                log.warning("Controller not found: " + controller);
+
+            } catch (Exception e) {
+                log.warning("Error initializing controller", "controller", controller, e);
+            }
+        }
+    }
+
+    /**
+     * Convenience to get a non-null Original implementation.
+     */
+    protected UserInterfaceConfig.Original getOriginal ()
+    {
+        UserInterfaceConfig.Original orig = (_config == null) ? null : _config.getOriginal();
+        if (orig == null) {
+            orig = new UserInterfaceConfig.Original();
+        }
+        return orig;
     }
 
     /**
@@ -413,6 +478,9 @@ public class UserInterface extends Container
 
     /** The configuration of this interface. */
     protected UserInterfaceConfig _config;
+
+    /** Our controller, if any. */
+    protected Controller _controller;
 
     /** The sets of components registered under each tag. */
     protected ListMultimap<String, Component> _tagged = ArrayListMultimap.create();
