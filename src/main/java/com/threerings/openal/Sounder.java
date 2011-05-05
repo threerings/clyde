@@ -526,7 +526,7 @@ public class Sounder extends SimpleScope
         /**
          * A stream that is part of a stack where only the top level of the stack is playing.
          */
-        protected class StackedStream extends FileStream
+        protected class StackedStream extends ResourceStream
         {
             /**
              * Creates a new stacked stream.
@@ -534,8 +534,7 @@ public class Sounder extends SimpleScope
             public StackedStream (String file, boolean loop, String stack)
                 throws IOException
             {
-                super(_ctx.getSoundManager(), _ctx.getResourceManager().getResourceFile(file),
-                        loop);
+                super(_ctx.getSoundManager(), file, loop);
                 _stack = stack;
             }
 
@@ -772,7 +771,7 @@ public class Sounder extends SimpleScope
                 for (int ii = 1; ii < queue.length; ii++) {
                     QueuedFile queued = queue[ii];
                     if (queued.file != null) {
-                        stream.queueFile(rsrcmgr.getResourceFile(queued.file), queued.loop);
+                        stream.queueResource(queued.file, queued.loop);
                     }
                 }
                 startStream(stream, _config.fadeIn);
