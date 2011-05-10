@@ -819,6 +819,18 @@ public class Component
      * until one can handle the request. If no ScrollPane's viewport contains this component
      * then this request is unlikely to do anything.
      */
+    public final void scrollRectToVisibile (Rectangle rect)
+    {
+        // this method is final, we always defer to the 4-arg version
+        scrollRectToVisible(rect.x, rect.y, rect.width, rect.height);
+    }
+
+    /**
+     * Request to have the specified rectangle, in this component's coordinate space,
+     * scrolled into view. This request will be repeatedly forwarded to parent containers
+     * until one can handle the request. If no ScrollPane's viewport contains this component
+     * then this request is unlikely to do anything.
+     */
     public void scrollRectToVisible (int x, int y, int w, int h)
     {
         if (_parent != null) {
