@@ -819,7 +819,7 @@ public class Component
      * until one can handle the request. If no ScrollPane's viewport contains this component
      * then this request is unlikely to do anything.
      */
-    public final void scrollRectToVisibile (Rectangle rect)
+    public final void scrollRectToVisible (Rectangle rect)
     {
         // this method is final, we always defer to the 4-arg version
         scrollRectToVisible(rect.x, rect.y, rect.width, rect.height);
