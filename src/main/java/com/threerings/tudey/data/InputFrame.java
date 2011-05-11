@@ -126,7 +126,7 @@ public class InputFrame extends DeepObject
      */
     public int getApproximateSize ()
     {
-        return 26;
+        return 18;
     }
 
     /**
@@ -136,7 +136,8 @@ public class InputFrame extends DeepObject
         throws IOException
     {
         out.defaultWriteObject();
-        out.writeBareObject(_translation);
+        // input translation is currently disabled
+        // out.writeBareObject(_translation);
     }
 
     /**
@@ -146,7 +147,7 @@ public class InputFrame extends DeepObject
         throws IOException, ClassNotFoundException
     {
         in.defaultReadObject();
-        in.readBareObject(_translation = new Vector2f());
+        // in.readBareObject(_translation = new Vector2f());
     }
 
     @Override // documentation inherited
