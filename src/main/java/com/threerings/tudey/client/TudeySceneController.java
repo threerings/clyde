@@ -879,10 +879,12 @@ public class TudeySceneController extends SceneController
      */
     protected void transmitInput ()
     {
-        // remove any input frames guaranteed to be expired (except for the last one,
+        // remove any input frames likely to be expired (except for the last one,
         // which the server will interpret as the most recent state)
         int smoothedTime = _tsview.getSmoothedTime();
-        while (_input.size() > 1 && smoothedTime >= _input.get(0).getTimestamp()) {
+        int cutoffTime = smoothedTime + Math.max(0,
+            _tsview.getPing() - Math.round(_tsview.getElapsed() * 1.2f));
+        while (_input.size() > 1 && cutoffTime >= _input.get(0).getTimestamp()) {
             _input.remove(0);
         }
 

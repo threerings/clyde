@@ -281,6 +281,14 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Returns the average of the ping times.
+     */
+    public int getPing ()
+    {
+        return _pingAverage.value();
+    }
+
+    /**
      * Returns the average of the elapsed times.
      */
     public int getElapsed ()
