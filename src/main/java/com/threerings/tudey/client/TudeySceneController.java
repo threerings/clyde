@@ -880,10 +880,13 @@ public class TudeySceneController extends SceneController
     protected void transmitInput ()
     {
         // remove any input frames likely to be expired (except for the last one,
-        // which the server will interpret as the most recent state)
+        // which the server will interpret as the most recent state); this means
+        // any that precede the server's update window as estimated by adding ping
+        // time to smoothed time (getting estimated server time of receipt) and
+        // subtracting the elapsed time (plus a fudge factor) of the update
         int smoothedTime = _tsview.getSmoothedTime();
         int cutoffTime = smoothedTime + Math.max(0,
-            _tsview.getPing() - Math.round(_tsview.getElapsed() * 1.2f));
+            _tsview.getPing() - Math.round(_tsview.getElapsed() * 1.1f));
         while (_input.size() > 1 && cutoffTime >= _input.get(0).getTimestamp()) {
             _input.remove(0);
         }
