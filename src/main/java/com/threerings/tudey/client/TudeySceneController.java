@@ -905,8 +905,9 @@ public class TudeySceneController extends SceneController
             size += _input.get(ii).getApproximateSize();
         }
 
-        // remove frames until it's small enough to fit in a single datagram
-        while (size > Client.MAX_DATAGRAM_SIZE) {
+        // remove frames until it's small enough
+        int maxsize = (UPSTREAM_RATE_LIMIT * getTransmitInterval()) / 1000;
+        while (size > maxsize) {
             size -= _input.remove(0).getApproximateSize();
         }
         _tsobj.tudeySceneService.enqueueInputUnreliable(
@@ -1097,6 +1098,9 @@ public class TudeySceneController extends SceneController
 
     /** The exponential rate at which we converge upon the server-corrected translation. */
     protected static final float CONVERGENCE_RATE = 20f * FloatMath.log(0.5f);
+
+    /** A rate limit (in bytes per second) for upstream traffic. */
+    protected static final int UPSTREAM_RATE_LIMIT = 12 * 1024;
 
     /** Selects hoverable sprites. */
     protected static final Predicate<SceneElement> HOVER_FILTER = new Predicate<SceneElement>() {
