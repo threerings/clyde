@@ -25,6 +25,10 @@
 
 package com.threerings.tudey.data;
 
+import java.io.IOException;
+
+import com.threerings.io.ObjectInputStream;
+import com.threerings.io.ObjectOutputStream;
 import com.threerings.io.Streamable;
 
 import com.threerings.math.Vector2f;
@@ -122,7 +126,27 @@ public class InputFrame extends DeepObject
      */
     public int getApproximateSize ()
     {
-        return 28;
+        return 26;
+    }
+
+    /**
+     * Custom serialization method.
+     */
+    public void writeObject (ObjectOutputStream out)
+        throws IOException
+    {
+        out.defaultWriteObject();
+        out.writeBareObject(_translation);
+    }
+
+    /**
+     * Custom deserialization method.
+     */
+    public void readObject (ObjectInputStream in)
+        throws IOException, ClassNotFoundException
+    {
+        in.defaultReadObject();
+        in.readBareObject(_translation = new Vector2f());
     }
 
     @Override // documentation inherited
@@ -136,7 +160,7 @@ public class InputFrame extends DeepObject
     protected int _timestamp;
 
     /** The user's computed translation. */
-    protected Vector2f _translation;
+    protected transient Vector2f _translation;
 
     /** The rotation requested by the user. */
     protected float _rotation;
