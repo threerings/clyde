@@ -39,8 +39,6 @@ import com.threerings.tudey.shape.Shape;
  */
 public class PawnAdvancer extends ActiveAdvancer
 {
-    public static boolean acceptInputTranslation;
-
     /**
      * Creates a new advancer for the supplied pawn.
      */
@@ -83,7 +81,7 @@ public class PawnAdvancer extends ActiveAdvancer
     {
         // if the input frame provides a computed position, we shall attempt to validate
         if (_frame == null || _timestamp != _frame.getTimestamp() ||
-                _frame.getTranslation() == null || !acceptInputTranslation) {
+                _frame.getTranslation() == null || ignoreInputPosition()) {
             super.takeSubsteps(elapsed);
             return;
         }
@@ -116,6 +114,15 @@ public class PawnAdvancer extends ActiveAdvancer
         // otherwise, assume validity
         ptrans.set(ftrans);
         _pawn.setDirty(true);
+    }
+
+    /**
+     * Checks whether we should ignore the input position and instead perform the full movement
+     * simulation.
+     */
+    protected boolean ignoreInputPosition ()
+    {
+        return false;
     }
 
     /**
