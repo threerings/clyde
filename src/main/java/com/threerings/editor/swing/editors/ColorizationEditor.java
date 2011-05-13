@@ -86,13 +86,25 @@ public class ColorizationEditor extends PropertyEditor
         ColorRecord color = _ctx.getColorPository().getColorRecord(value >> 8, value & 0xFF);
         if (color == null) {
             if (_class != null) {
-                _class.setSelectedIndex(0);
+                // because we're setting two things, we need to avoid
+                // responding to the first (incomplete) change
+                _class.removeActionListener(this);
+                try {
+                    _class.setSelectedIndex(0);
+                } finally {
+                    _class.addActionListener(this);
+                }
             }
             _color.setSelectedIndex(0);
 
         } else {
             if (_class != null) {
-                _class.setSelectedItem(new ClassItem(color.cclass));
+                _class.removeActionListener(this);
+                try {
+                    _class.setSelectedItem(new ClassItem(color.cclass));
+                } finally {
+                    _class.addActionListener(this);
+                }
             }
             _color.setSelectedItem(new ColorItem(color));
         }
