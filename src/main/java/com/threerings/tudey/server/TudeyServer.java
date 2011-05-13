@@ -51,6 +51,7 @@ public abstract class TudeyServer extends WhirledServer
             super.configure();
             bind(PresentsServer.class).to(TudeyServer.class);
             ResourceManager rsrcmgr = new ResourceManager("rsrc/");
+            rsrcmgr.activateResourceProtocol();
             bind(ResourceManager.class).toInstance(rsrcmgr);
             MessageManager msgmgr = new MessageManager("rsrc.i18n");
             bind(MessageManager.class).toInstance(msgmgr);
