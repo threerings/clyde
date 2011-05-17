@@ -94,6 +94,7 @@ public class ColorizationEditor extends PropertyEditor
                 } finally {
                     _class.addActionListener(this);
                 }
+                populateColor(((ClassItem)_class.getSelectedItem()).record);
             }
             _color.setSelectedIndex(0);
 
@@ -105,6 +106,7 @@ public class ColorizationEditor extends PropertyEditor
                 } finally {
                     _class.addActionListener(this);
                 }
+                populateColor(color.cclass);
             }
             _color.setSelectedItem(new ColorItem(color));
         }
