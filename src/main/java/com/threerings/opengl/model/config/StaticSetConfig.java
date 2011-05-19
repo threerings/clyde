@@ -30,6 +30,8 @@ import java.lang.ref.SoftReference;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import proguard.annotation.Keep;
+
 import com.samskivert.util.ComparableTuple;
 
 import com.threerings.editor.Editable;
@@ -61,6 +63,7 @@ public class StaticSetConfig extends ModelConfig.Imported
     /**
      * Returns the options for the model field.
      */
+    @Keep
     public String[] getModelOptions ()
     {
         return (meshes == null) ?

@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.TreeSet;
 
+import proguard.annotation.Keep;
+
 import com.samskivert.util.ComparableTuple;
 import com.samskivert.util.QuickSort;
 
@@ -280,6 +282,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         /**
          * Returns the options available for the node field.
          */
+        @Keep
         public String[] getNodeOptions ()
         {
             return getNodeNames();
@@ -383,6 +386,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
         /**
          * Returns the options available for the node field.
          */
+        @Keep
         public String[] getNodeOptions ()
         {
             return getNodeNames();

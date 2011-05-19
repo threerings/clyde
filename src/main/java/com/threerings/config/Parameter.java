@@ -32,6 +32,8 @@ import java.lang.reflect.Type;
 
 import java.util.ArrayList;
 
+import proguard.annotation.Keep;
+
 import com.samskivert.util.ListUtil;
 
 import com.threerings.editor.ArgumentPathProperty;
@@ -197,6 +199,7 @@ public abstract class Parameter extends DeepObject
         /**
          * Returns the names of the options available for selection.
          */
+        @Keep
         public String[] getChoiceOptions ()
         {
             String[] names = new String[options.length];
