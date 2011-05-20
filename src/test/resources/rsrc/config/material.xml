@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java class="com.threerings.export.XMLImporter" version="1.0">
+<object class="[Lcom.threerings.opengl.material.config.MaterialConfig;">
+  <entry>
+    <name>Model/Opaque</name>
+    <parameters>
+      <entry class="com.threerings.config.Parameter$Direct">
+        <name>Texture</name>
+        <paths>implementation.techniques[0].enqueuer.passes[0].texture_state.units[0].texture</paths>
+      </entry>
+    </parameters>
+    <implementation class="com.threerings.opengl.material.config.MaterialConfig$Original">
+      <techniques>
+        <entry>
+          <enqueuer class="com.threerings.opengl.material.config.TechniqueConfig$NormalEnqueuer">
+            <queue/>
+            <passes>
+              <entry>
+                <textureState>
+                  <units>
+                    <entry>
+                    </entry>
+                  </units>
+                </textureState>
+              </entry>
+            </passes>
+          </enqueuer>
+        </entry>
+      </techniques>
+    </implementation>
+  </entry>
+  <entry>
+    <name>Model/Skinned/Opaque</name>
+    <parameters>
+      <entry class="com.threerings.config.Parameter$Direct">
+        <name>Texture</name>
+        <paths>implementation.techniques[0].enqueuer.passes[0].texture_state.units[0].texture</paths>
+      </entry>
+    </parameters>
+    <implementation class="com.threerings.opengl.material.config.MaterialConfig$Original">
+      <techniques>
+        <entry>
+          <deformer class="com.threerings.opengl.geometry.config.DeformerConfig$Skin">
+          </deformer>
+          <enqueuer class="com.threerings.opengl.material.config.TechniqueConfig$NormalEnqueuer">
+            <passes>
+              <entry>
+                <textureState>
+                  <units>
+                    <entry>
+                    </entry>
+                  </units>
+                </textureState>
+              </entry>
+            </passes>
+          </enqueuer>
+        </entry>
+      </techniques>
+    </implementation>
+  </entry>
+</object>
+</java>

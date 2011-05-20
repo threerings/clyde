@@ -99,7 +99,8 @@
   <target name="-colorpos">
     <taskdef name="confcomp" classpathref="compile.classpath"
              classname="com.threerings.tools.CompiledConfigTask"/>
-    <confcomp dest="${deploy.dir}" parser="com.threerings.media.image.tools.xml.ColorPositoryParser"
+    <confcomp target="${deploy.dir}/rsrc/config/media/colordefs.dat"
+              parser="com.threerings.media.image.tools.xml.ColorPositoryParser"
               configdef="src/test/resources/rsrc/config/media/colordefs.xml"/>
   </target>
 

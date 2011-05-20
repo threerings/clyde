@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java class="com.threerings.export.XMLImporter" version="1.0">
+<object class="[Lcom.threerings.opengl.renderer.config.TextureConfig;">
+  <entry>
+    <name>2D/File/Default</name>
+    <parameters>
+      <entry class="com.threerings.config.Parameter$Direct">
+        <name>File</name>
+        <paths>implementation.contents.file</paths>
+      </entry>
+    </parameters>
+  </entry>
+</object>
+</java>

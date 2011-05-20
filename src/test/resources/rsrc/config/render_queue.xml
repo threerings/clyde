@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java class="com.threerings.export.XMLImporter" version="1.0">
+<object class="[Lcom.threerings.opengl.compositor.config.RenderQueueConfig;">
+  <entry>
+    <name>Opaque</name>
+    <sortMode>BY_STATE</sortMode>
+  </entry>
+  <entry>
+    <name>Overlay</name>
+    <priority>200</priority>
+    <sortMode>NONE</sortMode>
+    <renderMode class="com.threerings.opengl.compositor.config.RenderQueueConfig$Ortho">
+    </renderMode>
+  </entry>
+  <entry>
+    <name>Transparent</name>
+    <priority>100</priority>
+  </entry>
+</object>
+</java>

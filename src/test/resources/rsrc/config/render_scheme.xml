@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<java class="com.threerings.export.XMLImporter" version="1.0">
+<object class="[Lcom.threerings.opengl.compositor.config.RenderSchemeConfig;">
+  <entry>
+    <name>Projection (Ortho)</name>
+    <implementation class="com.threerings.opengl.compositor.config.RenderSchemeConfig$Special">
+      <materialRewriter class="com.threerings.opengl.material.config.MaterialRewriter$Projection">
+        <s>true</s>
+        <t>true</t>
+      </materialRewriter>
+    </implementation>
+  </entry>
+  <entry>
+    <name>Projection (Persp)</name>
+    <implementation class="com.threerings.opengl.compositor.config.RenderSchemeConfig$Special">
+      <materialRewriter class="com.threerings.opengl.material.config.MaterialRewriter$Projection">
+        <s>true</s>
+        <t>true</t>
+        <q>true</q>
+      </materialRewriter>
+    </implementation>
+  </entry>
+  <entry>
+    <name>Translucent</name>
+    <implementation class="com.threerings.opengl.compositor.config.RenderSchemeConfig$Special">
+      <materialRewriter class="com.threerings.opengl.material.config.MaterialRewriter$Translucent">
+      </materialRewriter>
+    </implementation>
+  </entry>
+</object>
+</java>
