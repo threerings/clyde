@@ -175,7 +175,8 @@ public class ResourceEditor extends BaseConfigEditor
         _chooser = new JFileChooser(_prefs.get("config_dir", null));
         _chooser.setFileFilter(new FileFilter() {
             public boolean accept (File file) {
-                return file.isDirectory() || file.toString().toLowerCase().endsWith(".dat");
+                return file != null && (file.isDirectory() ||
+                    file.toString().toLowerCase().endsWith(".dat"));
             }
             public String getDescription () {
                 return _msgs.get("m.config_files");
