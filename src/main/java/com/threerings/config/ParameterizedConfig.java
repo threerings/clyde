@@ -30,9 +30,13 @@ import java.io.PrintStream;
 import java.lang.ref.SoftReference;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+
 import com.samskivert.util.SoftCache;
+import com.samskivert.util.Tuple;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.Property;
@@ -120,29 +124,36 @@ public class ParameterizedConfig extends ManagedConfig
         // fire the event
         super.wasUpdated();
 
-        // update the derived instances
+        // take a snapshot of the derived instances
         if (_derived == null) {
             return;
         }
-        SoftCache<ArgumentMap, ParameterizedConfig> oderived = _derived;
-        _derived = new SoftCache<ArgumentMap, ParameterizedConfig>();
+        Map<ArgumentMap, SoftReference<ParameterizedConfig>> map = _derived.getMap();
+        List<Tuple<ArgumentMap, ParameterizedConfig>> list =
+            Lists.newArrayListWithExpectedSize(map.size());
         for (Iterator<Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>>> it =
-                oderived.getMap().entrySet().iterator(); it.hasNext(); ) {
+                map.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<ArgumentMap, SoftReference<ParameterizedConfig>> entry = it.next();
             ParameterizedConfig instance = entry.getValue().get();
             if (instance == null) {
                 it.remove();
-                continue;
+            } else {
+                list.add(Tuple.newTuple(entry.getKey(), instance));
             }
-            copy(instance);
-            applyArguments(instance, entry.getKey());
-            instance.wasUpdated();
         }
-        // combine the original map with anything added in the meantime
-        oderived.getMap().putAll(_derived.getMap());
-        _derived = oderived;
-        if (_derived.getMap().isEmpty()) {
+        int size = list.size();
+        if (size == 0) {
             _derived = null;
+            return;
+        }
+
+        // update and fire events
+        for (int ii = 0; ii < size; ii++) {
+            Tuple<ArgumentMap, ParameterizedConfig> tuple = list.get(ii);
+            ParameterizedConfig instance = tuple.right;
+            copy(instance);
+            applyArguments(instance, tuple.left);
+            instance.wasUpdated();
         }
     }
 
