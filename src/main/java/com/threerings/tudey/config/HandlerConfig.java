@@ -49,6 +49,7 @@ import com.threerings.tudey.shape.config.ShapeConfig;
     HandlerConfig.Intersection.class, HandlerConfig.IntersectionStart.class,
     HandlerConfig.IntersectionStop.class, HandlerConfig.ThresholdIntersectionCount.class,
     HandlerConfig.Request.class, HandlerConfig.ActorAdded.class, HandlerConfig.ActorRemoved.class,
+    HandlerConfig.BodyEntered.class, HandlerConfig.BodyLeft.class,
     HandlerConfig.VariableChanged.class })
 public abstract class HandlerConfig extends DeepObject
     implements Exportable, Streamable
@@ -386,6 +387,30 @@ public abstract class HandlerConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.HandlerLogic$ActorRemoved";
+        }
+    }
+
+    /**
+     * Called when occupants enter.
+     */
+    public static class BodyEntered extends HandlerConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$BodyEntered";
+        }
+    }
+
+    /**
+     * Called when occupants leave.
+     */
+    public static class BodyLeft extends HandlerConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$BodyLeft";
         }
     }
 

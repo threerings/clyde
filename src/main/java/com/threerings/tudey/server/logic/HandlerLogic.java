@@ -34,11 +34,19 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.Interval;
 
+import com.threerings.presents.dobj.EntryAddedEvent;
+import com.threerings.presents.dobj.EntryRemovedEvent;
+import com.threerings.presents.dobj.NamedSetAdapter;
+
+import com.threerings.crowd.data.OccupantInfo;
+import com.threerings.crowd.data.PlaceObject;
+
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.HandlerConfig;
 import com.threerings.tudey.data.EntityKey;
+import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
@@ -747,6 +755,88 @@ public abstract class HandlerLogic extends Logic
         protected void targetActorRemoved (ActorLogic logic)
         {
             if (_lastCount == 1 || !((HandlerConfig.ActorRemoved)_config).all) {
+                execute(_scenemgr.getTimestamp(), logic);
+            }
+        }
+    }
+
+    /**
+     * Base class for {@link BodyEntered} and {@link BodyLeft}.
+     */
+    public static abstract class BaseBodyObserver extends HandlerLogic
+    {
+        @Override // documentation inherited
+        public void startup (int timestamp)
+        {
+            _scenemgr.getPlaceObject().addListener(_placelist);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            startup(0);
+        }
+
+        @Override // documentation inherited
+        public void shutdown (int timestamp, Logic activator)
+        {
+            _scenemgr.getPlaceObject().removeListener(_placelist);
+        }
+
+        /**
+         * Called when a body enters.
+         */
+        protected void bodyEntered (int pawnId)
+        {
+            // nothing by default
+        }
+
+        /**
+         * Called when a body leaves.
+         */
+        protected void bodyLeft (int pawnId)
+        {
+            // nothing by default
+        }
+
+        /** Listens for occupant additions/removals. */
+        protected NamedSetAdapter<OccupantInfo> _placelist = new NamedSetAdapter<OccupantInfo>(
+                PlaceObject.OCCUPANT_INFO) {
+            @Override public void namedEntryAdded (EntryAddedEvent<OccupantInfo> event) {
+                bodyEntered(((TudeyOccupantInfo)event.getEntry()).pawnId);
+            }
+            @Override public void namedEntryRemoved (EntryRemovedEvent<OccupantInfo> event) {
+                bodyLeft(((TudeyOccupantInfo)event.getOldEntry()).pawnId);
+            }
+        };
+    }
+
+    /**
+     * Handles entering bodies.
+     */
+    public static class BodyEntered extends BaseBodyObserver
+    {
+        @Override // documentation inherited
+        protected void bodyEntered (int pawnId)
+        {
+            ActorLogic logic = _scenemgr.getActorLogic(pawnId);
+            if (logic != null) {
+                execute(_scenemgr.getTimestamp(), logic);
+            }
+        }
+    }
+
+    /**
+     * Handles leaving bodies.
+     */
+    public static class BodyLeft extends BaseBodyObserver
+    {
+        @Override // documentation inherited
+        protected void bodyLeft (int pawnId)
+        {
+            ActorLogic logic = _scenemgr.getActorLogic(pawnId);
+            if (logic != null) {
                 execute(_scenemgr.getTimestamp(), logic);
             }
         }
