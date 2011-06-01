@@ -100,19 +100,23 @@ public class ActorLogic extends Logic
         for (HandlerConfig hconfig : config.handlers) {
             HandlerLogic handler = createHandler(hconfig, this);
             if (handler != null) {
-                if (actor == null) {
-                    handler.startup(timestamp);
-                }
                 handlers.add(handler);
             }
         }
         _handlers = handlers.toArray(new HandlerLogic[handlers.size()]);
 
-        // initialize the snapshots
-        _previousSnapshot = _snapshot = (Actor)_actor.clone();
-
         // give subclasses a chance to set up
         didInit();
+
+        // run the startup handlers
+        if (actor == null) {
+            for (HandlerLogic handler : _handlers) {
+                handler.startup(timestamp);
+            }
+        }
+
+        // initialize the snapshots
+        _previousSnapshot = _snapshot = (Actor)_actor.clone();
     }
 
     /**
