@@ -54,7 +54,8 @@ import com.threerings.opengl.util.GlContext;
  */
 @EditorTypes({
     ActionConfig.CallFunction.class, ActionConfig.SpawnTransient.class,
-    ActionConfig.PlaySound.class, ActionConfig.ShakeCamera.class })
+    ActionConfig.PlaySound.class, ActionConfig.ShakeCamera.class,
+    ActionConfig.Random.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
