@@ -52,7 +52,9 @@ public class ActiveLogic extends MobileLogic
 
         ActiveLogic asource = (ActiveLogic)source;
         for (IntMap.IntEntry<ActivityLogic> entry : asource._activities.intEntrySet()) {
-            _activities.get(entry.getIntKey()).transfer(entry.getValue(), refs);
+            if (_activities.get(entry.getIntKey()) != null) {
+                _activities.get(entry.getIntKey()).transfer(entry.getValue(), refs);
+            }
         }
         _lastActivityStarted = asource._lastActivityStarted;
     }
