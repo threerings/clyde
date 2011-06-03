@@ -438,14 +438,20 @@ public abstract class Shape
             Vector2f eprime = Vector2f.ZERO;
             Vector2f perp = new Vector2f(start.y - end.y, end.x - start.x);
             float dot = Float.NEGATIVE_INFINITY;
+            int dj = 0;
             for (int jj = 0, mm = B.length; jj < mm; jj++) {
                 float odot = perp.dot(B[jj]);
                 if (odot > dot) {
                     dot = odot;
                     sprime = B[jj];
                     eprime = sprime;
-                } else if (odot == dot) {
-                    eprime = B[jj];
+                    dj = jj;
+                } else if (FloatMath.epsilonEquals(odot, dot)) {
+                    if (dj == (jj + 1) % mm) {
+                        sprime = B[jj];
+                    } else {
+                        eprime = B[jj];
+                    }
                 }
             }
             if (flip) {
