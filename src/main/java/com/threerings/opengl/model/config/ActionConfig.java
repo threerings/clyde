@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.model.config;
 
+import com.samskivert.util.RandomUtil;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -232,6 +234,48 @@ public abstract class ActionConfig extends DeepObject
                 protected long _start = System.currentTimeMillis();
             };
         }
+    }
+
+    /**
+     * Performs one of a number of weighted sub-actions.
+     */
+    public static class Random extends ActionConfig
+    {
+        /** The contained actions. */
+        @Editable
+        public WeightedAction[] actions = new WeightedAction[0];
+
+        @Override // documentation inherited
+        public Executor createExecutor (GlContext ctx, Scope scope)
+        {
+            final float[] weights = new float[actions.length];
+            final Executor[] executors = new Executor[actions.length];
+            for (int ii = 0; ii < actions.length; ii++) {
+                WeightedAction waction = actions[ii];
+                weights[ii] = waction.weight;
+                executors[ii] = waction.action.createExecutor(ctx, scope);
+            }
+            return new Executor() {
+                public void execute () {
+                    executors[RandomUtil.getWeightedIndex(weights)].execute();
+                }
+            };
+        }
+    }
+
+    /**
+     * Combines an action with a weight.
+     */
+    public static class WeightedAction extends DeepObject
+        implements Exportable
+    {
+        /** The weight of the action. */
+        @Editable(min=0, step=0.01)
+        public float weight = 1f;
+
+        /** The action itself. */
+        @Editable
+        public ActionConfig action = new ActionConfig.CallFunction();
     }
 
     /**
