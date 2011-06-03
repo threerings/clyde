@@ -31,6 +31,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.BooleanExpression;
 import com.threerings.expr.Executor;
 import com.threerings.expr.Function;
 import com.threerings.expr.Scope;
@@ -55,6 +56,7 @@ import com.threerings.opengl.util.GlContext;
 @EditorTypes({
     ActionConfig.CallFunction.class, ActionConfig.SpawnTransient.class,
     ActionConfig.PlaySound.class, ActionConfig.ShakeCamera.class,
+    ActionConfig.Conditional.class, ActionConfig.Compound.class,
     ActionConfig.Random.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
@@ -238,6 +240,86 @@ public abstract class ActionConfig extends DeepObject
     }
 
     /**
+     * Performs one of a number of sub-actions depending on conditions.
+     */
+    public static class Conditional extends ActionConfig
+    {
+        /** The cases. */
+        @Editable
+        public Case[] cases = new Case[0];
+
+        /** The default action. */
+        @Editable
+        public ActionConfig defaultAction = new CallFunction();
+
+        @Override // documentation inherited
+        public Executor createExecutor (GlContext ctx, Scope scope)
+        {
+            final BooleanExpression.Evaluator[] evaluators =
+                new BooleanExpression.Evaluator[cases.length];
+            final Executor[] executors = new Executor[cases.length];
+            for (int ii = 0; ii < cases.length; ii++) {
+                Case caze = cases[ii];
+                evaluators[ii] = caze.condition.createEvaluator(scope);
+                executors[ii] = caze.action.createExecutor(ctx, scope);
+            }
+            final Executor defaultExecutor = defaultAction.createExecutor(ctx, scope);
+            return new Executor() {
+                public void execute () {
+                    for (int ii = 0; ii < cases.length; ii++) {
+                        if (evaluators[ii].evaluate()) {
+                            executors[ii].execute();
+                            return;
+                        }
+                    }
+                    defaultExecutor.execute();
+                }
+            };
+        }
+    }
+
+    /**
+     * Combines an action with a condition.
+     */
+    public static class Case extends DeepObject
+        implements Exportable
+    {
+        /** The condition for the case. */
+        @Editable
+        public BooleanExpression condition = new BooleanExpression.Constant(true);
+
+        /** The action itself. */
+        @Editable
+        public ActionConfig action = new CallFunction();
+    }
+
+    /**
+     * Performs a number of sub-actions.
+     */
+    public static class Compound extends ActionConfig
+    {
+        /** The contained actions. */
+        @Editable
+        public ActionConfig[] actions = new ActionConfig[0];
+
+        @Override // documentation inherited
+        public Executor createExecutor (GlContext ctx, Scope scope)
+        {
+            final Executor[] executors = new Executor[actions.length];
+            for (int ii = 0; ii < actions.length; ii++) {
+                executors[ii] = actions[ii].createExecutor(ctx, scope);
+            }
+            return new Executor() {
+                public void execute () {
+                    for (Executor executor : executors) {
+                        executor.execute();
+                    }
+                }
+            };
+        }
+    }
+
+    /**
      * Performs one of a number of weighted sub-actions.
      */
     public static class Random extends ActionConfig
@@ -276,7 +358,7 @@ public abstract class ActionConfig extends DeepObject
 
         /** The action itself. */
         @Editable
-        public ActionConfig action = new ActionConfig.CallFunction();
+        public ActionConfig action = new CallFunction();
     }
 
     /**
