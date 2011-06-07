@@ -900,11 +900,12 @@ public abstract class Root extends SimpleOverlay
     protected boolean dispatchEvent (Component target, Event event)
     {
         // notify our global listeners if we have any
-        for (int ii = 0, ll = _globals.size(); ii < ll; ii++) {
+        EventListener[] globals = _globals.toArray(new EventListener[_globals.size()]);
+        for (int ii = 0; ii < globals.length; ii++) {
             try {
-                _globals.get(ii).eventDispatched(event);
+                globals[ii].eventDispatched(event);
             } catch (Exception e) {
-                log.warning("Global event listener choked.", "listener", _globals.get(ii), e);
+                log.warning("Global event listener choked.", "listener", globals[ii], e);
             }
         }
 
