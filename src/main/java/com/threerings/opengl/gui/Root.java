@@ -32,6 +32,7 @@ import java.awt.datatransfer.Transferable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.google.common.annotations.Beta;
 
@@ -900,12 +901,11 @@ public abstract class Root extends SimpleOverlay
     protected boolean dispatchEvent (Component target, Event event)
     {
         // notify our global listeners if we have any
-        EventListener[] globals = _globals.toArray(new EventListener[_globals.size()]);
-        for (int ii = 0; ii < globals.length; ii++) {
+        for (EventListener listener : _globals) {
             try {
-                globals[ii].eventDispatched(event);
+                listener.eventDispatched(event);
             } catch (Exception e) {
-                log.warning("Global event listener choked.", "listener", globals[ii], e);
+                log.warning("Global event listener choked.", "listener", listener, e);
             }
         }
 
@@ -1204,7 +1204,8 @@ public abstract class Root extends SimpleOverlay
     protected ArrayList<Component> _defaults = new ArrayList<Component>();
     protected ObserverList<Tickable> _tickParticipants = ObserverList.newSafeInOrder();
     protected TickOp _tickOp = new TickOp();
-    protected ArrayList<EventListener> _globals = new ArrayList<EventListener>();
+    protected CopyOnWriteArrayList<EventListener> _globals =
+        new CopyOnWriteArrayList<EventListener>();
 
     protected ArrayList<Component> _invalidRoots = new ArrayList<Component>();
 
