@@ -124,7 +124,7 @@ public abstract class ActionConfig extends DeepObject
                 public void execute () {
                     final Scene.Transient spawned = (Scene.Transient)spawnTransient.call(
                         model, parent.compose(transform, _world));
-                    if (moveWithOrigin) {
+                    if (moveWithOrigin && spawned != null) {
                         // install an updater to update the transform
                         spawned.setUpdater(new Updater() {
                             public void update () {
