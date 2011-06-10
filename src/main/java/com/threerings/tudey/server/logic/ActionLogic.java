@@ -47,6 +47,7 @@ import com.threerings.presents.server.PresentsDObjectMgr;
 import com.threerings.config.ConfigReference;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
+import com.threerings.probs.FloatVariable;
 
 import com.threerings.tudey.config.ActionConfig;
 import com.threerings.tudey.config.ActorConfig;
@@ -54,6 +55,7 @@ import com.threerings.tudey.config.ClientActionConfig;
 import com.threerings.tudey.config.EffectConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.actor.Actor;
+import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.data.TudeyBodyObject;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
@@ -248,6 +250,44 @@ public abstract class ActionLogic extends Logic
         protected void didInit ()
         {
             _target = createTarget(((ActionConfig.DestroyActor)_config).target, _source);
+        }
+    }
+
+    /**
+     * Handles a rotate actor action.
+     */
+    public static class RotateActor extends Targeted
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            boolean success = false;
+            _target.resolve(activator, _targets);
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                Logic target = _targets.get(ii);
+                if (!(target instanceof ActorLogic)) {
+                    continue;
+                }
+                ActorLogic logic = (ActorLogic)target;
+                Actor actor = logic.getActor();
+                Vector2f translation = actor.getTranslation();
+                float rotation = ((ActionConfig.RotateActor)_config).rotation.getValue();
+                logic.move(translation.x, translation.y,
+                        FloatMath.normalizeAngle(actor.getRotation() + rotation));
+                if (actor instanceof Mobile) {
+                    Mobile mobile = (Mobile)actor;
+                    mobile.setDirection(FloatMath.normalizeAngle(mobile.getDirection() + rotation));
+                }
+                success = true;
+            }
+            _targets.clear();
+            return success;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ActionConfig.RotateActor)_config).target, _source);
         }
     }
 

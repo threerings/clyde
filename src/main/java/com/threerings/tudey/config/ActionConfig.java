@@ -33,7 +33,9 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
 import com.threerings.export.Exportable;
+import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
+import com.threerings.probs.FloatVariable;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.util.Preloadable;
@@ -49,8 +51,9 @@ import com.threerings.tudey.util.Coord;
 @EditorTypes({
     ActionConfig.SpawnActor.class, ActionConfig.SpawnRotatedActor.class,
     ActionConfig.SpawnTransformedActor.class, ActionConfig.SpawnRandomTranslatedActor.class,
-    ActionConfig.DestroyActor.class, ActionConfig.WarpActor.class,
-    ActionConfig.WarpTransformedActor.class, ActionConfig.FireEffect.class,
+    ActionConfig.DestroyActor.class, ActionConfig.RotateActor.class,
+    ActionConfig.WarpActor.class, ActionConfig.WarpTransformedActor.class,
+    ActionConfig.FireEffect.class,
     ActionConfig.Signal.class, ActionConfig.MoveBody.class,
     ActionConfig.MoveAll.class, ActionConfig.Conditional.class,
     ActionConfig.Switch.class, ActionConfig.ExpressionSwitch.class,
@@ -208,6 +211,32 @@ public abstract class ActionConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$DestroyActor";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+        }
+    }
+
+    /**
+     * Rotates an actor.
+     */
+    public static class RotateActor extends ActionConfig
+    {
+        /** The actor to rotate. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        /** The rotation amount. */
+        @Editable(min=-180, max=+180, scale=Math.PI/180.0)
+        public FloatVariable rotation = new FloatVariable.Uniform(-FloatMath.PI, +FloatMath.PI);
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$RotateActor";
         }
 
         @Override // documentation inherited
