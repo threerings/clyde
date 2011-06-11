@@ -190,11 +190,29 @@ public abstract class ActionConfig extends DeepObject
         @Strippable
         public int steps = 1;
 
+        /** The collision mask to use. */
+        @Editable(editor="mask", mode="collision", hgroup="c")
+        @Strippable
+        public int collisionMask = 0x00;
+
+        /** The source collision location. */
+        @Editable(hgroup="c")
+        @Strippable
+        public TargetConfig collisionSource = new TargetConfig.Source();
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ActionLogic$SpawnRandomTranslatedActor";
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            super.invalidate();
+            collisionSource.invalidate();
+        }
+
     }
 
     /**

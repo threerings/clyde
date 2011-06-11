@@ -61,6 +61,7 @@ import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.data.TudeySceneObject;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.server.TudeySceneRegistry;
+import com.threerings.tudey.shape.Segment;
 
 import static com.threerings.tudey.Log.*;
 
@@ -98,12 +99,13 @@ public abstract class ActionLogic extends Logic
                 return true;
             }
             _location.resolve(activator, _targets);
+            boolean success = false;
             for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
                 Logic target = _targets.get(ii);
-                spawnActor(timestamp, actor, target, activator);
+                success = spawnActor(timestamp, actor, target, activator) | success;
             }
             _targets.clear();
-            return true;
+            return success;
         }
 
         @Override // documentation inherited
@@ -130,12 +132,13 @@ public abstract class ActionLogic extends Logic
         /**
          * Spawns an actor at the target
          */
-        protected void spawnActor (
+        protected boolean spawnActor (
                 int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
         {
             ActorLogic logic = _scenemgr.spawnActor(
                     timestamp, getTranslation(target), getRotation(target), actor);
             initLogic(logic, activator);
+            return true;
         }
 
         /**
@@ -206,23 +209,53 @@ public abstract class ActionLogic extends Logic
     public static class SpawnRandomTranslatedActor extends SpawnActor
     {
         @Override // documentation inherited
-        protected void spawnActor (
+        protected boolean spawnActor (
                 int timestamp, ConfigReference<ActorConfig> actor, Logic target, Logic activator)
         {
             ActionConfig.SpawnRandomTranslatedActor config =
                 (ActionConfig.SpawnRandomTranslatedActor)_config;
             Set<Vector2f> locations = Sets.newHashSet();
-            for (int ii = 0; ii < config.count; ii++) {
-                Vector2f location = getTranslation(target).add(
-                        RandomUtil.getInRange(-config.steps, config.steps + 1) * config.stepSize,
-                        RandomUtil.getInRange(-config.steps, config.steps + 1) * config.stepSize);
-                if (locations.add(location)) {
-                    ActorLogic logic = _scenemgr.spawnActor(
-                            timestamp, location, getRotation(target), actor);
-                    initLogic(logic, activator);
+            int steps = config.steps;
+            boolean success = false;
+            Vector2f translation = null;
+            if (config.collisionMask != 0) {
+                ArrayList<Logic> cTargets = Lists.newArrayList();
+                _cs.resolve(activator, cTargets);
+                if (cTargets.size() > 0) {
+                    translation = getTranslation(cTargets.get(0));
                 }
             }
+            for (int ii = 0; ii < config.count; ii++) {
+                for (int jj = 0; jj < COLLISION_ATTEMPTS; jj++) {
+                    Vector2f location = getTranslation(target).add(
+                            RandomUtil.getInRange(-steps, steps + 1) * config.stepSize,
+                            RandomUtil.getInRange(-steps, steps + 1) * config.stepSize);
+                    if (locations.add(location) && (translation == null || !_scenemgr.collides(
+                                config.collisionMask, new Segment(translation, location)))) {
+                        ActorLogic logic = _scenemgr.spawnActor(
+                                timestamp, location, getRotation(target), actor);
+                        initLogic(logic, activator);
+                        success = true;
+                        break;
+                    }
+                }
+            }
+            return success;
         }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+            _cs = createTarget(
+                    ((ActionConfig.SpawnRandomTranslatedActor)_config).collisionSource, _source);
+        }
+
+        /** The collision source. */
+        protected TargetLogic _cs;
+
+        /** The number of failed collision attempts before continuing. */
+        protected static final int COLLISION_ATTEMPTS = 3;
     }
 
     /**
