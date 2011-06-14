@@ -70,6 +70,7 @@ import com.threerings.export.Importer;
 import com.threerings.export.util.ExportUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Ray3D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Transform3D;
@@ -158,6 +159,19 @@ public class TudeySceneModel extends SceneModel
          * Notes that the layer was set for the specified entry.
          */
         public void entryLayerWasSet (Object key, int layer);
+    }
+
+    /**
+     * Used to select sprites according to their floor flags.
+     */
+    protected static class FloorPlaceableFilter
+        implements Exportable, Predicate<SpaceElement>
+    {
+        // from Predicate
+        public boolean apply (SpaceElement element)
+        {
+            return element instanceof PlaceableElement;
+        }
     }
 
     /**
@@ -651,6 +665,17 @@ public class TudeySceneModel extends SceneModel
     }
 
     /**
+     * A placeable shape element.
+     */
+    public static class PlaceableElement extends ShapeElement
+    {
+        public PlaceableElement (PlaceableConfig.Original config)
+        {
+            super(config.shape);
+        }
+    }
+
+    /**
      * A placeable entry.
      */
     public static class PlaceableEntry extends IdEntry
@@ -778,7 +803,12 @@ public class TudeySceneModel extends SceneModel
         @Override // documentation inherited
         public SpaceElement createElement (ConfigManager cfgmgr)
         {
-            ShapeElement element = new ShapeElement(getConfig(cfgmgr).shape);
+            PlaceableConfig.Original config = getConfig(cfgmgr);
+            ShapeElement element = config.floorTile ?
+                new PlaceableElement(config) : new ShapeElement(config.shape);
+            if (config.floorTile) {
+                log.info("Creating placeable floor tile");
+            }
             element.getTransform().set(transform);
             element.updateBounds();
             element.setUserObject(this);
@@ -1625,6 +1655,29 @@ public class TudeySceneModel extends SceneModel
         }
         int value = getTileValue(pair);
         return (value == -1) ? Integer.MIN_VALUE : getElevation(value);
+    }
+
+    /**
+     * Returns the z coordinate of the floor at the provided coordinates, or the provided default
+     * if no floor is found.
+     *
+     * @param mask the floor mask to use for the query.
+     */
+    public float getFloorZ (float x, float y, float defvalue)
+    {
+        int elevation = getTileElevation(FloatMath.ifloor(x), FloatMath.ifloor(y));
+        if (elevation == Integer.MIN_VALUE) {
+            _point.getLocation().set(x, y);
+            _point.updateBounds();
+            _space.getIntersecting(_point, _floorPlaceableFilter, _intersecting);
+            for (SpaceElement element : _intersecting) {
+                elevation = Math.max(
+                        elevation, ((PlaceableEntry)element.getUserObject()).getElevation());
+            }
+            _intersecting.clear();
+        }
+        return elevation == Integer.MIN_VALUE ?
+            defvalue : TudeySceneMetrics.getTileZ(elevation);
     }
 
     /**
@@ -2757,4 +2810,12 @@ public class TudeySceneModel extends SceneModel
     /** Stores penetration vector during queries. */
     @DeepOmit
     protected transient Vector2f _penetration = new Vector2f();
+
+    /** Used to find the floor. */
+    @DeepOmit
+    protected transient Point _point = new Point();
+
+    /** Used to fine the floor. */
+    @DeepOmit
+    protected transient FloorPlaceableFilter _floorPlaceableFilter = new FloorPlaceableFilter();
 }

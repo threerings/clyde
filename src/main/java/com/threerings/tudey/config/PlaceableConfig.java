@@ -137,6 +137,10 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable
         public HandlerConfig[] handlers = new HandlerConfig[0];
 
+        /** Treat this placeable as floor tile. */
+        @Editable
+        public boolean floorTile = false;
+
         /**
          * Returns the placeable's collision flags.
          */

@@ -49,9 +49,10 @@ public class SimpleSpace extends Space
     }
 
     @Override // documentation inherited
-    public void getIntersecting (Shape shape, Collection<SpaceElement> results)
+    public void getIntersecting (
+            Shape shape, Predicate<? super SpaceElement> filter, Collection<SpaceElement> results)
     {
-        getIntersecting(_elements, shape, results);
+        getIntersecting(_elements, shape, filter, results);
     }
 
     @Override // documentation inherited

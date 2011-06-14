@@ -55,9 +55,11 @@ import com.threerings.opengl.renderer.Texture2D;
 import com.threerings.opengl.renderer.TextureUnit;
 
 import com.threerings.tudey.client.TudeySceneView;
+import com.threerings.tudey.config.PlaceableConfig;
 import com.threerings.tudey.config.TileConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.TudeySceneModel.Entry;
+import com.threerings.tudey.data.TudeySceneModel.PlaceableEntry;
 import com.threerings.tudey.data.TudeySceneModel.TileEntry;
 import com.threerings.tudey.shape.Polygon;
 import com.threerings.tudey.shape.Shape;
@@ -267,7 +269,13 @@ public class SceneMap
             return;
         }
         int flags = entry.getCollisionFlags(_sceneModel.getConfigManager());
-        if (flags == 0) {
+        if (entry instanceof PlaceableEntry) {
+            PlaceableEntry pentry = (PlaceableEntry)entry;
+            PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
+            if (flags == 0 && !config.floorTile) {
+                return;
+            }
+        } else if (flags == 0) {
             return;
         }
         Shape shape = entry.createShape(_sceneModel.getConfigManager());

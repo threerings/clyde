@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -126,10 +127,11 @@ public class HashSpace extends Space
     }
 
     @Override // documentation inherited
-    public void getIntersecting (Shape shape, Collection<SpaceElement> results)
+    public void getIntersecting (Shape shape, Predicate<? super SpaceElement> filter,
+            Collection<SpaceElement> results)
     {
         // get the oversized elements
-        getIntersecting(_oversizedElements, shape, results);
+        getIntersecting(_oversizedElements, shape, filter, results);
 
         // get the intersection with the top-level bounds
         shape.getBounds().intersect(_bounds, _rect);
@@ -151,7 +153,7 @@ public class HashSpace extends Space
             for (int xx = minx; xx <= maxx; xx++) {
                 Node<SpaceElement> root = _elements.get(_coord.set(xx, yy));
                 if (root != null) {
-                    root.get(shape, results);
+                    root.get(shape, filter, results);
                 }
             }
         }
@@ -458,8 +460,16 @@ public class HashSpace extends Space
          */
         public void get (Shape shape, Collection<T> results)
         {
+            get(shape, Predicates.alwaysTrue(), results);
+        }
+
+        /**
+         * Retrieves all objects intersecting the provided shape.
+         */
+        public void get (Shape shape, Predicate<? super T> filter, Collection<T> results)
+        {
             if (shape.getIntersectionType(_bounds) != Shape.IntersectionType.NONE) {
-                getIntersecting(shape, results);
+                getIntersecting(shape, filter, results);
             }
         }
 
@@ -468,10 +478,18 @@ public class HashSpace extends Space
          */
         public void get (Rect bounds, Collection<T> results)
         {
+            get(bounds, Predicates.alwaysTrue(), results);
+        }
+
+        /**
+         * Retrieves all objects intersecting the provided bounds.
+         */
+        public void get (Rect bounds, Predicate<? super T> filter, Collection<T> results)
+        {
             if (bounds.contains(_bounds)) {
-                getAll(results);
+                getAll(filter, results);
             } else if (bounds.intersects(_bounds)) {
-                getIntersecting(bounds, results);
+                getIntersecting(bounds, filter, results);
             }
         }
 
@@ -483,11 +501,11 @@ public class HashSpace extends Space
         /**
          * Gets all objects in this node.
          */
-        protected void getAll (Collection<T> results)
+        protected void getAll (Predicate<? super T> filter, Collection<T> results)
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
-                if (object.updateLastVisit(_visit)) {
+                if (object.updateLastVisit(_visit) && filter.apply(object)) {
                     results.add(object);
                 }
             }
@@ -496,11 +514,12 @@ public class HashSpace extends Space
         /**
          * Gets all objects in this node intersecting the provided shape.
          */
-        protected void getIntersecting (Shape shape, Collection<T> results)
+        protected void getIntersecting (
+                Shape shape, Predicate<? super T> filter, Collection<T> results)
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
-                if (object.updateLastVisit(_visit) &&
+                if (object.updateLastVisit(_visit) && filter.apply(object) &&
                         shape.intersects((SpaceElement)object)) {
                     results.add(object);
                 }
@@ -510,11 +529,13 @@ public class HashSpace extends Space
         /**
          * Gets all objects in this node intersecting the provided bounds.
          */
-        protected void getIntersecting (Rect bounds, Collection<T> results)
+        protected void getIntersecting (
+                Rect bounds, Predicate<? super T> filter, Collection<T> results)
         {
             for (int ii = 0, nn = _objects.size(); ii < nn; ii++) {
                 T object = _objects.get(ii);
-                if (object.updateLastVisit(_visit) && object.getBounds().intersects(bounds)) {
+                if (object.updateLastVisit(_visit) && filter.apply(object) &&
+                        object.getBounds().intersects(bounds)) {
                     results.add(object);
                 }
             }
@@ -631,34 +652,36 @@ public class HashSpace extends Space
         }
 
         @Override // documentation inherited
-        protected void getAll (Collection<T> results)
+        protected void getAll (Predicate<? super T> filter, Collection<T> results)
         {
-            super.getAll(results);
+            super.getAll(filter, results);
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.getAll(results);
+                    child.getAll(filter, results);
                 }
             }
         }
 
         @Override // documentation inherited
-        protected void getIntersecting (Shape shape, Collection<T> results)
+        protected void getIntersecting (
+                Shape shape, Predicate<? super T> filter, Collection<T> results)
         {
-            super.getIntersecting(shape, results);
+            super.getIntersecting(shape, filter, results);
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.get(shape, results);
+                    child.get(shape, filter, results);
                 }
             }
         }
 
         @Override // documentation inherited
-        protected void getIntersecting (Rect bounds, Collection<T> results)
+        protected void getIntersecting (
+                Rect bounds, Predicate<? super T> filter, Collection<T> results)
         {
-            super.getIntersecting(bounds, results);
+            super.getIntersecting(bounds, filter, results);
             for (Node<T> child : _children) {
                 if (child != null) {
-                    child.get(bounds, results);
+                    child.get(bounds, filter, results);
                 }
             }
         }

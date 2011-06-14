@@ -99,7 +99,19 @@ public abstract class Space
      *
      * @param results a collection to hold the results of the search.
      */
-    public abstract void getIntersecting (Shape shape, Collection<SpaceElement> results);
+    public void getIntersecting (Shape shape, Collection<SpaceElement> results)
+    {
+        Predicate<SpaceElement> filter = Predicates.alwaysTrue();
+        getIntersecting(shape, filter, results);
+    }
+
+    /**
+     * Retrieves all space elements that intersect the provided shape.
+     *
+     * @param results a collection to hold the results of the search.
+     */
+    public abstract void getIntersecting (
+            Shape shape, Predicate<? super SpaceElement> filter, Collection<SpaceElement> results);
 
     /**
      * Retrieves all space elements whose bounds intersect the provided region.
@@ -168,12 +180,12 @@ public abstract class Space
      * Adds all elements from the provided list that intersect the given shape to the
      * specified results collection.
      */
-    protected static void getIntersecting (
-        ArrayList<SpaceElement> elements, Shape shape, Collection<SpaceElement> results)
+    protected static void getIntersecting (ArrayList<SpaceElement> elements, Shape shape,
+            Predicate<? super SpaceElement> filter, Collection<SpaceElement> results)
     {
         for (int ii = 0, nn = elements.size(); ii < nn; ii++) {
             SpaceElement element = elements.get(ii);
-            if (shape.intersects(element)) {
+            if (filter.apply(element) && shape.intersects(element)) {
                 results.add(element);
             }
         }
