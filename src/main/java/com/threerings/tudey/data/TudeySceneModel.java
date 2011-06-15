@@ -806,9 +806,6 @@ public class TudeySceneModel extends SceneModel
             PlaceableConfig.Original config = getConfig(cfgmgr);
             ShapeElement element = config.floorTile ?
                 new PlaceableElement(config) : new ShapeElement(config.shape);
-            if (config.floorTile) {
-                log.info("Creating placeable floor tile");
-            }
             element.getTransform().set(transform);
             element.updateBounds();
             element.setUserObject(this);
