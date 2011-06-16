@@ -2141,6 +2141,69 @@ public class TudeySceneModel extends SceneModel
         return false;
     }
 
+    /**
+     * Finds the nearest point to the origin if the shape collides with the environment.
+     */
+    public boolean getNearestPoint (Shape shape, int mask, Vector2f origin, Vector2f nearPoint)
+    {
+        // make sure we can actually collide against anything
+        if (mask == 0) {
+            return false;
+        }
+        // check against locations
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        Vector2f result = new Vector2f();
+        float resultDist = Float.POSITIVE_INFINITY;
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                if ((_collisionFlags.get(xx, yy) & mask) == 0) {
+                    continue;
+                }
+                float lx = xx, ly = yy, ux = lx + 1f, uy = ly + 1f;
+                _quad.getVertex(0).set(lx, ly);
+                _quad.getVertex(1).set(ux, ly);
+                _quad.getVertex(2).set(ux, uy);
+                _quad.getVertex(3).set(lx, uy);
+                _quad.getBounds().getMinimumExtent().set(lx, ly);
+                _quad.getBounds().getMaximumExtent().set(ux, uy);
+                if (_quad.intersects(shape)) {
+                    _quad.getNearestPoint(origin, result);
+                    float dist = result.distanceSquared(origin);
+                    if (resultDist > dist) {
+                        nearPoint.set(result);
+                        resultDist = dist;
+                    }
+                }
+            }
+        }
+
+        // find intersecting elements
+        _space.getIntersecting(shape, _intersecting);
+        try {
+            for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
+                SpaceElement element = _intersecting.get(ii);
+                Entry entry = (Entry)element.getUserObject();
+                if ((entry.getCollisionFlags(_cfgmgr) & mask) != 0) {
+                    element.getNearestPoint(origin, result);
+                    float dist = result.distanceSquared(origin);
+                    if (resultDist > dist) {
+                        nearPoint.set(result);
+                        resultDist = dist;
+                    }
+                }
+            }
+        } finally {
+            _intersecting.clear();
+        }
+        return resultDist != Float.POSITIVE_INFINITY;
+    }
+
+
     // documentation inherited from interface ActorAdvancer.Environment
     public TudeySceneModel getSceneModel ()
     {
