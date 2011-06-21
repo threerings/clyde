@@ -33,7 +33,7 @@ import java.lang.reflect.Modifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Map;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
@@ -358,7 +358,7 @@ public class DeepUtil
     };
 
     /** Object handlers mapped by class. */
-    protected static final HashMap<Class<?>, ObjectHandler> _objectHandlers = Maps.newHashMap();
+    protected static final Map<Class<?>, ObjectHandler> _objectHandlers = Maps.newConcurrentMap();
     static {
         _objectHandlers.put(boolean[].class, new ObjectHandler<boolean[]>() {
             public boolean[] copy (boolean[] source, boolean[] dest, Object outer)
@@ -569,7 +569,7 @@ public class DeepUtil
     };
 
     /** Handlers for primitive fields mapped by class. */
-    protected static final HashMap<Class<?>, FieldHandler> PRIMITIVE_FIELD_HANDLERS =
+    protected static final Map<Class<?>, FieldHandler> PRIMITIVE_FIELD_HANDLERS =
         Maps.newHashMap();
     static {
         PRIMITIVE_FIELD_HANDLERS.put(Boolean.TYPE, new FieldHandler() {
