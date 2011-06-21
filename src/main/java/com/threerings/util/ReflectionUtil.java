@@ -99,7 +99,7 @@ public class ReflectionUtil
                 }
             }
             if (ctor == null) {
-                log.warning("Class has no default constructor.", "class", clazz);
+                log.warning("Class has no default constructor.", "class", clazz, new Exception());
                 return null;
             }
             ctor.setAccessible(true);
@@ -108,7 +108,7 @@ public class ReflectionUtil
         try {
             return (outer == null) ? ctor.newInstance() : ctor.newInstance(outer);
         } catch (Exception e) {
-            log.warning("Failed to create new instance [class=" + clazz + "].", e);
+            log.warning("Failed to create new instance.", "class", clazz, e);
             return null;
         }
     }
