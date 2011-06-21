@@ -70,6 +70,7 @@ import com.threerings.export.Importer;
 import com.threerings.export.util.ExportUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Ray2D;
 import com.threerings.math.Ray3D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
@@ -2203,6 +2204,68 @@ public class TudeySceneModel extends SceneModel
         return resultDist != Float.POSITIVE_INFINITY;
     }
 
+    /**
+     * Finds the intersection with the ray.
+     */
+    public boolean getIntersection (Ray2D ray, float length, int mask, Vector2f intersection)
+    {
+        // make sure we can actually collide against anything
+        if (mask == 0) {
+            return false;
+        }
+        // check against locations
+        Segment seg = new Segment(
+                ray.getOrigin(), ray.getOrigin().add(ray.getDirection().mult(length)));
+        Rect bounds = seg.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        Vector2f result = new Vector2f();
+        float resultDist = length * length;
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                if ((_collisionFlags.get(xx, yy) & mask) == 0) {
+                    continue;
+                }
+                float lx = xx, ly = yy, ux = lx + 1f, uy = ly + 1f;
+                _quad.getVertex(0).set(lx, ly);
+                _quad.getVertex(1).set(ux, ly);
+                _quad.getVertex(2).set(ux, uy);
+                _quad.getVertex(3).set(lx, uy);
+                _quad.getBounds().getMinimumExtent().set(lx, ly);
+                _quad.getBounds().getMaximumExtent().set(ux, uy);
+                if (_quad.getIntersection(ray, result)) {
+                    float dist = result.distanceSquared(ray.getOrigin());
+                    if (resultDist > dist) {
+                        intersection.set(result);
+                        resultDist = dist;
+                    }
+                }
+            }
+        }
+
+        // find intersecting elements
+        _space.getIntersecting(seg, _intersecting);
+        try {
+            for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
+                SpaceElement element = _intersecting.get(ii);
+                Entry entry = (Entry)element.getUserObject();
+                if ((entry.getCollisionFlags(_cfgmgr) & mask) != 0 &&
+                        element.getIntersection(ray, result)) {
+                    float dist = result.distanceSquared(ray.getOrigin());
+                    if (resultDist > dist) {
+                        intersection.set(result);
+                        resultDist = dist;
+                    }
+                }
+            }
+        } finally {
+            _intersecting.clear();
+        }
+        return resultDist < length * length;
+    }
 
     // documentation inherited from interface ActorAdvancer.Environment
     public TudeySceneModel getSceneModel ()

@@ -63,6 +63,7 @@ import com.threerings.whirled.server.SceneManager;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.math.Ray2D;
 import com.threerings.math.Rect;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
@@ -88,6 +89,7 @@ import com.threerings.tudey.server.logic.Logic;
 import com.threerings.tudey.server.logic.PawnLogic;
 import com.threerings.tudey.server.util.Pathfinder;
 import com.threerings.tudey.server.util.SceneTicker;
+import com.threerings.tudey.shape.Segment;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.shape.ShapeElement;
 import com.threerings.tudey.space.HashSpace;
@@ -819,6 +821,41 @@ public class TudeySceneManager extends SceneManager
             _elements.clear();
         }
         return false;
+    }
+
+    /**
+     * Determines the intersection point of this segment in the environment.
+     */
+    public boolean getIntersection (
+        Ray2D ray, float length, int mask, int timestamp, Vector2f intersection)
+    {
+        if (mask == 0) {
+            return false;
+        }
+
+        boolean intersects = getSceneModel().getIntersection(ray, length, mask, intersection);
+        float resultDist = intersects ?
+            ray.getOrigin().distanceSquared(intersection) : length * length;
+
+        Segment seg = new Segment(
+                ray.getOrigin(), ray.getOrigin().add(ray.getDirection().mult(length)));
+        _actorSpace.getIntersecting(seg, _elements);
+        Vector2f result = new Vector2f();
+        for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+            SpaceElement element = _elements.get(ii);
+            ActorLogic logic = (ActorLogic)element.getUserObject();
+            Actor actor = logic.getActor();
+            if (timestamp < actor.getDestroyed() && (actor.getCollisionFlags() & mask) != 0 &&
+                    logic.getShape().getIntersection(ray, result)) {
+                float dist = ray.getOrigin().distanceSquared(result);
+                if (dist < resultDist) {
+                    intersection.set(result);
+                    resultDist = dist;
+                }
+            }
+        }
+        _elements.clear();
+        return resultDist < length * length;
     }
 
     /**
