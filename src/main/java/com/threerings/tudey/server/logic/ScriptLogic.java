@@ -316,6 +316,46 @@ public abstract class ScriptLogic extends Logic
     }
 
     /**
+     * Handles an action script.
+     */
+    public static class Action extends ScriptLogic
+    {
+        @Override // documentation inherited
+        public void start (int timestamp)
+        {
+        }
+
+        @Override // documentation inherited
+        public boolean tick (int timestamp)
+        {
+            _action.execute(timestamp, _agent);
+            return false;
+        }
+
+        @Override // documentation inherited
+        public void shutdown ()
+        {
+            _action.removed();
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _action.transfer(((Action)source)._action, refs);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _action = createAction(((ScriptConfig.Action)_config).action, _agent);
+        }
+
+        /** The action to perform. */
+        protected ActionLogic _action;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ScriptConfig config, AgentLogic agent,
@@ -344,6 +384,14 @@ public abstract class ScriptLogic extends Logic
      * Called when we are about to start the current script.
      */
     public void start (int timestamp)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Called when the behavior is shutdown.
+     */
+    public void shutdown ()
     {
         // nothing by default
     }

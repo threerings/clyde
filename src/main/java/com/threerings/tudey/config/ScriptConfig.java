@@ -36,7 +36,7 @@ import com.threerings.util.DeepObject;
 @EditorTypes({
     ScriptConfig.Wait.class, ScriptConfig.Move.class,
     ScriptConfig.Rotate.class, ScriptConfig.Condition.class,
-    ScriptConfig.Goto.class })
+    ScriptConfig.Goto.class, ScriptConfig.Action.class })
 public abstract class ScriptConfig extends DeepObject
     implements Exportable
 {
@@ -125,6 +125,22 @@ public abstract class ScriptConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ScriptLogic$Goto";
+        }
+    }
+
+    /**
+     * Performs an action.
+     */
+    public static class Action extends ScriptConfig
+    {
+        /** The action to perform. */
+        @Editable
+        public ActionConfig action = new ActionConfig.SetVariable();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ScriptLogic$Action";
         }
     }
 

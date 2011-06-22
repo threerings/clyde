@@ -712,6 +712,14 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void shutdown ()
+        {
+            for (ScriptLogic logic : _steps) {
+                logic.shutdown();
+            }
+        }
+
+        @Override // documentation inherited
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
