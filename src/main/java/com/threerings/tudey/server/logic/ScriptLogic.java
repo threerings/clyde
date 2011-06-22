@@ -356,6 +356,30 @@ public abstract class ScriptLogic extends Logic
     }
 
     /**
+     * Handles the set speed script.
+     */
+    public static class SetSpeed extends ScriptLogic
+    {
+        @Override // documentation inherited
+        public void start (int timestamp)
+        {
+            _agent.setSpeed(((ScriptConfig.SetSpeed)_config).speed);
+        }
+    }
+
+    /**
+     * Handles the clear speed script.
+     */
+    public static class ClearSpeed extends ScriptLogic
+    {
+        @Override // documentation inherited
+        public void start (int timestamp)
+        {
+            _agent.clearSpeed();
+        }
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ScriptConfig config, AgentLogic agent,

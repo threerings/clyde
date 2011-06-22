@@ -36,7 +36,8 @@ import com.threerings.util.DeepObject;
 @EditorTypes({
     ScriptConfig.Wait.class, ScriptConfig.Move.class,
     ScriptConfig.Rotate.class, ScriptConfig.Condition.class,
-    ScriptConfig.Goto.class, ScriptConfig.Action.class })
+    ScriptConfig.Goto.class, ScriptConfig.Action.class,
+    ScriptConfig.SetSpeed.class, ScriptConfig.ClearSpeed.class })
 public abstract class ScriptConfig extends DeepObject
     implements Exportable
 {
@@ -141,6 +142,34 @@ public abstract class ScriptConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ScriptLogic$Action";
+        }
+    }
+
+    /**
+     * Sets the speed of the agent.
+     */
+    public static class SetSpeed extends ScriptConfig
+    {
+        /** The speed to set. */
+        @Editable(step=0.1, min=0)
+        public float speed = 0f;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ScriptLogic$SetSpeed";
+        }
+    }
+
+    /**
+     * Clears the speed of the agent.
+     */
+    public static class ClearSpeed extends ScriptConfig
+    {
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ScriptLogic$ClearSpeed";
         }
     }
 
