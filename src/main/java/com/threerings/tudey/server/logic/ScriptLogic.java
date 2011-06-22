@@ -104,6 +104,7 @@ public abstract class ScriptLogic extends Logic
         public boolean tick (int timestamp)
         {
             if (_path == null || finishedMove()) {
+                finishMove();
                 return true;
             }
 
@@ -116,12 +117,14 @@ public abstract class ScriptLogic extends Logic
                     _agent.stopMoving();
                     _path = null;
                     if (completedPath) {
+                        finishMove();
                         return true;
                     }
                     createPath();
                     completedPath = true;
                 }
                 if (_path == null) {
+                    finishMove();
                     return true;
                 }
             }
@@ -189,6 +192,15 @@ public abstract class ScriptLogic extends Logic
         {
             float dist = _finalTarget.getTranslation().distanceSquared(_agent.getTranslation());
             return dist*dist < getReachRadius();
+        }
+
+        /**
+         * Position ourselves exactly on our target.
+         */
+        protected void finishMove ()
+        {
+            Vector2f translation = _finalTarget.getTranslation();
+            _agent.move(translation.x, translation.y, _agent.getRotation());
         }
 
         @Override // documentation inherited
