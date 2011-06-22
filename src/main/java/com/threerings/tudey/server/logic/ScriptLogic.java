@@ -329,7 +329,7 @@ public abstract class ScriptLogic extends Logic
         public boolean tick (int timestamp)
         {
             _action.execute(timestamp, _agent);
-            return false;
+            return true;
         }
 
         @Override // documentation inherited
@@ -401,7 +401,7 @@ public abstract class ScriptLogic extends Logic
      */
     public boolean tick (int timestamp)
     {
-        return false;
+        return true;
     }
 
     /**
