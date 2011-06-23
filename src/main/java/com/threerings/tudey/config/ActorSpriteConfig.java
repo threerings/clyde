@@ -51,7 +51,7 @@ import com.threerings.tudey.util.TudeyContext;
  */
 @EditorTypes({
     ActorSpriteConfig.Default.class, ActorSpriteConfig.Moving.class,
-    ActorSpriteConfig.StatefulEntry.class })
+    ActorSpriteConfig.StatefulEntry.class, ActorSpriteConfig.StatefulModelEntry.class })
 public abstract class ActorSpriteConfig extends DeepObject
     implements Exportable
 {
@@ -323,6 +323,48 @@ public abstract class ActorSpriteConfig extends DeepObject
         /** The state animation. */
         @Editable(nullable=true)
         public ConfigReference<AnimationConfig> animation;
+    }
+
+    /**
+     * Manipulates an entry sprite to reflect the state of the entry's corresponding actor.
+     */
+    public static class StatefulModelEntry extends Default
+    {
+        /** The entry's states. */
+        @Editable
+        public ModelState[] states = new ModelState[0];
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            super.getPreloads(cfgmgr, preloads);
+            for (ModelState state : states) {
+                preloads.add(new Preloadable.Model(state.model));
+            }
+        }
+
+        @Override // documentation inherited
+        public ActorSprite.Implementation getImplementation (
+            TudeyContext ctx, Scope scope, ActorSprite.Implementation impl)
+        {
+            if (impl != null && impl.getClass() == ActorSprite.StatefulModelEntry.class) {
+                ((ActorSprite.StatefulModelEntry)impl).setConfig(this);
+            } else {
+                impl = new ActorSprite.StatefulModelEntry(ctx, scope, this);
+            }
+            return impl;
+        }
+    }
+
+    /**
+     * Represents a single animated state.
+     */
+    public static class ModelState extends DeepObject
+        implements Exportable
+    {
+        /** The state model. */
+        @Editable(nullable=true)
+        public ConfigReference<ModelConfig> model;
     }
 
     /** Determines which floor categories the sprite belongs to. */

@@ -835,6 +835,64 @@ public class ActorSprite extends Sprite
     }
 
     /**
+     * Changes model configurations on the corresponding entry sprite.
+     */
+    public static class StatefulModelEntry extends Original
+    {
+        /**
+         * Creates a new implementation.
+         */
+        public StatefulModelEntry (
+            TudeyContext ctx, Scope parentScope, ActorSpriteConfig.StatefulModelEntry config)
+        {
+            super(ctx, parentScope);
+            setConfig(config);
+        }
+
+        @Override // documentation inherited
+        public void setConfig (ActorSpriteConfig config)
+        {
+            super.setConfig(config);
+
+            // find the corresponding entry sprite and its model
+            EntryState estate = (EntryState)((ActorSprite)_parentScope).getActor();
+            EntrySprite esprite = _view.getEntrySprite(estate.getKey());
+            _entryModel = (esprite == null) ? null : esprite.getModel();
+            if (_entryModel == null) {
+                return;
+            }
+        }
+
+        @Override // documentation inherited
+        public void update (Actor actor)
+        {
+            super.update(actor);
+
+            ActorSpriteConfig.StatefulModelEntry config =
+                (ActorSpriteConfig.StatefulModelEntry)_config;
+
+            // update the state animation
+            EntryState estate = (EntryState)actor;
+            int entered = estate.getStateEntered();
+            if (entered > _lastStateEntered) {
+                int state = estate.getState();
+                ConfigReference<ModelConfig> model = (state < config.states.length) ?
+                    config.states[state].model : null;
+                if (model != null) {
+                    _entryModel.setConfig(model);
+                }
+                _lastStateEntered = entered;
+            }
+        }
+
+        /** The model corresponding to the entry sprite. */
+        protected Model _entryModel;
+
+        /** The time at which we entered the last state. */
+        protected int _lastStateEntered;
+    }
+
+    /**
      * Creates a new actor sprite.
      */
     public ActorSprite (TudeyContext ctx, TudeySceneView view, int timestamp, Actor actor)
