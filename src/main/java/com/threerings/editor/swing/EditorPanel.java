@@ -60,12 +60,15 @@ import com.samskivert.util.ArrayUtil;
 
 import com.threerings.util.MessageBundle;
 
+import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.DynamicallyEditable;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
+
+import static com.threerings.editor.Log.*;
 
 /**
  * Allows editing properties of an object as determined through reflection.
@@ -176,6 +179,14 @@ public class EditorPanel extends BasePropertyEditor
             getActionMap().put("copy_path", new AbstractAction() {
                 public void actionPerformed (ActionEvent event) {
                     copyPropertyPath(getMousePath());
+                }
+            });
+            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
+                "direct_path");
+            getActionMap().put("direct_path", new AbstractAction() {
+                public void actionPerformed (ActionEvent event) {
+                    createDirectPath(getMousePath());
                 }
             });
         }
@@ -362,6 +373,26 @@ public class EditorPanel extends BasePropertyEditor
     }
 
     /**
+     * Attempts to create a new direct property path.
+     */
+    protected void createDirectPath (String path)
+    {
+        if (path.startsWith(".")) {
+            path = path.substring(1);
+        }
+        if (path.length() > 0 && _object instanceof ParameterizedConfig) {
+            String name = path.substring(path.lastIndexOf(".") + 1);
+            if (name.endsWith("]")) {
+                name = name.substring(name.lastIndexOf('[') + 2, name.lastIndexOf('"'));
+            }
+            if (_ddialog == null) {
+                _ddialog = DirectDialog.createDialog(this, _ctx);
+            }
+            _ddialog.show(this, name, path);
+        }
+    }
+
+    /**
      * Returns the list of categories, minus any made empty by omission.
      */
     protected String[] getFilteredCategories (Class<?> clazz, Property[] props)
@@ -541,4 +572,7 @@ public class EditorPanel extends BasePropertyEditor
 
     /** A container for the dynamic properties. */
     protected JPanel _dynamic;
+
+    /** The dialog for creating direct parameters. */
+    protected DirectDialog _ddialog;
 }
