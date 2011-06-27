@@ -41,10 +41,12 @@ import com.threerings.presents.dobj.NamedSetAdapter;
 import com.threerings.crowd.data.OccupantInfo;
 import com.threerings.crowd.data.PlaceObject;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
 
 import com.threerings.tudey.config.HandlerConfig;
+import com.threerings.tudey.config.ParameterizedHandlerConfig;
 import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.TudeyOccupantInfo;
 import com.threerings.tudey.server.TudeySceneManager;
@@ -59,7 +61,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Handles the startup event.
      */
-    public static class Startup extends HandlerLogic
+    public static class Startup extends ActionHandlerLogic
     {
         @Override // documentation inherited
         public void startup (int timestamp)
@@ -71,7 +73,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Handles the shutdown event.
      */
-    public static class Shutdown extends HandlerLogic
+    public static class Shutdown extends ActionHandlerLogic
     {
         @Override // documentation inherited
         public void shutdown (int timestamp, Logic activator)
@@ -81,9 +83,70 @@ public abstract class HandlerLogic extends Logic
     }
 
     /**
+     * Handles the reference event.
+     */
+    public static class Reference extends HandlerLogic
+    {
+        @Override // documentation inherited
+        public void startup (int timestamp)
+        {
+            if (_handler != null) {
+                _handler.startup(timestamp);
+            }
+        }
+
+        @Override // documentation inherited
+        public void shutdown (int timestamp, Logic activator)
+        {
+            if (_handler != null) {
+                _handler.shutdown(timestamp, activator);
+            }
+        }
+
+        @Override // documentation inherited
+        public void variableChanged (int timestamp, Logic activator, String name)
+        {
+            if (_handler != null) {
+                _handler.variableChanged(timestamp, activator, name);
+            }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            if (_handler != null) {
+                _handler.transfer(((Reference)source)._handler, refs);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            ConfigManager cfgmgr = _scenemgr.getConfigManager();
+            ParameterizedHandlerConfig config = cfgmgr.getConfig(
+                ParameterizedHandlerConfig.class, ((HandlerConfig.Reference)_config).handler);
+            ParameterizedHandlerConfig.Original original =
+                (config == null) ? null : config.getOriginal(cfgmgr);
+            _handler = original == null ? null : createHandler(original.handler, _source);
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            if (_handler != null) {
+                _handler.wasRemoved();
+            }
+        }
+
+        /** Our referred handler. */
+        protected HandlerLogic _handler;
+    }
+
+    /**
      * Handles the tick event.
      */
-    public static class Tick extends HandlerLogic
+    public static class Tick extends ActionHandlerLogic
         implements TudeySceneManager.TickParticipant
     {
         // documentation inherited from interface TudeySceneManager.TickParticipant
@@ -116,7 +179,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Handles the timer event.
      */
-    public static class Timer extends HandlerLogic
+    public static class Timer extends ActionHandlerLogic
     {
         @Override // documentation inherited
         public void startup (int timestamp)
@@ -194,21 +257,21 @@ public abstract class HandlerLogic extends Logic
         }
 
         @Override // documentation inherited
-        public void didInit ()
-        {
-            super.didInit();
-            HandlerConfig.WarnTimer config = (HandlerConfig.WarnTimer) _config;
-            if (config.warnAction != null) {
-                _warnAction = createAction(config.warnAction, _source);
-            }
-        }
-
-        @Override // documentation inherited
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
             if (_warnAction != null) {
                 _warnAction.transfer(((WarnTimer)source)._warnAction, refs);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+            HandlerConfig.WarnTimer config = (HandlerConfig.WarnTimer) _config;
+            if (config.warnAction != null) {
+                _warnAction = createAction(config.warnAction, _source);
             }
         }
 
@@ -222,7 +285,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Handles a signal event.
      */
-    public static class Signal extends HandlerLogic
+    public static class Signal extends ActionHandlerLogic
     {
         @Override // documentation inherited
         public void signal (int timestamp, Logic source, String name)
@@ -248,7 +311,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Base class for transition handlers.
      */
-    public static abstract class Transition extends HandlerLogic
+    public static abstract class Transition extends ActionHandlerLogic
         implements TudeySceneManager.TickParticipant
     {
         /**
@@ -534,13 +597,6 @@ public abstract class HandlerLogic extends Logic
             super(false, false);
         }
 
-        @Override // documentation inherited
-        public void didInit ()
-        {
-            _condition = createCondition(
-                    ((HandlerConfig.BaseIntersectionCount)_config).condition, _source);
-        }
-
         // documentation inherited from interface TudeySceneManager.IntersectionSensor
         public int getMask ()
         {
@@ -578,6 +634,14 @@ public abstract class HandlerLogic extends Logic
             _lastCount = bsource._lastCount;
         }
 
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+            _condition = createCondition(
+                    ((HandlerConfig.BaseIntersectionCount)_config).condition, _source);
+        }
+
         /**
          * Called when the intersection count changes.
          */
@@ -596,22 +660,22 @@ public abstract class HandlerLogic extends Logic
     public static class ThresholdIntersectionCount extends BaseIntersectionCount
     {
         @Override // documentation inherited
-        public void didInit ()
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            if (_underAction != null) {
+                _underAction.transfer(((ThresholdIntersectionCount)source)._underAction, refs);
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
         {
             super.didInit();
             HandlerConfig.ThresholdIntersectionCount config =
                 (HandlerConfig.ThresholdIntersectionCount) _config;
             if (config.underAction != null) {
                 _underAction = createAction(config.underAction, _source);
-            }
-        }
-
-        @Override // documentation inherited
-        public void transfer (Logic source, Map<Object, Object> refs)
-        {
-            super.transfer(source, refs);
-            if (_underAction != null) {
-                _underAction.transfer(((ThresholdIntersectionCount)source)._underAction, refs);
             }
         }
 
@@ -635,7 +699,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Handles a client request event.
      */
-    public static class Request extends HandlerLogic
+    public static class Request extends ActionHandlerLogic
     {
         @Override // documentation inherited
         public void request (int timestamp, PawnLogic source, String name)
@@ -650,7 +714,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Base class for {@link ActorAdded} and {@link ActorRemoved}.
      */
-    public static abstract class BaseActorObserver extends HandlerLogic
+    public static abstract class BaseActorObserver extends ActionHandlerLogic
         implements TudeySceneManager.ActorObserver
     {
         // documentation inherited from interface TudeySceneManager.ActorObserver
@@ -705,6 +769,7 @@ public abstract class HandlerLogic extends Logic
         @Override // documentation inherited
         protected void didInit ()
         {
+            super.didInit();
             _target = createTarget(((HandlerConfig.BaseActorObserver)_config).target, _source);
         }
 
@@ -763,7 +828,7 @@ public abstract class HandlerLogic extends Logic
     /**
      * Base class for {@link BodyEntered} and {@link BodyLeft}.
      */
-    public static abstract class BaseBodyObserver extends HandlerLogic
+    public static abstract class BaseBodyObserver extends ActionHandlerLogic
     {
         @Override // documentation inherited
         public void startup (int timestamp)
@@ -845,13 +910,62 @@ public abstract class HandlerLogic extends Logic
     /**
      * Handles variable changes.
      */
-    public static class VariableChanged extends HandlerLogic
+    public static class VariableChanged extends ActionHandlerLogic
     {
         @Override // documentation inherited
         public void variableChanged (int timestamp, Logic activator, String name)
         {
             execute(timestamp, activator);
         }
+    }
+
+    /**
+     * Base for action based handlers.
+     */
+    protected static class ActionHandlerLogic extends HandlerLogic
+    {
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _action.transfer(((ActionHandlerLogic)source)._action, refs);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+
+            _action = createAction(((HandlerConfig.ActionHandlerConfig)_config).action, _source);
+        }
+
+        /**
+         * Executes the handler's action with the source as the activator.
+         */
+        protected void execute (int timestamp)
+        {
+            execute(timestamp, _source);
+        }
+
+        /**
+         * Executes the handler's action.
+         *
+         * @param activator the entity that triggered the action.
+         */
+        protected void execute (int timestamp, Logic activator)
+        {
+            _action.execute(timestamp, activator);
+        }
+
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            // notify the action
+            _action.removed();
+        }
+
+        /** The action to execute in response to the event. */
+        protected ActionLogic _action;
     }
 
     /**
@@ -862,7 +976,6 @@ public abstract class HandlerLogic extends Logic
         super.init(scenemgr);
         _config = config;
         _source = source;
-        _action = createAction(config.action, source);
 
         // give subclasses a chance to initialize
         didInit();
@@ -897,9 +1010,6 @@ public abstract class HandlerLogic extends Logic
      */
     public void removed ()
     {
-        // notify the action
-        _action.removed();
-
         // give subclasses a chance to cleanup
         wasRemoved();
     }
@@ -928,13 +1038,6 @@ public abstract class HandlerLogic extends Logic
         return _source.getRotation();
     }
 
-    @Override // documentation inherited
-    public void transfer (Logic source, Map<Object, Object> refs)
-    {
-        super.transfer(source, refs);
-        _action.transfer(((HandlerLogic)source)._action, refs);
-    }
-
     /**
      * Override to perform custom initialization.
      */
@@ -951,30 +1054,9 @@ public abstract class HandlerLogic extends Logic
         // nothing by default
     }
 
-    /**
-     * Executes the handler's action with the source as the activator.
-     */
-    protected void execute (int timestamp)
-    {
-        execute(timestamp, _source);
-    }
-
-    /**
-     * Executes the handler's action.
-     *
-     * @param activator the entity that triggered the action.
-     */
-    protected void execute (int timestamp, Logic activator)
-    {
-        _action.execute(timestamp, activator);
-    }
-
     /** The handler configuration. */
     protected HandlerConfig _config;
 
     /** The action source. */
     protected Logic _source;
-
-    /** The action to execute in response to the event. */
-    protected ActionLogic _action;
 }

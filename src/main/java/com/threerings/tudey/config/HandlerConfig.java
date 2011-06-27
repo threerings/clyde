@@ -26,6 +26,7 @@
 package com.threerings.tudey.config;
 
 import com.threerings.config.ConfigManager;
+import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.Strippable;
@@ -34,6 +35,7 @@ import com.threerings.io.Streamable;
 import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.util.Preloadable;
 import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.shape.Shape;
@@ -43,7 +45,8 @@ import com.threerings.tudey.shape.config.ShapeConfig;
  * Configurations for server-side event handlers.
  */
 @EditorTypes({
-    HandlerConfig.Startup.class, HandlerConfig.Shutdown.class, HandlerConfig.Tick.class,
+    HandlerConfig.Startup.class, HandlerConfig.Shutdown.class,
+    HandlerConfig.Reference.class, HandlerConfig.Tick.class,
     HandlerConfig.Timer.class, HandlerConfig.WarnTimer.class, HandlerConfig.Signal.class,
     HandlerConfig.SignalStart.class, HandlerConfig.SignalStop.class,
     HandlerConfig.Intersection.class, HandlerConfig.IntersectionStart.class,
@@ -57,7 +60,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * The startup event handler.
      */
-    public static class Startup extends HandlerConfig
+    public static class Startup extends ActionHandlerConfig
     {
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -69,7 +72,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * The shutdown event handler.
      */
-    public static class Shutdown extends HandlerConfig
+    public static class Shutdown extends ActionHandlerConfig
     {
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -79,9 +82,39 @@ public abstract class HandlerConfig extends DeepObject
     }
 
     /**
+     * A handler reference.
+     */
+    public static class Reference extends HandlerConfig
+    {
+        /** The parameterized handler. */
+        @Editable(nullable=true)
+        public ConfigReference<ParameterizedHandlerConfig> handler;
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            if (preloads.add(new Preloadable.Config(ParameterizedHandlerConfig.class, handler))) {
+                ParameterizedHandlerConfig config =
+                    cfgmgr.getConfig(ParameterizedHandlerConfig.class, handler);
+                ParameterizedHandlerConfig.Original original =
+                    config == null ? null : config.getOriginal(cfgmgr);
+                if (original != null) {
+                    original.getPreloads(cfgmgr, preloads);
+                }
+            }
+        }
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.HandlerLogic$Reference";
+        }
+    }
+
+    /**
      * The tick event handler.
      */
-    public static class Tick extends HandlerConfig
+    public static class Tick extends ActionHandlerConfig
     {
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -93,7 +126,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * The timer event handler.
      */
-    public static class Timer extends HandlerConfig
+    public static class Timer extends ActionHandlerConfig
     {
         /** The timer interval, in seconds. */
         @Editable(min=0.0, step=0.1, hgroup="i")
@@ -141,7 +174,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * The signal event handler.
      */
-    public static class Signal extends HandlerConfig
+    public static class Signal extends ActionHandlerConfig
     {
         /** The name of the signal of interest. */
         @Editable(hgroup="n")
@@ -163,7 +196,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * The signal start event handler (fired on the first tick that a signal is received).
      */
-    public static class SignalStart extends HandlerConfig
+    public static class SignalStart extends ActionHandlerConfig
     {
         /** The name of the signal of interest. */
         @Editable
@@ -180,7 +213,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * The signal stop event handler (fired on the first tick that a signal stops being received).
      */
-    public static class SignalStop extends HandlerConfig
+    public static class SignalStop extends ActionHandlerConfig
     {
         /** The name of the signal of interest. */
         @Editable
@@ -197,7 +230,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * Base class for the various intersection-related handlers.
      */
-    public static abstract class BaseIntersection extends HandlerConfig
+    public static abstract class BaseIntersection extends ActionHandlerConfig
     {
         /** The shape to use for the intersection test. */
         @Editable
@@ -331,7 +364,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * The client request event handler.
      */
-    public static class Request extends HandlerConfig
+    public static class Request extends ActionHandlerConfig
     {
         /** The name of the request of interest. */
         @Editable
@@ -348,7 +381,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * Base class for {@link ActorAdded} and {@link ActorRemoved}.
      */
-    public static abstract class BaseActorObserver extends HandlerConfig
+    public static abstract class BaseActorObserver extends ActionHandlerConfig
     {
         /** The targets we're observering. */
         @Editable
@@ -393,7 +426,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * Called when occupants enter.
      */
-    public static class BodyEntered extends HandlerConfig
+    public static class BodyEntered extends ActionHandlerConfig
     {
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -405,7 +438,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * Called when occupants leave.
      */
-    public static class BodyLeft extends HandlerConfig
+    public static class BodyLeft extends ActionHandlerConfig
     {
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -417,7 +450,7 @@ public abstract class HandlerConfig extends DeepObject
     /**
      * Called when any variable is modified.
      */
-    public static class VariableChanged extends HandlerConfig
+    public static class VariableChanged extends ActionHandlerConfig
     {
         @Override // documentation inherited
         public String getLogicClassName ()
@@ -488,9 +521,24 @@ public abstract class HandlerConfig extends DeepObject
         }
     }
 
-    /** The action to take in response to the event. */
-    @Editable(weight=1)
-    public ActionConfig action = new ActionConfig.SpawnActor();
+    public abstract static class ActionHandlerConfig extends HandlerConfig
+    {
+        /** The action to take in response to the event. */
+        @Editable(weight=1)
+        public ActionConfig action = new ActionConfig.SpawnActor();
+
+        @Override // documentation inherited
+        public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
+        {
+            action.getPreloads(cfgmgr, preloads);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            action.invalidate();
+        }
+    }
 
     /**
      * Returns the name of the server-side logic class for this handler.
@@ -502,7 +550,6 @@ public abstract class HandlerConfig extends DeepObject
      */
     public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
     {
-        action.getPreloads(cfgmgr, preloads);
     }
 
     /**
@@ -510,6 +557,5 @@ public abstract class HandlerConfig extends DeepObject
      */
     public void invalidate ()
     {
-        action.invalidate();
     }
 }
