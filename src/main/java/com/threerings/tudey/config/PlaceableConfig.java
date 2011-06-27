@@ -165,7 +165,7 @@ public class PlaceableConfig extends ParameterizedConfig
         public void getPreloads (ConfigManager cfgmgr, PreloadableSet preloads)
         {
             for (HandlerConfig handler : handlers) {
-                handler.action.getPreloads(cfgmgr, preloads);
+                handler.getPreloads(cfgmgr, preloads);
             }
         }
 
