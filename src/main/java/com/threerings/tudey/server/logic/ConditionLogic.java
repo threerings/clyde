@@ -568,6 +568,49 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the is condition.
+     */
+    public static class Is extends Targeted
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            _sourceTarget.resolve(activator, _targets);
+            Logic sourceTarget = _targets.isEmpty() ? null : _targets.get(0);
+            _targets.clear();
+            if (sourceTarget == null) {
+                return false;
+            }
+            ConditionConfig.Is config = (ConditionConfig.Is)_config;
+            _target.resolve(activator, _targets);
+            try {
+                for (Logic target : _targets) {
+                    if (target == sourceTarget) {
+                        return !config.all;
+                    }
+                }
+                return config.all;
+
+            } finally {
+                _targets.clear();
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ConditionConfig.Is)_config).target, _source);
+            _sourceTarget = createTarget(((ConditionConfig.Is)_config).source, _source);
+        }
+
+        /** Holds targets during evaluation. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
+
+        /** The source target logic. */
+        protected TargetLogic _sourceTarget;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ConditionConfig config, Logic source)

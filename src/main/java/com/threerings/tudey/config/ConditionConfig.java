@@ -46,7 +46,8 @@ import com.threerings.opengl.util.PreloadableSet;
     ConditionConfig.All.class, ConditionConfig.Any.class,
     ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class,
     ConditionConfig.Not.class, ConditionConfig.Always.class,
-    ConditionConfig.Evaluate.class, ConditionConfig.Action.class })
+    ConditionConfig.Evaluate.class, ConditionConfig.Action.class,
+    ConditionConfig.Is.class })
 @Strippable
 public abstract class ConditionConfig extends DeepObject
     implements Exportable, Streamable
@@ -396,6 +397,37 @@ public abstract class ConditionConfig extends DeepObject
         public void invalidate ()
         {
             action.invalidate();
+        }
+    }
+
+    /**
+     * Determines whether two entities are the same
+     */
+    public static class Is extends ConditionConfig
+    {
+        /** Whether or not all targets must match the condition (as opposed to any). */
+        @Editable(hgroup="t")
+        public boolean all;
+
+        /** The target to check. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Tagged();
+
+        /** The target to check. */
+        @Editable
+        public TargetConfig source = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$Is";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+            source.invalidate();
         }
     }
 
