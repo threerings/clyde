@@ -79,6 +79,43 @@ public abstract class TargetLogic extends Logic
     }
 
     /**
+     * Refers to the actor that activator the actor.
+     */
+    public static class ActivatorOf extends TargetLogic
+    {
+        @Override // documentation inherited
+        public void resolve (Logic activator, Collection<Logic> results)
+        {
+            _target.resolve(activator, _targets);
+            for (Logic target : _targets) {
+                if (target instanceof ActorLogic && ((ActorLogic)target).getActivator() != null) {
+                    results.add(((ActorLogic)target).getActivator());
+                }
+            }
+            _targets.clear();
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _target.transfer(((ActivatorOf)source)._target, refs);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((TargetConfig.ActivatorOf)_config).target, _source);
+        }
+
+        /** The contained target. */
+        protected TargetLogic _target;
+
+        /** Holds the targets during processing. */
+        protected ArrayList<Logic> _targets = Lists.newArrayList();
+    }
+
+    /**
      * Refers to an entity or entities bearing a certain tag.
      */
     public static class Tagged extends TargetLogic

@@ -37,7 +37,7 @@ import com.threerings.util.DeepObject;
  * Configurations for action targets.
  */
 @EditorTypes({
-    TargetConfig.Source.class, TargetConfig.Activator.class,
+    TargetConfig.Source.class, TargetConfig.Activator.class, TargetConfig.ActivatorOf.class,
     TargetConfig.Tagged.class, TargetConfig.InstanceOf.class,
     TargetConfig.Intersecting.class, TargetConfig.RandomSubset.class,
     TargetConfig.NearestSubset.class, TargetConfig.FarthestSubset.class,
@@ -69,6 +69,28 @@ public abstract class TargetConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.TargetLogic$Activator";
+        }
+    }
+
+    /**
+     * Refers to the entity that created the target.
+     */
+    public static class ActivatorOf extends TargetConfig
+    {
+        /** The target agent. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.TargetLogic$ActivatorOf";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
         }
     }
 
