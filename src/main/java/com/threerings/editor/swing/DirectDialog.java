@@ -152,10 +152,19 @@ public class DirectDialog extends JDialog
         if (direct == null) {
             direct = new Parameter.Direct();
             pc.parameters = ArrayUtil.append(pc.parameters, direct);
+            direct.name = name;
         }
-        direct.paths = ArrayUtil.append(direct.paths, _path.getText());
-        direct.name = name;
-        pc.wasUpdated();
+        String path = _path.getText().trim();
+        for (String opath : direct.paths) {
+            if (path.equals(opath)) {
+                path = null;
+                break;
+            }
+        }
+        if (path != null && !path.isEmpty()) {
+            direct.paths = ArrayUtil.append(direct.paths, path);
+            pc.wasUpdated();
+        }
         setVisible(false);
     }
 
