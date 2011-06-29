@@ -1056,6 +1056,33 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a targeted action.
+     */
+    public static class TargetedAction extends Targeted
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            _target.resolve(activator, _targets);
+            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
+                _action.execute(timestamp, _targets.get(ii));
+            }
+            _targets.clear();
+            return true;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _target = createTarget(((ActionConfig.TargetedAction)_config).target, _source);
+            _action = createAction(((ActionConfig.TargetedAction)_config).action, _source);
+        }
+
+        /** The action. */
+        protected ActionLogic _action;
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ActionConfig config, Logic source)

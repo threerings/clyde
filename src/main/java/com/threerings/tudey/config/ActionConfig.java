@@ -60,7 +60,7 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.Compound.class, ActionConfig.Random.class,
     ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
     ActionConfig.SetVariable.class, ActionConfig.SetFlag.class,
-    ActionConfig.ForceClientAction.class })
+    ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -980,6 +980,33 @@ public abstract class ActionConfig extends DeepObject
         public void invalidate ()
         {
             target.invalidate();
+        }
+    }
+
+    /**
+     * Performs an action on each target.
+     */
+    public static class TargetedAction extends ActionConfig
+    {
+        /** The target. */
+        @Editable
+        public TargetConfig target = new TargetConfig.Source();
+
+        /** The action. */
+        @Editable
+        public ActionConfig action = new ActionConfig.SpawnActor();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$TargetedAction";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            target.invalidate();
+            action.invalidate();
         }
     }
 
