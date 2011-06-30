@@ -484,7 +484,11 @@ public class TudeySceneManager extends SceneManager
         }
 
         // notify observers
-        _actorObservers.apply(_actorAddedOp.init(logic));
+        try {
+            _actorObservers.apply(_actorAddedOp.init(logic));
+        } finally {
+            _actorAddedOp.init(null);
+        }
 
         return logic;
     }
@@ -688,7 +692,11 @@ public class TudeySceneManager extends SceneManager
         }
 
         // notify observers
-        _actorObservers.apply(_actorRemovedOp.init(logic));
+        try {
+            _actorObservers.apply(_actorRemovedOp.init(logic));
+        } finally {
+            _actorRemovedOp.init(null);
+        }
     }
 
     /**
