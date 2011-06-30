@@ -466,7 +466,7 @@ public class TudeySceneManager extends SceneManager
         }
 
         // create the logic object
-        ActorLogic logic = (ActorLogic)createLogic(original.getLogicClassName());
+        final ActorLogic logic = (ActorLogic)createLogic(original.getLogicClassName());
         if (logic == null) {
             return null;
         }
@@ -484,11 +484,12 @@ public class TudeySceneManager extends SceneManager
         }
 
         // notify observers
-        try {
-            _actorObservers.apply(_actorAddedOp.init(logic));
-        } finally {
-            _actorAddedOp.init(null);
-        }
+        _actorObservers.apply(new ObserverList.ObserverOp<ActorObserver>() {
+            public boolean apply (ActorObserver observer) {
+                observer.actorAdded(logic);
+                return true;
+            }
+        });
 
         return logic;
     }
@@ -674,7 +675,7 @@ public class TudeySceneManager extends SceneManager
      */
     public void removeActorLogic (int id)
     {
-        ActorLogic logic = _actors.remove(id);
+        final ActorLogic logic = _actors.remove(id);
         if (logic == null) {
             log.warning("Missing actor to remove.", "where", where(), "id", id);
             return;
@@ -692,11 +693,12 @@ public class TudeySceneManager extends SceneManager
         }
 
         // notify observers
-        try {
-            _actorObservers.apply(_actorRemovedOp.init(logic));
-        } finally {
-            _actorRemovedOp.init(null);
-        }
+        _actorObservers.apply(new ObserverList.ObserverOp<ActorObserver>() {
+            public boolean apply (ActorObserver observer) {
+                observer.actorRemoved(logic);
+                return true;
+            }
+        });
     }
 
     /**
@@ -1646,27 +1648,6 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Base class for actor observer operations.
-     */
-    protected static abstract class ActorObserverOp
-        implements ObserverList.ObserverOp<ActorObserver>
-    {
-        /**
-         * Re(initializes) the op with the provided logic reference.
-         *
-         * @return a reference to the op, for chaining.
-         */
-        public ActorObserverOp init (ActorLogic logic)
-        {
-            _logic = logic;
-            return this;
-        }
-
-        /** The logic of the actor of interest. */
-        protected ActorLogic _logic;
-    }
-
-    /**
      * Records information about a tick participant.
      */
     protected static class TickProfile
@@ -1794,22 +1775,6 @@ public class TudeySceneManager extends SceneManager
 
     /** The tick op used when profiling. */
     protected ProfileTickOp _profileTickOp = new ProfileTickOp();
-
-    /** Used to notify observers of the addition of an actor. */
-    protected ActorObserverOp _actorAddedOp = new ActorObserverOp() {
-        public boolean apply (ActorObserver observer) {
-            observer.actorAdded(_logic);
-            return true;
-        }
-    };
-
-    /** Used to notify observers of the addition of an actor. */
-    protected ActorObserverOp _actorRemovedOp = new ActorObserverOp() {
-        public boolean apply (ActorObserver observer) {
-            observer.actorRemoved(_logic);
-            return true;
-        }
-    };
 
     /** Shutdown observer op. */
     protected static ObserverList.ObserverOp<ShutdownObserver> _shutdownOp =
