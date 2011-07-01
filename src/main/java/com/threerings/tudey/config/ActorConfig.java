@@ -103,6 +103,10 @@ public class ActorConfig extends ParameterizedConfig
         @Editable
         public ShapeConfig shape = new ShapeConfig.Point();
 
+        /** If the shape rotates with the actor. */
+        @Editable
+        public boolean rotateShape = true;
+
         /** Tags used to identify the actor within the scene. */
         @Editable
         public TagConfig tags = new TagConfig();

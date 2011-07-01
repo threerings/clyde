@@ -602,7 +602,8 @@ public class ActorLogic extends Logic
         _shapeObservers.apply(_shapeWillChangeOp);
 
         // update the shape
-        _shape.getTransform().set(_actor.getTranslation(), _actor.getRotation(), 1f);
+        _shape.getTransform().set(_actor.getTranslation(),
+                _config.rotateShape ? _actor.getRotation() : 0f, 1f);
         _shape.updateBounds();
 
         // notify observers that the shape has changed
