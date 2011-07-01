@@ -142,6 +142,12 @@ public abstract class ScriptLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void suspend ()
+        {
+            _agent.stopMoving();
+        }
+
+        @Override // documentation inherited
         public void transfer (Logic source, Map<Object, Object> refs)
         {
             super.transfer(source, refs);
@@ -408,6 +414,14 @@ public abstract class ScriptLogic extends Logic
      * Called when we are about to start the current script.
      */
     public void start (int timestamp)
+    {
+        // nothing by default
+    }
+
+    /**
+     * Called when we are suspending the current script.
+     */
+    public void suspend ()
     {
         // nothing by default
     }

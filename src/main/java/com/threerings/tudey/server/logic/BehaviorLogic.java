@@ -712,6 +712,14 @@ public abstract class BehaviorLogic extends Logic
         }
 
         @Override // documentation inherited
+        public void suspend ()
+        {
+            if (_currentStep < _steps.length && !_start) {
+                _steps[_currentStep].suspend();
+            }
+        }
+
+        @Override // documentation inherited
         public void shutdown ()
         {
             for (ScriptLogic logic : _steps) {
@@ -880,6 +888,14 @@ public abstract class BehaviorLogic extends Logic
      * Starts up the behavior after initialization or suspension.
      */
     public void startup ()
+    {
+        // nothing by default
+    }
+
+    /**
+     * Suspends the behavior.
+     */
+    public void suspend ()
     {
         // nothing by default
     }
