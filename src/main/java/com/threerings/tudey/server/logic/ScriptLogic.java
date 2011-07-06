@@ -207,6 +207,7 @@ public abstract class ScriptLogic extends Logic
         {
             Vector2f translation = _finalTarget.getTranslation();
             _agent.move(translation.x, translation.y, _agent.getRotation());
+            _agent.stopMoving();
         }
 
         @Override // documentation inherited
@@ -245,8 +246,8 @@ public abstract class ScriptLogic extends Logic
             if (config.relative) {
                 rotation += _agent.getRotation();
             }
-            _agent.setTargetRotation(FloatMath.normalizeAnglePositive(rotation));
             _complete = false;
+            _agent.setTargetRotation(FloatMath.normalizeAnglePositive(rotation));
         }
 
         @Override // documentation inherited
