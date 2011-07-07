@@ -95,7 +95,7 @@ public class TextField extends EditableTextComponent
         int lineHeight = getTextFactory().getHeight();
 
         // render the selection background if appropriate
-        if (_showCursor && _cursx != _selx) {
+        if (showCursor() && _cursx != _selx) {
             Background background = getSelectionBackground();
             if (background != null) {
                 int cx = _cursx - _txoff;
@@ -125,7 +125,7 @@ public class TextField extends EditableTextComponent
         }
 
         // render the cursor if we have focus
-        if (_showCursor && _cursx == _selx) {
+        if (showCursor() && _cursx == _selx) {
             renderCursor(renderer, insets.left - _txoff + _cursx, insets.bottom, lineHeight);
         }
     }

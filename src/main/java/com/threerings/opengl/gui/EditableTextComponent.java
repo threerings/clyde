@@ -496,6 +496,14 @@ public abstract class EditableTextComponent extends TextComponent
     }
 
     /**
+     * Should we show the cursor?
+     */
+    protected boolean showCursor ()
+    {
+        return _showCursor && _enabled;
+    }
+
+    /**
      * Would we want to use our placeholder text if we did not have focus?
      */
     protected boolean usePlaceholder ()

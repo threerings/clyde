@@ -49,7 +49,7 @@ public class TextEditor extends EditableTextComponent
         int lineHeight = getTextFactory().getHeight();
 
         // draw the selection background if there is a selection
-        if (_showCursor && (_cursp != _selp)) {
+        if (showCursor() && (_cursp != _selp)) {
             Background bkg = getSelectionBackground();
             if (bkg != null) {
                 // TODO Pre-calculate a List of rectangles when the selection is set?
@@ -100,7 +100,7 @@ public class TextEditor extends EditableTextComponent
         }
 
         // draw the cursor
-        if (_showCursor && (_cursp == _selp)) {
+        if (showCursor() && (_cursp == _selp)) {
             renderCursor(renderer, insets.left + _curs.x, insets.bottom + _curs.y, lineHeight);
         }
     }
@@ -222,7 +222,7 @@ public class TextEditor extends EditableTextComponent
         }
 
         // scroll so that the cursor is visible (plus some)
-        if (_showCursor) {
+        if (showCursor()) {
             Insets insets = getInsets();
             int lineHeight = getTextFactory().getHeight();
             scrollRectToVisible(
