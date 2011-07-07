@@ -423,7 +423,7 @@ public abstract class Root extends SimpleOverlay
      */
     public Component getFocus ()
     {
-        return _focus;
+        return ((_focus != null) && _focus.isEnabled()) ? _focus : null;
     }
 
     /**
