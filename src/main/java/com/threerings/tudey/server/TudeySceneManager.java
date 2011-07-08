@@ -45,7 +45,7 @@ import com.samskivert.util.Histogram;
 import com.samskivert.util.IntMaps;
 import com.samskivert.util.Interval;
 import com.samskivert.util.ObserverList;
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 import com.samskivert.util.RunAnywhere;
 import com.samskivert.util.RunQueue;
 import com.samskivert.util.StringUtil;
@@ -920,7 +920,7 @@ public class TudeySceneManager extends SceneManager
             } else if (portalKey instanceof String) {
                 List<Logic> tagged = getTagged((String)portalKey);
                 if (tagged != null) {
-                    Logic entrance = RandomUtil.pickRandom(tagged);
+                    Logic entrance = Randoms.RAND.pick(tagged, null);
                     translation = entrance.getTranslation();
                     rotation = entrance.getRotation();
                 }
@@ -941,7 +941,7 @@ public class TudeySceneManager extends SceneManager
             }
             if (translation == Vector2f.ZERO) {
                 // select a default entrance
-                Logic entrance = getDefaultEntrance();
+                Logic entrance = getDefaultEntrance(body);
                 if (entrance != null) {
                     translation = entrance.getTranslation();
                     rotation = entrance.getRotation();
@@ -1329,9 +1329,9 @@ public class TudeySceneManager extends SceneManager
      *
      * @return the default entrance, or null if no such entrance is available.
      */
-    protected Logic getDefaultEntrance ()
+    protected Logic getDefaultEntrance (BodyObject body)
     {
-        return _defaultEntrances.isEmpty() ? null : RandomUtil.pickRandom(_defaultEntrances);
+        return Randoms.RAND.pick(_defaultEntrances, null);
     }
 
     /**
