@@ -129,7 +129,9 @@ public class ConfigTree extends JTree
         }
         ConfigTreeNode node = ((ConfigTreeNode)getModel().getRoot()).getNode(name);
         if (node != null) {
-            setSelectionPath(new TreePath(node.getPath()));
+            TreePath path = new TreePath(node.getPath());
+            setSelectionPath(path);
+            scrollPathToVisible(path);
         }
     }
 
