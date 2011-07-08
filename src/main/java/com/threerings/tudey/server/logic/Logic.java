@@ -29,6 +29,8 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
+import com.samskivert.util.ArrayUtil;
+
 import com.threerings.config.ConfigReference;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Vector2f;
@@ -89,7 +91,7 @@ public abstract class Logic extends ShallowObject
      */
     public String[] getTags ()
     {
-        return NO_TAGS;
+        return ArrayUtil.EMPTY_STRING;
     }
 
     /**
@@ -361,7 +363,4 @@ public abstract class Logic extends ShallowObject
 
     /** The lazily initialized variable map. */
     protected Map<String, Object> _variables;
-
-    /** An empty tag array. */
-    protected static final String[] NO_TAGS = new String[0];
 }
