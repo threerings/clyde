@@ -41,13 +41,13 @@ import com.threerings.opengl.util.PreloadableSet;
  */
 @EditorTypes({
     ConditionConfig.Tagged.class, ConditionConfig.InstanceOf.class,
-    ConditionConfig.Intersecting.class, ConditionConfig.DistanceWithin.class,
-    ConditionConfig.Random.class, ConditionConfig.Limit.class,
-    ConditionConfig.All.class, ConditionConfig.Any.class,
-    ConditionConfig.FlagSet.class, ConditionConfig.Cooldown.class,
-    ConditionConfig.Not.class, ConditionConfig.Always.class,
-    ConditionConfig.Evaluate.class, ConditionConfig.Action.class,
-    ConditionConfig.Is.class })
+    ConditionConfig.Intersecting.class, ConditionConfig.IntersectsScene.class,
+    ConditionConfig.DistanceWithin.class, ConditionConfig.Random.class,
+    ConditionConfig.Limit.class, ConditionConfig.All.class,
+    ConditionConfig.Any.class, ConditionConfig.FlagSet.class,
+    ConditionConfig.Cooldown.class, ConditionConfig.Not.class,
+    ConditionConfig.Always.class, ConditionConfig.Evaluate.class,
+    ConditionConfig.Action.class, ConditionConfig.Is.class })
 @Strippable
 public abstract class ConditionConfig extends DeepObject
     implements Exportable, Streamable
@@ -144,6 +144,32 @@ public abstract class ConditionConfig extends DeepObject
         {
             first.invalidate();
             second.invalidate();
+        }
+    }
+
+    /**
+     * Determines if a region intersects the scene based on a collision mask.
+     */
+    public static class IntersectsScene extends ConditionConfig
+    {
+        /** The region. */
+        @Editable
+        public RegionConfig region = new RegionConfig.Default();
+
+        /** The collision mask. */
+        @Editable(editor="mask", mode="collision")
+        public int collisionMask;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$IntersectsScene";
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            region.invalidate();
         }
     }
 

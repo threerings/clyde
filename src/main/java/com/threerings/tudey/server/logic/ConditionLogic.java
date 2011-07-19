@@ -208,6 +208,50 @@ public abstract class ConditionLogic extends Logic
     }
 
     /**
+     * Evaluates the intersects scene condition logic.
+     */
+    public static class IntersectsScene extends ConditionLogic
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            _region.resolve(activator, _shapes);
+            try {
+                for (Shape shape : _shapes) {
+                    if (_scenemgr.collides(
+                                ((ConditionConfig.IntersectsScene)_config).collisionMask, shape)) {
+                        return true;
+                    }
+                }
+                return false;
+
+            } finally {
+                _shapes.clear();
+            }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            _region.transfer(((IntersectsScene)source)._region, refs);
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _region = createRegion(((ConditionConfig.IntersectsScene)_config).region, _source);
+        }
+
+        /** The region to check. */
+        protected RegionLogic _region;
+
+        /** Holds shapes during evaluation. */
+        protected ArrayList<Shape> _shapes = Lists.newArrayList();
+    }
+
+    /**
      * Evaluates the distance within condition logic.
      */
     public static class DistanceWithin extends ConditionLogic
