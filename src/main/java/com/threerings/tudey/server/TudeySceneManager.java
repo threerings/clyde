@@ -214,7 +214,7 @@ public class TudeySceneManager extends SceneManager
     {
         StringBuilder buf = new StringBuilder();
         for (Map.Entry<String, TickProfile> entry : _profiles.entrySet()) {
-            buf.append(entry.getKey() + " => " + entry.getValue() + "\n");
+            buf.append(entry.getKey()).append(" => ").append(entry.getValue()).append('\n');
         }
         log.info(buf.toString());
     }
@@ -360,9 +360,11 @@ public class TudeySceneManager extends SceneManager
      * Returns the list of logic objects that are instances of the supplied class, or
      * <code>null</code> for none.
      */
-    public ArrayList<Logic> getInstances (Class<? extends Logic> clazz)
+    public <L extends Logic> ArrayList<L> getInstances (Class<L> clazz)
     {
-        return _instances.get(clazz);
+        @SuppressWarnings("unchecked") // we ensure that only the right type are added
+        ArrayList<L> list = (ArrayList<L>)_instances.get(clazz);
+        return list;
     }
 
     /**
@@ -1776,15 +1778,6 @@ public class TudeySceneManager extends SceneManager
     /** The tick op used when profiling. */
     protected ProfileTickOp _profileTickOp = new ProfileTickOp();
 
-    /** Shutdown observer op. */
-    protected static ObserverList.ObserverOp<ShutdownObserver> _shutdownOp =
-        new ObserverList.ObserverOp<ShutdownObserver>() {
-        public boolean apply (ShutdownObserver observer) {
-            observer.didShutdown();
-            return false;
-        }
-    };
-
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();
 
@@ -1799,4 +1792,13 @@ public class TudeySceneManager extends SceneManager
 
     /** Incremented on each participant tick when profiling. */
     protected static long _tickParticipantCount;
+
+    /** Shutdown observer op. */
+    protected static final ObserverList.ObserverOp<ShutdownObserver> _shutdownOp =
+        new ObserverList.ObserverOp<ShutdownObserver>() {
+        public boolean apply (ShutdownObserver observer) {
+            observer.didShutdown();
+            return false;
+        }
+    };
 }

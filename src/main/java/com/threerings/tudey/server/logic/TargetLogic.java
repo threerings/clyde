@@ -139,7 +139,7 @@ public abstract class TargetLogic extends Logic
         @Override // documentation inherited
         public void resolve (Logic activator, Collection<Logic> results)
         {
-            ArrayList<Logic> instances = _scenemgr.getInstances(_logicClass);
+            ArrayList<? extends Logic> instances = _scenemgr.getInstances(_logicClass);
             if (instances != null) {
                 results.addAll(instances);
             }
