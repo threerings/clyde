@@ -1382,8 +1382,8 @@ public class TudeySceneView extends DynamicScope
             if (sprite != null) {
                 _actorSprites.put(id, sprite);
                 sprite.reinit(timestamp, actor);
+                return;
             }
-            return;
         }
         ActorSprite sprite = new ActorSprite(_ctx, this, timestamp, actor);
         _actorSprites.put(id, sprite);
