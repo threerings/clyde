@@ -44,6 +44,7 @@ import java.util.WeakHashMap;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -1516,15 +1517,16 @@ public class TudeySceneModel extends SceneModel
     public Entry getTaggedEntry (String tag)
     {
         List<Entry> entries = getTaggedEntries(tag);
-        return (entries == null) ? null : entries.get(0);
+        return entries.isEmpty() ? null : entries.get(0);
     }
 
     /**
-     * Returns the list of all entries bearing the specified tag, or <code>null</code> for none.
+     * Returns the list of all entries bearing the specified tag.
      */
     public List<Entry> getTaggedEntries (String tag)
     {
-        return _tagged.get(tag);
+        List<Entry> list = _tagged.get(tag);
+        return (list == null) ? ImmutableList.<Entry>of() : list;
     }
 
     /**

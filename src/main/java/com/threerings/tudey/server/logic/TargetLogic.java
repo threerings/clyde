@@ -124,10 +124,7 @@ public abstract class TargetLogic extends Logic
         public void resolve (Logic activator, Collection<Logic> results)
         {
             TargetConfig.Tagged config = (TargetConfig.Tagged)_config;
-            ArrayList<Logic> tagged = _scenemgr.getTagged(config.tag);
-            if (tagged != null) {
-                results.addAll(tagged);
-            }
+            results.addAll(_scenemgr.getTagged(config.tag));
         }
     }
 
@@ -139,10 +136,7 @@ public abstract class TargetLogic extends Logic
         @Override // documentation inherited
         public void resolve (Logic activator, Collection<Logic> results)
         {
-            ArrayList<? extends Logic> instances = _scenemgr.getInstances(_logicClass);
-            if (instances != null) {
-                results.addAll(instances);
-            }
+            results.addAll(_scenemgr.getInstances(_logicClass));
         }
 
         @Override // documentation inherited

@@ -349,22 +349,22 @@ public class TudeySceneManager extends SceneManager
     }
 
     /**
-     * Returns the list of logic objects with the supplied tag, or <code>null</code> for none.
+     * Returns the list of logic objects with the supplied tag.
      */
-    public ArrayList<Logic> getTagged (String tag)
+    public List<Logic> getTagged (String tag)
     {
-        return _tagged.get(tag);
+        List<Logic> list = _tagged.get(tag);
+        return (list == null) ? ImmutableList.<Logic>of() : list;
     }
 
     /**
-     * Returns the list of logic objects that are instances of the supplied class, or
-     * <code>null</code> for none.
+     * Returns the list of logic objects that are instances of the supplied class.
      */
-    public <L extends Logic> ArrayList<L> getInstances (Class<L> clazz)
+    public <L extends Logic> List<L> getInstances (Class<L> clazz)
     {
         @SuppressWarnings("unchecked") // we ensure that only the right type are added
-        ArrayList<L> list = (ArrayList<L>)_instances.get(clazz);
-        return list;
+        List<L> list = (List<L>)_instances.get(clazz);
+        return (list == null) ? ImmutableList.<L>of() : list;
     }
 
     /**
@@ -920,9 +920,8 @@ public class TudeySceneManager extends SceneManager
                     rotation = entrance.getRotation();
                 }
             } else if (portalKey instanceof String) {
-                List<Logic> tagged = getTagged((String)portalKey);
-                if (tagged != null) {
-                    Logic entrance = Randoms.RAND.pick(tagged, null);
+                Logic entrance = Randoms.RAND.pick(getTagged((String)portalKey), null);
+                if (entrance != null) {
                     translation = entrance.getTranslation();
                     rotation = entrance.getRotation();
                 }
