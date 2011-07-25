@@ -1224,6 +1224,31 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
+     * Checks for collision against a mask.
+     */
+    public boolean collides (int mask, Shape shape)
+    {
+        // check the scene model
+        if (_sceneModel.collides(mask, shape)) {
+            return true;
+        }
+        // look for intersecting elements
+        _actorSpace.getIntersecting(shape, _elements);
+        try {
+            for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
+                SpaceElement element = _elements.get(ii);
+                Actor oactor = ((ActorSprite)element.getUserObject()).getActor();
+                if ((oactor.getCollisionFlags() & mask) != 0) {
+                    return true;
+                }
+            }
+        } finally {
+            _elements.clear();
+        }
+        return false;
+    }
+
+    /**
      * Creates the camera handler for the view.
      */
     protected OrbitCameraHandler createCameraHandler ()
