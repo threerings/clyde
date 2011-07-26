@@ -52,7 +52,7 @@ public abstract class ColorizationConfig extends DeepObject
     implements Exportable, Streamable
 {
     /**
-     * Creates a coloriation config
+     * Creates a colorization config
      */
     public static ColorizationConfig createConfig (
             int clazz, float hue, float saturation, float value)
@@ -101,7 +101,6 @@ public abstract class ColorizationConfig extends DeepObject
             return (crec == null) ? null : new CustomOffsetsColorization(
                 clazz, crec.source, crec.range, offsets.getValues());
         }
-
     }
 
     /**
@@ -149,14 +148,9 @@ public abstract class ColorizationConfig extends DeepObject
     }
 
     /**
-     * Returns the colorization for this config.
-     */
-    public abstract Colorization getColorization (GlContext ctx);
-
-    /**
      * A colorization that uses a pository class and custom offsets.
      */
-    protected static class CustomOffsetsColorization extends Colorization
+    public static class CustomOffsetsColorization extends Colorization
     {
         /**
          * Creates a new custom offsets colorization.
@@ -182,7 +176,7 @@ public abstract class ColorizationConfig extends DeepObject
     /**
      * A fully custom colorization.
      */
-    protected static class FullyCustomColorization extends Colorization
+    public static class FullyCustomColorization extends Colorization
     {
         /**
          * Creates a new fully custom colorization.
@@ -207,4 +201,9 @@ public abstract class ColorizationConfig extends DeepObject
                 Arrays.equals(ozation.range, range) && Arrays.equals(ozation.offsets, offsets);
         }
     }
+
+    /**
+     * Returns the colorization for this config.
+     */
+    public abstract Colorization getColorization (GlContext ctx);
 }
