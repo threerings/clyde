@@ -615,6 +615,15 @@ public class TudeySceneView extends DynamicScope
         int timestamp, ActorSprite source, Vector2f translation,
         float rotation, ConfigReference<ActorConfig> ref)
     {
+        // make sure we haven't already prespawned an actor at that timestamp
+        int id = -timestamp;
+        ActorSprite osprite = _actorSprites.get(id);
+        if (osprite != null) {
+            log.warning("Attempted to prespawn actor at same timestamp as another.",
+                "oactor", osprite.getActor(), "timestamp", timestamp, "ref", ref);
+            return null;
+        }
+
         // attempt to resolve the implementation
         ConfigManager cfgmgr = _ctx.getConfigManager();
         ActorConfig config = cfgmgr.getConfig(ActorConfig.class, ref);
@@ -623,7 +632,6 @@ public class TudeySceneView extends DynamicScope
             log.warning("Failed to resolve actor config.", "actor", ref);
             return null;
         }
-        int id = -timestamp;
         Actor actor = original.createActor(ref, id, timestamp, translation, rotation);
         actor.init(cfgmgr);
         if (actor instanceof Prespawnable && source != null) {
