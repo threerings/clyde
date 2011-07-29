@@ -609,7 +609,8 @@ public class TudeySceneView extends DynamicScope
     }
 
     /**
-     * Requests to prespawn an actor.
+     * Requests to prespawn an actor.  Only one actor may be prespawned at any given timestamp;
+     * if one already exists for the specified timestamp, this method will return null.
      */
     public ActorSprite prespawnActor (
         int timestamp, ActorSprite source, Vector2f translation,
@@ -619,8 +620,6 @@ public class TudeySceneView extends DynamicScope
         int id = -timestamp;
         ActorSprite osprite = _actorSprites.get(id);
         if (osprite != null) {
-            log.warning("Attempted to prespawn actor at same timestamp as another.",
-                "oactor", osprite.getActor(), "timestamp", timestamp, "ref", ref);
             return null;
         }
 
