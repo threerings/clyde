@@ -64,6 +64,8 @@ public class ActiveLogic extends MobileLogic
     {
         super.tick(timestamp);
 
+        updateActivities(timestamp);
+
         // update the activity
         Active active = (Active)_actor;
         ActivityLogic activity = _activities.get(active.getActivity());
@@ -76,6 +78,13 @@ public class ActiveLogic extends MobileLogic
         }
 
         return true;
+    }
+
+    /**
+     * Called to update any activities before they are ticked.
+     */
+    protected void updateActivities (int timestamp)
+    {
     }
 
     /** Activity logic mappings. */
