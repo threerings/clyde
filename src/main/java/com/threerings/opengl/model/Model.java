@@ -798,6 +798,14 @@ public class Model extends DynamicScope
         _userObject = object;
     }
 
+    /**
+     * Returns a reference to the scene to which this model was added, or null for none.
+     */
+    public Scene getScene ()
+    {
+        return _scene;
+    }
+
     // documentation inherited from interface SceneElement
     public TickPolicy getTickPolicy ()
     {
