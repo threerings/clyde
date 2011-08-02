@@ -273,7 +273,27 @@ public class TudeySceneManager extends SceneManager
      */
     public void addTickParticipant (TickParticipant participant)
     {
-        _tickParticipants.add(participant);
+        addTickParticipant(participant, false);
+    }
+
+    /**
+     * Adds a participant to notify at each tick.
+     *
+     * @param withinTick if true and we are not currently in the process of ticking, adds the
+     * participant in the next tick.
+     */
+    public void addTickParticipant (final TickParticipant participant, boolean withinTick)
+    {
+        if (withinTick && !_ticking) {
+            _tickParticipants.add(new TickParticipant() {
+                public boolean tick (int timestamp) {
+                    _tickParticipants.add(participant);
+                    return false;
+                }
+            });
+        } else {
+            _tickParticipants.add(participant);
+        }
     }
 
     /**
@@ -1457,6 +1477,7 @@ public class TudeySceneManager extends SceneManager
             _runlist.addAll(_runnables);
             _runnables.clear();
         }
+        _ticking = true;
         if (_tickProfEnabled) {
             // tick the participants
             _profileTickOp.init(_timestamp);
@@ -1522,6 +1543,7 @@ public class TudeySceneManager extends SceneManager
                 }
             }
         }
+        _ticking = false;
 
         // clear the lists
         _staticActorsAdded.clear();
@@ -1710,6 +1732,9 @@ public class TudeySceneManager extends SceneManager
 
     /** The list of participants in the tick. */
     protected ObserverList<TickParticipant> _tickParticipants = ObserverList.newSafeInOrder();
+
+    /** Set when we're actually in the process of ticking. */
+    protected boolean _ticking;
 
     /** The list of actor observers. */
     protected ObserverList<ActorObserver> _actorObservers = ObserverList.newFastUnsafe();

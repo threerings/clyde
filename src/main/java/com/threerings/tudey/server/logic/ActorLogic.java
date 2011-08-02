@@ -316,7 +316,7 @@ public class ActorLogic extends Logic
                 wasUpdated();
                 return false;
             }
-        });
+        }, true);
     }
 
     /**
