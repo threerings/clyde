@@ -39,7 +39,6 @@ public class PopupWindow extends Window
     {
         super(ctx, layout);
         _parentWindow = parent;
-        setLayer(parent.getLayer());
     }
 
     @Override // documentation inherited
@@ -56,6 +55,7 @@ public class PopupWindow extends Window
      */
     public void popup (int x, int y, boolean above)
     {
+        setLayer(_parentWindow.getLayer());
         // add ourselves to the interface hierarchy if we're not already
         if (_root == null) {
             _parentWindow.getRoot().addWindow(this);
