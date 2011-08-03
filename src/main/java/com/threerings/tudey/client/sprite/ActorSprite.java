@@ -858,9 +858,6 @@ public class ActorSprite extends Sprite
             EntryState estate = (EntryState)((ActorSprite)_parentScope).getActor();
             EntrySprite esprite = _view.getEntrySprite(estate.getKey());
             _entryModel = (esprite == null) ? null : esprite.getModel();
-            if (_entryModel == null) {
-                return;
-            }
         }
 
         @Override // documentation inherited
@@ -878,7 +875,7 @@ public class ActorSprite extends Sprite
                 int state = estate.getState();
                 ConfigReference<ModelConfig> model = (state < config.states.length) ?
                     config.states[state].model : null;
-                if (model != null) {
+                if (model != null && _entryModel != null) {
                     _entryModel.setConfig(model);
                 }
                 _lastStateEntered = entered;
