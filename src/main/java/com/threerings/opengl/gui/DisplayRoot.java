@@ -133,6 +133,9 @@ public class DisplayRoot extends Root
 
         // process controller events
         while (Controllers.next()) {
+            if (!isActive) {
+                continue;
+            }
             Controller controller = Controllers.getEventSource();
             if (Controllers.isEventButton()) {
                 int index = Controllers.getEventControlIndex();
