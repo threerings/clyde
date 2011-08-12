@@ -320,7 +320,12 @@ public class ConfigManager
 
         // for resource-loaded configs, go through the cache
         if (isResourceClass(clazz)) {
-            return clazz.cast(getResourceConfig(name));
+            ManagedConfig cfg = getResourceConfig(name);
+            if (cfg == null || clazz.isInstance(cfg)) {
+                return clazz.cast(cfg);
+            }
+            throw new ClassCastException("[config=" + name + ", expected=" + clazz +
+                ", actual=" + cfg.getClass() + "]");
         }
 
         // otherwise, look for a group of the desired type

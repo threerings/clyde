@@ -78,7 +78,11 @@ public class ConfigValidatorTask extends Task
                 String path = rsrcmgr.getResourcePath(source);
                 ManagedConfig config = (path == null) ? null : cfgmgr.getResourceConfig(path);
                 if (config != null) {
-                    valid = config.validateReferences(path, System.err) && valid;
+                    try {
+                        valid = config.validateReferences(path, System.err) && valid;
+                    } catch (Exception e) {
+                        throw new BuildException("Error validating '" + path + "': " + e);
+                    }
                 }
             }
         }
