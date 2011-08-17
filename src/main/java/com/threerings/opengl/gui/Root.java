@@ -1217,8 +1217,7 @@ public abstract class Root extends SimpleOverlay
 
     /** Mouse button information. */
     protected ButtonRecord[] _buttons = new ButtonRecord[] {
-        new ButtonRecord(), new ButtonRecord(), new ButtonRecord(),
-        new ButtonRecord(), new ButtonRecord() };
+        new ButtonRecord(), new ButtonRecord(), new ButtonRecord() };
 
     /** Keys currently pressed, mapped by key code. */
     protected HashIntMap<KeyRecord> _pressedKeys = new HashIntMap<KeyRecord>();

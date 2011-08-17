@@ -52,8 +52,6 @@ public class DisplayRoot extends Root
     {
         super(ctx);
         _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-
-        log.info("LWJGL Buttons supported: " + Mouse.getButtonCount());
     }
 
     /**
