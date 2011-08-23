@@ -25,9 +25,13 @@
 
 package com.threerings.opengl.gui;
 
+import java.util.Collection;
 import java.util.Comparator;
 
 import org.lwjgl.opengl.GL11;
+
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.QuickSort;
@@ -93,14 +97,21 @@ public class ColorPicker extends Component
         if (crec == null) {
             _colors = new ColorRecord[0];
         } else {
-            _colors = crec.colors.values().toArray(new ColorRecord[0]);
+            Collection<ColorRecord> colors = crec.colors.values();
+            if (starters) {
+                colors = Collections2.filter(colors, new Predicate<ColorRecord>() {
+                    public boolean apply (ColorRecord color) {
+                        return color.starter;
+                    }
+                });
+            }
+            _colors = colors.toArray(new ColorRecord[colors.size()]);
             QuickSort.sort(_colors, new Comparator<ColorRecord>() {
                 public int compare (ColorRecord c1, ColorRecord c2) {
                     return c1.colorId - c2.colorId;
                 }
             });
         }
-        _starters = starters;
 
         // retrieve the colorized root colors
         _colorizedRoots = new Color4f[_colors.length];
@@ -208,12 +219,7 @@ public class ColorPicker extends Component
         GL11.glBegin(GL11.GL_QUADS);
         for (int ii = 0; ii < _colors.length; ii++) {
             Color4f color = _colorizedRoots[ii];
-            if (_starters && !_colors[ii].starter) {
-                GL11.glColor4f(0.25f * _alpha, 0.25f * _alpha, 0.25f * _alpha, _alpha);
-            } else {
-                GL11.glColor4f(
-                    color.r * _alpha, color.g * _alpha, color.b * _alpha, color.a * _alpha);
-            }
+            GL11.glColor4f(color.r * _alpha, color.g * _alpha, color.b * _alpha, color.a * _alpha);
             GL11.glVertex2f(x, y);
             GL11.glVertex2f(x + _swatchWidth, y);
             GL11.glVertex2f(x + _swatchWidth, y + _swatchHeight);
@@ -238,9 +244,6 @@ public class ColorPicker extends Component
 
     /** The colors available for selection. */
     protected ColorRecord[] _colors;
-
-    /** Whether or not we're limited to starting colors. */
-    protected boolean _starters;
 
     /** The colorized roots corresponding to each record. */
     protected Color4f[] _colorizedRoots;
