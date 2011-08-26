@@ -1005,7 +1005,7 @@ public class ActorSprite extends Sprite
     {
         if (!(_attachedModels.contains(model) || _disposed)) {
             _attachedModels.add(model);
-            if (_impl != null) {
+            if (_impl != null && _attachedVisible) {
                 updateAttachedTransform(model, _model.getLocalTransform());
                 _view.getScene().add(model);
             }
@@ -1020,8 +1020,26 @@ public class ActorSprite extends Sprite
         if (model == _model) {
             return;
         }
-        if (_attachedModels.remove(model) && _impl != null) {
+        if (_attachedModels.remove(model) && _impl != null && _attachedVisible) {
             _view.getScene().remove(model);
+        }
+    }
+
+    /**
+     * Updates the visibility of attached models.
+     */
+    public void setAttachedVisibility (boolean visible)
+    {
+        if (_attachedVisible != visible) {
+            _attachedVisible = visible;
+            for (Model model : _attachedModels) {
+                if (_attachedVisible) {
+                    updateAttachedTransform(model, _model.getLocalTransform());
+                    _view.getScene().add(model);
+                } else {
+                    _view.getScene().remove(model);
+                }
+            }
         }
     }
 
@@ -1150,8 +1168,10 @@ public class ActorSprite extends Sprite
         // handle pre-creation state
         if (_impl == null) {
             if (isCreated()) {
-                for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
-                    _view.getScene().add(_attachedModels.get(ii));
+                if (_attachedVisible) {
+                    for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
+                        _view.getScene().add(_attachedModels.get(ii));
+                    }
                 }
                 _view.getActorSpace().add(_shape);
 
@@ -1265,8 +1285,10 @@ public class ActorSprite extends Sprite
         if (_config != null) {
             _config.removeListener(this);
         }
-        for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
-            _view.getScene().remove(_attachedModels.get(ii));
+        if (_attachedVisible) {
+            for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
+                _view.getScene().remove(_attachedModels.get(ii));
+            }
         }
         _attachedModels.clear();
         _view.getActorSpace().remove(_shape);
@@ -1444,6 +1466,9 @@ public class ActorSprite extends Sprite
     /** Models attached to this sprite (including the primary model). */
     @Scoped
     protected List<Model> _attachedModels;
+
+    /** If attached models are visible. */
+    protected boolean _attachedVisible = true;
 
     /** The actor's shape element. */
     protected ShapeElement _shape;
