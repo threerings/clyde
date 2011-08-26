@@ -134,13 +134,19 @@ public class SceneInfluencer extends Model.Implementation
     @Override // documentation inherited
     public void wasAdded ()
     {
-        ((Model)_parentScope).getScene(this).add(_influence);
+        Scene scene = ((Model)_parentScope).getScene(this);
+        if (scene != null && _influence != null) {
+            scene.add(_influence);
+        }
     }
 
     @Override // documentation inherited
     public void willBeRemoved ()
     {
-        ((Model)_parentScope).getScene(this).remove(_influence);
+        Scene scene = ((Model)_parentScope).getScene(this);
+        if (scene != null && _influence != null) {
+            scene.remove(_influence);
+        }
     }
 
     @Override // documentation inherited
