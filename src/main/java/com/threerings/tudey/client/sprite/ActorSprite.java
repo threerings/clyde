@@ -295,11 +295,12 @@ public class ActorSprite extends Sprite
             float oldZ = mtrans.getTranslation().z;
             _view.getFloorTransform(
                 translation.x, translation.y, actor.getRotation(), _config.floorMask, mtrans);
-            if (_config.smoothZ > 0) {
+            if (_config.smoothZ > 0 && !_initZ) {
                 float newZ = mtrans.getTranslation().z;
                 newZ = oldZ + Math.signum(newZ - oldZ) * _config.smoothZ;
                 mtrans.getTranslation().z = newZ;
             }
+            _initZ = true;
             mtrans.promote(Transform3D.UNIFORM);
             _model.updateBounds();
             for (int ii = 1, nn = _attachedModels.size(); ii < nn; ii++) {
@@ -350,6 +351,9 @@ public class ActorSprite extends Sprite
 
         /** The sprite configuration. */
         protected ActorSpriteConfig _config;
+
+        /** If we have initialized our z value. */
+        protected boolean _initZ;
 
         /** The model. */
         @Bound
