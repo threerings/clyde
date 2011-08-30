@@ -375,6 +375,10 @@ public abstract class ActorSpriteConfig extends DeepObject
     @Editable(editor="mask", mode="floor", hgroup="f")
     public int floorMask = 0xFF;
 
+    /** The allowed z translation per tick, or 0 to snap to z. */
+    @Editable(min=0, step=0.01, hgroup="f")
+    public float smoothZ = 0f;
+
     /** The actor model. */
     @Editable(nullable=true)
     public ConfigReference<ModelConfig> model;

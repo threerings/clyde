@@ -292,8 +292,14 @@ public class ActorSprite extends Sprite
             // update the model transform
             Vector2f translation = actor.getTranslation();
             Transform3D mtrans = _model.getLocalTransform();
+            float oldZ = mtrans.getTranslation().z;
             _view.getFloorTransform(
                 translation.x, translation.y, actor.getRotation(), _config.floorMask, mtrans);
+            if (_config.smoothZ > 0) {
+                float newZ = mtrans.getTranslation().z;
+                newZ = oldZ + Math.signum(newZ - oldZ) * _config.smoothZ;
+                mtrans.getTranslation().z = newZ;
+            }
             mtrans.promote(Transform3D.UNIFORM);
             _model.updateBounds();
             for (int ii = 1, nn = _attachedModels.size(); ii < nn; ii++) {
