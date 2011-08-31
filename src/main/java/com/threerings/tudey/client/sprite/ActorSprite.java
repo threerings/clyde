@@ -1043,6 +1043,9 @@ public class ActorSprite extends Sprite
         if (_attachedVisible != visible) {
             _attachedVisible = visible;
             for (Model model : _attachedModels) {
+                if (model == _model) {
+                    continue;
+                }
                 if (_attachedVisible) {
                     updateAttachedTransform(model, _model.getLocalTransform());
                     _view.getScene().add(model);
@@ -1178,9 +1181,9 @@ public class ActorSprite extends Sprite
         // handle pre-creation state
         if (_impl == null) {
             if (isCreated()) {
-                if (_attachedVisible) {
-                    for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
-                        _view.getScene().add(_attachedModels.get(ii));
+                for (Model attached : _attachedModels) {
+                    if (_attachedVisible || attached == _model) {
+                        _view.getScene().add(attached);
                     }
                 }
                 _view.getActorSpace().add(_shape);
@@ -1295,9 +1298,9 @@ public class ActorSprite extends Sprite
         if (_config != null) {
             _config.removeListener(this);
         }
-        if (_attachedVisible) {
-            for (int ii = 0, nn = _attachedModels.size(); ii < nn; ii++) {
-                _view.getScene().remove(_attachedModels.get(ii));
+        for (Model attached : _attachedModels) {
+            if (_attachedVisible || _model == attached) {
+                _view.getScene().remove(attached);
             }
         }
         _attachedModels.clear();
