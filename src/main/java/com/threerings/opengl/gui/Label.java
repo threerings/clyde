@@ -57,8 +57,8 @@ public class Label extends TextComponent
     }
 
     /**
-     * Creates a label that will display the supplied text and icon (either of which can be
-     * null).
+     * Creates a label that will display the supplied text and icon (either or
+     * both of which can be null).
      */
     public Label (GlContext ctx, Icon icon, String text)
     {
