@@ -739,8 +739,8 @@ public class SceneEditor extends TudeyTool
             if (entry instanceof TileEntry) {
                 clearPaint((TileEntry)entry);
                 _layers.setSelectedLayer(0);
-            }
-            if (entry instanceof GlobalEntry) {
+
+            } else if (entry instanceof GlobalEntry) {
                 _layers.setSelectedLayer(0);
             }
         }
