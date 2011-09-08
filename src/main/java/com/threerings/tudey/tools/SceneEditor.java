@@ -740,6 +740,9 @@ public class SceneEditor extends TudeyTool
                 clearPaint((TileEntry)entry);
                 _layers.setSelectedLayer(0);
             }
+            if (entry instanceof GlobalEntry) {
+                _layers.setSelectedLayer(0);
+            }
         }
         _undoSupport.postEdit(
             new EntryEdit(_scene, _editId, _layers.getSelectedLayer(),
