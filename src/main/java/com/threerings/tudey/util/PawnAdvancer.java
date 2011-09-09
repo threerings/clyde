@@ -135,7 +135,7 @@ public class PawnAdvancer extends ActiveAdvancer
             activity.updateInput();
         }
         if (canRotate()) {
-            _pawn.setRotation(_frame.getRotation());
+            updateRotation();
         }
         if (_frame.isSet(InputFrame.MOVE) && canMove()) {
             _pawn.setDirection(_frame.getDirection());
@@ -143,6 +143,14 @@ public class PawnAdvancer extends ActiveAdvancer
         } else {
             _pawn.clear(Mobile.MOVING);
         }
+    }
+
+    /**
+     * Called to update a pawns rotation based on input.
+     */
+    protected void updateRotation ()
+    {
+        _pawn.setRotation(_frame.getRotation());
     }
 
     /** A casted reference to the pawn. */
