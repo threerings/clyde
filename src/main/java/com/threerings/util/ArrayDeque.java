@@ -12,8 +12,17 @@
 
 package com.threerings.util;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+import java.util.AbstractCollection;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 
 /**
  * Resizable-array implementation of the {@link Deque} interface.  Array
@@ -62,7 +71,7 @@ import java.util.*;
  */
 @SuppressWarnings("unchecked")
 public class ArrayDeque<E> extends AbstractCollection<E>
-                           implements Deque<E>, Cloneable, Serializable
+                           implements Queue<E>, Cloneable, Serializable
 {
     /**
      * The array in which the elements of the deque are stored.
