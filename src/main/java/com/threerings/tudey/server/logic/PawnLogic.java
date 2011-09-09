@@ -25,7 +25,7 @@
 
 package com.threerings.tudey.server.logic;
 
-import java.util.ArrayList;
+import com.threerings.util.ArrayDeque;
 
 import com.threerings.tudey.data.InputFrame;
 import com.threerings.tudey.server.ClientLiaison;
@@ -50,7 +50,7 @@ public class PawnLogic extends ActiveLogic
      */
     public void enqueueInput (InputFrame frame)
     {
-        _input.add(frame);
+        _input.addLast(frame);
     }
 
     /**
@@ -73,8 +73,8 @@ public class PawnLogic extends ActiveLogic
     public boolean tick (int timestamp)
     {
         // process the enqueued input
-        while (!_input.isEmpty() && _input.get(0).getTimestamp() <= timestamp) {
-            _advancer.advance(_input.remove(0));
+        while (!_input.isEmpty() && _input.peekFirst().getTimestamp() <= timestamp) {
+            _advancer.advance(_input.pollFirst());
         }
 
         // advance to the current timestamp, etc.
@@ -94,5 +94,5 @@ public class PawnLogic extends ActiveLogic
     protected ClientLiaison _client;
 
     /** The list of pending input frames for the pawn. */
-    protected ArrayList<InputFrame> _input = new ArrayList<InputFrame>();
+    protected ArrayDeque<InputFrame> _input = new ArrayDeque<InputFrame>(4);
 }
