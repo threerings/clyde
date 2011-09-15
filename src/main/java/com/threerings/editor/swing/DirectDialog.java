@@ -161,7 +161,7 @@ public class DirectDialog extends JDialog
                 break;
             }
         }
-        if (path != null && !path.isEmpty()) {
+        if (path != null && path.length() > 0) {
             direct.paths = ArrayUtil.append(direct.paths, path);
             pc.wasUpdated();
         }
