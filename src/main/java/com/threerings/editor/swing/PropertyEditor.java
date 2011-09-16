@@ -57,12 +57,13 @@ import com.threerings.editor.swing.editors.ColorizationEditor;
 import com.threerings.editor.swing.editors.ConfigEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
 import com.threerings.editor.swing.editors.EnumEditor;
+import com.threerings.editor.swing.editors.EnumPanelArrayListEditor;
 import com.threerings.editor.swing.editors.FileEditor;
 import com.threerings.editor.swing.editors.GetPathEditor;
 import com.threerings.editor.swing.editors.MaskEditor;
 import com.threerings.editor.swing.editors.NumberEditor;
 import com.threerings.editor.swing.editors.ObjectEditor;
-import com.threerings.editor.swing.editors.PanelArrayListEditor;
+import com.threerings.editor.swing.editors.ObjectPanelArrayListEditor;
 import com.threerings.editor.swing.editors.PathTableArrayListEditor;
 import com.threerings.editor.swing.editors.QuaternionEditor;
 import com.threerings.editor.swing.editors.ResourceEditor;
@@ -113,8 +114,10 @@ public abstract class PropertyEditor extends BasePropertyEditor
             if (isTableCellType(ctype) ||
                     (ctype.isArray() && isTableCellType(ctype.getComponentType()))) {
                 editor = new TableArrayListEditor();
+            } else if (ctype.isEnum() || (ctype.isArray() && ctype.getComponentType().isEnum())) {
+                editor = new EnumPanelArrayListEditor();
             } else {
-                editor = new PanelArrayListEditor();
+                editor = new ObjectPanelArrayListEditor();
             }
         } else {
             editor = new ObjectEditor();
@@ -285,7 +288,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
     {
         return type.isPrimitive() || Number.class.isAssignableFrom(type) ||
             type == Boolean.class || type == Character.class ||
-            type == String.class || type.isEnum();
+            type == String.class;
     }
 
     /**

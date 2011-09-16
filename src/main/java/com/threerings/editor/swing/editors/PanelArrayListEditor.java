@@ -39,8 +39,6 @@ import javax.swing.JPanel;
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import com.samskivert.swing.CollapsiblePanel;
 import com.samskivert.swing.GroupLayout;
@@ -52,18 +50,8 @@ import com.threerings.editor.swing.ObjectPanel;
 /**
  * An editor for arrays or lists of objects.  Uses embedded panels.
  */
-public class PanelArrayListEditor extends ArrayListEditor
-    implements ChangeListener
+public abstract class PanelArrayListEditor extends ArrayListEditor
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
-    {
-        ObjectPanel panel = (ObjectPanel)event.getSource();
-        int idx = _panels.getComponentZOrder(panel.getParent());
-        setValue(idx, panel.getValue());
-        fireStateChanged(true);
-    }
-
     @Override // documentation inherited
     public void update ()
     {
@@ -72,9 +60,7 @@ public class PanelArrayListEditor extends ArrayListEditor
         for (int ii = 0; ii < length; ii++) {
             Object value = getValue(ii);
             if (ii < pcount) {
-                ObjectPanel opanel = ((EntryPanel)_panels.getComponent(ii)).getObjectPanel();
-                opanel.setOuter(_object);
-                opanel.setValue(value);
+                updatePanel((EntryPanel)_panels.getComponent(ii), value);
             } else {
                 addPanel(value);
             }
@@ -115,8 +101,7 @@ public class PanelArrayListEditor extends ArrayListEditor
         Component comp = _panels.getComponentAt(
             SwingUtilities.convertPoint(this, pt, _panels));
         int idx = _panels.getComponentZOrder(comp);
-        return (idx == -1) ? "" : ("[" + idx + "]" +
-            ((EntryPanel)comp).getObjectPanel().getMousePath());
+        return (idx == -1) ? "" : ("[" + idx + "]" + ((EntryPanel)comp).getMousePath(pt));
     }
 
     @Override // documentation inherited
@@ -151,10 +136,7 @@ public class PanelArrayListEditor extends ArrayListEditor
     /**
      * Adds an object panel for the specified entry.
      */
-    protected void addPanel (Object value)
-    {
-        _panels.add(new EntryPanel(value));
-    }
+    protected abstract void addPanel (Object value);
 
     /**
      * Updates the panels' button states and revalidates.
@@ -168,19 +150,20 @@ public class PanelArrayListEditor extends ArrayListEditor
     }
 
     /**
+     * Update the entry panel.
+     */
+    protected abstract void updatePanel (EntryPanel panel, Object value);
+
+    /**
      * A panel for a single entry.
      */
-    protected class EntryPanel extends CollapsiblePanel
+    protected abstract class EntryPanel extends CollapsiblePanel
         implements ActionListener
     {
         public EntryPanel (Object value)
         {
-            // create the object panel
-            ObjectPanel opanel = new ObjectPanel(
-                _ctx, _property.getComponentTypeLabel(),
-                _property.getComponentSubtypes(), _lineage, _object);
-            opanel.setValue(value);
-            opanel.addChangeListener(PanelArrayListEditor.this);
+            // create the panel
+            JPanel panel = createPanel(value);
 
             // make sure we have the icons loaded
             if (_expandIcon == null) {
@@ -216,7 +199,7 @@ public class PanelArrayListEditor extends ArrayListEditor
             setTrigger(expand, _expandIcon, _collapseIcon);
             expand.setHorizontalAlignment(JButton.CENTER);
             add(new Spacer(1, -25));
-            setTriggerContainer(tcont, opanel);
+            setTriggerContainer(tcont, panel);
             setGap(5);
             setCollapsed(false);
 
@@ -232,12 +215,9 @@ public class PanelArrayListEditor extends ArrayListEditor
         }
 
         /**
-         * Returns a reference to the object (content) panel.
+         * Get the mouse path.
          */
-        public ObjectPanel getObjectPanel ()
-        {
-            return (ObjectPanel)_content;
-        }
+        public abstract String getMousePath (Point pt);
 
         /**
          * Updates the state of the buttons.
@@ -295,6 +275,11 @@ public class PanelArrayListEditor extends ArrayListEditor
             setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createEmptyBorder(8, 0, 0, 0), _title));
         }
+
+        /**
+         * Create the content panel.
+         */
+        protected abstract JPanel createPanel (Object value);
 
         /** The action buttons. */
         protected JButton _raise, _lower, _delete, _highlight;
