@@ -101,7 +101,7 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     public String getLabel (Class<?> type)
     {
         if (type == null) {
-            return _msgs.get("m.none");
+            return _msgs.get("m.null_value");
         }
         String name = type.getName();
         name = name.substring(

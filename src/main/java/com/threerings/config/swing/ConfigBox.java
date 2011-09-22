@@ -173,7 +173,7 @@ public class ConfigBox extends JComboBox
         @Override // documentation inherited
         public String toString ()
         {
-            return (name == null) ? _msgs.get("m.none") : name;
+            return (name == null) ? _msgs.get("m.null_value") : name;
         }
 
         @Override // documentation inherited

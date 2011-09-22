@@ -195,7 +195,7 @@ public class ConfigReferenceEditor extends PropertyEditor
             _clear.setEnabled(enable);
         }
         if (!enable) {
-            _config.setText(_msgs.get("m.none"));
+            _config.setText(_msgs.get("m.null_value"));
             _arguments.removeAll();
             return;
         }

@@ -126,7 +126,7 @@ public class FileEditor extends PropertyEditor
     protected void updateButtons (File value)
     {
         boolean enable = (value != null);
-        _file.setText(enable ? value.getName() : _msgs.get("m.none"));
+        _file.setText(enable ? value.getName() : _msgs.get("m.null_value"));
         if (_clear != null) {
             _clear.setEnabled(enable);
         }

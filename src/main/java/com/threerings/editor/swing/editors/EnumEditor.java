@@ -88,7 +88,7 @@ public class EnumEditor extends PropertyEditor
     public String getLabel (Enum value, MessageBundle msgs)
     {
         if (value == null) {
-            return _msgs.get("m.none");
+            return _msgs.get("m.null_value");
         }
         String key = "m." + StringUtil.toUSLowerCase(value.name());
         return msgs.exists(key) ? msgs.get(key) : value.toString();
