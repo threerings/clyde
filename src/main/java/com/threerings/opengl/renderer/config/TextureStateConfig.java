@@ -90,7 +90,12 @@ public class TextureStateConfig extends DeepObject
     {
         desc.texCoordSets = new int[units.length];
         for (int ii = 0; ii < units.length; ii++) {
-            desc.texCoordSets[ii] = units[ii].coordSet;
+            TextureUnitConfig unit = units[ii];
+            desc.texCoordSets[ii] = unit.coordSet;
+            desc.normals |=
+                unit.coordGenS != null && unit.coordGenS.usesNormals() ||
+                unit.coordGenT != null && unit.coordGenT.usesNormals() ||
+                unit.coordGenR != null && unit.coordGenR.usesNormals();
         }
     }
 

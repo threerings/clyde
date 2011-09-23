@@ -66,6 +66,12 @@ public abstract class TextureCoordGenConfig extends DeepObject
         /** The w plane coefficient. */
         @Editable(step=0.01, hgroup="p")
         public float w;
+
+        @Override // documentation inherited
+        public boolean usesNormals ()
+        {
+            return false;
+        }
     }
 
     /**
@@ -155,4 +161,12 @@ public abstract class TextureCoordGenConfig extends DeepObject
      * coefficients (if applicable).
      */
     public abstract int getModeAndPlane (Vector4f plane);
+
+    /**
+     * Checks whether the texture coordinate generation function uses vertex normals.
+     */
+    public boolean usesNormals ()
+    {
+        return true;
+    }
 }
