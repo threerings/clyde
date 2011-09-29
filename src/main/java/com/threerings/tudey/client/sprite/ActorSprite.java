@@ -637,6 +637,7 @@ public class ActorSprite extends Sprite
             int activity = active.getActivity();
             int started = active.getActivityStarted();
             if (activity != _lastActivity || started > _lastActivityStarted) {
+                activityChanged();
                 Activity previous = _activity;
                 Activity next = _activities.get(_lastActivity = activity);
                 _lastActivityStarted = started;
@@ -671,6 +672,13 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Called when the activity has changed.
+         */
+        protected void activityChanged ()
+        {
+        }
+
+        /**
          * Handles an activity.
          */
         protected class Activity
@@ -688,6 +696,18 @@ public class ActorSprite extends Sprite
                     }
                 }
                 _anims = list.toArray(new Animation[list.size()]);
+            }
+
+            /**
+             * Creates a new activity.
+             */
+            public Activity (ConfigReference<AnimationConfig> anim)
+            {
+                Animation animation = anim == null ? null : _model.createAnimation(anim);
+                _anims = new Animation[animation == null ? 0 : 1];
+                if (animation != null) {
+                    _anims[0] = animation;
+                }
             }
 
             /**
