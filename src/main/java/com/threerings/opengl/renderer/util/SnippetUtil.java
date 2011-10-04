@@ -347,6 +347,13 @@ public class SnippetUtil
     protected static void addPointLight (
         int idx, String dest, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
     {
+        String lightSource = "gl_LightSource[" + idx + "]";
+        buf.append("{ float d = distance(" + eyeVertex + ", " + lightSource + ".position); ");
+        buf.append("gl_" + dest + "Color += (gl_" + side + "LightProduct[" + idx +
+            "].ambient + gl_" + side + "LightProduct[" + idx + "].diffuse * max(dot(" +
+            eyeNormal + ", normalize(" + lightSource + ".position - " +
+            eyeVertex + ")), 0.0)) / (" + lightSource + ".constantAttenuation + d*(" +
+            lightSource + ".linearAttenuation + d*" + lightSource + ".quadraticAttenuation)); } ");
     }
 
     /**
