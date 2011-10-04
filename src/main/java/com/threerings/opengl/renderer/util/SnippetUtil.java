@@ -336,9 +336,10 @@ public class SnippetUtil
     protected static void addDirectionalLight (
         int idx, String dest, String side, String eyeNormal, StringBuilder buf)
     {
-        buf.append("gl_" + dest + "Color += gl_" + side + "LightProduct[" + idx +
-            "].ambient + gl_" + side + "LightProduct[" + idx + "].diffuse * max(dot(" +
-            eyeNormal + ", gl_LightSource[" + idx + "].position), 0.0); ");
+        String lightProduct = "gl_" + side + "LightProduct[" + idx + "]";
+        buf.append("gl_" + dest + "Color += " + lightProduct + ".ambient + " +
+            lightProduct + ".diffuse * max(dot(" + eyeNormal +
+            ", gl_LightSource[" + idx + "].position), 0.0); ");
     }
 
     /**
@@ -348,12 +349,13 @@ public class SnippetUtil
         int idx, String dest, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
     {
         String lightSource = "gl_LightSource[" + idx + "]";
-        buf.append("{ float d = distance(" + eyeVertex + ", " + lightSource + ".position); ");
-        buf.append("gl_" + dest + "Color += (gl_" + side + "LightProduct[" + idx +
-            "].ambient + gl_" + side + "LightProduct[" + idx + "].diffuse * max(dot(" +
-            eyeNormal + ", normalize(" + lightSource + ".position - " +
-            eyeVertex + ")), 0.0)) / (" + lightSource + ".constantAttenuation + d*(" +
-            lightSource + ".linearAttenuation + d*" + lightSource + ".quadraticAttenuation)); } ");
+        String lightProduct = "gl_" + side + "LightProduct[" + idx + "]";
+        buf.append("{ vec4 lvec = " + lightSource + ".position - " + eyeVertex + "; ");
+        buf.append("float d = length(lvec); ");
+        buf.append("gl_" + dest + "Color += (" + lightProduct + ".ambient + " + lightProduct +
+            ".diffuse * max(dot(" + eyeNormal + ", lvec/d), 0.0)) / (" + lightSource +
+            ".constantAttenuation + d*(" + lightSource + ".linearAttenuation + d*" + lightSource +
+            ".quadraticAttenuation)); } ");
     }
 
     /**
