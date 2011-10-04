@@ -364,6 +364,17 @@ public class SnippetUtil
     protected static void addSpotLight (
         int idx, String dest, String side, String eyeVertex, String eyeNormal, StringBuilder buf)
     {
+        String lightSource = "gl_LightSource[" + idx + "]";
+        String lightProduct = "gl_" + side + "LightProduct[" + idx + "]";
+        buf.append("{ vec4 lvec = " + lightSource + ".position - " + eyeVertex + "; ");
+        buf.append("float d = length(lvec); ");
+        buf.append("vec4 nvec = lvec/d; ");
+        buf.append("float cosa = -dot(nvec.xyz, " + lightSource + ".spotDirection); ");
+        buf.append("gl_" + dest + "Color += step(" + lightSource +
+            ".spotCosCutoff, cosa) * pow(cosa, " + lightSource + ".spotExponent) * (" +
+            lightProduct + ".ambient + " + lightProduct + ".diffuse * max(dot(" + eyeNormal +
+            ", nvec), 0.0)) / (" + lightSource + ".constantAttenuation + d*(" + lightSource +
+            ".linearAttenuation + d*" + lightSource + ".quadraticAttenuation)); } ");
     }
 
     /** Cached fog param snippets. */
