@@ -226,17 +226,27 @@ public class RenderableView extends Component
             elapsed = 0f;
         }
 
-        // tick the config models
-        for (Model model : _configModels) {
-            model.tick(elapsed);
-        }
+        // set the camera in the compositor in case anything wants its position
+        Compositor compositor = _ctx.getCompositor();
+        Camera ocamera = compositor.getCamera();
+        compositor.setCamera(_camera);
 
-        // tick the other compositables
-        for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
-            Compositable compositable = _compositables.get(ii);
-            if (compositable instanceof Tickable) {
-                ((Tickable)compositable).tick(elapsed);
+        try {
+            // tick the config models
+            for (Model model : _configModels) {
+                model.tick(elapsed);
             }
+
+            // tick the other compositables
+            for (int ii = 0, nn = _compositables.size(); ii < nn; ii++) {
+                Compositable compositable = _compositables.get(ii);
+                if (compositable instanceof Tickable) {
+                    ((Tickable)compositable).tick(elapsed);
+                }
+            }
+        } finally {
+            // restore the camera
+            compositor.setCamera(ocamera);
         }
     }
 
