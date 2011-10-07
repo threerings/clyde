@@ -109,13 +109,21 @@ public abstract class SceneInfluenceConfig extends DeepObject
         @Editable
         public LightConfig light = new LightConfig.Directional();
 
+        /** The shadow config, if any. */
+        @Editable(nullable=true)
+        public ShadowConfig shadow;
+
         @Override // documentation inherited
         protected SceneInfluence createInfluence (
             GlContext ctx, Scope scope, ArrayList<Updater> updaters)
         {
-            return ScopeUtil.resolve(scope, "lightingEnabled", true) ?
-                new LightInfluence(light.createLight(ctx, scope, updaters)) :
-                    createNoopInfluence();
+            if (!ScopeUtil.resolve(scope, "lightingEnabled", true)) {
+                return createNoopInfluence();
+            }
+            com.threerings.opengl.renderer.Light light =
+                this.light.createLight(ctx, scope, updaters);
+            return (shadow == null) ? new LightInfluence(light) :
+                shadow.createInfluence(ctx, scope, light, updaters);
         }
     }
 
