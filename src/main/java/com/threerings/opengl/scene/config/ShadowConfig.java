@@ -27,6 +27,7 @@ package com.threerings.opengl.scene.config;
 
 import java.util.ArrayList;
 
+import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -34,8 +35,12 @@ import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.material.Projection;
+import com.threerings.opengl.material.config.MaterialConfig;
+import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.renderer.Light;
+import com.threerings.opengl.renderer.config.ColorStateConfig;
 import com.threerings.opengl.scene.LightInfluence;
 import com.threerings.opengl.scene.SceneInfluence;
 import com.threerings.opengl.util.GlContext;
@@ -53,13 +58,30 @@ public abstract class ShadowConfig extends DeepObject
      */
     public static class SilhouetteTexture extends ShadowConfig
     {
+        /** The projection material. */
+        @Editable(nullable=true)
+        public ConfigReference<MaterialConfig> material;
+
+        /** The color state for the projection. */
+        @Editable(nullable=true)
+        public ColorStateConfig colorState = new ColorStateConfig();
+
         @Override // documentation inherited
         public SceneInfluence createInfluence (
-            GlContext ctx, Scope scope, Light light, ArrayList<Updater> updaters)
+            GlContext ctx, Scope scope, final Light light, ArrayList<Updater> updaters)
         {
+            MaterialConfig mconfig = ctx.getConfigManager().getConfig(
+                MaterialConfig.class, material);
+            TechniqueConfig technique = (mconfig == null) ?
+                null : mconfig.getTechnique(ctx, getProjectionScheme(light.getType()));
+            if (technique == null) {
+                return new LightInfluence(light);
+            }
+            final Projection projection = new Projection(technique,
+                (colorState == null) ? null : colorState.getState());
             return new LightInfluence(light) {
                 @Override public Projection getProjection () {
-                    return null;
+                    return projection;
                 }
             };
         }
@@ -72,4 +94,16 @@ public abstract class ShadowConfig extends DeepObject
      */
     public abstract SceneInfluence createInfluence (
         GlContext ctx, Scope scope, Light light, ArrayList<Updater> updaters);
+
+    /**
+     * Returns the render scheme to use for the projection of the specified light type.
+     */
+    protected static String getProjectionScheme (Light.Type type)
+    {
+        switch (type) {
+            case DIRECTIONAL: return RenderScheme.ORTHOGRAPHIC_PROJECTION;
+            case SPOT: return RenderScheme.PERSPECTIVE_PROJECTION;
+            default: return null;
+        }
+    }
 }
