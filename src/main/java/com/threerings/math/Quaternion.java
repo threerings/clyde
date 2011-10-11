@@ -102,6 +102,34 @@ public final class Quaternion
     }
 
     /**
+     * Sets this quaternion to the rotation of (0, 0, -1) onto the supplied normalized vector.
+     *
+     * @return a reference to the quaternion, for chaining.
+     */
+    public Quaternion fromVectorFromNegativeZ (Vector3f to)
+    {
+        return fromVectorFromNegativeZ(to.x, to.y, to.z);
+    }
+
+    /**
+     * Sets this quaternion to the rotation of (0, 0, -1) onto the supplied normalized vector.
+     *
+     * @return a reference to the quaternion, for chaining.
+     */
+    public Quaternion fromVectorFromNegativeZ (float tx, float ty, float tz)
+    {
+        float angle = FloatMath.acos(-tz);
+        if (angle < FloatMath.EPSILON) {
+            return set(IDENTITY);
+        }
+        if (angle > FloatMath.PI - FloatMath.EPSILON) {
+            return set(0f, 1f, 0f, 0f); // 180 degrees about y
+        }
+        float len = FloatMath.hypot(tx, ty);
+        return fromAngleAxis(angle, ty/len, -tx/len, 0f);
+    }
+
+    /**
      * Sets this quaternion to one that rotates onto the given unit axes.
      *
      * @return a reference to this quaternion, for chaining.

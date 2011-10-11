@@ -33,6 +33,10 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Matrix4f;
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector4f;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.compositor.RenderScheme;
@@ -72,13 +76,36 @@ public abstract class ShadowConfig extends DeepObject
         {
             MaterialConfig mconfig = ctx.getConfigManager().getConfig(
                 MaterialConfig.class, material);
+            Light.Type lightType = light.getType();
             TechniqueConfig technique = (mconfig == null) ?
-                null : mconfig.getTechnique(ctx, getProjectionScheme(light.getType()));
+                null : mconfig.getTechnique(ctx, getProjectionScheme(lightType));
             if (technique == null) {
                 return new LightInfluence(light);
             }
             final Projection projection = new Projection(technique,
                 (colorState == null) ? null : colorState.getState());
+            if (lightType == Light.Type.SPOT) {
+                updaters.add(new Updater() {
+                    public void update () {
+                        Vector4f pos = light.position;
+                        _viewTransformInv.getTranslation().set(pos.x, pos.y, pos.z);
+                        _viewTransformInv.getRotation().fromVectorFromNegativeZ(
+                            light.spotDirection);
+                        _viewTransformInv.invertLocal().update(Transform3D.AFFINE);
+                        Matrix4f mat = _viewTransformInv.getMatrix();
+                        Vector4f gpq = projection.getGenPlaneQ();
+                        gpq.set(-mat.m02, -mat.m12, -mat.m22, -mat.m32);
+                        float ss = 0.5f / FloatMath.tan(FloatMath.toRadians(light.spotCutoff));
+                        projection.getGenPlaneS().set(
+                            ss*mat.m00 + 0.5f*gpq.x, ss*mat.m10 + 0.5f*gpq.y,
+                            ss*mat.m20 + 0.5f*gpq.z, ss*mat.m30 + 0.5f*gpq.w);
+                        projection.getGenPlaneT().set(
+                            ss*mat.m01 + 0.5f*gpq.x, ss*mat.m11 + 0.5f*gpq.y,
+                            ss*mat.m21 + 0.5f*gpq.z, ss*mat.m31 + 0.5f*gpq.w);
+                    }
+                    protected Transform3D _viewTransformInv = new Transform3D(Transform3D.RIGID);
+                });
+            }
             return new LightInfluence(light) {
                 @Override public Projection getProjection () {
                     return projection;
