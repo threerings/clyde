@@ -86,7 +86,6 @@ public abstract class ProjectionConfig extends DeepObject
                     projection.getGenPlaneT().set(
                         ts*mat.m01 + 0.5f*gpq.x, ts*mat.m11 + 0.5f*gpq.y,
                         ts*mat.m21 + 0.5f*gpq.z, ts*mat.m31 + 0.5f*gpq.w);
-
                 }
                 protected Transform3D _viewTransformInv = new Transform3D();
             };
