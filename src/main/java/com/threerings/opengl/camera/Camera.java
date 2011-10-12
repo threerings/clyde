@@ -61,6 +61,14 @@ public class Camera
     }
 
     /**
+     * Returns a reference to the volume that the camera occupies in view space.
+     */
+    public Frustum getLocalVolume ()
+    {
+        return _localVolume;
+    }
+
+    /**
      * Returns a reference to the volume that the camera occupies in the world.
      */
     public Frustum getWorldVolume ()

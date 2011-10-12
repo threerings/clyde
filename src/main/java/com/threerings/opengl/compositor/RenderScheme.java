@@ -39,4 +39,7 @@ public class RenderScheme
 
     /** The name of the orthographic projection scheme. */
     public static final String ORTHOGRAPHIC_PROJECTION = "Projection (Ortho)";
+
+    /** The name of the volume projection scheme. */
+    public static final String VOLUME_PROJECTION = "Projection (Volume)";
 }

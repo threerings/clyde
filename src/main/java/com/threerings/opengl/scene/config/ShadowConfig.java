@@ -34,8 +34,11 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Updater;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
+import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 import com.threerings.util.DeepObject;
 
@@ -72,7 +75,7 @@ public abstract class ShadowConfig extends DeepObject
 
         @Override // documentation inherited
         public SceneInfluence createInfluence (
-            GlContext ctx, Scope scope, final Light light, ArrayList<Updater> updaters)
+            final GlContext ctx, Scope scope, final Light light, ArrayList<Updater> updaters)
         {
             MaterialConfig mconfig = ctx.getConfigManager().getConfig(
                 MaterialConfig.class, material);
@@ -84,7 +87,45 @@ public abstract class ShadowConfig extends DeepObject
             }
             final Projection projection = new Projection(technique,
                 (colorState == null) ? null : colorState.getState());
-            if (lightType == Light.Type.SPOT) {
+            if (lightType == Light.Type.DIRECTIONAL) {
+                updaters.add(new Updater() {
+                    public void update () {
+                        // project the corners of the frustum onto the light plane
+                        // and find their extents in s/t
+                        Vector4f pos = light.position;
+                        _rot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z).invertLocal();
+                        _mat.setToRotation(_rot);
+                        float mins = Float.MAX_VALUE, mint = Float.MAX_VALUE;
+                        float maxs = -Float.MAX_VALUE, maxt = -Float.MAX_VALUE;
+                        for (Vector3f vertex :
+                                ctx.getCompositor().getCamera().getLocalVolume().getVertices()) {
+                            _mat.transform(vertex, _vec);
+                            mins = Math.min(mins, _vec.x);
+                            mint = Math.min(mint, _vec.y);
+                            maxs = Math.max(maxs, _vec.x);
+                            maxt = Math.max(maxt, _vec.y);
+                        }
+                        float ss = 1f / (maxs - mins);
+                        projection.getGenPlaneS().set(
+                            ss*_mat.m00, ss*_mat.m10, ss*_mat.m20, -ss*mins);
+                        float ts = 1f / (maxt - mint);
+                        projection.getGenPlaneT().set(
+                            ts*_mat.m01, ts*_mat.m11, ts*_mat.m21, -ts*mint);
+                    }
+                    protected Quaternion _rot = new Quaternion();
+                    protected Matrix3f _mat = new Matrix3f();
+                    protected Vector3f _vec = new Vector3f();
+                });
+            } else if (lightType == Light.Type.POINT) {
+                updaters.add(new Updater() {
+                    public void update () {
+                        Vector4f pos = light.position;
+                        projection.getGenPlaneS().set(1f, 0f, 0f, -pos.x);
+                        projection.getGenPlaneT().set(0f, 1f, 0f, -pos.y);
+                        projection.getGenPlaneR().set(0f, 0f, 1f, -pos.z);
+                    }
+                });
+            } else { // lightType == Light.Type.SPOT
                 updaters.add(new Updater() {
                     public void update () {
                         Vector4f pos = light.position;
@@ -129,6 +170,7 @@ public abstract class ShadowConfig extends DeepObject
     {
         switch (type) {
             case DIRECTIONAL: return RenderScheme.ORTHOGRAPHIC_PROJECTION;
+            case POINT: return RenderScheme.VOLUME_PROJECTION;
             case SPOT: return RenderScheme.PERSPECTIVE_PROJECTION;
             default: return null;
         }
