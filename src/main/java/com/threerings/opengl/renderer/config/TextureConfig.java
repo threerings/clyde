@@ -72,6 +72,7 @@ import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.Compositor;
 import com.threerings.opengl.compositor.Dependency;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Renderer;
 import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.Texture1D;
@@ -347,7 +348,7 @@ public class TextureConfig extends ParameterizedConfig
     @EditorTypes({
         Original1D.class, Original2D.class, Original2DTarget.class, OriginalRectangle.class,
         Original3D.class, OriginalCubeMap.class, Reflection.class, Refraction.class,
-        CubeRender.class, Animated.class, Derived.class })
+        CubeRender.class, Shadow.class, Animated.class, Derived.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -1482,6 +1483,60 @@ public class TextureConfig extends ParameterizedConfig
             updaters.add(new Updater() {
                 public void update () {
                     Dependency.CubeTexture dependency = dependencies.get(
+                        ctx.getCompositor().getSubrenderDepth());
+                    unit.setTexture(dependency.texture);
+                    state.setDirty(true);
+                }
+            });
+            return null;
+        }
+    }
+
+    /**
+     * A dynamically rendered shadow map.
+     */
+    public static class Shadow extends BaseDerived
+    {
+        @Override // documentation inherited
+        public Texture getTexture (
+            final GlContext ctx, final TextureState state, final TextureUnit unit,
+            Scope scope, List<Dependency.Adder> adders, List<Updater> updaters)
+        {
+            if (adders == null) {
+                log.warning("Tried to create shadow texture in static context.");
+                return null;
+            }
+            final TextureConfig config = getConfig(ctx);
+            if (config == null) {
+                return null;
+            }
+            final IntMap<Dependency.ShadowTexture> dependencies = IntMaps.newHashIntMap();
+            final Light light = ScopeUtil.resolve(scope, "light", new Light(), Light.class);
+            adders.add(new Dependency.Adder() {
+                public boolean add () {
+                    Compositor compositor = ctx.getCompositor();
+                    int depth = compositor.getSubrenderDepth();
+                    Object source = compositor.getSubrenderSource();
+                    if (source != null && source == dependencies.get(depth - 1)) {
+                        return false;
+                    }
+                    Dependency.ShadowTexture dependency = dependencies.get(depth);
+                    if (dependency == null) {
+                        dependencies.put(depth, dependency = new Dependency.ShadowTexture(ctx));
+                    }
+                    dependency.light = light;
+                    dependency.texture = null;
+                    compositor.addDependency(dependency);
+                    if (dependency.texture == null) {
+                        dependency.texture = config.getFromPool(ctx);
+                        dependency.config = config;
+                    }
+                    return true;
+                }
+            });
+            updaters.add(new Updater() {
+                public void update () {
+                    Dependency.ShadowTexture dependency = dependencies.get(
                         ctx.getCompositor().getSubrenderDepth());
                     unit.setTexture(dependency.texture);
                     state.setDirty(true);

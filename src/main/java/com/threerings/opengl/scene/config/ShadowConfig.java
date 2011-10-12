@@ -32,6 +32,7 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
+import com.threerings.expr.Scoped;
 import com.threerings.expr.Updater;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix3f;
@@ -86,7 +87,9 @@ public abstract class ShadowConfig extends DeepObject
                 return new LightInfluence(light);
             }
             final Projection projection = new Projection(technique,
-                (colorState == null) ? null : colorState.getState());
+                (colorState == null) ? null : colorState.getState()) {
+                @Scoped protected Light _light = light;
+            };
             if (lightType == Light.Type.DIRECTIONAL) {
                 updaters.add(new Updater() {
                     public void update () {
