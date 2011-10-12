@@ -1512,6 +1512,8 @@ public class TextureConfig extends ParameterizedConfig
             }
             final IntMap<Dependency.ShadowTexture> dependencies = IntMaps.newHashIntMap();
             final Light light = ScopeUtil.resolve(scope, "light", new Light(), Light.class);
+            final float near = ScopeUtil.resolve(scope, "near", 1f, Float.class);
+            final float far = ScopeUtil.resolve(scope, "far", 100f, Float.class);
             adders.add(new Dependency.Adder() {
                 public boolean add () {
                     Compositor compositor = ctx.getCompositor();
@@ -1525,6 +1527,8 @@ public class TextureConfig extends ParameterizedConfig
                         dependencies.put(depth, dependency = new Dependency.ShadowTexture(ctx));
                     }
                     dependency.light = light;
+                    dependency.near = near;
+                    dependency.far = far;
                     dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {

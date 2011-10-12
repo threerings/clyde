@@ -66,6 +66,14 @@ public abstract class ShadowConfig extends DeepObject
      */
     public static class SilhouetteTexture extends ShadowConfig
     {
+        /** The distance to the near clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float near = 1f;
+
+        /** The distance to the far clip plane. */
+        @Editable(min=0.0, step=0.01, hgroup="f")
+        public float far = 100f;
+
         /** The projection material. */
         @Editable(nullable=true)
         public ConfigReference<MaterialConfig> material;
@@ -89,6 +97,8 @@ public abstract class ShadowConfig extends DeepObject
             final Projection projection = new Projection(technique,
                 (colorState == null) ? null : colorState.getState()) {
                 @Scoped protected Light _light = light;
+                @Scoped protected float _near = near;
+                @Scoped protected float _far = far;
             };
             if (lightType == Light.Type.DIRECTIONAL) {
                 updaters.add(new Updater() {

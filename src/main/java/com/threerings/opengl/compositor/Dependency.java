@@ -33,6 +33,7 @@ import com.threerings.math.Plane;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
+import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
@@ -419,6 +420,9 @@ public abstract class Dependency
      */
     public static class ShadowTexture extends Shadows
     {
+        /** Distances to the near and far clip planes. */
+        public float near, far;
+
         /** The shadow texture. */
         public Texture texture;
 
@@ -439,6 +443,60 @@ public abstract class Dependency
             ShadowTexture odep = (ShadowTexture)dependency;
             texture = odep.texture;
             config = odep.config;
+            near = Math.min(near, odep.near);
+            far = Math.max(far, odep.far);
+        }
+
+        @Override // documentation inherited
+        public void resolve ()
+        {
+            Compositor compositor = _ctx.getCompositor();
+            Camera ocamera = compositor.getCamera();
+            Compositor.State cstate = compositor.prepareSubrender();
+            Camera ncamera = compositor.getCamera();
+            Transform3D transform = ncamera.getWorldTransform();
+            Light.Type lightType = light.getType();
+            Vector4f pos = light.position;
+            TextureRenderer renderer = TextureRenderer.getInstance(
+                _ctx, texture, null, new PixelFormat(8, 16, 8));
+            if (lightType == Light.Type.POINT) {
+                ncamera.setFrustum(-near, +near, -near, +near, near, far);
+                Quaternion rot = new Quaternion();
+                Transform3D otrans = ocamera.getWorldTransform();
+                otrans.extractRotation(rot);
+                otrans.transformPointLocal(transform.getTranslation().set(pos.x, pos.y, pos.z));
+                try {
+                    for (int ii = 0; ii < 6; ii++) {
+                        rot.mult(CUBE_FACE_ROTATIONS[ii], transform.getRotation());
+                        ncamera.updateTransform();
+                        renderer.startRender(0, ii);
+                        try {
+                            compositor.performSubrender(this);
+                        } finally {
+                            renderer.commitRender();
+                        }
+                    }
+                } finally {
+                    compositor.cleanupSubrender(cstate);
+                }
+                return;
+            }
+            if (lightType == Light.Type.DIRECTIONAL) {
+
+            } else { // lightType == Light.Type.SPOT
+                ncamera.setPerspective(FloatMath.toRadians(light.spotCutoff)*2f, 1f, near, far);
+                transform.getTranslation().set(pos.x, pos.y, pos.z);
+                transform.getRotation().fromVectorFromNegativeZ(light.spotDirection);
+                ocamera.getWorldTransform().compose(transform, transform);
+            }
+            ncamera.updateTransform();
+            renderer.startRender();
+            try {
+                compositor.performSubrender(this);
+            } finally {
+                renderer.commitRender();
+                compositor.cleanupSubrender(cstate);
+            }
         }
 
         @Override // documentation inherited
