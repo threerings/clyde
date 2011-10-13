@@ -492,12 +492,8 @@ public abstract class Dependency
                 float hwidth = (max.x - min.x) * 0.5f;
                 float hheight = (max.y - min.y) * 0.5f;
                 ncamera.setOrtho(-hwidth, +hwidth, -hheight, +hheight, 0f, max.z - min.z);
-                ocamera.getWorldTransform().getRotation().mult(trot, trot);
-                Vector3f ttrans = transform.getTranslation();
-                trot.transformUnitX(ttrans).multLocal(min.x + hwidth);
-                Vector3f vec = new Vector3f();
-                ttrans.addLocal(trot.transformUnitY(vec).multLocal(min.y + hheight));
-                ttrans.addLocal(trot.transformUnitZ(vec).multLocal(max.z));
+                transform.getTranslation().set(min.x + hwidth, min.y + hheight, min.z);
+                ocamera.getWorldTransform().compose(transform, transform);
 
             } else { // lightType == Light.Type.SPOT
                 ncamera.setPerspective(FloatMath.toRadians(light.spotCutoff)*2f, 1f, near, far);

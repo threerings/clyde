@@ -107,22 +107,29 @@ public abstract class ShadowConfig extends DeepObject
                         // project the corners of the frustum onto the light plane
                         // and find their extents in s/t
                         Vector4f pos = light.position;
-                        _rot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z).invertLocal();
-                        _mat.setToRotation(_rot);
+                        Quaternion trot = _transform.getRotation();
+                        trot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z);
+                        _mat.setToRotation(trot.invert());
                         ctx.getCompositor().getCamera().getLocalVolume().getBoundsUnderRotation(
                             _mat, _box);
                         Vector3f min = _box.getMinimumExtent();
                         Vector3f max = _box.getMaximumExtent();
-                        float ss = 1f / (max.x - min.x);
+                        float width = max.x - min.x;
+                        float height = max.y - min.y;
+                        _transform.getTranslation().set(
+                            min.x + width*0.5f, min.y + height*0.5f, min.z);
+                        _transform.invertLocal().update(Transform3D.AFFINE);
+                        Matrix4f mat = _transform.getMatrix();
+                        float ss = (1f / width);
                         projection.getGenPlaneS().set(
-                            ss*_mat.m00, ss*_mat.m10, ss*_mat.m20, -ss*min.x);
-                        float ts = 1f / (max.y - min.y);
+                            ss*mat.m00, ss*mat.m10, ss*mat.m20, ss*mat.m30 + 0.5f);
+                        float ts = (1f / height);
                         projection.getGenPlaneT().set(
-                            ts*_mat.m01, ts*_mat.m11, ts*_mat.m21, -ts*min.y);
+                            ts*mat.m01, ts*mat.m11, ts*mat.m21, ts*mat.m31 + 0.5f);
                     }
-                    protected Quaternion _rot = new Quaternion();
                     protected Matrix3f _mat = new Matrix3f();
                     protected Box _box = new Box();
+                    protected Transform3D _transform = new Transform3D(Transform3D.UNIFORM);
                 });
             } else if (lightType == Light.Type.POINT) {
                 updaters.add(new Updater() {
