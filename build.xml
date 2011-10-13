@@ -85,14 +85,12 @@
              destdir="${deploy.dir}/docs" stylesheetfile="docs/stylesheet.css"
              additionalparam="-breakiterator">
       <classpath refid="built.classpath"/>
-      <link href="http://java.sun.com/j2se/1.5/docs/api"/>
+      <link href="http://download.oracle.com/javase/6/docs/api/"/>
       <link href="http://www.lwjgl.org/javadoc"/>
-      <!-- ant documentation is not available online, sorry kids -->
-      <link href="file:///usr/share/doc/ant-doc/javadocs"/>
-      <link href="http://samskivert.com/code/samskivert/samskivert/docs/api"/>
-      <link href="http://www.threerings.net/code/narya/docs/api"/>
-      <link href="http://www.threerings.net/code/nenya/docs/api"/>
-      <link href="http://www.threerings.net/code/vilya/docs/api"/>
+      <link href="http://samskivert.googlecode.com/svn/apidocs"/>
+      <link href="http://threerings.github.com/narya/apidocs/"/>
+      <link href="http://threerings.github.com/nenya/apidocs/"/>
+      <link href="http://threerings.github.com/vilya/apidocs/"/>
     </javadoc>
   </target>
 
@@ -162,13 +160,15 @@
   </target>
 
   <property name="maven.deploy.repo" value="file://${user.home}/.m2/repository"/>
-  <target name="maven-deploy" depends="dist,tests"
+  <target name="maven-deploy" depends="dist,tests,javadoc"
           description="Deploys our build artifacts to a Maven repository.">
     <jar basedir="${src.dir}" destfile="${deploy.dir}/${ant.project.name}-sources.jar"/>
+    <jar basedir="${deploy.dir}/docs" destfile="${deploy.dir}/${ant.project.name}-javadoc.jar"/>
     <artifact:deploy file="${deploy.dir}/${ant.project.name}.jar" uniqueVersion="false">
       <remoteRepository url="${maven.deploy.repo}"/>
       <pom refid="pom"/>
       <attach file="${deploy.dir}/${ant.project.name}-sources.jar" classifier="sources"/>
+      <attach file="${deploy.dir}/${ant.project.name}-javadoc.jar" classifier="javadoc"/>
     </artifact:deploy>
   </target>
 </project>
