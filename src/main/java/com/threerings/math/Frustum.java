@@ -240,6 +240,21 @@ public class Frustum
     }
 
     /**
+     * Computes the bounds of the frustum under the supplied rotation and places the results in
+     * the box provided.
+     *
+     * @return a reference to the result box, for chaining.
+     */
+    public Box getBoundsUnderRotation (Matrix3f matrix, Box result)
+    {
+        result.setToEmpty();
+        for (Vector3f vertex : _vertices) {
+            result.addLocal(matrix.transform(vertex, _vertex));
+        }
+        return result;
+    }
+
+    /**
      * Sets the planes and bounding box of the frustum based on its vertices.
      */
     protected void updateDerivedState ()

@@ -29,6 +29,7 @@ import org.lwjgl.opengl.PixelFormat;
 
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Matrix3f;
 import com.threerings.math.Plane;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
@@ -482,6 +483,21 @@ public abstract class Dependency
                 return;
             }
             if (lightType == Light.Type.DIRECTIONAL) {
+                Quaternion trot = transform.getRotation();
+                trot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z);
+                Matrix3f mat = new Matrix3f().setToRotation(trot.invert());
+                Box box = ocamera.getLocalVolume().getBoundsUnderRotation(mat, new Box());
+                Vector3f min = box.getMinimumExtent();
+                Vector3f max = box.getMaximumExtent();
+                float hwidth = (max.x - min.x) * 0.5f;
+                float hheight = (max.y - min.y) * 0.5f;
+                ncamera.setOrtho(-hwidth, +hwidth, -hheight, +hheight, 0f, max.z - min.z);
+                ocamera.getWorldTransform().getRotation().mult(trot, trot);
+                Vector3f ttrans = transform.getTranslation();
+                trot.transformUnitX(ttrans).multLocal(min.x + hwidth);
+                Vector3f vec = new Vector3f();
+                ttrans.addLocal(trot.transformUnitY(vec).multLocal(min.y + hheight));
+                ttrans.addLocal(trot.transformUnitZ(vec).multLocal(max.z));
 
             } else { // lightType == Light.Type.SPOT
                 ncamera.setPerspective(FloatMath.toRadians(light.spotCutoff)*2f, 1f, near, far);

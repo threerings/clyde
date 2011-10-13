@@ -34,6 +34,7 @@ import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.Updater;
+import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Matrix4f;
@@ -108,26 +109,20 @@ public abstract class ShadowConfig extends DeepObject
                         Vector4f pos = light.position;
                         _rot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z).invertLocal();
                         _mat.setToRotation(_rot);
-                        float mins = Float.MAX_VALUE, mint = Float.MAX_VALUE;
-                        float maxs = -Float.MAX_VALUE, maxt = -Float.MAX_VALUE;
-                        for (Vector3f vertex :
-                                ctx.getCompositor().getCamera().getLocalVolume().getVertices()) {
-                            _mat.transform(vertex, _vec);
-                            mins = Math.min(mins, _vec.x);
-                            mint = Math.min(mint, _vec.y);
-                            maxs = Math.max(maxs, _vec.x);
-                            maxt = Math.max(maxt, _vec.y);
-                        }
-                        float ss = 1f / (maxs - mins);
+                        ctx.getCompositor().getCamera().getLocalVolume().getBoundsUnderRotation(
+                            _mat, _box);
+                        Vector3f min = _box.getMinimumExtent();
+                        Vector3f max = _box.getMaximumExtent();
+                        float ss = 1f / (max.x - min.x);
                         projection.getGenPlaneS().set(
-                            ss*_mat.m00, ss*_mat.m10, ss*_mat.m20, -ss*mins);
-                        float ts = 1f / (maxt - mint);
+                            ss*_mat.m00, ss*_mat.m10, ss*_mat.m20, -ss*min.x);
+                        float ts = 1f / (max.y - min.y);
                         projection.getGenPlaneT().set(
-                            ts*_mat.m01, ts*_mat.m11, ts*_mat.m21, -ts*mint);
+                            ts*_mat.m01, ts*_mat.m11, ts*_mat.m21, -ts*min.y);
                     }
                     protected Quaternion _rot = new Quaternion();
                     protected Matrix3f _mat = new Matrix3f();
-                    protected Vector3f _vec = new Vector3f();
+                    protected Box _box = new Box();
                 });
             } else if (lightType == Light.Type.POINT) {
                 updaters.add(new Updater() {
