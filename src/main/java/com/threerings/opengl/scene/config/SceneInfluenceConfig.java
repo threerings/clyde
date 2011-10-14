@@ -120,10 +120,10 @@ public abstract class SceneInfluenceConfig extends DeepObject
             if (!ScopeUtil.resolve(scope, "lightingEnabled", true)) {
                 return createNoopInfluence();
             }
-            com.threerings.opengl.renderer.Light light =
-                this.light.createLight(ctx, scope, updaters);
-            return (shadow == null) ? new LightInfluence(light) :
-                shadow.createInfluence(ctx, scope, light, updaters);
+            com.threerings.opengl.renderer.Light viewLight =
+                light.createLight(ctx, scope, false, updaters);
+            return (shadow == null) ? new LightInfluence(viewLight) :
+                shadow.createInfluence(ctx, scope, light, viewLight, updaters);
         }
     }
 

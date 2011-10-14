@@ -81,6 +81,7 @@ import com.threerings.opengl.renderer.Texture3D;
 import com.threerings.opengl.renderer.TextureCubeMap;
 import com.threerings.opengl.renderer.TextureUnit;
 import com.threerings.opengl.renderer.state.TextureState;
+import com.threerings.opengl.scene.config.ShadowConfig;
 import com.threerings.opengl.util.DDSLoader;
 import com.threerings.opengl.util.GlContext;
 
@@ -1511,9 +1512,8 @@ public class TextureConfig extends ParameterizedConfig
                 return null;
             }
             final IntMap<Dependency.ShadowTexture> dependencies = IntMaps.newHashIntMap();
-            final Light light = ScopeUtil.resolve(scope, "light", new Light(), Light.class);
-            final float near = ScopeUtil.resolve(scope, "near", 1f, Float.class);
-            final float far = ScopeUtil.resolve(scope, "far", 100f, Float.class);
+            final ShadowConfig.TextureData data = ScopeUtil.resolve(
+                scope, "data", null, ShadowConfig.TextureData.class);
             adders.add(new Dependency.Adder() {
                 public boolean add () {
                     Compositor compositor = ctx.getCompositor();
@@ -1526,9 +1526,7 @@ public class TextureConfig extends ParameterizedConfig
                     if (dependency == null) {
                         dependencies.put(depth, dependency = new Dependency.ShadowTexture(ctx));
                     }
-                    dependency.light = light;
-                    dependency.near = near;
-                    dependency.far = far;
+                    dependency.data = data;
                     dependency.texture = null;
                     compositor.addDependency(dependency);
                     if (dependency.texture == null) {

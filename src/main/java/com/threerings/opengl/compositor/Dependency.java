@@ -27,6 +27,7 @@ package com.threerings.opengl.compositor;
 
 import org.lwjgl.opengl.PixelFormat;
 
+import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Matrix3f;
@@ -42,6 +43,7 @@ import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.TextureRenderer;
 import com.threerings.opengl.renderer.config.TextureConfig;
+import com.threerings.opengl.scene.config.ShadowConfig;
 import com.threerings.opengl.util.GlContext;
 
 /**
@@ -378,8 +380,8 @@ public abstract class Dependency
      */
     public static abstract class Shadows extends Dependency
     {
-        /** The light casting the shadows. */
-        public Light light;
+        /** The data object shared between dependency and influence updater. */
+        public ShadowConfig.Data data;
 
         /**
          * Creates a new shadow dependency.
@@ -390,15 +392,21 @@ public abstract class Dependency
         }
 
         @Override // documentation inherited
+        public void resolve ()
+        {
+            data.updater.update();
+        }
+
+        @Override // documentation inherited
         public int hashCode ()
         {
-            return light.hashCode();
+            return data.hashCode();
         }
 
         @Override // documentation inherited
         public boolean equals (Object other)
         {
-            return getClass() == other.getClass() && ((Shadows)other).light.equals(light);
+            return getClass() == other.getClass() && ((Shadows)other).data.equals(data);
         }
     }
 
@@ -421,9 +429,6 @@ public abstract class Dependency
      */
     public static class ShadowTexture extends Shadows
     {
-        /** Distances to the near and far clip planes. */
-        public float near, far;
-
         /** The shadow texture. */
         public Texture texture;
 
@@ -444,28 +449,28 @@ public abstract class Dependency
             ShadowTexture odep = (ShadowTexture)dependency;
             texture = odep.texture;
             config = odep.config;
-            near = Math.min(near, odep.near);
-            far = Math.max(far, odep.far);
         }
 
         @Override // documentation inherited
         public void resolve ()
         {
+            super.resolve();
+            ShadowConfig.TextureData data = (ShadowConfig.TextureData)this.data;
             Compositor compositor = _ctx.getCompositor();
             Camera ocamera = compositor.getCamera();
             Compositor.State cstate = compositor.prepareSubrender();
             Camera ncamera = compositor.getCamera();
             Transform3D transform = ncamera.getWorldTransform();
-            Light.Type lightType = light.getType();
-            Vector4f pos = light.position;
+            Light.Type lightType = data.light.getType();
+            Vector4f pos = data.light.position;
             TextureRenderer renderer = TextureRenderer.getInstance(
                 _ctx, texture, null, new PixelFormat(8, 16, 8));
             if (lightType == Light.Type.POINT) {
-                ncamera.setFrustum(-near, +near, -near, +near, near, far);
+                ncamera.setFrustum(-data.near, +data.near, -data.near, +data.near,
+                    data.near, data.far);
                 Quaternion rot = new Quaternion();
-                Transform3D otrans = ocamera.getWorldTransform();
-                otrans.extractRotation(rot);
-                otrans.transformPointLocal(transform.getTranslation().set(pos.x, pos.y, pos.z));
+                ocamera.getWorldTransform().extractRotation(rot);
+                transform.getTranslation().set(pos.x, pos.y, pos.z);
                 try {
                     for (int ii = 0; ii < 6; ii++) {
                         rot.mult(CUBE_FACE_ROTATIONS[ii], transform.getRotation());
@@ -485,22 +490,25 @@ public abstract class Dependency
             if (lightType == Light.Type.DIRECTIONAL) {
                 Quaternion trot = transform.getRotation();
                 trot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z);
-                Matrix3f mat = new Matrix3f().setToRotation(trot.invert());
-                Box box = ocamera.getLocalVolume().getBoundsUnderRotation(mat, new Box());
+                Matrix3f mat = new Matrix3f().setToRotation(trot).transposeLocal();
+                Box box = ocamera.getWorldVolume().getBoundsUnderRotation(mat, new Box());
                 Vector3f min = box.getMinimumExtent();
                 Vector3f max = box.getMaximumExtent();
-                float hwidth = (max.x - min.x) * 0.5f;
-                float hheight = (max.y - min.y) * 0.5f;
+                data.width = max.x - min.x;
+                data.height = max.y - min.y;
+                float hwidth = data.width * 0.5f;
+                float hheight = data.height * 0.5f;
                 ncamera.setOrtho(-hwidth, +hwidth, -hheight, +hheight, 0f, max.z - min.z);
-                transform.getTranslation().set(min.x + hwidth, min.y + hheight, min.z);
-                ocamera.getWorldTransform().compose(transform, transform);
+                trot.transformLocal(transform.getTranslation().set(
+                    min.x + hwidth, min.y + hheight, max.z));
 
             } else { // lightType == Light.Type.SPOT
-                ncamera.setPerspective(FloatMath.toRadians(light.spotCutoff)*2f, 1f, near, far);
+                ncamera.setPerspective(FloatMath.toRadians(data.light.spotCutoff)*2f,
+                    1f, data.near, data.far);
                 transform.getTranslation().set(pos.x, pos.y, pos.z);
-                transform.getRotation().fromVectorFromNegativeZ(light.spotDirection);
-                ocamera.getWorldTransform().compose(transform, transform);
+                transform.getRotation().fromVectorFromNegativeZ(data.light.spotDirection);
             }
+            data.transform.set(transform);
             ncamera.updateTransform();
             renderer.startRender();
             try {

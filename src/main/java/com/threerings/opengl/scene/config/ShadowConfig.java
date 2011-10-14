@@ -43,6 +43,7 @@ import com.threerings.math.Transform3D;
 import com.threerings.math.Vector3f;
 import com.threerings.math.Vector4f;
 import com.threerings.util.DeepObject;
+import com.threerings.util.ShallowObject;
 
 import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.material.Projection;
@@ -50,6 +51,7 @@ import com.threerings.opengl.material.config.MaterialConfig;
 import com.threerings.opengl.material.config.TechniqueConfig;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.config.ColorStateConfig;
+import com.threerings.opengl.renderer.config.LightConfig;
 import com.threerings.opengl.scene.LightInfluence;
 import com.threerings.opengl.scene.SceneInfluence;
 import com.threerings.opengl.util.GlContext;
@@ -85,56 +87,47 @@ public abstract class ShadowConfig extends DeepObject
 
         @Override // documentation inherited
         public SceneInfluence createInfluence (
-            final GlContext ctx, Scope scope, final Light light, ArrayList<Updater> updaters)
+            final GlContext ctx, Scope scope, LightConfig lightConfig,
+            final Light viewLight, ArrayList<Updater> updaters)
         {
             MaterialConfig mconfig = ctx.getConfigManager().getConfig(
                 MaterialConfig.class, material);
-            Light.Type lightType = light.getType();
+            Light.Type lightType = viewLight.getType();
             TechniqueConfig technique = (mconfig == null) ?
                 null : mconfig.getTechnique(ctx, getProjectionScheme(lightType));
             if (technique == null) {
-                return new LightInfluence(light);
+                return new LightInfluence(viewLight);
             }
+            final TextureData data = new TextureData();
+            data.near = near;
+            data.far = far;
+            ArrayList<Updater> worldUpdaters = new ArrayList<Updater>(1);
+            data.light = lightConfig.createLight(ctx, scope, true, worldUpdaters);
+            data.updater = worldUpdaters.get(0);
             final Projection projection = new Projection(technique,
-                (colorState == null) ? null : colorState.getState()) {
-                @Scoped protected Light _light = light;
-                @Scoped protected float _near = near;
-                @Scoped protected float _far = far;
+                    (colorState == null) ? null : colorState.getState()) {
+                @Scoped protected TextureData _data = data;
             };
             if (lightType == Light.Type.DIRECTIONAL) {
                 updaters.add(new Updater() {
                     public void update () {
-                        // project the corners of the frustum onto the light plane
-                        // and find their extents in s/t
-                        Vector4f pos = light.position;
-                        Quaternion trot = _transform.getRotation();
-                        trot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z);
-                        _mat.setToRotation(trot.invert());
-                        ctx.getCompositor().getCamera().getLocalVolume().getBoundsUnderRotation(
-                            _mat, _box);
-                        Vector3f min = _box.getMinimumExtent();
-                        Vector3f max = _box.getMaximumExtent();
-                        float width = max.x - min.x;
-                        float height = max.y - min.y;
-                        _transform.getTranslation().set(
-                            min.x + width*0.5f, min.y + height*0.5f, min.z);
-                        _transform.invertLocal().update(Transform3D.AFFINE);
-                        Matrix4f mat = _transform.getMatrix();
-                        float ss = (1f / width);
+                        ctx.getCompositor().getCamera().getViewTransform().compose(
+                            data.transform, _viewTransformInv);
+                        _viewTransformInv.invertLocal().update(Transform3D.AFFINE);
+                        Matrix4f mat = _viewTransformInv.getMatrix();
+                        float ss = (1f / data.width);
                         projection.getGenPlaneS().set(
                             ss*mat.m00, ss*mat.m10, ss*mat.m20, ss*mat.m30 + 0.5f);
-                        float ts = (1f / height);
+                        float ts = (1f / data.height);
                         projection.getGenPlaneT().set(
                             ts*mat.m01, ts*mat.m11, ts*mat.m21, ts*mat.m31 + 0.5f);
                     }
-                    protected Matrix3f _mat = new Matrix3f();
-                    protected Box _box = new Box();
-                    protected Transform3D _transform = new Transform3D(Transform3D.UNIFORM);
+                    protected Transform3D _viewTransformInv = new Transform3D();
                 });
             } else if (lightType == Light.Type.POINT) {
                 updaters.add(new Updater() {
                     public void update () {
-                        Vector4f pos = light.position;
+                        Vector4f pos = viewLight.position;
                         projection.getGenPlaneS().set(1f, 0f, 0f, -pos.x);
                         projection.getGenPlaneT().set(0f, 1f, 0f, -pos.y);
                         projection.getGenPlaneR().set(0f, 0f, 1f, -pos.z);
@@ -143,15 +136,13 @@ public abstract class ShadowConfig extends DeepObject
             } else { // lightType == Light.Type.SPOT
                 updaters.add(new Updater() {
                     public void update () {
-                        Vector4f pos = light.position;
-                        _viewTransformInv.getTranslation().set(pos.x, pos.y, pos.z);
-                        _viewTransformInv.getRotation().fromVectorFromNegativeZ(
-                            light.spotDirection);
+                        ctx.getCompositor().getCamera().getViewTransform().compose(
+                            data.transform, _viewTransformInv);
                         _viewTransformInv.invertLocal().update(Transform3D.AFFINE);
                         Matrix4f mat = _viewTransformInv.getMatrix();
                         Vector4f gpq = projection.getGenPlaneQ();
                         gpq.set(-mat.m02, -mat.m12, -mat.m22, -mat.m32);
-                        float ss = 0.5f / FloatMath.tan(FloatMath.toRadians(light.spotCutoff));
+                        float ss = 0.5f / FloatMath.tan(FloatMath.toRadians(viewLight.spotCutoff));
                         projection.getGenPlaneS().set(
                             ss*mat.m00 + 0.5f*gpq.x, ss*mat.m10 + 0.5f*gpq.y,
                             ss*mat.m20 + 0.5f*gpq.z, ss*mat.m30 + 0.5f*gpq.w);
@@ -159,10 +150,10 @@ public abstract class ShadowConfig extends DeepObject
                             ss*mat.m01 + 0.5f*gpq.x, ss*mat.m11 + 0.5f*gpq.y,
                             ss*mat.m21 + 0.5f*gpq.z, ss*mat.m31 + 0.5f*gpq.w);
                     }
-                    protected Transform3D _viewTransformInv = new Transform3D(Transform3D.RIGID);
+                    protected Transform3D _viewTransformInv = new Transform3D();
                 });
             }
-            return new LightInfluence(light) {
+            return new LightInfluence(viewLight) {
                 @Override public Projection getProjection () {
                     return projection;
                 }
@@ -171,12 +162,40 @@ public abstract class ShadowConfig extends DeepObject
     }
 
     /**
+     * A simple container for several state elements shared between the updater and the dependency.
+     */
+    public static abstract class Data extends ShallowObject
+    {
+        /** The light details in world space. */
+        public Light light;
+
+        /** An updater for the world light's transform. */
+        public Updater updater;
+    }
+
+    /**
+     * A simple container for several state elements shared between the updater and the dependency.
+     */
+    public static class TextureData extends Data
+    {
+        /** The light's transform in world space. */
+        public Transform3D transform = new Transform3D();
+
+        /** The distances to the near and far clip planes. */
+        public float near, far;
+
+        /** The dimensions of the light projection. */
+        public float width, height;
+    }
+
+    /**
      * Creates the scene influence corresponding to this config.
      *
      * @param updaters a list to populate with required updaters.
      */
     public abstract SceneInfluence createInfluence (
-        GlContext ctx, Scope scope, Light light, ArrayList<Updater> updaters);
+        GlContext ctx, Scope scope, LightConfig lightConfig,
+        Light viewLight, ArrayList<Updater> updaters);
 
     /**
      * Returns the render scheme to use for the projection of the specified light type.

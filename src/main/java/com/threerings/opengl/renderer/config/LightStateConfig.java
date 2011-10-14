@@ -76,7 +76,7 @@ public abstract class LightStateConfig extends DeepObject
         {
             Light[] slights = new Light[lights.length];
             for (int ii = 0; ii < lights.length; ii++) {
-                slights[ii] = lights[ii].createLight(ctx, scope, updaters);
+                slights[ii] = lights[ii].createLight(ctx, scope, false, updaters);
             }
             return new LightState(slights, globalAmbient);
         }
