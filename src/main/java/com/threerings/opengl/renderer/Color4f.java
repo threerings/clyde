@@ -57,6 +57,9 @@ public final class Color4f
     /** An opaque black color object. */
     public static final Color4f BLACK = new Color4f(0f, 0f, 0f, 1f);
 
+    /** A transparent black color object. */
+    public static final Color4f TRANSPARENT_BLACK = new Color4f(0f, 0f, 0f, 0f);
+
     /** An opaque red color object. */
     public static final Color4f RED = new Color4f(1f, 0f, 0f, 1f);
 

@@ -39,6 +39,7 @@ import com.threerings.math.Vector4f;
 
 import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
+import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Light;
 import com.threerings.opengl.renderer.Texture;
 import com.threerings.opengl.renderer.TextureRenderer;
@@ -466,6 +467,8 @@ public abstract class Dependency
             ShadowConfig.TextureData data = (ShadowConfig.TextureData)this.data;
             Compositor compositor = _ctx.getCompositor();
             Camera ocamera = compositor.getCamera();
+            Color4f obackground = compositor.getBackgroundColor();
+            compositor.setBackgroundColor(Color4f.TRANSPARENT_BLACK);
             Compositor.State cstate = compositor.prepareSubrender();
             Camera ncamera = compositor.getCamera();
             Transform3D transform = ncamera.getWorldTransform();
@@ -492,6 +495,7 @@ public abstract class Dependency
                     }
                 } finally {
                     compositor.cleanupSubrender(cstate);
+                    compositor.setBackgroundColor(obackground);
                 }
                 return;
             }
@@ -525,6 +529,7 @@ public abstract class Dependency
             } finally {
                 renderer.commitRender();
                 compositor.cleanupSubrender(cstate);
+                compositor.setBackgroundColor(obackground);
             }
         }
 

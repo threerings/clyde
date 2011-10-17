@@ -180,7 +180,7 @@ public abstract class ShadowConfig extends DeepObject
     }
 
     /**
-     * A simple container for several state elements shared between the updater and the dependency.
+     * Data elements specific to texture shadows.
      */
     public static class TextureData extends Data
     {
