@@ -121,7 +121,7 @@ public abstract class ShadowConfig extends DeepObject
                         float ts = 1f / data.height;
                         projection.getGenPlaneT().set(
                             ts*mat.m01, ts*mat.m11, ts*mat.m21, ts*mat.m31 + 0.5f);
-                        float rs = 1f / data.depth;
+                        float rs = -1f / data.depth;
                         projection.getGenPlaneR().set(
                             rs*mat.m02, rs*mat.m12, rs*mat.m22, rs*mat.m32);
                     }

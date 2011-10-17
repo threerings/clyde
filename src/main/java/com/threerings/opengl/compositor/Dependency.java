@@ -30,6 +30,7 @@ import org.lwjgl.opengl.PixelFormat;
 import com.threerings.expr.Updater;
 import com.threerings.math.Box;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Frustum;
 import com.threerings.math.Matrix3f;
 import com.threerings.math.Plane;
 import com.threerings.math.Quaternion;
@@ -499,10 +500,21 @@ public abstract class Dependency
                 return;
             }
             if (lightType == Light.Type.DIRECTIONAL) {
+                // use the new camera's frustum as a temporary to find the extents under rotation
+                Frustum volume = ncamera.getWorldVolume();
+                if (ocamera.isOrtho()) {
+                    volume.setToOrtho(ocamera.getLeft(), ocamera.getRight(),
+                        ocamera.getBottom(), ocamera.getTop(), data.near, data.far);
+                } else {
+                    float ns = data.near / ocamera.getNear();
+                    volume.setToFrustum(ns*ocamera.getLeft(), ns*ocamera.getRight(),
+                        ns*ocamera.getBottom(), ns*ocamera.getTop(), data.near, data.far);
+                }
+                volume.transformLocal(ocamera.getWorldTransform());
                 Quaternion trot = transform.getRotation();
                 trot.fromVectorFromNegativeZ(-pos.x, -pos.y, -pos.z);
                 Matrix3f mat = new Matrix3f().setToRotation(trot).transposeLocal();
-                Box box = ocamera.getWorldVolume().getBoundsUnderRotation(mat, new Box());
+                Box box = volume.getBoundsUnderRotation(mat, new Box());
                 Vector3f min = box.getMinimumExtent();
                 Vector3f max = box.getMaximumExtent();
                 data.width = max.x - min.x;
