@@ -97,7 +97,8 @@ public class Texture2D extends Texture
      */
     public void setImage (int level, int format, int width, int height, boolean border)
     {
-        setImage(level, format, width, height, border, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, null);
+        setImage(level, format, width, height, border,
+            getTransferFormat(format), GL11.GL_UNSIGNED_BYTE, null);
     }
 
     /**

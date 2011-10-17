@@ -115,10 +115,7 @@ public abstract class Texture
      */
     public boolean isDepth ()
     {
-        return _format == GL11.GL_DEPTH_COMPONENT ||
-            _format == ARBDepthTexture.GL_DEPTH_COMPONENT16_ARB ||
-            _format == ARBDepthTexture.GL_DEPTH_COMPONENT24_ARB ||
-            _format == ARBDepthTexture.GL_DEPTH_COMPONENT32_ARB;
+        return isDepth(_format);
     }
 
     /**
@@ -396,6 +393,25 @@ public abstract class Texture
         int[] formats = (GLContext.getCapabilities().GL_ARB_texture_compression && compress) ?
             COMPRESSED_FORMATS : FORMATS;
         return formats[image.getColorModel().getNumComponents() - 1];
+    }
+
+    /**
+     * Returns a suitable transfer format corresponding to the provided internal format.
+     */
+    protected static int getTransferFormat (int internalFormat)
+    {
+        return isDepth(internalFormat) ? GL11.GL_DEPTH_COMPONENT : GL11.GL_RGBA;
+    }
+
+    /**
+     * Checks whether the specified format is a depth format.
+     */
+    protected static boolean isDepth (int format)
+    {
+        return format == GL11.GL_DEPTH_COMPONENT ||
+            format == ARBDepthTexture.GL_DEPTH_COMPONENT16_ARB ||
+            format == ARBDepthTexture.GL_DEPTH_COMPONENT24_ARB ||
+            format == ARBDepthTexture.GL_DEPTH_COMPONENT32_ARB;
     }
 
     /**

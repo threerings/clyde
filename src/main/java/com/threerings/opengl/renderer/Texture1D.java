@@ -67,7 +67,8 @@ public class Texture1D extends Texture
      */
     public void setImage (int level, int format, int width, boolean border)
     {
-        setImage(level, format, width, border, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, null);
+        setImage(level, format, width, border, getTransferFormat(format),
+            GL11.GL_UNSIGNED_BYTE, null);
     }
 
     /**

@@ -79,7 +79,7 @@ public class TextureCubeMap extends Texture
     public void setImages (int level, int format, int size, boolean border)
     {
         for (int target : FACE_TARGETS) {
-            setImage(target, level, format, size, border, GL11.GL_RGBA,
+            setImage(target, level, format, size, border, getTransferFormat(format),
                 GL11.GL_UNSIGNED_BYTE, (ByteBuffer)null);
         }
     }

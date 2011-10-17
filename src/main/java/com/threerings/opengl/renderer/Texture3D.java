@@ -71,7 +71,7 @@ public class Texture3D extends Texture
     public void setImage (int level, int format, int width, int height, int depth, boolean border)
     {
         setImage(level, format, width, height, depth, border,
-            GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, null);
+            getTransferFormat(format), GL11.GL_UNSIGNED_BYTE, null);
     }
 
     /**
