@@ -59,15 +59,15 @@ import com.threerings.opengl.util.GlContext;
 /**
  * Represents a means of generating shadows from a light.
  */
-@EditorTypes({ ShadowConfig.SilhouetteTexture.class })
+@EditorTypes({ ShadowConfig.Texture.class })
 public abstract class ShadowConfig extends DeepObject
     implements Exportable
 {
     /**
-     * Generates shadows by rendering the silhouettes of shadow casters from the perspective
+     * Generates shadows by rendering silhouettes or a depth map from the perspective
      * of the light into a texture and projecting that texture onto shadow receivers.
      */
-    public static class SilhouetteTexture extends ShadowConfig
+    public static class Texture extends ShadowConfig
     {
         /** The distance to the near clip plane. */
         @Editable(min=0.0, step=0.01, hgroup="f")
@@ -130,11 +130,15 @@ public abstract class ShadowConfig extends DeepObject
             } else if (lightType == Light.Type.POINT) {
                 updaters.add(new Updater() {
                     public void update () {
-                        Vector4f pos = viewLight.position;
-                        projection.getGenPlaneS().set(1f, 0f, 0f, -pos.x);
-                        projection.getGenPlaneT().set(0f, 1f, 0f, -pos.y);
-                        projection.getGenPlaneR().set(0f, 0f, 1f, -pos.z);
+                        ctx.getCompositor().getCamera().getViewTransform().compose(
+                            data.transform, _viewTransformInv);
+                        _viewTransformInv.invertLocal().update(Transform3D.AFFINE);
+                        Matrix4f mat = _viewTransformInv.getMatrix();
+                        projection.getGenPlaneS().set(mat.m00, mat.m10, mat.m20, mat.m30);
+                        projection.getGenPlaneT().set(mat.m01, mat.m11, mat.m21, mat.m31);
+                        projection.getGenPlaneR().set(mat.m02, mat.m12, mat.m22, mat.m32);
                     }
+                    protected Transform3D _viewTransformInv = new Transform3D();
                 });
             } else { // lightType == Light.Type.SPOT
                 updaters.add(new Updater() {

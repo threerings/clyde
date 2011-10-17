@@ -479,12 +479,11 @@ public abstract class Dependency
             if (lightType == Light.Type.POINT) {
                 ncamera.setFrustum(-data.near, +data.near, -data.near, +data.near,
                     data.near, data.far);
-                Quaternion rot = new Quaternion();
-                ocamera.getWorldTransform().extractRotation(rot);
                 transform.getTranslation().set(pos.x, pos.y, pos.z);
+                data.transform.set(transform.getTranslation(), Quaternion.IDENTITY);
                 try {
                     for (int ii = 0; ii < 6; ii++) {
-                        rot.mult(CUBE_FACE_ROTATIONS[ii], transform.getRotation());
+                        transform.getRotation().set(CUBE_FACE_ROTATIONS[ii]);
                         ncamera.updateTransform();
                         renderer.startRender(0, ii);
                         try {
