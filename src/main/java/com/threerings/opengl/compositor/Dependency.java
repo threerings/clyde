@@ -429,11 +429,17 @@ public abstract class Dependency
      */
     public static class ShadowTexture extends Shadows
     {
-        /** The shadow texture. */
-        public Texture texture;
+        /** The color texture, if any. */
+        public Texture color;
 
-        /** The config from whose pool the texture was created. */
-        public TextureConfig config;
+        /** The config from whose pool the color texture was created. */
+        public TextureConfig colorConfig;
+
+        /** The depth texture, if any. */
+        public Texture depth;
+
+        /** The config from whose pool the depth texture was created. */
+        public TextureConfig depthConfig;
 
         /**
          * Creates a new shadow texture dependency.
@@ -447,8 +453,10 @@ public abstract class Dependency
         public void merge (Dependency dependency)
         {
             ShadowTexture odep = (ShadowTexture)dependency;
-            texture = odep.texture;
-            config = odep.config;
+            color = odep.color;
+            colorConfig = odep.colorConfig;
+            depth = odep.depth;
+            depthConfig = odep.depthConfig;
         }
 
         @Override // documentation inherited
@@ -464,7 +472,7 @@ public abstract class Dependency
             Light.Type lightType = data.light.getType();
             Vector4f pos = data.light.position;
             TextureRenderer renderer = TextureRenderer.getInstance(
-                _ctx, texture, null, new PixelFormat(8, 16, 8));
+                _ctx, color, depth, new PixelFormat(8, 16, 8));
             if (lightType == Light.Type.POINT) {
                 ncamera.setFrustum(-data.near, +data.near, -data.near, +data.near,
                     data.near, data.far);
@@ -522,7 +530,12 @@ public abstract class Dependency
         @Override // documentation inherited
         public void cleanup ()
         {
-            config.returnToPool(_ctx, texture);
+            if (colorConfig != null) {
+                colorConfig.returnToPool(_ctx, color);
+            }
+            if (depthConfig != null) {
+                depthConfig.returnToPool(_ctx, depth);
+            }
         }
     }
 

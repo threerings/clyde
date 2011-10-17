@@ -1498,6 +1498,10 @@ public class TextureConfig extends ParameterizedConfig
      */
     public static class Shadow extends BaseDerived
     {
+        /** Whether or not to render a depth texture. */
+        @Editable
+        public boolean depth;
+
         @Override // documentation inherited
         public Texture getTexture (
             final GlContext ctx, final TextureState state, final TextureUnit unit,
@@ -1527,11 +1531,16 @@ public class TextureConfig extends ParameterizedConfig
                         dependencies.put(depth, dependency = new Dependency.ShadowTexture(ctx));
                     }
                     dependency.data = data;
-                    dependency.texture = null;
+                    dependency.color = dependency.depth = null;
                     compositor.addDependency(dependency);
-                    if (dependency.texture == null) {
-                        dependency.texture = config.getFromPool(ctx);
-                        dependency.config = config;
+                    if (Shadow.this.depth) {
+                        if (dependency.depth == null) {
+                            dependency.depth = config.getFromPool(ctx);
+                            dependency.depthConfig = config;
+                        }
+                    } else if (dependency.color == null) {
+                        dependency.color = config.getFromPool(ctx);
+                        dependency.colorConfig = config;
                     }
                     return true;
                 }
@@ -1540,7 +1549,7 @@ public class TextureConfig extends ParameterizedConfig
                 public void update () {
                     Dependency.ShadowTexture dependency = dependencies.get(
                         ctx.getCompositor().getSubrenderDepth());
-                    unit.setTexture(dependency.texture);
+                    unit.setTexture(depth ? dependency.depth : dependency.color);
                     state.setDirty(true);
                 }
             });
