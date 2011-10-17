@@ -115,12 +115,15 @@ public abstract class ShadowConfig extends DeepObject
                             data.transform, _viewTransformInv);
                         _viewTransformInv.invertLocal().update(Transform3D.AFFINE);
                         Matrix4f mat = _viewTransformInv.getMatrix();
-                        float ss = (1f / data.width);
+                        float ss = 1f / data.width;
                         projection.getGenPlaneS().set(
                             ss*mat.m00, ss*mat.m10, ss*mat.m20, ss*mat.m30 + 0.5f);
-                        float ts = (1f / data.height);
+                        float ts = 1f / data.height;
                         projection.getGenPlaneT().set(
                             ts*mat.m01, ts*mat.m11, ts*mat.m21, ts*mat.m31 + 0.5f);
+                        float rs = 1f / data.depth;
+                        projection.getGenPlaneR().set(
+                            rs*mat.m02, rs*mat.m12, rs*mat.m22, rs*mat.m32);
                     }
                     protected Transform3D _viewTransformInv = new Transform3D();
                 });
@@ -149,6 +152,9 @@ public abstract class ShadowConfig extends DeepObject
                         projection.getGenPlaneT().set(
                             ss*mat.m01 + 0.5f*gpq.x, ss*mat.m11 + 0.5f*gpq.y,
                             ss*mat.m21 + 0.5f*gpq.z, ss*mat.m31 + 0.5f*gpq.w);
+                        float rs = far / (near - far);
+                        projection.getGenPlaneR().set(
+                            rs*mat.m02, rs*mat.m12, rs*mat.m22, rs*mat.m32 + near*rs);
                     }
                     protected Transform3D _viewTransformInv = new Transform3D();
                 });
@@ -185,7 +191,7 @@ public abstract class ShadowConfig extends DeepObject
         public float near, far;
 
         /** The dimensions of the light projection. */
-        public float width, height;
+        public float width, height, depth;
     }
 
     /**
@@ -203,9 +209,9 @@ public abstract class ShadowConfig extends DeepObject
     protected static String getProjectionScheme (Light.Type type)
     {
         switch (type) {
-            case DIRECTIONAL: return RenderScheme.ORTHOGRAPHIC_PROJECTION;
-            case POINT: return RenderScheme.VOLUME_PROJECTION;
-            case SPOT: return RenderScheme.PERSPECTIVE_PROJECTION;
+            case DIRECTIONAL: return RenderScheme.PROJECTION_STR;
+            case POINT: return RenderScheme.PROJECTION_STR;
+            case SPOT: return RenderScheme.PROJECTION_STRQ;
             default: return null;
         }
     }

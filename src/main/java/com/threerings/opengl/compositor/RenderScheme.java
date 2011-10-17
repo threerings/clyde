@@ -34,12 +34,15 @@ public class RenderScheme
     /** The name of the translucent scheme. */
     public static final String TRANSLUCENT = "Translucent";
 
-    /** The name of the perspective projection scheme. */
-    public static final String PERSPECTIVE_PROJECTION = "Projection (Persp)";
+    /** The name of the ST projection scheme (basic orthographic). */
+    public static final String PROJECTION_ST = "Projection (ST)";
 
-    /** The name of the orthographic projection scheme. */
-    public static final String ORTHOGRAPHIC_PROJECTION = "Projection (Ortho)";
+    /** The name of the STR projection scheme (orthographic with depth). */
+    public static final String PROJECTION_STR = "Projection (STR)";
 
-    /** The name of the volume projection scheme. */
-    public static final String VOLUME_PROJECTION = "Projection (Volume)";
+    /** The name of the STQ projection scheme (basic perspective). */
+    public static final String PROJECTION_STQ = "Projection (STQ)";
+
+    /** The name of the STRQ projection scheme (perspective with depth). */
+    public static final String PROJECTION_STRQ = "Projection (STRQ)";
 }

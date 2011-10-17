@@ -63,7 +63,7 @@ public abstract class ProjectionConfig extends DeepObject
         @Override // documentation inherited
         protected String getScheme ()
         {
-            return RenderScheme.PERSPECTIVE_PROJECTION;
+            return RenderScheme.PROJECTION_STQ;
         }
 
         @Override // documentation inherited
@@ -100,7 +100,7 @@ public abstract class ProjectionConfig extends DeepObject
         @Override // documentation inherited
         protected String getScheme ()
         {
-            return RenderScheme.ORTHOGRAPHIC_PROJECTION;
+            return RenderScheme.PROJECTION_ST;
         }
 
         @Override // documentation inherited

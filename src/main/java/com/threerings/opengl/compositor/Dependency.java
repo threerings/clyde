@@ -504,9 +504,10 @@ public abstract class Dependency
                 Vector3f max = box.getMaximumExtent();
                 data.width = max.x - min.x;
                 data.height = max.y - min.y;
+                data.depth = max.z - min.z;
                 float hwidth = data.width * 0.5f;
                 float hheight = data.height * 0.5f;
-                ncamera.setOrtho(-hwidth, +hwidth, -hheight, +hheight, 0f, max.z - min.z);
+                ncamera.setOrtho(-hwidth, +hwidth, -hheight, +hheight, 0f, data.depth);
                 trot.transformLocal(transform.getTranslation().set(
                     min.x + hwidth, min.y + hheight, max.z));
 
