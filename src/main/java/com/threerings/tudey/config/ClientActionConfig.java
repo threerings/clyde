@@ -57,10 +57,14 @@ public abstract class ClientActionConfig extends DeepObject
         @Editable
         public String command = "";
 
+        /** The argument to pass. */
+        @Editable
+        public String argument = "";
+
         @Override // documentation inherited
         public void execute (TudeyContext ctx, TudeySceneView view, Sprite source)
         {
-            if (!view.getController().handleAction(source, command, null)) {
+            if (!view.getController().handleAction(source, command, argument)) {
                 log.warning("Controller didn't handle action.", "command", command);
             }
         }
