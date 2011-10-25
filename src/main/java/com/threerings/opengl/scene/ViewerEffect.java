@@ -86,7 +86,7 @@ public abstract class ViewerEffect extends ShallowObject
     }
 
     /**
-     * A hint indicating taht we should omit this effect while loading (used for sounds, to prevent
+     * A hint indicating that we should omit this effect while loading (used for sounds, to prevent
      * them from playing until we're fully loaded).
      */
     public boolean omitWhileLoading ()

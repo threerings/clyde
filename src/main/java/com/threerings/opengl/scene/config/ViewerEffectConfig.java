@@ -29,6 +29,9 @@ import com.threerings.config.ConfigReference;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
+import com.threerings.expr.MutableLong;
+import com.threerings.expr.Color4fExpression;
+import com.threerings.expr.ObjectExpression.Evaluator;
 import com.threerings.expr.Scope;
 import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Transform3D;
@@ -37,10 +40,12 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.openal.Sounder;
 import com.threerings.openal.config.SounderConfig;
+import com.threerings.opengl.camera.CameraHandler;
 import com.threerings.opengl.compositor.config.RenderEffectConfig;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
 import com.threerings.opengl.renderer.Color4f;
+import com.threerings.opengl.renderer.state.LightState;
 import com.threerings.opengl.scene.BackgroundColorEffect;
 import com.threerings.opengl.scene.Scene;
 import com.threerings.opengl.scene.ViewerEffect;
@@ -54,7 +59,8 @@ import com.threerings.tudey.config.TudeyViewerEffectConfig;
 @EditorTypes({
     ViewerEffectConfig.Sound.class, ViewerEffectConfig.BackgroundColor.class,
     ViewerEffectConfig.Skybox.class, ViewerEffectConfig.Particles.class,
-    ViewerEffectConfig.RenderEffect.class, TudeyViewerEffectConfig.class })
+    ViewerEffectConfig.RenderEffect.class, ViewerEffectConfig.AmbientLightOffset.class,
+    TudeyViewerEffectConfig.class })
 public abstract class ViewerEffectConfig extends DeepObject
     implements Exportable
 {
@@ -291,11 +297,116 @@ public abstract class ViewerEffectConfig extends DeepObject
     }
 
     /**
+     * Offsets the ambient light color.
+     */
+    public static class AmbientLightOffset extends ViewerEffectConfig
+    {
+        /** The duration of the effect, or zero for unlimited. */
+        @Editable(min=0.0, step=0.01)
+        public float duration;
+
+        /** The inner radius of the effect (within which the offset will be at full amplitude). */
+        @Editable(min=0.0, step=0.01, hgroup="r")
+        public float innerRadius = 10f;
+
+        /** The outer radius of the effect (outside of which the offset will not be felt). */
+        @Editable(min=0.0, step=0.01, hgroup="r")
+        public float outerRadius = 100f;
+
+        /** The offset amount. */
+        @Editable
+        public Color4fExpression amount = new Color4fExpression.Constant();
+
+        @Override // documentation inherited
+        public ViewerEffect getViewerEffect (
+            final GlContext ctx, Scope scope, ViewerEffect effect)
+        {
+            final LightState lightState = ScopeUtil.resolve(
+                scope, "lightState", null, LightState.class);
+            if (lightState == null || lightState.getLights() == null) {
+                return getNoopEffect(effect);
+            }
+            final MutableLong epoch = ScopeUtil.resolve(
+                scope, "epoch", new MutableLong(System.currentTimeMillis()));
+            final MutableLong now = ScopeUtil.resolve(
+                scope, "now", new MutableLong(System.currentTimeMillis()));
+            final Transform3D transform = ScopeUtil.resolve(
+                scope, "worldTransform", new Transform3D());
+            final Evaluator<Color4f> evaluator = amount.createEvaluator(scope);
+            return new ViewerEffect() {
+                @Override public void activate (Scene scene) {
+                    addCurrent();
+                }
+                @Override public void deactivate () {
+                    subtractLast();
+                }
+                @Override public void update () {
+                    if (_completed) {
+                        return;
+                    }
+                    subtractLast();
+                    if (!(_completed = duration > 0f &&
+                            (now.value - epoch.value)/1000f >= duration)) {
+                        addCurrent();
+                    }
+                }
+                @Override public boolean hasCompleted () {
+                    return _completed;
+                }
+                @Override public void reset () {
+                    _completed = false;
+                }
+                protected void subtractLast () {
+                    if (_lastGlobalAmbient != null) {
+                        _lastGlobalAmbient.r -= _lastAmount.r;
+                        _lastGlobalAmbient.g -= _lastAmount.g;
+                        _lastGlobalAmbient.b -= _lastAmount.b;
+                        _lastGlobalAmbient = null;
+                    }
+                }
+                protected void addCurrent () {
+                    transform.extractTranslation(_translation);
+                    CameraHandler camhand = ctx.getCameraHandler();
+                    float dist = camhand.getViewerTranslation().distance(_translation);
+                    if (dist > outerRadius) {
+                        return;
+                    }
+                    float scale = (dist <= innerRadius) ? 1f :
+                        1f - (dist - innerRadius) / (outerRadius - innerRadius);
+                    _lastGlobalAmbient = lightState.getGlobalAmbient();
+                    _lastAmount.set(evaluator.evaluate()).multLocal(scale);
+                    _lastGlobalAmbient.r += _lastAmount.r;
+                    _lastGlobalAmbient.g += _lastAmount.g;
+                    _lastGlobalAmbient.b += _lastAmount.b;
+                }
+                protected Color4f _lastAmount = new Color4f();
+                protected Color4f _lastGlobalAmbient;
+                protected boolean _completed;
+                protected Vector3f _translation = new Vector3f();
+            };
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            amount.invalidate();
+        }
+    }
+
+    /**
      * Creates the actual effect object.
      *
      * @param effect an effect to reuse, if possible.
      */
     public abstract ViewerEffect getViewerEffect (GlContext ctx, Scope scope, ViewerEffect effect);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 
     /**
      * Creates an effect that does nothing.

@@ -62,4 +62,10 @@ public class ViewerAffecterConfig extends ModelConfig.Implementation
         }
         return impl;
     }
+
+    @Override // documentation inherited
+    public void invalidate ()
+    {
+        effect.invalidate();
+    }
 }
