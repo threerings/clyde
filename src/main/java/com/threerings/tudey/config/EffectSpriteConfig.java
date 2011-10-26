@@ -87,6 +87,10 @@ public abstract class EffectSpriteConfig extends DeepObject
     @Editable(hgroup="a")
     public boolean attachToTarget;
 
+    /** Whether or not to rotate the transient with the target (if attached). */
+    @Editable
+    public boolean rotateWithTarget = true;
+
     /** The transient to fire off for the effect. */
     @Editable(nullable=true)
     public ConfigReference<ModelConfig> model;

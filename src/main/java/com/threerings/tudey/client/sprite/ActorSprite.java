@@ -43,6 +43,7 @@ import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.Updater;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 
@@ -1081,16 +1082,27 @@ public class ActorSprite extends Sprite
      */
     public void spawnAttachedTransientModel (ConfigReference<ModelConfig> ref)
     {
+        spawnAttachedTransientModel(ref, true);
+    }
+
+    /**
+     * Gets and attaches a transient model to this sprite.
+     *
+     * @param rotate if true, update the transient's rotation as well as its translation.
+     */
+    public void spawnAttachedTransientModel (
+        ConfigReference<ModelConfig> ref, final boolean rotate)
+    {
         if (_impl == null) {
             return;
         }
         final Transient trans = _view.getScene().getFromTransientPool(ref);
         trans.setUpdater(new Updater() {
             public void update () {
-                updateAttachedTransform(trans, _model.getLocalTransform());
+                updateAttachedTransform(trans, _model.getLocalTransform(), rotate);
             }
         });
-        updateAttachedTransform(trans, _model.getLocalTransform());
+        updateAttachedTransform(trans, _model.getLocalTransform(), rotate);
         _view.getScene().add(trans);
     }
 
@@ -1470,8 +1482,17 @@ public class ActorSprite extends Sprite
      */
     protected static void updateAttachedTransform (Model attached, Transform3D mtrans)
     {
+        updateAttachedTransform(attached, mtrans, true);
+    }
+
+    /**
+     * Updates the transform of an attached model based on that of the primary.
+     */
+    protected static void updateAttachedTransform (
+        Model attached, Transform3D mtrans, boolean rotate)
+    {
         Transform3D atrans = attached.getLocalTransform();
-        atrans.set(mtrans.getTranslation(), mtrans.getRotation(),
+        atrans.set(mtrans.getTranslation(), rotate ? mtrans.getRotation() : Quaternion.IDENTITY,
             atrans.approximateUniformScale());
         attached.updateBounds();
     }
