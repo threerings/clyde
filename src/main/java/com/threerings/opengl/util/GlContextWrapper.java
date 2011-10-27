@@ -45,11 +45,28 @@ public abstract class GlContextWrapper
     implements GlContext
 {
     /**
+     * Unwraps the provided context layer by layer until the base is found.
+     */
+    public static GlContext getBase (GlContext ctx)
+    {
+        return (ctx instanceof GlContextWrapper) ?
+            getBase(((GlContextWrapper)ctx).getWrapped()) : ctx;
+    }
+
+    /**
      * Creates a new wrapper to wrap the specified context.
      */
     public GlContextWrapper (GlContext wrapped)
     {
         _wrapped = wrapped;
+    }
+
+    /**
+     * Returns a reference to the wrapped context.
+     */
+    public GlContext getWrapped ()
+    {
+        return _wrapped;
     }
 
     // documentation inherited from interface GlContext

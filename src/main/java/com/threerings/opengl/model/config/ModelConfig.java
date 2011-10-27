@@ -71,6 +71,7 @@ import com.threerings.opengl.renderer.config.TextureConfig;
 import com.threerings.opengl.scene.config.ViewerAffecterConfig;
 import com.threerings.opengl.scene.config.SceneInfluencerConfig;
 import com.threerings.opengl.util.GlContext;
+import com.threerings.opengl.util.GlContextWrapper;
 
 import com.threerings.tudey.config.ActorModelConfig;
 import com.threerings.tudey.shape.config.ShapeModelConfig;
@@ -446,7 +447,8 @@ public class ModelConfig extends ParameterizedConfig
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
-            return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
+            return (config == null) ? null : config.getModelImplementation(
+                createContextWrapper(ctx, config), scope, impl);
         }
 
         @Override // documentation inherited
@@ -487,7 +489,8 @@ public class ModelConfig extends ParameterizedConfig
         {
             ConfigReference<ModelConfig> model = getModel(scope);
             ModelConfig config = ctx.getConfigManager().getConfig(ModelConfig.class, model);
-            return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
+            return (config == null) ? null : config.getModelImplementation(
+                createContextWrapper(ctx, config), scope, impl);
         }
 
         /**
@@ -539,7 +542,8 @@ public class ModelConfig extends ParameterizedConfig
             GlContext ctx, Scope scope, Model.Implementation impl)
         {
             ModelConfig config = getModelConfig(ctx.getConfigManager());
-            return (config == null) ? null : config.getModelImplementation(ctx, scope, impl);
+            return (config == null) ? null : config.getModelImplementation(
+                createContextWrapper(ctx, config), scope, impl);
         }
 
         @Override // documentation inherited
@@ -738,6 +742,18 @@ public class ModelConfig extends ParameterizedConfig
     protected void getUpdateReferences (ConfigReferenceSet refs)
     {
         implementation.getUpdateReferences(refs);
+    }
+
+    /**
+     * Creates a context wrapper that exposes the provided config's embedded config manager.
+     */
+    protected static GlContext createContextWrapper (GlContext ctx, final ModelConfig config)
+    {
+        return new GlContextWrapper(ctx) {
+            @Override public ConfigManager getConfigManager () {
+                return config.getConfigManager();
+            }
+        };
     }
 
     /** The model's local config library. */
