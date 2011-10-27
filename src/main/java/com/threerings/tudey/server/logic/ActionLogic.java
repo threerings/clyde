@@ -1083,6 +1083,33 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
+     * Handles a server log action.
+     */
+    public static class ServerLog extends ActionLogic
+    {
+        @Override // documentation inherited
+        public boolean execute (int timestamp, Logic activator)
+        {
+            ActionConfig.ServerLog config = (ActionConfig.ServerLog)_config;
+            switch(config.level) {
+            case DEBUG:
+                log.debug(config.message);
+                break;
+            case INFO:
+                log.info(config.message);
+                break;
+            case WARN:
+                log.warning(config.message);
+                break;
+            case ERROR:
+                log.error(config.message);
+                break;
+            }
+            return true;
+        }
+    }
+
+    /**
      * Initializes the logic.
      */
     public void init (TudeySceneManager scenemgr, ActionConfig config, Logic source)

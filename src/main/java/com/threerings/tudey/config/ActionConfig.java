@@ -60,7 +60,8 @@ import com.threerings.tudey.util.Coord;
     ActionConfig.Compound.class, ActionConfig.Random.class,
     ActionConfig.Delayed.class, ActionConfig.StepLimitMobile.class,
     ActionConfig.SetVariable.class, ActionConfig.SetFlag.class,
-    ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class })
+    ActionConfig.ForceClientAction.class, ActionConfig.TargetedAction.class,
+    ActionConfig.ServerLog.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable, Streamable
 {
@@ -1009,6 +1010,28 @@ public abstract class ActionConfig extends DeepObject
             action.invalidate();
         }
     }
+
+    /**
+     * Posts a message in the server log.
+     */
+    public static class ServerLog extends ActionConfig
+    {
+        /** The log level. */
+        @Editable
+        public LogLevel level = LogLevel.INFO;
+
+        /** The log message. */
+        @Editable
+        public String message = "";
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ActionLogic$ServerLog";
+        }
+    }
+
+    public enum LogLevel { DEBUG, INFO, WARN, ERROR };
 
     /**
      * Returns the name of the server-side logic class for this action.
