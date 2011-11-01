@@ -578,6 +578,9 @@ public class Articulated extends Model.Implementation
         for (Model model : _userAttachments) {
             model.dumpInfo(pprefix);
         }
+        for (Animation animation : _playing) {
+            animation.dumpInfo(prefix);
+        }
     }
 
     @Override // documentation inherited

@@ -162,6 +162,14 @@ public class Animation extends SimpleScope
             // nothing by default
         }
 
+        /**
+         * Dumps some information about the animation to the standard output.
+         */
+        public void dumpInfo (String prefix)
+        {
+            // nothing by default
+        }
+
         @Override // documentation inherited
         public String getScopeName ()
         {
@@ -997,6 +1005,15 @@ public class Animation extends SimpleScope
     public void blendTransforms (int update)
     {
         _impl.blendTransforms(update);
+    }
+
+    /**
+     * Dumps some information about the animation to the standard output.
+     */
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + (_config == null ? null : _config.getReference()));
+        _impl.dumpInfo(prefix);
     }
 
     // documentation inherited from interface ConfigUpdateListener
