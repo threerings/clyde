@@ -474,6 +474,12 @@ public abstract class BaseParticleSystem extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + "ParticleSystem: " + _worldTransform + " " + _bounds);
+    }
+
+    @Override // documentation inherited
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;

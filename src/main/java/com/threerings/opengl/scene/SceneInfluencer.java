@@ -132,6 +132,12 @@ public class SceneInfluencer extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + "SceneInfluencer: " + _worldTransform + " " + _bounds);
+    }
+
+    @Override // documentation inherited
     public void wasAdded ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);

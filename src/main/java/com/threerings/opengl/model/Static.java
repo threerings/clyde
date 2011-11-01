@@ -113,6 +113,12 @@ public class Static extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + "Static: " + _worldTransform + " " + _bounds);
+    }
+
+    @Override // documentation inherited
     public boolean getIntersection (Ray3D ray, Vector3f result)
     {
         // we must transform the ray into model space before checking against the collision mesh

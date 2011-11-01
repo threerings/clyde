@@ -131,6 +131,13 @@ public class Conditional extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + "Conditional: " + _worldTransform + " " + _bounds);
+        _active.dumpInfo(prefix + "  ");
+    }
+
+    @Override // documentation inherited
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;

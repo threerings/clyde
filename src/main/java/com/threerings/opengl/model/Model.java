@@ -204,6 +204,14 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Dumps some information about the model to the standard output.
+         */
+        public void dumpInfo (String prefix)
+        {
+            // nothing by default
+        }
+
+        /**
          * Sets the tick policy of the model.
          */
         public void setTickPolicy (TickPolicy policy)
@@ -780,6 +788,15 @@ public class Model extends DynamicScope
     public void drawBounds ()
     {
         _impl.drawBounds();
+    }
+
+    /**
+     * Dumps some information about the model to the standard output.
+     */
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + (_config == null ? null : _config.getReference()));
+        _impl.dumpInfo(prefix);
     }
 
     /**

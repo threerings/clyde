@@ -215,6 +215,14 @@ public class Articulated extends Model.Implementation
         }
 
         /**
+         * Dumps some information about the node to the standard output.
+         */
+        public void dumpInfo (String prefix)
+        {
+            System.out.println(prefix + _config.name + ": " + _worldTransform);
+        }
+
+        /**
          * Composites this node.
          */
         public void composite ()
@@ -338,6 +346,12 @@ public class Articulated extends Model.Implementation
             // then transform it back if we get a hit
             _worldTransform.transformPointLocal(result);
             return true;
+        }
+
+        @Override // documentation inherited
+        public void dumpInfo (String prefix)
+        {
+            System.out.println(prefix + _config.name + ": " + _worldTransform + " " + _bounds);
         }
 
         @Override // documentation inherited
@@ -547,6 +561,22 @@ public class Articulated extends Model.Implementation
         }
         for (int ii = 0, nn = _userAttachments.size(); ii < nn; ii++) {
             _userAttachments.get(ii).drawBounds();
+        }
+    }
+
+    @Override // documentation inherited
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + "Articulated: " + _worldTransform + " " + _bounds);
+        String pprefix = prefix + "  ";
+        for (Node node : _nodes) {
+            node.dumpInfo(pprefix);
+        }
+        for (Model model : _configAttachments) {
+            model.dumpInfo(pprefix);
+        }
+        for (Model model : _userAttachments) {
+            model.dumpInfo(pprefix);
         }
     }
 

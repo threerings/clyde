@@ -122,6 +122,16 @@ public class Compound extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void dumpInfo (String prefix)
+    {
+        System.out.println(prefix + "Compound: " + _worldTransform + " " + _bounds);
+        String pprefix = prefix + "  ";
+        for (Model model : _models) {
+            model.dumpInfo(pprefix);
+        }
+    }
+
+    @Override // documentation inherited
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
