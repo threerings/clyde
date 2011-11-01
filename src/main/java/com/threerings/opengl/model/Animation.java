@@ -328,7 +328,8 @@ public class Animation extends SimpleScope
             _fidx += frames;
             if (_fidx < 0) { // sanity check
                 log.warning("Frame index went negative!", "anim",
-                    ((Animation)_parentScope)._name, "fidx", _fidx);
+                    ((Animation)_parentScope)._name, "fidx", _fidx, "accum", _accum,
+                    "elapsed", elapsed, "frames", frames);
                 _fidx = 0;
             }
             executeActions();
