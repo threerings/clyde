@@ -42,6 +42,8 @@ import com.threerings.opengl.compositor.RenderScheme;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.util.GlContext;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * The meta particle system model implementation.
  */
@@ -128,7 +130,13 @@ public class MetaParticleSystem extends BaseParticleSystem
                     model.setLocalTransform(new Transform3D());
                     Box bounds = model.getBounds();
                     if (!bounds.isEmpty()) {
-                        _geometryRadius = bounds.getDiagonalLength() * 0.5f;
+                        float length = bounds.getDiagonalLength();
+                        if (Float.isNaN(length)) {
+                            log.warning("Diagonal length is not-a-number.",
+                                "model", mconfig.model, "bounds", bounds);
+                        } else {
+                            _geometryRadius = length * 0.5f;
+                        }
                     }
                 }
                 _models[ii] = model;
