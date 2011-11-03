@@ -635,6 +635,14 @@ public final class Quaternion
         values[3] = w;
     }
 
+    /**
+     * Checks whether any of the components of this quaternion are not-numbers.
+     */
+    public boolean hasNaN ()
+    {
+        return Float.isNaN(x) || Float.isNaN(y) || Float.isNaN(z) || Float.isNaN(w);
+    }
+
     // documentation inherited from interface Encodable
     public String encodeToString ()
     {

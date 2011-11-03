@@ -404,8 +404,9 @@ public class Animation extends SimpleScope
                     target.totalWeight = _weight;
                     continue;
                 }
-                // if the total weight is less than one, we can add our contribution
-                if (target.totalWeight >= 1f) {
+                // if our weight is greater than zero and the total weight is
+                // less than one, we can add our contribution
+                if (_weight <= 0f || target.totalWeight >= 1f) {
                     continue;
                 }
                 float mweight = Math.min(_weight, 1f - target.totalWeight);
