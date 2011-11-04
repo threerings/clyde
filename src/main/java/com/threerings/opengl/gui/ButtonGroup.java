@@ -39,12 +39,25 @@ public class ButtonGroup
     implements ActionListener, Selectable<ToggleButton>
 {
     /**
-     * Creates a new button group.
+     * Creates a new button group in which one button is always selected.
      *
      * @param buttons the buttons in the group.
      */
     public ButtonGroup (ToggleButton... buttons)
     {
+        this(true, buttons);
+    }
+
+    /**
+     * Creates a new button group.
+     *
+     * @param alwaysSelect if true and the group contains at least one button, one button must
+     * always be selected.
+     * @param buttons the buttons in the group.
+     */
+    public ButtonGroup (boolean alwaysSelect, ToggleButton... buttons)
+    {
+        _alwaysSelect = alwaysSelect;
         for (ToggleButton button : buttons) {
             add(button);
         }
@@ -71,7 +84,11 @@ public class ButtonGroup
      */
     public void add (ToggleButton button)
     {
-        button.setSelected(_buttons.isEmpty());
+        if (getSelectedIndex() != -1) {
+            button.setSelected(false);
+        } else if (_alwaysSelect) {
+            button.setSelected(true);
+        }
         _buttons.add(button);
         button.addListener(this);
     }
@@ -83,7 +100,7 @@ public class ButtonGroup
     {
         _buttons.remove(button);
         button.removeListener(this);
-        if (button.isSelected() && !_buttons.isEmpty()) {
+        if (_alwaysSelect && button.isSelected() && !_buttons.isEmpty()) {
             _buttons.get(0).setSelected(true);
         }
     }
@@ -164,11 +181,13 @@ public class ButtonGroup
     public void actionPerformed (ActionEvent event)
     {
         ToggleButton button = (ToggleButton)event.getSource();
-        if (!button.isSelected()) {
+        if (button.isSelected()) {
+            selectionChanged(button, event.getWhen(), event.getModifiers());
+
+        } else if (_alwaysSelect) {
+            // can only unselect by selecting another button
             button.setSelected(true);
-            return; // can only unselect by selecting another button
         }
-        selectionChanged(button, event.getWhen(), event.getModifiers());
     }
 
     /**
@@ -187,6 +206,9 @@ public class ButtonGroup
             event.dispatch(_listeners.get(ii));
         }
     }
+
+    /** If true and we have at least one button, one must always be selected. */
+    protected boolean _alwaysSelect;
 
     /** The buttons in the group. */
     protected List<ToggleButton> _buttons = Lists.newArrayList();
