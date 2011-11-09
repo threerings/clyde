@@ -916,38 +916,6 @@ public abstract class ActionLogic extends Logic
     }
 
     /**
-     * Handles a step limit mobile action.
-     */
-    public static class StepLimitMobile extends Targeted
-    {
-        @Override // documentation inherited
-        public boolean execute (int timestamp, Logic activator)
-        {
-            boolean success = false;
-            _target.resolve(activator, _targets);
-            for (int ii = 0, nn = _targets.size(); ii < nn; ii++) {
-                Logic target = _targets.get(ii);
-                if (target instanceof MobileLogic) {
-                    ActionConfig.StepLimitMobile config = (ActionConfig.StepLimitMobile)_config;
-                    float rotation = getRotation();
-                    float minDirection = config.minDirection + rotation;
-                    float maxDirection = config.maxDirection + rotation;
-                    ((MobileLogic)target).stepLimit(minDirection, maxDirection, config.remove);
-                    success = true;
-                }
-            }
-            _targets.clear();
-            return success;
-        }
-
-        @Override // documentation inherited
-        protected void didInit ()
-        {
-            _target = createTarget(((ActionConfig.StepLimitMobile)_config).target, _source);
-        }
-    }
-
-    /**
      * Handles a set variable action.
      */
     public static class SetVariable extends Targeted

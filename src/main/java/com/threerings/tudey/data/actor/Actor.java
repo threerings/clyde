@@ -337,6 +337,14 @@ public class Actor extends DeepObject
     }
 
     /**
+     * Returns if the actor is affected by direction flags.
+     */
+    public boolean directionAffected ()
+    {
+        return false;
+    }
+
+    /**
      * Sets the state of the actor's dirty flag.
      */
     public void setDirty (boolean dirty)

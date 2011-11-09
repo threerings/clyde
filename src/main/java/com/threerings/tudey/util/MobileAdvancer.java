@@ -122,7 +122,7 @@ public class MobileAdvancer extends ActorAdvancer
      */
     protected void mobileStep (float elapsed, int timestamp)
     {
-        _mobile.step(elapsed, timestamp);
+        _mobile.step(elapsed, timestamp, _environment.getDirections(_mobile, _shape));
     }
 
     /** A casted reference to the mobile. */

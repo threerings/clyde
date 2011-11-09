@@ -34,6 +34,7 @@ import com.threerings.util.DeepOmit;
 
 import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.util.ActorAdvancer;
+import com.threerings.tudey.util.DirectionUtil;
 import com.threerings.tudey.util.MobileAdvancer;
 
 /**
@@ -125,38 +126,6 @@ public class Mobile extends Actor
     }
 
     /**
-     * Adds a step limiter.
-     */
-    public void addStepLimiter (StepLimiter limiter)
-    {
-        if (_limiters == null) {
-            _limiters = new StepLimiter[1];
-            _limiters[0] = limiter;
-        } else {
-            _limiters = ArrayUtil.append(_limiters, limiter);
-        }
-        setDirty(true);
-    }
-
-    /**
-     * Removes a step limiter.
-     */
-    public void removeStepLimiter (StepLimiter limiter)
-    {
-        if (_limiters != null) {
-            int idx = ArrayUtil.indexOf(_limiters, limiter);
-            if (idx == 0 && _limiters.length == 1) {
-                _limiters = null;
-                setDirty(true);
-
-            } else if (idx > -1) {
-                _limiters = ArrayUtil.splice(_limiters, idx, 1);
-                setDirty(true);
-            }
-        }
-    }
-
-    /**
      * Returns the (base) speed of the actor.
      */
     public float getSpeed ()
@@ -168,15 +137,19 @@ public class Mobile extends Actor
      * Takes an Euler step of the specified duration.
      *
      * @param timestamp the timestamp at the end of the step.
+     * @param directions the restricted directions of travel.
      */
-    public void step (float elapsed, int timestamp)
+    public void step (float elapsed, int timestamp, int directions)
     {
-        if (isSet(MOVING) && !isLimited(_direction)) {
+        if (isSet(MOVING)) {
             float length = getSpeed() * elapsed;
-            _translation.addLocal(
+            Vector2f step = new Vector2f(
                 length * FloatMath.cos(_direction),
                 length * FloatMath.sin(_direction));
-            setDirty(true);
+            if (DirectionUtil.alterStep(step, directions)) {
+                _translation.addLocal(step);
+                setDirty(true);
+            }
         }
     }
 
@@ -186,7 +159,7 @@ public class Mobile extends Actor
         super.extrapolate(elapsed, timestamp, result);
 
         // take a step of the indicated duration
-        ((Mobile)result).step(elapsed, timestamp);
+        ((Mobile)result).step(elapsed, timestamp, 0);
 
         return result;
     }
@@ -222,24 +195,6 @@ public class Mobile extends Actor
         hash = 31*hash + Float.floatToIntBits(_direction);
         return hash;
     }
-
-    /**
-     * Returns true if a limited stops movement in the direction.
-     */
-    protected boolean isLimited (float direction)
-    {
-        if (_limiters != null) {
-            for (StepLimiter limiter : _limiters) {
-                if (!limiter.canStep(direction)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /** The step limiters. */
-    protected StepLimiter[] _limiters;
 
     /** The maximum translation we allow in a substep. */
     protected float _maxStep;

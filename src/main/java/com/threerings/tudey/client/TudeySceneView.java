@@ -1230,6 +1230,12 @@ public class TudeySceneView extends DynamicScope
         return false;
     }
 
+    // documentation inherited from interface ActorAdvancer.Environment
+    public int getDirections (Actor actor, Shape shape)
+    {
+        return _sceneModel.getDirections(actor, shape);
+    }
+
     /**
      * Checks for collision against a mask.
      */

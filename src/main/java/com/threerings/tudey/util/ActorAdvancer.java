@@ -63,6 +63,11 @@ public class ActorAdvancer
          * Checks whether the actor is colliding with anything.
          */
         public boolean collides (Actor actor, Shape shape);
+
+        /**
+         * Returns the direction flags affecting the actor.
+         */
+        public int getDirections (Actor actor, Shape shape);
     }
 
     /**
@@ -97,6 +102,7 @@ public class ActorAdvancer
     {
         _actor = actor;
         _timestamp = timestamp;
+        updateShape();
     }
 
     /**

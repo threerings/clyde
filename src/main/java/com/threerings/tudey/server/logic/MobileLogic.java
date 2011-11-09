@@ -34,7 +34,6 @@ import com.threerings.tudey.config.ActorConfig;
 import com.threerings.tudey.data.TudeySceneModel;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
-import com.threerings.tudey.data.actor.StepLimiter;
 import com.threerings.tudey.server.TudeySceneManager;
 import com.threerings.tudey.shape.Shape;
 import com.threerings.tudey.util.ActorAdvancer;
@@ -45,20 +44,6 @@ import com.threerings.tudey.util.ActorAdvancer;
 public class MobileLogic extends ActorLogic
     implements TudeySceneManager.TickParticipant, ActorAdvancer.Environment
 {
-    /**
-     * Adds or removes a step limiter.
-     */
-    public void stepLimit (float minDirection, float maxDirection, boolean remove)
-    {
-        StepLimiter limiter = new StepLimiter(minDirection, maxDirection);
-        Mobile mobile = (Mobile)getActor();
-        if (remove) {
-            mobile.removeStepLimiter(limiter);
-        } else {
-            mobile.addStepLimiter(limiter);
-        }
-    }
-
     /**
      * Returns the direction of the mobile.
      */
@@ -117,6 +102,12 @@ public class MobileLogic extends ActorLogic
     public boolean collides (Actor actor, Shape shape)
     {
         return _scenemgr.collides(actor, shape);
+    }
+
+    // documentation inherited from ActorAdvancer.Environment
+    public int getDirections (Actor actor, Shape shape)
+    {
+        return _scenemgr.getDirections(actor, shape);
     }
 
     @Override // documentation inherited

@@ -47,6 +47,7 @@ import com.threerings.opengl.util.PreloadableSet;
 
 import com.threerings.tudey.client.cursor.TileCursor;
 import com.threerings.tudey.client.sprite.TileSprite;
+import com.threerings.tudey.util.DirectionUtil;
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
@@ -135,6 +136,10 @@ public class TileConfig extends ParameterizedConfig
         @Editable(width=3)
         public int[][] collisionFlags = new int[][] { { 0x01 } };
 
+        /** The tile's direction flags. */
+        @Editable(width=3)
+        public int[][] directionFlags = new int[][] { { 0x00 } };
+
         /** The tile's floor flags. */
         @Editable(editor="mask", mode="floor", hgroup="f")
         public int floorFlags = 0x01;
@@ -222,31 +227,17 @@ public class TileConfig extends ParameterizedConfig
          */
         public int getCollisionFlags (int x, int y, int rotation, int tx, int ty)
         {
-            if (collisionFlags.length == 0) {
-                return 0;
-            }
-            int fx, fy;
-            switch (rotation) {
-                default:
-                case 0:
-                    fx = tx - x;
-                    fy = (height - 1) - (ty - y);
-                    break;
-                case 1:
-                    fx = ty - y;
-                    fy = tx - x;
-                    break;
-                case 2:
-                    fx = (width - 1) - (tx - x);
-                    fy = ty - y;
-                    break;
-                case 3:
-                    fx = (width - 1) - (ty - y);
-                    fy = (height - 1) - (tx - x);
-                    break;
-            }
-            int[] row = collisionFlags[fy % collisionFlags.length];
-            return (row.length == 0) ? 0 : row[fx % row.length];
+            return getRotatedValue(collisionFlags, x, y, rotation, tx, ty);
+        }
+
+        /**
+         * Returns the direction flags for the given location for a tile at the specified
+         * coordinates.
+         */
+        public int getDirectionFlags (int x, int y, int rotation, int tx, int ty)
+        {
+            return DirectionUtil.rotateCardinal(
+                    getRotatedValue(directionFlags, x, y, rotation, tx, ty), rotation);
         }
 
         /**
@@ -313,6 +304,38 @@ public class TileConfig extends ParameterizedConfig
                 handler.invalidate();
             }
             _modelStatic = null;
+        }
+
+        /**
+         * Returns the value in the 2D array based on the rotated coordinates.
+         */
+        protected int getRotatedValue (int[][] values, int x, int y, int rotation, int tx, int ty)
+        {
+            if (values.length == 0) {
+                return 0;
+            }
+            int fx, fy;
+            switch (rotation) {
+                default:
+                case 0:
+                    fx = tx - x;
+                    fy = (height - 1) - (ty - y);
+                    break;
+                case 1:
+                    fx = ty - y;
+                    fy = tx - x;
+                    break;
+                case 2:
+                    fx = (width - 1) - (tx - x);
+                    fy = ty - y;
+                    break;
+                case 3:
+                    fx = (width - 1) - (ty - y);
+                    fy = (height - 1) - (tx - x);
+                    break;
+            }
+            int[] row = values[fy % values.length];
+            return (row.length == 0) ? 0 : row[fx % row.length];
         }
 
         /** Cached flag indicating whether or not the model is static. */

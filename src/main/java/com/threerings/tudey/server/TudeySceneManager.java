@@ -1193,6 +1193,12 @@ public class TudeySceneManager extends SceneManager
         return collides(actor, shape, _timestamp);
     }
 
+    // documentation inherited from interface ActorAdvancer.Environment
+    public int getDirections (Actor actor, Shape shape)
+    {
+        return ((TudeySceneModel)_scene.getSceneModel()).getDirections(actor, shape);
+    }
+
     // documentation inherited from interface RunQueue
     public void postRunnable (Runnable runnable)
     {

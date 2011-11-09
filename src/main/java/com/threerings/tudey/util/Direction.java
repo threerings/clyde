@@ -25,6 +25,8 @@
 
 package com.threerings.tudey.util;
 
+import com.threerings.math.Vector2f;
+
 /**
  * Represents the four cardinal and four ordinal directions and their offsets in the Tudey
  * coordinate system.
@@ -59,12 +61,24 @@ public enum Direction
         return _y;
     }
 
+    /**
+     * Returne the vector.
+     */
+    public Vector2f getVector2f ()
+    {
+        return _vec;
+    }
+
     Direction (int x, int y)
     {
         _x = x;
         _y = y;
+        _vec = new Vector2f((float)x, (float)y);
     }
 
     /** The x and y offsets corresponding to the direction. */
     protected int _x, _y;
+
+    /** The vector representation. */
+    protected Vector2f _vec;
 }

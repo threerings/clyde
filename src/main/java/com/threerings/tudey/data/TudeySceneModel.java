@@ -120,6 +120,7 @@ import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.Coord;
 import com.threerings.tudey.util.CoordIntMap;
 import com.threerings.tudey.util.CoordIntMap.CoordIntEntry;
+import com.threerings.tudey.util.DirectionUtil;
 import com.threerings.tudey.util.TudeyContext;
 import com.threerings.tudey.util.TudeySceneMetrics;
 
@@ -222,6 +223,14 @@ public class TudeySceneModel extends SceneModel
          * Returns the entry's collision flags.
          */
         public int getCollisionFlags (ConfigManager cfgmgr)
+        {
+            return 0;
+        }
+
+        /**
+         * Returns the entry's direction flags.
+         */
+        public int getDirectionFlags (ConfigManager cfgmgr)
         {
             return 0;
         }
@@ -410,6 +419,14 @@ public class TudeySceneModel extends SceneModel
         public int getCollisionFlags (TileConfig.Original config, int x, int y)
         {
             return config.getCollisionFlags(_location.x, _location.y, rotation, x, y);
+        }
+
+        /**
+         * Returns the tile's direction flags at the specified coordinates.
+         */
+        public int getDirectionFlags (TileConfig.Original config, int x, int y)
+        {
+            return config.getDirectionFlags(_location.x, _location.y, rotation, x, y);
         }
 
         @Override // documentation inherited
@@ -745,6 +762,17 @@ public class TudeySceneModel extends SceneModel
         }
 
         @Override // documentation inherited
+        public int getDirectionFlags (ConfigManager cfgmgr)
+        {
+            if (_directionFlags == -1) {
+                _directionFlags = getConfig(cfgmgr).getDirectionFlags();
+                float z = transform.getRotation().getRotationZ();
+                _directionFlags = DirectionUtil.rotateDirections(_directionFlags, z);
+            }
+            return _directionFlags;
+        }
+
+        @Override // documentation inherited
         public String getLogicClassName (ConfigManager cfgmgr)
         {
             return getConfig(cfgmgr).getLogicClassName();
@@ -836,6 +864,9 @@ public class TudeySceneModel extends SceneModel
 
         /** The cached collision flags. */
         protected transient int _collisionFlags = -1;
+
+        /** The cached direction flags. */
+        protected transient int _directionFlags = -1;
     }
 
     /**
@@ -1375,6 +1406,14 @@ public class TudeySceneModel extends SceneModel
     public CoordIntMap getCollisionFlags ()
     {
         return _collisionFlags;
+    }
+
+    /**
+     * Returns a reference to the map containing the tile direction flags.
+     */
+    public CoordIntMap getDirectionFlags ()
+    {
+        return _directionFlags;
     }
 
     /**
@@ -2327,6 +2366,39 @@ public class TudeySceneModel extends SceneModel
         return !result.equals(Vector2f.ZERO);
     }
 
+    // documentation inherited from interface ActorAdvancer.Environment
+    public int getDirections (Actor actor, Shape shape)
+    {
+        if (!actor.directionAffected()) {
+            return 0;
+        }
+
+        // check against locations
+        Rect bounds = shape.getBounds();
+        Vector2f min = bounds.getMinimumExtent(), max = bounds.getMaximumExtent();
+        int direction = 0;
+        int minx = FloatMath.ifloor(min.x);
+        int maxx = FloatMath.ifloor(max.x);
+        int miny = FloatMath.ifloor(min.y);
+        int maxy = FloatMath.ifloor(max.y);
+        for (int yy = miny; yy <= maxy; yy++) {
+            for (int xx = minx; xx <= maxx; xx++) {
+                direction = direction | _directionFlags.get(xx, yy);
+            }
+        }
+
+        // find intersecting elements
+        _space.getIntersecting(shape, _intersecting);
+        for (int ii = 0, nn = _intersecting.size(); ii < nn; ii++) {
+            SpaceElement element = _intersecting.get(ii);
+            Entry entry = (Entry)element.getUserObject();
+            direction = direction | entry.getDirectionFlags(_cfgmgr);
+        }
+        _intersecting.clear();
+
+        return direction;
+    }
+
     @Override // documentation inherited
     public TudeySceneModel clone ()
     {
@@ -2518,6 +2590,12 @@ public class TudeySceneModel extends SceneModel
                 if (flags != 0) {
                     _collisionFlags.put(xx, yy, flags);
                 }
+
+                // add the direction flags, if any
+                flags = entry.getDirectionFlags(config, xx, yy);
+                if (flags != 0) {
+                    _directionFlags.put(xx, yy, flags);
+                }
             }
         }
 
@@ -2538,6 +2616,9 @@ public class TudeySceneModel extends SceneModel
 
                 // remove collision flags
                 _collisionFlags.remove(xx, yy);
+
+                // remove direction flags
+                _directionFlags.remove(xx, yy);
             }
         }
 
@@ -2895,6 +2976,10 @@ public class TudeySceneModel extends SceneModel
     /** Collision flags for each location. */
     @DeepOmit
     protected transient CoordIntMap _collisionFlags = new CoordIntMap(3, 0);
+
+    /** Direction flags for each location. */
+    @DeepOmit
+    protected transient CoordIntMap _directionFlags = new CoordIntMap(3, 0);
 
     /** The space containing the (non-tile) entry shapes. */
     @DeepOmit

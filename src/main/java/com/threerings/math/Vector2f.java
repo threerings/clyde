@@ -98,7 +98,15 @@ public final class Vector2f
      */
     public float dot (Vector2f other)
     {
-        return x*other.x + y*other.y;
+        return dot(other.x, other.y);
+    }
+
+    /**
+     * Computes and returns the dot product of this and the specified other vector.
+     */
+    public float dot (float otherX, float otherY)
+    {
+        return x*otherX + y*otherY;
     }
 
     /**

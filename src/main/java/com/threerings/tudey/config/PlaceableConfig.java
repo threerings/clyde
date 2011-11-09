@@ -150,6 +150,14 @@ public class PlaceableConfig extends ParameterizedConfig
         }
 
         /**
+         * Returns the placeable's direction flags.
+         */
+        public int getDirectionFlags ()
+        {
+            return 0;
+        }
+
+        /**
          * Returns the name of the server-side logic class to use for the placeable, or
          * <code>null</code> for none.
          */
@@ -206,6 +214,10 @@ public class PlaceableConfig extends ParameterizedConfig
         @Editable(editor="mask", mode="collision", hgroup="c")
         public int collisionFlags = 0x01;
 
+        /** The prop's direction flags. */
+        @Editable(editor="mask", mode="direction", hgroup="c")
+        public int directionFlags = 0;
+
         /** The prop's floor flags. */
         @Editable(editor="mask", mode="floor", hgroup="c")
         public int floorFlags = 0x01;
@@ -229,6 +241,12 @@ public class PlaceableConfig extends ParameterizedConfig
         public int getCollisionFlags ()
         {
             return collisionFlags;
+        }
+
+        @Override // documentation inherited
+        public int getDirectionFlags ()
+        {
+            return directionFlags;
         }
 
         @Override // documentation inherited
