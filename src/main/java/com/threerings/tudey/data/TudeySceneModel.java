@@ -766,8 +766,10 @@ public class TudeySceneModel extends SceneModel
         {
             if (_directionFlags == -1) {
                 _directionFlags = getConfig(cfgmgr).getDirectionFlags();
-                float z = transform.getRotation().getRotationZ();
-                _directionFlags = DirectionUtil.rotateDirections(_directionFlags, z);
+                if (transform.getRotation() != null) {
+                    float z = transform.getRotation().getRotationZ();
+                    _directionFlags = DirectionUtil.rotateDirections(_directionFlags, z);
+                }
             }
             return _directionFlags;
         }
