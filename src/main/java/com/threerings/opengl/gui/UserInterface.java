@@ -352,6 +352,14 @@ public class UserInterface extends Container
         return false;
     }
 
+    /**
+     * Returns the root reference stored when the interface was added.
+     */
+    public Root getRoot ()
+    {
+        return _root;
+    }
+
     @Override // documentation inherited
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
