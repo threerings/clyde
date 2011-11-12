@@ -95,8 +95,8 @@ public class InterfaceScriptConfig extends ParameterizedConfig
      * Represents a single script action.
      */
     @EditorTypes({
-        PlaySound.class, SetEnabled.class, SetVisible.class, SetSelected.class,
-        SetText.class, SetStyle.class, SetConfig.class, RequestFocus.class })
+        PlaySound.class, SetEnabled.class, SetVisible.class, SetAlpha.class, SetSelected.class,
+        SetText.class, SetStyle.class, SetConfig.class, RunScript.class, RequestFocus.class })
     public static abstract class Action extends DeepObject
         implements Exportable
     {
@@ -184,6 +184,22 @@ public class InterfaceScriptConfig extends ParameterizedConfig
     }
 
     /**
+     * Set's a component's transparency.
+     */
+    public static class SetAlpha extends Targeted
+    {
+        /** The alpha value to set. */
+        @Editable(min=0, max=1, step=0.01, hgroup="t")
+        public float alpha = 1f;
+
+        @Override // documentation inherited
+        public void apply (Component comp)
+        {
+            comp.setAlpha(alpha);
+        }
+    }
+
+    /**
      * Selects or unselects a component.
      */
     public static class SetSelected extends Targeted
@@ -249,6 +265,24 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         {
             if (comp instanceof UserInterface) {
                 ((UserInterface)comp).setConfig(userInterface);
+            }
+        }
+    }
+
+    /**
+     * Runs a script on a user interface.
+     */
+    public static class RunScript extends Targeted
+    {
+        /** The script to run on the interface. */
+        @Editable(nullable=true)
+        public ConfigReference<InterfaceScriptConfig> interfaceScript;
+
+        @Override // documentation inherited
+        public void apply (Component comp)
+        {
+            if (comp instanceof UserInterface) {
+                ((UserInterface)comp).runScript(interfaceScript);
             }
         }
     }

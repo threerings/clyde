@@ -41,6 +41,7 @@ import com.threerings.config.ManagedConfig;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.Scoped;
 
+import com.threerings.opengl.gui.config.InterfaceScriptConfig;
 import com.threerings.opengl.gui.config.UserInterfaceConfig;
 import com.threerings.opengl.gui.event.ComponentListener;
 import com.threerings.opengl.gui.layout.BorderLayout;
@@ -358,6 +359,39 @@ public class UserInterface extends Container
     public Root getRoot ()
     {
         return _root;
+    }
+
+    /**
+     * Runs a script on the interface.
+     */
+    public void runScript (String name)
+    {
+        runScript(_ctx.getConfigManager().getConfig(InterfaceScriptConfig.class, name));
+    }
+
+    /**
+     * Runs a script on the interface.
+     */
+    public void runScript (ConfigReference<InterfaceScriptConfig> ref)
+    {
+        runScript(_ctx.getConfigManager().getConfig(InterfaceScriptConfig.class, ref));
+    }
+
+    /**
+     * Runs a script on the interface.
+     */
+    public void runScript (
+        String name, String firstKey, Object firstValue, Object... otherArgs)
+    {
+        runScript(_ctx.getConfigManager().getConfig(InterfaceScriptConfig.class,
+            name, firstKey, firstValue, otherArgs));
+    }
+
+    /**
+     * Runs a script on the interface.
+     */
+    public void runScript (InterfaceScriptConfig config)
+    {
     }
 
     @Override // documentation inherited
