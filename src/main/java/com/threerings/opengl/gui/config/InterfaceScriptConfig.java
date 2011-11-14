@@ -25,14 +25,17 @@
 
 package com.threerings.opengl.gui.config;
 
+import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.math.FloatMath;
 import com.threerings.util.DeepObject;
 
+import com.threerings.opengl.effect.Easing;
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.TextComponent;
 import com.threerings.opengl.gui.ToggleButton;
@@ -50,6 +53,10 @@ public class InterfaceScriptConfig extends ParameterizedConfig
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
+        /**
+         * Returns a reference to the config's underlying original implementation.
+         */
+        public abstract Original getOriginal (ConfigManager cfgmgr);
     }
 
     /**
@@ -64,6 +71,12 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         /** The actions of which the script is composed. */
         @Editable
         public TimedAction[] actions = new TimedAction[0];
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            return this;
+        }
     }
 
     /**
@@ -74,6 +87,14 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         /** The script reference. */
         @Editable(nullable=true)
         public ConfigReference<InterfaceScriptConfig> interfaceScript;
+
+        @Override // documentation inherited
+        public Original getOriginal (ConfigManager cfgmgr)
+        {
+            InterfaceScriptConfig config = cfgmgr.getConfig(
+                InterfaceScriptConfig.class, interfaceScript);
+            return (config == null) ? null : config.getOriginal(cfgmgr);
+        }
     }
 
     /**
@@ -95,8 +116,9 @@ public class InterfaceScriptConfig extends ParameterizedConfig
      * Represents a single script action.
      */
     @EditorTypes({
-        PlaySound.class, SetEnabled.class, SetVisible.class, SetAlpha.class, SetSelected.class,
-        SetText.class, SetStyle.class, SetConfig.class, RunScript.class, RequestFocus.class })
+        PlaySound.class, SetEnabled.class, SetVisible.class, SetAlpha.class, FadeAlpha.class,
+        SetSelected.class, SetText.class, SetStyle.class, SetConfig.class, RunScript.class,
+        RequestFocus.class })
     public static abstract class Action extends DeepObject
         implements Exportable
     {
@@ -141,14 +163,14 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public void execute (UserInterface iface)
         {
             for (Component comp : iface.getComponents(target)) {
-                apply(comp);
+                apply(iface, comp);
             }
         }
 
         /**
          * Applies the action to the specified component.
          */
-        public abstract void apply (Component comp);
+        public abstract void apply (UserInterface iface, Component comp);
     }
 
     /**
@@ -161,7 +183,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public boolean enabled = true;
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             comp.setEnabled(enabled);
         }
@@ -177,7 +199,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public boolean visible = true;
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             comp.setVisible(visible);
         }
@@ -193,9 +215,51 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public float alpha = 1f;
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             comp.setAlpha(alpha);
+        }
+    }
+
+    /**
+     * Fades a component's transparency over time.
+     */
+    public static class FadeAlpha extends Targeted
+    {
+        /** The interval over which to fade. */
+        @Editable(min=0, step=0.01, hgroup="t")
+        public float interval = 1f;
+
+        /** The starting alpha value. */
+        @Editable(min=0, max=1, step=0.01, hgroup="s")
+        public float start;
+
+        /** The ending alpha value. */
+        @Editable(min=0, max=1, step=0.01, hgroup="s")
+        public float end = 1f;
+
+        /** The type of easing to use, if any. */
+        @Editable
+        public Easing easing = new Easing.None();
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, final Component comp)
+        {
+            iface.runScript(iface.new TickableScript() {
+                @Override public void tick (float elapsed) {
+                    if ((_time += elapsed) < interval) {
+                        comp.setAlpha(FloatMath.lerp(start, end,
+                            easing.getTime(_time / interval)));
+                    } else {
+                        remove();
+                    }
+                }
+                @Override public void cleanup () {
+                    super.cleanup();
+                    comp.setAlpha(end);
+                }
+                protected float _time;
+            });
         }
     }
 
@@ -209,7 +273,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public boolean selected = true;
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof ToggleButton) {
                 ((ToggleButton)comp).setSelected(selected);
@@ -227,7 +291,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public String text = "";
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof TextComponent) {
                 ((TextComponent)comp).setText(text);
@@ -245,7 +309,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public ConfigReference<StyleConfig> style;
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             comp.setStyleConfig(style);
         }
@@ -261,7 +325,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public ConfigReference<UserInterfaceConfig> userInterface;
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof UserInterface) {
                 ((UserInterface)comp).setConfig(userInterface);
@@ -279,7 +343,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         public ConfigReference<InterfaceScriptConfig> interfaceScript;
 
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             if (comp instanceof UserInterface) {
                 ((UserInterface)comp).runScript(interfaceScript);
@@ -293,7 +357,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
     public static class RequestFocus extends Targeted
     {
         @Override // documentation inherited
-        public void apply (Component comp)
+        public void apply (UserInterface iface, Component comp)
         {
             comp.requestFocus();
         }
@@ -302,4 +366,12 @@ public class InterfaceScriptConfig extends ParameterizedConfig
     /** The actual script implementation. */
     @Editable
     public Implementation implementation = new Original();
+
+    /**
+     * Retrieves a reference to the underlying original implementation.
+     */
+    public Original getOriginal (ConfigManager cfgmgr)
+    {
+        return implementation.getOriginal(cfgmgr);
+    }
 }

@@ -130,6 +130,14 @@ public class UserInterfaceConfig extends ParameterizedConfig
             directory="sound_dir")
         public String removeSound;
 
+        /** The script to run on addition, if any. */
+        @Editable(nullable=true)
+        public ConfigReference<InterfaceScriptConfig> addScript;
+
+        /** The script to run on removal, if any. */
+        @Editable(nullable=true)
+        public ConfigReference<InterfaceScriptConfig> removeScript;
+
         @Override // documentation inherited
         public ConfigManager getConfigManager (ConfigManager cfgmgr)
         {
