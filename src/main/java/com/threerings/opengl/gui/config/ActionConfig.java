@@ -48,7 +48,8 @@ import com.threerings.opengl.gui.UserInterface.ConfigScript;
     ActionConfig.PlaySound.class, ActionConfig.SetEnabled.class, ActionConfig.SetVisible.class,
     ActionConfig.SetAlpha.class, ActionConfig.FadeAlpha.class, ActionConfig.SetSelected.class,
     ActionConfig.SetText.class, ActionConfig.SetStyle.class, ActionConfig.SetConfig.class,
-    ActionConfig.RunScript.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class })
+    ActionConfig.RunScript.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class,
+    ActionConfig.AddHandler.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -308,6 +309,32 @@ public abstract class ActionConfig extends DeepObject
                 public void run () {
                     wscript[0].remove();
                     script.setPaused(false);
+                }
+            }));
+        }
+    }
+
+    /**
+     * Adds a handler that will execute an action when an event occurs.
+     */
+    public static class AddHandler extends ActionConfig
+    {
+        /** The event to handle. */
+        @Editable
+        public EventConfig event = new EventConfig.Action();
+
+        /** The actions to perform. */
+        @Editable
+        public ActionConfig[] actions = new ActionConfig[0];
+
+        @Override // documentation inherited
+        public void execute (final UserInterface iface, final ConfigScript script)
+        {
+            iface.addScript(event.addHandler(iface, new Runnable() {
+                public void run () {
+                    for (ActionConfig action : actions) {
+                        action.execute(iface, script);
+                    }
                 }
             }));
         }
