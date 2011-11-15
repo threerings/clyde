@@ -105,7 +105,7 @@ public class UserInterface extends Container
         /**
          * Removes the script.
          */
-        protected void remove ()
+        public void remove ()
         {
             _scripts.remove(this);
             cleanup();
@@ -130,6 +130,111 @@ public class UserInterface extends Container
         {
             _root.removeTickParticipant(this);
         }
+    }
+
+    /**
+     * Represents a script controlled by a configuration.
+     */
+    public class ConfigScript extends TickableScript
+        implements ConfigUpdateListener<InterfaceScriptConfig>
+    {
+        /**
+         * Creates a new script.
+         */
+        public ConfigScript (InterfaceScriptConfig config)
+        {
+            if ((_config = config) != null) {
+                _config.addListener(this);
+            }
+            updateFromConfig();
+        }
+
+        /**
+         * Pauses or unpauses the script.
+         */
+        public void setPaused (boolean paused)
+        {
+            if (_paused == paused) {
+                return; // no-op
+            }
+            if (_paused = paused) {
+                _root.removeTickParticipant(this);
+            } else {
+                _root.addTickParticipant(this);
+            }
+        }
+
+        // documentation inherited from interface ConfigUpdateListener
+        public void configUpdated (ConfigEvent<InterfaceScriptConfig> event)
+        {
+            updateFromConfig();
+        }
+
+        // documentation inherited from interface Tickable
+        public void tick (float elapsed)
+        {
+            _time += elapsed;
+            executeActions();
+            if (_paused) {
+                return;
+            }
+
+            // check for loop or completion
+            if (_original.loopDuration > 0f) {
+                if (_time >= _original.loopDuration) {
+                    _time %= _original.loopDuration;
+                    _aidx = 0;
+                    executeActions();
+                }
+            } else if (_aidx >= _original.actions.length) {
+                remove();
+            }
+        }
+
+        @Override // documentation inherited
+        public void cleanup ()
+        {
+            super.cleanup();
+            if (_config != null) {
+                _config.removeListener(this);
+            }
+        }
+
+        /**
+         * Updates the state in response to a change in the config.
+         */
+        protected void updateFromConfig ()
+        {
+            if ((_original = _config.getOriginal(_ctx.getConfigManager())) == null) {
+                _original = new InterfaceScriptConfig.Original();
+            }
+        }
+
+        /**
+         * Executes all actions scheduled before or at the current time.
+         */
+        protected void executeActions ()
+        {
+            for (; _aidx < _original.actions.length &&
+                    _original.actions[_aidx].time < _time && !_paused; _aidx++) {
+                _original.actions[_aidx].action.execute(UserInterface.this, this);
+            }
+        }
+
+        /** The script configuration. */
+        protected InterfaceScriptConfig _config;
+
+        /** The original configuration. */
+        protected InterfaceScriptConfig.Original _original;
+
+        /** The amount of time elapsed. */
+        protected float _time;
+
+        /** The index of the next action. */
+        protected int _aidx;
+
+        /** If set, we're paused waiting for something to happen. */
+        protected boolean _paused;
     }
 
     /**
@@ -446,18 +551,17 @@ public class UserInterface extends Container
      */
     public void runScript (InterfaceScriptConfig config)
     {
-        runScript(new ConfigScript(config));
+        addScript(new ConfigScript(config));
     }
 
     /**
-     * Runs a script on the interface.
+     * Adds a script to the interface.
      */
-    public void runScript (Script script)
+    public void addScript (Script script)
     {
         if (_root == null) {
-            throw new IllegalStateException("Can't run script on non-added interface.");
+            throw new IllegalStateException("Can't add script to non-added interface.");
         }
-        // we tick the script once to perform its initial actions
         _scripts.add(script);
         script.init();
     }
@@ -597,90 +701,6 @@ public class UserInterface extends Container
     protected void registerComponent (String tag, Component comp)
     {
         _tagged.put(tag, comp);
-    }
-
-    /**
-     * Represents a script controlled by a configuration.
-     */
-    protected class ConfigScript extends TickableScript
-        implements ConfigUpdateListener<InterfaceScriptConfig>
-    {
-        /**
-         * Creates a new script.
-         */
-        public ConfigScript (InterfaceScriptConfig config)
-        {
-            if ((_config = config) != null) {
-                _config.addListener(this);
-            }
-            updateFromConfig();
-        }
-
-        // documentation inherited from interface ConfigUpdateListener
-        public void configUpdated (ConfigEvent<InterfaceScriptConfig> event)
-        {
-            updateFromConfig();
-        }
-
-        // documentation inherited from interface Tickable
-        public void tick (float elapsed)
-        {
-            _time += elapsed;
-            executeActions();
-
-            // check for loop or completion
-            if (_original.loopDuration > 0f) {
-                if (_time >= _original.loopDuration) {
-                    _time %= _original.loopDuration;
-                    _aidx = 0;
-                    executeActions();
-                }
-            } else if (_aidx >= _original.actions.length) {
-                remove();
-            }
-        }
-
-        @Override // documentation inherited
-        public void cleanup ()
-        {
-            super.cleanup();
-            if (_config != null) {
-                _config.removeListener(this);
-            }
-        }
-
-        /**
-         * Updates the state in response to a change in the config.
-         */
-        protected void updateFromConfig ()
-        {
-            if ((_original = _config.getOriginal(_ctx.getConfigManager())) == null) {
-                _original = new InterfaceScriptConfig.Original();
-            }
-        }
-
-        /**
-         * Executes all actions scheduled before or at the current time.
-         */
-        protected void executeActions ()
-        {
-            for (; _aidx < _original.actions.length && _original.actions[_aidx].time < _time;
-                    _aidx++) {
-                _original.actions[_aidx].action.execute(UserInterface.this);
-            }
-        }
-
-        /** The script configuration. */
-        protected InterfaceScriptConfig _config;
-
-        /** The original configuration. */
-        protected InterfaceScriptConfig.Original _original;
-
-        /** The amount of time elapsed. */
-        protected float _time;
-
-        /** The index of the next action. */
-        protected int _aidx;
     }
 
     /** The user interface scope. */
