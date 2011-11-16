@@ -232,7 +232,7 @@ public class AgentLogic extends ActiveLogic
         if (rotation != _targetRotation && canRotate()) {
             float diff = FloatMath.getAngularDifference(_targetRotation, rotation);
             float angle = elapsed * _turnRate;
-            if (Math.abs(diff) <= angle) {
+            if (Math.abs(diff) - angle < FloatMath.EPSILON) {
                 _actor.setRotation(_targetRotation);
                 reachedTargetRotation();
             } else {
