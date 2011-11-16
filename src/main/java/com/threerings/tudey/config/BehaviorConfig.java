@@ -47,8 +47,8 @@ public class BehaviorConfig extends ParameterizedConfig
       * Contains the actual implementation of the behavior.
       */
     @EditorTypes({
-        Original.class, Derived.class, Wander.class, Patrol.class, Follow.class, Random.class,
-        Scripted.class, Combined.class })
+        Original.class, Derived.class, Wander.class, GridWander.class, Patrol.class,
+        Follow.class, Random.class, Scripted.class, Combined.class })
     public static abstract class Implementation extends DeepObject
         implements Exportable
     {
@@ -128,15 +128,10 @@ public class BehaviorConfig extends ParameterizedConfig
     }
 
     /**
-     * Wanders around randomly.
+     * Base for wander behaviors.
      */
-    public static class Wander extends Evaluating
+    public abstract static class BaseWander extends Evaluating
     {
-        /** The variable that determines how we change directions. */
-        @Editable(min=-180, max=+180, scale=Math.PI/180.0)
-        public FloatVariable directionChange =
-            new FloatVariable.Uniform(-FloatMath.PI, +FloatMath.PI);
-
         /** The amount of time to pause before rotating. */
         @Editable(min=0.0, step=0.1)
         public FloatVariable preRotationPause = new FloatVariable.Constant(0f);
@@ -144,6 +139,17 @@ public class BehaviorConfig extends ParameterizedConfig
         /** The amount of time to pause after rotating. */
         @Editable(min=0.0, step=0.1)
         public FloatVariable postRotationPause = new FloatVariable.Constant(0f);
+    }
+
+    /**
+     * Wanders around randomly.
+     */
+    public static class Wander extends BaseWander
+    {
+        /** The variable that determines how we change directions. */
+        @Editable(min=-180, max=+180, scale=Math.PI/180.0)
+        public FloatVariable directionChange =
+            new FloatVariable.Uniform(-FloatMath.PI, +FloatMath.PI);
 
         /** The radius from the origin within which we may wander. */
         @Editable(min=0.0, step=0.1)
@@ -153,6 +159,28 @@ public class BehaviorConfig extends ParameterizedConfig
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.BehaviorLogic$Wander";
+        }
+    }
+
+    public enum GridTurn { REVERSE, LEFT, RIGHT, RANDOM };
+
+    /**
+     * Wanders around on the grid.
+     */
+    public static class GridWander extends BaseWander
+    {
+        /** If we are restricted to linear directions. */
+        @Editable(hgroup="l")
+        public GridTurn gridTurn = GridTurn.REVERSE;
+
+        /** If we rotate based on the evaluation period. */
+        @Editable(hgroup="l")
+        public boolean evaluationRotate;
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.BehaviorLogic$GridWander";
         }
     }
 

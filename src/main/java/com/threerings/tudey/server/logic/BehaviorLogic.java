@@ -29,9 +29,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.ArrayUtil;
-import com.samskivert.util.RandomUtil;
+import com.samskivert.util.Randoms;
 
 import com.threerings.math.FloatMath;
 import com.threerings.math.Vector2f;
@@ -42,6 +43,8 @@ import com.threerings.tudey.data.EntityKey;
 import com.threerings.tudey.data.actor.Actor;
 import com.threerings.tudey.data.actor.Mobile;
 import com.threerings.tudey.server.TudeySceneManager;
+
+import static com.threerings.tudey.Log.*;
 
 /**
  * Handles the server-side processing for agent behavior.
@@ -129,9 +132,9 @@ public abstract class BehaviorLogic extends Logic
     }
 
     /**
-     * Handles the wander behavior.
+     * Handles the base wander behavior.
      */
-    public static class Wander extends Evaluating
+    public static class BaseWander extends Evaluating
     {
         @Override // documentation inherited
         public void startup ()
@@ -158,6 +161,71 @@ public abstract class BehaviorLogic extends Logic
                 _agent.startMoving();
                 _startMoving = Integer.MAX_VALUE;
             }
+        }
+
+        @Override // documentation inherited
+        public void reachedTargetRotation ()
+        {
+            BehaviorConfig.BaseWander config = (BehaviorConfig.BaseWander)_config;
+            int pause = (int)(config.postRotationPause.getValue() * 1000f);
+            if (pause == 0) {
+                scheduleNextEvaluation();
+                _agent.startMoving();
+                _startRotating = _startMoving = Integer.MAX_VALUE;
+            } else {
+                _startMoving = _scenemgr.getTimestamp() + pause;
+                _startRotating = Integer.MAX_VALUE;
+            }
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+
+            BaseWander wsource = (BaseWander)source;
+            _startRotating = wsource._startRotating;
+            _rotation = wsource._rotation;
+            _startMoving = wsource._startMoving;
+        }
+
+        /**
+         * Sets the new direction on the agent.
+         */
+        protected void setDirectionChange (float rotation)
+        {
+            int pause = (int)
+                (((BehaviorConfig.BaseWander)_config).preRotationPause.getValue() * 1000f);
+            postponeNextEvaluation();
+            _rotation = rotation;
+            if (pause == 0) {
+                _startRotating = _startMoving = Integer.MAX_VALUE;
+                _agent.setTargetRotation(_rotation);
+            } else {
+                _startRotating = _scenemgr.getTimestamp() + pause;
+                _startMoving = Integer.MAX_VALUE;
+            }
+        }
+
+        /** The time at which we should start rotating. */
+        protected int _startRotating = Integer.MAX_VALUE;
+
+        /** The rotation that we will face when we stop pausing. */
+        protected float _rotation;
+
+        /** The time at which we should start moving. */
+        protected int _startMoving = Integer.MAX_VALUE;
+    }
+
+    /**
+     * Handles the wander behavior.
+     */
+    public static class Wander extends BaseWander
+    {
+        @Override // documentation inherited
+        public void tick (int timestamp)
+        {
+            super.tick(timestamp);
 
             // if we have exceeded the radius and are moving away from the origin, change direction
             Actor actor = _agent.getActor();
@@ -169,21 +237,6 @@ public abstract class BehaviorLogic extends Logic
                 if (FloatMath.getAngularDistance(angle, rotation) > FloatMath.HALF_PI) {
                     changeDirection(angle);
                 }
-            }
-        }
-
-        @Override // documentation inherited
-        public void reachedTargetRotation ()
-        {
-            BehaviorConfig.Wander config = (BehaviorConfig.Wander)_config;
-            int pause = (int)(config.postRotationPause.getValue() * 1000f);
-            if (pause == 0) {
-                scheduleNextEvaluation();
-                _agent.startMoving();
-                _startRotating = _startMoving = Integer.MAX_VALUE;
-            } else {
-                _startMoving = _scenemgr.getTimestamp() + pause;
-                _startRotating = Integer.MAX_VALUE;
             }
         }
 
@@ -208,9 +261,6 @@ public abstract class BehaviorLogic extends Logic
 
             Wander wsource = (Wander)source;
             _origin.set(wsource._origin);
-            _startRotating = wsource._startRotating;
-            _rotation = wsource._rotation;
-            _startMoving = wsource._startMoving;
         }
 
         @Override // documentation inherited
@@ -243,30 +293,74 @@ public abstract class BehaviorLogic extends Logic
         {
             _agent.stopMoving();
             BehaviorConfig.Wander config = (BehaviorConfig.Wander)_config;
-            int pause = (int)(config.preRotationPause.getValue() * 1000f);
-            float rot = FloatMath.normalizeAngle(rotation + config.directionChange.getValue());
-            postponeNextEvaluation();
-            if (pause == 0) {
-                _startRotating = _startMoving = Integer.MAX_VALUE;
-                _agent.setTargetRotation(rot);
-            } else {
-                _rotation = rot;
-                _startRotating = _scenemgr.getTimestamp() + pause;
-                _startMoving = Integer.MAX_VALUE;
-            }
+            setDirectionChange(
+                    FloatMath.normalizeAngle(rotation + config.directionChange.getValue()));
         }
 
         /** The translation of the actor when initialized. */
         protected Vector2f _origin = new Vector2f();
+    }
 
-        /** The time at which we should start rotating. */
-        protected int _startRotating = Integer.MAX_VALUE;
+    /**
+     * Handles the grid wander behavior.
+     */
+    public static class GridWander extends BaseWander
+    {
+        @Override // documentation inherited
+        public void startup ()
+        {
+            super.startup();
+            if (!((BehaviorConfig.GridWander)_config).evaluationRotate) {
+                setDirectionChange(_rotation);
+            }
+        }
 
-        /** The rotation that we will face when we stop pausing. */
-        protected float _rotation;
+        @Override // documentation inherited
+        public void penetratedEnvironment (Vector2f penetration)
+        {
+            BehaviorConfig.GridWander config = (BehaviorConfig.GridWander)_config;
 
-        /** The time at which we should start moving. */
-        protected int _startMoving = Integer.MAX_VALUE;
+            changeDirection();
+        }
+
+        @Override // documentation inherited
+        protected void evaluate ()
+        {
+            super.evaluate();
+            if (((BehaviorConfig.GridWander)_config).evaluationRotate) {
+                changeDirection();
+            }
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            _rotation = _agent.getActor().getRotation();
+        }
+
+        /**
+         * Changes the direction of the agent.
+         */
+        protected void changeDirection ()
+        {
+             _agent.stopMoving();
+             float rotation = _rotation;
+             switch(((BehaviorConfig.GridWander)_config).gridTurn) {
+             case REVERSE:
+                 rotation += FloatMath.PI;
+                 break;
+             case LEFT:
+                 rotation += FloatMath.HALF_PI;
+                 break;
+             case RIGHT:
+                 rotation -= FloatMath.HALF_PI;
+                 break;
+             case RANDOM:
+                 rotation += Randoms.RAND.getBoolean() ? FloatMath.HALF_PI : -FloatMath.HALF_PI;
+                 break;
+             }
+             setDirectionChange(FloatMath.normalizeAngle(rotation));
+        }
     }
 
     /**
@@ -460,7 +554,7 @@ public abstract class BehaviorLogic extends Logic
             if (_path != null) {
                 _candidates.add(null); // represents the current path
             }
-            PathCandidate candidate = RandomUtil.pickRandom(_candidates);
+            PathCandidate candidate = Randoms.RAND.pick(_candidates, null);
             _candidates.clear();
 
             // set off on that path
@@ -638,12 +732,12 @@ public abstract class BehaviorLogic extends Logic
         protected void didInit ()
         {
             WeightedBehavior[] wbehaviors = ((BehaviorConfig.Random)_config).behaviors;
-            _weights = new float[wbehaviors.length];
             _behaviors = new BehaviorLogic[wbehaviors.length];
+            _behaviorWeights = Maps.newHashMap();
             for (int ii = 0; ii < wbehaviors.length; ii++) {
                 WeightedBehavior wbehavior = wbehaviors[ii];
-                _weights[ii] = wbehavior.weight;
                 _behaviors[ii] = _agent.createBehavior(wbehavior.behavior);
+                _behaviorWeights.put(_behaviors[ii], wbehavior.weight);
             }
         }
 
@@ -651,8 +745,7 @@ public abstract class BehaviorLogic extends Logic
         protected void evaluate ()
         {
             super.evaluate();
-            int nidx = RandomUtil.getWeightedIndex(_weights);
-            BehaviorLogic nactive = (nidx == -1) ? null : _behaviors[nidx];
+            BehaviorLogic nactive = Randoms.RAND.pick(_behaviorWeights, null);
             if (nactive == _active) {
                 return;
             }
@@ -661,14 +754,14 @@ public abstract class BehaviorLogic extends Logic
             }
         }
 
-        /** The behavior weights. */
-        protected float[] _weights;
-
         /** The component behaviors. */
         protected BehaviorLogic[] _behaviors;
 
         /** The active behavior. */
         protected BehaviorLogic _active;
+
+        /** The behavior weight map. */
+        protected Map<BehaviorLogic, Float> _behaviorWeights;
     }
 
     /**
