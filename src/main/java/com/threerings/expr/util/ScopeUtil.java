@@ -38,7 +38,9 @@ import com.google.common.collect.Maps;
 import com.threerings.expr.Scope;
 
 import com.threerings.math.Quaternion;
+import com.threerings.math.Transform2D;
 import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
 import com.threerings.opengl.renderer.Color4f;
 
@@ -94,14 +96,31 @@ public class ScopeUtil
     }
 
     /**
-     * Attempts to resolve a transform symbol.
+     * Attempts to resolve a 2D transform symbol.
+     */
+    public static Transform2D resolve (Scope scope, String name, Transform2D defvalue)
+    {
+        return resolve(scope, name, defvalue, Transform2D.class);
+    }
+
+    /**
+     * Attempts to resolve a 3D transform symbol.
      */
     public static Transform3D resolve (Scope scope, String name, Transform3D defvalue)
     {
         return resolve(scope, name, defvalue, Transform3D.class);
     }
+
     /**
-     * Attempts to resolve a vector symbol.
+     * Attempts to resolve a 2D vector symbol.
+     */
+    public static Vector2f resolve (Scope scope, String name, Vector2f defvalue)
+    {
+        return resolve(scope, name, defvalue, Vector2f.class);
+    }
+
+    /**
+     * Attempts to resolve a 3D vector symbol.
      */
     public static Vector3f resolve (Scope scope, String name, Vector3f defvalue)
     {

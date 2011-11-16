@@ -41,6 +41,7 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
 import com.threerings.expr.DynamicScope;
+import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scoped;
 
 import com.threerings.opengl.gui.config.InterfaceScriptConfig;
@@ -596,9 +597,9 @@ public class UserInterface extends Container
             _controller.wasAdded();
         }
 
-        // run the addition script, if any
-        if (original.addScript != null) {
-            runScript(original.addScript);
+        // perform the addition action, if any
+        if (original.addAction != null) {
+            original.addAction.execute(this, null);
         }
     }
 
@@ -620,9 +621,9 @@ public class UserInterface extends Container
             _root.playSound(original.removeSound);
         }
 
-        // run the removal script, if any
-        if (original.removeScript != null) {
-            runScript(original.removeScript);
+        // perform the removal action, if any
+        if (original.removeAction != null) {
+            original.removeAction.execute(this, null);
         }
 
         // clean up any remaining scripts
@@ -720,4 +721,8 @@ public class UserInterface extends Container
 
     /** The scripts currently running on the interface. */
     protected List<Script> _scripts = Lists.newArrayList();
+
+    /** A container for the interface epoch. */
+    @Scoped
+    protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
 }

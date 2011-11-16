@@ -30,6 +30,13 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
+import com.threerings.expr.BooleanExpression;
+import com.threerings.expr.FloatExpression;
+import com.threerings.expr.Function;
+import com.threerings.expr.ObjectExpression;
+import com.threerings.expr.Scope;
+import com.threerings.expr.Transform2DExpression;
+import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.FloatMath;
 import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
@@ -42,18 +49,38 @@ import com.threerings.opengl.gui.UserInterface;
 import com.threerings.opengl.gui.UserInterface.Script;
 import com.threerings.opengl.gui.UserInterface.ConfigScript;
 
+import static com.threerings.opengl.gui.Log.*;
+
 /**
  * Represents a single script action.
  */
 @EditorTypes({
-    ActionConfig.PlaySound.class, ActionConfig.SetEnabled.class, ActionConfig.SetVisible.class,
-    ActionConfig.SetAlpha.class, ActionConfig.FadeAlpha.class, ActionConfig.SetOffset.class,
-    ActionConfig.MoveOffset.class, ActionConfig.SetSelected.class, ActionConfig.SetText.class,
+    ActionConfig.CallFunction.class, ActionConfig.PlaySound.class, ActionConfig.SetEnabled.class,
+    ActionConfig.SetVisible.class, ActionConfig.SetAlpha.class, ActionConfig.FadeAlpha.class,
+    ActionConfig.AnimateAlpha.class, ActionConfig.SetOffset.class, ActionConfig.MoveOffset.class,
+    ActionConfig.AnimateOffset.class, ActionConfig.SetSelected.class, ActionConfig.SetText.class,
     ActionConfig.SetStyle.class, ActionConfig.SetConfig.class, ActionConfig.RunScript.class,
-    ActionConfig.RequestFocus.class, ActionConfig.Wait.class, ActionConfig.AddHandler.class })
+    ActionConfig.RequestFocus.class, ActionConfig.Wait.class, ActionConfig.AddHandler.class,
+    ActionConfig.Conditional.class, ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
+    /**
+     * Calls a scoped function.
+     */
+    public static class CallFunction extends ActionConfig
+    {
+        /** The name of the function to call. */
+        @Editable
+        public String name = "";
+
+        @Override // documentation inherited
+        public void execute (UserInterface iface, ConfigScript script)
+        {
+            ScopeUtil.resolve(iface.getScope(), name, Function.NULL).call();
+        }
+    }
+
     /**
      * Plays a sound effect.
      */
@@ -190,6 +217,42 @@ public abstract class ActionConfig extends DeepObject
     }
 
     /**
+     * Animates a component's transparency using an expression.
+     */
+    public static class AnimateAlpha extends Targeted
+    {
+        /** The duration of the animation, or zero to continue indefinitely. */
+        @Editable(min=0, step=0.01, hgroup="t")
+        public float duration;
+
+        /** The value expression. */
+        @Editable
+        public FloatExpression value = new FloatExpression.Constant();
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, final Component comp)
+        {
+            final FloatExpression.Evaluator eval = value.createEvaluator(iface.getScope());
+            iface.addScript(iface.new TickableScript() {
+                @Override public void tick (float elapsed) {
+                    if (duration == 0f || (_time += elapsed) < duration) {
+                        comp.setAlpha(eval.evaluate());
+                    } else {
+                        remove();
+                    }
+                }
+                protected float _time;
+            });
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            value.invalidate();
+        }
+    }
+
+    /**
      * Sets a component's offset.
      */
     public static class SetOffset extends Targeted
@@ -244,6 +307,43 @@ public abstract class ActionConfig extends DeepObject
                 protected float _time;
                 protected Transform2D _offset = new Transform2D();
             });
+        }
+    }
+
+    /**
+     * Animates a component's offset using an expression.
+     */
+    public static class AnimateOffset extends Targeted
+    {
+        /** The duration of the animation, or zero to continue indefinitely. */
+        @Editable(min=0, step=0.01, hgroup="t")
+        public float duration;
+
+        /** The value expression. */
+        @Editable
+        public Transform2DExpression value = new Transform2DExpression.Constant();
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, final Component comp)
+        {
+            final ObjectExpression.Evaluator<Transform2D> eval =
+                value.createEvaluator(iface.getScope());
+            iface.addScript(iface.new TickableScript() {
+                @Override public void tick (float elapsed) {
+                    if (duration == 0f || (_time += elapsed) < duration) {
+                        comp.setOffset(eval.evaluate());
+                    } else {
+                        remove();
+                    }
+                }
+                protected float _time;
+            });
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            value.invalidate();
         }
     }
 
@@ -359,6 +459,12 @@ public abstract class ActionConfig extends DeepObject
         @Override // documentation inherited
         public void execute (UserInterface iface, final ConfigScript script)
         {
+            // sanity check, as actions can be executed outside of scripts
+            if (script == null) {
+                log.warning("Tried to perform wait action outside of script.");
+                return;
+            }
+
             // pause the script
             script.setPaused(true);
 
@@ -397,10 +503,103 @@ public abstract class ActionConfig extends DeepObject
                 }
             }));
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (ActionConfig action : actions) {
+                action.invalidate();
+            }
+        }
+    }
+
+    /**
+     * Performs one of a number of sub-actions depending on conditions.
+     */
+    public static class Conditional extends ActionConfig
+    {
+        /** The cases. */
+        @Editable
+        public Case[] cases = new Case[0];
+
+        /** The default action. */
+        @Editable
+        public ActionConfig defaultAction = new CallFunction();
+
+        @Override // documentation inherited
+        public void execute (UserInterface iface, ConfigScript script)
+        {
+            Scope scope = iface.getScope();
+            for (Case caze : cases) {
+                if (caze.condition.createEvaluator(scope).evaluate()) {
+                    caze.action.execute(iface, script);
+                    return;
+                }
+            }
+            defaultAction.execute(iface, script);
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (Case caze : cases) {
+                caze.condition.invalidate();
+                caze.action.invalidate();
+            }
+        }
+    }
+
+    /**
+     * Combines an action with a condition.
+     */
+    public static class Case extends DeepObject
+        implements Exportable
+    {
+        /** The condition for the case. */
+        @Editable
+        public BooleanExpression condition = new BooleanExpression.Constant(true);
+
+        /** The action itself. */
+        @Editable
+        public ActionConfig action = new CallFunction();
+    }
+
+    /**
+     * Performs a number of sub-actions.
+     */
+    public static class Compound extends ActionConfig
+    {
+        /** The actions to perform. */
+        @Editable
+        public ActionConfig[] actions = new ActionConfig[0];
+
+        @Override // documentation inherited
+        public void execute (UserInterface iface, ConfigScript script)
+        {
+            for (ActionConfig action : actions) {
+                action.execute(iface, script);
+            }
+        }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (ActionConfig action : actions) {
+                action.invalidate();
+            }
+        }
     }
 
     /**
      * Executes the action on the specified interface/script.
      */
     public abstract void execute (UserInterface iface, ConfigScript script);
+
+    /**
+     * Invalidates any cached data.
+     */
+    public void invalidate ()
+    {
+        // nothing by default
+    }
 }

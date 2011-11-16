@@ -27,48 +27,33 @@ package com.threerings.expr;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
-import com.threerings.math.Vector3f;
+import com.threerings.math.Transform2D;
+import com.threerings.math.Vector2f;
 
 import com.threerings.expr.util.ScopeUtil;
 
 /**
- * A 3D vector-valued expression.
+ * A 2D transform-valued expression.
  */
 @EditorTypes({
-    Vector3fExpression.Constant.class,
-    Vector3fExpression.Reference.class,
-    Vector3fExpression.Cartesian.class })
-public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
+    Transform2DExpression.Constant.class, Transform2DExpression.Reference.class,
+    Transform2DExpression.Uniform.class })
+public abstract class Transform2DExpression extends ObjectExpression<Transform2D>
 {
     /**
      * A constant expression.
      */
-    public static class Constant extends Vector3fExpression
+    public static class Constant extends Transform2DExpression
     {
         /** The value of the constant. */
         @Editable(step=0.01)
-        public Vector3f value = new Vector3f();
-
-        /**
-         * Creates a new constant expression with the specified value.
-         */
-        public Constant (Vector3f value)
-        {
-            this.value.set(value);
-        }
-
-        /**
-         * Creates a new constant expression with a value of zero.
-         */
-        public Constant ()
-        {
-        }
+        public Transform2D value = new Transform2D();
 
         @Override // documentation inherited
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
+        public Evaluator<Transform2D> createEvaluator (Scope scope)
         {
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
+            return new Evaluator<Transform2D>() {
+                public Transform2D evaluate () {
                     return value;
                 }
             };
@@ -78,7 +63,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
     /**
      * A reference expression.
      */
-    public static class Reference extends Vector3fExpression
+    public static class Reference extends Transform2DExpression
     {
         /** The name of the variable. */
         @Editable
@@ -86,14 +71,14 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
 
         /** The default value of the variable. */
         @Editable(step=0.01)
-        public Vector3f defvalue = new Vector3f();
+        public Transform2D defvalue = new Transform2D();
 
         @Override // documentation inherited
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
+        public Evaluator<Transform2D> createEvaluator (Scope scope)
         {
-            final Vector3f value = ScopeUtil.resolve(scope, name, defvalue);
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
+            final Transform2D value = ScopeUtil.resolve(scope, name, defvalue);
+            return new Evaluator<Transform2D>() {
+                public Transform2D evaluate () {
                     return value;
                 }
             };
@@ -101,42 +86,42 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
     }
 
     /**
-     * An expression consisting of separate expressions for each component.
+     * An expression consisting of separate expressions for translation, rotation, and scale.
      */
-    public static class Cartesian extends Vector3fExpression
+    public static class Uniform extends Transform2DExpression
     {
-        /** The x component. */
+        /** The translation component. */
         @Editable
-        public FloatExpression x = new FloatExpression.Constant();
+        public Vector2fExpression translation = new Vector2fExpression.Constant();
 
-        /** The y component. */
+        /** The rotation component. */
         @Editable
-        public FloatExpression y = new FloatExpression.Constant();
+        public FloatExpression rotation = new FloatExpression.Constant();
 
-        /** The z component. */
+        /** The scale component. */
         @Editable
-        public FloatExpression z = new FloatExpression.Constant();
+        public FloatExpression scale = new FloatExpression.Constant(1f);
 
         @Override // documentation inherited
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
+        public Evaluator<Transform2D> createEvaluator (Scope scope)
         {
-            final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
-            final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
-            final FloatExpression.Evaluator zeval = z.createEvaluator(scope);
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
-                    return _result.set(xeval.evaluate(), yeval.evaluate(), zeval.evaluate());
+            final Evaluator<Vector2f> teval = translation.createEvaluator(scope);
+            final FloatExpression.Evaluator reval = rotation.createEvaluator(scope);
+            final FloatExpression.Evaluator seval = scale.createEvaluator(scope);
+            return new Evaluator<Transform2D>() {
+                public Transform2D evaluate () {
+                    return _result.set(teval.evaluate(), reval.evaluate(), seval.evaluate());
                 }
-                protected Vector3f _result = new Vector3f();
+                protected Transform2D _result = new Transform2D();
             };
         }
 
         @Override // documentation inherited
         public void invalidate ()
         {
-            x.invalidate();
-            y.invalidate();
-            z.invalidate();
+            translation.invalidate();
+            rotation.invalidate();
+            scale.invalidate();
         }
     }
 }

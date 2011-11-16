@@ -27,6 +27,7 @@ package com.threerings.opengl.gui.config;
 
 import com.threerings.config.ConfigManager;
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ConfigReferenceSet;
 import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
@@ -46,9 +47,25 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         implements Exportable
     {
         /**
+         * Adds the implementation's update references to the provided set.
+         */
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            // nothing by default
+        }
+
+        /**
          * Returns a reference to the config's underlying original implementation.
          */
         public abstract Original getOriginal (ConfigManager cfgmgr);
+
+        /**
+         * Invalidates any cached data.
+         */
+        public void invalidate ()
+        {
+            // nothing by default
+        }
     }
 
     /**
@@ -69,6 +86,14 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         {
             return this;
         }
+
+        @Override // documentation inherited
+        public void invalidate ()
+        {
+            for (TimedAction taction : actions) {
+                taction.action.invalidate();
+            }
+        }
     }
 
     /**
@@ -79,6 +104,12 @@ public class InterfaceScriptConfig extends ParameterizedConfig
         /** The script reference. */
         @Editable(nullable=true)
         public ConfigReference<InterfaceScriptConfig> interfaceScript;
+
+        @Override // documentation inherited
+        public void getUpdateReferences (ConfigReferenceSet refs)
+        {
+            refs.add(InterfaceScriptConfig.class, interfaceScript);
+        }
 
         @Override // documentation inherited
         public Original getOriginal (ConfigManager cfgmgr)
@@ -101,7 +132,7 @@ public class InterfaceScriptConfig extends ParameterizedConfig
 
         /** The action to perform. */
         @Editable
-        public ActionConfig action = new ActionConfig.PlaySound();
+        public ActionConfig action = new ActionConfig.CallFunction();
     }
 
     /** The actual script implementation. */
@@ -114,5 +145,19 @@ public class InterfaceScriptConfig extends ParameterizedConfig
     public Original getOriginal (ConfigManager cfgmgr)
     {
         return implementation.getOriginal(cfgmgr);
+    }
+
+    @Override // documentation inherited
+    protected void fireConfigUpdated ()
+    {
+        // invalidate the implementation
+        implementation.invalidate();
+        super.fireConfigUpdated();
+    }
+
+    @Override // documentation inherited
+    protected void getUpdateReferences (ConfigReferenceSet refs)
+    {
+        implementation.getUpdateReferences(refs);
     }
 }

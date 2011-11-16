@@ -27,32 +27,32 @@ package com.threerings.expr;
 
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
-import com.threerings.math.Vector3f;
+import com.threerings.math.Vector2f;
 
 import com.threerings.expr.util.ScopeUtil;
 
 /**
- * A 3D vector-valued expression.
+ * A 2D vector-valued expression.
  */
 @EditorTypes({
-    Vector3fExpression.Constant.class,
-    Vector3fExpression.Reference.class,
-    Vector3fExpression.Cartesian.class })
-public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
+    Vector2fExpression.Constant.class,
+    Vector2fExpression.Reference.class,
+    Vector2fExpression.Cartesian.class })
+public abstract class Vector2fExpression extends ObjectExpression<Vector2f>
 {
     /**
      * A constant expression.
      */
-    public static class Constant extends Vector3fExpression
+    public static class Constant extends Vector2fExpression
     {
         /** The value of the constant. */
         @Editable(step=0.01)
-        public Vector3f value = new Vector3f();
+        public Vector2f value = new Vector2f();
 
         /**
          * Creates a new constant expression with the specified value.
          */
-        public Constant (Vector3f value)
+        public Constant (Vector2f value)
         {
             this.value.set(value);
         }
@@ -65,10 +65,10 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         }
 
         @Override // documentation inherited
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
+        public Evaluator<Vector2f> createEvaluator (Scope scope)
         {
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
+            return new Evaluator<Vector2f>() {
+                public Vector2f evaluate () {
                     return value;
                 }
             };
@@ -78,7 +78,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
     /**
      * A reference expression.
      */
-    public static class Reference extends Vector3fExpression
+    public static class Reference extends Vector2fExpression
     {
         /** The name of the variable. */
         @Editable
@@ -86,14 +86,14 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
 
         /** The default value of the variable. */
         @Editable(step=0.01)
-        public Vector3f defvalue = new Vector3f();
+        public Vector2f defvalue = new Vector2f();
 
         @Override // documentation inherited
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
+        public Evaluator<Vector2f> createEvaluator (Scope scope)
         {
-            final Vector3f value = ScopeUtil.resolve(scope, name, defvalue);
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
+            final Vector2f value = ScopeUtil.resolve(scope, name, defvalue);
+            return new Evaluator<Vector2f>() {
+                public Vector2f evaluate () {
                     return value;
                 }
             };
@@ -103,7 +103,7 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
     /**
      * An expression consisting of separate expressions for each component.
      */
-    public static class Cartesian extends Vector3fExpression
+    public static class Cartesian extends Vector2fExpression
     {
         /** The x component. */
         @Editable
@@ -113,21 +113,16 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         @Editable
         public FloatExpression y = new FloatExpression.Constant();
 
-        /** The z component. */
-        @Editable
-        public FloatExpression z = new FloatExpression.Constant();
-
         @Override // documentation inherited
-        public Evaluator<Vector3f> createEvaluator (Scope scope)
+        public Evaluator<Vector2f> createEvaluator (Scope scope)
         {
             final FloatExpression.Evaluator xeval = x.createEvaluator(scope);
             final FloatExpression.Evaluator yeval = y.createEvaluator(scope);
-            final FloatExpression.Evaluator zeval = z.createEvaluator(scope);
-            return new Evaluator<Vector3f>() {
-                public Vector3f evaluate () {
-                    return _result.set(xeval.evaluate(), yeval.evaluate(), zeval.evaluate());
+            return new Evaluator<Vector2f>() {
+                public Vector2f evaluate () {
+                    return _result.set(xeval.evaluate(), yeval.evaluate());
                 }
-                protected Vector3f _result = new Vector3f();
+                protected Vector2f _result = new Vector2f();
             };
         }
 
@@ -136,7 +131,6 @@ public abstract class Vector3fExpression extends ObjectExpression<Vector3f>
         {
             x.invalidate();
             y.invalidate();
-            z.invalidate();
         }
     }
 }

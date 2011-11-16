@@ -35,7 +35,7 @@ import com.threerings.math.Vector3f;
 import com.threerings.expr.util.ScopeUtil;
 
 /**
- * A transform-valued expression.
+ * A 3D transform-valued expression.
  */
 @EditorTypes({
     Transform3DExpression.Constant.class, Transform3DExpression.Reference.class,
