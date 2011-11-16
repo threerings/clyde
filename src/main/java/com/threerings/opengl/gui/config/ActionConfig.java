@@ -31,6 +31,7 @@ import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
 import com.threerings.export.Exportable;
 import com.threerings.math.FloatMath;
+import com.threerings.math.Transform2D;
 import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.effect.Easing;
@@ -46,10 +47,10 @@ import com.threerings.opengl.gui.UserInterface.ConfigScript;
  */
 @EditorTypes({
     ActionConfig.PlaySound.class, ActionConfig.SetEnabled.class, ActionConfig.SetVisible.class,
-    ActionConfig.SetAlpha.class, ActionConfig.FadeAlpha.class, ActionConfig.SetSelected.class,
-    ActionConfig.SetText.class, ActionConfig.SetStyle.class, ActionConfig.SetConfig.class,
-    ActionConfig.RunScript.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class,
-    ActionConfig.AddHandler.class })
+    ActionConfig.SetAlpha.class, ActionConfig.FadeAlpha.class, ActionConfig.SetOffset.class,
+    ActionConfig.MoveOffset.class, ActionConfig.SetSelected.class, ActionConfig.SetText.class,
+    ActionConfig.SetStyle.class, ActionConfig.SetConfig.class, ActionConfig.RunScript.class,
+    ActionConfig.RequestFocus.class, ActionConfig.Wait.class, ActionConfig.AddHandler.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -184,6 +185,64 @@ public abstract class ActionConfig extends DeepObject
                     comp.setAlpha(end);
                 }
                 protected float _time;
+            });
+        }
+    }
+
+    /**
+     * Sets a component's offset.
+     */
+    public static class SetOffset extends Targeted
+    {
+        /** The component offset. */
+        @Editable(step=0.01)
+        public Transform2D offset = new Transform2D();
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, Component comp)
+        {
+            comp.setOffset(new Transform2D(offset));
+        }
+    }
+
+    /**
+     * Moves a component's offset.
+     */
+    public static class MoveOffset extends Targeted
+    {
+        /** The interval over which to move. */
+        @Editable(min=0, step=0.01, hgroup="t")
+        public float interval = 1f;
+
+        /** The starting offset. */
+        @Editable(step=0.01)
+        public Transform2D start = new Transform2D();
+
+        /** The ending offset. */
+        @Editable(step=0.01)
+        public Transform2D end = new Transform2D();
+
+        /** The type of easing to use, if any. */
+        @Editable
+        public Easing easing = new Easing.None();
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, final Component comp)
+        {
+            iface.addScript(iface.new TickableScript() {
+                @Override public void tick (float elapsed) {
+                    if ((_time += elapsed) < interval) {
+                        comp.setOffset(start.lerp(end, easing.getTime(_time / interval), _offset));
+                    } else {
+                        remove();
+                    }
+                }
+                @Override public void cleanup () {
+                    super.cleanup();
+                    comp.setOffset(_offset.set(end));
+                }
+                protected float _time;
+                protected Transform2D _offset = new Transform2D();
             });
         }
     }

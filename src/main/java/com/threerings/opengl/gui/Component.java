@@ -36,6 +36,9 @@ import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ConfigUpdateListener;
 import com.threerings.config.ManagedConfig;
+import com.threerings.math.FloatMath;
+import com.threerings.math.Transform2D;
+import com.threerings.math.Vector2f;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -53,6 +56,8 @@ import com.threerings.opengl.gui.text.HTMLView;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
+
+import static com.threerings.opengl.gui.Log.*;
 
 /**
  * The basic entity in the UI user interface system. A hierarchy of components and component
@@ -618,6 +623,23 @@ public class Component
     }
 
     /**
+     * Sets the transformation offset reference.  This is only used for rendering; it does not
+     * affect the component's behavior.
+     */
+    public void setOffset (Transform2D offset)
+    {
+        _offset = offset;
+    }
+
+    /**
+     * Returns the transformation offset reference.
+     */
+    public Transform2D getOffset ()
+    {
+        return _offset;
+    }
+
+    /**
      * Adds a listener to this component. The listener will be notified when events of the
      * appropriate type are dispatched on this component.
      */
@@ -778,7 +800,12 @@ public class Component
         if (!_visible) {
             return;
         }
-        GL11.glTranslatef(_x, _y, 0);
+        if (_offset != null) {
+            GL11.glPushMatrix();
+            applyTransform();
+        } else {
+            GL11.glTranslatef(_x, _y, 0);
+        }
 
         try {
             // render our background
@@ -791,7 +818,11 @@ public class Component
             renderBorder(renderer);
 
         } finally {
-            GL11.glTranslatef(-_x, -_y, 0);
+            if (_offset != null) {
+                GL11.glPopMatrix();
+            } else {
+                GL11.glTranslatef(-_x, -_y, 0);
+            }
         }
     }
 
@@ -1005,6 +1036,36 @@ public class Component
     protected Component createTooltipComponent (String tiptext)
     {
         return createDefaultTooltipComponent(_ctx, tiptext, _tooltipStyle);
+    }
+
+    /**
+     * Applies our configured transform.
+     */
+    protected void applyTransform ()
+    {
+        // normal translation
+        float hwidth = _width/2f, hheight = _height/2f;
+        GL11.glTranslatef(_x + hwidth, _y + hheight, 0f);
+
+        // offset transform
+        int type = _offset.getType();
+        if (type != Transform2D.IDENTITY) {
+            if (type == Transform2D.AFFINE || type == Transform2D.GENERAL) {
+                log.warning("Unsupported offset transform type.", "offset", _offset);
+
+            } else { // type == Transform2D.RIGID || type == Transform2D.UNIFORM
+                Vector2f translation = _offset.getTranslation();
+                GL11.glTranslatef(translation.x, translation.y, 0f);
+                GL11.glRotatef(FloatMath.toDegrees(_offset.getRotation()), 0f, 0f, 1f);
+                if (type == Transform2D.UNIFORM) {
+                    float scale = _offset.getScale();
+                    GL11.glScalef(scale, scale, 1f);
+                }
+            }
+        }
+
+        // centering translation
+        GL11.glTranslatef(-hwidth, -hheight, 0f);
     }
 
     /**
@@ -1233,6 +1294,9 @@ public class Component
 
     /** Handler for data transfer operations. */
     protected TransferHandler _transferHandler;
+
+    /** Optional transformation offset. */
+    protected Transform2D _offset;
 
     /** Temporary storage for scissor box. */
     protected static Rectangle _rect = new Rectangle();
