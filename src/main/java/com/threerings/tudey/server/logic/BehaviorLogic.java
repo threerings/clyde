@@ -794,7 +794,9 @@ public abstract class BehaviorLogic extends Logic
         @Override // documentation inherited
         public void reachedTargetRotation ()
         {
-            _steps[_currentStep].reachedTargetRotation();
+            if (_currentStep < _steps.length) {
+                _steps[_currentStep].reachedTargetRotation();
+            }
         }
 
         @Override // documentation inherited
