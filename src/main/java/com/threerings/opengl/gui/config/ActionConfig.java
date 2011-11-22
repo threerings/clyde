@@ -43,11 +43,14 @@ import com.threerings.util.DeepObject;
 
 import com.threerings.opengl.effect.Easing;
 import com.threerings.opengl.gui.Component;
+import com.threerings.opengl.gui.RenderableView;
 import com.threerings.opengl.gui.TextComponent;
 import com.threerings.opengl.gui.ToggleButton;
 import com.threerings.opengl.gui.UserInterface;
 import com.threerings.opengl.gui.UserInterface.Script;
 import com.threerings.opengl.gui.UserInterface.ConfigScript;
+import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.AnimationConfig;
 
 import static com.threerings.opengl.gui.Log.*;
 
@@ -60,8 +63,8 @@ import static com.threerings.opengl.gui.Log.*;
     ActionConfig.AnimateAlpha.class, ActionConfig.SetOffset.class, ActionConfig.MoveOffset.class,
     ActionConfig.AnimateOffset.class, ActionConfig.SetSelected.class, ActionConfig.SetText.class,
     ActionConfig.SetStyle.class, ActionConfig.SetConfig.class, ActionConfig.RunScript.class,
-    ActionConfig.RequestFocus.class, ActionConfig.Wait.class, ActionConfig.AddHandler.class,
-    ActionConfig.Conditional.class, ActionConfig.Compound.class })
+    ActionConfig.PlayAnimation.class, ActionConfig.RequestFocus.class, ActionConfig.Wait.class,
+    ActionConfig.AddHandler.class, ActionConfig.Conditional.class, ActionConfig.Compound.class })
 public abstract class ActionConfig extends DeepObject
     implements Exportable
 {
@@ -431,6 +434,31 @@ public abstract class ActionConfig extends DeepObject
         {
             if (comp instanceof UserInterface) {
                 ((UserInterface)comp).runScript(interfaceScript);
+            }
+        }
+    }
+
+    /**
+     * Plays an animation on a model in a renderable view.
+     */
+    public static class PlayAnimation extends Targeted
+    {
+        /** The index of the model on which to play the animation. */
+        @Editable(min=0, hgroup="t")
+        public int index;
+
+        /** The animation to play on the model. */
+        @Editable(nullable=true)
+        public ConfigReference<AnimationConfig> animation;
+
+        @Override // documentation inherited
+        public void apply (UserInterface iface, Component comp)
+        {
+            if (comp instanceof RenderableView) {
+                Model[] models = ((RenderableView)comp).getConfigModels();
+                if (index < models.length) {
+                    models[index].createAnimation(animation).start();
+                }
             }
         }
     }
