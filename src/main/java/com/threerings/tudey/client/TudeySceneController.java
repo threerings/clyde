@@ -354,10 +354,8 @@ public class TudeySceneController extends SceneController
         // increment the tick count
         _tickCount++;
 
-        // update the input if we control our target
-        if (_controlledId > 0) {
-            updateInput(elapsed);
-        }
+        // update the hover sprite/input
+        updateInput(elapsed);
 
         // perhaps transmit our acknowledgement and input frames
         long now = RunAnywhere.currentTimeMillis();
@@ -707,18 +705,9 @@ public class TudeySceneController extends SceneController
      */
     protected void updateInput (float elapsed)
     {
-        // make sure we have our controllee
-        ActorSprite controlledSprite = _tsview.getControlledSprite();
-        if (controlledSprite == null) {
-            return;
-        }
-
-        // if the mouse is over the input window, update the rotation/direction
-        float rotation = _lastRotation, direction = _lastDirection;
+        boolean hovered = inputWindowHovered();
         Sprite nhsprite = null;
-
-        // update the direction if hovered
-        if (inputWindowHovered() && controlledSprite == _tsview.getTargetSprite()) {
+        if (hovered) {
             // get the pick ray
             Root root = _tctx.getRoot();
             _tctx.getCompositor().getCamera().getPickRay(
@@ -727,7 +716,22 @@ public class TudeySceneController extends SceneController
             // see if it intersects anything in the scene
             nhsprite = (_holdHover && (_hsprite == null || _hsprite.isClickable())) ?
                 _hsprite : findHoverSprite(_pick);
+        }
 
+        // update the hover sprite
+        if (_hsprite != nhsprite) {
+            setHoverSprite(nhsprite);
+        }
+
+        // make sure we have our controllee for the rest
+        ActorSprite controlledSprite = _tsview.getControlledSprite();
+        if (controlledSprite == null) {
+            return;
+        }
+
+        // update the direction if hovered
+        float rotation = _lastRotation, direction = _lastDirection;
+        if (hovered && controlledSprite == _tsview.getTargetSprite()) {
             // find the camera target plane
             Vector3f target = _tsview.getCameraHandler().getTarget();
             _tplane.set(Vector3f.UNIT_Z, -target.z);
@@ -745,11 +749,6 @@ public class TudeySceneController extends SceneController
         // clear the input if we don't have focus
         if (!inputWindowFocused()) {
             clearInput();
-        }
-
-        // update the hover sprite
-        if (_hsprite != nhsprite) {
-            setHoverSprite(nhsprite);
         }
 
         // perhaps enqueue an input frame
