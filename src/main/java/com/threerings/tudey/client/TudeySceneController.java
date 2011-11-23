@@ -707,9 +707,9 @@ public class TudeySceneController extends SceneController
      */
     protected void updateInput (float elapsed)
     {
-        // make sure we have our target
-        ActorSprite targetSprite = _tsview.getControlledSprite();
-        if (targetSprite == null) {
+        // make sure we have our controllee
+        ActorSprite controlledSprite = _tsview.getControlledSprite();
+        if (controlledSprite == null) {
             return;
         }
 
@@ -718,7 +718,7 @@ public class TudeySceneController extends SceneController
         Sprite nhsprite = null;
 
         // update the direction if hovered
-        if (inputWindowHovered() && targetSprite == _tsview.getTargetSprite()) {
+        if (inputWindowHovered() && controlledSprite == _tsview.getTargetSprite()) {
             // get the pick ray
             Root root = _tctx.getRoot();
             _tctx.getCompositor().getCamera().getPickRay(
@@ -767,7 +767,7 @@ public class TudeySceneController extends SceneController
 
             // apply it immediately to the controller and sprite advancers
             _advancer.advance(frame);
-            ((PawnAdvancer)targetSprite.getAdvancer()).advance(frame);
+            ((PawnAdvancer)controlledSprite.getAdvancer()).advance(frame);
 
             // include the up-to-date translation in the input frame for use by the server
             frame.setTranslation(new Vector2f(_advancer.getActor().getTranslation()));
@@ -779,11 +779,11 @@ public class TudeySceneController extends SceneController
         } else {
             int advancedTime = _tsview.getAdvancedTime();
             _advancer.advance(advancedTime);
-            targetSprite.getAdvancer().advance(advancedTime);
+            controlledSprite.getAdvancer().advance(advancedTime);
         }
 
         // have the sprite actor's translation smoothly approach that of the advancer actor
-        targetSprite.getActor().getTranslation().lerpLocal(
+        controlledSprite.getActor().getTranslation().lerpLocal(
             _advancer.getActor().getTranslation(), 1f - FloatMath.exp(CONVERGENCE_RATE * elapsed));
     }
 
