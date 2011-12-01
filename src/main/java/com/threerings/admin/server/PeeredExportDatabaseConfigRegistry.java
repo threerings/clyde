@@ -64,7 +64,6 @@ public class PeeredExportDatabaseConfigRegistry extends PeeredDatabaseConfigRegi
         return new PeerDatabaseObjectRecord(path, object) {
             @Override protected void serialize (String name, String key, Object value) {
                 setValue(key, StringUtil.hexlate(ExportUtil.toBytes(value)));
-                fieldUpdated(name, value);
             }
             @Override protected Object deserialize (String value) {
                 return ExportUtil.fromBytes(StringUtil.unhexlate(value));
