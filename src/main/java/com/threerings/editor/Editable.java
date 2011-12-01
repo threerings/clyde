@@ -72,7 +72,8 @@ public @interface Editable
     /** A translatable string describing the units of the property, if any. */
     String units () default "";
 
-    /** For string properties, the width of the text editor. */
+    /** For string properties (and numeric properties with mode="sized"),
+     * the width of the text editor. */
     int width () default 10;
 
     /** For string properties, the number of rows in the text editor. */

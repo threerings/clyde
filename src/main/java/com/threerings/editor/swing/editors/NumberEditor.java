@@ -87,6 +87,11 @@ public class NumberEditor extends PropertyEditor
             _slider.addChangeListener(this);
         }
         add(_spinner = new DraggableSpinner(min, min, max, _step));
+        if (getMode().equals("sized")) {
+            ((DraggableSpinner.NumberEditor)_spinner.getEditor()).getTextField().setColumns(
+                _property.getAnnotation().width());
+            _spinner.setPreferredSize(null);
+        }
         _spinner.addChangeListener(this);
         String units = getUnits();
         if (units.length() > 0) {
