@@ -93,10 +93,7 @@ public class NumberEditor extends PropertyEditor
             _spinner.setPreferredSize(null);
         }
         _spinner.addChangeListener(this);
-        String units = getUnits();
-        if (units.length() > 0) {
-            add(new JLabel(getLabel(units, _property.getMessageBundle())));
-        }
+        addUnits();
     }
 
     /**

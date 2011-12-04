@@ -92,6 +92,7 @@ public class StringEditor extends PropertyEditor
             add(_field);
         }
         _field.getDocument().addDocumentListener(this);
+        addUnits();
     }
 
     /** The text field. */

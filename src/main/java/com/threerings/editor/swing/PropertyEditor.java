@@ -32,6 +32,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.swing.JLabel;
+
 import com.samskivert.util.ArrayUtil;
 
 import com.threerings.config.ConfigReference;
@@ -207,6 +209,17 @@ public abstract class PropertyEditor extends BasePropertyEditor
         String name = _property.getName();
         return _property.shouldTranslateName() ?
             getLabel(name, _property.getMessageBundle()) : name;
+    }
+
+    /**
+     * Add a Label for the units, if applicable.
+     */
+    protected void addUnits ()
+    {
+        String units = getUnits();
+        if (units.length() > 0) {
+            add(new JLabel(getLabel(units, _property.getMessageBundle())));
+        }
     }
 
     /**
