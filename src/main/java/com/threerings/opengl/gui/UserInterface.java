@@ -719,7 +719,7 @@ public class UserInterface extends Container
     protected void checkController ()
     {
         if (_controller != null) {
-            _controller.setActive(isAdded() && isEnabled() && isVisible());
+            _controller.setActive(isShowing() && isEnabled());
         }
     }
 
