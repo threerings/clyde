@@ -72,14 +72,14 @@ public class UserInterface extends Container
         boolean init (GlContext ctx, UserInterface ui);
 
         /**
-         * Called when the user interface is added to the hierarchy.
+         * Called when the controller should activate/deactivate. This may change
+         * if the UI is added or removed to the hierarchy, made visible or invisible, or
+         * enabled or disabled, as well as possible future enhancements.
+         *
+         * Your implementation should be idempotent and capable of ignoring repeat requests
+         * to set active or inactive if already so.
          */
-        void wasAdded ();
-
-        /**
-         * Called when the user interface is removed from the hierarchy. Clean up.
-         */
-        void wasRemoved ();
+        void setActive (boolean active);
     }
 
     /**
@@ -567,6 +567,20 @@ public class UserInterface extends Container
         script.init();
     }
 
+    @Override
+    public void setEnabled (boolean enabled)
+    {
+        super.setEnabled(enabled);
+        checkController();
+    }
+
+    @Override
+    public void setVisible (boolean visible)
+    {
+        super.setVisible(visible);
+        checkController();
+    }
+
     @Override // documentation inherited
     public void configUpdated (ConfigEvent<ManagedConfig> event)
     {
@@ -593,9 +607,7 @@ public class UserInterface extends Container
             _root.playSound(original.addSound);
         }
 
-        if (_controller != null) {
-            _controller.wasAdded();
-        }
+        checkController();
 
         // perform the addition action, if any
         if (original.addAction != null) {
@@ -611,9 +623,7 @@ public class UserInterface extends Container
             return;
         }
 
-        if (_controller != null) {
-            _controller.wasRemoved();
-        }
+        checkController();
 
         // play the removal sound, if any
         UserInterfaceConfig.Original original = getOriginal();
@@ -641,8 +651,8 @@ public class UserInterface extends Container
     {
         _tagged.clear();
 
-        if (_controller != null && isAdded()) {
-            _controller.wasRemoved();
+        if (_controller != null) {
+            _controller.setActive(false);
         }
         _controller = null;
 
@@ -658,16 +668,15 @@ public class UserInterface extends Container
             try {
                 Controller c = (Controller)Class.forName(controller).newInstance();
                 if (c.init(_ctx.getApp(), this)) {
-                    if (isAdded()) {
-                        c.wasAdded();
-                    }
                     _controller = c;
+                    checkController();
                 }
             } catch (ClassNotFoundException cnfe) {
                 log.warning("Controller not found: " + controller);
 
             } catch (Exception e) {
                 log.warning("Error initializing controller", "controller", controller, e);
+                _controller = null;
             }
         }
     }
@@ -702,6 +711,16 @@ public class UserInterface extends Container
     protected void registerComponent (String tag, Component comp)
     {
         _tagged.put(tag, comp);
+    }
+
+    /**
+     * Check/set the controller's active state.
+     */
+    protected void checkController ()
+    {
+        if (_controller != null) {
+            _controller.setActive(isAdded() && isEnabled() && isVisible());
+        }
     }
 
     /** The user interface scope. */
