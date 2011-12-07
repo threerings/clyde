@@ -103,7 +103,7 @@ public class DirectDialog extends JDialog
     /**
      * Show the dialog.
      */
-    public void show (EditorPanel epanel, String name, String path)
+    public void show (BaseEditorPanel epanel, String name, String path)
     {
         setEditorPanel(epanel);
         setVisible(true);
@@ -118,7 +118,7 @@ public class DirectDialog extends JDialog
     /**
      * Sets the editor panel.
      */
-    public void setEditorPanel (EditorPanel epanel)
+    public void setEditorPanel (BaseEditorPanel epanel)
     {
         if (_epanel != epanel) {
             _epanel = epanel;
@@ -218,7 +218,7 @@ public class DirectDialog extends JDialog
     protected JLabel _status;
 
     /** Our config editor. */
-    protected EditorPanel _epanel;
+    protected BaseEditorPanel _epanel;
 
     /** The search term. */
     protected String _term;

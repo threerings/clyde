@@ -156,9 +156,23 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
             updateBorder(((TitledBorder)getBorder()).getTitle());
             invalidate();
 
+        } else if (source == _tree) {
+            Icon icon = _tree.getIcon();
+            boolean enabled = (icon == _treeIcon);
+            setTreeModeEnabled(enabled);
+            _tree.setIcon(enabled ? _panelIcon : _treeIcon);
+
         } else {
             super.actionPerformed(event);
         }
+    }
+
+    /**
+     * Enables or disables tree mode.
+     */
+    protected void setTreeModeEnabled (boolean enabled)
+    {
+        // nothing by default
     }
 
     /**
@@ -216,8 +230,10 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
 
     /**
      * Adds the collapsible button to the panel.
+     *
+     * @param tree if true, include the tree mode button.
      */
-    protected void makeCollapsible (EditorContext ctx, final String title)
+    protected void makeCollapsible (EditorContext ctx, final String title, boolean tree)
     {
         VGroupLayout gl = new VGroupLayout(VGroupLayout.NONE);
         gl.setOffAxisPolicy(VGroupLayout.STRETCH);
@@ -231,11 +247,17 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
             _expandIcon = loadIcon("expand", ctx);
             _collapseIcon = loadIcon("collapse", ctx);
             _highlightIcon = loadIcon("highlight", ctx);
+            _treeIcon = loadIcon("tree", ctx);
+            _panelIcon = loadIcon("panels", ctx);
         }
 
         JPanel tcont = GroupLayout.makeHBox(
             GroupLayout.NONE, GroupLayout.RIGHT, GroupLayout.NONE);
         tcont.setOpaque(false);
+        if (tree) {
+            tcont.add(_tree = createButton(_treeIcon));
+            _tree.addActionListener(this);
+        }
         JButton expand = createButton(_expandIcon);
         tcont.add(expand);
         tcont.add(_highlight = createButton(_highlightIcon));
@@ -398,8 +420,11 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     /** If the border should be highlighted. */
     protected boolean _highlighted;
 
-    /** Collapse/expand icons. */
-    protected static Icon _expandIcon, _collapseIcon, _highlightIcon;
+    /** The tree mode button. */
+    protected JButton _tree;
+
+    /** Various icons. */
+    protected static Icon _expandIcon, _collapseIcon, _highlightIcon, _treeIcon, _panelIcon;
 
     /** The base background value that we darken to indicate nesting. */
     protected static final int BASE_BACKGROUND = 0xEE;

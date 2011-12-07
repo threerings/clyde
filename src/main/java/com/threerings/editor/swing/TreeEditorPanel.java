@@ -23,61 +23,47 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-package com.threerings.editor.swing.editors;
+package com.threerings.editor.swing;
 
-import java.awt.Point;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
 
-import javax.swing.BorderFactory;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
-import com.samskivert.swing.GroupLayout;
-import com.samskivert.swing.VGroupLayout;
-
-import com.threerings.editor.swing.ObjectPanel;
-import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.editor.Property;
+import com.threerings.editor.util.EditorContext;
 
 /**
- * An editor for objects with editable properties.
+ * Allows editing properties of an object in tree mode.
  */
-public class ObjectEditor extends PropertyEditor
-    implements ChangeListener
+public class TreeEditorPanel extends BaseEditorPanel
 {
-    // documentation inherited from interface ChangeListener
-    public void stateChanged (ChangeEvent event)
+    /**
+     * Creates an empty editor panel.
+     */
+    public TreeEditorPanel (EditorContext ctx, Property[] ancestors, boolean omitColumns)
     {
-        _property.set(_object, _panel.getValue());
-        fireStateChanged();
+        super(ctx, ancestors, omitColumns);
+
+        _tree = new JTree();
+        add(isEmbedded() ? _tree : new JScrollPane(_tree));
+    }
+
+    @Override // documentation inherited
+    public void setObject (Object object)
+    {
+        // make sure it's not the same object
+        if (object == _object) {
+            return;
+        }
+        super.setObject(object);
+
     }
 
     @Override // documentation inherited
     public void update ()
     {
-        _panel.setOuter(_object);
-        _panel.setValue(_property.get(_object));
+
     }
 
-    @Override // documentation inherited
-    protected void didInit ()
-    {
-        makeCollapsible(_ctx, getPropertyLabel(), true);
-        _content.add(_panel = new ObjectPanel(
-            _ctx, _property.getTypeLabel(), _property.getSubtypes(), _lineage, _object));
-        _panel.addChangeListener(this);
-    }
-
-    @Override // documentation inherited
-    protected void setTreeModeEnabled (boolean enabled)
-    {
-        _panel.setTreeModeEnabled(enabled);
-    }
-
-    @Override // documentation inherited
-    protected String getMousePath (Point pt)
-    {
-        return _panel.getMousePath();
-    }
-
-    /** The object panel. */
-    protected ObjectPanel _panel;
+    /** The tree component. */
+    protected JTree _tree;
 }

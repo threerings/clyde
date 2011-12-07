@@ -36,11 +36,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
 
 import java.util.ArrayList;
 
-import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -49,7 +47,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -60,7 +57,6 @@ import com.samskivert.util.ArrayUtil;
 
 import com.threerings.util.MessageBundle;
 
-import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.DynamicallyEditable;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
@@ -73,7 +69,7 @@ import static com.threerings.editor.Log.*;
 /**
  * Allows editing properties of an object as determined through reflection.
  */
-public class EditorPanel extends BasePropertyEditor
+public class EditorPanel extends BaseEditorPanel
     implements ChangeListener
 {
     /**
@@ -164,36 +160,10 @@ public class EditorPanel extends BasePropertyEditor
     public EditorPanel (
         EditorContext ctx, CategoryMode catmode, Property[] ancestors, boolean omitColumns)
     {
-        _ctx = ctx;
+        super(ctx, ancestors, omitColumns);
         _msgmgr = ctx.getMessageManager();
         _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
         _catmode = catmode;
-        _ancestors = ancestors;
-        _omitColumns = omitColumns;
-
-        // add a mapping to copy the path of the property under the mouse cursor to the clipboard
-        if (ancestors == null) {
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
-                "copy_path");
-            getActionMap().put("copy_path", new AbstractAction() {
-                public void actionPerformed (ActionEvent event) {
-                    copyPropertyPath(getMousePath());
-                }
-            });
-            getInputMap(WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.CTRL_MASK | KeyEvent.SHIFT_MASK),
-                "direct_path");
-            getActionMap().put("direct_path", new AbstractAction() {
-                public void actionPerformed (ActionEvent event) {
-                    createDirectPath(getMousePath());
-                }
-            });
-        }
-
-        setLayout(new VGroupLayout(
-            isEmbedded() ? GroupLayout.NONE : GroupLayout.STRETCH,
-            GroupLayout.STRETCH, 5, GroupLayout.TOP));
     }
 
     /**
@@ -209,7 +179,7 @@ public class EditorPanel extends BasePropertyEditor
         // if the object is the same class as the current object, we can reuse the existing editors
         Class<?> oclazz = (_object == null) ? null : _object.getClass();
         Class<?> nclazz = (object == null) ? null : object.getClass();
-        _object = object;
+        super.setObject(object);
         if (oclazz == nclazz) {
             for (PropertyEditor editor : _editors) {
                 editor.setObject(_object);
@@ -373,26 +343,6 @@ public class EditorPanel extends BasePropertyEditor
     }
 
     /**
-     * Attempts to create a new direct property path.
-     */
-    protected void createDirectPath (String path)
-    {
-        if (path.startsWith(".")) {
-            path = path.substring(1);
-        }
-        if (path.length() > 0 && _object instanceof ParameterizedConfig) {
-            String name = path.substring(path.lastIndexOf(".") + 1);
-            if (name.endsWith("]")) {
-                name = name.substring(name.lastIndexOf('[') + 2, name.lastIndexOf('"'));
-            }
-            if (_ddialog == null) {
-                _ddialog = DirectDialog.createDialog(this, _ctx);
-            }
-            _ddialog.show(this, name, path);
-        }
-    }
-
-    /**
      * Returns the list of categories, minus any made empty by omission.
      */
     protected String[] getFilteredCategories (Class<?> clazz, Property[] props)
@@ -436,14 +386,6 @@ public class EditorPanel extends BasePropertyEditor
         inner.setBackground(null);
         add(isEmbedded() ? inner : createScrollPane(inner));
         return inner;
-    }
-
-    /**
-     * Determines whether this editor panel is embedded within another.
-     */
-    protected boolean isEmbedded ()
-    {
-        return (_ancestors != null);
     }
 
     /**
@@ -552,27 +494,15 @@ public class EditorPanel extends BasePropertyEditor
         return pane;
     }
 
-    /** Provides access to common services. */
-    protected EditorContext _ctx;
-
     /** How to present different categories of properties. */
     protected CategoryMode _catmode;
 
-    /** The ancestor properties from which constraints are inherited. */
-    protected Property[] _ancestors;
-
     /** If true, do not add editors for the properties flagged as columns. */
     protected boolean _omitColumns;
-
-    /** The object being edited. */
-    protected Object _object;
 
     /** The current list of editors. */
     protected ArrayList<PropertyEditor> _editors = new ArrayList<PropertyEditor>();
 
     /** A container for the dynamic properties. */
     protected JPanel _dynamic;
-
-    /** The dialog for creating direct parameters. */
-    protected DirectDialog _ddialog;
 }

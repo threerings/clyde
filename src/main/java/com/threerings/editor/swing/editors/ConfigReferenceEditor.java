@@ -140,7 +140,7 @@ public class ConfigReferenceEditor extends PropertyEditor
     @Override // documentation inherited
     protected void didInit ()
     {
-        makeCollapsible(_ctx, getPropertyLabel());
+        makeCollapsible(_ctx, getPropertyLabel(), false);
 
         JPanel cpanel = new JPanel();
         _content.add(cpanel);

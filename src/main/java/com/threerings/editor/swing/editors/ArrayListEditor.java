@@ -74,7 +74,7 @@ public abstract class ArrayListEditor extends PropertyEditor
         _min = getMinSize();
         _max = getMaxSize();
 
-        makeCollapsible(_ctx, getPropertyLabel());
+        makeCollapsible(_ctx, getPropertyLabel(), false);
     }
 
     /**

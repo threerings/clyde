@@ -154,6 +154,22 @@ public class ObjectPanel extends BasePropertyEditor
         return _panel.getObject();
     }
 
+    /**
+     * Enables or disables tree mode.
+     */
+    public void setTreeModeEnabled (boolean enabled)
+    {
+        BaseEditorPanel opanel = _panel;
+        remove(opanel);
+        add(_panel = enabled ?
+            new TreeEditorPanel(_ctx, opanel.getAncestors(), opanel.getOmitColumns()) :
+            new EditorPanel(_ctx, EditorPanel.CategoryMode.PANELS,
+                opanel.getAncestors(), opanel.getOmitColumns()));
+        _panel.addChangeListener(this);
+        _panel.setObject(opanel.getObject());
+        revalidate();
+    }
+
     // documentation inherited from interface ActionListener
     public void actionPerformed (ActionEvent event)
     {
@@ -249,7 +265,7 @@ public class ObjectPanel extends BasePropertyEditor
     protected JComboBox _box;
 
     /** The editor panel. */
-    protected EditorPanel _panel;
+    protected BaseEditorPanel _panel;
 
     /** The outer object reference. */
     protected Object _outer;
