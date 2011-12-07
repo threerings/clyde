@@ -27,6 +27,9 @@ package com.threerings.tudey.server.logic;
 
 import java.lang.reflect.Field;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -652,6 +655,40 @@ public abstract class ConditionLogic extends Logic
 
         /** The source target logic. */
         protected TargetLogic _sourceTarget;
+    }
+
+    /**
+     * Evaluates the date range condition.
+     */
+    public static class DateRange extends Targeted
+    {
+        @Override // documentation inherited
+        public boolean isSatisfied (Logic activator)
+        {
+            ConditionConfig.DateRange config = (ConditionConfig.DateRange)_config;
+            long now = System.currentTimeMillis();
+            if (config.start.length() > 0) {
+                try {
+                    if (now < DateFormat.getInstance().parse(config.start).getTime()) {
+                        return false;
+                    }
+                } catch (ParseException e) {
+                    log.warning("Failed to parse start date.", "start", config.start, e);
+                    return false;
+                }
+            }
+            if (config.end.length() > 0) {
+                try {
+                    if (now > DateFormat.getInstance().parse(config.end).getTime()) {
+                        return false;
+                    }
+                } catch (ParseException e) {
+                    log.warning("Failed to parse end date.", "end", config.end, e);
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     /**

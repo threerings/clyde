@@ -47,7 +47,8 @@ import com.threerings.opengl.util.PreloadableSet;
     ConditionConfig.Any.class, ConditionConfig.FlagSet.class,
     ConditionConfig.Cooldown.class, ConditionConfig.Not.class,
     ConditionConfig.Always.class, ConditionConfig.Evaluate.class,
-    ConditionConfig.Action.class, ConditionConfig.Is.class })
+    ConditionConfig.Action.class, ConditionConfig.Is.class,
+    ConditionConfig.DateRange.class })
 @Strippable
 public abstract class ConditionConfig extends DeepObject
     implements Exportable, Streamable
@@ -454,6 +455,26 @@ public abstract class ConditionConfig extends DeepObject
         {
             target.invalidate();
             source.invalidate();
+        }
+    }
+
+    /**
+     * Determines if the current date is within the range.
+     */
+    public static class DateRange extends ConditionConfig
+    {
+        /** The starting date. */
+        @Editable
+        public String start = "";
+
+        /** The ending date. */
+        @Editable
+        public String end = "";
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ConditionLogic$DateRange";
         }
     }
 
