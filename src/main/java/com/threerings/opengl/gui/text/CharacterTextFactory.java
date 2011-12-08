@@ -223,7 +223,7 @@ public class CharacterTextFactory extends TextFactory
                     line.append(c);
                     IntTuple bspan = getBreakSpan(line);
                     if (bspan != null) {
-                        extra = line.substring(bspan.right + 1, line.length());
+                        extra = line.substring(bspan.right, line.length());
                         line.delete(bspan.left, line.length());
                     } else {
                         extra = String.valueOf(c);
@@ -271,22 +271,30 @@ public class CharacterTextFactory extends TextFactory
     }
 
     /**
-     * Searches for an appropriate break span: the last region of whitespace preceeded by a
-     * non-whitespace character.
+     * Searches for an appropriate break span: the region of characters that may be omitted prior
+     * to the region to be pushed to the next line. Typically this is the last region of whitespace.
+     * The region may be zero-length to indicate that no characters should be removed.
      *
-     * @return the start and end indices of the span (inclusive), or <code>null</code> if no span
-     * was found.
+     * "foo[ ]bar" (break after foo, cut the space, and put bar on the next line)
+     * "foo-[]bar" (break after the dash, put bar on the next line)
+     *
+     * @return the start (inclusive) and end (exclusive) indices of the span,
+     * or <code>null</code> if no span was found.
      */
     protected IntTuple getBreakSpan (StringBuilder buf)
     {
         for (int ii = buf.length() - 1; ii > 0; ii--) {
-            if (Character.isWhitespace(buf.charAt(ii))) {
+            char c = buf.charAt(ii);
+            if (Character.isWhitespace(c)) {
                 for (int jj = ii - 1; jj >= 0; jj--) {
                     if (!Character.isWhitespace(buf.charAt(jj))) {
-                        return new IntTuple(jj + 1, ii);
+                        return new IntTuple(jj + 1, ii + 1);
                     }
                 }
                 return null; // no non-whitespace before whitespace
+
+            } else if (('-' == c) && (!Character.isWhitespace(buf.charAt(ii - 1)))) {
+                return new IntTuple(ii + 1, ii + 1);
             }
         }
         return null; // no whitespace
