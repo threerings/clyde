@@ -191,7 +191,7 @@ public abstract class ScrollingList<V, C extends Component> extends Container
             entry.height =
                 entry.component.getPreferredSize(twidth, 0).height;
             if (remove) {
-                remove(entry.component);
+                container.remove(entry.component);
             }
         }
     }
