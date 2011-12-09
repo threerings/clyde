@@ -26,6 +26,8 @@
 package com.threerings.editor.swing;
 
 import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 
 import java.io.File;
 
@@ -33,30 +35,38 @@ import java.lang.reflect.Array;
 
 import java.util.List;
 
+import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.TransferHandler;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
+import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
-
+import com.threerings.export.util.SerializableWrapper;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform2D;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
 import com.threerings.math.Vector3f;
+import com.threerings.util.DeepUtil;
+import com.threerings.util.ToolUtil;
 
 import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
+
+import static com.threerings.editor.Log.*;
 
 /**
  * Allows editing properties of an object in tree mode.
@@ -72,6 +82,73 @@ public class TreeEditorPanel extends BaseEditorPanel
 
         _tree = new JTree(new Object[0]);
         add(isEmbedded() ? _tree : new JScrollPane(_tree));
+
+        _tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        _tree.setDragEnabled(true);
+        _tree.setTransferHandler(new TransferHandler() {
+            @Override public boolean canImport (JComponent comp, DataFlavor[] flavors) {
+                return ListUtil.contains(flavors, ToolUtil.SERIALIZED_WRAPPED_FLAVOR);
+            }
+            @Override public boolean importData (JComponent comp, Transferable t) {
+                if (!canImport(comp, t.getTransferDataFlavors())) {
+                    return false; // this isn't checked automatically for paste
+                }
+                boolean local = t.isDataFlavorSupported(LOCAL_NODE_TRANSFER_FLAVOR);
+                Object data;
+                try {
+                    data = t.getTransferData(local ?
+                        LOCAL_NODE_TRANSFER_FLAVOR : ToolUtil.SERIALIZED_WRAPPED_FLAVOR);
+                } catch (Exception e) {
+                    log.warning("Failure importing data.", e);
+                    return false;
+                }
+                DefaultMutableTreeNode node = null;
+                Object value;
+                if (local) {
+                    NodeTransfer transfer = (NodeTransfer)data;
+                    node = transfer.node;
+                    value = transfer.value;
+                } else {
+                    value = ((SerializableWrapper)data).getObject();
+                }
+                DefaultMutableTreeNode snode = getSelectedNode();
+                NodeObject snobj = (NodeObject)snode.getUserObject();
+                if (snobj.property != null && snobj.property.isLegalValue(value)) {
+                    DefaultMutableTreeNode pnode = (DefaultMutableTreeNode)snode.getParent();
+                    NodeObject pnobj = (NodeObject)pnode.getUserObject();
+                    Object object = pnobj.value;
+                    if (snobj.comp instanceof String) {
+                        object = ((ConfigReference)object).getArguments();
+                    }
+                    snobj.property.set(object, value);
+                    populateNode(snode, getLabel(snobj.property), value,
+                        snobj.property.getSubtypes(), snobj.property, snobj.comp);
+                    ((DefaultTreeModel)_tree.getModel()).reload(snode);
+                    fireStateChanged();
+                    return true;
+                }
+                return false;
+            }
+            @Override public int getSourceActions (JComponent comp) {
+                return COPY_OR_MOVE;
+            }
+            @Override protected Transferable createTransferable (JComponent comp) {
+                DefaultMutableTreeNode node = getSelectedNode();
+                return (node == null) ? null : new NodeTransfer(node, false);
+            }
+            @Override protected void exportDone (
+                    JComponent source, Transferable data, int action) {
+                if (action != MOVE) {
+                    return;
+                }
+                DefaultMutableTreeNode node = ((NodeTransfer)data).node;
+                NodeObject nodeobj = (NodeObject)node.getUserObject();
+                if (!(nodeobj.comp instanceof Integer)) {
+                    return;
+                }
+
+            }
+        });
     }
 
     @Override // documentation inherited
@@ -82,16 +159,16 @@ public class TreeEditorPanel extends BaseEditorPanel
             return;
         }
         super.setObject(object);
-
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(null);
-        addPropertyNodes(root, object);
-        _tree.setModel(new DefaultTreeModel(root, true));
+        update();
     }
 
     @Override // documentation inherited
     public void update ()
     {
-
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(
+            new NodeObject(null, _object, null, null));
+        addPropertyNodes(root, _object);
+        _tree.setModel(new DefaultTreeModel(root, true));
     }
 
     @Override // documentation inherited
@@ -106,15 +183,33 @@ public class TreeEditorPanel extends BaseEditorPanel
         for (int ii = 1, nn = path.getPathCount(); ii < nn; ii++) {
             NodeObject obj = (NodeObject)((DefaultMutableTreeNode)
                 path.getPathComponent(ii)).getUserObject();
-            if (obj.comp instanceof Property) {
-                buf.append('.').append(((Property)obj.comp).getName());
-            } else if (obj.comp instanceof Integer) {
+            if (obj.comp instanceof Integer) {
                 buf.append('[').append(obj.comp).append(']');
-            } else { // obj.comp instanceof String
+            } else if (obj.comp instanceof String) {
                 buf.append("[\"").append(((String)obj.comp).replace("\"", "\\\"")).append("\"]");
+            } else { // obj.comp == null
+                buf.append('.').append(obj.property.getName());
             }
         }
         return buf.toString();
+    }
+
+    /**
+     * Creates a {@link Transferable} containing the selected node for the clipboard.
+     */
+    protected Transferable createClipboardTransferable ()
+    {
+        DefaultMutableTreeNode node = getSelectedNode();
+        return (node == null) ? null : new NodeTransfer(node, true);
+    }
+
+    /**
+     * Returns the selected node, or <code>null</code> for none.
+     */
+    protected DefaultMutableTreeNode getSelectedNode ()
+    {
+        TreePath path = _tree.getSelectionPath();
+        return (path == null) ? null : (DefaultMutableTreeNode)path.getLastPathComponent();
     }
 
     /**
@@ -129,7 +224,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         parent.setAllowsChildren(true);
         for (Property property : properties) {
             addNode(parent, getLabel(property), property.get(object),
-                property.getSubtypes(), property, property);
+                property.getSubtypes(), property, null);
         }
     }
 
@@ -140,31 +235,44 @@ public class TreeEditorPanel extends BaseEditorPanel
         DefaultMutableTreeNode parent, String label, Object value,
         Class<?>[] subtypes, Property property, Object comp)
     {
+        DefaultMutableTreeNode child = new DefaultMutableTreeNode();
+        populateNode(child, label, value, subtypes, property, comp);
+        parent.add(child);
+    }
+
+    /**
+     * (Re)populates the specified node.
+     */
+    protected void populateNode (
+        DefaultMutableTreeNode node, String label, Object value,
+        Class<?>[] subtypes, Property property, Object comp)
+    {
         if (value == null || value instanceof Boolean || value instanceof Number ||
                 value instanceof Color4f || value instanceof File ||
                 value instanceof Quaternion || value instanceof String ||
                 value instanceof Transform2D || value instanceof Transform3D ||
                 value instanceof Vector2f || value instanceof Vector3f ||
                 value instanceof Enum) {
+            Object dval = value;
             if (value == null) {
-                value = _msgs.get("m.null_value");
+                dval = _msgs.get("m.null_value");
 
             } else if (value instanceof String) {
-                value = "\"" + value + "\"";
+                dval = "\"" + value + "\"";
 
             } else if (value instanceof Enum) {
                 Enum<?> eval = (Enum)value;
-                value = getLabel(eval, _msgmgr.getBundle(
+                dval = getLabel(eval, _msgmgr.getBundle(
                     Introspector.getMessageBundle(eval.getDeclaringClass())));
             }
-            parent.add(new DefaultMutableTreeNode(new NodeObject(
-                label + ": " + value, comp), false));
+            node.setUserObject(new NodeObject(label + ": " + dval, value, property, comp));
+            node.setAllowsChildren(false);
 
         } else if (value instanceof ConfigReference) {
             ConfigReference<?> ref = (ConfigReference)value;
             String name = ref.getName();
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(
-                new NodeObject(label + ": " + name, comp), false);
+            node.setUserObject(new NodeObject(label + ": " + name, value, property, comp));
+            node.setAllowsChildren(false);
             if (property != null) {
                 @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
                     (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
@@ -175,41 +283,38 @@ public class TreeEditorPanel extends BaseEditorPanel
                         for (Parameter param : pconfig.parameters) {
                             Property aprop = param.getArgumentProperty(pconfig);
                             if (aprop != null) {
-                                child.setAllowsChildren(true);
-                                addNode(child, param.name, aprop.get(ref.getArguments()),
+                                node.setAllowsChildren(true);
+                                addNode(node, param.name, aprop.get(ref.getArguments()),
                                     aprop.getSubtypes(), aprop, param.name);
                             }
                         }
                     }
                 }
             }
-            parent.add(child);
-
         } else if (value instanceof List || value.getClass().isArray()) {
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new NodeObject(label, comp));
+            node.setUserObject(new NodeObject(label, value, property, comp));
+            node.removeAllChildren();
+            node.setAllowsChildren(true);
             Class<?>[] componentSubtypes = (property != null) ?
                 property.getComponentSubtypes() : new Class[0];
             if (value instanceof List) {
                 List<?> list = (List)value;
                 for (int ii = 0, nn = list.size(); ii < nn; ii++) {
-                    addNode(child, String.valueOf(ii), list.get(ii), componentSubtypes, null, ii);
+                    addNode(node, String.valueOf(ii), list.get(ii), componentSubtypes, null, ii);
                 }
             } else {
                 for (int ii = 0, nn = Array.getLength(value); ii < nn; ii++) {
-                    addNode(child, String.valueOf(ii), Array.get(value, ii),
+                    addNode(node, String.valueOf(ii), Array.get(value, ii),
                         componentSubtypes, null, ii);
                 }
             }
-            parent.add(child);
-
         } else {
             if (subtypes.length > 1) {
                 label = label + ": " + getLabel(value.getClass());
             }
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(
-                new NodeObject(label, comp), false);
-            addPropertyNodes(child, value);
-            parent.add(child);
+            node.setUserObject(new NodeObject(label, value, property, comp));
+            node.setAllowsChildren(false);
+            addPropertyNodes(node, value);
         }
     }
 
@@ -221,15 +326,23 @@ public class TreeEditorPanel extends BaseEditorPanel
         /** The object's string representation. */
         public final String label;
 
-        /** Either the {@link Property} for the node, or the array index, or the parameter name. */
+        /** The object's value. */
+        public final Object value;
+
+        /** The node property. */
+        public final Property property;
+
+        /** The array index or the parameter name, if applicable. */
         public final Object comp;
 
         /**
          * Creates a new node object.
          */
-        public NodeObject (String label, Object comp)
+        public NodeObject (String label, Object value, Property property, Object comp)
         {
             this.label = label;
+            this.value = value;
+            this.property = property;
             this.comp = comp;
         }
 
@@ -240,6 +353,52 @@ public class TreeEditorPanel extends BaseEditorPanel
         }
     }
 
+    /**
+     * Contains a node for transfer.
+     */
+    protected static class NodeTransfer
+        implements Transferable
+    {
+        /** The node being transferred. */
+        public DefaultMutableTreeNode node;
+
+        /** The contained value. */
+        public Object value;
+
+        public NodeTransfer (DefaultMutableTreeNode node, boolean clipboard)
+        {
+            this.node = clipboard ? null : node;
+            value = DeepUtil.copy(((NodeObject)node.getUserObject()).value);
+        }
+
+        // documentation inherited from interface Transferable
+        public DataFlavor[] getTransferDataFlavors ()
+        {
+            return NODE_TRANSFER_FLAVORS;
+        }
+
+        // documentation inherited from interface Transferable
+        public boolean isDataFlavorSupported (DataFlavor flavor)
+        {
+            return ListUtil.contains(NODE_TRANSFER_FLAVORS, flavor);
+        }
+
+        // documentation inherited from interface Transferable
+        public Object getTransferData (DataFlavor flavor)
+        {
+            return flavor.equals(LOCAL_NODE_TRANSFER_FLAVOR) ?
+                this : new SerializableWrapper(value);
+        }
+    }
+
     /** The tree component. */
     protected JTree _tree;
+
+    /** A data flavor that provides access to the actual transfer object. */
+    protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR =
+        ToolUtil.createLocalFlavor(NodeTransfer.class);
+
+    /** The flavors available for node transfer. */
+    protected static final DataFlavor[] NODE_TRANSFER_FLAVORS =
+        { LOCAL_NODE_TRANSFER_FLAVOR, ToolUtil.SERIALIZED_WRAPPED_FLAVOR };
 }
