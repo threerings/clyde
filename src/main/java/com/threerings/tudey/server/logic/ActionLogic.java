@@ -884,7 +884,7 @@ public abstract class ActionLogic extends Logic
             _intervals.add(interval);
             ActionConfig.Delayed config = (ActionConfig.Delayed)_config;
             int delay = Math.max(
-                    0, config.delay + Randoms.RAND.getInRange(-config.variance, config.variance));
+                    0, config.delay + Randoms.RAND.getInt(config.variance * 2) - config.variance);
             interval.schedule(delay);
             return true;
         }
