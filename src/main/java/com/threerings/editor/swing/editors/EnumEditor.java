@@ -38,8 +38,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
-import com.samskivert.util.StringUtil;
-
 import com.threerings.util.MessageBundle;
 
 import com.threerings.editor.Introspector;
@@ -80,18 +78,6 @@ public class EnumEditor extends PropertyEditor
         }).toArray();
         add(_box = new JComboBox(labels));
         _box.addActionListener(this);
-    }
-
-    /**
-     * A special version of getLabel for enums.
-     */
-    public String getLabel (Enum value, MessageBundle msgs)
-    {
-        if (value == null) {
-            return _msgs.get("m.null_value");
-        }
-        String key = "m." + StringUtil.toUSLowerCase(value.name());
-        return msgs.exists(key) ? msgs.get(key) : value.toString();
     }
 
     /**

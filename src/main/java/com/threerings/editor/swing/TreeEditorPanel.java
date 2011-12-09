@@ -25,9 +25,30 @@
 
 package com.threerings.editor.swing;
 
+import java.io.File;
+
+import java.lang.reflect.Array;
+
+import java.util.List;
+
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultMutableTreeNode;
 
+import com.samskivert.util.StringUtil;
+
+import com.threerings.config.ConfigReference;
+
+import com.threerings.math.Quaternion;
+import com.threerings.math.Transform2D;
+import com.threerings.math.Transform3D;
+import com.threerings.math.Vector2f;
+import com.threerings.math.Vector3f;
+
+import com.threerings.opengl.renderer.Color4f;
+
+import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
@@ -43,7 +64,7 @@ public class TreeEditorPanel extends BaseEditorPanel
     {
         super(ctx, ancestors, omitColumns);
 
-        _tree = new JTree();
+        _tree = new JTree(new Object[0]);
         add(isEmbedded() ? _tree : new JScrollPane(_tree));
     }
 
@@ -56,12 +77,108 @@ public class TreeEditorPanel extends BaseEditorPanel
         }
         super.setObject(object);
 
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(null);
+        addPropertyNodes(root, object);
+        _tree.setModel(new DefaultTreeModel(root, true));
     }
 
     @Override // documentation inherited
     public void update ()
     {
 
+    }
+
+    /**
+     * Adds child nodes for the specified object's properties to the specified parent node.
+     */
+    protected void addPropertyNodes (DefaultMutableTreeNode parent, Object object)
+    {
+        for (Property property : Introspector.getProperties(object)) {
+            addNode(parent, getLabel(property), property.get(object),
+                property.getSubtypes(), property);
+        }
+    }
+
+    /**
+     * Adds a child node for the specified labeled value.
+     */
+    protected void addNode (
+        DefaultMutableTreeNode parent, String label, Object value,
+        Class<?>[] subtypes, Property property)
+    {
+        if (value == null || value instanceof Boolean || value instanceof Number ||
+                value instanceof Color4f || value instanceof File ||
+                value instanceof Quaternion || value instanceof String ||
+                value instanceof Transform2D || value instanceof Transform3D ||
+                value instanceof Vector2f || value instanceof Vector3f ||
+                value instanceof Enum) {
+            if (value == null) {
+                value = _msgs.get("m.null_value");
+
+            } else if (value instanceof String) {
+                value = "\"" + value + "\"";
+
+            } else if (value instanceof Enum) {
+                Enum<?> eval = (Enum)value;
+                value = getLabel(eval, _msgmgr.getBundle(
+                    Introspector.getMessageBundle(eval.getDeclaringClass())));
+            }
+            parent.add(new DefaultMutableTreeNode(new NodeObject(label + ": " + value), false));
+
+        } else if (value instanceof ConfigReference) {
+            ConfigReference<?> ref = (ConfigReference)value;
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(
+                new NodeObject(label + ": " + ref.getName()));
+            parent.add(child);
+
+        } else if (value instanceof List || value.getClass().isArray()) {
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new NodeObject(label));
+            Class<?>[] componentSubtypes = (property != null) ?
+                property.getComponentSubtypes() : new Class[0];
+            if (value instanceof List) {
+                List<?> list = (List)value;
+                for (int ii = 0, nn = list.size(); ii < nn; ii++) {
+                    addNode(child, String.valueOf(ii), list.get(ii), componentSubtypes, null);
+                }
+            } else {
+                for (int ii = 0, nn = Array.getLength(value); ii < nn; ii++) {
+                    addNode(child, String.valueOf(ii), Array.get(value, ii),
+                        componentSubtypes, null);
+                }
+            }
+            parent.add(child);
+
+        } else {
+            if (subtypes.length > 1) {
+                label = label + ": " + getLabel(value.getClass());
+            }
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new NodeObject(label));
+            addPropertyNodes(child, value);
+            parent.add(child);
+        }
+    }
+
+    /**
+     * A user object for a tree node.
+     */
+    protected static class NodeObject
+    {
+        /** The object's string representation. */
+        public final String label;
+
+        /**
+         * Creates a new node object.
+         */
+        public NodeObject (String label)
+        {
+            this.label = label;
+        }
+
+        @Override // documentation inherited
+        public String toString ()
+        {
+            return label;
+        }
     }
 
     /** The tree component. */

@@ -161,8 +161,6 @@ public class EditorPanel extends BaseEditorPanel
         EditorContext ctx, CategoryMode catmode, Property[] ancestors, boolean omitColumns)
     {
         super(ctx, ancestors, omitColumns);
-        _msgmgr = ctx.getMessageManager();
-        _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
         _catmode = catmode;
     }
 

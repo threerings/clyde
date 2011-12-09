@@ -35,6 +35,7 @@ import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
 
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Property;
 import com.threerings.editor.util.EditorContext;
 
@@ -51,6 +52,8 @@ public abstract class BaseEditorPanel extends BasePropertyEditor
         _ctx = ctx;
         _ancestors = ancestors;
         _omitColumns = omitColumns;
+        _msgmgr = ctx.getMessageManager();
+        _msgs = _msgmgr.getBundle(EditorMessageBundle.DEFAULT);
 
         // add a mapping to copy the path of the property under the mouse cursor to the clipboard
         if (ancestors == null) {

@@ -186,6 +186,16 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
     }
 
     /**
+     * Returns the name of the specified property, translating it if a translation exists.
+     */
+    public String getLabel (Property property)
+    {
+        String name = property.getName();
+        return property.shouldTranslateName() ?
+            getLabel(name, property.getMessageBundle()) : name;
+    }
+
+    /**
      * Returns a label for the supplied name, translating it if a translation exists.
      */
     protected String getLabel (String name)
@@ -209,6 +219,18 @@ public abstract class BasePropertyEditor extends CollapsiblePanel
         name = (name.length() == 0) ? "default" : name;
         String key = "m." + name;
         return msgs.exists(key) ? msgs.get(key) : name;
+    }
+
+    /**
+     * A special version of getLabel for enums.
+     */
+    protected String getLabel (Enum value, MessageBundle msgs)
+    {
+        if (value == null) {
+            return _msgs.get("m.null_value");
+        }
+        String key = "m." + StringUtil.toUSLowerCase(value.name());
+        return msgs.exists(key) ? msgs.get(key) : value.toString();
     }
 
     /**
