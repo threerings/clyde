@@ -38,6 +38,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import com.samskivert.util.Interval;
+import com.samskivert.util.Randoms;
 import com.samskivert.util.RandomUtil;
 
 import com.threerings.crowd.data.BodyObject;
@@ -881,7 +882,10 @@ public abstract class ActionLogic extends Logic
                 }
             };
             _intervals.add(interval);
-            interval.schedule(((ActionConfig.Delayed)_config).delay);
+            ActionConfig.Delayed config = (ActionConfig.Delayed)_config;
+            int delay = Math.max(
+                    0, config.delay + Randoms.RAND.getInRange(-config.variance, config.variance));
+            interval.schedule(delay);
             return true;
         }
 

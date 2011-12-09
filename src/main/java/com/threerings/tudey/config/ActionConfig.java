@@ -825,9 +825,14 @@ public abstract class ActionConfig extends DeepObject
     public static class Delayed extends ActionConfig
     {
         /** The delay. */
-        @Editable(min=0)
+        @Editable(min=0, hgroup="d")
         @Strippable
         public int delay;
+
+        /** The delay variance. */
+        @Editable(min=0, hgroup="d")
+        @Strippable
+        public int variance;
 
         /** The action to perform. */
         @Editable
