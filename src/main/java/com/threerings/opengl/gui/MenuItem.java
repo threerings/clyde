@@ -35,7 +35,7 @@ import com.threerings.opengl.gui.icon.Icon;
 /**
  * Displays a single menu item.
  */
-public class MenuItem extends Label
+public class MenuItem extends AbstractButton
 {
     /**
      * Creates a menu item with the specified text that will generate an
@@ -70,67 +70,16 @@ public class MenuItem extends Label
      */
     public MenuItem (GlContext ctx, String text, Icon icon, String action, Object argument)
     {
-        super(ctx, text);
-        if (icon != null) {
-            setIcon(icon);
-        }
-        _action = action;
-        _argument = argument;
+        super(ctx, icon, text, action, argument);
     }
 
-    /**
-     * Returns the action configured for this menu item.
-     */
-    public String getAction ()
+    @Override
+    public int getState ()
     {
-        return _action;
-    }
-
-    /**
-     * Returns the argument of the action for this menu item.
-     */
-    public Object getArgument ()
-    {
-        return _argument;
-    }
-
-    // documentation inherited
-    public boolean dispatchEvent (Event event)
-    {
-        if (isEnabled() && event instanceof MouseEvent) {
-            MouseEvent mev = (MouseEvent)event;
-            switch (mev.getType()) {
-            case MouseEvent.MOUSE_ENTERED:
-                _armed = _pressed;
-                break; // we don't consume this event
-
-            case MouseEvent.MOUSE_EXITED:
-                _armed = false;
-                break; // we don't consume this event
-
-            case MouseEvent.MOUSE_PRESSED:
-                if (mev.getButton() == MouseEvent.BUTTON1) {
-                    _pressed = true;
-                    _armed = true;
-                } else if (mev.getButton() == MouseEvent.BUTTON2) {
-                    // clicking the right mouse button after arming the
-                    // component disarms it
-                    _armed = false;
-                }
-                return true; // consume this event
-
-            case MouseEvent.MOUSE_RELEASED:
-                if (_armed && _pressed) {
-                    // create and dispatch an action event
-                    fireAction(mev.getWhen(), mev.getModifiers());
-                    _armed = false;
-                }
-                _pressed = false;
-                return true; // consume this event
-            }
-        }
-
-        return super.dispatchEvent(event);
+        int state = super.getState();
+        return ((state == HOVER) && _pressed && !_armed)
+            ? DEFAULT
+            : state;
     }
 
     @Override // documentation inherited
@@ -139,11 +88,7 @@ public class MenuItem extends Label
         return "Default/MenuItem";
     }
 
-    /**
-     * Called when the menu item is "clicked" which may due to the mouse
-     * being pressed and released while over the item or due to keyboard
-     * manipulation while the item has focus.
-     */
+    @Override
     protected void fireAction (long when, int modifiers)
     {
         for (Component ancestor = _parent; ancestor != null; ancestor = ancestor.getParent()) {
@@ -153,8 +98,4 @@ public class MenuItem extends Label
             }
         }
     }
-
-    protected String _action;
-    protected Object _argument;
-    protected boolean _armed, _pressed;
 }

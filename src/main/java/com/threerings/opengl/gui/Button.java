@@ -39,8 +39,7 @@ import com.threerings.opengl.gui.icon.Icon;
  * Displays a simple button that can be depressed and which generates an action
  * event when pressed and released.
  */
-public class Button extends Label
-    implements UIConstants
+public class Button extends AbstractButton
 {
     /** Indicates that this button is in the down state. */
     public static final int DOWN = Component.STATE_COUNT + 0;
@@ -87,9 +86,7 @@ public class Button extends Label
     public Button (
         GlContext ctx, String text, ActionListener listener, String action, Object argument)
     {
-        super(ctx, text);
-        _action = action;
-        _argument = argument;
+        super(ctx, null, text, action, argument);
         if (listener != null) {
             addListener(listener);
         }
@@ -128,44 +125,10 @@ public class Button extends Label
     public Button (
         GlContext ctx, Icon icon, ActionListener listener, String action, Object argument)
     {
-        super(ctx, icon);
-        _action = action;
-        _argument = argument;
+        super(ctx, icon, null, action, argument);
         if (listener != null) {
             addListener(listener);
         }
-    }
-
-    /**
-     * Configures the action to be generated when this button is clicked.
-     */
-    public void setAction (String action)
-    {
-        _action = action;
-    }
-
-    /**
-     * Returns the action generated when this button is clicked.
-     */
-    public String getAction ()
-    {
-        return _action;
-    }
-
-    /**
-     * Set the argument dispatched by this button.
-     */
-    public void setArgument (Object argument)
-    {
-        _argument = argument;
-    }
-
-    /**
-     * Get the argument dispatched by this button.
-     */
-    public Object getArgument ()
-    {
-        return _argument;
     }
 
     /**
@@ -192,86 +155,9 @@ public class Button extends Label
     public int getState ()
     {
         int state = super.getState();
-        if (state == DISABLED) {
-            return state;
-        }
-
-        if (_pressed) {
-            return DOWN;
-        } else {
-            return state; // most likely HOVER
-        }
-    }
-
-    // documentation inherited
-    public boolean dispatchEvent (Event event)
-    {
-        if (isEnabled() && event instanceof MouseEvent) {
-            int ostate = getState();
-            MouseEvent mev = (MouseEvent)event;
-            switch (mev.getType()) {
-            case MouseEvent.MOUSE_DRAGGED:
-                // disarm if the mouse is dragged beyond the bounds (this is not an "exit": that
-                // happens when the mouse button is released
-                int mx = mev.getX(), my = mev.getY();
-                int ax = getAbsoluteX(), ay = getAbsoluteY();
-                if ((mx >= ax) && (my >= ay) && (mx < ax + _width) && (my < ay + _height)) {
-                    boolean wasPressed = _pressed;
-                    _pressed = (mev.getModifiers() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
-                    if (!_pressed && wasPressed) {
-                        _releasedWhen = mev.getWhen();
-                    }
-                } else {
-                    _pressed = false;
-                }
-                break;
-
-            case MouseEvent.MOUSE_ENTERED:
-                _pressed = false;
-                // let the normal component hovered processing take place
-                return super.dispatchEvent(event);
-
-            case MouseEvent.MOUSE_EXITED:
-                _pressed = false;
-                // let the normal component hovered processing take place
-                return super.dispatchEvent(event);
-
-            case MouseEvent.MOUSE_PRESSED:
-                if (mev.getButton() == MouseEvent.BUTTON1) {
-                    _pressed = true;
-                }
-                break;
-
-            case MouseEvent.MOUSE_RELEASED:
-                if (_pressed || _releasedWhen == mev.getWhen()) {
-                    // create and dispatch an action event
-                    fireAction(mev.getWhen(), mev.getModifiers());
-                    _pressed = false;
-                }
-                _releasedWhen = 0;
-                break;
-
-            default:
-                return super.dispatchEvent(event);
-            }
-
-            // update our background image if necessary
-            int state = getState();
-            if (state != ostate) {
-                stateDidChange();
-            }
-
-            // dispatch this event to our listeners
-            if (_listeners != null) {
-                for (int ii = 0, ll = _listeners.size(); ii < ll; ii++) {
-                    event.dispatch(_listeners.get(ii));
-                }
-            }
-
-            return true;
-        }
-
-        return super.dispatchEvent(event);
+        return (_armed && (state != DISABLED))
+            ? DOWN
+            : state; // most likely HOVER
     }
 
     @Override // documentation inherited
@@ -317,11 +203,7 @@ public class Button extends Label
         }
     }
 
-    /**
-     * Called when the button is "clicked" which may due to the mouse being
-     * pressed and released while over the button or due to keyboard
-     * manipulation while the button has focus.
-     */
+    @Override
     protected void fireAction (long when, int modifiers)
     {
         playFeedbackSound();
@@ -341,11 +223,6 @@ public class Button extends Label
             }
         }
     }
-
-    protected boolean _pressed;
-    protected long _releasedWhen;
-    protected String _action;
-    protected Object _argument;
 
     protected String[] _feedbackSounds = new String[getStateCount()];
 
