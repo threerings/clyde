@@ -25,6 +25,8 @@
 
 package com.threerings.editor.swing;
 
+import java.awt.Point;
+
 import java.io.File;
 
 import java.lang.reflect.Array;
@@ -35,10 +37,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigReference;
+import com.threerings.config.ManagedConfig;
+import com.threerings.config.Parameter;
+import com.threerings.config.ParameterizedConfig;
 
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform2D;
@@ -88,14 +94,42 @@ public class TreeEditorPanel extends BaseEditorPanel
 
     }
 
+    @Override // documentation inherited
+    protected String getMousePath (Point pt)
+    {
+        pt = _tree.getMousePosition();
+        TreePath path = (pt == null) ? null : _tree.getPathForLocation(pt.x, pt.y);
+        if (path == null) {
+            return "";
+        }
+        StringBuilder buf = new StringBuilder();
+        for (int ii = 1, nn = path.getPathCount(); ii < nn; ii++) {
+            NodeObject obj = (NodeObject)((DefaultMutableTreeNode)
+                path.getPathComponent(ii)).getUserObject();
+            if (obj.comp instanceof Property) {
+                buf.append('.').append(((Property)obj.comp).getName());
+            } else if (obj.comp instanceof Integer) {
+                buf.append('[').append(obj.comp).append(']');
+            } else { // obj.comp instanceof String
+                buf.append("[\"").append(((String)obj.comp).replace("\"", "\\\"")).append("\"]");
+            }
+        }
+        return buf.toString();
+    }
+
     /**
      * Adds child nodes for the specified object's properties to the specified parent node.
      */
     protected void addPropertyNodes (DefaultMutableTreeNode parent, Object object)
     {
-        for (Property property : Introspector.getProperties(object)) {
+        Property[] properties = Introspector.getProperties(object);
+        if (properties.length == 0) {
+            return;
+        }
+        parent.setAllowsChildren(true);
+        for (Property property : properties) {
             addNode(parent, getLabel(property), property.get(object),
-                property.getSubtypes(), property);
+                property.getSubtypes(), property, property);
         }
     }
 
@@ -104,7 +138,7 @@ public class TreeEditorPanel extends BaseEditorPanel
      */
     protected void addNode (
         DefaultMutableTreeNode parent, String label, Object value,
-        Class<?>[] subtypes, Property property)
+        Class<?>[] subtypes, Property property, Object comp)
     {
         if (value == null || value instanceof Boolean || value instanceof Number ||
                 value instanceof Color4f || value instanceof File ||
@@ -123,27 +157,47 @@ public class TreeEditorPanel extends BaseEditorPanel
                 value = getLabel(eval, _msgmgr.getBundle(
                     Introspector.getMessageBundle(eval.getDeclaringClass())));
             }
-            parent.add(new DefaultMutableTreeNode(new NodeObject(label + ": " + value), false));
+            parent.add(new DefaultMutableTreeNode(new NodeObject(
+                label + ": " + value, comp), false));
 
         } else if (value instanceof ConfigReference) {
             ConfigReference<?> ref = (ConfigReference)value;
+            String name = ref.getName();
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(
-                new NodeObject(label + ": " + ref.getName()));
+                new NodeObject(label + ": " + name, comp), false);
+            if (property != null) {
+                @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
+                    (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
+                ManagedConfig config = _ctx.getConfigManager().getConfig(clazz, name);
+                if (config instanceof ParameterizedConfig) {
+                    ParameterizedConfig pconfig = (ParameterizedConfig)config;
+                    if (pconfig.parameters.length > 0) {
+                        for (Parameter param : pconfig.parameters) {
+                            Property aprop = param.getArgumentProperty(pconfig);
+                            if (aprop != null) {
+                                child.setAllowsChildren(true);
+                                addNode(child, param.name, aprop.get(ref.getArguments()),
+                                    aprop.getSubtypes(), aprop, param.name);
+                            }
+                        }
+                    }
+                }
+            }
             parent.add(child);
 
         } else if (value instanceof List || value.getClass().isArray()) {
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new NodeObject(label));
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new NodeObject(label, comp));
             Class<?>[] componentSubtypes = (property != null) ?
                 property.getComponentSubtypes() : new Class[0];
             if (value instanceof List) {
                 List<?> list = (List)value;
                 for (int ii = 0, nn = list.size(); ii < nn; ii++) {
-                    addNode(child, String.valueOf(ii), list.get(ii), componentSubtypes, null);
+                    addNode(child, String.valueOf(ii), list.get(ii), componentSubtypes, null, ii);
                 }
             } else {
                 for (int ii = 0, nn = Array.getLength(value); ii < nn; ii++) {
                     addNode(child, String.valueOf(ii), Array.get(value, ii),
-                        componentSubtypes, null);
+                        componentSubtypes, null, ii);
                 }
             }
             parent.add(child);
@@ -152,7 +206,8 @@ public class TreeEditorPanel extends BaseEditorPanel
             if (subtypes.length > 1) {
                 label = label + ": " + getLabel(value.getClass());
             }
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new NodeObject(label));
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(
+                new NodeObject(label, comp), false);
             addPropertyNodes(child, value);
             parent.add(child);
         }
@@ -166,12 +221,16 @@ public class TreeEditorPanel extends BaseEditorPanel
         /** The object's string representation. */
         public final String label;
 
+        /** Either the {@link Property} for the node, or the array index, or the parameter name. */
+        public final Object comp;
+
         /**
          * Creates a new node object.
          */
-        public NodeObject (String label)
+        public NodeObject (String label, Object comp)
         {
             this.label = label;
+            this.comp = comp;
         }
 
         @Override // documentation inherited
