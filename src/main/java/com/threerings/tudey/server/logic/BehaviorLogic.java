@@ -343,23 +343,33 @@ public abstract class BehaviorLogic extends Logic
          */
         protected void changeDirection ()
         {
-             _agent.stopMoving();
-             float rotation = _rotation;
-             switch(((BehaviorConfig.GridWander)_config).gridTurn) {
-             case REVERSE:
-                 rotation += FloatMath.PI;
-                 break;
-             case LEFT:
-                 rotation += FloatMath.HALF_PI;
-                 break;
-             case RIGHT:
-                 rotation -= FloatMath.HALF_PI;
-                 break;
-             case RANDOM:
-                 rotation += Randoms.RAND.getBoolean() ? FloatMath.HALF_PI : -FloatMath.HALF_PI;
-                 break;
-             }
-             setDirectionChange(FloatMath.normalizeAngle(rotation));
+            _agent.stopMoving();
+            float rotation = _rotation;
+            switch(((BehaviorConfig.GridWander)_config).gridTurn) {
+            case REVERSE:
+                rotation += FloatMath.PI;
+                break;
+            case LEFT:
+                rotation += FloatMath.HALF_PI;
+                break;
+            case RIGHT:
+                rotation -= FloatMath.HALF_PI;
+                break;
+            case RANDOM:
+                rotation += Randoms.RAND.getBoolean() ? FloatMath.HALF_PI : -FloatMath.HALF_PI;
+                break;
+            }
+            rotation = FloatMath.normalizeAngle(rotation);
+            if (FloatMath.epsilonEquals(0, rotation)) {
+                rotation = 0;
+            } else if (FloatMath.epsilonEquals(FloatMath.HALF_PI, rotation)) {
+                rotation = FloatMath.HALF_PI;
+            } else if (FloatMath.epsilonEquals(-FloatMath.HALF_PI, rotation)) {
+                rotation = -FloatMath.HALF_PI;
+            } else {
+                rotation = FloatMath.PI;
+            }
+            setDirectionChange(rotation);
         }
     }
 
