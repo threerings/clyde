@@ -111,11 +111,16 @@ public class TreeEditorPanel extends BaseEditorPanel
                 } else {
                     value = ((SerializableWrapper)data).getObject();
                 }
-                // have to clone it in case we are going to paste it multiple times
+                // no copying nodes onto themselves
+                DefaultMutableTreeNode snode = getSelectedNode();
+                if (node == snode) {
+                    return false;
+                }
+
+                // have to clone the value in case we are going to paste it multiple times
                 value = DeepUtil.copy(value);
 
                 // perhaps copy the value onto a compatible property
-                DefaultMutableTreeNode snode = getSelectedNode();
                 NodeObject snobj = (NodeObject)snode.getUserObject();
                 DefaultMutableTreeNode pnode = (DefaultMutableTreeNode)snode.getParent();
                 NodeObject pnobj = (NodeObject)pnode.getUserObject();
@@ -132,33 +137,47 @@ public class TreeEditorPanel extends BaseEditorPanel
                     return true;
                 }
 
-                // or at the end of a compatible array/list
-                if (snobj.property != null && snobj.property.getComponentType() != null &&
+                // or into a compatible array/list
+                NodeObject dnobj;
+                DefaultMutableTreeNode dnode;
+                int idx;
+                if (snobj.comp instanceof Integer && pnobj.property != null &&
+                        pnobj.property.isLegalComponentValue(value)) {
+                    dnobj = pnobj;
+                    dnode = pnode;
+                    idx = (Integer)snobj.comp;
+
+                } else if (snobj.property != null && snobj.property.getComponentType() != null &&
                         snobj.property.isLegalComponentValue(value)) {
-                    int idx;
-                    if (snobj.value instanceof List) {
-                        @SuppressWarnings("unchecked") List<Object> list =
-                            (List<Object>)snobj.value;
-                        idx = list.size();
-                        list.add(value);
+                    dnobj = snobj;
+                    dnode = snode;
+                    idx = Integer.MAX_VALUE;
 
-                    } else {
-                        idx = Array.getLength(snobj.value);
-                        Object narray = Array.newInstance(
-                            snobj.value.getClass().getComponentType(), idx + 1);
-                        System.arraycopy(snobj.value, 0, narray, 0, idx);
-                        Array.set(narray, idx, value);
-                        snobj.property.set(pnobj.value, snobj.value = narray);
-                    }
-                    DefaultMutableTreeNode cnode = new DefaultMutableTreeNode();
-                    populateNode(cnode, String.valueOf(idx), value,
-                        snobj.property.getComponentSubtypes(), null, idx);
-                    ((DefaultTreeModel)_tree.getModel()).insertNodeInto(cnode, snode, idx);
-                    fireStateChanged();
-                    return true;
+                } else {
+                    return false;
                 }
+                if (dnobj.value instanceof List) {
+                    @SuppressWarnings("unchecked") List<Object> list =
+                        (List<Object>)dnobj.value;
+                    idx = Math.min(idx, list.size());
+                    list.add(idx, value);
 
-                return false;
+                } else {
+                    int len = Array.getLength(dnobj.value);
+                    idx = Math.min(idx, len);
+                    Object narray = Array.newInstance(
+                        dnobj.value.getClass().getComponentType(), len + 1);
+                    System.arraycopy(dnobj.value, 0, narray, 0, idx);
+                    Array.set(narray, idx, value);
+                    System.arraycopy(dnobj.value, idx, narray, idx + 1, len - idx);
+                    Object pdnobj = ((DefaultMutableTreeNode)dnode.getParent()).getUserObject();
+                    dnobj.property.set(((NodeObject)pdnobj).value, dnobj.value = narray);
+                }
+                populateNode(dnode, getLabel(dnobj.property), dnobj.value,
+                    dnobj.property.getSubtypes(), dnobj.property, dnobj.comp);
+                ((DefaultTreeModel)_tree.getModel()).reload(dnode);
+                fireStateChanged();
+                return true;
             }
             @Override public int getSourceActions (JComponent comp) {
                 return COPY_OR_MOVE;
@@ -173,11 +192,26 @@ public class TreeEditorPanel extends BaseEditorPanel
                     return;
                 }
                 DefaultMutableTreeNode node = ((NodeTransfer)data).node;
+                DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
                 NodeObject nodeobj = (NodeObject)node.getUserObject();
-                if (!(nodeobj.comp instanceof Integer)) {
+                if (parent == null || !(nodeobj.comp instanceof Integer)) {
                     return;
                 }
-
+                NodeObject pnobj = (NodeObject)parent.getUserObject();
+                int idx = (Integer)nodeobj.comp;
+                if (pnobj.value instanceof List) {
+                    ((List)pnobj.value).remove(idx);
+                } else {
+                    int len = Array.getLength(pnobj.value);
+                    Object narray = Array.newInstance(
+                        pnobj.value.getClass().getComponentType(), len - 1);
+                    System.arraycopy(pnobj.value, 0, narray, 0, idx);
+                    System.arraycopy(pnobj.value, idx + 1, narray, idx, len - 1 - idx);
+                    Object gpnobj = ((DefaultMutableTreeNode)parent.getParent()).getUserObject();
+                    pnobj.property.set(((NodeObject)gpnobj).value, pnobj.value = narray);
+                }
+                ((DefaultTreeModel)_tree.getModel()).removeNodeFromParent(node);
+                fireStateChanged();
             }
         });
     }
