@@ -359,15 +359,17 @@ public abstract class BehaviorLogic extends Logic
                 rotation += Randoms.RAND.getBoolean() ? FloatMath.HALF_PI : -FloatMath.HALF_PI;
                 break;
             }
-            rotation = FloatMath.normalizeAngle(rotation);
-            if (FloatMath.epsilonEquals(0, rotation)) {
+            rotation = FloatMath.normalizeAnglePositive(rotation);
+            if (rotation > FloatMath.TWO_PI - FloatMath.QUARTER_PI) {
                 rotation = 0;
-            } else if (FloatMath.epsilonEquals(FloatMath.HALF_PI, rotation)) {
-                rotation = FloatMath.HALF_PI;
-            } else if (FloatMath.epsilonEquals(-FloatMath.HALF_PI, rotation)) {
+            } else if (rotation > FloatMath.PI + FloatMath.QUARTER_PI) {
                 rotation = -FloatMath.HALF_PI;
-            } else {
+            } else if (rotation > FloatMath.PI - FloatMath.QUARTER_PI) {
                 rotation = FloatMath.PI;
+            } else if (rotation > FloatMath.QUARTER_PI) {
+                rotation = FloatMath.HALF_PI;
+            } else {
+                rotation = 0;
             }
             setDirectionChange(rotation);
         }

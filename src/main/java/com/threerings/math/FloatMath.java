@@ -41,6 +41,9 @@ public class FloatMath
     /** Pi times one half. */
     public static final float HALF_PI = PI * 0.5f;
 
+    /** Pi times one quarter. */
+    public static final float QUARTER_PI = PI * 0.25f;
+
     /** The base value of the natural logarithm. */
     public static final float E = (float)Math.E;
 
