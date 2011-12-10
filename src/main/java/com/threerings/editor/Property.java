@@ -258,22 +258,16 @@ public abstract class Property extends DeepObject
      */
     public boolean isLegalValue (Object value)
     {
-        Class<?> type = getType();
-        if (type.isPrimitive()) {
-            if (value == null) {
-                return false;
-            }
-            type = ClassUtil.objectEquivalentOf(type);
-        }
-        if (!(value == null || type.isInstance(value))) {
-            return false;
-        }
-        Editable annotation = getAnnotation();
-        if (value == null && !annotation.nullable()) {
-            return false;
-        }
-        // TODO: check other constraints
-        return true;
+        return isLegalValue(getType(), value);
+    }
+
+    /**
+     * Determines whether the supplied value is legal for this (array or list) property's
+     * components.
+     */
+    public boolean isLegalComponentValue (Object value)
+    {
+        return isLegalValue(getComponentType(), value);
     }
 
     /**
@@ -667,6 +661,28 @@ public abstract class Property extends DeepObject
             return Array.newInstance(cclass, 0).getClass();
         }
         return null;
+    }
+
+    /**
+     * Determines whether the supplied value is legal for this property.
+     */
+    protected boolean isLegalValue (Class<?> type, Object value)
+    {
+        if (type.isPrimitive()) {
+            if (value == null) {
+                return false;
+            }
+            type = ClassUtil.objectEquivalentOf(type);
+        }
+        if (!(value == null || type.isInstance(value))) {
+            return false;
+        }
+        Editable annotation = getAnnotation();
+        if (value == null && !annotation.nullable()) {
+            return false;
+        }
+        // TODO: check other constraints
+        return true;
     }
 
     /**

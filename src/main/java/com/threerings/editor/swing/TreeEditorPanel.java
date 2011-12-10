@@ -111,11 +111,15 @@ public class TreeEditorPanel extends BaseEditorPanel
                 } else {
                     value = ((SerializableWrapper)data).getObject();
                 }
+                // have to clone it in case we are going to paste it multiple times
+                value = DeepUtil.copy(value);
+
+                // perhaps copy the value onto a compatible property
                 DefaultMutableTreeNode snode = getSelectedNode();
                 NodeObject snobj = (NodeObject)snode.getUserObject();
+                DefaultMutableTreeNode pnode = (DefaultMutableTreeNode)snode.getParent();
+                NodeObject pnobj = (NodeObject)pnode.getUserObject();
                 if (snobj.property != null && snobj.property.isLegalValue(value)) {
-                    DefaultMutableTreeNode pnode = (DefaultMutableTreeNode)snode.getParent();
-                    NodeObject pnobj = (NodeObject)pnode.getUserObject();
                     Object object = pnobj.value;
                     if (snobj.comp instanceof String) {
                         object = ((ConfigReference)object).getArguments();
@@ -127,6 +131,33 @@ public class TreeEditorPanel extends BaseEditorPanel
                     fireStateChanged();
                     return true;
                 }
+
+                // or at the end of a compatible array/list
+                if (snobj.property != null && snobj.property.getComponentType() != null &&
+                        snobj.property.isLegalComponentValue(value)) {
+                    int idx;
+                    if (snobj.value instanceof List) {
+                        @SuppressWarnings("unchecked") List<Object> list =
+                            (List<Object>)snobj.value;
+                        idx = list.size();
+                        list.add(value);
+
+                    } else {
+                        idx = Array.getLength(snobj.value);
+                        Object narray = Array.newInstance(
+                            snobj.value.getClass().getComponentType(), idx + 1);
+                        System.arraycopy(snobj.value, 0, narray, 0, idx);
+                        Array.set(narray, idx, value);
+                        snobj.property.set(pnobj.value, snobj.value = narray);
+                    }
+                    DefaultMutableTreeNode cnode = new DefaultMutableTreeNode();
+                    populateNode(cnode, String.valueOf(idx), value,
+                        snobj.property.getComponentSubtypes(), null, idx);
+                    ((DefaultTreeModel)_tree.getModel()).insertNodeInto(cnode, snode, idx);
+                    fireStateChanged();
+                    return true;
+                }
+
                 return false;
             }
             @Override public int getSourceActions (JComponent comp) {
@@ -327,7 +358,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         public final String label;
 
         /** The object's value. */
-        public final Object value;
+        public Object value;
 
         /** The node property. */
         public final Property property;
