@@ -28,17 +28,28 @@ package com.threerings.editor.swing;
 import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import java.lang.reflect.Array;
 
 import java.util.List;
 
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
@@ -51,6 +62,8 @@ import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.export.XMLExporter;
+import com.threerings.export.XMLImporter;
 import com.threerings.export.util.SerializableWrapper;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform2D;
@@ -83,7 +96,17 @@ public class TreeEditorPanel extends BaseEditorPanel
         _tree = new JTree(new Object[0]);
         add(isEmbedded() ? _tree : new JScrollPane(_tree));
 
+        // add selection listener to update context items
         _tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        _tree.addTreeSelectionListener(new TreeSelectionListener() {
+            public void valueChanged (TreeSelectionEvent event) {
+                boolean selected = (getSelectedNode() != null);
+                _import.setEnabled(selected);
+                _export.setEnabled(selected);
+            }
+        });
+
+        // add transfer handler for drag'n'drop, clipboard operations
         _tree.setDragEnabled(true);
         _tree.setTransferHandler(new TransferHandler() {
             @Override public boolean canImport (JComponent comp, DataFlavor[] flavors) {
@@ -158,7 +181,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                 }
                 // find out if we're moving within the list (and from where)
                 int oidx = -1;
-                pnode = (DefaultMutableTreeNode)node.getParent();
+                pnode = (node == null) ? null : (DefaultMutableTreeNode)node.getParent();
                 if (pnode != null) {
                     pnobj = (NodeObject)pnode.getUserObject();
                     if (pnobj.value == dnobj.value) {
@@ -252,6 +275,16 @@ public class TreeEditorPanel extends BaseEditorPanel
                 fireStateChanged();
             }
         });
+
+        // add popup menu with context items
+        JPopupMenu popup = new JPopupMenu();
+        _tree.setComponentPopupMenu(popup);
+        popup.add(_import = new JMenuItem(_msgs.get("m.import"), KeyEvent.VK_I));
+        _import.addActionListener(this);
+        _import.setEnabled(false);
+        popup.add(_export = new JMenuItem(_msgs.get("m.export"), KeyEvent.VK_E));
+        _export.addActionListener(this);
+        _export.setEnabled(false);
     }
 
     @Override // documentation inherited
@@ -275,6 +308,47 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     @Override // documentation inherited
+    public void actionPerformed (ActionEvent event)
+    {
+        Object source = event.getSource();
+        if (source == _import) {
+            JFileChooser chooser = createFileChooser();
+            if (chooser.showOpenDialog(_tree) == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                DefaultMutableTreeNode snode = getSelectedNode();
+                NodeObject snobj = (NodeObject)snode.getUserObject();
+                Object value;
+                try {
+                    XMLImporter in = new XMLImporter(new FileInputStream(file));
+                    value = in.readObject();
+                    in.close();
+
+                } catch (IOException e) {
+                    log.warning("Failed to import value.", e);
+                    return;
+                }
+                _tree.getTransferHandler().importData(_tree, new NodeTransfer(value));
+            }
+        } else if (source == _export) {
+            JFileChooser chooser = createFileChooser();
+            if (chooser.showSaveDialog(_tree) == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                NodeObject nodeobj = (NodeObject)getSelectedNode().getUserObject();
+                try {
+                    XMLExporter out = new XMLExporter(new FileOutputStream(file));
+                    out.writeObject(nodeobj.value);
+                    out.close();
+
+                } catch (IOException e) {
+                    log.warning("Failed to export value.", "value", e);
+                }
+            }
+        } else {
+            super.actionPerformed(event);
+       }
+    }
+
+    @Override // documentation inherited
     protected String getMousePath (Point pt)
     {
         pt = _tree.getMousePosition();
@@ -295,6 +369,23 @@ public class TreeEditorPanel extends BaseEditorPanel
             }
         }
         return buf.toString();
+    }
+
+    /**
+     * Creates a chooser for XML export files.
+     */
+    protected JFileChooser createFileChooser ()
+    {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new FileFilter() {
+            @Override public boolean accept (File file) {
+                return file.isDirectory() || file.toString().endsWith(".xml");
+            }
+            @Override public String getDescription () {
+                return _msgs.get("m.xml_files");
+            }
+        });
+        return chooser;
     }
 
     /**
@@ -474,6 +565,11 @@ public class TreeEditorPanel extends BaseEditorPanel
             value = DeepUtil.copy(((NodeObject)node.getUserObject()).value);
         }
 
+        public NodeTransfer (Object value)
+        {
+            this.value = value;
+        }
+
         // documentation inherited from interface Transferable
         public DataFlavor[] getTransferDataFlavors ()
         {
@@ -496,6 +592,9 @@ public class TreeEditorPanel extends BaseEditorPanel
 
     /** The tree component. */
     protected JTree _tree;
+
+    /** The import/export popup menu items. */
+    protected JMenuItem _import, _export;
 
     /** A data flavor that provides access to the actual transfer object. */
     protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR =
