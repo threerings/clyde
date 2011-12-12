@@ -156,22 +156,57 @@ public class TreeEditorPanel extends BaseEditorPanel
                 } else {
                     return false;
                 }
+                // find out if we're moving within the list (and from where)
+                int oidx = -1;
+                pnode = (DefaultMutableTreeNode)node.getParent();
+                if (pnode != null) {
+                    pnobj = (NodeObject)pnode.getUserObject();
+                    if (pnobj.value == dnobj.value) {
+                        NodeObject nobj = (NodeObject)node.getUserObject();
+                        if (nobj.comp instanceof Integer) {
+                            oidx = (Integer)nobj.comp;
+                        }
+                    }
+                }
+
+                // add/move element in list/array
                 if (dnobj.value instanceof List) {
                     @SuppressWarnings("unchecked") List<Object> list =
                         (List<Object>)dnobj.value;
                     idx = Math.min(idx, list.size());
+                    if (oidx != -1) {
+                        if (idx == oidx) {
+                            return false;
+                        }
+                        list.remove(oidx);
+                    }
                     list.add(idx, value);
 
                 } else {
                     int len = Array.getLength(dnobj.value);
                     idx = Math.min(idx, len);
-                    Object narray = Array.newInstance(
-                        dnobj.value.getClass().getComponentType(), len + 1);
-                    System.arraycopy(dnobj.value, 0, narray, 0, idx);
-                    Array.set(narray, idx, value);
-                    System.arraycopy(dnobj.value, idx, narray, idx + 1, len - idx);
-                    Object pdnobj = ((DefaultMutableTreeNode)dnode.getParent()).getUserObject();
-                    dnobj.property.set(((NodeObject)pdnobj).value, dnobj.value = narray);
+                    if (oidx != -1) {
+                        if (idx == oidx) {
+                            return false;
+                        }
+                        // store value, shift elements up/down, replace
+                        Object tmp = Array.get(dnobj.value, oidx);
+                        if (oidx < idx) {
+                            System.arraycopy(dnobj.value, oidx + 1, dnobj.value, oidx, idx - oidx);
+                        } else {
+                            System.arraycopy(dnobj.value, idx, dnobj.value, idx + 1, oidx - idx);
+                        }
+                        Array.set(dnobj.value, idx, value);
+
+                    } else {
+                        Object narray = Array.newInstance(
+                            dnobj.value.getClass().getComponentType(), len + 1);
+                        System.arraycopy(dnobj.value, 0, narray, 0, idx);
+                        Array.set(narray, idx, value);
+                        System.arraycopy(dnobj.value, idx, narray, idx + 1, len - idx);
+                        Object pdnobj = ((DefaultMutableTreeNode)dnode.getParent()).getUserObject();
+                        dnobj.property.set(((NodeObject)pdnobj).value, dnobj.value = narray);
+                    }
                 }
                 populateNode(dnode, getLabel(dnobj.property), dnobj.value,
                     dnobj.property.getSubtypes(), dnobj.property, dnobj.comp);
@@ -191,6 +226,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                 if (action != MOVE) {
                     return;
                 }
+                // remove element from list/array (if applicable and not already removed)
                 DefaultMutableTreeNode node = ((NodeTransfer)data).node;
                 DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
                 NodeObject nodeobj = (NodeObject)node.getUserObject();
@@ -210,7 +246,9 @@ public class TreeEditorPanel extends BaseEditorPanel
                     Object gpnobj = ((DefaultMutableTreeNode)parent.getParent()).getUserObject();
                     pnobj.property.set(((NodeObject)gpnobj).value, pnobj.value = narray);
                 }
-                ((DefaultTreeModel)_tree.getModel()).removeNodeFromParent(node);
+                populateNode(parent, getLabel(pnobj.property), pnobj.value,
+                    pnobj.property.getSubtypes(), pnobj.property, pnobj.comp);
+                ((DefaultTreeModel)_tree.getModel()).reload(parent);
                 fireStateChanged();
             }
         });
