@@ -26,7 +26,11 @@
 package com.threerings.editor.swing;
 
 import java.awt.Point;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -60,10 +64,12 @@ import javax.swing.tree.TreeSelectionModel;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
 import com.threerings.config.Parameter;
 import com.threerings.config.ParameterizedConfig;
+import com.threerings.export.ObjectMarshaller;
 import com.threerings.export.XMLExporter;
 import com.threerings.export.XMLImporter;
 import com.threerings.export.util.SerializableWrapper;
@@ -87,6 +93,7 @@ import static com.threerings.editor.Log.*;
  * Allows editing properties of an object in tree mode.
  */
 public class TreeEditorPanel extends BaseEditorPanel
+    implements ClipboardOwner, FlavorListener
 {
     /**
      * Creates an empty editor panel.
@@ -105,7 +112,10 @@ public class TreeEditorPanel extends BaseEditorPanel
                 boolean selected = (getSelectedNode() != null);
                 _import.setEnabled(selected);
                 _export.setEnabled(selected);
+                _cut.setEnabled(selected);
                 _copy.setEnabled(selected);
+                _paste.setEnabled(shouldEnablePaste());
+                _delete.setEnabled(selected);
             }
         });
 
@@ -148,14 +158,8 @@ public class TreeEditorPanel extends BaseEditorPanel
 
                 // perhaps copy the value onto a compatible property
                 NodeObject snobj = (NodeObject)snode.getUserObject();
-                DefaultMutableTreeNode pnode = (DefaultMutableTreeNode)snode.getParent();
-                NodeObject pnobj = (NodeObject)pnode.getUserObject();
                 if (snobj.property != null && snobj.property.isLegalValue(value)) {
-                    Object object = pnobj.value;
-                    if (snobj.comp instanceof String) {
-                        object = ((ConfigReference)object).getArguments();
-                    }
-                    snobj.property.set(object, value);
+                    setNodeValue(snode, value);
                     populateNode(snode, getLabel(snobj.property), value,
                         snobj.property.getSubtypes(), snobj.property, snobj.comp);
                     ((DefaultTreeModel)_tree.getModel()).reload(snode);
@@ -164,6 +168,8 @@ public class TreeEditorPanel extends BaseEditorPanel
                 }
 
                 // or into a compatible array/list
+                DefaultMutableTreeNode pnode = (DefaultMutableTreeNode)snode.getParent();
+                NodeObject pnobj = (NodeObject)pnode.getUserObject();
                 NodeObject dnobj;
                 DefaultMutableTreeNode dnode;
                 int idx;
@@ -230,8 +236,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                         System.arraycopy(dnobj.value, 0, narray, 0, idx);
                         Array.set(narray, idx, value);
                         System.arraycopy(dnobj.value, idx, narray, idx + 1, len - idx);
-                        Object pdnobj = ((DefaultMutableTreeNode)dnode.getParent()).getUserObject();
-                        dnobj.property.set(((NodeObject)pdnobj).value, dnobj.value = narray);
+                        setNodeValue(dnode, narray);
                     }
                 }
                 populateNode(dnode, getLabel(dnobj.property), dnobj.value,
@@ -249,33 +254,9 @@ public class TreeEditorPanel extends BaseEditorPanel
             }
             @Override protected void exportDone (
                     JComponent source, Transferable data, int action) {
-                if (action != MOVE) {
-                    return;
+                if (action == MOVE) {
+                    deleteNode(((NodeTransfer)data).node, false);
                 }
-                // remove element from list/array (if applicable and not already removed)
-                DefaultMutableTreeNode node = ((NodeTransfer)data).node;
-                DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
-                NodeObject nodeobj = (NodeObject)node.getUserObject();
-                if (parent == null || !(nodeobj.comp instanceof Integer)) {
-                    return;
-                }
-                NodeObject pnobj = (NodeObject)parent.getUserObject();
-                int idx = (Integer)nodeobj.comp;
-                if (pnobj.value instanceof List) {
-                    ((List)pnobj.value).remove(idx);
-                } else {
-                    int len = Array.getLength(pnobj.value);
-                    Object narray = Array.newInstance(
-                        pnobj.value.getClass().getComponentType(), len - 1);
-                    System.arraycopy(pnobj.value, 0, narray, 0, idx);
-                    System.arraycopy(pnobj.value, idx + 1, narray, idx, len - 1 - idx);
-                    Object gpnobj = ((DefaultMutableTreeNode)parent.getParent()).getUserObject();
-                    pnobj.property.set(((NodeObject)gpnobj).value, pnobj.value = narray);
-                }
-                populateNode(parent, getLabel(pnobj.property), pnobj.value,
-                    pnobj.property.getSubtypes(), pnobj.property, pnobj.comp);
-                ((DefaultTreeModel)_tree.getModel()).reload(parent);
-                fireStateChanged();
             }
         });
 
@@ -290,6 +271,32 @@ public class TreeEditorPanel extends BaseEditorPanel
         popup.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P,  KeyEvent.VK_V)));
         popup.add(new JMenuItem(_delete = createAction(
             "delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
+    }
+
+    // documentation inherited from interface ClipboardOwner
+    public void lostOwnership (Clipboard clipboard, Transferable contents)
+    {
+        // no-op
+    }
+
+    // documentation inherited from interface FlavorListener
+    public void flavorsChanged (FlavorEvent event)
+    {
+        _paste.setEnabled(shouldEnablePaste());
+    }
+
+    @Override // documentation inherited
+    public void addNotify ()
+    {
+        super.addNotify();
+        _tree.getToolkit().getSystemClipboard().addFlavorListener(this);
+    }
+
+    @Override // documentation inherited
+    public void removeNotify ()
+    {
+        _tree.getToolkit().getSystemClipboard().removeFlavorListener(this);
+        super.removeNotify();
     }
 
     @Override // documentation inherited
@@ -349,12 +356,18 @@ public class TreeEditorPanel extends BaseEditorPanel
                 }
             }
         } else if ("cut".equals(action)) {
+            copySelectedNode();
+            deleteNode(getSelectedNode(), true);
 
         } else if ("copy".equals(action)) {
+            copySelectedNode();
 
         } else if ("paste".equals(action)) {
+            _tree.getTransferHandler().importData(
+                _tree, _tree.getToolkit().getSystemClipboard().getContents(this));
 
         } else if ("delete".equals(action)) {
+            deleteNode(getSelectedNode(), true);
 
         } else {
             super.actionPerformed(event);
@@ -425,12 +438,88 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     /**
-     * Creates a {@link Transferable} containing the selected node for the clipboard.
+     * Copies the selected node to the clipboard.
      */
-    protected Transferable createClipboardTransferable ()
+    protected void copySelectedNode ()
     {
-        DefaultMutableTreeNode node = getSelectedNode();
-        return (node == null) ? null : new NodeTransfer(node, true);
+        Clipboard clipboard = _tree.getToolkit().getSystemClipboard();
+        clipboard.setContents(new NodeTransfer(getSelectedNode(), true), this);
+    }
+
+    /**
+     * Deletes the specified node, if it is not already deleted.
+     *
+     * @param revertToDefaults if true, revert non-array nodes to default values as a way of
+     * "deleting" them; otherwise, do not modify non-array nodes.
+     */
+    protected void deleteNode (DefaultMutableTreeNode node, boolean revertToDefaults)
+    {
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
+        if (parent == null) {
+            return;
+        }
+        NodeObject nodeobj = (NodeObject)node.getUserObject();
+        NodeObject pnobj = (NodeObject)parent.getUserObject();
+        if (!(nodeobj.comp instanceof Integer)) {
+            if (!revertToDefaults) {
+                return;
+            }
+            if (nodeobj.comp instanceof String) {
+                ArgumentMap args = ((ConfigReference)pnobj.value).getArguments();
+                args.remove((String)nodeobj.comp);
+                nodeobj.value = nodeobj.property.get(args);
+            } else {
+                nodeobj.value = nodeobj.property.get(
+                    ObjectMarshaller.getObjectMarshaller(pnobj.value.getClass()).getPrototype());
+                nodeobj.property.set(pnobj.value, nodeobj.value);
+            }
+            populateNode(node, getLabel(nodeobj.property), nodeobj.value,
+                nodeobj.property.getSubtypes(), nodeobj.property, nodeobj.comp);
+            ((DefaultTreeModel)_tree.getModel()).reload(node);
+            fireStateChanged();
+            return;
+        }
+        int idx = (Integer)nodeobj.comp;
+        if (pnobj.value instanceof List) {
+            ((List)pnobj.value).remove(idx);
+        } else {
+            int len = Array.getLength(pnobj.value);
+            Object narray = Array.newInstance(
+                pnobj.value.getClass().getComponentType(), len - 1);
+            System.arraycopy(pnobj.value, 0, narray, 0, idx);
+            System.arraycopy(pnobj.value, idx + 1, narray, idx, len - 1 - idx);
+            setNodeValue(parent, narray);
+        }
+        populateNode(parent, getLabel(pnobj.property), pnobj.value,
+            pnobj.property.getSubtypes(), pnobj.property, pnobj.comp);
+        ((DefaultTreeModel)_tree.getModel()).reload(parent);
+        fireStateChanged();
+    }
+
+    /**
+     * Sets the value contained in the specified node through its parent.
+     */
+    protected void setNodeValue (DefaultMutableTreeNode node, Object value)
+    {
+        NodeObject nodeobj = (NodeObject)node.getUserObject();
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
+        NodeObject pnobj = (NodeObject)parent.getUserObject();
+        Object object = pnobj.value;
+        if (nodeobj.comp instanceof String) {
+            object = ((ConfigReference)object).getArguments();
+        }
+        nodeobj.property.set(object, nodeobj.value = value);
+    }
+
+    /**
+     * Checks whether we should enable the paste operation, based on the selection
+     * and clipboard state.
+     */
+    protected boolean shouldEnablePaste ()
+    {
+        return getSelectedNode() != null &&
+            _tree.getToolkit().getSystemClipboard().isDataFlavorAvailable(
+                ToolUtil.SERIALIZED_WRAPPED_FLAVOR);
     }
 
     /**
