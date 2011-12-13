@@ -40,12 +40,14 @@ import java.lang.reflect.Array;
 
 import java.util.List;
 
+import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -103,6 +105,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                 boolean selected = (getSelectedNode() != null);
                 _import.setEnabled(selected);
                 _export.setEnabled(selected);
+                _copy.setEnabled(selected);
             }
         });
 
@@ -279,12 +282,14 @@ public class TreeEditorPanel extends BaseEditorPanel
         // add popup menu with context items
         JPopupMenu popup = new JPopupMenu();
         _tree.setComponentPopupMenu(popup);
-        popup.add(_import = new JMenuItem(_msgs.get("m.import"), KeyEvent.VK_I));
-        _import.addActionListener(this);
-        _import.setEnabled(false);
-        popup.add(_export = new JMenuItem(_msgs.get("m.export"), KeyEvent.VK_E));
-        _export.addActionListener(this);
-        _export.setEnabled(false);
+        popup.add(new JMenuItem(_import = createAction("import", KeyEvent.VK_I, -1)));
+        popup.add(new JMenuItem(_export = createAction("export", KeyEvent.VK_E, -1)));
+        popup.addSeparator();
+        popup.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T,  KeyEvent.VK_X)));
+        popup.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C,  KeyEvent.VK_C)));
+        popup.add(new JMenuItem(_paste = createAction("paste", KeyEvent.VK_P,  KeyEvent.VK_V)));
+        popup.add(new JMenuItem(_delete = createAction(
+            "delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
     }
 
     @Override // documentation inherited
@@ -310,8 +315,8 @@ public class TreeEditorPanel extends BaseEditorPanel
     @Override // documentation inherited
     public void actionPerformed (ActionEvent event)
     {
-        Object source = event.getSource();
-        if (source == _import) {
+        String action = event.getActionCommand();
+        if ("import".equals(action)) {
             JFileChooser chooser = createFileChooser();
             if (chooser.showOpenDialog(_tree) == JFileChooser.APPROVE_OPTION) {
                 File file = chooser.getSelectedFile();
@@ -329,7 +334,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                 }
                 _tree.getTransferHandler().importData(_tree, new NodeTransfer(value));
             }
-        } else if (source == _export) {
+        } else if ("export".equals(action)) {
             JFileChooser chooser = createFileChooser();
             if (chooser.showSaveDialog(_tree) == JFileChooser.APPROVE_OPTION) {
                 File file = chooser.getSelectedFile();
@@ -343,6 +348,14 @@ public class TreeEditorPanel extends BaseEditorPanel
                     log.warning("Failed to export value.", "value", e);
                 }
             }
+        } else if ("cut".equals(action)) {
+
+        } else if ("copy".equals(action)) {
+
+        } else if ("paste".equals(action)) {
+
+        } else if ("delete".equals(action)) {
+
         } else {
             super.actionPerformed(event);
        }
@@ -369,6 +382,29 @@ public class TreeEditorPanel extends BaseEditorPanel
             }
         }
         return buf.toString();
+    }
+
+    /**
+     * Creates an action for the popup menu.
+     */
+    protected Action createAction (String command, int mnemonic, int accelerator)
+    {
+        return createAction(command, mnemonic, accelerator, KeyEvent.CTRL_MASK);
+    }
+
+    /**
+     * Creates an action for the popup menu.
+     */
+    protected Action createAction (String command, int mnemonic, int accelerator, int modifiers)
+    {
+        Action action = ToolUtil.createAction(
+            this, _msgs, command, mnemonic, accelerator, modifiers);
+        _tree.getActionMap().put(command, action);
+        if (accelerator != -1) {
+            _tree.getInputMap().put(KeyStroke.getKeyStroke(accelerator, modifiers), command);
+        }
+        action.setEnabled(false);
+        return action;
     }
 
     /**
@@ -593,8 +629,8 @@ public class TreeEditorPanel extends BaseEditorPanel
     /** The tree component. */
     protected JTree _tree;
 
-    /** The import/export popup menu items. */
-    protected JMenuItem _import, _export;
+    /** The various context actions. */
+    protected Action _import, _export, _cut, _copy, _paste, _delete;
 
     /** A data flavor that provides access to the actual transfer object. */
     protected static final DataFlavor LOCAL_NODE_TRANSFER_FLAVOR =
