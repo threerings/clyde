@@ -25,6 +25,7 @@
 
 package com.threerings.editor.swing;
 
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -48,11 +49,15 @@ import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
@@ -61,6 +66,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import com.google.common.collect.Lists;
+
+import com.samskivert.swing.GroupLayout;
+import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
@@ -93,7 +102,7 @@ import static com.threerings.editor.Log.*;
  * Allows editing properties of an object in tree mode.
  */
 public class TreeEditorPanel extends BaseEditorPanel
-    implements ClipboardOwner, FlavorListener
+    implements ClipboardOwner, FlavorListener, ChangeListener
 {
     /**
      * Creates an empty editor panel.
@@ -111,7 +120,20 @@ public class TreeEditorPanel extends BaseEditorPanel
         super(ctx, ancestors, omitColumns);
 
         _tree = new JTree(new Object[0]);
-        add(isEmbedded() ? _tree : new JScrollPane(_tree));
+        _panel = GroupLayout.makeVStretchBox(5);
+
+        // top-level editors have a split pane; embedded ones just stick the panel below
+        if (isEmbedded()) {
+            add(_tree);
+            add(_panel);
+        } else {
+            JScrollPane ppane = new JScrollPane(_panel);
+            ppane.setMinimumSize(new Dimension(1, 80));
+            JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true,
+                new JScrollPane(_tree), ppane);
+            add(split);
+            split.setResizeWeight(1.0);
+        }
 
         // add selection listener to update context items
         _tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -124,6 +146,8 @@ public class TreeEditorPanel extends BaseEditorPanel
                 _copy.setEnabled(selected);
                 _paste.setEnabled(shouldEnablePaste());
                 _delete.setEnabled(selected);
+
+                updateNodeEditor();
             }
         });
 
@@ -323,6 +347,23 @@ public class TreeEditorPanel extends BaseEditorPanel
     public void flavorsChanged (FlavorEvent event)
     {
         _paste.setEnabled(shouldEnablePaste());
+    }
+
+    // documentation inherited from interface ChangeListener
+    public void stateChanged (ChangeEvent event)
+    {
+        DefaultMutableTreeNode node = getSelectedNode();
+        NodeObject nodeobj = (NodeObject)node.getUserObject();
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
+        NodeObject pnobj = (NodeObject)parent.getUserObject();
+        Object object = pnobj.value;
+        if (nodeobj.comp instanceof String) {
+            object = ((ConfigReference)pnobj.value).getArguments();
+        }
+        populateNode(node, getLabel(nodeobj.property), nodeobj.property.get(object),
+            nodeobj.property.getSubtypes(), nodeobj.property, nodeobj.comp);
+        ((DefaultTreeModel)_tree.getModel()).reload(node);
+        fireStateChanged();
     }
 
     @Override // documentation inherited
@@ -565,6 +606,43 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     /**
+     * Updates the editor for the selected node.
+     */
+    protected void updateNodeEditor ()
+    {
+        _panel.removeAll();
+        SwingUtil.refresh(_panel);
+        DefaultMutableTreeNode node = getSelectedNode();
+        if (node == null) {
+            return;
+        }
+        TreePath path = _tree.getSelectionPath();
+        List<Property> alist = Lists.newArrayList(
+            _ancestors == null ? new Property[0] : _ancestors);
+        for (int ii = 0, nn = path.getPathCount() - 1; ii < nn; ii++) {
+            DefaultMutableTreeNode comp = (DefaultMutableTreeNode)path.getPathComponent(ii);
+            NodeObject cnobj = (NodeObject)comp.getUserObject();
+            if (cnobj.property != null) {
+                alist.add(cnobj.property);
+            }
+        }
+        Property[] ancestors = alist.toArray(new Property[alist.size()]);
+        NodeObject nodeobj = (NodeObject)node.getUserObject();
+        DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
+        NodeObject pnobj = (NodeObject)parent.getUserObject();
+        if (nodeobj.property != null) {
+            PropertyEditor editor = PropertyEditor.createEditor(_ctx, nodeobj.property, ancestors);
+            if (nodeobj.comp instanceof String) {
+                editor.setObject(((ConfigReference)pnobj.value).getArguments());
+            } else {
+                editor.setObject(pnobj.value);
+            }
+            editor.addChangeListener(this);
+            _panel.add(editor);
+        }
+    }
+
+    /**
      * Returns the selected node, or <code>null</code> for none.
      */
     protected DefaultMutableTreeNode getSelectedNode ()
@@ -759,6 +837,9 @@ public class TreeEditorPanel extends BaseEditorPanel
 
     /** The tree component. */
     protected JTree _tree;
+
+    /** The panel that holds the property editor, if any. */
+    protected JPanel _panel;
 
     /** The various context actions. */
     protected Action _import, _export, _cut, _copy, _paste, _delete;
