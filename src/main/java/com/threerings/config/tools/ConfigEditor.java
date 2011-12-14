@@ -41,10 +41,12 @@ import java.util.Collection;
 import java.util.Comparator;
 
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -57,13 +59,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+
+import com.google.common.base.Objects;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.VGroupLayout;
@@ -156,7 +163,33 @@ public class ConfigEditor extends BaseConfigEditor
         file.add(createMenuItem("close", KeyEvent.VK_C, KeyEvent.VK_W));
         file.add(createMenuItem("quit", KeyEvent.VK_Q, KeyEvent.VK_Q));
 
-        JMenu edit = createMenu("edit", KeyEvent.VK_E);
+        final JMenu edit = createMenu("edit", KeyEvent.VK_E);
+        edit.addMenuListener(new MenuListener() {
+            public void menuSelected (MenuEvent event) {
+                // hackery to allow cut/copy/paste/delete to act on editor tree
+                Action cut = null, copy = null, paste = null, delete = null;
+                Object owner = getFocusOwner();
+                TreeEditorPanel panel = (TreeEditorPanel)SwingUtilities.getAncestorOfClass(
+                    TreeEditorPanel.class, getFocusOwner());
+                if (panel != null) {
+                    edit.getItem(0).setAction(panel.getCutAction());
+                    edit.getItem(1).setAction(panel.getCopyAction());
+                    edit.getItem(2).setAction(panel.getPasteAction());
+                    edit.getItem(3).setAction(panel.getDeleteAction());
+                } else {
+                    edit.getItem(0).setAction(_cut);
+                    edit.getItem(1).setAction(_copy);
+                    edit.getItem(2).setAction(_paste);
+                    edit.getItem(3).setAction(_delete);
+                }
+            }
+            public void menuDeselected (MenuEvent event) {
+                // no-nop
+            }
+            public void menuCanceled (MenuEvent event) {
+                // no-op
+            }
+        });
         menubar.add(edit);
         edit.add(new JMenuItem(_cut = createAction("cut", KeyEvent.VK_T, KeyEvent.VK_X)));
         edit.add(new JMenuItem(_copy = createAction("copy", KeyEvent.VK_C, KeyEvent.VK_C)));

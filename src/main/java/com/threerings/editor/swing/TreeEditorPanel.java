@@ -281,6 +281,38 @@ public class TreeEditorPanel extends BaseEditorPanel
             "delete", KeyEvent.VK_D, KeyEvent.VK_DELETE, 0)));
     }
 
+    /**
+     * Returns a reference to the cut action object.
+     */
+    public Action getCutAction ()
+    {
+        return _cut;
+    }
+
+    /**
+     * Returns a reference to the cut action object.
+     */
+    public Action getCopyAction ()
+    {
+        return _copy;
+    }
+
+    /**
+     * Returns a reference to the cut action object.
+     */
+    public Action getPasteAction ()
+    {
+        return _paste;
+    }
+
+    /**
+     * Returns a reference to the cut action object.
+     */
+    public Action getDeleteAction ()
+    {
+        return _delete;
+    }
+
     // documentation inherited from interface ClipboardOwner
     public void lostOwnership (Clipboard clipboard, Transferable contents)
     {
