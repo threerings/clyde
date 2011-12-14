@@ -27,6 +27,7 @@ package com.threerings.config.tools;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.Transferable;
@@ -175,17 +176,25 @@ public class ConfigEditor extends BaseConfigEditor
                     edit.getItem(2).setAction(panel.getPasteAction());
                     edit.getItem(3).setAction(panel.getDeleteAction());
                 } else {
-                    edit.getItem(0).setAction(_cut);
-                    edit.getItem(1).setAction(_copy);
-                    edit.getItem(2).setAction(_paste);
-                    edit.getItem(3).setAction(_delete);
+                    restoreActions();
                 }
             }
             public void menuDeselected (MenuEvent event) {
-                // no-nop
+                // restore after a delay so as not to interfere with selected item
+                EventQueue.invokeLater(new Runnable() {
+                    public void run () {
+                        restoreActions();
+                    }
+                });
             }
             public void menuCanceled (MenuEvent event) {
                 // no-op
+            }
+            protected void restoreActions () {
+                edit.getItem(0).setAction(_cut);
+                edit.getItem(1).setAction(_copy);
+                edit.getItem(2).setAction(_paste);
+                edit.getItem(3).setAction(_delete);
             }
         });
         menubar.add(edit);
