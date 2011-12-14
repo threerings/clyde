@@ -43,6 +43,7 @@ import java.util.Comparator;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.InputMap;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -74,8 +75,11 @@ import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.swing.PrintStreamDialog;
 import com.threerings.util.MessageManager;
+import com.threerings.util.ToolUtil;
 
+import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.swing.TreeEditorPanel;
 import com.threerings.editor.util.EditorContext;
 
 import com.threerings.config.ConfigGroup;
@@ -166,6 +170,11 @@ public class ConfigEditor extends BaseConfigEditor
         edit.addSeparator();
         edit.add(createMenuItem("resources", KeyEvent.VK_R, KeyEvent.VK_U));
         edit.add(createMenuItem("preferences", KeyEvent.VK_F, -1));
+
+        JMenu view = createMenu("view", KeyEvent.VK_V);
+        menubar.add(view);
+        view.add(_treeMode = ToolUtil.createCheckBoxMenuItem(
+            this, _msgs, "tree_mode", KeyEvent.VK_T, -1));
 
         JMenu gmenu = createMenu("groups", KeyEvent.VK_G);
         menubar.add(gmenu);
@@ -272,6 +281,11 @@ public class ConfigEditor extends BaseConfigEditor
             validateReferences();
         } else if (action.equals("resources")) {
             showFrame(new ResourceEditor(_msgmgr, _cfgmgr, _colorpos));
+        } else if (action.equals("tree_mode")) {
+            boolean enabled = _treeMode.isSelected();
+            for (int ii = _tabs.getComponentCount() - 1; ii >= 0; ii--) {
+                ((ManagerPanel)_tabs.getComponentAt(ii)).setTreeModeEnabled(enabled);
+            }
         } else if (action.equals("save_all")) {
             panel.cfgmgr.saveAll();
         } else if (action.equals("revert_all")) {
@@ -332,7 +346,7 @@ public class ConfigEditor extends BaseConfigEditor
     }
 
     @Override // documentation inherited
-    protected EditorPanel getFindEditorPanel ()
+    protected BaseEditorPanel getFindEditorPanel ()
     {
         return ((ManagerPanel)_tabs.getSelectedComponent()).getEditorPanel();
     }
@@ -666,6 +680,22 @@ public class ConfigEditor extends BaseConfigEditor
         }
 
         /**
+         * Enables or disables tree view mode.
+         */
+        public void setTreeModeEnabled (boolean enabled)
+        {
+            BaseEditorPanel opanel = _epanel;
+            _epanel = enabled ? new TreeEditorPanel(this) :
+                new EditorPanel(this, EditorPanel.CategoryMode.TABS);
+            _epanel.addChangeListener(this);
+            _epanel.setObject(opanel.getObject());
+            if (_split.getRightComponent() == opanel) {
+                _split.setRightComponent(_epanel);
+                SwingUtil.refresh(_epanel);
+            }
+        }
+
+        /**
          * Disposes of the resources held by this manager.
          */
         public void dispose ()
@@ -678,7 +708,7 @@ public class ConfigEditor extends BaseConfigEditor
         /**
          * Returns the editor panel.
          */
-        public EditorPanel getEditorPanel ()
+        public BaseEditorPanel getEditorPanel ()
         {
             return _epanel;
         }
@@ -723,7 +753,7 @@ public class ConfigEditor extends BaseConfigEditor
         protected JScrollPane _pane;
 
         /** The object editor panel. */
-        protected EditorPanel _epanel;
+        protected BaseEditorPanel _epanel;
     }
 
     /** The config tree pop-up menu. */
@@ -737,6 +767,9 @@ public class ConfigEditor extends BaseConfigEditor
 
     /** The edit menu actions. */
     protected Action _cut, _copy, _paste, _delete;
+
+    /** The tree mode toggle. */
+    protected JCheckBoxMenuItem _treeMode;
 
     /** The file chooser for opening and saving config files. */
     protected JFileChooser _chooser;

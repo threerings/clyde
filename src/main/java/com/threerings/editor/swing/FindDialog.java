@@ -100,7 +100,7 @@ public class FindDialog extends JDialog
     /**
      * Show the dialog.
      */
-    public void show (EditorPanel epanel)
+    public void show (BaseEditorPanel epanel)
     {
         setEditorPanel(epanel);
         setVisible(true);
@@ -112,7 +112,7 @@ public class FindDialog extends JDialog
     /**
      * Sets the editor panel.
      */
-    public void setEditorPanel (EditorPanel epanel)
+    public void setEditorPanel (BaseEditorPanel epanel)
     {
         if (_epanel != epanel) {
             _epanel = epanel;
@@ -124,7 +124,7 @@ public class FindDialog extends JDialog
     /**
      * Perform a find.
      */
-    public void find (EditorPanel epanel)
+    public void find (BaseEditorPanel epanel)
     {
         setEditorPanel(epanel);
         find();
@@ -331,7 +331,7 @@ public class FindDialog extends JDialog
     protected JLabel _status;
 
     /** Our config editor. */
-    protected EditorPanel _epanel;
+    protected BaseEditorPanel _epanel;
 
     /** The search term. */
     protected String _term;

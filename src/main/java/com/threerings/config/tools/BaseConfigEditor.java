@@ -46,6 +46,7 @@ import com.threerings.util.MessageManager;
 import com.threerings.util.ToolUtil;
 
 import com.threerings.editor.Introspector;
+import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.FindDialog;
 import com.threerings.editor.util.EditorContext;
@@ -277,7 +278,7 @@ public abstract class BaseConfigEditor extends JFrame
     /**
      * Returns the editor panel we'll be finding on.
      */
-    protected EditorPanel getFindEditorPanel ()
+    protected BaseEditorPanel getFindEditorPanel ()
     {
         return null;
     }

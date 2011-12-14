@@ -37,6 +37,7 @@ import java.io.IOException;
 
 import java.util.Set;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -56,8 +57,11 @@ import com.threerings.media.image.ColorPository;
 import com.threerings.resource.ResourceManager;
 import com.threerings.util.ChangeBlock;
 import com.threerings.util.MessageManager;
+import com.threerings.util.ToolUtil;
 
+import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
+import com.threerings.editor.swing.TreeEditorPanel;
 
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -144,6 +148,11 @@ public class ResourceEditor extends BaseConfigEditor
         edit.addSeparator();
         edit.add(createMenuItem("configs", KeyEvent.VK_C, KeyEvent.VK_G));
         edit.add(createMenuItem("preferences", KeyEvent.VK_P, KeyEvent.VK_P));
+
+        JMenu view = createMenu("view", KeyEvent.VK_V);
+        menubar.add(view);
+        view.add(_treeMode = ToolUtil.createCheckBoxMenuItem(
+            this, _msgs, "tree_mode", KeyEvent.VK_T, -1));
 
         // add the new items now that we've initialized the config manager
         Set<Character> mnems = Sets.newHashSet();
@@ -263,6 +272,14 @@ public class ResourceEditor extends BaseConfigEditor
             config.wasUpdated();
         } else if (action.equals("configs")) {
             showFrame(new ConfigEditor(_msgmgr, getConfigManager(), _colorpos));
+        } else if (action.equals("tree_mode")) {
+            BaseEditorPanel opanel = _epanel;
+            remove(opanel);
+            add(_epanel = _treeMode.isSelected() ? new TreeEditorPanel(this) :
+                new EditorPanel(this, EditorPanel.CategoryMode.TABS), BorderLayout.CENTER);
+            _epanel.addChangeListener(this);
+            _epanel.setObject(opanel.getObject());
+            _epanel.revalidate();
         } else {
             super.actionPerformed(event);
         }
@@ -453,13 +470,16 @@ public class ResourceEditor extends BaseConfigEditor
     }
 
     @Override // documentation inherited
-    protected EditorPanel getFindEditorPanel ()
+    protected BaseEditorPanel getFindEditorPanel ()
     {
         return _epanel;
     }
 
     /** The file menu items. */
     protected JMenuItem _save, _saveAs, _revert, _export;
+
+    /** The tree mode toggle. */
+    protected JCheckBoxMenuItem _treeMode;
 
     /** The file chooser for opening and saving config files. */
     protected JFileChooser _chooser;
@@ -468,7 +488,7 @@ public class ResourceEditor extends BaseConfigEditor
     protected JFileChooser _exportChooser;
 
     /** The editor panel. */
-    protected EditorPanel _epanel;
+    protected BaseEditorPanel _epanel;
 
     /** The loaded config file. */
     protected File _file;

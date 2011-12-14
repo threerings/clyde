@@ -98,6 +98,14 @@ public class TreeEditorPanel extends BaseEditorPanel
     /**
      * Creates an empty editor panel.
      */
+    public TreeEditorPanel (EditorContext ctx)
+    {
+        this(ctx, null, false);
+    }
+
+    /**
+     * Creates an empty editor panel.
+     */
     public TreeEditorPanel (EditorContext ctx, Property[] ancestors, boolean omitColumns)
     {
         super(ctx, ancestors, omitColumns);
@@ -315,7 +323,9 @@ public class TreeEditorPanel extends BaseEditorPanel
     {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(
             new NodeObject(null, _object, null, null));
-        addPropertyNodes(root, _object);
+        if (_object != null) {
+            addPropertyNodes(root, _object);
+        }
         _tree.setModel(new DefaultTreeModel(root, true));
     }
 
