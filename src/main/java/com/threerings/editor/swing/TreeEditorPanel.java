@@ -290,7 +290,7 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     /**
-     * Returns a reference to the cut action object.
+     * Returns a reference to the copy action object.
      */
     public Action getCopyAction ()
     {
@@ -298,7 +298,7 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     /**
-     * Returns a reference to the cut action object.
+     * Returns a reference to the paste action object.
      */
     public Action getPasteAction ()
     {
@@ -306,7 +306,7 @@ public class TreeEditorPanel extends BaseEditorPanel
     }
 
     /**
-     * Returns a reference to the cut action object.
+     * Returns a reference to the delete action object.
      */
     public Action getDeleteAction ()
     {

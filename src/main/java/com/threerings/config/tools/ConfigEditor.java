@@ -167,8 +167,6 @@ public class ConfigEditor extends BaseConfigEditor
         edit.addMenuListener(new MenuListener() {
             public void menuSelected (MenuEvent event) {
                 // hackery to allow cut/copy/paste/delete to act on editor tree
-                Action cut = null, copy = null, paste = null, delete = null;
-                Object owner = getFocusOwner();
                 TreeEditorPanel panel = (TreeEditorPanel)SwingUtilities.getAncestorOfClass(
                     TreeEditorPanel.class, getFocusOwner());
                 if (panel != null) {
