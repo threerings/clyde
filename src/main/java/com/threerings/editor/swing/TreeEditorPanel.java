@@ -195,6 +195,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                     populateNode(snode, getLabel(snobj.property), value,
                         snobj.property.getSubtypes(), snobj.property, snobj.comp);
                     ((DefaultTreeModel)_tree.getModel()).reload(snode);
+                    updateNodeEditor();
                     fireStateChanged();
                     return true;
                 }
@@ -274,6 +275,8 @@ public class TreeEditorPanel extends BaseEditorPanel
                 populateNode(dnode, getLabel(dnobj.property), dnobj.value,
                     dnobj.property.getSubtypes(), dnobj.property, dnobj.comp);
                 ((DefaultTreeModel)_tree.getModel()).reload(dnode);
+                _tree.setSelectionPath(new TreePath(
+                    ((DefaultMutableTreeNode)dnode.getChildAt(idx)).getPath()));
                 fireStateChanged();
                 return true;
             }
@@ -559,6 +562,7 @@ public class TreeEditorPanel extends BaseEditorPanel
             populateNode(node, getLabel(nodeobj.property), nodeobj.value,
                 nodeobj.property.getSubtypes(), nodeobj.property, nodeobj.comp);
             ((DefaultTreeModel)_tree.getModel()).reload(node);
+            updateNodeEditor();
             fireStateChanged();
             return;
         }
@@ -573,9 +577,16 @@ public class TreeEditorPanel extends BaseEditorPanel
             System.arraycopy(pnobj.value, idx + 1, narray, idx, len - 1 - idx);
             setNodeValue(parent, narray);
         }
+        boolean selected = (node == getSelectedNode());
         populateNode(parent, getLabel(pnobj.property), pnobj.value,
             pnobj.property.getSubtypes(), pnobj.property, pnobj.comp);
         ((DefaultTreeModel)_tree.getModel()).reload(parent);
+        if (selected) {
+            int ccount = parent.getChildCount();
+            DefaultMutableTreeNode snode = (ccount > 0) ?
+                (DefaultMutableTreeNode)parent.getChildAt(Math.min(idx, ccount - 1)) : parent;
+            _tree.setSelectionPath(new TreePath(snode.getPath()));
+        }
         fireStateChanged();
     }
 
