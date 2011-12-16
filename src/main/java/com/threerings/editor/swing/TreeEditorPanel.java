@@ -43,6 +43,7 @@ import java.io.IOException;
 
 import java.lang.reflect.Array;
 
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.Action;
@@ -66,6 +67,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 import com.samskivert.swing.GroupLayout;
@@ -119,7 +121,10 @@ public class TreeEditorPanel extends BaseEditorPanel
     {
         super(ctx, ancestors, omitColumns);
 
-        _tree = new JTree(new Object[0]);
+        _tree = new JTree(new DefaultMutableTreeNode(
+            new NodeObject(null, null, null, null)), true);
+        _tree.setRootVisible(false);
+        _tree.setShowsRootHandles(true);
         _panel = GroupLayout.makeVStretchBox(5);
 
         // top-level editors have a split pane; embedded ones just stick the panel below
@@ -194,7 +199,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                     setNodeValue(snode, value);
                     populateNode(snode, getLabel(snobj.property), value,
                         snobj.property.getSubtypes(), snobj.property, snobj.comp);
-                    ((DefaultTreeModel)_tree.getModel()).reload(snode);
+                    reload(snode);
                     updateNodeEditor();
                     fireStateChanged();
                     return true;
@@ -274,7 +279,7 @@ public class TreeEditorPanel extends BaseEditorPanel
                 }
                 populateNode(dnode, getLabel(dnobj.property), dnobj.value,
                     dnobj.property.getSubtypes(), dnobj.property, dnobj.comp);
-                ((DefaultTreeModel)_tree.getModel()).reload(dnode);
+                reload(dnode);
                 _tree.setSelectionPath(new TreePath(
                     ((DefaultMutableTreeNode)dnode.getChildAt(idx)).getPath()));
                 fireStateChanged();
@@ -365,7 +370,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         }
         populateNode(node, getLabel(nodeobj.property), nodeobj.property.get(object),
             nodeobj.property.getSubtypes(), nodeobj.property, nodeobj.comp);
-        ((DefaultTreeModel)_tree.getModel()).reload(node);
+        reload(node);
         fireStateChanged();
     }
 
@@ -391,18 +396,21 @@ public class TreeEditorPanel extends BaseEditorPanel
             return;
         }
         super.setObject(object);
+
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)_tree.getModel().getRoot();
+        ((NodeObject)root.getUserObject()).value = _object;
         update();
     }
 
     @Override // documentation inherited
     public void update ()
     {
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(
-            new NodeObject(null, _object, null, null));
+        DefaultTreeModel model = (DefaultTreeModel)_tree.getModel();
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
         if (_object != null) {
-            addPropertyNodes(root, _object);
+            updatePropertyNodes(root, _object);
         }
-        _tree.setModel(new DefaultTreeModel(root, true));
+        reload(root);
     }
 
     @Override // documentation inherited
@@ -561,7 +569,7 @@ public class TreeEditorPanel extends BaseEditorPanel
             }
             populateNode(node, getLabel(nodeobj.property), nodeobj.value,
                 nodeobj.property.getSubtypes(), nodeobj.property, nodeobj.comp);
-            ((DefaultTreeModel)_tree.getModel()).reload(node);
+            reload(node);
             updateNodeEditor();
             fireStateChanged();
             return;
@@ -580,7 +588,7 @@ public class TreeEditorPanel extends BaseEditorPanel
         boolean selected = (node == getSelectedNode());
         populateNode(parent, getLabel(pnobj.property), pnobj.value,
             pnobj.property.getSubtypes(), pnobj.property, pnobj.comp);
-        ((DefaultTreeModel)_tree.getModel()).reload(parent);
+        reload(parent);
         if (selected) {
             int ccount = parent.getChildCount();
             DefaultMutableTreeNode snode = (ccount > 0) ?
@@ -603,6 +611,50 @@ public class TreeEditorPanel extends BaseEditorPanel
             object = ((ConfigReference)object).getArguments();
         }
         nodeobj.property.set(object, nodeobj.value = value);
+    }
+
+    /**
+     * Reloads all nodes under the one specified, preserving expansion and selection states.
+     */
+    protected void reload (DefaultMutableTreeNode node)
+    {
+        Enumeration<TreePath> eenum = _tree.getExpandedDescendants(new TreePath(node.getPath()));
+        List<TreePath> expanded = (eenum == null) ?
+            null : Lists.newArrayList(Iterators.forEnumeration(eenum));
+        TreePath selected = _tree.getSelectionPath();
+
+        ((DefaultTreeModel)_tree.getModel()).reload(node);
+
+        if (expanded != null) {
+            for (TreePath path : expanded) {
+                TreePath valid = getValidPrefix(path);
+                if (valid != null) {
+                    _tree.expandPath(valid);
+                }
+            }
+        }
+        if (selected != null) {
+            TreePath valid = getValidPrefix(selected);
+            if (valid != null) {
+                _tree.setSelectionPath(valid);
+            }
+        }
+    }
+
+    /**
+     * Returns as much of the specified path as is still valid for the tree, or null if none of
+     * it is (past the root).
+     */
+    protected TreePath getValidPrefix (TreePath path)
+    {
+        for (int ii = 1, nn = path.getPathCount(); ii < nn; ii++) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getPathComponent(ii);
+            if (node.getParent() == null) {
+                return (ii == 1) ? null : new TreePath(
+                    ((DefaultMutableTreeNode)path.getPathComponent(ii - 1)).getPath());
+            }
+        }
+        return path;
     }
 
     /**
@@ -665,16 +717,33 @@ public class TreeEditorPanel extends BaseEditorPanel
     /**
      * Adds child nodes for the specified object's properties to the specified parent node.
      */
-    protected void addPropertyNodes (DefaultMutableTreeNode parent, Object object)
+    protected void updatePropertyNodes (DefaultMutableTreeNode parent, Object object)
     {
         Property[] properties = Introspector.getProperties(object);
         if (properties.length == 0) {
+            parent.setAllowsChildren(false);
             return;
         }
         parent.setAllowsChildren(true);
-        for (Property property : properties) {
-            addNode(parent, getLabel(property), property.get(object),
+
+        int ccount = parent.getChildCount();
+        for (int ii = 0; ii < properties.length; ii++) {
+            Property property = properties[ii];
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode();
+            if (ii < ccount) {
+                DefaultMutableTreeNode onode = (DefaultMutableTreeNode)parent.getChildAt(ii);
+                NodeObject onobj = (NodeObject)onode.getUserObject();
+                if (onobj.property == property) {
+                    child = onode;
+                }
+                parent.remove(ii);
+            }
+            parent.insert(child, ii);
+            populateNode(child, getLabel(property), property.get(object),
                 property.getSubtypes(), property, null);
+        }
+        for (int ii = properties.length; ii < ccount; ii++) {
+            parent.remove(properties.length);
         }
     }
 
@@ -722,7 +791,9 @@ public class TreeEditorPanel extends BaseEditorPanel
             ConfigReference<?> ref = (ConfigReference)value;
             String name = ref.getName();
             node.setUserObject(new NodeObject(label + ": " + name, value, property, comp));
-            node.setAllowsChildren(false);
+            node.setAllowsChildren(true);
+            int ccount = node.getChildCount();
+            int idx = 0;
             if (property != null) {
                 @SuppressWarnings("unchecked") Class<ManagedConfig> clazz =
                     (Class<ManagedConfig>)property.getArgumentType(ConfigReference.class);
@@ -733,38 +804,57 @@ public class TreeEditorPanel extends BaseEditorPanel
                         for (Parameter param : pconfig.parameters) {
                             Property aprop = param.getArgumentProperty(pconfig);
                             if (aprop != null) {
-                                node.setAllowsChildren(true);
-                                addNode(node, param.name, aprop.get(ref.getArguments()),
+                                DefaultMutableTreeNode child = new DefaultMutableTreeNode();
+                                if (idx < ccount) {
+                                    DefaultMutableTreeNode ochild =
+                                        (DefaultMutableTreeNode)node.getChildAt(idx);
+                                    NodeObject onobj = (NodeObject)ochild.getUserObject();
+                                    if (onobj.property == aprop) {
+                                        child = ochild;
+                                    }
+                                    node.remove(idx);
+                                }
+                                node.insert(child, idx++);
+                                populateNode(child, param.name, aprop.get(ref.getArguments()),
                                     aprop.getSubtypes(), aprop, param.name);
                             }
                         }
                     }
                 }
             }
+            for (int ii = idx; ii < ccount; ii++) {
+                node.remove(idx);
+            }
+            if (node.getChildCount() == 0) {
+                node.setAllowsChildren(false);
+            }
         } else if (value instanceof List || value.getClass().isArray()) {
             node.setUserObject(new NodeObject(label, value, property, comp));
-            node.removeAllChildren();
             node.setAllowsChildren(true);
             Class<?>[] componentSubtypes = (property != null) ?
                 property.getComponentSubtypes() : new Class[0];
-            if (value instanceof List) {
-                List<?> list = (List)value;
-                for (int ii = 0, nn = list.size(); ii < nn; ii++) {
-                    addNode(node, String.valueOf(ii), list.get(ii), componentSubtypes, null, ii);
+            int ccount = node.getChildCount();
+            int length = (value instanceof List) ? ((List)value).size() : Array.getLength(value);
+            for (int ii = 0; ii < length; ii++) {
+                DefaultMutableTreeNode child;
+                if (ii < ccount) {
+                    child = (DefaultMutableTreeNode)node.getChildAt(ii);
+                } else {
+                    node.insert(child = new DefaultMutableTreeNode(), ii);
                 }
-            } else {
-                for (int ii = 0, nn = Array.getLength(value); ii < nn; ii++) {
-                    addNode(node, String.valueOf(ii), Array.get(value, ii),
+                populateNode(child, String.valueOf(ii),
+                    (value instanceof List) ? ((List)value).get(ii) : Array.get(value, ii),
                         componentSubtypes, null, ii);
-                }
+            }
+            for (int ii = length; ii < ccount; ii++) {
+                node.remove(length);
             }
         } else {
             if (subtypes.length > 1) {
                 label = label + ": " + getLabel(value.getClass());
             }
             node.setUserObject(new NodeObject(label, value, property, comp));
-            node.setAllowsChildren(false);
-            addPropertyNodes(node, value);
+            updatePropertyNodes(node, value);
         }
     }
 
