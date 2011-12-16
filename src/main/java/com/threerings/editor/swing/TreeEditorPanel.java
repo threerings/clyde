@@ -422,6 +422,8 @@ public class TreeEditorPanel extends BaseEditorPanel
         DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
         if (_object != null) {
             updatePropertyNodes(root, _object);
+        } else {
+            root.setAllowsChildren(false);
         }
         reload(root);
     }
