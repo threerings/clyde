@@ -32,7 +32,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import com.threerings.editor.PathProperty;
-import com.threerings.editor.swing.PropertyEditor;
+import com.threerings.editor.swing.BaseEditorPanel;
 
 /**
  * An editor for an array of paramater paths.
@@ -69,8 +69,8 @@ public class PathTableArrayListEditor extends TableArrayListEditor
     {
         Object obj = null;
         for (Component comp = this; comp != null; ) {
-            if (comp instanceof PropertyEditor) {
-                obj = ((PropertyEditor)comp).getObject();
+            if (comp instanceof BaseEditorPanel) {
+                obj = ((BaseEditorPanel)comp).getObject();
             }
             comp = comp.getParent();
         }
