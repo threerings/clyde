@@ -75,6 +75,9 @@ import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.ListUtil;
 import com.samskivert.util.StringUtil;
 
+import com.threerings.media.image.ColorPository.ClassRecord;
+import com.threerings.media.image.ColorPository.ColorRecord;
+
 import com.threerings.config.ArgumentMap;
 import com.threerings.config.ConfigReference;
 import com.threerings.config.ManagedConfig;
@@ -808,6 +811,24 @@ public class TreeEditorPanel extends BaseEditorPanel
                 Enum<?> eval = (Enum)value;
                 dval = getLabel(eval, _msgmgr.getBundle(
                     Introspector.getMessageBundle(eval.getDeclaringClass())));
+
+            } else if (value instanceof Integer &&
+                    property.getAnnotation().editor().equals("colorization")) {
+                int ival = (Integer)value;
+                String mode = property.getAnnotation().mode();
+                if (mode.equals("class")) {
+                    ClassRecord crec = _ctx.getColorPository().getClassRecord(ival);
+                    dval = (crec == null) ? dval : crec.name;
+
+                } else if (mode.length() > 0) {
+                    ColorRecord color = _ctx.getColorPository().getColorRecord(ival >> 8, ival & 0xFF);
+
+                } else {
+                    ColorRecord crec = _ctx.getColorPository().getColorRecord(
+                        ival >> 8, ival & 0xFF);
+                    dval = (crec == null) ? dval :
+                        (mode.length() > 0 ? "" : crec.cclass.name + "/") + crec.name;
+                }
             }
             node.setUserObject(new NodeObject(label + ": " + dval, value, property, comp));
             node.setAllowsChildren(false);
