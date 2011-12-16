@@ -111,22 +111,35 @@ public abstract class PropertyEditor extends BasePropertyEditor
         } else if (type.isEnum()) {
             editor = new EnumEditor();
         } else if (type.isArray() || List.class.isAssignableFrom(type)) {
-            // use the table editor when the array components are primitives (or similar, or
-            // arrays thereof)
-            Class<?> ctype = property.getComponentType();
-            if (isTableCellType(ctype) ||
-                    (ctype.isArray() && isTableCellType(ctype.getComponentType()))) {
-                editor = new TableArrayListEditor();
-            } else if (ctype.isEnum() || (ctype.isArray() && ctype.getComponentType().isEnum())) {
-                editor = new EnumPanelArrayListEditor();
-            } else {
-                editor = new ObjectPanelArrayListEditor();
+            try {
+                editor = getArrayListEditorType(property).newInstance();
+            } catch (Exception e) {
+                log.warning("Failed to create array list editor.", e);
+                editor = new ObjectEditor();
             }
         } else {
             editor = new ObjectEditor();
         }
         editor.init(ctx, property, ancestors);
         return editor;
+    }
+
+    /**
+     * Returns the type of editor class to use to edit the specified array/list property.
+     */
+    public static Class<? extends PropertyEditor> getArrayListEditorType (Property property)
+    {
+        // use the table editor when the array components are
+        // primitives (or similar, or arrays thereof)
+        Class<?> ctype = property.getComponentType();
+        if (isTableCellType(ctype) ||
+                (ctype.isArray() && isTableCellType(ctype.getComponentType()))) {
+            return TableArrayListEditor.class;
+        } else if (ctype.isEnum() || (ctype.isArray() && ctype.getComponentType().isEnum())) {
+            return EnumPanelArrayListEditor.class;
+        } else {
+            return ObjectPanelArrayListEditor.class;
+        }
     }
 
     /**

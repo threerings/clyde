@@ -96,6 +96,7 @@ import com.threerings.opengl.renderer.Color4f;
 
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;
+import com.threerings.editor.swing.editors.ObjectPanelArrayListEditor;
 import com.threerings.editor.util.EditorContext;
 
 import static com.threerings.editor.Log.*;
@@ -364,12 +365,24 @@ public class TreeEditorPanel extends BaseEditorPanel
         NodeObject nodeobj = (NodeObject)node.getUserObject();
         DefaultMutableTreeNode parent = (DefaultMutableTreeNode)node.getParent();
         NodeObject pnobj = (NodeObject)parent.getUserObject();
-        Object object = pnobj.value;
-        if (nodeobj.comp instanceof String) {
-            object = ((ConfigReference)pnobj.value).getArguments();
+        if (nodeobj.property != null) {
+            Object object = pnobj.value;
+            if (nodeobj.comp instanceof String) {
+                object = ((ConfigReference)pnobj.value).getArguments();
+            }
+            populateNode(node, getLabel(nodeobj.property), nodeobj.property.get(object),
+                nodeobj.property.getSubtypes(), nodeobj.property, nodeobj.comp);
+        } else {
+            nodeobj.value = ((ObjectPanel)_panel.getComponent(0)).getValue();
+            if (pnobj.value instanceof List) {
+                @SuppressWarnings("unchecked") List<Object> list = (List<Object>)pnobj.value;
+                list.set((Integer)nodeobj.comp, nodeobj.value);
+            } else {
+                Array.set(pnobj.value, (Integer)nodeobj.comp, nodeobj.value);
+            }
+            populateNode(node, String.valueOf(nodeobj.comp), nodeobj.value,
+                pnobj.property.getComponentSubtypes(), null, nodeobj.comp);
         }
-        populateNode(node, getLabel(nodeobj.property), nodeobj.property.get(object),
-            nodeobj.property.getSubtypes(), nodeobj.property, nodeobj.comp);
         reload(node);
         fireStateChanged();
     }
@@ -702,7 +715,17 @@ public class TreeEditorPanel extends BaseEditorPanel
             }
             editor.addChangeListener(this);
             _panel.add(editor);
+            return;
         }
+        if (pnobj.property == null || PropertyEditor.getArrayListEditorType(pnobj.property) !=
+                ObjectPanelArrayListEditor.class) {
+            return; // can only edit elements of object arrays
+        }
+        ObjectPanel editor = new ObjectPanel(_ctx, pnobj.property.getComponentTypeLabel(),
+            pnobj.property.getComponentSubtypes(), ancestors, pnobj.value);
+        editor.setValue(nodeobj.value);
+        editor.addChangeListener(this);
+        _panel.add(editor);
     }
 
     /**
