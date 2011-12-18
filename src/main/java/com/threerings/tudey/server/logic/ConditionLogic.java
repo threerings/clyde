@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
@@ -667,9 +668,10 @@ public abstract class ConditionLogic extends Logic
         {
             ConditionConfig.DateRange config = (ConditionConfig.DateRange)_config;
             long now = System.currentTimeMillis();
+            DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US);
             if (config.start.length() > 0) {
                 try {
-                    if (now < DateFormat.getInstance().parse(config.start).getTime()) {
+                    if (now < df.parse(config.start).getTime()) {
                         return false;
                     }
                 } catch (ParseException e) {
@@ -679,7 +681,7 @@ public abstract class ConditionLogic extends Logic
             }
             if (config.end.length() > 0) {
                 try {
-                    if (now > DateFormat.getInstance().parse(config.end).getTime()) {
+                    if (now > df.parse(config.end).getTime()) {
                         return false;
                     }
                 } catch (ParseException e) {
