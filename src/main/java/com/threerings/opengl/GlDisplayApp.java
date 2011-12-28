@@ -276,7 +276,7 @@ public abstract class GlDisplayApp extends GlApp
      */
     protected boolean attemptCreateDisplay ()
     {
-        for (PixelFormat format : PIXEL_FORMATS) {
+        for (PixelFormat format : getPixelFormats()) {
             try {
                 Display.create(format);
                 return true;

@@ -217,7 +217,7 @@ public abstract class GlCanvasApp extends GlApp
         // in frequent crashes.  using it on Windows with the latest Nvidia drivers causes
         // the window to stop refreshing
         if (RunAnywhere.isLinux() || RunAnywhere.isWindows()) {
-            return new DisplayCanvas() {
+            return new DisplayCanvas(getAntialiasingLevel()) {
                 @Override protected void didInit () {
                     GlCanvasApp.this.init();
                 }
@@ -229,7 +229,7 @@ public abstract class GlCanvasApp extends GlApp
                 }
             };
         }
-        for (PixelFormat format : PIXEL_FORMATS) {
+        for (PixelFormat format : getPixelFormats()) {
             try {
                 return new AWTCanvas(format) {
                     @Override protected void didInit () {

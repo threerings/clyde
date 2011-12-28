@@ -66,7 +66,7 @@ public class DisplayCanvas extends JPanel
     /**
      * Creates a new canvas.
      */
-    public DisplayCanvas ()
+    public DisplayCanvas (final int antialiasingLevel)
     {
         super(new BorderLayout());
 
@@ -83,7 +83,7 @@ public class DisplayCanvas extends JPanel
                 _initialized = true;
 
                 // attempt to find a valid pixel format
-                for (PixelFormat format : GlApp.PIXEL_FORMATS) {
+                for (PixelFormat format : GlApp.getPixelFormats(antialiasingLevel)) {
                     try {
                         init(format);
                         return;
