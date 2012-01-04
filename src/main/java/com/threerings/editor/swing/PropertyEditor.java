@@ -29,6 +29,7 @@ import java.lang.reflect.Array;
 
 import java.io.File;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -58,6 +59,7 @@ import com.threerings.editor.swing.editors.Color4fEditor;
 import com.threerings.editor.swing.editors.ColorizationEditor;
 import com.threerings.editor.swing.editors.ConfigEditor;
 import com.threerings.editor.swing.editors.ConfigReferenceEditor;
+import com.threerings.editor.swing.editors.DateTimeEditor;
 import com.threerings.editor.swing.editors.EnumEditor;
 import com.threerings.editor.swing.editors.EnumPanelArrayListEditor;
 import com.threerings.editor.swing.editors.FileEditor;
@@ -378,6 +380,9 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass("paths", PathTableArrayListEditor.class);
         registerEditorClass("getPath", GetPathEditor.class);
         registerEditorClass("viewer", PropertyViewer.class);
+        registerEditorClass("datetime", DateTimeEditor.class);
+        registerEditorClass("date", DateTimeEditor.DateOnlyEditor.class);
+        registerEditorClass("time", DateTimeEditor.TimeOnlyEditor.class);
 
         registerEditorClass(Boolean.class, BooleanEditor.class);
         registerEditorClass(Boolean.TYPE, BooleanEditor.class);
@@ -398,6 +403,7 @@ public abstract class PropertyEditor extends BasePropertyEditor
         registerEditorClass(Short.class, NumberEditor.class);
         registerEditorClass(Short.TYPE, NumberEditor.class);
         registerEditorClass(String.class, StringEditor.class);
+        registerEditorClass(Date.class, DateTimeEditor.class);
         registerEditorClass(Transform2D.class, Transform2DEditor.class);
         registerEditorClass(Transform3D.class, Transform3DEditor.class);
         registerEditorClass(Vector2f.class, Vector2fEditor.class);
