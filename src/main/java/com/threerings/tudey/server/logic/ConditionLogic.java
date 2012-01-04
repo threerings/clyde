@@ -27,11 +27,7 @@ package com.threerings.tudey.server.logic;
 
 import java.lang.reflect.Field;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Map;
 
 import com.google.common.collect.Lists;
@@ -507,7 +503,7 @@ public abstract class ConditionLogic extends Logic
         public boolean isSatisfied (Logic activator)
         {
             int timestamp = _scenemgr.getTimestamp();
-            if (_nextTimestamp < 0 || timestamp > _nextTimestamp) {
+            if (timestamp > _nextTimestamp) {
                 _nextTimestamp = timestamp + ((ConditionConfig.Cooldown)_config).time;
                 return true;
             }
@@ -668,28 +664,9 @@ public abstract class ConditionLogic extends Logic
         {
             ConditionConfig.DateRange config = (ConditionConfig.DateRange)_config;
             long now = System.currentTimeMillis();
-            DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US);
-            if (config.start.length() > 0) {
-                try {
-                    if (now < df.parse(config.start).getTime()) {
-                        return false;
-                    }
-                } catch (ParseException e) {
-                    log.warning("Failed to parse start date.", "start", config.start, e);
-                    return false;
-                }
-            }
-            if (config.end.length() > 0) {
-                try {
-                    if (now > df.parse(config.end).getTime()) {
-                        return false;
-                    }
-                } catch (ParseException e) {
-                    log.warning("Failed to parse end date.", "end", config.end, e);
-                    return false;
-                }
-            }
-            return true;
+            // either endpoint can be null to be open-ended
+            return ((config.start == null) || (now >= config.start)) &&
+                ((config.end == null) || (now <= config.end));
         }
     }
 

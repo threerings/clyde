@@ -464,12 +464,12 @@ public abstract class ConditionConfig extends DeepObject
     public static class DateRange extends ConditionConfig
     {
         /** The starting date. */
-        @Editable
-        public String start = "";
+        @Editable(editor="datetime", nullable=true, hgroup="a")
+        public Long start;
 
         /** The ending date. */
-        @Editable
-        public String end = "";
+        @Editable(editor="datetime", nullable=true, hgroup="a")
+        public Long end;
 
         @Override // documentation inherited
         public String getLogicClassName ()
