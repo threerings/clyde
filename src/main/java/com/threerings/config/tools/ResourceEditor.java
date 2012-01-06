@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import java.util.Set;
 
@@ -62,6 +63,7 @@ import com.threerings.util.ToolUtil;
 import com.threerings.editor.swing.BaseEditorPanel;
 import com.threerings.editor.swing.EditorPanel;
 import com.threerings.editor.swing.TreeEditorPanel;
+import com.threerings.editor.tools.BatchValidateDialog;
 
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
@@ -153,6 +155,10 @@ public class ResourceEditor extends BaseConfigEditor
         menubar.add(view);
         view.add(_treeMode = ToolUtil.createCheckBoxMenuItem(
             this, _msgs, "tree_mode", KeyEvent.VK_T, -1));
+
+        JMenu tools = createMenu("tools", KeyEvent.VK_T);
+        menubar.add(tools);
+        tools.add(createMenuItem("batch_validate", KeyEvent.VK_B, -1));
 
         // add the new items now that we've initialized the config manager
         Set<Character> mnems = Sets.newHashSet();
@@ -280,6 +286,13 @@ public class ResourceEditor extends BaseConfigEditor
             _epanel.addChangeListener(this);
             _epanel.setObject(opanel.getObject());
             _epanel.revalidate();
+        } else if (action.equals("batch_validate")) {
+            new BatchValidateDialog(this, this, _prefs) {
+                @Override protected boolean validate (String path, PrintStream out) {
+                    ManagedConfig config = _cfgmgr.getResourceConfig(path);
+                    return config == null || config.validateReferences(path, out);
+                }
+            }.setVisible(true);
         } else {
             super.actionPerformed(event);
         }

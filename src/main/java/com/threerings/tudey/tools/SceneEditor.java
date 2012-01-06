@@ -45,6 +45,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -105,6 +106,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.config.tools.ConfigEditor;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
+import com.threerings.editor.tools.BatchValidateDialog;
 import com.threerings.export.BinaryExporter;
 import com.threerings.export.BinaryImporter;
 import com.threerings.export.XMLExporter;
@@ -296,6 +298,10 @@ public class SceneEditor extends TudeyTool
         view.addSeparator();
         view.add(createMenuItem("prev_layer", KeyEvent.VK_P, KeyEvent.VK_UP, KeyEvent.ALT_MASK));
         view.add(createMenuItem("next_layer", KeyEvent.VK_N, KeyEvent.VK_DOWN, KeyEvent.ALT_MASK));
+
+        JMenu tools = createMenu("tools", KeyEvent.VK_T);
+        menubar.add(tools);
+        tools.add(createMenuItem("batch_validate", KeyEvent.VK_B, -1));
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("scene_dir", null));
@@ -1060,6 +1066,16 @@ public class SceneEditor extends TudeyTool
         } else if (action.equals("sound")) {
             _prefs.putBoolean("soundEnabled", _soundEnabled = !_sound.isSelected());
             wasUpdated();
+        } else if (action.equals("batch_validate")) {
+            new BatchValidateDialog(this, _frame, _prefs) {
+                @Override protected boolean validate (String path, PrintStream out)
+                        throws Exception {
+                    TudeySceneModel model = (TudeySceneModel)new BinaryImporter(
+                        new FileInputStream(_rsrcmgr.getResourceFile(path))).readObject();
+                    model.getConfigManager().init("scene", _cfgmgr);
+                    return model.validateReferences(path, out);
+                }
+            }.setVisible(true);
         } else {
             super.actionPerformed(event);
         }

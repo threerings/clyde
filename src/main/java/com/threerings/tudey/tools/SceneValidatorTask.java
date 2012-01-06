@@ -44,6 +44,7 @@ import com.threerings.config.ConfigManager;
 import com.threerings.export.BinaryImporter;
 
 import com.threerings.tudey.data.TudeySceneModel;
+
 import static com.threerings.tudey.Log.*;
 
 /**
