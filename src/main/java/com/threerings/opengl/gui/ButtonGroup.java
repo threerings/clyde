@@ -132,7 +132,7 @@ public class ButtonGroup
     {
         _alwaysSelect = alwaysSelect;
         if (_alwaysSelect && getSelectedIndex() == -1 && getButtonCount() > 0) {
-            _buttons.get(0).setSelected(true);
+            setSelected(_buttons.get(0));
         }
     }
 
