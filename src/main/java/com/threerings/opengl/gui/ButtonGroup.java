@@ -124,6 +124,18 @@ public class ButtonGroup
         return _buttons.size();
     }
 
+    /**
+     * Sets the always select state. If set to true and no button is selected, it will
+     * automatically select the first button in the group.
+     */
+    public void setAlwaysSelect (boolean alwaysSelect)
+    {
+        _alwaysSelect = alwaysSelect;
+        if (_alwaysSelect && getSelectedIndex() == -1 && getButtonCount() > 0) {
+            _buttons.get(0).setSelected(true);
+        }
+    }
+
     // from Selectable<ToggleButton>
     public ToggleButton getSelected ()
     {
