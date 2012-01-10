@@ -29,12 +29,18 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 
 import java.io.File;
+import java.io.IOException;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 
+import java.util.Date;
 import java.util.prefs.Preferences;
+
+import javax.imageio.ImageIO;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
@@ -49,6 +55,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileSystemView;
 
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.swing.Spacer;
@@ -65,6 +72,8 @@ import com.threerings.opengl.model.Animation;
 import com.threerings.opengl.model.ModelObserver;
 import com.threerings.opengl.model.Model;
 import com.threerings.opengl.model.config.ModelConfig;
+
+import static com.threerings.opengl.Log.*;
 
 /**
  * A simple model viewer application.
@@ -122,6 +131,10 @@ public class ModelViewer extends ModelTool
         view.addSeparator();
         view.add(createMenuItem("recenter", KeyEvent.VK_C, KeyEvent.VK_C));
         view.add(createMenuItem("reset", KeyEvent.VK_R, KeyEvent.VK_R, 0));
+
+        JMenu tools = createMenu("tools", KeyEvent.VK_T);
+        menubar.add(tools);
+        tools.add(createMenuItem("save_snapshot", KeyEvent.VK_S, KeyEvent.VK_F12, 0));
 
         // configure the side panel
         _cpanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -238,10 +251,21 @@ public class ModelViewer extends ModelTool
             _tpanels.add(new TrackPanel());
             _removeTrack.setEnabled(true);
             SwingUtil.refresh(_cpanel);
+
         } else if (action.equals("remove_track")) {
             _tpanels.remove(_tpanels.getComponentCount() - 1);
             _removeTrack.setEnabled(_tpanels.getComponentCount() > 1);
             SwingUtil.refresh(_cpanel);
+
+        } else if (action.equals("save_snapshot")) {
+            SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+            File file = new File(FileSystemView.getFileSystemView().getDefaultDirectory(),
+                "viewer_" + fmt.format(new Date()) + ".png");
+            try {
+                ImageIO.write(createSnapshot(true), "png", file);
+            } catch (IOException e) {
+                log.warning("Failed to write snapshot.", "file", file, e);
+            }
         } else {
             super.actionPerformed(event);
         }

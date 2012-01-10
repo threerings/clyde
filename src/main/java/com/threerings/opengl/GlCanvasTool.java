@@ -284,7 +284,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
             rescheduleRefreshInterval();
 
             // set the background color
-            _compositor.getDefaultBackgroundColor().set(getPref("background_color", Color4f.GRAY));
+            Color4f color = getPref("background_color", Color4f.GRAY);
+            _compositor.getDefaultBackgroundColor().set(color.r, color.g, color.b, 0f);
 
             // and the render scheme, compatibility mode, etc.
             _renderScheme = _prefs.get("render_scheme", null);
@@ -345,7 +346,7 @@ public abstract class GlCanvasTool extends GlCanvasApp
         @Editable(weight=3)
         public void setBackgroundColor (Color4f color)
         {
-            _compositor.getDefaultBackgroundColor().set(color);
+            _compositor.getDefaultBackgroundColor().set(color.r, color.g, color.b, 0f);
             putPref("background_color", color);
         }
 
@@ -355,7 +356,8 @@ public abstract class GlCanvasTool extends GlCanvasApp
         @Editable
         public Color4f getBackgroundColor ()
         {
-            return _compositor.getDefaultBackgroundColor();
+            Color4f color = _compositor.getDefaultBackgroundColor();
+            return new Color4f(color.r, color.g, color.b, 1f);
         }
 
         /**

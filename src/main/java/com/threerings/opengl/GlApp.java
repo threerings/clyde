@@ -195,23 +195,34 @@ public abstract class GlApp extends DynamicScope
      */
     public BufferedImage createSnapshot ()
     {
+        return createSnapshot(false);
+    }
+
+    /**
+     * Creates and returns a snapshot image of the current frame.
+     */
+    public BufferedImage createSnapshot (boolean alpha)
+    {
         // read the contents of the frame buffer
         int width = _renderer.getWidth(), height = _renderer.getHeight();
-        ByteBuffer buf = BufferUtils.createByteBuffer(3 * width * height);
-        GL11.glReadPixels(0, 0, width, height, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, buf);
+        int comps = alpha ? 4 : 3;
+        ByteBuffer buf = BufferUtils.createByteBuffer(comps * width * height);
+        GL11.glReadPixels(0, 0, width, height, alpha ? GL11.GL_RGBA : GL11.GL_RGB,
+            GL11.GL_UNSIGNED_BYTE, buf);
 
         // create a buffered image to match the format
         ComponentColorModel cmodel = new ComponentColorModel(
-            ColorSpace.getInstance(ColorSpace.CS_sRGB), false, false,
-            Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
+            ColorSpace.getInstance(ColorSpace.CS_sRGB), alpha, false,
+            alpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
         BufferedImage image = new BufferedImage(
-            cmodel, Raster.createInterleavedRaster(DataBuffer.TYPE_BYTE, width, height, 3, null),
-            true, null);
+            cmodel, Raster.createInterleavedRaster(
+                DataBuffer.TYPE_BYTE, width, height, comps, null),
+            false, null);
 
         // retrieve and populate the image data buffer
         byte[] data = ((DataBufferByte)image.getRaster().getDataBuffer()).getData();
         for (int yy = height - 1; yy >= 0; yy--) {
-            buf.get(data, yy*width*3, width*3);
+            buf.get(data, yy*width*comps, width*comps);
         }
         return image;
     }
