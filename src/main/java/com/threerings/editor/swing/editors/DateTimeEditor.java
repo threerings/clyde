@@ -30,6 +30,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.Locale;
@@ -61,10 +62,12 @@ import static com.threerings.editor.Log.log;
  * - style (SHORT, MEDIUM, LONG, FULL)
  * - timezone (any timezone)
  * - locale (up to three specifiers separated by spaces: language country variant)
+ * - format (to specify a SimpleDateFormat format, instead of specifying 'style')
  *
  * Examples:
  * &at;Editable(editor="datetime", mode="style=full, timezone=PST8PDT, locale=en us")
  * &at;Editable(editor="datetime", mode="style=short, locale=es es Traditional_WIN")
+ * &at;Editable(editor="datetime", mode="format=yyyy-MM-dd hh:mm aaa")
  */
 public class DateTimeEditor extends PropertyEditor
     implements DocumentListener, FocusListener
@@ -179,6 +182,7 @@ public class DateTimeEditor extends PropertyEditor
         int style = DateFormat.SHORT;
         TimeZone timezone = TimeZone.getDefault();
         Locale locale = Locale.getDefault();
+        String format = null;
 
         for (String attr : Splitter.on(',').trimResults().omitEmptyStrings().split(mode)) {
             int eq = attr.indexOf('=');
@@ -226,10 +230,19 @@ public class DateTimeEditor extends PropertyEditor
                     log.warning("Too many arguments to locale: " + attr);
                     break;
                 }
+
+            } else if ("format".equalsIgnoreCase(kind)) {
+                // TODO: allow commas in the format
+                format = spec;
+
+            } else {
+                log.warning("Unknown mode attribute: " + attr);
             }
         }
 
-        _format = createFormat(style, locale);
+        _format = (format != null)
+            ? new SimpleDateFormat(format, locale)
+            : createFormat(style, locale);
         _format.setTimeZone(timezone);
     }
 
