@@ -54,6 +54,9 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
         select mesh
         setCommandPanelTaskMode mode:#modify
         addModifier mesh enorms
+        if isProperty mesh #skin do (
+            modPanel.setCurrentObject mesh.skin node:mesh
+        )
         for ii = 1 to mesh.numfaces do (
             face = getFace mesh ii
             local tvface
@@ -149,10 +152,6 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                 format " tag=\"%\"" tag to:outFile
             )
             format ">\n" to:outFile
-            if isProperty node #skin do (
-                setCommandPanelTaskMode mode:#modify
-                modPanel.setCurrentObject node.skin node:node
-            )
             writeVertices node outFile
             format "  </%>\n\n" kind to:outFile
 
