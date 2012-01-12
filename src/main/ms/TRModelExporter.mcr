@@ -50,10 +50,12 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                 append mchannels ii
             )
         )
-        enorms = mesh.modifiers[#Edit_Normals]
+        enorms = Edit_Normals()
+        select mesh
+        setCommandPanelTaskMode mode:#modify
+        addModifier mesh enorms
         for ii = 1 to mesh.numfaces do (
             face = getFace mesh ii
-            normals = meshop.getFaceRNormals mesh ii
             local tvface
             if mesh.numtverts > 0 do (
                 tvface = getTVFace mesh ii
@@ -73,15 +75,8 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
             for jj = 1 to 3 do (
                 format "    <vertex" to:outFile
                 writePoint3Attr " location" (getVert mesh face[jj]) outFile
-                local normal
-                if enorms != undefined then (
-                    nid = enorms.getNormalID ii jj node:mesh
-                    normal = enorms.getNormal nid node:mesh
-                ) else if normals[jj] != undefined then (
-                    normal = normals[jj]
-                ) else (
-                    normal = getNormal mesh face[jj]
-                )
+                nid = enorms.getNormalID ii jj node:mesh
+                normal = enorms.getNormal nid node:mesh
                 writePoint3Attr " normal" normal outFile
                 if tvface != undefined do (
                     tvert = getTVert mesh tvface[jj]
@@ -113,6 +108,7 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                 )
             )
         )
+        deleteModifier mesh enorms
     )
 
     -- Writes a node to the file
