@@ -44,16 +44,32 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
     -- Writes a mesh's vertices to the file
     fn writeVertices mesh outFile =
     (
+        -- get the normals first, since the Edit Normals modifier has to be selected
+        enorms = Edit_Normals()
+        select mesh
+        setCommandPanelTaskMode mode:#modify
+        addModifier mesh enorms
+        normals = #()
+        for ii = 1 to mesh.numfaces do (
+            fnormals = #()
+            append normals fnormals
+            for jj = 1 to 3 do (
+                nid = enorms.getNormalID ii jj node:mesh
+                normal = enorms.getNormal nid node:mesh
+                append fnormals normal
+            )
+        )
+        deleteModifier mesh enorms
+
+        -- get the map channels beyond the first
         mchannels = #()
         for ii = 2 to (meshop.getNumMaps mesh - 1) do (
             if meshop.getMapSupport mesh ii do (
                 append mchannels ii
             )
         )
-        enorms = Edit_Normals()
-        select mesh
-        setCommandPanelTaskMode mode:#modify
-        addModifier mesh enorms
+
+        -- the skin modifier has to be selected in order to access the weights
         if isProperty mesh #skin do (
             modPanel.setCurrentObject mesh.skin node:mesh
         )
@@ -78,9 +94,7 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
             for jj = 1 to 3 do (
                 format "    <vertex" to:outFile
                 writePoint3Attr " location" (getVert mesh face[jj]) outFile
-                nid = enorms.getNormalID ii jj node:mesh
-                normal = enorms.getNormal nid node:mesh
-                writePoint3Attr " normal" normal outFile
+                writePoint3Attr " normal" normals[ii][jj] outFile
                 if tvface != undefined do (
                     tvert = getTVert mesh tvface[jj]
                     format " tcoords=\"%, %\"" tvert[1] tvert[2] to:outFile
@@ -111,7 +125,6 @@ macroScript TRModelExporter category:"File" buttonText:"Export Model as XML..." 
                 )
             )
         )
-        deleteModifier mesh enorms
     )
 
     -- Writes a node to the file
