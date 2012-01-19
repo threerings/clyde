@@ -1743,7 +1743,7 @@ public class SceneEditor extends TudeyTool
      */
     protected boolean saveWarning (String message)
     {
-        if (!_scene.isDirty()) {
+        if ((_scene == null) || !_scene.isDirty()) {
             return true;
         }
         int option = JOptionPane.showOptionDialog(_frame,
