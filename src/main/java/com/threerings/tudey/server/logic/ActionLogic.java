@@ -1050,6 +1050,12 @@ public abstract class ActionLogic extends Logic
             _action = createAction(((ActionConfig.TargetedAction)_config).action, _source);
         }
 
+        @Override // documentation inherited
+        protected void wasRemoved ()
+        {
+            _action.removed();
+        }
+
         /** The action. */
         protected ActionLogic _action;
     }
