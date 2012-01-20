@@ -95,12 +95,6 @@ public class ModelDef
         /** The definitions of the node's children. */
         public ArrayList<SpatialDef> childDefs = new ArrayList<SpatialDef>();
 
-        /** Whether or not this node is used as a bone. */
-        public boolean bone;
-
-        /** Whether or not this node is used as an attachment point. */
-        public boolean point;
-
         /**
          * Creates a set of meshes for this node.
          */
