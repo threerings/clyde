@@ -26,6 +26,7 @@
 package com.threerings.opengl.gui;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+
+import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigEvent;
 import com.threerings.config.ConfigManager;
@@ -472,6 +475,10 @@ public class UserInterface extends Container
      */
     public Iterable<Component> getComponents (String tag)
     {
+        // a blank tag implies "this"
+        if (StringUtil.isBlank(tag)) {
+            return Collections.<Component>singletonList(this);
+        }
         // parse simple paths
         int idx = tag.indexOf('/');
         if (idx == -1) {
