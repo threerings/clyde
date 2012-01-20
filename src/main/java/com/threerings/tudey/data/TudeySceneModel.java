@@ -1701,8 +1701,6 @@ public class TudeySceneModel extends SceneModel
     /**
      * Returns the z coordinate of the floor at the provided coordinates, or the provided default
      * if no floor is found.
-     *
-     * @param mask the floor mask to use for the query.
      */
     public float getFloorZ (float x, float y, float defvalue)
     {

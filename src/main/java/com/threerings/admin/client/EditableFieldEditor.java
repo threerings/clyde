@@ -45,6 +45,7 @@ import com.threerings.presents.util.PresentsContext;
 import com.threerings.util.DeepUtil;
 import com.threerings.util.MessageBundle;
 
+import com.threerings.editor.Editable;
 import com.threerings.editor.EditorMessageBundle;
 import com.threerings.editor.Introspector;
 import com.threerings.editor.Property;

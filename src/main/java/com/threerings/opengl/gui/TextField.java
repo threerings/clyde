@@ -33,6 +33,7 @@ import com.threerings.opengl.util.GlContext;
 import com.threerings.opengl.gui.background.Background;
 import com.threerings.opengl.gui.text.EditCommands;
 import com.threerings.opengl.gui.text.KeyMap;
+import com.threerings.opengl.gui.text.LengthLimitedDocument;
 import com.threerings.opengl.gui.text.Text;
 import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;

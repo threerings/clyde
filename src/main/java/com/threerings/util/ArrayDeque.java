@@ -21,11 +21,13 @@ import java.util.AbstractCollection;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Queue;
+import java.util.Stack;
 
 /**
- * Resizable-array implementation of the {@link Deque} interface.  Array
+ * Resizable-array implementation of the <tt>Deque</tt> interface.  Array
  * deques have no capacity restrictions; they grow as necessary to support
  * usage.  They are not thread-safe; in the absence of external
  * synchronization, they do not support concurrent access by multiple threads.
@@ -239,7 +241,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * Inserts the specified element at the front of this deque.
      *
      * @param e the element to add
-     * @return <tt>true</tt> (as specified by {@link Deque#offerFirst})
+     * @return <tt>true</tt> (as specified by <tt>Deque.offerFirst</tt>)
      * @throws NullPointerException if the specified element is null
      */
     public boolean offerFirst(E e) {
@@ -251,7 +253,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * Inserts the specified element at the end of this deque.
      *
      * @param e the element to add
-     * @return <tt>true</tt> (as specified by {@link Deque#offerLast})
+     * @return <tt>true</tt> (as specified by <tt>Deque.offerLast</tt>)
      * @throws NullPointerException if the specified element is null
      */
     public boolean offerLast(E e) {
@@ -260,7 +262,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * @throws NoSuchElementException {@inheritDoc}
+     * @throws NoSuchElementException
      */
     public E removeFirst() {
         E x = pollFirst();
@@ -270,7 +272,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * @throws NoSuchElementException {@inheritDoc}
+     * @throws NoSuchElementException
      */
     public E removeLast() {
         E x = pollLast();
@@ -300,7 +302,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * @throws NoSuchElementException {@inheritDoc}
+     * @throws NoSuchElementException
      */
     public E getFirst() {
         E x = elements[head];
@@ -310,7 +312,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * @throws NoSuchElementException {@inheritDoc}
+     * @throws NoSuchElementException
      */
     public E getLast() {
         E x = elements[(tail - 1) & (elements.length - 1)];
@@ -491,7 +493,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      *
      * @return the element at the front of this deque (which is the top
      *         of the stack represented by this deque)
-     * @throws NoSuchElementException {@inheritDoc}
+     * @throws NoSuchElementException
      */
     public E pop() {
         return removeFirst();
