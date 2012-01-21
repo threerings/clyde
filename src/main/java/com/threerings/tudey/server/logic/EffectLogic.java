@@ -116,6 +116,8 @@ public class EffectLogic extends Logic
         }
     }
 
+    // TODO: a way to call removed() on the action
+
     /** The effect configuration. */
     protected EffectConfig.Original _config;
 

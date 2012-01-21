@@ -607,6 +607,8 @@ public abstract class ConditionLogic extends Logic
             _action = createAction(((ConditionConfig.Action)_config).action, _source);
         }
 
+        // TODO: a way to call removed() on the action
+
         /** The action to execute. */
         protected ActionLogic _action;
     }
