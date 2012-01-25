@@ -1729,10 +1729,6 @@ public class TudeySceneModel extends SceneModel
         _layers.add(position - 1, name);
         return position; // assume it worked
     }
-    @Deprecated public int addLayer (String n)
-    {
-        return addLayer(n, _layers.size() + 1);
-    }
 
     /**
      * Rename one of the layers.
