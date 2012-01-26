@@ -928,39 +928,11 @@ public class TudeySceneManager extends SceneManager
         // add the pawn and configure a local to provide its id
         ConfigReference<ActorConfig> ref = getPawnConfig(body);
         if (ref != null) {
-            Vector2f translation = Vector2f.ZERO;
-            float rotation = 0f;
             Object portalKey = _entering.remove(body.getOid());
-            if (portalKey instanceof Logic || portalKey instanceof EntityKey.Actor) {
-                // make sure the logic is still active
-                Logic entrance = (portalKey instanceof EntityKey.Actor) ?
-                    getActorLogic(((EntityKey.Actor)portalKey).getId()) : (Logic)portalKey;
-                if (entrance != null && entrance.isActive()) {
-                    translation = entrance.getTranslation();
-                    rotation = entrance.getRotation();
-                }
-            } else if (portalKey instanceof String) {
-                Logic entrance = Randoms.RAND.pick(getTagged((String)portalKey), null);
-                if (entrance != null) {
-                    translation = entrance.getTranslation();
-                    rotation = entrance.getRotation();
-                }
-            } else if (portalKey instanceof Transform2D) {
-                Transform2D transform = (Transform2D)portalKey;
-                translation = transform.extractTranslation();
-                rotation = transform.extractRotation();
-
-            } else if (portalKey != null) {
-                // get the translation/rotation from the entering portal
-                Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(
-                    portalKey instanceof EntityKey.Entry ?
-                        ((EntityKey.Entry)portalKey).getKey() : portalKey);
-                if (entry != null) {
-                    translation = entry.getTranslation(_cfgmgr);
-                    rotation = entry.getRotation(_cfgmgr);
-                }
-            }
-            if (translation == Vector2f.ZERO) {
+            Transform2D transform = getPortalTransform(portalKey);
+            Vector2f translation = transform == null ? null : transform.extractTranslation();
+            float rotation = transform == null ? 0f : transform.extractRotation();
+            if (translation == null) {
                 // select a default entrance
                 Logic entrance = getDefaultEntrance(body);
                 if (entrance != null) {
@@ -977,6 +949,39 @@ public class TudeySceneManager extends SceneManager
 
         // now let the body actually enter the scene
         super.bodyWillEnter(body);
+    }
+
+    /**
+     * Returns the transform for a portal, or null or no portal found.
+     */
+    public Transform2D getPortalTransform (Object portalKey)
+    {
+        Transform2D result = new Transform2D(Vector2f.ZERO, 0f);
+        if (portalKey instanceof Logic || portalKey instanceof EntityKey.Actor) {
+            // make sure the logic is still active
+            Logic entrance = (portalKey instanceof EntityKey.Actor) ?
+                getActorLogic(((EntityKey.Actor)portalKey).getId()) : (Logic)portalKey;
+            if (entrance != null && entrance.isActive()) {
+                return new Transform2D(entrance.getTranslation(), entrance.getRotation());
+            }
+        } else if (portalKey instanceof String) {
+            Logic entrance = Randoms.RAND.pick(getTagged((String)portalKey), null);
+            if (entrance != null) {
+                return new Transform2D(entrance.getTranslation(), entrance.getRotation());
+            }
+        } else if (portalKey instanceof Transform2D) {
+            return (Transform2D)portalKey;
+
+        } else if (portalKey != null) {
+            // get the translation/rotation from the entering portal
+            Entry entry = ((TudeySceneModel)_scene.getSceneModel()).getEntry(
+                portalKey instanceof EntityKey.Entry ?
+                    ((EntityKey.Entry)portalKey).getKey() : portalKey);
+            if (entry != null) {
+                return new Transform2D(entry.getTranslation(_cfgmgr), entry.getRotation(_cfgmgr));
+            }
+        }
+        return null;
     }
 
     @Override // from PlaceManager
