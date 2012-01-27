@@ -930,9 +930,10 @@ public class TudeySceneManager extends SceneManager
         if (ref != null) {
             Object portalKey = _entering.remove(body.getOid());
             Transform2D transform = getPortalTransform(portalKey);
-            Vector2f translation = transform == null ? null : transform.extractTranslation();
+            Vector2f translation = transform == null ?
+                Vector2f.ZERO : transform.extractTranslation();
             float rotation = transform == null ? 0f : transform.extractRotation();
-            if (translation == null) {
+            if (transform == null) {
                 // select a default entrance
                 Logic entrance = getDefaultEntrance(body);
                 if (entrance != null) {
