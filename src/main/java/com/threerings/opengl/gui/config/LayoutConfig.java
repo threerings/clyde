@@ -312,6 +312,10 @@ public abstract class LayoutConfig extends DeepObject
             @Editable(step=0.01, hgroup="p")
             public float parentX = 0.5f, parentY = 0.5f;
 
+            /** If the container hints are passed to children. */
+            @Editable
+            public boolean fitToContainer;
+
             /** The child component. */
             @Editable
             public ComponentConfig component = new ComponentConfig.Spacer();
@@ -321,7 +325,7 @@ public abstract class LayoutConfig extends DeepObject
              */
             public Object createConstraints ()
             {
-                return new AnchorLayout.Anchor(childX, childY, parentX, parentY);
+                return new AnchorLayout.Anchor(childX, childY, parentX, parentY, fitToContainer);
             }
         }
 
