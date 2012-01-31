@@ -39,6 +39,8 @@ import com.threerings.opengl.gui.util.Dimension;
 import com.threerings.opengl.gui.util.Insets;
 import com.threerings.opengl.gui.util.Rectangle;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * Provides a scrollable clipped view on a sub-heirarchy of components.
  */
@@ -449,7 +451,16 @@ public class ScrollPane extends Container
         // documentation inherited
         protected Dimension computePreferredSize (int whint, int hhint)
         {
-            return new Dimension(_target.getPreferredSize(whint, hhint));
+            Dimension dim = new Dimension(_target.getPreferredSize(whint, hhint));
+            // The viewport contents of the viewport can grow however large they want, but make
+            // suer the viewport itself doesn't go beyond its desired size
+            if (hhint != -1 && dim.height > hhint) {
+                dim.height = hhint;
+            }
+            if (whint != -1 && dim.width > whint) {
+                dim.width = whint;
+            }
+            return dim;
         }
 
         // documentation inherited

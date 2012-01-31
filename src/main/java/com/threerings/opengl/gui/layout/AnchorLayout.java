@@ -146,7 +146,7 @@ public class AnchorLayout extends LayoutManager
             }
             int px = Math.round(width * anchor.px);
             int py = Math.round(height * anchor.py);
-            Dimension size = comp.getPreferredSize(-1, -1);
+            Dimension size = comp.getPreferredSize(width, height);
             int cx = Math.round(size.width * anchor.cx);
             int cy = Math.round(size.height * anchor.cy);
             comp.setBounds(px - cx, py - cy, size.width, size.height);
