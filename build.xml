@@ -41,7 +41,7 @@
 
   <target name="-preptools" depends="-prepare">
     <artifact:dependencies pathId="tools.classpath">
-      <dependency groupId="com.threerings" artifactId="narya-tools" version="1.4-SNAPSHOT"/>
+      <dependency groupId="com.threerings" artifactId="narya-tools" version="1.11"/>
     </artifact:dependencies>
     <taskdef resource="com/threerings/presents/tools.properties" classpathref="tools.classpath"/>
   </target>
