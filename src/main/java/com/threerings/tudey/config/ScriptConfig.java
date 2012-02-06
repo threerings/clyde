@@ -35,7 +35,7 @@ import com.threerings.util.DeepObject;
  */
 @EditorTypes({
     ScriptConfig.Wait.class, ScriptConfig.Move.class,
-    ScriptConfig.Rotate.class, ScriptConfig.Condition.class,
+    ScriptConfig.Rotate.class, ScriptConfig.Condition.class, ScriptConfig.ConditionalScript.class,
     ScriptConfig.Goto.class, ScriptConfig.Action.class,
     ScriptConfig.SetSpeed.class, ScriptConfig.ClearSpeed.class })
 public abstract class ScriptConfig extends DeepObject
@@ -110,6 +110,26 @@ public abstract class ScriptConfig extends DeepObject
         public String getLogicClassName ()
         {
             return "com.threerings.tudey.server.logic.ScriptLogic$Condition";
+        }
+    }
+
+    /**
+     * A script that performs another script test based on a condition result.
+     */
+    public static class ConditionalScript extends Condition
+    {
+        /** The success script. */
+        @Editable
+        public ScriptConfig success = new ScriptConfig.Goto();
+
+        /** The fail script. */
+        @Editable
+        public ScriptConfig failure = new ScriptConfig.Goto();
+
+        @Override // documentation inherited
+        public String getLogicClassName ()
+        {
+            return "com.threerings.tudey.server.logic.ScriptLogic$ConditionalScript";
         }
     }
 

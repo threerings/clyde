@@ -311,6 +311,59 @@ public abstract class ScriptLogic extends Logic
     }
 
     /**
+     * Handles the conditional script script.
+     */
+    public static class ConditionalScript extends Condition
+    {
+        @Override // documentation inherited
+        public void start (int timestamp)
+        {
+            super.start(timestamp);
+            _satisfied = _condition.isSatisfied(_agent);
+            if (_satisfied) {
+                _success.start(timestamp);
+            } else {
+                _failure.start(timestamp);
+            }
+        }
+
+        @Override // documentation inherited
+        public boolean tick (int timestamp)
+        {
+            return _satisfied ? _success.tick(timestamp) : _failure.tick(timestamp);
+        }
+
+        @Override // documentation inherited
+        public void transfer (Logic source, Map<Object, Object> refs)
+        {
+            super.transfer(source, refs);
+            _success.transfer(((ConditionalScript)source)._success, refs);
+            _failure.transfer(((ConditionalScript)source)._failure, refs);
+            _satisfied = ((ConditionalScript)source)._satisfied;
+        }
+
+        @Override // documentation inherited
+        protected void didInit ()
+        {
+            super.didInit();
+
+            ScriptConfig.ConditionalScript config = (ScriptConfig.ConditionalScript)_config;
+            _success = createScriptLogic(_scenemgr, config.success, _agent, _scripted);
+            _failure = createScriptLogic(_scenemgr, config.failure, _agent, _scripted);
+        }
+
+        /** The condition to evaluate. */
+        protected ConditionLogic _condition;
+
+        /** The scriptlogic. */
+        protected ScriptLogic _success;
+        protected ScriptLogic _failure;
+
+        /** The success state. */
+        public boolean _satisfied;
+    }
+
+    /**
      * Handles the goto script.
      */
     public static class Goto extends ScriptLogic
