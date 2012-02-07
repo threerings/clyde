@@ -205,8 +205,10 @@ public abstract class ScriptLogic extends Logic
          */
         protected void finishMove ()
         {
-            Vector2f translation = _finalTarget.getTranslation();
-            _agent.move(translation.x, translation.y, _agent.getRotation());
+            if (_finalTarget != null) {
+                Vector2f translation = _finalTarget.getTranslation();
+                _agent.move(translation.x, translation.y, _agent.getRotation());
+            }
             _agent.stopMoving();
         }
 
