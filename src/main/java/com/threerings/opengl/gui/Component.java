@@ -197,7 +197,7 @@ public class Component
      */
     public String getTooltipWindowStyle ()
     {
-        return "Default/TooltipWindow";
+        return _tooltip.getWindowStyle();
     }
 
     /**
@@ -690,7 +690,7 @@ public class Component
      */
     public void setTooltipText (String text)
     {
-        _tiptext = text;
+        _tooltip.setText(text);
     }
 
     /**
@@ -698,7 +698,7 @@ public class Component
      */
     public String getTooltipText ()
     {
-        return _tiptext;
+        return _tooltip.getText();
     }
 
     /**
@@ -709,7 +709,7 @@ public class Component
      */
     public void setTooltipRelativeToMouse (boolean mouse)
     {
-        _tipmouse = mouse;
+        _tooltip.setRelativeToMouse(mouse);
     }
 
     /**
@@ -717,7 +717,7 @@ public class Component
      */
     public boolean isTooltipRelativeToMouse ()
     {
-        return _tipmouse;
+        return _tooltip.isRelativeToMouse();
     }
 
     /**
@@ -725,7 +725,23 @@ public class Component
      */
     public float getTooltipTimeout ()
     {
-        return -1f;
+        return _tooltip.getTimeout();
+    }
+
+    /**
+     * Returns the tooltip.
+     */
+    public Tooltip getTooltip ()
+    {
+        return _tooltip;
+    }
+
+    /**
+     * Sets the tooltip.
+     */
+    public void setTooltip (Tooltip tooltip)
+    {
+        _tooltip = tooltip;
     }
 
     /**
@@ -969,7 +985,7 @@ public class Component
         if (state == DEFAULT) {
             _preferredSize = (config.size == null) ?
                 _preferredSize : config.size.createDimension();
-            _tooltipStyle = config.tooltipStyle;
+            _tooltip.setStyle(config.tooltipStyle);
             CursorConfig cconfig = _ctx.getConfigManager().getConfig(
                 CursorConfig.class, config.cursor);
             _cursor = (cconfig == null) ? null : cconfig.getCursor(_ctx);
@@ -1035,7 +1051,7 @@ public class Component
      */
     protected Component createTooltipComponent (String tiptext)
     {
-        return createDefaultTooltipComponent(_ctx, tiptext, _tooltipStyle);
+        return _tooltip.createComponent(_ctx, tiptext);
     }
 
     /**
@@ -1272,16 +1288,14 @@ public class Component
     /** The component's style configurations for each state. */
     protected StyleConfig[] _styleConfigs = new StyleConfig[getStateCount()];
 
-    /** The style to use for tooltips. */
-    protected ConfigReference<StyleConfig> _tooltipStyle;
+    /** Our tooltip details. */
+    protected Tooltip _tooltip = new Tooltip();
 
     protected Container _parent;
     protected Dimension _preferredSize;
     protected int _x, _y, _width, _height;
     protected CopyOnWriteArrayList<ComponentListener> _listeners;
     protected HashMap<String, Object> _properties;
-    protected String _tiptext;
-    protected boolean _tipmouse;
 
     protected boolean _valid, _enabled = true, _visible = true, _hoverable = true, _hover;
     protected float _alpha = 1f;
