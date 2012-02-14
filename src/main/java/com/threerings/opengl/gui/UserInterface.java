@@ -373,6 +373,17 @@ public class UserInterface extends Container
     }
 
     /**
+     * Shortcut method for setting the hoverable status of all components bearing the specified
+     * tag.
+     */
+    public void setHoverable (String tag, boolean hoverable)
+    {
+        for (Component comp : getComponents(tag)) {
+            comp.setHoverable(hoverable);
+        }
+    }
+
+    /**
      * Shortcut method for setting the text of all {@link TextComponent}s bearing the specified
      * tag.
      */
