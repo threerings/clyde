@@ -360,13 +360,10 @@ public abstract class HandlerLogic extends Logic
                 _scenemgr.addTickParticipant(this);
                 _added = true;
             }
-            Boolean value = _activated.get(source);
-            if (value == null) {
-                if (_start) {
-                    execute(timestamp, source);
-                }
+            Boolean oldVal = _activated.put(source, true);
+            if (oldVal == null && _start) {
+                execute(timestamp, source);
             }
-            _activated.put(source, true);
         }
 
         /** Whether or not to execute the action on start/stop. */
