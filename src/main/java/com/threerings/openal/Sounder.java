@@ -639,7 +639,6 @@ public class Sounder extends SimpleScope
             QueuedFile[] queue = _config.queue;
             QueuedFile first = queue[0];
             try {
-                System.err.println("Created stream: " + first.file + ", '" + _config.stack + "'.");
                 StackedStream stream = new TransformedStream(first.file, first.loop, _config.stack);
                 ResourceManager rsrcmgr = _ctx.getResourceManager();
                 for (int ii = 1; ii < queue.length; ii++) {
@@ -728,7 +727,6 @@ public class Sounder extends SimpleScope
         protected StackedStream createStream (final WeightedFile wfile)
             throws IOException
         {
-            System.err.println("Created stream: " + wfile.file + ", '" + _config.stack + "'.");
             return new TransformedStream(wfile.file, false, _config.stack) {
                 @Override protected void update (float time) {
                     super.update(time);
