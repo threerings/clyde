@@ -25,6 +25,8 @@
 
 package com.threerings.opengl.gui.config;
 
+import com.google.common.collect.Lists;
+
 import com.samskivert.util.StringUtil;
 
 import com.threerings.config.ConfigReference;
@@ -355,17 +357,20 @@ public abstract class ComponentConfig extends DeepObject
             GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             return (getClass(comp) == com.threerings.opengl.gui.ComboBox.class) ?
-                comp : new com.threerings.opengl.gui.ComboBox(ctx);
+                comp : new com.threerings.opengl.gui.ComboBox<Object>(ctx);
         }
 
         @Override // documentation inherited
         protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
         {
             super.configure(ctx, scope, msgs, comp);
-            com.threerings.opengl.gui.ComboBox box = (com.threerings.opengl.gui.ComboBox)comp;
-            Object[] objects = new Object[items.length];
-            for (int ii = 0; ii < items.length; ii++) {
-                objects[ii] = items[ii].getObject(ctx, msgs);
+            @SuppressWarnings("unchecked") // it'll be all right
+            com.threerings.opengl.gui.ComboBox<Object> box =
+                (com.threerings.opengl.gui.ComboBox<Object>)comp;
+            int nn = items.length;
+            java.util.List<Object> objects = Lists.newArrayListWithCapacity(nn);
+            for (int ii = 0; ii < nn; ii++) {
+                objects.add(items[ii].getObject(ctx, msgs));
             }
             box.setItems(objects);
             box.setPreferredDimensions(rows, columns);

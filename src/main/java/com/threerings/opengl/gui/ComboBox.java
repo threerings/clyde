@@ -25,10 +25,14 @@
 
 package com.threerings.opengl.gui;
 
+import javax.annotation.Nullable;
+
 import java.util.Arrays;
 import java.util.List;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import com.threerings.opengl.util.GlContext;
@@ -42,69 +46,53 @@ import com.threerings.opengl.gui.util.Dimension;
 /**
  * Displays a selected value and allows that value to be changed by selecting from a popup menu.
  */
-public class ComboBox extends Label
-    implements Selectable<Object>
+public class ComboBox<T> extends Label
+    implements Selectable<T>
 {
     /**
-     * Formats the items held in a ComboBox into their icon and label.
+     * Formats items added to a ComboBox for display.
      */
-    public interface Formatter
+    public interface Formatter<T>
     {
-        /**
-         * Get the icon (may be null) for the specified item.
-         */
-        Icon getIcon (Object o);
-
         /**
          * Get the label (may not be null) for the specified item.
          */
-        String getText (Object o);
+        String getText (@Nullable T o);
+
+        /**
+         * Get the icon, or null, for the specified item.
+         */
+        @Nullable Icon getIcon (@Nullable T o);
+
+        // TODO: Style?
     }
 
     /**
-     * The default formatter for a ComboBox. May be extended for typical uses.
+     * The default formatter, which may be extended to customize behavior.
+     *
+     * getText() will return the toString() value of the object, or "" if the object
+     *    is an Icon instance or null.
+     * <br><br>
+     * getIcon() will return null unless the object is an Icon instance,
+     *    in which case it is returned.
      */
-    public static class DefaultFormatter
-        implements Formatter
+    public static class DefaultFormatter<T>
+        implements Formatter<T>
     {
-        // from Formatter
-        public Icon getIcon (Object o)
-        {
-            return (o instanceof Icon) ? (Icon)o : null;
-        }
+        /** A sharable instance of the default formatter. */
+        public static final DefaultFormatter<Object> INSTANCE = new DefaultFormatter<Object>();
 
         // from Formatter
-        public String getText (Object o)
+        public String getText (T o)
         {
             return ((o == null) || (o instanceof Icon)) ? "" : String.valueOf(o);
         }
-    }
 
-    /** Used for displaying a label that is associated with a particular non-displayable value. */
-    public static class Item
-        implements Comparable<Item>
-    {
-        public Object value;
-
-        public Item (Object value, String label) {
-            this.value = value;
-            _label = label;
+        // from Formatter
+        public Icon getIcon (T o)
+        {
+            return (o instanceof Icon) ? (Icon)o : null;
         }
-
-        public String toString () {
-            return _label;
-        }
-
-        public boolean equals (Object other) {
-            Item oitem = (Item)other;
-            return (value == null) ? (oitem.value == null) : value.equals(oitem.value);
-        }
-
-        public int compareTo (Item other) {
-            return _label.compareTo(other._label);
-        }
-
-        protected String _label;
     }
 
     /**
@@ -112,144 +100,149 @@ public class ComboBox extends Label
      */
     public ComboBox (GlContext ctx)
     {
+        this(ctx, ImmutableList.<T>of());
+    }
+
+    /**
+     * Creates a combo box with the supplied items, formatted with the default formatter.
+     */
+    public ComboBox (GlContext ctx, Iterable<? extends T> items)
+    {
+        this(ctx, items, DefaultFormatter.INSTANCE);
+    }
+
+    /**
+     * Creates a combo box with the supplied items, and formatted according to the formatter.
+     */
+    public ComboBox (GlContext ctx, Iterable<? extends T> items, Formatter<? super T> formatter)
+    {
         super(ctx, "");
         setFit(Fit.TRUNCATE);
+        setItems(items, formatter);
     }
 
     /**
-     * Creates a combo box with the supplied set of items. The result of {@link Object#toString}
-     * for each item will be displayed in the list.
+     * Removes all items from this combo box.
      */
-    public ComboBox (GlContext ctx, Object[] items)
+    public void clearItems ()
     {
-        super(ctx, "");
-        setItems(items);
+        clearCache();
+        _items.clear();
+        _selidx = -1;
     }
 
     /**
-     * Creates a combo box with the supplied set of items. The result of {@link Object#toString}
-     * for each item will be displayed in the list.
+     * Replaces any existing items in this combo box with the supplied items.
      */
-    public ComboBox (GlContext ctx, Iterable<?> items)
+    public void setItems (Iterable<? extends T> items)
     {
-        super(ctx, "");
-        setItems(items);
+        setItems(items, DefaultFormatter.INSTANCE);
     }
 
     /**
-     * Set the formatter that determines how items are labeled.
+     * Replaces any existing items in this combo box with the supplied items.
      */
-    public void setFormatter (Formatter formatter)
+    public void setItems (Iterable<? extends T> items, Formatter<? super T> formatter)
     {
-        if (formatter == null) {
-            formatter = new DefaultFormatter();
+        clearItems();
+        for (T item : items) {
+            addItem(item, formatter);
         }
-        _formatter = formatter;
-
-        // reformat existing items
-        setItems(Lists.newArrayList(getItems()));
     }
 
     /**
-     * Appends an item to our list of items. The result of {@link Object#toString} for the item
-     * will be displayed in the list.
+     * Appends an item to our list of items. The item will be formatted using the default formatter.
      */
-    public void addItem (Object item)
+    public void addItem (T item)
     {
-        addItem(_items.size(), item);
+        addItem(item, DefaultFormatter.INSTANCE);
     }
 
     /**
-     * Inserts an item into our list of items at the specified position (zero being before all
-     * other items and so forth).  The result of {@link Object#toString} for the item will be
-     * displayed in the list.
+     * Appends an item to our list of items.
      */
-    public void addItem (int index, Object item)
+    public void addItem (T item, Formatter<? super T> formatter)
     {
-        ComboMenuItem menuItem = new ComboMenuItem(_ctx, item);
-        format(menuItem, item);
+        addItem(item, formatter.getText(item), formatter.getIcon(item));
+    }
+
+    /**
+     * Appends an item to our list of items, with the specified text label and no icon.
+     */
+    public void addItem (T item, String text)
+    {
+        addItem(item, text, null);
+    }
+
+    /**
+     * Appends an item to our list of items, with the specified text label and icon.
+     */
+    public void addItem (T item, String text, @Nullable Icon icon)
+    {
+        addItem(_items.size(), item, text, icon);
+    }
+
+    /**
+     * Adds an item at the specified index, formatted with the default formatter.
+     */
+    public void addItem (int index, T item)
+    {
+        addItem(index, item, DefaultFormatter.INSTANCE);
+    }
+
+    /**
+     * Adds an item at the specified index, formatted with the specified formatter.
+     */
+    public void addItem (int index, T item, Formatter<? super T> formatter)
+    {
+        addItem(index, item, formatter.getText(item), formatter.getIcon(item));
+    }
+
+    /**
+     * Adds an item at the specified index, with the specified text label and no icon.
+     */
+    public void addItem (int index, T item, String text)
+    {
+        addItem(index, item, text, null);
+    }
+
+    /**
+     * Adds an item at the specified index, with the specified text label and icon.
+     */
+    public void addItem (int index, T item, String text, @Nullable Icon icon)
+    {
+        Preconditions.checkNotNull(text);
+        ComboMenuItem<T> menuItem = new ComboMenuItem<T>(_ctx, item, text, icon);
         _items.add(index, menuItem);
+        // maybe adjust the selected index
+        if (index <= _selidx) {
+            _selidx++;
+        }
         clearCache();
     }
 
-    /**
-     * Replaces any existing items in this combo box with the supplied items.
-     */
-    public void setItems (Iterable<?> items)
-    {
-        clearItems();
-        for (Object item : items) {
-            addItem(item);
-        }
-    }
-
-    /**
-     * Replaces any existing items in this combo box with the supplied items.
-     */
-    public void setItems (Object[] items)
-    {
-        setItems(Arrays.asList(items));
-    }
-
-    // from Selectable<Object>
-    public Object getSelected ()
+    // from Selectable<T>
+    public T getSelected ()
     {
         return getItem(_selidx);
     }
 
-    // from Selectable<Object>
-    public void setSelected (Object item)
+    // from Selectable<T>
+    public void setSelected (T item)
     {
         setSelectedIndex(getItems().indexOf(item));
     }
 
-    // from Selectable<Object>
+    // from Selectable<T>
     public int getSelectedIndex ()
     {
         return _selidx;
     }
 
-    // from Selectable<Object>
+    // from Selectable<T>
     public void setSelectedIndex (int index)
     {
         selectItem(index, 0L, 0);
-    }
-
-    @Deprecated
-    public Object getSelectedItem ()
-    {
-        return getSelected();
-    }
-
-    /**
-     * Requires that the combo box be configured with {@link Item} items, returns the {@link
-     * Item#value} of the currently selected item.
-     */
-    public Object getSelectedValue ()
-    {
-        return getValue(_selidx);
-    }
-
-    @Deprecated
-    public void selectItem (int index)
-    {
-        setSelectedIndex(index);
-    }
-
-    @Deprecated
-    public void selectItem (Object item)
-    {
-        setSelected(item);
-    }
-
-    /**
-     * Requires that the combo box be configured with {@link Item} items, selects the item with a
-     * {@link Item#value} equal to the supplied value.
-     */
-    public void selectValue (Object value)
-    {
-        // Item.equals only compares the values
-        selectItem(new Item(value, ""));
     }
 
     /**
@@ -263,28 +256,9 @@ public class ComboBox extends Label
     /**
      * Returns the item at the specified index.
      */
-    public Object getItem (int index)
+    public T getItem (int index)
     {
-        return (index < 0 || index >= _items.size()) ? null : _items.get(index).item;
-    }
-
-    /**
-     * Returns the value at the specified index, the item must be an instance of {@link Item}.
-     */
-    public Object getValue (int index)
-    {
-        Object item = getItem(index);
-        return (item == null) ? null : ((Item)item).value;
-    }
-
-    /**
-     * Removes all items from this combo box.
-     */
-    public void clearItems ()
-    {
-        clearCache();
-        _items.clear();
-        _selidx = -1;
+        return invalidIndex(index) ? null : _items.get(index).item;
     }
 
     /**
@@ -310,16 +284,11 @@ public class ComboBox extends Label
                     _menu = new ComboPopupMenu(_ctx, _rows, _columns);
                 }
                 _menu.popup(getAbsoluteX(), getAbsoluteY(), false);
-                break;
+                return true;
 
             case MouseEvent.MOUSE_RELEASED:
-                break;
-
-            default:
-                return super.dispatchEvent(event);
+                return true;
             }
-
-            return true;
         }
 
         return super.dispatchEvent(event);
@@ -352,14 +321,27 @@ public class ComboBox extends Label
 
     protected void selectItem (int index, long when, int modifiers)
     {
+        if (invalidIndex(index)) {
+            index = -1;
+        }
         if (_selidx == index) {
             return;
         }
 
         _selidx = index;
-        Object item = getSelectedItem();
-        format(this, item);
-        emitEvent(new ActionEvent(this, when, modifiers, SELECT, item));
+        Object selItem;
+        if (index == -1) {
+            this.setIcon(null);
+            this.setText("");
+            selItem = null;
+
+        } else {
+            ComboMenuItem<T> selected = _items.get(index);
+            this.setIcon(selected.getIcon());
+            this.setText(selected.getText());
+            selItem = selected.item;
+        }
+        emitEvent(new ActionEvent(this, when, modifiers, SELECT, selItem));
     }
 
     protected void clearCache ()
@@ -371,27 +353,27 @@ public class ComboBox extends Label
         _psize = null;
     }
 
-    /**
-     * Format the specified label.
-     */
-    protected void format (Label label, Object item)
+    protected boolean invalidIndex (int index)
     {
-        label.setIcon(_formatter.getIcon(item));
-        label.setText(_formatter.getText(item));
+        return (index < 0 || index >= _items.size());
     }
 
     /**
      * Get the raw list of items.
      */
-    protected List<Object> getItems ()
+    protected List<T> getItems ()
     {
-        return Lists.transform(_items, new Function<ComboMenuItem, Object>() {
-            public Object apply (ComboMenuItem item) {
-                return item.item;
-            }
-        });
+        return Lists.transform(_items,
+            new Function<ComboMenuItem<T>, T>() {
+                public T apply (ComboMenuItem<T> item) {
+                    return item.item;
+                }
+            });
     }
 
+    /**
+     * Popup portion, allowing selection from amongst the items.
+     */
     protected class ComboPopupMenu extends PopupMenu
     {
         public ComboPopupMenu (GlContext ctx, int rows, int columns) {
@@ -401,11 +383,13 @@ public class ComboBox extends Label
             }
         }
 
+        @Override
         protected void itemSelected (MenuItem item, long when, int modifiers) {
             selectItem(_items.indexOf(item), when, modifiers);
             dismiss();
         }
 
+        @Override
         protected void packAndFit (int x, int y, boolean above) {
             super.packAndFit(x, y, above);
 
@@ -424,6 +408,7 @@ public class ComboBox extends Label
             model.setRange(model.getMinimum(), height, model.getExtent(), model.getMaximum());
         }
 
+        @Override
         protected Dimension computePreferredSize (int whint, int hhint) {
             // prefer a size that is at least as wide as the combobox from which we will popup
             Dimension d = super.computePreferredSize(whint, hhint);
@@ -432,25 +417,26 @@ public class ComboBox extends Label
         }
     }
 
-    protected static class ComboMenuItem extends MenuItem
+    /**
+     * Extends MenuItem with a reference to the underlying data item.
+     */
+    protected static class ComboMenuItem<T> extends MenuItem
     {
-        public Object item;
+        /** The item data. */
+        public T item;
 
-        public ComboMenuItem (GlContext ctx, Object item)
+        public ComboMenuItem (GlContext ctx, T item, String text, Icon icon)
         {
-            super(ctx, null, null, "select");
+            super(ctx, text, icon, "select");
             this.item = item;
         }
     }
-
-    /** Our item formatter. */
-    protected Formatter _formatter = new DefaultFormatter();
 
     /** The index of the currently selected item. */
     protected int _selidx = -1;
 
     /** The list of items in this combo box. */
-    protected List<ComboMenuItem> _items = Lists.newArrayList();
+    protected List<ComboMenuItem<T>> _items = Lists.newArrayList();
 
     /** A cached popup menu containing our items. */
     protected ComboPopupMenu _menu;
