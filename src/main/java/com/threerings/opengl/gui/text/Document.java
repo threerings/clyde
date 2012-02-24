@@ -217,11 +217,11 @@ public class Document
     {
         StringBuilder buf = new StringBuilder();
         if (offset > 0) {
-            buf.append(_text.substring(0, offset));
+            buf.append(_text, 0, offset);
         }
         buf.append(text);
         if (_text.length() > 0) {
-            buf.append(_text.substring(offset+length, _text.length()));
+            buf.append(_text, offset + length, _text.length());
         }
 
         String ntext = buf.toString();
