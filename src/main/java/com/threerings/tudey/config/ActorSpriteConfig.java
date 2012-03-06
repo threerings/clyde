@@ -78,10 +78,6 @@ public abstract class ActorSpriteConfig extends DeepObject
      */
     public static class Moving extends Default
     {
-        /** A scale to apply to the sprite (affects the movement animation speeds). */
-        @Editable(min=0, step=0.01, hgroup="s")
-        public float scale = 1f;
-
         /** A scale to apply to attached models. */
         @Editable(min=0, step=0.01, hgroup="s")
         public float attachedScale = 1f;
@@ -375,8 +371,12 @@ public abstract class ActorSpriteConfig extends DeepObject
     @Editable(editor="mask", mode="floor", hgroup="f")
     public int floorMask = 0xFF;
 
+    /** A scale to apply to the sprite (affects the movement animation speeds). */
+    @Editable(min=0, step=0.01, hgroup="s")
+    public float scale = 1f;
+
     /** The allowed z translation per tick, or 0 to snap to z. */
-    @Editable(min=0, step=0.01, hgroup="f")
+    @Editable(min=0, step=0.01, hgroup="s")
     public float smoothZ = 0f;
 
     /** The actor model. */

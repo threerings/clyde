@@ -267,6 +267,7 @@ public class ActorSprite extends Sprite
         {
             _config = config;
             _model.setConfig(getModelConfig());
+            _model.getLocalTransform().setScale(config.scale);
         }
 
         @Override // documentation inherited
@@ -389,7 +390,6 @@ public class ActorSprite extends Sprite
             super.setConfig(config);
 
             ActorSpriteConfig.Moving mconfig = (ActorSpriteConfig.Moving)config;
-            _model.getLocalTransform().setScale(mconfig.scale);
             _idles = resolve(mconfig.idles);
             _idleWeights = mconfig.getIdleWeights();
             _movements = resolve(mconfig.movements);
