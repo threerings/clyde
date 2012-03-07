@@ -366,7 +366,8 @@ public abstract class ActionLogic extends Logic
         protected void warp (ActorLogic target, Logic location)
         {
             Vector2f translation = location.getTranslation();
-            target.warp(translation.x, translation.y, location.getRotation());
+            target.warp(translation.x, translation.y, location.getRotation(), translation.x,
+                    translation.y, true, ((ActionConfig.WarpActor)_config).maxWarpPath);
         }
 
         @Override // documentation inherited
@@ -401,7 +402,8 @@ public abstract class ActionLogic extends Logic
             } else {
                 translation.addLocal(ltrans);
             }
-            target.warp(translation.x, translation.y, rotation, ltrans.x, ltrans.y);
+            target.warp(translation.x, translation.y, rotation, ltrans.x, ltrans.y,
+                    true, config.maxWarpPath);
         }
     }
 

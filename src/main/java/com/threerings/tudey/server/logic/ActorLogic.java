@@ -257,7 +257,7 @@ public class ActorLogic extends Logic
     /**
      * Warps the actor.
      */
-    public void warp (float x, float y, float rotation)
+    public final void warp (float x, float y, float rotation)
     {
         warp(x, y, rotation, x, y);
     }
@@ -265,7 +265,7 @@ public class ActorLogic extends Logic
     /**
      * Warps the actor.
      */
-    public void warp (float x, float y, float rotation, float tx, float ty)
+    public final void warp (float x, float y, float rotation, float tx, float ty)
     {
         warp(x, y, rotation, tx, ty, true);
     }
@@ -276,7 +276,18 @@ public class ActorLogic extends Logic
      * @param adjust if true, adjusts the location as when spawning to avoid intersecting other
      * actors.
      */
-    public void warp (float x, float y, float rotation, float tx, float ty, boolean adjust)
+    public final void warp (float x, float y, float rotation, float tx, float ty, boolean adjust)
+    {
+        warp(x, y, rotation, tx, ty, adjust, 0);
+    }
+
+    /**
+     * Warps the actor.
+     *
+     * @param path the maximum distance for doing a warp and ensure that a path exists.
+     */
+    public final void warp (
+            float x, float y, float rotation, float tx, float ty, boolean adjust, int warpPath)
     {
         // set the warp flag and clear it on the next tick
         _actor.set(Actor.WARP);
@@ -289,8 +300,11 @@ public class ActorLogic extends Logic
         move(x, y, rotation);
         if (adjust && _config.spawnMask != 0) {
             _scenemgr.getActorSpace().remove(_shape);
-            boolean canPath = _scenemgr.getPathfinder().getPath(
-                        this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) != null;
+            boolean canPath = warpPath > 0 ?
+                (_scenemgr.getPathfinder().getPath(
+                        this, warpPath, oldX, oldY, false, false) != null) :
+                (_scenemgr.getPathfinder().getPath(
+                        this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) != null);
             if (!canPath ||
                     _scenemgr.collides(_config.spawnMask, getShape(), _scenemgr.getTimestamp())) {
                 if (canPath) {
@@ -298,8 +312,12 @@ public class ActorLogic extends Logic
                 } else {
                     adjustSpawnPoint(tx, ty);
                 }
-                if (_scenemgr.getPathfinder().getPath(
-                            this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) == null) {
+                canPath = warpPath > 0 ?
+                    (_scenemgr.getPathfinder().getPath(
+                            this, warpPath, oldX, oldY, false, false) != null) :
+                    (_scenemgr.getPathfinder().getPath(
+                        this, MAX_ADJUSTMENT_PATH_LENGTH, tx, ty, false, false) != null);
+                if (!canPath) {
                     move(oldX, oldY, oldR);
                 } else if (tx != x || ty != y) {
                     Vector2f trans = _actor.getTranslation();

@@ -279,6 +279,10 @@ public abstract class ActionConfig extends DeepObject
         @Editable
         public TargetConfig location = new TargetConfig.Tagged();
 
+        /** The max warp path. */
+        @Editable(min=0)
+        public int maxWarpPath = 0;
+
         @Override // documentation inherited
         public String getLogicClassName ()
         {
