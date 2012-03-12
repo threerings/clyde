@@ -53,15 +53,15 @@ public class Static extends Model.Implementation
     public Static (GlContext ctx, Scope parentScope, StaticConfig.Resolved config)
     {
         super(parentScope);
-        _ctx = ctx;
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (StaticConfig.Resolved config)
+    public void setConfig (GlContext ctx, StaticConfig.Resolved config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

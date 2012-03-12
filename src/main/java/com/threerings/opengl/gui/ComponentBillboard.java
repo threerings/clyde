@@ -80,14 +80,15 @@ public class ComponentBillboard extends Model.Implementation
             }
         });
 
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (ComponentBillboardConfig config)
+    public void setConfig (GlContext ctx, ComponentBillboardConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

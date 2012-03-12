@@ -59,15 +59,15 @@ public class Compound extends Model.Implementation
     public Compound (GlContext ctx, Scope parentScope, CompoundConfig config)
     {
         super(parentScope);
-        _ctx = ctx;
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (CompoundConfig config)
+    public void setConfig (GlContext ctx, CompoundConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

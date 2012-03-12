@@ -103,7 +103,7 @@ public class ComponentBillboardConfig extends ModelConfig.Implementation
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
         if (impl instanceof ComponentBillboard) {
-            ((ComponentBillboard)impl).setConfig(this);
+            ((ComponentBillboard)impl).setConfig(ctx, this);
         } else {
             impl = new ComponentBillboard(ctx, scope, this);
         }

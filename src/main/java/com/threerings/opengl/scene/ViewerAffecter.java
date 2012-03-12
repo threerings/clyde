@@ -48,15 +48,15 @@ public class ViewerAffecter extends Model.Implementation
     public ViewerAffecter (GlContext ctx, Scope parentScope, ViewerAffecterConfig config)
     {
         super(parentScope);
-        _ctx = ctx;
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (ViewerAffecterConfig config)
+    public void setConfig (GlContext ctx, ViewerAffecterConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

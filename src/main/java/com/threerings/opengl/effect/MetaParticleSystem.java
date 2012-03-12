@@ -234,7 +234,7 @@ public class MetaParticleSystem extends BaseParticleSystem
     public MetaParticleSystem (GlContext ctx, Scope parentScope, MetaParticleSystemConfig config)
     {
         super(ctx, parentScope);
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     @Override // documentation inherited

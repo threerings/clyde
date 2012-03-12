@@ -197,7 +197,7 @@ public class ParticleSystem extends BaseParticleSystem
     public ParticleSystem (GlContext ctx, Scope parentScope, ParticleSystemConfig config)
     {
         super(ctx, parentScope);
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     @Override // documentation inherited

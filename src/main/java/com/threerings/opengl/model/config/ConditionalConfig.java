@@ -87,7 +87,7 @@ public class ConditionalConfig extends ModelConfig.Implementation
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
         if (impl instanceof Conditional) {
-            ((Conditional)impl).setConfig(this);
+            ((Conditional)impl).setConfig(ctx, this);
         } else {
             impl = new Conditional(ctx, scope, this);
         }

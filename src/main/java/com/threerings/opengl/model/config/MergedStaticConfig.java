@@ -102,7 +102,7 @@ public class MergedStaticConfig extends ModelConfig.Implementation
             _resolved = new SoftReference<Resolved>(resolved = resolve(ctx));
         }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(resolved);
+            ((Static)impl).setConfig(ctx, resolved);
         } else {
             impl = new Static(ctx, scope, resolved);
         }

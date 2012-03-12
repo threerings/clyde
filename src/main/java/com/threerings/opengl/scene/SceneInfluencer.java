@@ -53,15 +53,15 @@ public class SceneInfluencer extends Model.Implementation
     public SceneInfluencer (GlContext ctx, Scope parentScope, SceneInfluencerConfig config)
     {
         super(parentScope);
-        _ctx = ctx;
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (SceneInfluencerConfig config)
+    public void setConfig (GlContext ctx, SceneInfluencerConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

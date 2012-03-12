@@ -401,16 +401,16 @@ public class Articulated extends Model.Implementation
     public Articulated (GlContext ctx, Scope parentScope, ArticulatedConfig config)
     {
         super(parentScope);
-        _ctx = ctx;
         _viewTransform = _transformState.getModelview();
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (ArticulatedConfig config)
+    public void setConfig (GlContext ctx, ArticulatedConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

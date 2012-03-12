@@ -47,15 +47,15 @@ public class Scripted extends Model.Implementation
     public Scripted (GlContext ctx, Scope parentScope, ScriptedConfig config)
     {
         super(parentScope);
-        _ctx = ctx;
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (ScriptedConfig config)
+    public void setConfig (GlContext ctx, ScriptedConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

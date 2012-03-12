@@ -61,6 +61,8 @@ import com.threerings.opengl.model.tools.ModelDef;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 import com.threerings.opengl.util.GlContext;
 
+import static com.threerings.opengl.Log.*;
+
 /**
  * An original articulated implementation.
  */
@@ -556,7 +558,7 @@ public class ArticulatedConfig extends ModelConfig.Imported
             return null;
         }
         if (impl instanceof Articulated) {
-            ((Articulated)impl).setConfig(this);
+            ((Articulated)impl).setConfig(ctx, this);
         } else {
             impl = new Articulated(ctx, scope, this);
         }

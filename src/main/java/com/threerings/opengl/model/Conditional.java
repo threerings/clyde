@@ -54,15 +54,15 @@ public class Conditional extends Model.Implementation
     public Conditional (GlContext ctx, Scope parentScope, ConditionalConfig config)
     {
         super(parentScope);
-        _ctx = ctx;
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (ConditionalConfig config)
+    public void setConfig (GlContext ctx, ConditionalConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

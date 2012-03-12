@@ -96,7 +96,7 @@ public class CompoundConfig extends ModelConfig.Implementation
         GlContext ctx, Scope scope, Model.Implementation impl)
     {
         if (impl instanceof Compound) {
-            ((Compound)impl).setConfig(this);
+            ((Compound)impl).setConfig(ctx, this);
         } else {
             impl = new Compound(ctx, scope, this);
         }

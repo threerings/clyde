@@ -418,8 +418,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
     /**
      * Sets the configuration of this system.
      */
-    public void setConfig (BaseParticleSystemConfig config)
+    public void setConfig (GlContext ctx, BaseParticleSystemConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

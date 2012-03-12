@@ -80,14 +80,15 @@ public class ShapeModel extends Model.Implementation
                 ((Model)_parentScope).boundsDidChange(ShapeModel.this);
             }
         };
-        setConfig(config);
+        setConfig(ctx, config);
     }
 
     /**
      * Sets the configuration of this model.
      */
-    public void setConfig (ShapeModelConfig config)
+    public void setConfig (GlContext ctx, ShapeModelConfig config)
     {
+        _ctx = ctx;
         _config = config;
         updateFromConfig();
     }

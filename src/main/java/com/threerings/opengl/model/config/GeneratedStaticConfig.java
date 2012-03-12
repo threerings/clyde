@@ -126,7 +126,7 @@ public class GeneratedStaticConfig extends ModelConfig.Implementation
                 resolved = generator.generate(ctx, influences.getFlags()));
         }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(resolved);
+            ((Static)impl).setConfig(ctx, resolved);
         } else {
             impl = new Static(ctx, scope, resolved);
         }

@@ -96,7 +96,7 @@ public class StaticConfig extends ModelConfig.Imported
                 influences.getFlags()));
         }
         if (impl instanceof Static) {
-            ((Static)impl).setConfig(resolved);
+            ((Static)impl).setConfig(ctx, resolved);
         } else {
             impl = new Static(ctx, scope, resolved);
         }
