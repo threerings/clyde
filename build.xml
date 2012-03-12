@@ -95,7 +95,10 @@
   </target>
 
   <target name="-colorpos">
-    <taskdef name="confcomp" classpathref="compile.classpath"
+    <artifact:dependencies pathId="colorpos.classpath">
+      <dependency groupId="com.threerings" artifactId="nenya-tools" version="1.4"/>
+    </artifact:dependencies>
+    <taskdef name="confcomp" classpathref="colorpos.classpath"
              classname="com.threerings.tools.CompiledConfigTask"/>
     <confcomp target="${deploy.dir}/rsrc/config/media/colordefs.dat"
               parser="com.threerings.media.image.tools.xml.ColorPositoryParser"
