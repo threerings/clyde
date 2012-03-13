@@ -26,7 +26,7 @@
 package com.threerings.opengl.gui;
 
 /**
- * Implemented by GUI components that allow selection from amongst enumerated values.
+ * Implemented by GUI components that allow selection from amongst indexable values.
  */
 public interface Selectable<T>
 {
