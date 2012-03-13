@@ -60,7 +60,7 @@ public class IntegerDocument extends Document
         try {
             return Integer.valueOf(getText());
 
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return 0;
         }
     }
@@ -81,7 +81,7 @@ public class IntegerDocument extends Document
         try {
             Integer.parseInt(newText);
             return true;
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
             return false;
         }
     }
