@@ -111,6 +111,12 @@ public abstract class EditableTextComponent extends TextComponent
         return _text.getText();
     }
 
+    @Override
+    public Object getValue ()
+    {
+        return _text.getValue();
+    }
+
     /**
      * Configures the maximum length of this text field. This will replace
      * any currently set document with a LengthLimitedDocument (or no document
@@ -118,11 +124,9 @@ public abstract class EditableTextComponent extends TextComponent
      */
     public void setMaxLength (int maxLength)
     {
-        if (maxLength > 0) {
-            setDocument(new LengthLimitedDocument(maxLength));
-        } else {
-            setDocument(new Document());
-        }
+        setDocument((maxLength > 0)
+           ? new LengthLimitedDocument(maxLength)
+           : new Document());
     }
 
     /**
@@ -325,9 +329,9 @@ public abstract class EditableTextComponent extends TextComponent
             if (!selectionIsEmpty()) {
                 deleteSelectedText();
             } else if (_cursp > 0 && _text.getLength() > 0) {
-                int pos = _cursp-1;
-                if (_text.remove(pos, 1, nextUndoId(CompoundType.BACKSPACE))) {
-                    setCursorPos(pos);
+                int newpos = _text.remove(_cursp, -1, nextUndoId(CompoundType.BACKSPACE));
+                if (newpos != -1) {
+                    setCursorPos(newpos);
                     _lastCompoundType = CompoundType.BACKSPACE;
                 }
             }
@@ -337,17 +341,20 @@ public abstract class EditableTextComponent extends TextComponent
             if (!selectionIsEmpty()) {
                 deleteSelectedText();
             } else if (_cursp < _text.getLength()) {
-                _text.remove(_cursp, 1, nextUndoId(CompoundType.DELETE));
-                _lastCompoundType = CompoundType.DELETE;
+                int newpos = _text.remove(_cursp, 1, nextUndoId(CompoundType.DELETE));
+                if (newpos != -1) {
+                    setCursorPos(newpos);
+                    _lastCompoundType = CompoundType.DELETE;
+                }
             }
             break;
 
         case CURSOR_LEFT:
-            setCursorPos(Math.max(0, _cursp-1));
+            setCursorPos(_text.moveCursor(_cursp, -1));
             break;
 
         case CURSOR_RIGHT:
-            setCursorPos(Math.min(_text.getLength(), _cursp+1));
+            setCursorPos(_text.moveCursor(_cursp, +1));
             break;
 
         case WORD_LEFT:
@@ -573,8 +580,9 @@ public abstract class EditableTextComponent extends TextComponent
         int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
         int length = end - start;
         String text = _text.getText(start, length);
-        if (_text.remove(start, length, nextUndoId(null))) {
-            setCursorPos(start);
+        int newpos = _text.remove(start, length, nextUndoId(null));
+        if (newpos != -1) {
+            setCursorPos(0);
         }
         return text;
     }
@@ -586,8 +594,9 @@ public abstract class EditableTextComponent extends TextComponent
     {
         int start = Math.min(_cursp, _selp), end = Math.max(_cursp, _selp);
         int length = end - start;
-        if (_text.replace(start, length, text, nextUndoId(compoundType))) {
-            setCursorPos(start + text.length());
+        int newpos = _text.replace(start, length, text, nextUndoId(compoundType));
+        if (newpos != -1) {
+            setCursorPos(newpos);
             _lastCompoundType = compoundType;
         }
     }

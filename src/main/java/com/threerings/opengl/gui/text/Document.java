@@ -94,6 +94,18 @@ public class Document
         _undosup.removeUndoableEditListener(listener);
     }
 
+    /**
+     * Returns the "value" of the document.
+     *
+     * By default, this is exactly the same as the text of the document, but subclasses
+     * can customize this behavior. For example, a Document that only allows editing
+     * of integer values can return an Integer here.
+     */
+    public Object getValue ()
+    {
+        return getText();
+    }
+
     /** Returns the entire text of the document. */
     public String getText ()
     {
@@ -115,7 +127,7 @@ public class Document
      */
     public boolean setText (String text, int undoId)
     {
-        return replace(0, getLength(), text, undoId);
+        return (-1 != replace(0, getLength(), text, undoId));
     }
 
     /**
@@ -183,13 +195,20 @@ public class Document
     }
 
     /**
+     * Move the cursor, returning the new cursor position.
+     */
+    public int moveCursor (int position, int offset)
+    {
+        return Math.max(0, Math.min(position + offset, getLength()));
+    }
+
+    /**
      * Inserts the specified text at the specified offset.
      *
      * @param undoId an id used to group compound edits for undo (-1 if not undoable).
-     * @return true if the text was inserted, false if it was rejected by the
-     * document validator.
+     * @return the new cursor position, or -1 if the edit was rejected.
      */
-    public boolean insert (int offset, String text, int undoId)
+    public int insert (int offset, String text, int undoId)
     {
         return replace(offset, 0, text, undoId);
     }
@@ -197,11 +216,12 @@ public class Document
     /**
      * Deletes specified run of text at the specified offset.
      *
+     * @param offset a starting (cursor) position for the edit.
+     * @param length the length of the area to remove. Can be negative to "delete leftwards".
      * @param undoId an id used to group compound edits for undo (-1 if not undoable).
-     * @return true if the text was removed, false if it was rejected by the
-     * document validator.
+     * @return the new cursor position, or -1 if the edit was rejected.
      */
-    public boolean remove (int offset, int length, int undoId)
+    public int remove (int offset, int length, int undoId)
     {
         return replace(offset, length, "", undoId);
     }
@@ -209,24 +229,27 @@ public class Document
     /**
      * Replaces the specified run of text with the supplied new text.
      *
+     * @param offset a starting (cursor) position for the edit.
+     * @param length the length of the area to replace with any new text. Can be negative
+     *  to "edit leftwards".
+     * @param text text to insert at the offset, or "".
      * @param undoId an id used to group compound edits for undo (-1 if not undoable).
-     * @return true if the text was replaced, false if it was rejected by the
-     * document validator.
+     * @return the new cursor position, or -1 if the edit was rejected.
      */
-    public boolean replace (final int offset, final int length, final String text, int undoId)
+    public int replace (final int offset, final int length, final String text, int undoId)
     {
-        StringBuilder buf = new StringBuilder();
-        if (offset > 0) {
-            buf.append(_text, 0, offset);
-        }
-        buf.append(text);
-        if (_text.length() > 0) {
-            buf.append(_text, offset + length, _text.length());
-        }
+        int docLength = _text.length();
+        int insLength = text.length();
+        final int cutStart = Math.max(0, offset + Math.min(length, 0));
+        int cutEnd = Math.min(docLength, offset + Math.max(length, 0));
 
-        String ntext = buf.toString();
+        String ntext = new StringBuilder()
+            .append(_text, 0, cutStart)
+            .append(text)
+            .append(_text, cutEnd, docLength)
+            .toString();
         if (!validateEdit(_text, ntext)) {
-            return false;
+            return -1;
         }
 
         if (undoId > 0) {
@@ -256,11 +279,11 @@ public class Document
                     protected ArrayList<UndoableEdit> _edits = new ArrayList<UndoableEdit>();
                 });
             }
-            final String otext = _text.substring(offset, offset + length);
+            final String otext = _text.substring(cutStart, cutEnd);
             _compoundEdit.addEdit(new AbstractUndoableEdit() {
                 public void undo () {
                     super.undo();
-                    replace(offset, text.length(), otext, -1);
+                    replace(cutStart, text.length(), otext, -1);
                 }
                 public void redo () {
                     super.redo();
@@ -274,13 +297,14 @@ public class Document
         _lastUndoId = undoId;
 
         _text = ntext;
-        if (length > 0) {
-            notify(false, offset, length);
+        int cutLength = cutEnd - cutStart;
+        if (cutLength > 0) {
+            notify(false, cutStart, cutLength);
         }
-        if (text.length() > 0) {
-            notify(true, offset, text.length());
+        if (insLength > 0) {
+            notify(true, cutEnd, insLength);
         }
-        return true;
+        return cutStart + insLength;
     }
 
     /**

@@ -54,6 +54,17 @@ public class IntegerDocument extends Document
         _positive = positive;
     }
 
+    @Override
+    public Object getValue ()
+    {
+        try {
+            return Integer.valueOf(getText());
+
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     // documentation inherited
     protected boolean validateEdit (String oldText, String newText)
     {

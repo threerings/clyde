@@ -57,6 +57,17 @@ public abstract class TextComponent extends Component
     public abstract String getText ();
 
     /**
+     * Return the "value" of the TextComponent.
+     *
+     * By default will return a String equal to {@code #getText}, but EditableTextComponents
+     * will return the value from their Document, which may not even be a String.
+     */
+    public Object getValue ()
+    {
+        return getText();
+    }
+
+    /**
      * Returns a text factory suitable for creating text in the style defined
      * by the component's current state.
      */
