@@ -63,7 +63,7 @@
     <dependency>
       <groupId>com.threerings</groupId>
       <artifactId>narya</artifactId>
-      <version>1.11</version>
+      <version>1.13-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.threerings</groupId>
@@ -92,12 +92,6 @@
     </dependency>
 
     <!-- optional/provided dependencies -->
-    <dependency>
-      <groupId>com.samskivert</groupId>
-      <artifactId>depot</artifactId>
-      <version>1.5</version>
-      <optional>true</optional>
-    </dependency>
     <dependency>
       <groupId>com.apple</groupId>
       <artifactId>applejavaextensions</artifactId>

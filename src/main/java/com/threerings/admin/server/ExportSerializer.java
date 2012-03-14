@@ -25,47 +25,19 @@
 
 package com.threerings.admin.server;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-import com.samskivert.depot.PersistenceContext;
-import com.samskivert.util.Invoker;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.export.util.ExportUtil;
 
-import com.threerings.presents.annotation.MainInvoker;
-import com.threerings.presents.dobj.DObject;
-
 /**
- * A database config registry that exports objects as opposed to streaming them.
+ * Implements config object field serialization using {@link ExportUtil}.
  */
-@Singleton
-public class ExportDatabaseConfigRegistry extends DatabaseConfigRegistry
+public class ExportSerializer implements ConfigRegistry.Serializer
 {
-    /**
-     * Creates a configuration registry and prepares it for operation.
-     *
-     * @param ctx will provide access to our database.
-     * @param invoker this will be used to perform all database activity (except first time
-     * initialization) so as to avoid blocking the distributed object thread.
-     */
-    @Inject public ExportDatabaseConfigRegistry (
-        PersistenceContext ctx, @MainInvoker Invoker invoker)
-    {
-        super(ctx, invoker);
+    @Override public String serialize (String name, Object value) {
+        return StringUtil.hexlate(ExportUtil.toBytes(value));
     }
-
-    @Override // documentation inherited
-    protected ObjectRecord createObjectRecord (String path, DObject object)
-    {
-        return new DatabaseObjectRecord(path, object) {
-            @Override protected void serialize (String name, String key, Object value) {
-                setValue(key, StringUtil.hexlate(ExportUtil.toBytes(value)));
-            }
-            @Override protected Object deserialize (String value) {
-                return ExportUtil.fromBytes(StringUtil.unhexlate(value));
-            }
-        };
+    @Override public Object deserialize (String value) {
+        return ExportUtil.fromBytes(StringUtil.unhexlate(value));
     }
 }
