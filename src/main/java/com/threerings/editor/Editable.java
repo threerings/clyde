@@ -94,7 +94,7 @@ public @interface Editable
     /** For list and array properties, the minimum size. */
     int minsize () default 0;
 
-    /** For list and array properties, the maximum size. */
+    /** For String, or list and array properties, the maximum size. */
     int maxsize () default +Integer.MAX_VALUE;
 
     /** For object properties, whether or not the property can be null. */

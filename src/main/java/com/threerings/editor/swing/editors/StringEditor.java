@@ -33,6 +33,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
+import com.samskivert.swing.util.SwingUtil;
 import com.samskivert.util.StringUtil;
 
 import com.threerings.editor.Editable;
@@ -72,7 +73,9 @@ public class StringEditor extends PropertyEditor
         // this generates two documents events: first a remove, then an add.  we don't want to
         // fire a state change, so we remove ourselves as a document listener when updating
         _field.getDocument().removeDocumentListener(this);
-        _field.setText(StringUtil.trim((String)_property.get(_object)));
+        String text = StringUtil.trim((String)_property.get(_object));
+        text = StringUtil.truncate(text, _property.getAnnotation().maxsize());
+        _field.setText(text);
         _field.getDocument().addDocumentListener(this);
     }
 
@@ -90,6 +93,15 @@ public class StringEditor extends PropertyEditor
         } else {
             _field = new JTextField(annotation.width());
             add(_field);
+        }
+        final int maxSize = annotation.maxsize();
+        if (maxSize < Integer.MAX_VALUE) {
+            SwingUtil.setDocumentHelpers(_field,
+                new SwingUtil.DocumentValidator() {
+                    public boolean isValid (String text) {
+                        return text.length() <= maxSize;
+                    }
+                }, null);
         }
         _field.getDocument().addDocumentListener(this);
         addUnits();
