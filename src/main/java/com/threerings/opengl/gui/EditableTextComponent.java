@@ -480,7 +480,6 @@ public abstract class EditableTextComponent extends TextComponent
     protected void gainedFocus ()
     {
         _showCursor = true;
-        setCursorPos(_cursp);
 
         // perhaps hide the placeholder
         if (usePlaceholder()) {
