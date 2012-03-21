@@ -302,7 +302,7 @@ public class Document
             notify(false, cutStart, cutLength);
         }
         if (insLength > 0) {
-            notify(true, cutEnd, insLength);
+            notify(true, cutStart, insLength);
         }
         return cutStart + insLength;
     }
