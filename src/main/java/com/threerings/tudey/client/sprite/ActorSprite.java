@@ -704,11 +704,7 @@ public class ActorSprite extends Sprite
              */
             public Activity (ConfigReference<AnimationConfig> anim)
             {
-                Animation animation = anim == null ? null : _model.createAnimation(anim);
-                _anims = new Animation[animation == null ? 0 : 1];
-                if (animation != null) {
-                    _anims[0] = animation;
-                }
+                setAnimation(anim);
             }
 
             /**
@@ -777,6 +773,18 @@ public class ActorSprite extends Sprite
             {
                 if (_idx < _anims.length - 1 && !_anims[_idx].isPlaying()) {
                     _anims[++_idx].start();
+                }
+            }
+
+            /**
+             * Sets the activity animation.
+             */
+            protected void setAnimation (ConfigReference<AnimationConfig> anim)
+            {
+                Animation animation = anim == null ? null : _model.createAnimation(anim);
+                _anims = new Animation[animation == null ? 0 : 1];
+                if (animation != null) {
+                    _anims[0] = animation;
                 }
             }
 
