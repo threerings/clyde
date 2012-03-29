@@ -781,11 +781,10 @@ public class ActorSprite extends Sprite
              */
             protected void setAnimation (ConfigReference<AnimationConfig> anim)
             {
-                Animation animation = anim == null ? null : _model.createAnimation(anim);
-                _anims = new Animation[animation == null ? 0 : 1];
-                if (animation != null) {
-                    _anims[0] = animation;
-                }
+                Animation mation = (anim == null) ? null : _model.createAnimation(anim);
+                _anims = (mation == null)
+                    ? new Animation[0]
+                    : new Animation[] { mation };
             }
 
             /** The activity's component animations. */
