@@ -94,6 +94,14 @@ public class SceneMap
     }
 
     /**
+     * Set the mask for collision flags we actually care about.
+     */
+    public void setCollisionFlagMask (int flagMask)
+    {
+        _flagMask = flagMask;
+    }
+
+    /**
      * Renders a section of the map.
      */
     public void render (
@@ -258,7 +266,7 @@ public class SceneMap
             tentry.getRegion(config, _region);
             for (int yy = _region.y, yymax = yy + _region.height; yy < yymax; yy++) {
                 for (int xx = _region.x, xxmax = xx + _region.width; xx < xxmax; xx++) {
-                    int flags = tentry.getCollisionFlags(config, xx, yy);
+                    int flags = _flagMask & tentry.getCollisionFlags(config, xx, yy);
                     int type = Math.max(_types.get(xx, yy), flags);
                     _types.put(xx, yy, type);
                     if (retexture) {
@@ -268,7 +276,7 @@ public class SceneMap
             }
             return;
         }
-        int flags = entry.getCollisionFlags(_sceneModel.getConfigManager());
+        int flags = _flagMask & entry.getCollisionFlags(_sceneModel.getConfigManager());
         if (entry instanceof PlaceableEntry) {
             PlaceableEntry pentry = (PlaceableEntry)entry;
             PlaceableConfig.Original config = pentry.getConfig(_sceneModel.getConfigManager());
@@ -321,7 +329,7 @@ public class SceneMap
             }
             return;
         }
-        int flags = entry.getCollisionFlags(_sceneModel.getConfigManager());
+        int flags = _flagMask & entry.getCollisionFlags(_sceneModel.getConfigManager());
         if (flags == 0) {
             return;
         }
@@ -361,7 +369,7 @@ public class SceneMap
         _sceneModel.getSpace().getIntersecting(_quad, _elements);
         for (int ii = 0, nn = _elements.size(); ii < nn; ii++) {
             SpaceElement element = _elements.get(ii);
-            int flags = ((Entry)element.getUserObject()).getCollisionFlags(cfgmgr);
+            int flags = _flagMask & ((Entry)element.getUserObject()).getCollisionFlags(cfgmgr);
             if (flags != 0) {
                 type = Math.max(type, flags);
             }
@@ -484,6 +492,9 @@ public class SceneMap
 
     /** The RGBA color to use for walls. */
     protected byte[] _wallColor;
+
+    /** A mask of the collision flags we actually care about. */
+    protected int _flagMask = ~0;
 
     /** Reusable texture unit array for unmasked rendering. */
     protected TextureUnit[] _unmasked = new TextureUnit[] { new TextureUnit() };
