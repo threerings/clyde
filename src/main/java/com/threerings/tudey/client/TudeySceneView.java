@@ -165,6 +165,21 @@ public class TudeySceneView extends DynamicScope
                     }
                 }
             }
+            @Override protected void dumpInfluence (SceneElement element, String msg, int diff)
+            {
+                if (_dumpInfluences) {
+                    Object user = element.getUserObject();
+                    if (user instanceof EntrySprite) {
+                        log.info(msg, "diff", diff,
+                                "entry", ((EntrySprite)user).getEntry().getReference());
+                    } else if (user instanceof ActorSprite) {
+                        log.info(msg, "diff", diff,
+                                "actor", ((ActorSprite)user).getActor().getConfig());
+                    } else {
+                        super.dumpInfluence(element, msg, diff);
+                    }
+                }
+            }
         };
         _scene.setParentScope(this);
 
@@ -923,6 +938,14 @@ public class TudeySceneView extends DynamicScope
                 }
             }
         }
+    }
+
+    /**
+     * Dump to the logs scene influences on the next tick.
+     */
+    public void dumpInfluences ()
+    {
+        _scene.dumpInfluences();
     }
 
     // documentation inherited from interface GlView

@@ -197,8 +197,10 @@ public abstract class Scene extends DynamicScope
         addToTick(element);
         addToSpatial(element);
 
+
         // add to influence update list
         _updateInfluences.add(element);
+        dumpInfluence(element, "add", 1);
 
         // notify the element
         element.wasAdded(this);
@@ -251,6 +253,7 @@ public abstract class Scene extends DynamicScope
         // remove from visible, influence update lists
         _visible.remove(element);
         _updateInfluences.remove(element);
+        dumpInfluence(element, "remove", -1);
 
         // remove from data structures
         removeFromTick(element);
@@ -271,7 +274,9 @@ public abstract class Scene extends DynamicScope
         addToSpatial(influence);
 
         // add any intersecting elements to the update list
+        int count = _updateInfluences.size();
         getElements(influence.getBounds(), _updateInfluences);
+        dumpInfluence(influence, "add Influence", _updateInfluences.size() - count);
     }
 
     /**
@@ -284,7 +289,9 @@ public abstract class Scene extends DynamicScope
         }
 
         // add any intersecting elements to the update list
+        int count = _updateInfluences.size();
         getElements(influence.getBounds(), _updateInfluences);
+        dumpInfluence(influence, "remove influence", _updateInfluences.size() - count);
 
         // remove from spatial data structure
         removeFromSpatial(influence);
@@ -424,6 +431,7 @@ public abstract class Scene extends DynamicScope
     {
         // add to update list
         _updateInfluences.add(element);
+        dumpInfluence(element, "bounds did change", 1);
     }
 
     /**
@@ -433,7 +441,9 @@ public abstract class Scene extends DynamicScope
     public void boundsWillChange (SceneInfluence influence)
     {
         // add any intersecting elements to the update list
+        int count = _updateInfluences.size();
         getElements(influence.getBounds(), _updateInfluences);
+        dumpInfluence(influence, "influence bounds will change", _updateInfluences.size() - count);
     }
 
     /**
@@ -442,7 +452,9 @@ public abstract class Scene extends DynamicScope
     public void boundsDidChange (SceneInfluence influence)
     {
         // add any intersecting elements to the update list
+        int count = _updateInfluences.size();
         getElements(influence.getBounds(), _updateInfluences);
+        dumpInfluence(influence, "influence bounds did change", _updateInfluences.size() - count);
     }
 
     /**
@@ -471,6 +483,9 @@ public abstract class Scene extends DynamicScope
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
+        if (_dumpInfluences) {
+            log.info("INFLUENCES!!!");
+        }
         // tick the elements that we always tick (in reverse order,
         // so that they can remove themselves)
         for (int ii = _alwaysTick.size() - 1; ii >= 0; ii--) {
@@ -504,14 +519,24 @@ public abstract class Scene extends DynamicScope
             for (int ii = 0; ii < _updateInfluencesCount; ii++) {
                 SceneElement element = _updateArray[ii];
                 getInfluences(element.getBounds(), _influences);
+                dumpInfluence(element, "set influences", 0);
                 element.setInfluences(_influences);
                 _influences.clear();
             }
             // make sure we don't retain any references
             Arrays.fill(_updateArray, 0, _updateInfluencesCount, null);
         }
+        _dumpInfluences = false;
 
         _clipmgr.tick(elapsed);
+    }
+
+    /**
+     * Will log all influenced and influencing elements on the next tick.
+     */
+    public void dumpInfluences ()
+    {
+        _dumpInfluences = true;
     }
 
     @Override // documentation inherited
@@ -661,6 +686,27 @@ public abstract class Scene extends DynamicScope
         }
     }
 
+    /**
+     * Log influenced scene elements if enabled.
+     */
+    protected void dumpInfluence (SceneElement element, String msg, int diff)
+    {
+        if (_dumpInfluences) {
+            log.info(msg, "diff", diff, "element", element.getUserObject());
+        }
+    }
+
+    /**
+     * Log scene influences if enabled.
+     */
+    protected void dumpInfluence (SceneInfluence influence, String msg, int diff)
+    {
+        if (_dumpInfluences) {
+            log.info(msg, "diff", diff, "influence", influence);
+        }
+    }
+
+
     /** The application context. */
     protected GlContext _ctx;
 
@@ -717,6 +763,9 @@ public abstract class Scene extends DynamicScope
 
     /** Holds the new set of effects acting on the viewer. */
     protected ViewerEffectSet _neffects = new ViewerEffectSet();
+
+    /** If we dump influences on the next tick. */
+    protected boolean _dumpInfluences;
 
     /** The default number of sound sources to allow. */
     protected static final int DEFAULT_SOURCES = 10;
