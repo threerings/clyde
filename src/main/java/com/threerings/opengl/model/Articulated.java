@@ -833,6 +833,9 @@ public class Articulated extends Model.Implementation
             _animations[ii] = anim;
             AnimationMapping mapping = _config.animationMappings[ii];
             anim.setConfig(mapping.name, mapping.animation);
+            if (_started && mapping.startOnUpdated && !anim.isPlaying()) {
+                anim.start();
+            }
         }
         if (oanims != null) {
             for (int ii = _animations.length; ii < oanims.length; ii++) {

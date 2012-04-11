@@ -266,8 +266,12 @@ public class ArticulatedConfig extends ModelConfig.Imported
         public ConfigReference<AnimationConfig> animation;
 
         /** Whether or not to start this animation automatically. */
-        @Editable
+        @Editable(hgroup="s")
         public boolean startAutomatically;
+
+        /** Whether or not to start this animation after a config update. */
+        @Editable(hgroup="s")
+        public boolean startOnUpdated;
     }
 
     /**
