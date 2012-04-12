@@ -89,6 +89,9 @@ public class ModelConfig extends ParameterizedConfig
     /** The default tag for skinned meshes. */
     public static final String SKINNED_TAG = "skinned";
 
+    /** Determines when this model is added as a transient to the scene. */
+    public enum TransientPolicy { DEFAULT, NEVER, FRUSTUM, BOUNDS, ALWAYS };
+
     /**
      * Contains the actual implementation of the model.
      */

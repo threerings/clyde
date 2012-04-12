@@ -220,6 +220,14 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Returns the transient policy of the model.
+         */
+        public ModelConfig.TransientPolicy getTransientPolicy ()
+        {
+            return ModelConfig.TransientPolicy.ALWAYS;
+        }
+
+        /**
          * Returns the tick policy of the model.
          */
         public TickPolicy getTickPolicy ()
@@ -821,6 +829,14 @@ public class Model extends DynamicScope
     public Scene getScene ()
     {
         return _scene;
+    }
+
+    /**
+     * Returns the transient creation policy.
+     */
+    public ModelConfig.TransientPolicy getTransientPolicy ()
+    {
+        return _impl.getTransientPolicy();
     }
 
     // documentation inherited from interface SceneElement

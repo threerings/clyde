@@ -128,7 +128,28 @@ public abstract class Scene extends DynamicScope
     {
         Transient model = getFromTransientPool(ref);
         model.setLocalTransform(transform);
-        add(model);
+        boolean add = !_transientPolicy;
+        if (_transientPolicy) {
+            switch (model.getTransientPolicy()) {
+            case BOUNDS:
+                add = _ctx.getCompositor().getCamera().getWorldVolume().getBounds().intersects(
+                            model.getBounds());
+                break;
+            case FRUSTUM:
+                add = _ctx.getCompositor().getCamera().getWorldVolume().getIntersectionType(
+                        model.getBounds()) != Frustum.IntersectionType.NONE;
+                break;
+            case ALWAYS:
+            case DEFAULT:
+                add = true;
+            }
+        }
+        if (add) {
+            add(model);
+        } else {
+            returnToTransientPool(model);
+            model = null;
+        }
         return model;
     }
 
@@ -367,11 +388,27 @@ public abstract class Scene extends DynamicScope
     }
 
     /**
+     * Returns the time elapsed to process always tickers.
+     */
+    public long getAlwaysTickTime ()
+    {
+        return _alwaysTickTime;
+    }
+
+    /**
      * Returns the size of the set of elements that we are going to tick because they're visible.
      */
     public int getVisibleTickCount ()
     {
         return _visible.size();
+    }
+
+    /**
+     * Returns the time elapsed to process visible tickers.
+     */
+    public long getVisibleTickTime ()
+    {
+        return _visibleTickTime;
     }
 
     /**
@@ -383,11 +420,27 @@ public abstract class Scene extends DynamicScope
     }
 
     /**
+     * Returns the time to process influences.
+     */
+    public long getUpdateInfluencesTime ()
+    {
+        return _updateInfluencesTime;
+    }
+
+    /**
      * Returns the number of effects acting upon the viewer.
      */
     public int getViewerEffectCount ()
     {
         return _effects.size();
+    }
+
+    /**
+     * Returns the time up update viewer effects.
+     */
+    public long getViewerEffectTime ()
+    {
+        return _viewerEffectTime;
     }
 
     /**
@@ -480,6 +533,14 @@ public abstract class Scene extends DynamicScope
         setEffects(_neffects);
     }
 
+    /**
+     * Sets the transient policy state.
+     */
+    public void setTransientPolicy (boolean enabled)
+    {
+        _transientPolicy = enabled;
+    }
+
     // documentation inherited from interface Tickable
     public void tick (float elapsed)
     {
@@ -488,9 +549,12 @@ public abstract class Scene extends DynamicScope
         }
         // tick the elements that we always tick (in reverse order,
         // so that they can remove themselves)
+        long tick = System.nanoTime();
         for (int ii = _alwaysTick.size() - 1; ii >= 0; ii--) {
             _alwaysTick.get(ii).tick(elapsed);
         }
+        long tock = System.nanoTime();
+        _alwaysTickTime = tock - tick;
 
         // tick the visible tick-when-visible elements
         if (!_visible.isEmpty()) {
@@ -499,6 +563,8 @@ public abstract class Scene extends DynamicScope
             }
             _visible.clear();
         }
+        tick = System.nanoTime();
+        _visibleTickTime = tick - tock;
 
         // find the effects acting on the viewer
         Vector3f location = _ctx.getCameraHandler().getViewerTranslation();
@@ -510,6 +576,8 @@ public abstract class Scene extends DynamicScope
         for (ViewerEffect effect : _effects) {
             effect.update();
         }
+        tock = System.nanoTime();
+        _viewerEffectTime = tock - tick;
 
         // update the influences of any flagged elements
         _updateInfluencesCount = _updateInfluences.size();
@@ -518,15 +586,21 @@ public abstract class Scene extends DynamicScope
             _updateInfluences.clear();
             for (int ii = 0; ii < _updateInfluencesCount; ii++) {
                 SceneElement element = _updateArray[ii];
+                boolean contains = _updateInfluences.contains(element);
                 getInfluences(element.getBounds(), _influences);
                 dumpInfluence(element, "set influences", 0);
                 element.setInfluences(_influences);
                 _influences.clear();
+                if (_dumpInfluences && !contains && _updateInfluences.contains(element)) {
+                    dumpInfluence(element, "SELF REFERENTIAL!!", 0);
+                }
             }
             // make sure we don't retain any references
             Arrays.fill(_updateArray, 0, _updateInfluencesCount, null);
         }
         _dumpInfluences = false;
+        tick = System.nanoTime();
+        _updateInfluencesTime = tick - tock;
 
         _clipmgr.tick(elapsed);
     }
@@ -766,6 +840,12 @@ public abstract class Scene extends DynamicScope
 
     /** If we dump influences on the next tick. */
     protected boolean _dumpInfluences;
+
+    /** The time delta's during the tick. */
+    protected long _alwaysTickTime, _visibleTickTime, _updateInfluencesTime, _viewerEffectTime;
+
+    /** If transient policies are enabled. */
+    protected boolean _transientPolicy;
 
     /** The default number of sound sources to allow. */
     protected static final int DEFAULT_SOURCES = 10;

@@ -43,6 +43,7 @@ import com.threerings.opengl.camera.Camera;
 import com.threerings.opengl.compositor.Enqueueable;
 import com.threerings.opengl.effect.config.BaseParticleSystemConfig;
 import com.threerings.opengl.model.Model;
+import com.threerings.opengl.model.config.ModelConfig.TransientPolicy;
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.state.ColorState;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
@@ -481,6 +482,12 @@ public abstract class BaseParticleSystem extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public TransientPolicy getTransientPolicy ()
+    {
+        return _transientPolicy;
+    }
+
+    @Override // documentation inherited
     public TickPolicy getTickPolicy ()
     {
         return _tickPolicy;
@@ -575,6 +582,12 @@ public abstract class BaseParticleSystem extends Model.Implementation
             ((Model)_parentScope).tickPolicyDidChange(this);
         }
 
+        TransientPolicy tpolicy = _config.transientPolicy;
+        if (tpolicy == TransientPolicy.DEFAULT) {
+            tpolicy = TransientPolicy.FRUSTUM;
+        }
+        _transientPolicy = tpolicy;
+
         // (re)create the layers
         BaseParticleSystemConfig.Layer[] configs = _config.getLayers();
         _layers = new Layer[configs.length];
@@ -655,6 +668,9 @@ public abstract class BaseParticleSystem extends Model.Implementation
 
     /** The model's tick policy. */
     protected TickPolicy _tickPolicy;
+
+    /** The model's transient policy. */
+    protected TransientPolicy _transientPolicy;
 
     /** If true, the particle system has warmed up. */
     protected boolean _warmed;

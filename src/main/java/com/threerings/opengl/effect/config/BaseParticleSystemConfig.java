@@ -45,6 +45,7 @@ import com.threerings.opengl.effect.ColorFunction;
 import com.threerings.opengl.effect.FloatFunction;
 import com.threerings.opengl.model.config.InfluenceFlagConfig;
 import com.threerings.opengl.model.config.ModelConfig;
+import com.threerings.opengl.model.config.ModelConfig.TransientPolicy;
 import com.threerings.opengl.scene.SceneElement.TickPolicy;
 
 /**
@@ -195,6 +196,10 @@ public abstract class BaseParticleSystemConfig extends ModelConfig.Implementatio
     /** The maximum tick duration during warmup. */
     @Editable(min=0.0, step=0.01, hgroup="w")
     public float warmupGranularity = 0.1f;
+
+    /** The model's transient policy. */
+    @Editable
+    public TransientPolicy transientPolicy = TransientPolicy.FRUSTUM;
 
     /** The influences allowed to affect this model. */
     @Editable
