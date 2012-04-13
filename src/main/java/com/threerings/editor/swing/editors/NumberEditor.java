@@ -93,7 +93,7 @@ public class NumberEditor extends PropertyEditor
             _spinner.setPreferredSize(null);
         }
         _spinner.addChangeListener(this);
-        addUnits();
+        addUnits(this);
     }
 
     /**

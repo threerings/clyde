@@ -49,6 +49,7 @@ import com.threerings.config.ParameterizedConfig;
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
+import com.threerings.editor.Strippable;
 import com.threerings.editor.util.EditorContext;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
@@ -646,6 +647,11 @@ public class ModelConfig extends ParameterizedConfig
         {
         }
     }
+
+    /** A comment on the model. */
+    @Editable(height=3, width=40, collapsible=true)
+    @Strippable
+    public String comment = "";
 
     /** The actual model implementation. */
     @Editable

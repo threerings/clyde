@@ -165,7 +165,7 @@ public class DateTimeEditor extends PropertyEditor
         add(_field);
         _field.getDocument().addDocumentListener(this);
         _field.addFocusListener(this);
-        addUnits();
+        addUnits(this);
 
         configureFormat();
     }

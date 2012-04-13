@@ -29,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JScrollPane;
+import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
@@ -82,17 +83,23 @@ public class StringEditor extends PropertyEditor
     @Override // documentation inherited
     protected void didInit ()
     {
-        add(new JLabel(getPropertyLabel() + ":"));
         Editable annotation = _property.getAnnotation();
+        JPanel panel = this;
+        if (annotation.collapsible()) {
+            makeCollapsible(_ctx, getPropertyLabel(), false);
+            panel = _content;
+        } else {
+            add(new JLabel(getPropertyLabel() + ":"));
+        }
         if (annotation.height() > 1) {
             JTextArea area = new JTextArea(annotation.height(), annotation.width());
             area.setLineWrap(true);
-            add(new JScrollPane(area));
+            panel.add(new JScrollPane(area));
             _field = area;
 
         } else {
             _field = new JTextField(annotation.width());
-            add(_field);
+            panel.add(_field);
         }
         final int maxSize = annotation.maxsize();
         if (maxSize < Integer.MAX_VALUE) {
@@ -104,7 +111,7 @@ public class StringEditor extends PropertyEditor
                 }, null);
         }
         _field.getDocument().addDocumentListener(this);
-        addUnits();
+        addUnits(panel);
     }
 
     /** The text field. */

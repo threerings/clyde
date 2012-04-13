@@ -99,4 +99,7 @@ public @interface Editable
 
     /** For object properties, whether or not the property can be null. */
     boolean nullable () default false;
+
+    /** Specify if the property should be collapsible (for those that aren't automatically). */
+    boolean collapsible () default false;
 }

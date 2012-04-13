@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import com.samskivert.util.ArrayUtil;
 
@@ -228,11 +229,11 @@ public abstract class PropertyEditor extends BasePropertyEditor
     /**
      * Add a Label for the units, if applicable.
      */
-    protected void addUnits ()
+    protected void addUnits (JPanel panel)
     {
         String units = getUnits();
         if (units.length() > 0) {
-            add(new JLabel(getLabel(units, _property.getMessageBundle())));
+            panel.add(new JLabel(getLabel(units, _property.getMessageBundle())));
         }
     }
 
