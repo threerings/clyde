@@ -30,12 +30,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.HashIntMap;
@@ -338,6 +340,43 @@ public class TudeySceneView extends DynamicScope
     public int getSmoothedTime ()
     {
         return _smoothedTime;
+    }
+
+    /**
+     * Returns the time taken to process the controller on the previous tick.
+     */
+    public long getControllerTime ()
+    {
+        return _controllerTime;
+    }
+
+    /**
+     * Returns the time taken to process tick participants on the previous tick.
+     */
+    public long getTickerTime ()
+    {
+        return _tickerTime;
+    }
+
+    /**
+     * Returns the number of tick participants on the previous tick.
+     */
+    public int getTickerCount ()
+    {
+        return _tickerCount;
+    }
+
+    public void dumpTickers ()
+    {
+        _dumpTickers = true;
+    }
+
+    /**
+     * Returns the time taken to process the scene on the previous tick.
+     */
+    public long getSceneTime ()
+    {
+        return _sceneTime;
     }
 
     /**
@@ -718,6 +757,7 @@ public class TudeySceneView extends DynamicScope
         }
         HashIntMap<Actor> oactors = _records.get(0).getActors();
         HashIntMap<Actor> actors = new HashIntMap<Actor>();
+        Set<Integer> uids = Sets.newHashSet();
 
         // start with all the old actors
         actors.putAll(oactors);
@@ -728,6 +768,7 @@ public class TudeySceneView extends DynamicScope
             for (Actor actor : added) {
                 actor.init(_ctx.getConfigManager());
                 Actor oactor = actors.put(actor.getId(), actor);
+                uids.add(actor.getId());
                 if (oactor != null) {
                     log.warning("Replacing existing actor.", "oactor", oactor, "nactor", actor);
                 }
@@ -744,6 +785,7 @@ public class TudeySceneView extends DynamicScope
                     Actor nactor = (Actor)delta.apply(oactor);
                     nactor.init(_ctx.getConfigManager());
                     actors.put(id, nactor);
+                    uids.add(id);
                 } else {
                     log.warning("Missing actor for delta.", "delta", delta);
                 }
@@ -791,7 +833,8 @@ public class TudeySceneView extends DynamicScope
                 if (_ctrl.isControlledId(id)) {
                     _ctrl.controlledActorUpdated(timestamp, actor);
                 } else {
-                    sprite.update(timestamp, actor);
+                    sprite.update(timestamp, actor,
+                            !actor.getOriginal().isSpriteStatic || uids.contains(id));
                 }
                 continue;
             }
@@ -1017,17 +1060,34 @@ public class TudeySceneView extends DynamicScope
         }
 
         // tick the controller, if present
+        long tick = System.nanoTime();
         if (_ctrl != null) {
             _ctrl.tick(elapsed);
         }
+        long tock = System.nanoTime();
+        _controllerTime = tock - tick;
 
         // tick the participants in reverse order, to allow removal
         int delayedTime = getDelayedTime();
+        _tickerCount = _tickParticipants.size();
+        long start = 0;
+        if (_dumpTickers) {
+            start = System.nanoTime();
+            log.info("TICKERS!!!");
+        }
         for (int ii = _tickParticipants.size() - 1; ii >= 0; ii--) {
-            if (!_tickParticipants.get(ii).tick(delayedTime)) {
+            TickParticipant tp = _tickParticipants.get(ii);
+            if (!tp.tick(delayedTime)) {
                 _tickParticipants.remove(ii);
             }
+            if (_dumpTickers) {
+                dumpTicker(tp, System.nanoTime() - start);
+                start = System.nanoTime();
+            }
         }
+        _dumpTickers = false;
+        tick = System.nanoTime();
+        _tickerTime = tick - tock;
 
         // tick the camera transition, if any
         if (_camtrans != null) {
@@ -1042,7 +1102,9 @@ public class TudeySceneView extends DynamicScope
         }
 
         // tick the scene
+        tick = System.nanoTime();
         _scene.tick(_loadingWindow == null ? elapsed : 0f);
+        _sceneTime = System.nanoTime() - tick;
     }
 
     // documentation inherited from interface Compositable
@@ -1547,6 +1609,20 @@ public class TudeySceneView extends DynamicScope
                 _ctx.getSceneDirector().getScene() != null;
     }
 
+    protected void dumpTicker (TickParticipant tp, long time)
+    {
+        time /= 1000L;
+        if (tp instanceof ActorSprite) {
+            ActorSprite sprite = (ActorSprite)tp;
+            log.info("  ", "time", time, "actor", sprite.getActor().getConfig());
+        } else if (tp instanceof EffectSprite) {
+            EffectSprite sprite = (EffectSprite)tp;
+            log.info("  ", "time", time, "effect", sprite.getEffect().getConfig());
+        } else {
+            log.info("  ", "time", time, "ticker", tp);
+        }
+    }
+
     /**
      * Contains the state at a single update.
      */
@@ -1746,6 +1822,13 @@ public class TudeySceneView extends DynamicScope
 
     /** Stores penetration vector during queries. */
     protected Vector2f _penetration = new Vector2f();
+
+    /** The time taken to process the ticks. */
+    protected long _controllerTime, _tickerTime, _sceneTime;
+
+    /** The number of tick participants on the previous tick. */
+    protected int _tickerCount;
+    protected boolean _dumpTickers;
 
     /** The amount of time to spend on each batch when loading. */
     protected static final long BATCH_LOAD_DURATION = 50L;

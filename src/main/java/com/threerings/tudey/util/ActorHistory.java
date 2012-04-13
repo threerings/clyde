@@ -51,16 +51,19 @@ public class ActorHistory
     public void init (int timestamp, Actor actor)
     {
         _entries.clear();
-        record(timestamp, actor);
+        record(timestamp, actor, true);
     }
 
     /**
      * Records a state in the stream.
      */
-    public void record (int timestamp, Actor actor)
+    public void record (int timestamp, Actor actor, boolean updated)
     {
         // add the new entry
         _entries.add(new Entry(timestamp, actor));
+        if (updated) {
+            _seenLast = false;
+        }
 
         // remove any out-of-date entries
         int oldest = timestamp - _duration;
@@ -88,17 +91,23 @@ public class ActorHistory
     /**
      * Finds the state at the specified timestamp and places it into the result object.
      */
-    public Actor get (int timestamp, Actor result)
+    public boolean get (int timestamp, Actor result)
     {
+        if (_seenLast && result.getOriginal().isSpriteStatic) {
+            return false;
+        }
         // extrapolate if before start or after end
         Entry start = _entries.get(0);
         if (timestamp <= start.getTimestamp()) {
-            return start.extrapolate(timestamp, result);
+            start.extrapolate(timestamp, result);
+            return true;
         }
         int eidx = _entries.size() - 1;
         Entry end = _entries.get(eidx);
         if (timestamp >= end.getTimestamp()) {
-            return end.extrapolate(timestamp, result);
+            _seenLast = true;
+            end.extrapolate(timestamp, result);
+            return true;
         }
 
         // otherwise, use an interpolation search to find the closest two historical positions
@@ -122,7 +131,8 @@ public class ActorHistory
                 start = middle;
             }
         }
-        return start.interpolate(end, timestamp, result);
+        start.interpolate(end, timestamp, result);
+        return true;
     }
 
     /**
@@ -192,4 +202,7 @@ public class ActorHistory
 
     /** The stored list of entries. */
     protected ArrayList<Entry> _entries = new ArrayList<Entry>();
+
+    /** If the last entry has been seen by the actor sprite. */
+    protected boolean _seenLast;
 }

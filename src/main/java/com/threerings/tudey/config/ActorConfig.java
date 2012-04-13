@@ -117,9 +117,14 @@ public class ActorConfig extends ParameterizedConfig
 
         /** Whether or not the actor is "static" (always in clients' area of interest, notifies
          * the scene manager when its state changes). */
-        @Editable
+        @Editable(hgroup="s")
         @Strippable
         public boolean isStatic = true;
+
+        /** Whether of not he sprite should be treated as "static" (only operating on ticks after
+         * and actor update). */
+        @Editable(hgroup="s")
+        public boolean isSpriteStatic = false;
 
         /** Whether or not the actor should be used as a default entrance. */
         @Editable(hgroup="d")

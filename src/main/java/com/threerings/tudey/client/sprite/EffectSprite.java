@@ -156,6 +156,14 @@ public class EffectSprite extends Sprite
         view.addTickParticipant(this);
     }
 
+    /**
+     * Returns the effect.
+     */
+    public Effect getEffect ()
+    {
+        return _effect;
+    }
+
     // documentation inherited from interface TudeySceneView.TickParticipant
     public boolean tick (int delayedTime)
     {

@@ -69,6 +69,8 @@ import com.threerings.tudey.util.ActorAdvancer;
 import com.threerings.tudey.util.ActorHistory;
 import com.threerings.tudey.util.TudeyContext;
 
+import static com.threerings.tudey.Log.log;
+
 /**
  * Represents an active element of the scene.
  */
@@ -1144,10 +1146,10 @@ public class ActorSprite extends Sprite
     /**
      * Updates this sprite with new state.
      */
-    public void update (int timestamp, Actor actor)
+    public void update (int timestamp, Actor actor, boolean updated)
     {
         if (_advancer == null) {
-            _history.record(timestamp, actor);
+            _history.record(timestamp, actor, updated);
         } else {
             _advancer.init((Actor)actor.copy(_advancer.getActor()), timestamp);
         }
@@ -1215,7 +1217,7 @@ public class ActorSprite extends Sprite
     public boolean tick (int delayedTime)
     {
         // update the actor for the current time
-        updateActor();
+        boolean updated = updateActor();
 
         // handle pre-creation state
         if (_impl == null) {
@@ -1235,7 +1237,7 @@ public class ActorSprite extends Sprite
             } else {
                 return true; // chill until actually created
             }
-        } else {
+        } else if (updated) {
             update();
         }
 
@@ -1350,13 +1352,14 @@ public class ActorSprite extends Sprite
     /**
      * Brings the state of the actor up-to-date with the current time.
      */
-    protected void updateActor ()
+    protected boolean updateActor ()
     {
         if (_advancer == null) {
-            _history.get(_view.getDelayedTime(), _actor);
+            return _history.get(_view.getDelayedTime(), _actor);
         } else {
             _advancer.advance(_view.getAdvancedTime());
         }
+        return true;
     }
 
     /**
