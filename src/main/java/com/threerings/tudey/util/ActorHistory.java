@@ -62,6 +62,7 @@ public class ActorHistory
         // add the new entry
         _entries.add(new Entry(timestamp, actor));
         if (updated) {
+            _lastUpdate = timestamp;
             _seenLast = false;
         }
 
@@ -91,11 +92,12 @@ public class ActorHistory
     /**
      * Finds the state at the specified timestamp and places it into the result object.
      */
-    public boolean get (int timestamp, Actor result)
+    public boolean get (int timestamp, Actor result, boolean isStatic)
     {
-        if (_seenLast && result.getOriginal().isSpriteStatic) {
+        if (_seenLast && isStatic) {
             return false;
         }
+        _seenLast = timestamp >= _lastUpdate;
         // extrapolate if before start or after end
         Entry start = _entries.get(0);
         if (timestamp <= start.getTimestamp()) {
@@ -105,7 +107,6 @@ public class ActorHistory
         int eidx = _entries.size() - 1;
         Entry end = _entries.get(eidx);
         if (timestamp >= end.getTimestamp()) {
-            _seenLast = true;
             end.extrapolate(timestamp, result);
             return true;
         }
@@ -205,4 +206,7 @@ public class ActorHistory
 
     /** If the last entry has been seen by the actor sprite. */
     protected boolean _seenLast;
+
+    /** The timestamp of the last update. */
+    protected int _lastUpdate;
 }

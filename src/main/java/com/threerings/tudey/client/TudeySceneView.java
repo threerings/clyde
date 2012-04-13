@@ -833,8 +833,7 @@ public class TudeySceneView extends DynamicScope
                 if (_ctrl.isControlledId(id)) {
                     _ctrl.controlledActorUpdated(timestamp, actor);
                 } else {
-                    sprite.update(timestamp, actor,
-                            !actor.getOriginal().isSpriteStatic || uids.contains(id));
+                    sprite.update(timestamp, actor, uids.contains(id));
                 }
                 continue;
             }

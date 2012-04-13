@@ -167,6 +167,14 @@ public class ActorSprite extends Sprite
         }
 
         /**
+         * Returns true if the sprite should update on this tick.
+         */
+        public boolean shouldUpdate (boolean updated, Actor actor)
+        {
+            return updated;
+        }
+
+        /**
          * Updates the implementation with new interpolated state.
          */
         public void update (Actor actor)
@@ -239,6 +247,14 @@ public class ActorSprite extends Sprite
         public float getAttachedScale ()
         {
             return 1f;
+        }
+
+        /**
+         * If the sprite should operate in static mode.
+         */
+        public boolean isStatic (Actor actor)
+        {
+            return actor.getOriginal().isStatic;
         }
 
         @Override // documentation inherited
@@ -414,6 +430,12 @@ public class ActorSprite extends Sprite
         public float getAttachedScale ()
         {
             return ((ActorSpriteConfig.Moving)_config).attachedScale;
+        }
+
+        @Override // documentation inherited
+        public boolean isStatic (Actor actor)
+        {
+            return false;
         }
 
         /**
@@ -1149,7 +1171,7 @@ public class ActorSprite extends Sprite
     public void update (int timestamp, Actor actor, boolean updated)
     {
         if (_advancer == null) {
-            _history.record(timestamp, actor, updated);
+            _history.record(timestamp, actor, updated || !isStatic(actor));
         } else {
             _advancer.init((Actor)actor.copy(_advancer.getActor()), timestamp);
         }
@@ -1237,7 +1259,7 @@ public class ActorSprite extends Sprite
             } else {
                 return true; // chill until actually created
             }
-        } else if (updated) {
+        } else if (_impl.shouldUpdate(updated, _actor)) {
             update();
         }
 
@@ -1355,7 +1377,7 @@ public class ActorSprite extends Sprite
     protected boolean updateActor ()
     {
         if (_advancer == null) {
-            return _history.get(_view.getDelayedTime(), _actor);
+            return _history.get(_view.getDelayedTime(), _actor, isStatic(_actor));
         } else {
             _advancer.advance(_view.getAdvancedTime());
         }
@@ -1394,6 +1416,14 @@ public class ActorSprite extends Sprite
     protected int getActorTime ()
     {
         return (_advancer == null) ? _view.getDelayedTime() : _view.getAdvancedTime();
+    }
+
+    /**
+     * Returns true if this sprite should operate in static mode.
+     */
+    protected boolean isStatic (Actor actor)
+    {
+        return _impl != null && _impl.isStatic(actor);
     }
 
     /**
