@@ -256,6 +256,11 @@ public class Animation extends SimpleScope
                 _executors[ii] = new FrameExecutor(
                     action.frame, action.action.createExecutor(_ctx, this));
             }
+
+            if (_fidx > config.transforms.length) {
+                _fidx = 0;
+                _eidx = 0;
+            }
         }
 
         @Override // documentation inherited
