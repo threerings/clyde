@@ -745,6 +745,9 @@ public class Animation extends SimpleScope
                 anim.setSpeed(comp.speed);
             }
             if (oanims != null) {
+                if (_aidx >= _animations.length) {
+                    _aidx = 0;
+                }
                 for (int ii = _animations.length; ii < oanims.length; ii++) {
                     oanims[ii].dispose();
                 }
