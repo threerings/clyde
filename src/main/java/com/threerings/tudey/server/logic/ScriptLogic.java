@@ -112,7 +112,7 @@ public abstract class ScriptLogic extends Logic
             // sets us on a new path)
             Vector2f trans = _agent.getTranslation();
             boolean completedPath = false;
-            while (_path[_pidx].distance(trans) <= getReachRadius()) {
+            while (_path[_pidx].distanceSquared(trans) <= getReachRadiusSquared()) {
                 if (++_pidx == _path.length) {
                     _agent.stopMoving();
                     _path = null;
@@ -163,11 +163,11 @@ public abstract class ScriptLogic extends Logic
          * Returns the radius within which we can be consider ourselves to have reached a node
          * (which depends on the actor's speed, since it's possible to overshoot).
          */
-        protected float getReachRadius ()
+        protected float getReachRadiusSquared ()
         {
             // radius is the distance we can travel in a single tick
-            float speed = ((Mobile)_agent.getActor()).getSpeed();
-            return speed / _scenemgr.getTicksPerSecond();
+            float dist = ((Mobile)_agent.getActor()).getSpeed() / _scenemgr.getTicksPerSecond();
+            return dist * dist;
         }
 
         /**
@@ -196,8 +196,7 @@ public abstract class ScriptLogic extends Logic
          */
         protected boolean finishedMove ()
         {
-            float dist2 = getReachRadius();
-            dist2 *= dist2;
+            float dist2 = getReachRadiusSquared();
             return _finalTarget.getTranslation().distanceSquared(_agent.getTranslation()) <= dist2;
         }
 
