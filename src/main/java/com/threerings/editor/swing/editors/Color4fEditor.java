@@ -36,6 +36,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 import com.threerings.editor.swing.DraggableSpinner;
 import com.threerings.editor.swing.PropertyEditor;
@@ -102,7 +103,13 @@ public class Color4fEditor extends PropertyEditor
     protected void didInit ()
     {
         add(new JLabel(getPropertyLabel() + ":"));
-        add(_button = new JButton());
+        add(_button = new JButton() {
+            { // initializer
+                // Force the "basic" LookAndFeel for this button so that the background color
+                // shows up on all platforms
+                setUI(BasicButtonUI.createUI(this));
+            }
+        });
         _button.setPreferredSize(new Dimension(40, 20));
         _button.addActionListener(this);
         if (getMode().equals("alpha")) {
