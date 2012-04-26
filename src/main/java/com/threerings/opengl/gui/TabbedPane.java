@@ -46,9 +46,6 @@ import static com.threerings.opengl.gui.Log.log;
 public class TabbedPane extends Container
     implements Selectable<Component>
 {
-    @Deprecated
-    public static final String SELECTION_CHANGED = SELECT;
-
     /**
      * Creates a tabbed pane with left justified buttons.
      */
@@ -159,7 +156,7 @@ public class TabbedPane extends Container
 
         // if we have no selected tab, select this one
         if (_selidx == -1) {
-            selectTab(0);
+            setSelectedIndex(0);
         }
     }
 
@@ -235,9 +232,9 @@ public class TabbedPane extends Container
 
             // now display a new tab component
             if (tabidx < _tabs.size()) {
-                selectTab(tabidx);
+                setSelectedIndex(tabidx);
             } else {
-                selectTab(tabidx - 1); // no-op if -1
+                setSelectedIndex(tabidx - 1); // no-op if -1
             }
 
         } else if (_selidx > tabidx) {
@@ -291,30 +288,6 @@ public class TabbedPane extends Container
     public void setSelectedIndex (int index)
     {
         selectTab(index, -1L, 0);
-    }
-
-    @Deprecated
-    public void selectTab (Component tab)
-    {
-        setSelected(tab);
-    }
-
-    @Deprecated
-    public void selectTab (int tabidx)
-    {
-        setSelectedIndex(tabidx);
-    }
-
-    @Deprecated
-    public Component getSelectedTab ()
-    {
-        return getSelected();
-    }
-
-    @Deprecated
-    public int getSelectedTabIndex ()
-    {
-        return getSelectedIndex();
     }
 
     /**

@@ -160,22 +160,10 @@ public class ButtonGroup
         return _buttons.get(idx);
     }
 
-    @Deprecated
-    public void setSelectedButton (ToggleButton button)
-    {
-        setSelected(button);
-    }
-
-    @Deprecated
-    public ToggleButton getSelectedButton ()
-    {
-        return getSelected();
-    }
-
     // from Selectable<ToggleButton>
     public void setSelectedIndex (int idx)
     {
-        setSelectedButton(_buttons.get(idx));
+        setSelected(_buttons.get(idx));
     }
 
     // from Selectable<ToggleButton>

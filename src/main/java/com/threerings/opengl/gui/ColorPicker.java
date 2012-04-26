@@ -141,18 +141,6 @@ public class ColorPicker extends Component
         setSelectedIndex(ListUtil.indexOf(_colors, color));
     }
 
-    @Deprecated
-    public void setSelectedColor (ColorRecord color)
-    {
-        setSelected(color);
-    }
-
-    @Deprecated
-    public ColorRecord getSelectedColor ()
-    {
-        return getSelected();
-    }
-
     // from Selectable<ColorRecord>
     public void setSelectedIndex (int sidx)
     {
@@ -188,7 +176,7 @@ public class ColorPicker extends Component
             }
             if (_sidx != oidx) {
                 emitEvent(new ActionEvent(this, mev.getWhen(), mev.getModifiers(),
-                    SELECT, getSelectedColor()));
+                    SELECT, getSelected()));
             }
             return true;
         }

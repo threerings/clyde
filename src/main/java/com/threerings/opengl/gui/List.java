@@ -145,18 +145,6 @@ public class List extends Container
         _selidx = index;
     }
 
-    @Deprecated
-    public Object getSelectedValue ()
-    {
-        return getSelected();
-    }
-
-    @Deprecated
-    public void setSelectedValue (Object value)
-    {
-        setSelected(value);
-    }
-
     @Override // documentation inherited
     protected String getDefaultStyleConfig ()
     {
@@ -177,7 +165,7 @@ public class List extends Container
             }
             _selidx = _children.indexOf(e.getSource());
             emitEvent(new ActionEvent(List.this, e.getWhen(), e.getModifiers(),
-                SELECT, getSelectedValue()));
+                SELECT, getSelected()));
         }
     };
 }
