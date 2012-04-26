@@ -745,9 +745,6 @@ public class SceneEditor extends TudeyTool
             if (entry instanceof TileEntry) {
                 clearPaint((TileEntry)entry);
                 _layers.setSelectedLayer(0);
-
-            } else if (entry instanceof GlobalEntry) {
-                _layers.setSelectedLayer(0);
             }
         }
         _undoSupport.postEdit(
@@ -1312,8 +1309,7 @@ public class SceneEditor extends TudeyTool
                 _layerSplit.setDividerLocation(_layerDividerPos);
             }
         }
-        boolean forceBase = (tool == _globalEditor) ||
-            (tool == _tileBrush) || (tool == _groundBrush) || (tool == _wallBrush);
+        boolean forceBase = (tool == _tileBrush) || (tool == _groundBrush) || (tool == _wallBrush);
         if (forceBase) {
             _layers.setSelectedLayer(0);
         }

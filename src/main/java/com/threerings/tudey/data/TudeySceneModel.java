@@ -1812,8 +1812,6 @@ public class TudeySceneModel extends SceneModel
         } else {
             Preconditions.checkArgument((key instanceof Integer),
                 "Tiles may only be placed on layer 0");
-            Preconditions.checkArgument(!(getEntry(key) instanceof GlobalEntry),
-                "Globals may only be placed on layer 0");
             _layerMap.put((Integer)key, layer);
         }
         // notify the observers
