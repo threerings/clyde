@@ -42,6 +42,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+
 import com.samskivert.swing.GroupLayout;
 import com.samskivert.util.ArrayUtil;
 import com.samskivert.util.HashIntMap;
@@ -67,12 +70,12 @@ import static com.threerings.tudey.Log.*;
  * The global editor tool.
  */
 public class GlobalEditor extends EditorTool
-    implements ChangeListener, ActionListener
+    implements ChangeListener, ActionListener, TudeySceneModel.LayerObserver
 {
     /**
      * Creates the global editor tool.
      */
-    public GlobalEditor (SceneEditor editor)
+    public GlobalEditor (SceneEditor editor, Layers layers)
     {
         super(editor);
 
@@ -85,6 +88,12 @@ public class GlobalEditor extends EditorTool
         add(xpanel, GroupLayout.FIXED);
         xpanel.add(ToolUtil.createButton(this, _msgs, "import_short"));
         xpanel.add(ToolUtil.createButton(this, _msgs, "export_short"));
+
+        layers.addChangeListener(new ChangeListener() {
+            public void stateChanged (ChangeEvent event) {
+                updateShownGlobals();
+            }
+        });
 
         // create the file chooser
         _chooser = new JFileChooser(_prefs.get("global_export_dir", null));
@@ -105,7 +114,9 @@ public class GlobalEditor extends EditorTool
     {
         // make the entry visible
         int idx = ((EditableGlobals)_epanel.getObject()).getIndex(entry.getId());
-        ((ArrayListEditor)_epanel.getPropertyEditor("globals")).makeVisible(idx);
+        if (idx != -1) {
+            ((ArrayListEditor)_epanel.getPropertyEditor("globals")).makeVisible(idx);
+        }
     }
 
     // documentation inherited from interface ChangeListener
@@ -115,11 +126,15 @@ public class GlobalEditor extends EditorTool
 
         // compare the current state to the stored state
         EditableGlobals editable = (EditableGlobals)_epanel.getObject();
+        Predicate<Entry> layerPredicate = _editor.getLayerPredicate();
         for (Iterator<IntEntry<GlobalEntry>> it = _globals.intEntrySet().iterator();
                 it.hasNext(); ) {
             IntEntry<GlobalEntry> entry = it.next();
             int id = entry.getIntKey();
             GlobalEntry oglobal = entry.getValue();
+            if (!layerPredicate.apply(oglobal)) {
+                continue;
+            }
             GlobalEntry nglobal = editable.getGlobal(id);
             if (nglobal == null) { // removed
                 _ignoreRemove = true;
@@ -188,11 +203,8 @@ public class GlobalEditor extends EditorTool
             }
         }
 
-        // create the (cloned) editable list
-        EditableGlobals editable = new EditableGlobals();
-        editable.globals = _globals.values().toArray(new GlobalEntry[_globals.size()]);
-        QuickSort.sort(editable.globals);
-        _epanel.setObject(editable.clone());
+        // update which ones we show based on the selected layer
+        updateShownGlobals();
     }
 
     @Override // documentation inherited
@@ -204,10 +216,14 @@ public class GlobalEditor extends EditorTool
         GlobalEntry gentry = (GlobalEntry)entry;
         int id = gentry.getId();
         _globals.put(id, gentry);
-        EditableGlobals editable = (EditableGlobals)_epanel.getObject();
-        editable.globals = ArrayUtil.append(editable.globals, (GlobalEntry)entry.clone());
-        QuickSort.sort(editable.globals);
-        _epanel.update();
+
+        // if it's on the current layer, add it
+        if (_editor.getLayerPredicate().apply(entry)) {
+            EditableGlobals editable = (EditableGlobals)_epanel.getObject();
+            editable.globals = ArrayUtil.append(editable.globals, (GlobalEntry)entry.clone());
+            QuickSort.sort(editable.globals);
+            _epanel.update();
+        }
     }
 
     @Override // documentation inherited
@@ -221,12 +237,10 @@ public class GlobalEditor extends EditorTool
         _globals.put(id, entry);
         EditableGlobals editable = (EditableGlobals)_epanel.getObject();
         int idx = editable.getIndex(id);
-        if (idx == -1) {
-            log.warning("Missing global entry to update.", "editable", editable, "entry", entry);
-        } else {
+        if (idx != -1) {
             entry.copy(editable.globals[idx]);
-        }
-        _epanel.update();
+            _epanel.update();
+        } // else: probably a different layer
     }
 
     @Override // documentation inherited
@@ -239,12 +253,35 @@ public class GlobalEditor extends EditorTool
         _globals.remove(id);
         EditableGlobals editable = (EditableGlobals)_epanel.getObject();
         int idx = editable.getIndex(id);
-        if (idx == -1) {
-            log.warning("Missing global entry to remove.", "editable", editable, "id", id);
-        } else {
+        if (idx != -1) {
             editable.globals = ArrayUtil.splice(editable.globals, idx, 1);
+            _epanel.update();
+        } // else: probably a different layer
+    }
+
+    // from TudeySceneModel.LayerObserver
+    public void entryLayerWasSet (Object key, int layer)
+    {
+        if (_ignoreUpdate || _ignoreAdd || _ignoreRemove) {
+            return;
         }
-        _epanel.update();
+
+        if (_globals.containsKey(key)) {
+            updateShownGlobals();
+        }
+    }
+
+    /**
+     * Update the globals being shown on our editor panel (layer-specific).
+     */
+    protected void updateShownGlobals ()
+    {
+        // create the (cloned) editable list
+        EditableGlobals editable = new EditableGlobals();
+        editable.globals = Iterables.toArray(
+            Iterables.filter(_globals.values(), _editor.getLayerPredicate()), GlobalEntry.class);
+        QuickSort.sort(editable.globals);
+        _epanel.setObject(editable.clone());
     }
 
     /**
@@ -276,7 +313,7 @@ public class GlobalEditor extends EditorTool
             File file = _chooser.getSelectedFile();
             try {
                 XMLExporter out = new XMLExporter(new FileOutputStream(file));
-                out.writeObject(((EditableGlobals)_epanel.getObject()).globals);
+                out.writeObject(Iterables.toArray(_globals.values(), GlobalEntry.class));
                 out.close();
             } catch (IOException e) {
                 log.warning("Failed to export globals.", "file", file, e);
@@ -326,7 +363,7 @@ public class GlobalEditor extends EditorTool
     /** The file chooser for importing and exporting global files. */
     protected JFileChooser _chooser;
 
-    /** The current set of globals. */
+    /** The current set of all globals. */
     protected HashIntMap<GlobalEntry> _globals = new HashIntMap<GlobalEntry>();
 
     /** Notes that we should ignore an add/update/remove because we're the one effecting it. */

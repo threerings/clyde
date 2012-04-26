@@ -43,6 +43,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
@@ -79,7 +81,9 @@ public class Layers extends EditorTool
         _table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         _table.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged (ListSelectionEvent event) {
-                _removeLayerAction.setEnabled(getSelectedLayer() != 0);
+                if (!event.getValueIsAdjusting()) {
+                    layerWasSelected(getSelectedLayer());
+                }
             }
         });
         _tableModel.addTableModelListener(new TableModelListener() {
@@ -95,6 +99,24 @@ public class Layers extends EditorTool
             new JButton(_addLayerAction), new JButton(_removeLayerAction),
             new JButton(_mergeVisibleLayersAction)), GroupLayout.FIXED);
         add(new JScrollPane(_table));
+    }
+
+    /**
+     * Add a ChangeListener.
+     *
+     * A ChangeEvent will be emitted whenever a layer is added, removed, or selected.
+     */
+    public void addChangeListener (ChangeListener listener)
+    {
+        listenerList.add(ChangeListener.class, listener);
+    }
+
+    /**
+     * Remove a ChangeListener.
+     */
+    public void removeChangeListener (ChangeListener listener)
+    {
+        listenerList.remove(ChangeListener.class, listener);
     }
 
     /**
@@ -161,6 +183,32 @@ public class Layers extends EditorTool
         setSelectedLayer(0);
     }
 
+    /**
+     * Callback when a layer is selected, by the user or programmatically.
+     */
+    protected void layerWasSelected (int layer)
+    {
+        _removeLayerAction.setEnabled(layer != 0);
+        fireStateChanged();
+    }
+
+    /**
+     * Fire off a ChangeEvent.
+     */
+    protected void fireStateChanged ()
+    {
+        Object[] listeners = listenerList.getListenerList();
+        ChangeEvent event = null;
+        for (int ii = listeners.length - 2; ii >= 0; ii -= 2) {
+            if (listeners[ii] == ChangeListener.class) {
+                if (event == null) {
+                    event = new ChangeEvent(this);
+                }
+                ((ChangeListener)listeners[ii + 1]).stateChanged(event);
+            }
+        }
+    }
+
     protected void mergeVisible ()
     {
         List<Integer> visible = getVisibleLayers();
@@ -178,6 +226,7 @@ public class Layers extends EditorTool
         for (Integer layer : Lists.reverse(visible)) {
             _tableModel.removeLayer(layer);
         }
+        fireStateChanged();
     }
 
     /**

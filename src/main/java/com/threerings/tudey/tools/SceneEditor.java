@@ -373,7 +373,7 @@ public class SceneEditor extends TudeyTool
         addTool(tpanel, tgroup, "placer", _placer = new Placer(this));
         addTool(tpanel, tgroup, "path_definer", _pathDefiner = new PathDefiner(this));
         addTool(tpanel, tgroup, "area_definer", _areaDefiner = new AreaDefiner(this));
-        addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this));
+        addTool(tpanel, tgroup, "global_editor", _globalEditor = new GlobalEditor(this, _layers));
         addTool(tpanel, tgroup, "tile_brush", _tileBrush = new TileBrush(this));
         addTool(tpanel, tgroup, "ground_brush", _groundBrush = new GroundBrush(this));
         addTool(tpanel, tgroup, "wall_brush", _wallBrush = new WallBrush(this));
@@ -386,7 +386,7 @@ public class SceneEditor extends TudeyTool
         _opanel = GroupLayout.makeVStretchBox(5);
 
         // set up the layer tool, which is special and added to the _tools map by hand
-        _tools.put("layers", _layers = new Layers(this));
+        _tools.put("layers", _layers);
 
         _epanel.add(_layerSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, _layers, _opanel));
         _layerSplit.setBorder(BorderFactory.createEmptyBorder());
@@ -1908,7 +1908,7 @@ public class SceneEditor extends TudeyTool
     protected int _layerDividerPos;
 
     /** The layer display tool. */
-    protected Layers _layers;
+    protected Layers _layers = new Layers(this);
 
     /** The active tool. */
     protected EditorTool _activeTool;
