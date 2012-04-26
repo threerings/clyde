@@ -86,6 +86,14 @@ public class Compound extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void setVisible (boolean visible)
+    {
+        for (Model model : _models) {
+            model.setVisible(visible);
+        }
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
         for (Model model : _models) {

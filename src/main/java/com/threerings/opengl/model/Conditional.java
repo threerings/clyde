@@ -80,6 +80,8 @@ public class Conditional extends Model.Implementation
         return _completed;
     }
 
+    // TODO: setVisible?
+
     @Override // documentation inherited
     public void reset ()
     {

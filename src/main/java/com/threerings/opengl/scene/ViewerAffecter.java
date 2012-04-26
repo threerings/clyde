@@ -68,6 +68,20 @@ public class ViewerAffecter extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void setVisible (boolean visible)
+    {
+        if (_visible != visible) {
+            _visible = visible;
+            Scene scene = ((Model)_parentScope).getScene(this);
+            if (visible) {
+                scene.add(_effect);
+            } else {
+                scene.remove(_effect);
+            }
+        }
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
         _effect.reset();
@@ -123,13 +137,17 @@ public class ViewerAffecter extends Model.Implementation
     @Override // documentation inherited
     public void wasAdded ()
     {
-        ((Model)_parentScope).getScene(this).add(_effect);
+        if (_visible) {
+            ((Model)_parentScope).getScene(this).add(_effect);
+        }
     }
 
     @Override // documentation inherited
     public void willBeRemoved ()
     {
-        ((Model)_parentScope).getScene(this).remove(_effect);
+        if (_visible) {
+            ((Model)_parentScope).getScene(this).remove(_effect);
+        }
     }
 
     /**
@@ -139,7 +157,7 @@ public class ViewerAffecter extends Model.Implementation
     {
         // remove the old effect, if any
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (scene != null && _effect != null) {
+        if (_visible && scene != null && _effect != null) {
             scene.remove(_effect);
         }
 
@@ -151,7 +169,7 @@ public class ViewerAffecter extends Model.Implementation
         _effect.getBounds().set(_bounds);
 
         // add to scene if we're in one
-        if (scene != null) {
+        if (_visible && scene != null) {
             scene.add(_effect);
         }
 
@@ -189,4 +207,7 @@ public class ViewerAffecter extends Model.Implementation
 
     /** Holds the bounds of the model when updating. */
     protected Box _nbounds = new Box();
+
+    /** Are we visible? */
+    protected boolean _visible = true;
 }

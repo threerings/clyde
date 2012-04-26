@@ -85,6 +85,22 @@ public class SceneInfluencer extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void setVisible (boolean visible)
+    {
+        if (_visible != visible) {
+            _visible = visible;
+            Scene scene = ((Model)_parentScope).getScene(this);
+            if (scene != null && _influence != null) {
+                if (visible) {
+                    scene.add(_influence);
+                } else {
+                    scene.remove(_influence);
+                }
+            }
+        }
+    }
+
+    @Override // documentation inherited
     public int getInfluenceFlags ()
     {
         return _influenceFlags;
@@ -141,7 +157,7 @@ public class SceneInfluencer extends Model.Implementation
     public void wasAdded ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (scene != null && _influence != null) {
+        if (_visible && scene != null && _influence != null) {
             scene.add(_influence);
         }
     }
@@ -150,7 +166,7 @@ public class SceneInfluencer extends Model.Implementation
     public void willBeRemoved ()
     {
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (scene != null && _influence != null) {
+        if (_visible && scene != null && _influence != null) {
             scene.remove(_influence);
         }
     }
@@ -168,7 +184,7 @@ public class SceneInfluencer extends Model.Implementation
     {
         // remove the old influence, if any
         Scene scene = ((Model)_parentScope).getScene(this);
-        if (scene != null && _influence != null) {
+        if (_visible && scene != null && _influence != null) {
             scene.remove(_influence);
         }
 
@@ -182,7 +198,7 @@ public class SceneInfluencer extends Model.Implementation
         _updaters = updaters.toArray(new Updater[updaters.size()]);
 
         // add to scene if we're in one
-        if (scene != null) {
+        if (_visible && scene != null) {
             scene.add(_influence);
         }
 
@@ -231,4 +247,7 @@ public class SceneInfluencer extends Model.Implementation
 
     /** Holds the bounds of the model when updating. */
     protected Box _nbounds = new Box();
+
+    /** Are we visible? */
+    protected boolean _visible = true;
 }

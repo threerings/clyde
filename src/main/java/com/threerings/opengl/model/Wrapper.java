@@ -101,6 +101,12 @@ public class Wrapper extends Model.Implementation
     }
 
     @Override // documentation inherited
+    public void setVisible (boolean visible)
+    {
+        _impl.setVisible(visible);
+    }
+
+    @Override // documentation inherited
     public void reset ()
     {
         _impl.reset();

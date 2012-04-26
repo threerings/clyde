@@ -164,6 +164,15 @@ public class Model extends DynamicScope
         }
 
         /**
+         * Set this model's visibility.
+         */
+        public void setVisible (boolean visible)
+        {
+            // Model will not composite() us if it is not visible, so typically nothing
+            // is needed here. Certain subclasses need this method, however.
+        }
+
+        /**
          * Resets the state of this model.
          */
         public void reset ()
@@ -511,6 +520,7 @@ public class Model extends DynamicScope
     public void setVisible (boolean visible)
     {
         _visible = visible;
+        _impl.setVisible(visible);
     }
 
     /**
