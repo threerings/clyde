@@ -510,7 +510,16 @@ public class Model extends DynamicScope
      */
     public void setVisible (boolean visible)
     {
-        _visible = visible;
+        if (visible != _visible) {
+            _visible = visible;
+            if (_scene != null) {
+                if (visible) {
+                    _impl.wasAdded();
+                } else {
+                    _impl.willBeRemoved();
+                }
+            }
+        }
     }
 
     /**
@@ -861,13 +870,17 @@ public class Model extends DynamicScope
     public void wasAdded (Scene scene)
     {
         _scene = scene;
-        _impl.wasAdded();
+        if (_visible) {
+            _impl.wasAdded();
+        }
     }
 
     // documentation inherited from interface SceneElement
     public void willBeRemoved ()
     {
-        _impl.willBeRemoved();
+        if (_visible) {
+            _impl.willBeRemoved();
+        }
         _scene = null;
     }
 
