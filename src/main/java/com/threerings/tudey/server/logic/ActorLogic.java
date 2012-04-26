@@ -284,7 +284,7 @@ public class ActorLogic extends Logic
     /**
      * Warps the actor.
      *
-     * @param path the maximum distance for doing a warp and ensure that a path exists.
+     * @param warpPath the maximum distance for doing a warp and ensure that a path exists.
      */
     public final void warp (
             float x, float y, float rotation, float tx, float ty, boolean adjust, int warpPath)

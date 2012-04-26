@@ -28,7 +28,8 @@ package com.threerings.opengl.gui;
 import com.threerings.config.ConfigReference;
 
 import com.threerings.opengl.gui.config.StyleConfig;
-import com.threerings.opengl.util.GlContext;;
+import com.threerings.opengl.gui.text.HTMLView;
+import com.threerings.opengl.util.GlContext;
 
 /**
  * Overrides default values of a component's tooltip.
@@ -37,7 +38,7 @@ public class Tooltip
 {
     /**
      * Configures the tooltip text for this component. If the text starts with &lt;html&gt; then
-     * the tooltip will be displayed with an @{link HTMLView} otherwise it will be displayed with a
+     * the tooltip will be displayed with an {@link HTMLView} otherwise it will be displayed with a
      * {@link Label}.
      */
     public void setText (String text)
@@ -95,7 +96,7 @@ public class Tooltip
 
     /**
      * Creates the component that will be used to display our tooltip. This method will only be
-     * called if {@link #getTooltipText} returns non-null text.
+     * called if {@link Component#getTooltipText} returns non-null text.
      */
     protected Component createComponent (GlContext ctx, String tiptext)
     {
