@@ -196,8 +196,9 @@ public abstract class ScriptLogic extends Logic
          */
         protected boolean finishedMove ()
         {
-            float dist = _finalTarget.getTranslation().distanceSquared(_agent.getTranslation());
-            return dist*dist < getReachRadius();
+            float dist2 = getReachRadius();
+            dist2 *= dist2;
+            return _finalTarget.getTranslation().distanceSquared(_agent.getTranslation()) <= dist2;
         }
 
         /**
