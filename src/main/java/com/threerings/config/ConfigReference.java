@@ -80,6 +80,14 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
         return _arguments;
     }
 
+    /**
+     * Fluent method to get the config.
+     */
+    public T getConfig (ConfigManager cfgMgr, Class<T> token)
+    {
+        return cfgMgr.getConfig(token, this);
+    }
+
     @Override // documentation inherited
     public Object copy (Object dest)
     {
