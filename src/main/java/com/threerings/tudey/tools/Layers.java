@@ -153,7 +153,8 @@ public class Layers extends EditorTool
     /**
      * Get a <b>view</b> of layer visibility.
      *
-     * @return a view of layer visibility, with each
+     * @return a view of layer visibility, with each element corresponding to the layer
+     * at the same index.
      */
     public List<Boolean> getLayerVisibility ()
     {
@@ -161,7 +162,7 @@ public class Layers extends EditorTool
     }
 
     /**
-     * Get a list of the currently visible layers.
+     * Get a new, mutable list of the currently visible layer indexes.
      */
     public List<Integer> getVisibleLayers ()
     {
@@ -209,6 +210,9 @@ public class Layers extends EditorTool
         }
     }
 
+    /**
+     * Merge the currently visible layers.
+     */
     protected void mergeVisible ()
     {
         List<Integer> visible = getVisibleLayers();
