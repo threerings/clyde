@@ -786,7 +786,7 @@ public abstract class BehaviorLogic extends Logic
          */
         public void setCurrentStep (int step, int timestamp)
         {
-            _currentStep = Math.min(_steps.length, 0);
+            _currentStep = Math.min(_steps.length, step);
             _steps[_currentStep].start(timestamp);
         }
 
