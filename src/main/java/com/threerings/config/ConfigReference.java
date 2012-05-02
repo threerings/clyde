@@ -124,6 +124,13 @@ public class ConfigReference<T extends ManagedConfig> extends DeepObject
         return "[name=" + _name + ", arguments=" + _arguments + "]";
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public ConfigReference<T> clone ()
+    {
+        return (ConfigReference<T>)super.clone();
+    }
+
     /** The name of the referenced configuration. */
     @Intern
     protected String _name;
