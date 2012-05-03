@@ -512,10 +512,22 @@ public class SceneEditor extends TudeyTool
      */
     public Predicate<Entry> getLayerPredicate ()
     {
-        final int layer = _layers.getSelectedLayer();
         return new Predicate<Entry>() {
             public boolean apply (Entry entry) {
-                return (layer == _scene.getLayer(entry.getKey()));
+                return (_layers.getSelectedLayer() == _scene.getLayer(entry.getKey()));
+            }
+        };
+    }
+
+    /**
+     * Returns a Predicate that selects entries on any visible layer.
+     */
+    public Predicate<Entry> getVisiblePredicate ()
+    {
+        final List<Boolean> vis = _layers.getLayerVisibility(); // returns an ever-changing view
+        return new Predicate<Entry>() {
+            public boolean apply (Entry entry) {
+                return vis.get(_scene.getLayer(entry.getKey()));
             }
         };
     }

@@ -313,7 +313,9 @@ public class GlobalEditor extends EditorTool
             File file = _chooser.getSelectedFile();
             try {
                 XMLExporter out = new XMLExporter(new FileOutputStream(file));
-                out.writeObject(Iterables.toArray(_globals.values(), GlobalEntry.class));
+                out.writeObject(Iterables.toArray(
+                    Iterables.filter(_globals.values(), _editor.getVisiblePredicate()),
+                    GlobalEntry.class));
                 out.close();
             } catch (IOException e) {
                 log.warning("Failed to export globals.", "file", file, e);
