@@ -158,6 +158,28 @@ public class LabelRenderer
     }
 
     /**
+     * Configures the line fade time if you want the text to fade in.
+     */
+    public void setLineFadeTime (int lineFadeTime)
+    {
+        _lineFadeTime = lineFadeTime;
+        if (_config != null) {
+            _config.glyphs.lineFadeTime = lineFadeTime;
+            _config.glyphs.elapsed = 0;
+        }
+    }
+
+    /**
+     * Tick the renderer.
+     */
+    public void tick (int elapsed)
+    {
+        if (_config != null) {
+            _config.glyphs.elapsed += elapsed;
+        }
+    }
+
+    /**
      * Computes the preferred size of the label.
      */
     public Dimension computePreferredSize (int whint, int hhint)
@@ -409,6 +431,7 @@ public class LabelRenderer
         // render up some new text
         TextFactory tfact = _container.getTextFactory(this);
         Glyphs glyphs = new Glyphs();
+        glyphs.lineFadeTime = _lineFadeTime;
         glyphs.lines = tfact.wrapText(
             _value, config.color, config.effect, config.effectSize, config.effectColor, twidth);
         for (int ii = 0; ii < glyphs.lines.length; ii++) {
@@ -539,6 +562,8 @@ public class LabelRenderer
     {
         public Text[] lines;
         public Dimension size = new Dimension();
+        public int lineFadeTime;
+        public int elapsed;
 
         public int getWidth (int rotation)
         {
@@ -560,7 +585,16 @@ public class LabelRenderer
                 } else if (halign == CENTER) {
                     lx += (size.width - lines[ii].getSize().width)/2;
                 }
-                lines[ii].render(renderer, lx, ty, alpha);
+                float a = alpha;
+                if (lineFadeTime > 0) {
+                    int start = ii * lineFadeTime / 2;
+                    if (start < elapsed) {
+                        a *= Math.min(1f, (float)(elapsed - start) / lineFadeTime);
+                    } else {
+                        a = 0f;
+                    }
+                }
+                lines[ii].render(renderer, lx, ty, a);
                 ty += lines[ii].getSize().height + (ii > 0 ? spacing : 0);
             }
         }
@@ -607,6 +641,8 @@ public class LabelRenderer
     protected Dimension _prefsize;
 
     protected int _prefWidth = -1;
+
+    protected int _lineFadeTime = 0;
 
     protected Rectangle _srect = new Rectangle();
 }

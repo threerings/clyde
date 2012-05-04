@@ -60,7 +60,7 @@ import com.threerings.opengl.util.GlContext;
     ComponentConfig.Button.class, ComponentConfig.ChatOverlay.class,
     ComponentConfig.CheckBox.class, ComponentConfig.ColorPicker.class,
     ComponentConfig.ComboBox.class, ComponentConfig.Container.class,
-    ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
+    ComponentConfig.FadeLabel.class, ComponentConfig.HTMLView.class, ComponentConfig.Label.class,
     ComponentConfig.List.class, ComponentConfig.PasswordField.class,
     ComponentConfig.RenderableView.class, ComponentConfig.ScrollBar.class,
     ComponentConfig.ScrollPane.class, ComponentConfig.Slider.class,
@@ -180,6 +180,31 @@ public abstract class ComponentConfig extends DeepObject
         {
             return (getClass(comp) == com.threerings.opengl.gui.StatusLabel.class) ?
                 comp : new com.threerings.opengl.gui.StatusLabel(ctx);
+        }
+    }
+
+    /**
+     * A fade label.
+     */
+    public static class FadeLabel extends Label
+    {
+        /** The label's line fade time. */
+        @Editable(min=0)
+        public int lineFadeTime;
+
+        @Override // documentation inherited
+        protected void configure (GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            super.configure(ctx, scope, msgs, comp);
+            ((com.threerings.opengl.gui.FadeLabel)comp).setLineFadeTime(lineFadeTime);
+        }
+
+        @Override // documentation inherited
+        protected Component maybeRecreate (
+            GlContext ctx, Scope scope, MessageBundle msgs, Component comp)
+        {
+            return (getClass(comp) == com.threerings.opengl.gui.FadeLabel.class) ?
+                comp : new com.threerings.opengl.gui.FadeLabel(ctx, 0);
         }
     }
 
