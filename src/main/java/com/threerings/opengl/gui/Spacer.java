@@ -27,8 +27,6 @@ package com.threerings.opengl.gui;
 
 import com.threerings.opengl.util.GlContext;
 
-import com.threerings.opengl.gui.util.Dimension;
-
 /**
  * Takes up space!
  */
@@ -49,6 +47,6 @@ public class Spacer extends Component
     public Spacer (GlContext ctx, int prefWidth, int prefHeight)
     {
         super(ctx);
-        setPreferredSize(new Dimension(prefWidth, prefHeight));
+        setPreferredSize(prefWidth, prefHeight);
     }
 }
