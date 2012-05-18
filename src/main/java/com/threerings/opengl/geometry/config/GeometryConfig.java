@@ -242,6 +242,9 @@ public abstract class GeometryConfig extends DeepObject
          */
         public Geometry createStaticGeometry (GlContext ctx, Scope scope, PassDescriptor[] passes)
         {
+            if (getVertexCount() == 0) {
+                return Geometry.EMPTY;
+            }
             final Matrix4f[] boneMatrices = getBoneMatrices(scope);
             final CoordSpace[] coordSpaces = getCoordSpaces(passes);
             final Vector3f center = bounds.getCenter();
