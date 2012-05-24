@@ -119,10 +119,19 @@ public class FontConfig extends ManagedConfig
         @Editable
         public boolean antialias = true;
 
+        /** A base style for the font. */
+        @Editable
+        public Style baseStyle = Style.PLAIN;
+
+        /** A descent modifier as percentage of height. */
+        @Editable(min=-1, step=0.01)
+        public float descentModifier = 0f;
+
         @Override // documentation inherited
         public TextFactory getTextFactory (GlContext ctx, int style, int size)
         {
-            return CharacterTextFactory.getInstance(getFont(ctx, style, size), antialias);
+            return CharacterTextFactory.getInstance(
+                    getFont(ctx, style, size), antialias, descentModifier);
         }
 
         @Override // documentation inherited
@@ -158,6 +167,7 @@ public class FontConfig extends ManagedConfig
         protected Font createFont (GlContext ctx, int style, int size)
         {
             if (style != Font.PLAIN || size != 1) {
+                style |= baseStyle.getFlags();
                 return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size);
             }
             if (file != null) {

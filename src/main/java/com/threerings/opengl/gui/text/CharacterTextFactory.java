@@ -45,7 +45,6 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntTuple;
-import com.samskivert.util.Tuple;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -66,12 +65,14 @@ public class CharacterTextFactory extends TextFactory
     /**
      * Returns a shared factory instance.
      */
-    public static CharacterTextFactory getInstance (Font font, boolean antialias)
+    public static CharacterTextFactory getInstance (
+            Font font, boolean antialias, float descentModifier)
     {
-        Tuple<Font, Boolean> key = new Tuple<Font, Boolean>(font, antialias);
+        FacKey key = new FacKey(font, antialias, descentModifier);
         CharacterTextFactory factory = _instances.get(key);
         if (factory == null) {
-            _instances.put(key, factory = new CharacterTextFactory(font, antialias));
+            _instances.put(
+                    key, factory = new CharacterTextFactory(font, antialias, descentModifier));
         }
         return factory;
     }
@@ -79,7 +80,7 @@ public class CharacterTextFactory extends TextFactory
     /**
      * Creates a character text factory with the supplied font.
      */
-    public CharacterTextFactory (Font font, boolean antialias)
+    public CharacterTextFactory (Font font, boolean antialias, float descentModifier)
     {
         _font = font;
 
@@ -87,6 +88,7 @@ public class CharacterTextFactory extends TextFactory
         _scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         _graphics = _scratch.createGraphics();
         _metrics = _graphics.getFontMetrics(font);
+        _descentOffset = Math.round(_metrics.getHeight() * descentModifier);
 
         // create a test glyph to determine the size
         FontRenderContext ctx = _graphics.getFontRenderContext();
@@ -173,7 +175,7 @@ public class CharacterTextFactory extends TextFactory
             }
             public void render (Renderer renderer, int x, int y, float alpha) {
                 // add the descent above the baseline
-                y += _metrics.getDescent();
+                y += _metrics.getDescent() + _descentOffset;
 
                 // multi-pixel outlines go below the character
                 if (outlines != null && effectSize > 1) {
@@ -470,6 +472,23 @@ public class CharacterTextFactory extends TextFactory
         protected int _height;
     }
 
+    /**
+     * The key for identifying text factories.
+     */
+    protected static class FacKey
+    {
+        public Font font;
+        public boolean antialias;
+        public float descentModifier;
+
+        public FacKey (Font font, boolean antialias, float descentModifier)
+        {
+            this.font = font;
+            this.antialias = antialias;
+            this.descentModifier = descentModifier;
+        }
+    }
+
     /** The font being rendered by this factory. */
     protected Font _font;
 
@@ -486,9 +505,11 @@ public class CharacterTextFactory extends TextFactory
     /** The glyph texture currently being populated. */
     protected GlyphTexture _texture;
 
+    /** The offset for the descent value. */
+    protected int _descentOffset;
+
     /** Shared instances. */
-    protected static HashMap<Tuple<Font, Boolean>, CharacterTextFactory> _instances =
-        Maps.newHashMap();
+    protected static HashMap<FacKey, CharacterTextFactory> _instances = Maps.newHashMap();
 
     /** The width/height of the glyph textures. */
     protected static final int TEXTURE_SIZE = 256;
