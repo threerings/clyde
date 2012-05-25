@@ -285,7 +285,7 @@ public class CharacterTextFactory extends TextFactory
      */
     protected IntTuple getBreakSpan (StringBuilder buf)
     {
-        for (int ii = buf.length() - 1; ii > 0; ii--) {
+        for (int ii = buf.length() - 2; ii > 0; ii--) {
             char c = buf.charAt(ii);
             if (Character.isWhitespace(c)) {
                 for (int jj = ii - 1; jj >= 0; jj--) {
@@ -295,11 +295,19 @@ public class CharacterTextFactory extends TextFactory
                 }
                 return null; // no non-whitespace before whitespace
 
-            } else if (('-' == c) && (!Character.isWhitespace(buf.charAt(ii - 1)))) {
+            } else if (isBreakChar(c) && (!Character.isWhitespace(buf.charAt(ii - 1)))) {
                 return new IntTuple(ii + 1, ii + 1);
             }
         }
         return null; // no whitespace
+    }
+
+    /**
+     * Returns true if the character is a valid break character.
+     */
+    protected boolean isBreakChar (char c)
+    {
+        return '-' == c || (c >= 0x4E00 && c <= 0x9FFF);
     }
 
     /**
