@@ -92,7 +92,7 @@ public class TextBillboard extends SimpleSceneElement
         Font font, boolean antialias, String text, Color4f color,
         int effect, int effectSize, Color4f effectColor)
     {
-        setText(CharacterTextFactory.getInstance(font, antialias).createText(
+        setText(CharacterTextFactory.getInstance(font, antialias, 0f).createText(
             text, color, effect, effectSize, effectColor, true));
     }
 

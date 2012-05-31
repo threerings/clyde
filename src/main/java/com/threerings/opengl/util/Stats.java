@@ -47,7 +47,7 @@ public class Stats extends SimpleOverlay
 
         // create the label (empty for now)
         _textFactory = CharacterTextFactory.getInstance(
-            new Font("Dialog", Font.PLAIN, 12), true);
+            new Font("Dialog", Font.PLAIN, 12), true, 0f);
         _stats = _textFactory.createText("", Color4f.WHITE, 0, 0, Color4f.BLACK, true);
     }
 
