@@ -179,6 +179,24 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         {
             return Box.EMPTY; // not used
         }
+
+        @Override // documentation inherited
+        public Geometry createGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
+        {
+            Particle[] particles =
+                ScopeUtil.resolve(scope, "particles", (Particle[])null, Particle[].class);
+            if (particles == null || particles.length == 0) {
+                return Geometry.EMPTY;
+            }
+            return createParticleGeometry(ctx, scope, deformer, passes);
+        }
+
+        /**
+         * Our internal create geometry system.
+         */
+        protected abstract Geometry createParticleGeometry (
+            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes);
     }
 
     /**
@@ -193,7 +211,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (
+        protected Geometry createParticleGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             return new ParticleGeometry.Points(ctx, scope, passes);
@@ -235,7 +253,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (
+        protected Geometry createParticleGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             return (segments > 0) ?
@@ -279,14 +297,9 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (
+        protected Geometry createParticleGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
-            Particle[] particles =
-                ScopeUtil.resolve(scope, "particles", (Particle[])null, Particle[].class);
-            if (particles == null || particles.length == 0) {
-                return Geometry.EMPTY;
-            }
             return (segments > 0) ?
                 new ParticleGeometry.QuadTrails(ctx, scope, passes, segments) :
                 new ParticleGeometry.Quads(ctx, scope, passes);
@@ -316,7 +329,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        public Geometry createGeometry (
+        protected Geometry createParticleGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             return ParticleGeometry.Meshes.create(ctx, scope, passes, getParticleGeometry(ctx));
