@@ -35,14 +35,12 @@ import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
 import com.threerings.expr.Scope;
-import com.threerings.expr.util.ScopeUtil;
 import com.threerings.math.Box;
 import com.threerings.probs.FloatFunctionVariable;
 import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.effect.FloatFunction;
-import com.threerings.opengl.effect.Particle;
 import com.threerings.opengl.effect.ParticleGeometry;
 import com.threerings.opengl.effect.ParticleSystem;
 import com.threerings.opengl.geometry.Geometry;
@@ -179,24 +177,6 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         {
             return Box.EMPTY; // not used
         }
-
-        @Override // documentation inherited
-        public Geometry createGeometry (
-            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
-        {
-            Particle[] particles =
-                ScopeUtil.resolve(scope, "particles", (Particle[])null, Particle[].class);
-            if (particles == null || particles.length == 0) {
-                return Geometry.EMPTY;
-            }
-            return createParticleGeometry(ctx, scope, deformer, passes);
-        }
-
-        /**
-         * Our internal create geometry system.
-         */
-        protected abstract Geometry createParticleGeometry (
-            GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes);
     }
 
     /**
@@ -211,7 +191,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        protected Geometry createParticleGeometry (
+        public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             return new ParticleGeometry.Points(ctx, scope, passes);
@@ -253,7 +233,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        protected Geometry createParticleGeometry (
+        public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             return (segments > 0) ?
@@ -297,7 +277,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        protected Geometry createParticleGeometry (
+        public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             return (segments > 0) ?
@@ -329,7 +309,7 @@ public class ParticleSystemConfig extends BaseParticleSystemConfig
         }
 
         @Override // documentation inherited
-        protected Geometry createParticleGeometry (
+        public Geometry createGeometry (
             GlContext ctx, Scope scope, DeformerConfig deformer, PassDescriptor[] passes)
         {
             return ParticleGeometry.Meshes.create(ctx, scope, passes, getParticleGeometry(ctx));
