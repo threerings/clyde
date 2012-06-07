@@ -33,7 +33,10 @@ import java.util.HashSet;
 import com.samskivert.util.IntTuple;
 import com.threerings.config.ManagedConfig;
 import com.threerings.editor.Editable;
+import com.threerings.editor.EditorTypes;
 import com.threerings.editor.FileConstraints;
+import com.threerings.export.Exportable;
+import com.threerings.util.DeepObject;
 import com.threerings.util.DeepOmit;
 
 import com.threerings.opengl.gui.text.CharacterTextFactory;
@@ -43,7 +46,7 @@ import com.threerings.opengl.util.GlContext;
 import static com.threerings.opengl.gui.Log.*;
 
 /**
- * Describes a cursor.
+ * Describes a font.
  */
 public class FontConfig extends ManagedConfig
 {
@@ -82,17 +85,110 @@ public class FontConfig extends ManagedConfig
         protected int _flags;
     }
 
-    /** The font file. */
-    @Editable(editor="resource", nullable=true)
-    @FileConstraints(
-        description="m.font_files_desc",
-        extensions={".ttf"},
-        directory="font_dir")
-    public String file;
+    @EditorTypes({ FontConfig.Default.class })
+    public static abstract class Implementation extends DeepObject
+        implements Exportable
+    {
+        /**
+         * Returns the text factory for this font with the specified style and point size.
+         */
+        public abstract TextFactory getTextFactory (GlContext ctx, int style, int size);
 
-    /** Whether or not the font should be antialiased. */
+        /**
+         * Invalidate stored cache.
+         */
+        public abstract void invalidate();
+
+        /**
+         * Add resources to monitor.
+         */
+        public abstract void getUpdateResources (HashSet<String> paths);
+    }
+
+    public static class Default extends Implementation
+    {
+        /** The font file. */
+        @Editable(editor="resource", nullable=true)
+        @FileConstraints(
+            description="m.font_files_desc",
+            extensions={".ttf", ".ttc"},
+            directory="font_dir")
+        public String file;
+
+        /** Whether or not the font should be antialiased. */
+        @Editable
+        public boolean antialias = true;
+
+        /** A base style for the font. */
+        @Editable
+        public Style baseStyle = Style.PLAIN;
+
+        /** A descent modifier as percentage of height. */
+        @Editable(min=-1, step=0.01)
+        public float descentModifier = 0f;
+
+        @Override // documentation inherited
+        public TextFactory getTextFactory (GlContext ctx, int style, int size)
+        {
+            return CharacterTextFactory.getInstance(
+                    getFont(ctx, style, size), antialias, descentModifier);
+        }
+
+        @Override // documentation inherited
+        public void invalidate()
+        {
+            _fonts.clear();
+        }
+
+        @Override // documentation inherited
+        public void getUpdateResources (HashSet<String> paths)
+        {
+            if (file != null) {
+                paths.add(file);
+            }
+        }
+
+        /**
+         * Returns the cached font with the specified style and size.
+         */
+        protected Font getFont (GlContext ctx, int style, int size)
+        {
+            IntTuple key = new IntTuple(style, size);
+            Font font = _fonts.get(key);
+            if (font == null) {
+                _fonts.put(key, font = createFont(ctx, style, size));
+            }
+            return font;
+        }
+
+        /**
+         * Creates the font with the specified style and size.
+         */
+        protected Font createFont (GlContext ctx, int style, int size)
+        {
+            if (style != Font.PLAIN || size != 1) {
+                style |= baseStyle.getFlags();
+                return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size);
+            }
+            if (file != null) {
+                try {
+                    return Font.createFont(
+                        Font.TRUETYPE_FONT, ctx.getResourceManager().getResource(file));
+                } catch (Exception e) { // FontFormatException, IOException
+                    log.warning("Failed to load font file.", "file", file, e);
+                }
+            }
+            return new Font("Dialog", Font.PLAIN, 1);
+        }
+
+        /** Cached font instances. */
+        @DeepOmit
+        protected transient HashMap<IntTuple, Font> _fonts = new HashMap<IntTuple, Font>();
+    }
+
+    /** The actual font implementation. */
     @Editable
-    public boolean antialias = true;
+    public Implementation implementation = new Default();
 
     /**
      * Returns the text factory for this font with the specified style and point size.
@@ -107,58 +203,20 @@ public class FontConfig extends ManagedConfig
      */
     public TextFactory getTextFactory (GlContext ctx, int style, int size)
     {
-        return CharacterTextFactory.getInstance(getFont(ctx, style, size), antialias);
+        return implementation.getTextFactory(ctx, style, size);
     }
 
     @Override // documentation inherited
     protected void fireConfigUpdated ()
     {
         // invalidate
-        _fonts.clear();
+        implementation.invalidate();
         super.fireConfigUpdated();
     }
 
     @Override // documentation inherited
     protected void getUpdateResources (HashSet<String> paths)
     {
-        if (file != null) {
-            paths.add(file);
-        }
+        implementation.getUpdateResources(paths);
     }
-
-    /**
-     * Returns the cached font with the specified style and size.
-     */
-    protected Font getFont (GlContext ctx, int style, int size)
-    {
-        IntTuple key = new IntTuple(style, size);
-        Font font = _fonts.get(key);
-        if (font == null) {
-            _fonts.put(key, font = createFont(ctx, style, size));
-        }
-        return font;
-    }
-
-    /**
-     * Creates the font with the specified style and size.
-     */
-    protected Font createFont (GlContext ctx, int style, int size)
-    {
-        if (style != Font.PLAIN || size != 1) {
-            return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size);
-        }
-        if (file != null) {
-            try {
-                return Font.createFont(
-                    Font.TRUETYPE_FONT, ctx.getResourceManager().getResource(file));
-            } catch (Exception e) { // FontFormatException, IOException
-                log.warning("Failed to load font file.", "file", file, e);
-            }
-        }
-        return new Font("Dialog", Font.PLAIN, 1);
-    }
-
-    /** Cached font instances. */
-    @DeepOmit
-    protected transient HashMap<IntTuple, Font> _fonts = new HashMap<IntTuple, Font>();
 }

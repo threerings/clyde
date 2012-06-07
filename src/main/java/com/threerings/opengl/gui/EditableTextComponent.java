@@ -217,16 +217,11 @@ public abstract class EditableTextComponent extends TextComponent
                 int cmd = _keymap.lookupMapping(modifiers, kev.getKeyCode());
                 switch (cmd) {
                 case KeyMap.NO_MAPPING:
-                    char c = kev.getKeyChar();
                     // if otherwise unprocessed, insert printable and shifted/alted printable chars
                     // (the ctrl+alt combination is AltGr, used on international keyboards)
                     if ((modifiers & ~(KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) == 0 ||
                             modifiers == (KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)) {
-                        c = insertChar(c);
-                        if (c != 0) {
-                            replaceSelectedText(String.valueOf(c),
-                                Character.isLetterOrDigit(c) ?
-                                    CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
+                        if (insertChar(kev.getKeyChar())) {
                             return true;
                         }
                     }
@@ -241,6 +236,10 @@ public abstract class EditableTextComponent extends TextComponent
                         return true;
                     }
                     break;
+                }
+            } else if (kev.getKeyCode() == 0 && kev.getKeyChar() != 0) {
+                if (insertChar(kev.getKeyChar())) {
+                    return true;
                 }
             }
 
@@ -299,21 +298,23 @@ public abstract class EditableTextComponent extends TextComponent
     }
 
     /**
-     * Given the provided character, return the character to insert, or 0 to nix the insertion.
+     * Attempt to insert the provided character, return true if successful.
      */
-    protected char insertChar (char c)
+    protected boolean insertChar (char c)
     {
+        if (!Character.isDefined(c) || Character.isISOControl(c) || c == 0) {
+            return false;
+        }
         switch (c) {
         case '\n':
         case '\r':
-            return '\n';
-
-        default:
-            if (!Character.isDefined(c) || Character.isISOControl(c)) {
-                return 0;
-            }
-            return c;
+            c = '\n';
+            break;
         }
+        replaceSelectedText(String.valueOf(c),
+            Character.isLetterOrDigit(c) ?
+                CompoundType.WORD_CHAR : CompoundType.NONWORD_CHAR);
+        return true;
     }
 
     /**

@@ -877,15 +877,18 @@ public abstract class Root extends SimpleOverlay
     protected boolean dispatchKeyEvent (Component target, KeyEvent event)
     {
         // keep track of keys pressed
-        if (event.getType() == KeyEvent.KEY_PRESSED) {
-            int keyCode = event.getKeyCode();
-            if (_pressedKeys.containsKey(keyCode)) {
-                return false; // we're already repeating the key
-            }
-            _pressedKeys.put(keyCode, new KeyRecord(event));
 
-        } else { // event.getType() == KeyEvent.KEY_RELEASED
-            _pressedKeys.remove(event.getKeyCode());
+        int keyCode = event.getKeyCode();
+        if (keyCode != 0) {
+            if (event.getType() == KeyEvent.KEY_PRESSED) {
+                if (_pressedKeys.containsKey(keyCode)) {
+                    return false; // we're already repeating the key
+                }
+                _pressedKeys.put(keyCode, new KeyRecord(event));
+
+            } else { // event.getType() == KeyEvent.KEY_RELEASED
+                _pressedKeys.remove(event.getKeyCode());
+            }
         }
         return dispatchEvent(target, event);
     }

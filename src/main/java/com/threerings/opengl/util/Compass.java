@@ -51,7 +51,7 @@ public class Compass extends SimpleOverlay
 
         // create the axis labels
         CharacterTextFactory factory = CharacterTextFactory.getInstance(
-            new Font("Dialog", Font.PLAIN, 12), true);
+            new Font("Dialog", Font.PLAIN, 12), true, 0f);
         _x = factory.createText("x", new Color4f(0.75f, 0f, 0f, 1f));
         _y = factory.createText("y", new Color4f(0f, 0.75f, 0f, 1f));
         _z = factory.createText("z", Color4f.BLUE);
