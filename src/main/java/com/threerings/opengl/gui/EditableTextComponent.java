@@ -302,14 +302,12 @@ public abstract class EditableTextComponent extends TextComponent
      */
     protected boolean insertChar (char c)
     {
-        if (!Character.isDefined(c) || Character.isISOControl(c) || c == 0) {
-            return false;
-        }
-        switch (c) {
-        case '\n':
-        case '\r':
+        if (c == '\r') {
             c = '\n';
-            break;
+
+        } else if ((c != '\n') &&
+                (!Character.isDefined(c) || Character.isISOControl(c))) {
+            return false;
         }
         replaceSelectedText(String.valueOf(c),
             Character.isLetterOrDigit(c) ?
