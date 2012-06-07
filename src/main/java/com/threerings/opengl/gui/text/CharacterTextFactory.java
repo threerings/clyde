@@ -45,6 +45,7 @@ import com.google.common.collect.Maps;
 
 import com.samskivert.util.HashIntMap;
 import com.samskivert.util.IntTuple;
+import com.samskivert.util.Triple;
 
 import com.threerings.opengl.renderer.Color4f;
 import com.threerings.opengl.renderer.Renderer;
@@ -68,7 +69,7 @@ public class CharacterTextFactory extends TextFactory
     public static CharacterTextFactory getInstance (
             Font font, boolean antialias, float descentModifier)
     {
-        FacKey key = new FacKey(font, antialias, descentModifier);
+        Triple<Font, Boolean, Float> key = Triple.newTriple(font, antialias, descentModifier);
         CharacterTextFactory factory = _instances.get(key);
         if (factory == null) {
             _instances.put(
@@ -480,23 +481,6 @@ public class CharacterTextFactory extends TextFactory
         protected int _height;
     }
 
-    /**
-     * The key for identifying text factories.
-     */
-    protected static class FacKey
-    {
-        public Font font;
-        public boolean antialias;
-        public float descentModifier;
-
-        public FacKey (Font font, boolean antialias, float descentModifier)
-        {
-            this.font = font;
-            this.antialias = antialias;
-            this.descentModifier = descentModifier;
-        }
-    }
-
     /** The font being rendered by this factory. */
     protected Font _font;
 
@@ -517,7 +501,8 @@ public class CharacterTextFactory extends TextFactory
     protected int _descentOffset;
 
     /** Shared instances. */
-    protected static HashMap<FacKey, CharacterTextFactory> _instances = Maps.newHashMap();
+    protected static HashMap<Triple<Font, Boolean, Float>, CharacterTextFactory> _instances =
+        Maps.newHashMap();
 
     /** The width/height of the glyph textures. */
     protected static final int TEXTURE_SIZE = 256;
