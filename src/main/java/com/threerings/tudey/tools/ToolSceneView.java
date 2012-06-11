@@ -58,4 +58,8 @@ public class ToolSceneView extends TudeySceneView
     /** Whether or not sound is enabled. */
     @Scoped
     protected boolean _soundEnabled = true;
+
+    /** Whether or not camera transitions are enabled. */
+    @Scoped
+    protected boolean _cameraEnabled = true;
 }

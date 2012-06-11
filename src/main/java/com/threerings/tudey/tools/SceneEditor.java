@@ -353,6 +353,8 @@ public class SceneEditor extends TudeyTool
         _fog.setSelected(!_fogEnabled);
         _toolbar.add(_sound = createToggleButton("sound"), GroupLayout.FIXED);
         _sound.setSelected(!_soundEnabled);
+        _toolbar.add(_camera = createToggleButton("camera"), GroupLayout.FIXED);
+        _camera.setSelected(!_cameraEnabled);
         _toolbar.add(new Spacer(1, 1));
         _toolbar.add(createIconButton("raise_grid"), GroupLayout.FIXED);
         _toolbar.add(createIconButton("lower_grid"), GroupLayout.FIXED);
@@ -1074,6 +1076,9 @@ public class SceneEditor extends TudeyTool
             wasUpdated();
         } else if (action.equals("sound")) {
             _prefs.putBoolean("soundEnabled", _soundEnabled = !_sound.isSelected());
+            wasUpdated();
+        } else if (action.equals("camera")) {
+            _prefs.putBoolean("cameraEnabled", _cameraEnabled = !_camera.isSelected());
             wasUpdated();
         } else if (action.equals("batch_validate")) {
             new BatchValidateDialog(this, _frame, _prefs) {
@@ -1869,7 +1874,7 @@ public class SceneEditor extends TudeyTool
     protected JToolBar _toolbar;
 
     /** Toggle buttons. */
-    protected JToggleButton _markers, _light, _fog, _sound;
+    protected JToggleButton _markers, _light, _fog, _sound, _camera;
 
     /** The panel that holds the editor bits. */
     protected JPanel _epanel;
@@ -1952,6 +1957,10 @@ public class SceneEditor extends TudeyTool
     /** Whether or not sound is enabled. */
     @Scoped
     protected boolean _soundEnabled = _prefs.getBoolean("soundEnabled", true);
+
+    /** Whether or not camera is enabled. */
+    @Scoped
+    protected boolean _cameraEnabled = _prefs.getBoolean("cameraEnabled", true);
 
     /** A casted reference to the editor grid. */
     protected EditorGrid _grid;

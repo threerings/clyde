@@ -66,7 +66,7 @@ public abstract class TudeyViewerEffectConfig extends ViewerEffectConfig
         {
             final TudeySceneView view = ScopeUtil.resolve(
                 scope, "view:this", null, TudeySceneView.class);
-            if (view == null) {
+            if (view == null || !ScopeUtil.resolve(scope, "cameraEnabled", true)) {
                 return getNoopEffect(effect);
             }
             class CameraEffect extends ViewerEffect {
