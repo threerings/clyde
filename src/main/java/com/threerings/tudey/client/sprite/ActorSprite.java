@@ -1504,7 +1504,7 @@ public class ActorSprite extends Sprite
             ConfigReference<ModelConfig> ref, boolean rotate, float zoffset)
     {
         return spawnOffsetTransientModel(
-                ref, rotate, offset != 0f ? new Vector3f(0f, 0f, zoffset) : Vector3f.ZERO);
+                ref, rotate, zoffset != 0f ? new Vector3f(0f, 0f, zoffset) : Vector3f.ZERO);
     }
 
     /**
