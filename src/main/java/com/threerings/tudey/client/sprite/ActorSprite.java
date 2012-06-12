@@ -46,6 +46,7 @@ import com.threerings.math.FloatMath;
 import com.threerings.math.Quaternion;
 import com.threerings.math.Transform3D;
 import com.threerings.math.Vector2f;
+import com.threerings.math.Vector3f;
 
 import com.threerings.opengl.gui.Component;
 import com.threerings.opengl.gui.event.Event;
@@ -1500,15 +1501,25 @@ public class ActorSprite extends Sprite
      * @param rotate if true, match the rotation as well as the translation of the sprite.
      */
     public Model spawnOffsetTransientModel (
-            ConfigReference<ModelConfig> ref, boolean rotate, float offset)
+            ConfigReference<ModelConfig> ref, boolean rotate, float zoffset)
+    {
+        return spawnOffsetTransientModel(
+                ref, rotate, offset != 0f ? new Vector3f(0f, 0f, zoffset) : Vector3f.ZERO);
+    }
+
+    /**
+     * Spawns a transient model at an offset of the location of this sprite.
+     *
+     * @param rotate if true, match the rotation as well as the translation of the sprite.
+     */
+    public Model spawnOffsetTransientModel (
+            ConfigReference<ModelConfig> ref, boolean rotate, Vector3f offset)
     {
         if (ref != null) {
             Transform3D mxform = _model.getLocalTransform();
             Transform3D txform = new Transform3D(Transform3D.UNIFORM);
             mxform.extractTranslation(txform.getTranslation());
-            if (offset != 0) {
-                txform.getTranslation().z += offset;
-            }
+            txform.getTranslation().addLocal(offset);
             if (rotate) {
                 mxform.extractRotation(txform.getRotation());
             }
