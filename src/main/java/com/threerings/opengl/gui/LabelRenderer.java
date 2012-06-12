@@ -162,11 +162,8 @@ public class LabelRenderer
      */
     public void setLineFadeTime (int lineFadeTime)
     {
-        _lineFadeTime = lineFadeTime;
-        if (_config != null) {
-            _config.glyphs.lineFadeTime = lineFadeTime;
-            _config.glyphs.elapsed = 0;
-        }
+        _fade.lineFadeTime = lineFadeTime;
+        _fade.elapsed = 0;
     }
 
     /**
@@ -174,9 +171,7 @@ public class LabelRenderer
      */
     public void tick (int elapsed)
     {
-        if (_config != null) {
-            _config.glyphs.elapsed += elapsed;
-        }
+        _fade.elapsed += elapsed;
     }
 
     /**
@@ -431,7 +426,7 @@ public class LabelRenderer
         // render up some new text
         TextFactory tfact = _container.getTextFactory(this);
         Glyphs glyphs = new Glyphs();
-        glyphs.lineFadeTime = _lineFadeTime;
+        glyphs.fade = _fade;
         glyphs.lines = tfact.wrapText(
             _value, config.color, config.effect, config.effectSize, config.effectColor, twidth);
         for (int ii = 0; ii < glyphs.lines.length; ii++) {
@@ -562,8 +557,7 @@ public class LabelRenderer
     {
         public Text[] lines;
         public Dimension size = new Dimension();
-        public int lineFadeTime;
-        public int elapsed;
+        public Fade fade;
 
         public int getWidth (int rotation)
         {
@@ -586,10 +580,10 @@ public class LabelRenderer
                     lx += (size.width - lines[ii].getSize().width)/2;
                 }
                 float a = alpha;
-                if (lineFadeTime > 0) {
-                    int start = ii * lineFadeTime / 2;
-                    if (start < elapsed) {
-                        a *= Math.min(1f, (float)(elapsed - start) / lineFadeTime);
+                if (fade.lineFadeTime > 0) {
+                    int start = ii * fade.lineFadeTime / 2;
+                    if (start < fade.elapsed) {
+                        a *= Math.min(1f, (float)(fade.elapsed - start) / fade.lineFadeTime);
                     } else {
                         a = 0f;
                     }
@@ -623,6 +617,12 @@ public class LabelRenderer
         }
     }
 
+    protected static class Fade
+    {
+        public int lineFadeTime;
+        public int elapsed;
+    }
+
     protected TextComponent _container;
     protected String _value;
 
@@ -642,7 +642,7 @@ public class LabelRenderer
 
     protected int _prefWidth = -1;
 
-    protected int _lineFadeTime = 0;
+    protected Fade _fade = new Fade();
 
     protected Rectangle _srect = new Rectangle();
 }
