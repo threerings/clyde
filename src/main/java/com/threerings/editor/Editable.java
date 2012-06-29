@@ -102,4 +102,7 @@ public @interface Editable
 
     /** Specify if the property should be collapsible (for those that aren't automatically). */
     boolean collapsible () default false;
+
+    /** Specify if the property should not actually be editable. */
+    boolean constant () default false;
 }

@@ -88,11 +88,13 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             GroupLayout.NONE, GroupLayout.TOP, GroupLayout.STRETCH));
         _panels.setBackground(null);
 
-        JPanel bpanel = new JPanel();
-        bpanel.setBackground(null);
-        _content.add(bpanel);
-        bpanel.add(_add = new JButton(getActionLabel("new")));
-        _add.addActionListener(this);
+        if (!_property.getAnnotation().constant()) {
+            JPanel bpanel = new JPanel();
+            bpanel.setBackground(null);
+            _content.add(bpanel);
+            bpanel.add(_add = new JButton(getActionLabel("new")));
+            _add.addActionListener(this);
+        }
     }
 
     @Override // documentation inherited
@@ -185,12 +187,14 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
             tcont.add(expand);
             tcont.add(_highlight = createButton(_highlightIcon));
             _highlight.addActionListener(this);
-            tcont.add(_raise = createButton(_raiseIcon));
-            _raise.addActionListener(this);
-            tcont.add(_lower = createButton(_lowerIcon));
-            _lower.addActionListener(this);
-            tcont.add(_delete = createButton(_deleteIcon));
-            _delete.addActionListener(this);
+            if (!_property.getAnnotation().constant()) {
+                tcont.add(_raise = createButton(_raiseIcon));
+                _raise.addActionListener(this);
+                tcont.add(_lower = createButton(_lowerIcon));
+                _lower.addActionListener(this);
+                tcont.add(_delete = createButton(_deleteIcon));
+                _delete.addActionListener(this);
+            }
 
             // initialize
             _title = BorderFactory.createTitledBorder("");
@@ -226,9 +230,11 @@ public abstract class PanelArrayListEditor extends ArrayListEditor
         {
             int idx = getIndex();
             int count = _panels.getComponentCount();
-            _raise.setEnabled(idx > 0);
-            _lower.setEnabled(idx < count - 1);
-            _delete.setEnabled(count > _min);
+            if (_raise != null) {
+                _raise.setEnabled(idx > 0);
+                _lower.setEnabled(idx < count - 1);
+                _delete.setEnabled(count > _min);
+            }
             updateBorder();
         }
 
