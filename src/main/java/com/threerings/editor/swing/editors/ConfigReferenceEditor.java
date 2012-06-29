@@ -140,6 +140,12 @@ public class ConfigReferenceEditor extends PropertyEditor
     @Override // documentation inherited
     protected void didInit ()
     {
+        if (_property.getAnnotation().constant()) {
+            add(new JLabel(getPropertyLabel() + ":"));
+            add(_name = new JLabel(" "));
+            return;
+        }
+
         makeCollapsible(_ctx, getPropertyLabel(), false);
 
         JPanel cpanel = new JPanel();
@@ -184,6 +190,11 @@ public class ConfigReferenceEditor extends PropertyEditor
         if (_listenee != null) {
             _listenee.removeListener(this);
             _listenee = null;
+        }
+
+        if (_property.getAnnotation().constant()) {
+            _name.setText(value == null ? _msgs.get("m.null_value") : value.getName());
+            return;
         }
 
         // update the button states
@@ -295,6 +306,9 @@ public class ConfigReferenceEditor extends PropertyEditor
 
     /** Holds the argument panels. */
     protected JPanel _arguments;
+
+    /** The label for a constant config. */
+    protected JLabel _name;
 
     /** The config chooser. */
     protected ConfigChooser _chooser;
