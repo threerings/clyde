@@ -72,13 +72,6 @@ public class DConfigManager
         return _cfgobj;
     }
 
-    @Deprecated
-    public void updateConfigs (
-        int cloid, ConfigEntry[] add, ConfigEntry[] update, ConfigKey[] remove)
-    {
-        updateConfigs(cloid, Arrays.asList(add), Arrays.asList(update), Arrays.asList(remove));
-    }
-
     /**
      * Performs a set of updates without checking if the identified client has the proper access.
      */
