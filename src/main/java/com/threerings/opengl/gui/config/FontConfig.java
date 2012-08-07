@@ -124,8 +124,12 @@ public class FontConfig extends ManagedConfig
         public Style baseStyle = Style.PLAIN;
 
         /** A descent modifier as percentage of height. */
-        @Editable(min=-1, step=0.01)
+        @Editable(min=-1, step=0.01, hgroup="m")
         public float descentModifier = 0f;
+
+        /** A size modifier. */
+        @Editable(hgroup="m")
+        public int sizeModifier = 0;
 
         @Override // documentation inherited
         public TextFactory getTextFactory (GlContext ctx, int style, int size)
@@ -168,7 +172,7 @@ public class FontConfig extends ManagedConfig
         {
             if (style != Font.PLAIN || size != 1) {
                 style |= baseStyle.getFlags();
-                return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size);
+                return getFont(ctx, Font.PLAIN, 1).deriveFont(style, size + sizeModifier);
             }
             if (file != null) {
                 try {
