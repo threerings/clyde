@@ -447,7 +447,8 @@ public abstract class Shape
                     eprime = sprime;
                     dj = jj;
                 } else if (FloatMath.epsilonEquals(odot, dot)) {
-                    if (dj == (jj + 1) % mm) {
+                    Vector2f perp2 = new Vector2f(B[jj].y - sprime.y, sprime.x - B[jj].x);
+                    if (perp.dot(perp2) < 0) {
                         sprime = B[jj];
                     } else {
                         eprime = B[jj];
