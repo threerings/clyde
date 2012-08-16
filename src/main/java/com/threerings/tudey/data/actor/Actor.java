@@ -366,9 +366,7 @@ public class Actor extends DeepObject
         // we handle base class fields "manually" for performance reasons, since they get called
         // often and the reflective implementation is comparatively slow
         Actor result = (Actor)super.copy(dest);
-        @SuppressWarnings("unchecked") ConfigReference<ActorConfig> config =
-            (ConfigReference<ActorConfig>)_config.copy(result._config);
-        result._config = config;
+        result._config = _config.clone();
         result._id = _id;
         result._created = _created;
         result._destroyed = _destroyed;
