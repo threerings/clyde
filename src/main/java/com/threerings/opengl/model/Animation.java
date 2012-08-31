@@ -918,6 +918,7 @@ public class Animation extends SimpleScope
     public void start ()
     {
         resetEpoch();
+        _lastTickTimestamp = ScopeUtil.resolveTimestamp(this, Scope.NOW).value;
         _impl.start();
     }
 
@@ -981,11 +982,20 @@ public class Animation extends SimpleScope
 
     /**
      * Updates this animation based on the elapsed time in seconds.
+     * NOTE: This is DIFFERENT from the typical tickable interface!
+     * In our case, true = 'done animating', false = 'still animating'.
+     * (Default tickable, true = 'keep ticking', false = 'stop ticking'.)
      *
      * @return true if the animation has completed.
      */
     public boolean tick (float elapsed)
     {
+        // Since we may have been taken off the tickable queue, elapsed is invalid.
+        // Fix elapsed based on our own internal timestamping.
+        long nnow = ScopeUtil.resolveTimestamp(this, Scope.NOW).value;
+        elapsed = (nnow - _lastTickTimestamp) / 1000f;
+        _lastTickTimestamp = nnow;
+
         return _impl.tick(elapsed);
     }
 
@@ -1110,9 +1120,7 @@ public class Animation extends SimpleScope
      */
     protected void resetEpoch ()
     {
-        MutableLong now = ScopeUtil.resolve(
-            this, Scope.NOW, new MutableLong(System.currentTimeMillis()));
-        _epoch.value = now.value;
+        _epoch.value = ScopeUtil.resolveTimestamp(this, Scope.NOW).value;
     }
 
     /**
@@ -1245,6 +1253,9 @@ public class Animation extends SimpleScope
 
     /** The lazily-initialized list of animation observers. */
     protected ObserverList<AnimationObserver> _observers;
+
+    /** The last timestamp for our tick. */
+    protected long _lastTickTimestamp;
 
     /** A container for the animation epoch. */
     @Scoped

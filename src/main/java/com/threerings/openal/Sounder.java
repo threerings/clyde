@@ -1523,11 +1523,17 @@ public class Sounder extends SimpleScope
 
     /** The container for the current time. */
     @Bound
-    protected MutableLong _now = new MutableLong(System.currentTimeMillis());
+    protected MutableLong _now;
 
     /** A container for the sound epoch. */
     @Scoped
-    protected MutableLong _epoch = new MutableLong(System.currentTimeMillis());
+    protected MutableLong _epoch;
+
+    { // Initialize now/epoch against the same value.
+        long now = System.currentTimeMillis();
+        _now = new MutableLong(now);
+        _epoch = new MutableLong(now);
+    }
 
     /** Whether or not the sound has been started. */
     @Scoped

@@ -185,12 +185,15 @@ public class DynamicScope
     // documentation inherited from interface Scope
     public void addListener (ScopeUpdateListener listener)
     {
-        if (_listeners == null) {
-            // we disable duplicate checking for performance; don't fuck up
-            _listeners = WeakObserverList.newFastUnsafe();
-            _listeners.setCheckDuplicates(false);
-        }
+        checkCreateListeners();
         _listeners.add(listener);
+    }
+
+    // documentation inherited from interface Scope
+    public void addListener (int index, ScopeUpdateListener listener)
+    {
+        checkCreateListeners();
+        _listeners.add(index, listener);
     }
 
     // documentation inherited from interface Scope
@@ -209,6 +212,16 @@ public class DynamicScope
     {
         ScopeUtil.updateBound(_owner, _parentScope);
         wasUpdated();
+    }
+
+    protected void checkCreateListeners ()
+    {
+        if (_listeners == null) {
+            // we disable duplicate checking for performance; don't fuck up
+            // NOTE: This FORCES us to evaluate in reverse order.
+            _listeners = WeakObserverList.newFastUnsafe();
+            _listeners.setCheckDuplicates(false);
+        }
     }
 
     /** The owner of this scope. */

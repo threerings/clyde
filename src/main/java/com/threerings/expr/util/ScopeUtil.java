@@ -200,6 +200,17 @@ public class ScopeUtil
     }
 
     /**
+     * Attempts to resolve a timestamp.
+     */
+    public static MutableLong resolveTimestamp (Scope scope, String name)
+    {
+        MutableLong res = resolve(scope, name, null, MutableLong.class);
+        res = (res != null) ? res : new MutableLong(System.currentTimeMillis());
+
+        return res;
+    }
+
+    /**
      * Attempts to resolve the identified symbol in the given scope.  If not found there,
      * searches the parent of that scope, and so on.
      *

@@ -176,9 +176,8 @@ public abstract class FloatExpression extends DeepObject
         {
             String name = this.scope.trim();
             name = (name.length() > 0) ? (name + ":" + Scope.EPOCH) : Scope.EPOCH;
-            MutableLong defvalue = new MutableLong(System.currentTimeMillis());
-            final MutableLong epoch = ScopeUtil.resolve(scope, name, defvalue);
-            final MutableLong now = ScopeUtil.resolve(scope, Scope.NOW, defvalue);
+            final MutableLong epoch = ScopeUtil.resolveTimestamp(scope, name);
+            final MutableLong now = ScopeUtil.resolveTimestamp(scope, Scope.NOW);
             return new Evaluator() {
                 public float evaluate () {
                     return (now.value - epoch.value) / 1000f;

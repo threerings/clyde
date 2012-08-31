@@ -39,6 +39,7 @@ import com.threerings.config.ConfigUpdateListener;
 import com.threerings.expr.DynamicScope;
 import com.threerings.expr.MutableLong;
 import com.threerings.expr.Scope;
+import com.threerings.expr.ScopeUpdateListener;
 import com.threerings.expr.Scoped;
 import com.threerings.expr.SimpleScope;
 import com.threerings.expr.util.ScopeUtil;
@@ -75,9 +76,23 @@ import static com.threerings.opengl.Log.*;
 public class Model extends DynamicScope
     implements SceneElement, ConfigUpdateListener<ModelConfig>
 {
+    @Override
+    public void addListener (ScopeUpdateListener listener)
+    {
+        if (listener instanceof Animation.Procedural) {
+            // NOTE: This relies on the fact that DynamicScope will run
+            // through its listeners in reverse order, thereby making
+            // this the last operation run. This is important because
+            // procedural animations have a reliance on their parents'
+            // timestamps being updated prior to their own.
+            super.addListener(0, listener);
+        } else {
+            super.addListener(listener);
+        }
+    }
     /**
-     * The actual model implementation.
-     */
+    * The actual model implementation.
+    */
     public static abstract class Implementation extends SimpleScope
         implements Tickable, Intersectable, Compositable
     {
@@ -1060,9 +1075,7 @@ public class Model extends DynamicScope
      */
     protected void resetEpoch ()
     {
-        MutableLong now = ScopeUtil.resolve(
-            this, Scope.NOW, new MutableLong(System.currentTimeMillis()));
-        _epoch.value = now.value;
+        _epoch.value = ScopeUtil.resolveTimestamp(this, Scope.NOW).value;
     }
 
     /**

@@ -326,10 +326,8 @@ public abstract class ViewerEffectConfig extends DeepObject
             if (lightState == null || lightState.getLights() == null) {
                 return getNoopEffect(effect);
             }
-            final MutableLong epoch = ScopeUtil.resolve(
-                scope, "epoch", new MutableLong(System.currentTimeMillis()));
-            final MutableLong now = ScopeUtil.resolve(
-                scope, "now", new MutableLong(System.currentTimeMillis()));
+            final MutableLong epoch = ScopeUtil.resolveTimestamp(scope, Scope.EPOCH);
+            final MutableLong now = ScopeUtil.resolveTimestamp(scope, Scope.NOW);
             final Transform3D transform = ScopeUtil.resolve(
                 scope, "worldTransform", new Transform3D());
             final Evaluator<Color4f> evaluator = amount.createEvaluator(scope);
