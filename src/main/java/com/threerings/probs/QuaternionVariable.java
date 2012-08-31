@@ -25,6 +25,8 @@
 
 package com.threerings.probs;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -42,7 +44,7 @@ import com.threerings.math.Vector3f;
     QuaternionVariable.Uniform.class, QuaternionVariable.Random.class },
     label="distribution")
 public abstract class QuaternionVariable extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Always return the identity value.

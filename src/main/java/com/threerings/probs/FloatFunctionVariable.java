@@ -25,6 +25,8 @@
 
 package com.threerings.probs;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -44,7 +46,7 @@ import com.threerings.opengl.effect.FloatFunction;
     FloatFunctionVariable.VariableThreePoint.class,
     FloatFunctionVariable.VariableMultipoint.class }, label="mode")
 public abstract class FloatFunctionVariable extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Simply returns the same function.
@@ -225,7 +227,7 @@ public abstract class FloatFunctionVariable extends DeepObject
          * A single point to blend between.
          */
         public static class Point extends DeepObject
-            implements Exportable
+            implements Exportable, Streamable
         {
             /** The value of the point. */
             @Editable(

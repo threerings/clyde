@@ -25,6 +25,8 @@
 
 package com.threerings.probs;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.export.Exportable;
 import com.threerings.util.DeepObject;
@@ -35,7 +37,7 @@ import com.threerings.math.FloatMath;
  * A boolean random variable.
  */
 public class BooleanVariable extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /** The probability that this variable is true. */
     @Editable(min=0.0, max=1.0, step=0.01)

@@ -25,6 +25,8 @@
 
 package com.threerings.probs;
 
+import com.threerings.io.Streamable;
+
 import com.threerings.editor.Editable;
 import com.threerings.editor.EditorTypes;
 import com.threerings.export.Exportable;
@@ -41,7 +43,7 @@ import com.threerings.math.FloatMath;
     FloatVariable.Normal.class,
     FloatVariable.Exponential.class }, label="distribution")
 public abstract class FloatVariable extends DeepObject
-    implements Exportable
+    implements Exportable, Streamable
 {
     /**
      * Always returns the same value.
