@@ -205,9 +205,9 @@ public class ScopeUtil
     public static MutableLong resolveTimestamp (Scope scope, String name)
     {
         MutableLong res = resolve(scope, name, null, MutableLong.class);
-        res = (res != null) ? res : new MutableLong(System.currentTimeMillis());
-
-        return res;
+        return (res != null)
+            ? res
+            : new MutableLong(System.currentTimeMillis());
     }
 
     /**
