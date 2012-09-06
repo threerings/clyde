@@ -993,8 +993,15 @@ public class Animation extends SimpleScope
         // Since we may have been taken off the tickable queue, elapsed is invalid.
         // Fix elapsed based on our own internal timestamping.
         long nnow = ScopeUtil.resolveTimestamp(this, Scope.NOW).value;
-        elapsed = (nnow - _lastTickTimestamp) / 1000f;
+        float telapsed = (nnow - _lastTickTimestamp) / 1000f;
         _lastTickTimestamp = nnow;
+
+        // NOTE: Measuring the timestamp here is actually off by one
+        // (Since elapsed measures things at the end of the frame). Because of this,
+        // the potential for quirks due to animations finishing too quickly arose.
+        // We fix this by buffering the measured time here to match the elapsed time.
+        elapsed = _lastElapsed;
+        _lastElapsed = telapsed;
 
         return _impl.tick(elapsed);
     }
@@ -1256,6 +1263,9 @@ public class Animation extends SimpleScope
 
     /** The last timestamp for our tick. */
     protected long _lastTickTimestamp;
+
+    /** The last measured elapsed time, to buffer our measurements. */
+    protected float _lastElapsed;
 
     /** A container for the animation epoch. */
     @Scoped
