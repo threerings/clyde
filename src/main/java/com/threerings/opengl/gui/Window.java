@@ -219,6 +219,18 @@ public class Window extends Container
         return _parentWindow;
     }
 
+    /**
+     * Return a new ActionListener that will dismiss this window upon any action.
+     */
+    public ActionListener dismissListener ()
+    {
+        return new ActionListener() {
+            public void actionPerformed (ActionEvent event) {
+                dismiss();
+            }
+        };
+    }
+
     @Override // documentation inherited
     protected String getDefaultStyleConfig ()
     {
@@ -268,18 +280,6 @@ public class Window extends Container
             _root.setFocus(_savedFocus);
             _savedFocus = null;
         }
-    }
-
-    /**
-     * Return a new ActionListener that will dismiss this window upon any action.
-     */
-    protected ActionListener dismissListener ()
-    {
-        return new ActionListener() {
-            public void actionPerformed (ActionEvent event) {
-                dismiss();
-            }
-        };
     }
 
     /** The root node that connects us into the JME system. */
