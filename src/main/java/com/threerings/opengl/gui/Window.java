@@ -27,6 +27,8 @@ package com.threerings.opengl.gui;
 
 import com.threerings.opengl.util.GlContext;
 
+import com.threerings.opengl.gui.event.ActionEvent;
+import com.threerings.opengl.gui.event.ActionListener;
 import com.threerings.opengl.gui.layout.LayoutManager;
 import com.threerings.opengl.gui.util.Dimension;
 
@@ -266,6 +268,18 @@ public class Window extends Container
             _root.setFocus(_savedFocus);
             _savedFocus = null;
         }
+    }
+
+    /**
+     * Return a new ActionListener that will dismiss this window upon any action.
+     */
+    protected ActionListener dismissListener ()
+    {
+        return new ActionListener() {
+            public void actionPerformed (ActionEvent event) {
+                dismiss();
+            }
+        };
     }
 
     /** The root node that connects us into the JME system. */
