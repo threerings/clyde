@@ -26,7 +26,9 @@
 package com.threerings.tudey.client.sprite;
 
 import java.util.List;
+import java.util.Map;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import com.samskivert.util.IntMap;
 import com.samskivert.util.IntMaps;
@@ -324,8 +326,10 @@ public class ActorSprite extends Sprite
             _initZ = true;
             mtrans.promote(Transform3D.UNIFORM);
             _model.updateBounds();
-            for (int ii = 1, nn = _attachedModels.size(); ii < nn; ii++) {
-                updateAttachedTransform(_attachedModels.get(ii), mtrans);
+            for (Map.Entry<Model, Boolean> entry : _attachedModels.entrySet()) {
+                if (entry.getValue()) {
+                    updateAttachedTransform(entry.getKey(), mtrans);
+                }
             }
         }
 
@@ -386,7 +390,7 @@ public class ActorSprite extends Sprite
 
         /** Other models attached to this sprite. */
         @Bound
-        protected List<Model> _attachedModels;
+        protected Map<Model, Boolean> _attachedModels;
     }
 
     /**
@@ -968,8 +972,8 @@ public class ActorSprite extends Sprite
         // create the model and the shape
         _model = new Model(ctx);
         _model.setUserObject(this);
-        _attachedModels = Lists.newArrayList();
-        _attachedModels.add(_model);
+        _attachedModels = Maps.newHashMap();
+        _attachedModels.put(_model, false);
         _shape = new ShapeElement(_actor.getOriginal().shape);
         _shape.setUserObject(this);
 
@@ -1027,7 +1031,7 @@ public class ActorSprite extends Sprite
     /**
      * Returns a reference to all the sprites models.
      */
-    public List<Model> getModels ()
+    public Map<Model, Boolean> getModels ()
     {
         return _attachedModels;
     }
@@ -1058,18 +1062,20 @@ public class ActorSprite extends Sprite
         Transform3D transform = model.getLocalTransform();
         transform.setScale(baseScale * getAttachedScale());
         transform.promote(Transform3D.UNIFORM);
-        attachModel(model);
+        attachModel(model, true);
     }
 
     /**
      * Attaches a model to this sprite.
      */
-    public void attachModel (Model model)
+    public void attachModel (Model model, boolean transform)
     {
-        if (!(_attachedModels.contains(model) || _disposed)) {
-            _attachedModels.add(model);
+        if (!(_attachedModels.containsKey(model) || _disposed)) {
+            _attachedModels.put(model, transform);
             if (_impl != null && _attachedVisible) {
-                updateAttachedTransform(model, _model.getLocalTransform());
+                if (transform) {
+                    updateAttachedTransform(model, _model.getLocalTransform());
+                }
                 _view.getScene().add(model);
             }
         }
@@ -1080,7 +1086,7 @@ public class ActorSprite extends Sprite
      */
     public void detachModel (Model model)
     {
-        if (model == _model) {
+        if (model == _model || model == null) {
             return;
         }
         if (_attachedModels.remove(model) && _impl != null && _attachedVisible) {
@@ -1095,12 +1101,15 @@ public class ActorSprite extends Sprite
     {
         if (_attachedVisible != visible) {
             _attachedVisible = visible;
-            for (Model model : _attachedModels) {
+            for (Map.Entry<Model, Boolean> entry : _attachedModels.entrySet()) {
+                Model model = entry.getKey();
                 if (model == _model) {
                     continue;
                 }
                 if (_attachedVisible) {
-                    updateAttachedTransform(model, _model.getLocalTransform());
+                    if (entry.getValue()) {
+                        updateAttachedTransform(model, _model.getLocalTransform());
+                    }
                     _view.getScene().add(model);
                 } else {
                     _view.getScene().remove(model);
@@ -1245,7 +1254,7 @@ public class ActorSprite extends Sprite
         // handle pre-creation state
         if (_impl == null) {
             if (isCreated()) {
-                for (Model attached : _attachedModels) {
+                for (Model attached : _attachedModels.keySet()) {
                     if (_attachedVisible || attached == _model) {
                         _view.getScene().add(attached);
                     }
@@ -1362,7 +1371,7 @@ public class ActorSprite extends Sprite
         if (_config != null) {
             _config.removeListener(this);
         }
-        for (Model attached : _attachedModels) {
+        for (Model attached : _attachedModels.keySet()) {
             if (_attachedVisible || _model == attached) {
                 _view.getScene().remove(attached);
             }
@@ -1568,9 +1577,10 @@ public class ActorSprite extends Sprite
     @Scoped
     protected Model _model;
 
-    /** Models attached to this sprite (including the primary model). */
+    /** Models attached to this sprite (including the primary model), and if their transforms
+     * are automatically updated. */
     @Scoped
-    protected List<Model> _attachedModels;
+    protected Map<Model, Boolean> _attachedModels;
 
     /** If attached models are visible. */
     protected boolean _attachedVisible = true;
