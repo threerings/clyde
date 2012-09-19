@@ -327,8 +327,9 @@ public class ActorSprite extends Sprite
             mtrans.promote(Transform3D.UNIFORM);
             _model.updateBounds();
             for (Map.Entry<Model, Boolean> entry : _attachedModels.entrySet()) {
-                if (entry.getValue()) {
-                    updateAttachedTransform(entry.getKey(), mtrans);
+                Model model = entry.getKey();
+                if ((model != _model) && entry.getValue()) {
+                    updateAttachedTransform(model, mtrans);
                 }
             }
         }
@@ -973,7 +974,7 @@ public class ActorSprite extends Sprite
         _model = new Model(ctx);
         _model.setUserObject(this);
         _attachedModels = Maps.newHashMap();
-        _attachedModels.put(_model, false);
+        _attachedModels.put(_model, true);
         _shape = new ShapeElement(_actor.getOriginal().shape);
         _shape.setUserObject(this);
 
